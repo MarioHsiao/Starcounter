@@ -14,15 +14,6 @@ using Starcounter.Advanced;
 namespace Starcounter
 {
     /// <summary>
-    /// Delegate UriCallback
-    /// </summary>
-    /// <param name="info">The info.</param>
-    /// <returns>Boolean.</returns>
-    public delegate Boolean UriCallback(
-        HttpRequest info
-    );
-
-    /// <summary>
     /// Struct PortHandlerParams
     /// </summary>
     public struct PortHandlerParams
@@ -88,17 +79,17 @@ namespace Starcounter
         /// Maximum size of BMX header in the beginning of the chunk
         /// after which the gateway data can be placed.
         /// </summary>
-        const Int32 BMX_HEADER_MAX_SIZE_BYTES = 24;
+        const Int32 BMX_HEADER_MAX_SIZE_BYTES = 32;
 
         /// <summary>
         /// Offset in bytes for HttpRequest structure.
         /// </summary>
-        const Int32 SOCKET_DATA_HTTP_REQUEST_OFFSET = 224;
+        const Int32 SOCKET_DATA_OFFSET_HTTP_REQUEST = 232;
 
         /// <summary>
         /// Number of chunks offset in gateway.
         /// </summary>
-        const Int32 SOCKET_DATA_NUM_CHUNKS_OFFSET = 84;
+        const Int32 SOCKET_DATA_OFFSET_NUM_CHUNKS = 84;
 
         /// <summary>
         /// Shared memory chunk size.
@@ -121,7 +112,7 @@ namespace Starcounter
         /// <summary>
         /// The uri_handlers_
         /// </summary>
-        private static UriCallback[] uri_handlers_;
+        private static UserHandlerCodegen.UriCallbackDelegate[] uri_handlers_;
 
         /// <summary>
         /// The port_outer_handler_
@@ -143,7 +134,7 @@ namespace Starcounter
 		{
             port_handlers_ = new PortCallback[MAX_HANDLERS];
             subport_handlers_ = new SubportCallback[MAX_HANDLERS];
-            uri_handlers_ = new UriCallback[MAX_HANDLERS];
+            uri_handlers_ = new UserHandlerCodegen.UriCallbackDelegate[MAX_HANDLERS];
 
             port_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(PortOuterHandler);
             subport_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(SubportOuterHandler);
@@ -257,7 +248,7 @@ namespace Starcounter
             //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
             // Fetching the callback.
-            UriCallback user_callback = uri_handlers_[task_info->handler_id];
+            UserHandlerCodegen.UriCallbackDelegate user_callback = uri_handlers_[task_info->handler_id];
             if (user_callback == null)
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
 
@@ -270,7 +261,7 @@ namespace Starcounter
             // Checking if we need to process linked chunks.
             if (!is_single_chunk)
             {
-                UInt32 num_chunks = *(UInt32*)(raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CHUNKS_OFFSET);
+                UInt32 num_chunks = *(UInt32*)(raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_NUM_CHUNKS);
 
                 Byte[] plain_chunks_data = new Byte[num_chunks * SM_CHUNK_SIZE];
 
@@ -290,7 +281,7 @@ namespace Starcounter
                         raw_chunk,
                         is_single_chunk,
                         task_info->chunk_index,
-                        p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET,
+                        p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_HTTP_REQUEST,
                         p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES,
                         data_stream);
 
@@ -305,7 +296,7 @@ namespace Starcounter
                     raw_chunk,
                     is_single_chunk,
                     task_info->chunk_index,
-                    raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_HTTP_REQUEST_OFFSET,
+                    raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_HTTP_REQUEST,
                     raw_chunk + BMX_HEADER_MAX_SIZE_BYTES,
                     data_stream);
 
@@ -385,7 +376,7 @@ namespace Starcounter
             UInt16 port,
             String uri_string,
             //HTTP_METHODS http_method,
-            UriCallback uriCallback,
+            UserHandlerCodegen.UriCallbackDelegate uriCallback,
             out UInt16 handlerId)
         {
             UInt16 handler_id;
@@ -400,6 +391,51 @@ namespace Starcounter
                 UInt32 errorCode = bmx.sc_bmx_register_uri_handler(port, uri_string, (Byte)/*http_method*/HTTP_METHODS.OTHER_METHOD, uri_outer_handler_, &handler_id);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode);
+
+                uri_handlers_[handler_id] = uriCallback;
+                handlerId = handler_id;
+            }
+        }
+
+        /// <summary>
+        /// Registers the URI handler.
+        /// </summary>
+        /// <param name="port">The port.</param>
+        /// <param name="uri_string">The uri_string.</param>
+        /// <param name="uriCallback">The URI callback.</param>
+        /// <param name="handlerId">The handler id.</param>
+        public static void RegisterUriHandlerNew(
+            UInt16 port,
+            String uriInfo,
+            Byte[] paramTypes,
+            UserHandlerCodegen.UriCallbackDelegate uriCallback,
+            out UInt16 handlerId)
+        {
+            UInt16 handler_id;
+            Byte numParams = 0;
+            if (null != paramTypes)
+                numParams = (Byte)paramTypes.Length;
+
+            // Ensuring correct multi-threading handlers creation.
+            lock (port_handlers_)
+            {
+                unsafe
+                {
+                    fixed (Byte* pp = paramTypes)
+                    {
+                        UInt32 errorCode = bmx.sc_bmx_register_uri_handler_new(
+                            port,
+                            uriInfo,
+                            (Byte)/*http_method*/HTTP_METHODS.OTHER_METHOD,
+                            pp,
+                            numParams,
+                            uri_outer_handler_,
+                            &handler_id);
+
+                        if (errorCode != 0)
+                            throw ErrorCode.ToException(errorCode);
+                    }
+                }
 
                 uri_handlers_[handler_id] = uriCallback;
                 handlerId = handler_id;

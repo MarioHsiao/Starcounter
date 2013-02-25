@@ -17,7 +17,7 @@ uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
         return err_code;
 
     // Filling the chunk.
-    smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
+    smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
 
     response_chunk_part *response = smc->get_response_chunk();
     response->reset_offset();
@@ -47,7 +47,7 @@ uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
         return err_code;
 
     // Filling the chunk.
-    smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
+    smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
 
     response_chunk_part *resp_chunk = smc->get_response_chunk();
     resp_chunk->reset_offset();
@@ -77,13 +77,43 @@ uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
         return err_code;
 
     // Filling the chunk.
-    smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
+    smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
 
     response_chunk_part *resp_chunk = smc->get_response_chunk();
     resp_chunk->reset_offset();
 
     // Writing handler information into chunk.
     if (!WriteRegisteredUriHandler(resp_chunk))
+        return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
+
+    // Terminating last chunk.
+    smc->terminate_link();
+
+    // Sending prepared chunk to client.
+    err_code = cm_send_to_client(chunk_index);
+
+    return err_code;
+}
+
+// Pushes registered URI handler.
+uint32_t HandlersList::PushRegisteredUriHandlerNew(BmxData* bmx_data)
+{
+    starcounter::core::chunk_index chunk_index;
+    shared_memory_chunk* smc;
+
+    // If have a channel to push on: Lets send the registration immediately.
+    uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
+    if (err_code)
+        return err_code;
+
+    // Filling the chunk.
+    smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
+
+    response_chunk_part *resp_chunk = smc->get_response_chunk();
+    resp_chunk->reset_offset();
+
+    // Writing handler information into chunk.
+    if (!WriteRegisteredUriHandlerNew(resp_chunk))
         return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
 
     // Terminating last chunk.
@@ -105,9 +135,11 @@ uint32_t BmxData::RegisterPortHandler(
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
 
+    unique_handler_num_++;
+
     uint32_t err_code = 0;
 
-    BMX_HANDLER_TYPE i, empty_slot = max_num_entries_;
+    BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
 
     // Running throw existing handlers.
     for (i = 0; i < max_num_entries_; i++)
@@ -141,7 +173,17 @@ uint32_t BmxData::RegisterPortHandler(
     }
 
     // Initializing new handlers list.
-    err_code = registered_handlers_[empty_slot].Init(PORT_HANDLER, empty_slot, port_num, 0, NULL, 0, bmx::HTTP_METHODS::OTHER_METHOD);
+    err_code = registered_handlers_[empty_slot].Init(
+        PORT_HANDLER,
+        MakeHandlerInfo(empty_slot, unique_handler_num_),
+        port_num,
+        0,
+        NULL,
+        0,
+        bmx::HTTP_METHODS::OTHER_METHOD,
+        NULL,
+        0);
+
     if (err_code)
         return err_code;
 
@@ -169,9 +211,11 @@ uint32_t BmxData::RegisterSubPortHandler(
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
 
+    unique_handler_num_++;
+
     uint32_t err_code = 0;
 
-    BMX_HANDLER_TYPE i, empty_slot = max_num_entries_;
+    BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
 
     // Running throw existing handlers.
     for (i = 0; i < max_num_entries_; i++)
@@ -209,7 +253,17 @@ uint32_t BmxData::RegisterSubPortHandler(
     }
 
     // Initializing new handlers list.
-    err_code = registered_handlers_[empty_slot].Init(SUBPORT_HANDLER, empty_slot, port, subport, NULL, 0, bmx::HTTP_METHODS::OTHER_METHOD);
+    err_code = registered_handlers_[empty_slot].Init(
+        SUBPORT_HANDLER,
+        MakeHandlerInfo(empty_slot, unique_handler_num_),
+        port,
+        subport,
+        NULL,
+        0,
+        bmx::HTTP_METHODS::OTHER_METHOD,
+        NULL,
+        0);
+
     if (err_code)
         return err_code;
 
@@ -231,12 +285,16 @@ uint32_t BmxData::RegisterUriHandler(
     uint16_t port,
     char* uri_string,
     HTTP_METHODS http_method,
+    uint8_t* param_types,
+    int32_t num_params,
     GENERIC_HANDLER_CALLBACK uri_handler, 
     BMX_HANDLER_TYPE* handler_id)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
         return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
+
+    unique_handler_num_++;
 
     // Checking if URI starts with slash.
     //if (uri_string[0] != '/')
@@ -256,7 +314,7 @@ uint32_t BmxData::RegisterUriHandler(
     // Convert string to lower case.
     _strlwr_s(uri_str_lc);
 
-    BMX_HANDLER_TYPE i, empty_slot = max_num_entries_;
+    BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
 
     // Running throw existing handlers.
     for (i = 0; i < max_num_entries_; i++)
@@ -294,7 +352,17 @@ uint32_t BmxData::RegisterUriHandler(
     }
 
     // Initializing new handlers list.
-    err_code = registered_handlers_[empty_slot].Init(bmx::HANDLER_TYPE::URI_HANDLER, empty_slot, port, 0, uri_str_lc, uri_len_chars, http_method);
+    err_code = registered_handlers_[empty_slot].Init(
+        bmx::HANDLER_TYPE::URI_HANDLER,
+        MakeHandlerInfo(empty_slot, unique_handler_num_),
+        port,
+        0,
+        uri_str_lc,
+        uri_len_chars,
+        http_method,
+        param_types,
+        num_params);
+
     if (err_code)
         return err_code;
 
@@ -312,17 +380,20 @@ uint32_t BmxData::RegisterUriHandler(
 }
 
 // Unregisters certain handler.
-uint32_t BmxData::UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK user_handler, bool* is_empty_handler)
+uint32_t BmxData::UnregisterHandler(
+    BMX_HANDLER_INDEX_TYPE handler_index,
+    GENERIC_HANDLER_CALLBACK user_handler,
+    bool* is_empty_handler)
 {
     // We don't know if handler will become empty.
     *is_empty_handler = false;
 
     // Checking all registered handlers.
     uint32_t err_code = SCERRUNSPECIFIED;
-    for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
     {
         // Checking if the same handler.
-        if (handler_id == registered_handlers_[i].get_handler_id())
+        if (handler_index == registered_handlers_[i].get_handler_index())
         {
             // Unregistering certain handler.
             if (!user_handler)
@@ -349,9 +420,9 @@ uint32_t BmxData::UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER
 }
 
 // Unregisters certain handler.
-uint32_t BmxData::UnregisterHandler(BMX_HANDLER_TYPE handler_id, bool* is_empty_handler)
+uint32_t BmxData::UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* is_empty_handler)
 {
-    return UnregisterHandler(handler_id, NULL, is_empty_handler);
+    return UnregisterHandler(handler_index, NULL, is_empty_handler);
 }
 
 // Registers push channel and send the response.
@@ -483,7 +554,6 @@ uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* 
 // well as sending any responses back.
 uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 {
-    BMX_HANDLER_TYPE handler_id;
     uint8_t* raw_chunk;
     uint32_t err_code;
     uint32_t loop_count;
@@ -507,14 +577,15 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     // Read the metadata in the chunk (session id and handler id).
     smc = (shared_memory_chunk*)raw_chunk;
     session_id = smc->get_user_data();
-    handler_id = smc->get_bmx_protocol();
+    BMX_HANDLER_TYPE handler_info = smc->get_bmx_handler_info();
+    BMX_HANDLER_INDEX_TYPE handler_index = GetBmxHandlerIndex(handler_info);
 
     // Checking if handler exists (ignoring if wrong handler).
-    if (registered_handlers_[handler_id].IsEmpty())
-        goto finish;
+    if (registered_handlers_[handler_index].IsEmpty())
+        goto release_chunks;
 
-    task_info.handler_id = handler_id;
-    if (smc->get_link() != smc->LINK_TERMINATOR)
+    task_info.handler_index = (BMX_HANDLER_INDEX_TYPE)handler_info;
+    if (smc->get_link() != smc->link_terminator)
         task_info.flags |= LINKED_CHUNKS_FLAG;
 
     // TODO: Init session values.
@@ -530,10 +601,18 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     //	errorcode = cm_send_to_client(task_info.chunk_index);
     //	if (errorcode != 0) goto finish;
 
-    // Running user handler.
-    err_code = registered_handlers_[handler_id].RunHandlers(session_id, smc, &task_info);
-    if (err_code)
+    // Checking for the unique handler number.
+    if (handler_info == registered_handlers_[handler_index].get_handler_info())
+    {
+        // Running user handler.
+        err_code = registered_handlers_[handler_index].RunHandlers(session_id, smc, &task_info);
         goto finish;
+    }
+    else
+    {
+        // Just releasing the chunk.
+        goto release_chunks;
+    }
 
 /*
 try_receive:
@@ -546,6 +625,12 @@ try_receive:
     if (loop_count < SCHEDULER_SPIN_COUNT) goto try_receive;
     err_code = 0;
 */
+
+release_chunks:
+
+    // Just releasing the chunk.
+    cm_release_linked_shared_memory_chunks(task_info.chunk_index);
+
 finish:
 
     // Resetting current transaction.
@@ -557,6 +642,7 @@ finish:
     }
 
     return err_code;
+
 }
 
 // Checks if session has changed from current one.
@@ -594,7 +680,7 @@ uint32_t BmxData::CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t sess
 }
 
 // Pushes unregistered handler.
-uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id)
+uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info)
 {
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
@@ -605,13 +691,13 @@ uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id)
         return err_code;
 
     // This is going to be a BMX management chunk.
-    smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
+    smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
     request_chunk_part* request = smc->get_request_chunk();
     request->reset_offset();
 
     // Writing BMX unregister message.
     request->write(BMX_UNREGISTER);
-    request->write(handler_id);
+    request->write(handler_info);
 
     // Terminating last chunk.
     smc->terminate_link();
