@@ -34,7 +34,7 @@ partial class Master : Puppet {
         TString x = m.Template.Test;
 
 
-        x.ProcessInput(m,"Hej hopp");
+        m.ProcessInput<string>(x,"Hej hopp");
 
 
     }

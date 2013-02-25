@@ -32,7 +32,7 @@ namespace Starcounter.Templates {
         public override void ProcessInput(Puppet app, byte[] rawValue)
         {
             long v = (long)Utf8Helper.IntFastParseFromAscii(rawValue, 0, (uint)rawValue.Length);
-            ProcessInput(app, v);
+            app.ProcessInput<long>(this, v);
         }
 
         /// <summary>
