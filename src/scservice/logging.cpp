@@ -17,7 +17,7 @@ extern int32_t logsteps;
 uint32_t OpenStarcounterLog(const char *server_name, const wchar_t *server_log_dir)
 {
 	size_t host_name_size;
-	wchar_t *host_name;
+	wchar_t *host_name = NULL;
 	uint32_t err_code;
 
 	host_name_size = 0;
@@ -48,7 +48,6 @@ uint32_t OpenStarcounterLog(const char *server_name, const wchar_t *server_log_d
 err:
 	g_sc_log_handle_ = 0;
 end:
-    // TODO! ANDERS! YOU MAY NOT FREE MEMORY THAT YOU HAVE NOT ALLOCATED. IF YOU GOTO ERR FROM FAILING TO CALL MAKE_SC_PROCESS_URI YOU ARE TRYING TO FREE BEFORE MALLOC. VERY, VERY BAD
 	if (host_name) free(host_name);
 	return err_code;
 }
