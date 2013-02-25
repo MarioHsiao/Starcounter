@@ -16,7 +16,7 @@ int32_t make_sc_process_uri(const char *server_name, const char *process_name, w
 	uint32_t computer_name_size;
 	char computer_name[MAX_COMPUTERNAME_LENGTH + 1];
 	
-	computer_name_size = MAX_COMPUTERNAME_LENGTH;
+	computer_name_size = MAX_COMPUTERNAME_LENGTH + 1;
 	
 	if(	GetComputerNameA(computer_name, (DWORD *)&computer_name_size) == 0 ) {
 		return GetLastError();
