@@ -108,6 +108,15 @@ namespace Starcounter {
             get { return true; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// TODO!
+        /// Should be changed to accept IntPtr to rawValue using an int size parameter. This way is not fast enough.
+        /// </remarks>
+        /// <param name="obj"></param>
+        /// <param name="rawValue"></param>
         internal abstract void ProcessInput(Obj obj, Byte[] rawValue);
     }
 }
