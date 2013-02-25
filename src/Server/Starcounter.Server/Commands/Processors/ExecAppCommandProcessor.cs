@@ -189,7 +189,10 @@ namespace Starcounter.Server.Commands {
                     // have any good strategy figured out. We start with just
                     // logging it and nothing else.
 
-                    Log.LogError(ErrorCode.ToMessage(Error.SCERRDATABASEENGINETERMINATED, string.Format("Process exit code: {0}", codeHostProcess.ExitCode)));
+                    Log.LogError(
+                        ErrorCode.ToMessage(Error.SCERRDATABASEENGINETERMINATED,
+                        DatabaseEngine.FormatCodeHostProcessInfoString(database, codeHostProcess, true))
+                        );
                 }
 
                 // We always rethrow the timeout exception, since we really can't
