@@ -101,7 +101,7 @@ namespace Starcounter.Templates {
         private PropertyList _PropertyTemplates;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TPuppet" /> class.
+        /// Initializes a new instance of the <see cref="TObj" /> class.
         /// </summary>
         public TObj() {
             _PropertyTemplates = new PropertyList(this);
@@ -110,7 +110,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// 
         /// </summary>
-        private Type _AppType;
+        internal Type _AppType;
 
         /// <summary>
         /// The .NET type of the instance represented by this template.
@@ -119,7 +119,7 @@ namespace Starcounter.Templates {
         public override Type InstanceType {
             get {
                 if (_AppType == null) {
-                    return typeof(Puppet);
+                    return typeof(Obj);
                 }
                 return _AppType;
             }

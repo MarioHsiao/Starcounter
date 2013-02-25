@@ -1,5 +1,6 @@
 ﻿
 
+using System;
 namespace Starcounter.Templates {
 
     /// <summary>
@@ -15,5 +16,20 @@ namespace Starcounter.Templates {
         public override object CreateInstance(Container parent) {
             return new Puppet() { Template = this, Parent = parent };
         }
+
+        /// <summary>
+        /// The .NET type of the instance represented by this template.
+        /// </summary>
+        /// <value>The type of the instance.</value>
+        public override Type InstanceType {
+            get {
+                if (_AppType == null) {
+                    return typeof(Puppet);
+                }
+                return _AppType;
+            }
+            set { _AppType = value; }
+        }
+
     }
 }
