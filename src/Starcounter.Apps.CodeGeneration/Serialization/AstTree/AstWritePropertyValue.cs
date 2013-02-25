@@ -48,7 +48,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 parseFunction = "JsonHelper.WriteDouble((IntPtr)pfrag, nextSize, app." + Template.PropertyName + ", tmpArr);";
             } else if (template is TBool) {
                 parseFunction = "JsonHelper.WriteBool((IntPtr)pfrag, nextSize, app." + Template.PropertyName + ");";
-            } else if (template is ActionProperty) {
+            } else if (template is TTrigger) {
                 parseFunction = "JsonHelper.WriteNull((IntPtr)pfrag, nextSize);";
             } else {
                 throw new NotSupportedException("TODO! Add more types here");

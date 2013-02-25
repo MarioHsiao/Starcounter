@@ -53,7 +53,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         public bool HasValue {
             get {
-                return (!(BindsToProperty.Template is ActionProperty));
+                return (!(BindsToProperty.Template is TTrigger));
             }
         }
 

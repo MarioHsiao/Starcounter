@@ -121,7 +121,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <param name="v">The v.</param>
         public void Set(string name, string v)
         {
-            ActionProperty actionTemplate;
+            TTrigger actionTemplate;
             OTT appTemplate;
             TValue valueTemplate;
             String upperName;
@@ -154,7 +154,7 @@ namespace Starcounter.Internal.JsonTemplate
             }
             else if (upperName == "RUN")
             {
-                actionTemplate = _template as ActionProperty;
+                actionTemplate = _template as TTrigger;
                 if (actionTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 actionTemplate.OnRun = v;
             }
@@ -578,7 +578,7 @@ namespace Starcounter.Internal.JsonTemplate
                     );
             }
 
-            newTemplate = new ActionProperty() { Name = name };
+            newTemplate = new TTrigger() { Name = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);

@@ -244,7 +244,7 @@ namespace Starcounter {
         /// <returns>Action.</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Action GetValue(ActionProperty property) {
+        public Action GetValue(TTrigger property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -259,7 +259,7 @@ namespace Starcounter {
         /// <param name="value">The value.</param>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(ActionProperty property, Action value) {
+        public void SetValue(TTrigger property, Action value) {
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else
