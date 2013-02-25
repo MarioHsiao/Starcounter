@@ -127,6 +127,7 @@ public:
 	const overflow_pool_allocator_type& overflow_pool_alloc
 	= overflow_pool_allocator_type(),
 	const char* segment_name = 0,
+	const char* server_name = 0,
 	int32_t id = -1)
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	: channel_number_(segment_name, id),
@@ -173,14 +174,16 @@ public:
 			// Error: No segment name. Throw exception error_code.
 		}
 
+		if (server_name == 0) {
+			// Error: No server name. Throw exception error_code.
+		}
+
 		///=====================================================================
 		/// Open the ipc_monitor_cleanup_event.
 		///=====================================================================
 
 		// Number of characters in the multibyte string after being converted.
 		std::size_t length;
-
-		std::cout << "TODO: Pass in server name to scheduler_interface constructor." << std::endl;
 
 		// Construct the ipc_monitor_cleanup_event_name.
 		char ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
@@ -189,9 +192,7 @@ public:
 		// Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
 		if ((length = _snprintf_s(ipc_monitor_cleanup_event_name, _countof
 		(ipc_monitor_cleanup_event_name), ipc_monitor_cleanup_event_name_size
-		-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", //server_name_.c_str()
-		"PERSONAL" /// Hardcoded for now - must be fixed before pusing to develop.
-		)) < 0) {
+		-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name)) < 0) {
 			return; // Throw exception error_code: "failed to format the ipc_monitor_cleanup_event_name"
 		}
 		ipc_monitor_cleanup_event_name[length] = '\0';
@@ -230,7 +231,7 @@ public:
 			return; // TODO: Should throw an exception.
 		}
 		else {
-			std::cout << "Successfully opened the ipc_monitor_cleanup_event_name." << std::endl;
+			//std::cout << "Successfully opened the ipc_monitor_cleanup_event_name." << std::endl;
 		}
 	}
 	
