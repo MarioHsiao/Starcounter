@@ -215,20 +215,20 @@ const int32_t INVALID_WORKER_INDEX = -1;
 // Bad port index.
 const int32_t INVALID_PORT_INDEX = -1;
 
+// Bad index.
+const int32_t INVALID_INDEX = -1;
+
 // Bad port number.
 const int32_t INVALID_PORT_NUMBER = 0;
 
 // Bad URI index.
 const int32_t INVALID_URI_INDEX = -1;
 
-// Bad handler index.
-const int32_t INVALID_HANDLER_INDEX = -1;
-
 // Bad log handler.
 const log_handle_type INVALID_LOG_HANDLE = 0;
 
 // Bad chunk index.
-const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::LINK_TERMINATOR;
+const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::link_terminator;
 
 // Bad linear session index.
 const session_index_type INVALID_SESSION_INDEX = ~0;
@@ -400,7 +400,7 @@ class GatewayWorker;
 typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -420,13 +420,13 @@ extern uint32_t DefaultRawEchoResponseProcessor(char* buf, uint32_t buf_len, ech
 uint32_t OuterPortProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsPortProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #ifdef GW_TESTING_MODE
@@ -434,7 +434,7 @@ uint32_t AppsPortProcessData(
 uint32_t GatewayPortProcessEcho(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #endif
@@ -442,13 +442,13 @@ uint32_t GatewayPortProcessEcho(
 uint32_t OuterSubportProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsSubportProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #ifdef GW_TESTING_MODE
@@ -456,7 +456,7 @@ uint32_t AppsSubportProcessData(
 uint32_t GatewaySubportProcessEcho(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #endif
@@ -464,13 +464,13 @@ uint32_t GatewaySubportProcessEcho(
 uint32_t OuterUriProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsUriProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #ifdef GW_TESTING_MODE
@@ -478,7 +478,7 @@ uint32_t AppsUriProcessData(
 uint32_t GatewayUriProcessEcho(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #endif
@@ -489,7 +489,7 @@ uint32_t GatewayUriProcessEcho(
 uint32_t GatewayStatisticsInfo(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #endif
@@ -497,7 +497,7 @@ uint32_t GatewayStatisticsInfo(
 uint32_t GatewayUriProcessProxy(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 extern std::string GetOperTypeString(SocketOperType typeOfOper);
@@ -1687,6 +1687,8 @@ public:
         const char* uri,
         uint32_t uri_len_chars,
         bmx::HTTP_METHODS http_method,
+        uint8_t* param_types,
+        int32_t num_params,
         BMX_HANDLER_TYPE user_handler_id,
         int32_t db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
@@ -1696,7 +1698,7 @@ public:
         GatewayWorker *gw,
         HandlersTable* handlers_table,
         uint16_t port,
-        BMX_HANDLER_TYPE handler_id,
+        BMX_HANDLER_TYPE handler_info,
         int32_t db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
 
@@ -1706,7 +1708,7 @@ public:
         HandlersTable* handlers_table,
         uint16_t port,
         bmx::BMX_SUBPORT_TYPE subport,
-        BMX_HANDLER_TYPE handler_id,
+        BMX_HANDLER_TYPE handler_info,
         int32_t db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
 

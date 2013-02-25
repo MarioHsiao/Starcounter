@@ -106,11 +106,11 @@ namespace Starcounter.Internal.Test
                 prevOffset = (UInt16)(curOffset + 1);
             }
 
-            Func<IntPtr, IntPtr, Int32, Object> genDel1 = UserHandlerCodegen.uhc.GenerateParsingDelegate(new Func<Int32, Int64, String, Object>(UserHttpDelegateTests.UserFunc1));
-            Func<IntPtr, IntPtr, Int32, Object> genDel2 = UserHandlerCodegen.uhc.GenerateParsingDelegate(new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
-            Func<IntPtr, IntPtr, Int32, Object> genDel3 = UserHandlerCodegen.uhc.GenerateParsingDelegate(new Func<Int32, Int64, String, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
-            Func<IntPtr, IntPtr, Int32, Object> genDel4 = UserHandlerCodegen.uhc.GenerateParsingDelegate(new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, Object>(UserHttpDelegateTests.UserFunc4));
-            Func<IntPtr, IntPtr, Int32, Object> genDel5 = UserHandlerCodegen.uhc.GenerateParsingDelegate(new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
+            Func<IntPtr, IntPtr, Int32, Object> genDel1 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Object>(UserHttpDelegateTests.UserFunc1));
+            Func<IntPtr, IntPtr, Int32, Object> genDel2 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
+            Func<IntPtr, IntPtr, Int32, Object> genDel3 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
+            Func<IntPtr, IntPtr, Int32, Object> genDel4 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, Object>(UserHttpDelegateTests.UserFunc4));
+            Func<IntPtr, IntPtr, Int32, Object> genDel5 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
 
             unsafe
             {

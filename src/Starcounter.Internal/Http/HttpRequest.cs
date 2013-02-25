@@ -578,6 +578,7 @@ namespace Starcounter.Advanced {
     /// <summary>
     /// Struct HttpRequestInternal
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct HttpRequestInternal {
         /// <summary>
         /// The MA x_ HTT p_ HEADERS

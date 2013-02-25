@@ -688,6 +688,8 @@ namespace Weaver {
                 "HttpParser.dll",
                 "HttpStructs.dll",
                 "PostSharp*.dll",
+                "Roslyn*.dll",
+                "FasterThanJson.dll",
                 "Starcounter.dll"}
                 ) {
                 AddExcludeExpression(exclude, weaverExcludes);
