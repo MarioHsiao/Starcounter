@@ -28,8 +28,8 @@ const allocator_type& alloc)
 template<class T, class Alloc>
 inline bool chunk_pool<T, Alloc>::acquire_linked_chunks(chunk_type* chunk,
 chunk_index& head, std::size_t size) {
-	std::size_t chunks_to_acquire = (size +chunk_type::STATIC_DATA_SIZE -1)
-	/ chunk_type::STATIC_DATA_SIZE;
+	std::size_t chunks_to_acquire = (size +chunk_type::static_data_size -1)
+	/ chunk_type::static_data_size;
 	
 	// Check if enough space is available, assuming it is.
 	if (chunks_to_acquire <= this->size()) {
