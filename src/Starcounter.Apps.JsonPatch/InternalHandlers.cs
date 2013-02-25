@@ -112,7 +112,7 @@ namespace Starcounter.Internal.JsonPatch {
                     continue;
                 }
 
-                if (template is ActionProperty)
+                if (template is TTrigger)
                     continue;
 
                 ChangeLog.UpdateValue(app, (TValue)template);

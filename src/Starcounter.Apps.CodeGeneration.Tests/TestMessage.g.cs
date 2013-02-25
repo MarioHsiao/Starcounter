@@ -126,13 +126,13 @@ public partial class TestMessage {
                 InstanceType = typeof(TestMessage.ChildApp);
                 ClassName = "ChildApp";
                 ChildName = Register<TString>("ChildName", "ChildName");
-                Button = Register<ActionProperty>("Button", "Button");
+                Button = Register<TTrigger>("Button", "Button");
                 ASubApp = Register<TestMessage.ChildApp.ASubAppApp.ASubAppTApp>("ASubApp", "ASubApp");
                 ASubApp2 = Register<TestMessage.ChildApp.ASubApp2App.ASubApp2TApp>("ASubApp2", "ASubApp2");
             }
             public override object CreateInstance(Container parent) { return new ChildApp(this) { Parent = (TestMessage)parent }; }
             public TString ChildName;
-            public ActionProperty Button;
+            public TTrigger Button;
             public TestMessage.ChildApp.ASubAppApp.ASubAppTApp ASubApp;
             public TestMessage.ChildApp.ASubApp2App.ASubApp2TApp ASubApp2;
         }
@@ -195,7 +195,7 @@ public partial class TestMessage {
             ADecimal = Register<TDecimal>("ADecimal", "ADecimal");
             ADouble = Register<TDouble>("ADouble", "ADouble");
             UserLink = Register<TString>("UserLink", "UserLink");
-            User = Register<ActionProperty>("User", "User");
+            User = Register<TTrigger>("User", "User");
         }
         public override object CreateInstance(Container parent) { return new TestMessage(this) { Parent = parent }; }
         public TLong UserId;
@@ -206,7 +206,7 @@ public partial class TestMessage {
         public TDecimal ADecimal;
         public TDouble ADouble;
         public TString UserLink;
-        public ActionProperty User;
+        public TTrigger User;
     }
     public class TestMessageMetadata : ObjMetadata {
         public TestMessageMetadata(Puppet app, TPuppet template) : base(app, template) { }
@@ -253,7 +253,7 @@ public partial class TestMessage {
         public static class Child {
             public class ChildName : Input<TestMessage.ChildApp, TString, String> {
             }
-            public class Button : Input<TestMessage.ChildApp, ActionProperty, Action> {
+            public class Button : Input<TestMessage.ChildApp, TTrigger, Action> {
             }
             public static class ASubApp {
                 public class IsInnerApp : Input<TestMessage.ChildApp.ASubAppApp, TBool, bool> {
@@ -280,7 +280,7 @@ public partial class TestMessage {
         }
         public class UserLink : Input<TestMessage, TString, String> {
         }
-        public class User : Input<TestMessage, ActionProperty, Action> {
+        public class User : Input<TestMessage, TTrigger, Action> {
         }
     }
     public static class TestMessageJsonSerializer{

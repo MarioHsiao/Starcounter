@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="ActionProperty.cs" company="Starcounter AB">
+// <copyright file="TTrigger.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -16,9 +16,9 @@ namespace Starcounter.Templates {
     /// </summary>
     /// <remarks>
     /// When you create a Json-by-example file with a null property (i.e. "myfield":null),
-    /// the schema template for that property becomes an ActionProperty.
+    /// the schema template for that property becomes an TTrigger.
     /// </remarks>
-    public class ActionProperty : TValue
+    public class TTrigger : TValue
     {
         /// <summary>
         /// </summary>

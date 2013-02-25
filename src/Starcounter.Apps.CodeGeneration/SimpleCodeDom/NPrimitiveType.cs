@@ -41,7 +41,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         {
             get
             {
-                if (NTemplateClass.Template is ActionProperty)
+                if (NTemplateClass.Template is TTrigger)
                     return "Action";
 
                 var type = NTemplateClass.Template.InstanceType;
