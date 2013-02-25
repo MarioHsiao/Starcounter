@@ -321,10 +321,10 @@ namespace Starcounter.Server {
             args = new StringBuilder();
             // args.Append("--FLAG:attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             args.Append(database.Name.ToUpper());
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + " \"{0}\"", database.Configuration.Runtime.ImageDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + " \"{0}\"", database.Server.Configuration.LogDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + " \"{0}\"", database.Configuration.Runtime.TempDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.CompilerPath + " \"{0}\"", this.MinGWCompilerPath);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.CompilerPath + "=\"{0}\"", this.MinGWCompilerPath);
             
             if (startWithNoDb) {
                 args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.NoDb);
@@ -332,7 +332,7 @@ namespace Starcounter.Server {
             // args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoNetworkGateway);
 
             if (database.Configuration.Runtime.SchedulerCount.HasValue) {
-                args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + " {0}", database.Configuration.Runtime.SchedulerCount.Value);
+                args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + "={0}", database.Configuration.Runtime.SchedulerCount.Value);
             }
             
             processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
