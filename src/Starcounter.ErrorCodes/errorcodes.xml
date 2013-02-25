@@ -3402,7 +3402,7 @@
     </code>
     <code hex="0007" severity="Error" name="ScErrDatabaseEngineTerminated">
       <message>
-        The server detected that the database engine executable (scdbs(w).exe)
+        The server detected that the user code host executable (sccode.exe)
         unexpectedly terminated during a management operation.
       </message>
     </code>
