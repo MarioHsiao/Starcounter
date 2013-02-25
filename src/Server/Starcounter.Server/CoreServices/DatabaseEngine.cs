@@ -364,8 +364,10 @@ namespace Starcounter.Server {
             return processControlEventName;
         }
 
-        string FormatCodeHostProcessInfoString(Database database, Process process) {
+        internal static string FormatCodeHostProcessInfoString(Database database, Process process, bool checkExited = false) {
             string pid;
+            string info;
+
             try {
                 pid = process.Id.ToString();
             } catch {
@@ -373,7 +375,16 @@ namespace Starcounter.Server {
             }
 
             // Example: ScCode.exe, PID=123, Database=Foo
-            return string.Format("{0}, PID={1}, Database={2}", DatabaseEngine.CodeHostExeFileName, pid, database.Name);
+            info = string.Format("{0}, PID={1}, Database={2}", DatabaseEngine.CodeHostExeFileName, pid, database.Name);
+            if (checkExited) {
+                try {
+                    if (process.HasExited) {
+                        info += string.Format(", Exitcode={0}", process.ExitCode);
+                    }
+                } catch { }
+            }
+
+            return info;
         }
     }
 }
