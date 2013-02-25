@@ -414,6 +414,7 @@ namespace Starcounter.Internal.Test {
             byte[] h505 = Encoding.UTF8.GetBytes("GET /test-double/DDDD\r\n\r\n"); // DDDD -> Not a double value
             byte[] h506 = Encoding.UTF8.GetBytes("GET /test-datetime/DDDD\r\n\r\n"); // DDDD -> Not a datetime value
             byte[] h507 = Encoding.UTF8.GetBytes("GET /test-bool/DDDD\r\n\r\n"); // DDDD -> Not a boolean value
+            byte[] h508 = Encoding.UTF8.GetBytes("DELETE /allanballan/DDDD\r\n\r\n"); // DDDD -> Not a boolean value
 
             Main();
 
@@ -460,6 +461,7 @@ namespace Starcounter.Internal.Test {
             Assert.False(um.Invoke(new HttpRequest(h505), out resource));
             Assert.False(um.Invoke(new HttpRequest(h506), out resource));
             Assert.False(um.Invoke(new HttpRequest(h507), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h508), out resource), "There is no handler DELETE /allanballan. How could it be found?");
 
         }
 
