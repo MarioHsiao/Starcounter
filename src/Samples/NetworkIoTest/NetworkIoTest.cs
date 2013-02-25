@@ -33,17 +33,22 @@ namespace NetworkIoTestApp
             });
             */
 
-            GET("/ab", () =>
+            /*UserHandlerCodegen.GET_NEW("/ab", () =>
             {
                 return "ab";
-            });
+            });*/
 
-            GET("/{?}", (string anyString) =>
+            UserHandlerCodegen.GET_NEW("/{?}", (int anyString) =>
             {
                 return "root";
             });
 
-            /*GET("/{?}", (string str) =>
+            /*GET("/{?}", (string anyString) =>
+            {
+                return "root";
+            });
+
+            GET("/{?}", (string str) =>
             {
                 return "str_parameter=" + str;
             });

@@ -807,6 +807,8 @@ uint32_t Gateway::AssertCorrectState()
     if (err_code)
         goto FAILED;
 
+    GW_ASSERT(core::chunk_type::static_header_size == bmx::BMX_HEADER_MAX_SIZE_BYTES);
+
     // Checking overall gateway stuff.
     GW_ASSERT(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
 
@@ -1111,7 +1113,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                         &gw_workers_[0],
                         gw_handlers_,
                         port_number,
-                        bmx::INVALID_HANDLER_ID,
+                        bmx::BMX_INVALID_HANDLER_INFO,
                         empty_db_index,
                         GatewayPortProcessEcho);
 
@@ -1137,7 +1139,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                         test_http_echo_requests_[g_gateway.setting_mode()].uri,
                         test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
                         bmx::HTTP_METHODS::OTHER_METHOD,
-                        bmx::INVALID_HANDLER_ID,
+                        bmx::BMX_INVALID_HANDLER_INFO,
                         empty_db_index,
                         GatewayUriProcessEcho);
 
@@ -1168,7 +1170,9 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                     reverse_proxies_[i].service_uri_.c_str(),
                     reverse_proxies_[i].service_uri_len_,
                     bmx::HTTP_METHODS::OTHER_METHOD,
-                    bmx::INVALID_HANDLER_ID,
+                    NULL,
+                    0,
+                    bmx::BMX_INVALID_HANDLER_INFO,
                     empty_db_index,
                     GatewayUriProcessProxy);
 
@@ -1193,7 +1197,9 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 "/gwstats",
                 1,
                 bmx::HTTP_METHODS::OTHER_METHOD,
-                bmx::INVALID_HANDLER_ID,
+                NULL,
+                0,
+                bmx::BMX_INVALID_HANDLER_INFO,
                 empty_db_index,
                 GatewayStatisticsInfo);
 
@@ -2685,6 +2691,8 @@ uint32_t Gateway::AddUriHandler(
     const char* uri,
     uint32_t uri_len_chars,
     bmx::HTTP_METHODS http_method,
+    uint8_t* param_types,
+    int32_t num_params,
     BMX_HANDLER_TYPE handler_id,
     int32_t db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
@@ -2698,6 +2706,8 @@ uint32_t Gateway::AddUriHandler(
         uri,
         uri_len_chars,
         http_method,
+        param_types,
+        num_params,
         handler_id,
         handler_proc,
         db_index);
@@ -2755,14 +2765,14 @@ uint32_t Gateway::AddPortHandler(
     GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     int32_t db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
 {
     return handlers_table->RegisterPortHandler(
         gw,
         port,
-        handler_id,
+        handler_info,
         handler_proc,
         db_index);
 }

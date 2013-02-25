@@ -34,7 +34,7 @@ void SocketDataChunk::Init(
     // Calculating maximum size of user data.
     max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES - blob_user_data_offset_;
     user_data_written_bytes_ = 0;
-    fixed_handler_id_ = 0;
+    fixed_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
 
     session_.Reset();
 
@@ -63,7 +63,7 @@ void SocketDataChunk::Reset()
 
     type_of_network_oper_ = DISCONNECT_SOCKET_OPER;
 
-    fixed_handler_id_ = 0;
+    fixed_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
 
     // Clearing attached session.
     //g_gateway.ClearSession(sessionIndex);
@@ -231,7 +231,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     }
 
     // Until we get the last chunk in chain.
-    while (cur_chunk_index != shared_memory_chunk::LINK_TERMINATOR)
+    while (cur_chunk_index != shared_memory_chunk::link_terminator)
     {
         // Obtaining chunk memory.
         smc = (shared_memory_chunk*) &(shared_int->chunk(cur_chunk_index));

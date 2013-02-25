@@ -1528,6 +1528,36 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
     return db->PushSocketDataToDb(this, sd, handler_id);
 }
 
+uint32_t GatewayWorker::ObtainAndCopyChunk(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** new_sd)
+{
+    GW_ASSERT(1 == old_sd->get_num_chunks());
+
+    core::chunk_index new_chunk_index;
+    shared_memory_chunk* new_smc;
+
+    uint32_t err_code = worker_dbs_[new_db_index]->GetOneChunkFromPrivatePool(&new_chunk_index, &new_smc);
+    if (err_code)
+    {
+        // New chunk can not be obtained.
+
+        return err_code;
+    }
+
+    // Socket data inside chunk.
+    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+
+    // Copying chunk data.
+    memcpy(new_smc, old_sd->get_smc(), core::chunk_size);
+
+    // Attaching to new database.
+    (*new_sd)->AttachToDatabase(new_db_index);
+
+    // Returning old chunk to its pool.
+    worker_dbs_[old_sd->get_db_index()]->ReturnSocketDataChunksToPool(this, old_sd);
+
+    return 0;
+}
+
 // Deleting inactive database.
 void GatewayWorker::DeleteInactiveDatabase(int32_t db_index)
 {

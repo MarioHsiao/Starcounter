@@ -95,7 +95,7 @@ inline bool chunk_pool<T, Alloc>::release_linked_chunks(chunk_type* chunk_base,
 chunk_index& head) {
 	chunk_index next;
 	
-	while (head != chunk_type::LINK_TERMINATOR) {
+	while (head != chunk_type::link_terminator) {
 		next = chunk_base[head].get_link();
 		
 		// Try to push the head.
@@ -119,8 +119,8 @@ template<class T, class Alloc>
 inline bool chunk_pool<T, Alloc>::acquire_linked_chunks(chunk_type* chunk_base,
 chunk_index& head, std::size_t size, client_interface_type*
 client_interface_ptr) {
-	std::size_t chunks_to_acquire = (size +chunk_type::STATIC_DATA_SIZE -1)
-	/ chunk_type::STATIC_DATA_SIZE;
+	std::size_t chunks_to_acquire = (size +chunk_type::static_data_size -1)
+	/ chunk_type::static_data_size;
 	
 	// Check if enough space is available, assuming it is.
 	if (chunks_to_acquire <= this->size()) {
