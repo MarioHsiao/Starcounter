@@ -125,6 +125,9 @@ namespace StarcounterInternal.Bootstrap
             OnKernelMemoryConfigured();
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
+            if (arguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging)) {
+                System.Diagnostics.Trace.Listeners.Add(new LogTraceListener());
+            }
             OnLoggingConfigured();
 
             // Initializing Apps internal HTTP request parser.
@@ -443,7 +446,6 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
 
             LogManager.Setup(hlogs);
-
             return hlogs;
         }
 
