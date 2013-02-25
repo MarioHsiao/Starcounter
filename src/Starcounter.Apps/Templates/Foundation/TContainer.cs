@@ -17,10 +17,16 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Base class for Obj and Arr templates.
     /// </summary>
+    /// <remarks>
+    /// Both arrays and objects can have children. Arrays has elements and objects has properties.
+    /// In addition, the templates (TContainer) for this complex objects are frozen/sealed whenever there are
+    /// instance Obj or Arr objects pertaining to them. This means that new templates need to be created to
+    /// use alternate schemas.
+    /// </remarks>
     public abstract class TContainer : TValue
     {
         /// <summary>
-        /// The _ sealed
+        /// <see cref="Sealed"/>
         /// </summary>
         private bool _Sealed;
 
