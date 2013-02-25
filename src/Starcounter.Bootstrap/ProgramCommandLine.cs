@@ -26,8 +26,7 @@ namespace StarcounterInternal.Bootstrap {
         /// </summary>
         /// <param name="args">The args.</param>
         /// <param name="arguments">The arguments.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        internal static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
+        internal static void TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
             ApplicationSyntaxDefinition syntaxDefinition;
             CommandSyntaxDefinition commandDefinition;
             IApplicationSyntax syntax;
@@ -82,23 +81,19 @@ namespace StarcounterInternal.Bootstrap {
 
             // If no arguments are given, use the syntax to create a Usage
             // message, just as is expected when giving /help or /? to a program.
-            if (args.Length == 0) {
+            // Only do this when the console hasn't been redirected though.
+            // And exit instantly thereafter.
+            if (args.Length == 0 && !Console.IsInputRedirected) {
                 Usage(syntax, null);
-                arguments = null;
-                return false;
+                Environment.Exit((int)Error.SCERRBADCOMMANDLINESYNTAX);
             }
 
-            // Parse and evaluate the given input
+            // Parse and evaluate the given input.
+            // If parsing fails, an exception will be raised that pinpoints
+            // the error and has an error code indicating what is wrong. Let
+            // that exception slip through to the top-level handler.
             parser = new Parser(args);
-            try {
-                arguments = parser.Parse(syntax);
-            } catch (InvalidCommandLineException invalidCommandLine) {
-                Usage(syntax, invalidCommandLine);
-                arguments = null;
-                return false;
-            }
-
-            return true;
+            arguments = parser.Parse(syntax);
         }
 
         /// <summary>
