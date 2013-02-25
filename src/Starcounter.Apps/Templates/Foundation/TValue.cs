@@ -108,11 +108,6 @@ namespace Starcounter {
             get { return true; }
         }
 
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        public abstract void ProcessInput(Puppet app, Byte[] rawValue);
+        internal abstract void ProcessInput(Obj obj, Byte[] rawValue);
     }
 }

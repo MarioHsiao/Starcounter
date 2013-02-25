@@ -21,7 +21,7 @@ namespace Starcounter {
     /// <summary>
     /// See Puppet TODO! REF 
     /// </summary>
-    public partial class Puppet : Puppet<NullData> {
+    public class Puppet : Puppet<NullData> {
 
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Starcounter {
     /// your C# code will be called. If you make a property editable, changes by the user will change App object (and an event will be triggered
     /// in case you which to validate the change).
     /// </remarks>
-    public class Puppet<T> : Obj<T> where T : IBindable {
+    public partial class Puppet<T> : Obj<T> where T : IBindable {
 
         /// <summary>
         /// 

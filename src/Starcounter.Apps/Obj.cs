@@ -193,5 +193,8 @@ namespace Starcounter {
             }
         }
 
+        internal abstract void ProcessInput<V>(TValue<V> template, V value);
+
+
     }
 }

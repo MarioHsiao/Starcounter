@@ -21,19 +21,14 @@ namespace Starcounter.Templates {
         /// </summary>
         private bool _DefaultValue = false;
 
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        public override void ProcessInput(Puppet app, byte[] rawValue)
+        internal override void ProcessInput(Obj obj, byte[] rawValue)
         {
             // TODO:
             // Proper implementation.
             if (rawValue != null && rawValue.Length == 4)
-                app.ProcessInput<bool>(this, true);
+                obj.ProcessInput<bool>(this, true);
             else
-                app.ProcessInput<bool>(this, false);
+                obj.ProcessInput<bool>(this, false);
         }
 
         /// <summary>

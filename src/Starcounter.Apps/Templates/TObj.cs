@@ -172,10 +172,10 @@ namespace Starcounter.Templates {
         /// <summary>
         /// Callback from internal functions responsible for handle external inputs.
         /// </summary>
-        /// <param name="app">The parent app.</param>
+        /// <param name="obj">The parent obj.</param>
         /// <param name="value">The input value.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(Puppet app, byte[] value) {
+        internal override void ProcessInput(Obj obj, byte[] value) {
             throw new NotImplementedException();
         }
 
