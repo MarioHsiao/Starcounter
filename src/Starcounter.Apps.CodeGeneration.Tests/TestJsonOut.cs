@@ -9,10 +9,8 @@ using NUnit.Framework;
 using Starcounter.Internal.Application;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.JsonTemplate;
-using Starcounter.Internal.ExeModule;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
-//using Xunit;
 
 namespace Starcounter.Client.Tests.Application
 {
@@ -31,7 +29,6 @@ namespace Starcounter.Client.Tests.Application
 //        [Fact]
         public static void AppToJson()
         {
-            AppExeModule.IsRunningTests = true;
             dynamic app = new Puppet() { Template = TemplateFromJs.ReadPuppetTemplateFromFile("MySampleApp2.json") };
             app.FirstName = "Joachim";
             app.LastName = "Wester";

@@ -6,7 +6,6 @@
 
 using NUnit.Framework;
 using Starcounter;
-using Starcounter.Internal.ExeModule;
 using Starcounter.Templates;
 using System;
 
@@ -14,13 +13,6 @@ using System;
 /// Class Master
 /// </summary>
 partial class Master : Puppet {
-
-    /// <summary>
-    /// Initializes static members of the <see cref="Master" /> class.
-    /// </summary>
-    static Master() {
-            AppExeModule.IsRunningTests = true;
-    }
 
     /// <summary>
     /// Handles the specified test.
