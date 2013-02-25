@@ -45,7 +45,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(Puppet parent, TObjArr templ)
+        public Listing(Obj parent, TObjArr templ)
             : base(parent, templ) {
         }
 

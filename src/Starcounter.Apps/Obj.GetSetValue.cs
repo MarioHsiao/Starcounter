@@ -372,7 +372,7 @@ namespace Starcounter {
         /// <param name="property">The property.</param>
         /// <returns>App.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Puppet GetValue(TPuppet property) {
+        public Obj GetValue(TObj property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -393,21 +393,6 @@ namespace Starcounter {
             return (T)(_Values[property.Index]);
 #else
             throw new NotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>App.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Obj GetValue(TObj property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
 #endif
         }
 

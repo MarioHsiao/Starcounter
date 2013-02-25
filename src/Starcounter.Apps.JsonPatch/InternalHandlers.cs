@@ -108,7 +108,7 @@ namespace Starcounter.Internal.JsonPatch {
                 }
 
                 if (template is TPuppet) {
-                    RefreshAllValues(app.GetValue((TPuppet)template), log);
+                    RefreshAllValues((Puppet)app.GetValue((TPuppet)template), log);
                     continue;
                 }
 

@@ -340,7 +340,7 @@ namespace Starcounter.Internal.JsonPatch {
                     current = list[index];
                 } else {
                     if (currentIsTApp) {
-                        mainApp = mainApp.GetValue((TPuppet)current);
+                        mainApp = (Puppet)mainApp.GetValue((TPuppet)current);
                         currentIsTApp = false;
                     }
 
