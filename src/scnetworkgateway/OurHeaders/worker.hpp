@@ -241,7 +241,8 @@ public:
         return worker_dbs_[dbSlotIndex];
     }
 
-    uint32_t ObtainAndCopyChunk(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** out_sd);
+    // Gets a new chunk for new database and copies the old one into it.
+    uint32_t CloneChunkForNewDatabase(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** out_sd);
 
     // Deleting inactive database.
     void DeleteInactiveDatabase(int32_t dbSlotIndex);

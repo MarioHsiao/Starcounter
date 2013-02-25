@@ -1522,24 +1522,28 @@ uint32_t GatewayWorker::AddNewDatabase(
 // Push given chunk to database queue.
 uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
+    // Getting database to which this chunk belongs.
     WorkerDbInterface *db = GetWorkerDb(sd->get_db_index());
     GW_ASSERT(NULL != db);
     
+    // Pushing chunk to that database.
     return db->PushSocketDataToDb(this, sd, handler_id);
 }
 
-uint32_t GatewayWorker::ObtainAndCopyChunk(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** new_sd)
+// Gets a new chunk for new database and copies the old one into it.
+uint32_t GatewayWorker::CloneChunkForNewDatabase(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** new_sd)
 {
+    // TODO: Add support for linked chunks.
     GW_ASSERT(1 == old_sd->get_num_chunks());
 
     core::chunk_index new_chunk_index;
     shared_memory_chunk* new_smc;
 
+    // Getting a chunk from new database.
     uint32_t err_code = worker_dbs_[new_db_index]->GetOneChunkFromPrivatePool(&new_chunk_index, &new_smc);
     if (err_code)
     {
         // New chunk can not be obtained.
-
         return err_code;
     }
 
