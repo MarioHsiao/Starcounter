@@ -421,7 +421,7 @@ inline owner_id worker::get_owner_id() const {
 
 inline void worker::show_linked_chunks(chunk_type* chunk_base, chunk_index head)
 {
-	for (chunk_index current = head; current != chunk_type::LINK_TERMINATOR;
+	for (chunk_index current = head; current != chunk_type::link_terminator;
 	current = chunk_base[current].get_link()) {
 		chunk_index next = chunk_base[current].get_link();
 		std::cout << "chunk[" << current << "] links to chunk[" << next

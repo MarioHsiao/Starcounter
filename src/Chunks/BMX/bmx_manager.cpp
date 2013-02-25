@@ -60,7 +60,7 @@ uint32_t sc_init_bmx_manager(DestroyAppsSessionCallback dasc)
         return err_code;
 
     // Checking that handler id is 0 for BMX management.
-    if (bmx_handler_id != BMX_MANAGEMENT_HANDLER)
+    if (bmx_handler_id != BMX_MANAGEMENT_HANDLER_ID)
         return SCERRUNSPECIFIED; // SCERRWRONGBMXMANAGERHANDLER
 
     // Saving Apps session destroy callback.
@@ -145,7 +145,7 @@ uint32_t sc_bmx_register_uri_handler(
 {
     // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-    uint32_t err_code = g_bmx_data_copy->RegisterUriHandler(port, uri_string, (HTTP_METHODS)http_method, callback, handler_id);
+    uint32_t err_code = g_bmx_data_copy->RegisterUriHandler(port, uri_string, (HTTP_METHODS)http_method, NULL, 0, callback, handler_id);
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     if (err_code)
@@ -157,14 +157,39 @@ uint32_t sc_bmx_register_uri_handler(
     return err_code;
 }
 
+// Registers raw port handler.
+uint32_t sc_bmx_register_uri_handler_new(
+    uint16_t port,
+    char* uri_info,
+    uint8_t http_method,
+    uint8_t* param_types,
+    uint8_t num_params,
+    GENERIC_HANDLER_CALLBACK callback, 
+    BMX_HANDLER_TYPE* handler_id
+    )
+{
+    // Performing operation on a copy.
+    BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
+    uint32_t err_code = g_bmx_data_copy->RegisterUriHandler(port, uri_info, HTTP_METHODS::OTHER_METHOD, param_types, num_params, callback, handler_id);
+    LeaveSafeBmxManagement(g_bmx_data_copy);
+
+    if (err_code)
+        return err_code;
+
+    // Pushing registered handler.
+    err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredUriHandlerNew(g_bmx_data);
+
+    return err_code;
+}
+
 // Unregisters a handler.
-uint32_t sc_bmx_unregister_handler(BMX_HANDLER_TYPE handler_id)
+uint32_t sc_bmx_unregister_handler(BMX_HANDLER_INDEX_TYPE handler_index)
 {
     bool is_empty_handler;
 
     // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-    uint32_t err_code = g_bmx_data_copy->UnregisterHandler(handler_id, &is_empty_handler);
+    uint32_t err_code = g_bmx_data_copy->UnregisterHandler(handler_index, &is_empty_handler);
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     if (err_code)
@@ -172,7 +197,7 @@ uint32_t sc_bmx_unregister_handler(BMX_HANDLER_TYPE handler_id)
 
     // Pushing notification to the client if handler is empty.
     if (is_empty_handler)
-        err_code = g_bmx_data->PushHandlerUnregistration(handler_id);
+        err_code = g_bmx_data->PushHandlerUnregistration(handler_index);
 
     return err_code;
 }
@@ -184,7 +209,7 @@ uint32_t sc_bmx_construct_ping(
     )
 {
     // Predefined BMX management handler.
-    smc->set_bmx_protocol(BMX_MANAGEMENT_HANDLER);
+    smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
 
     request_chunk_part* request = smc->get_request_chunk();
     request->reset_offset();
@@ -208,7 +233,7 @@ uint32_t sc_bmx_parse_pong(
     )
 {
     // Checking that its a BMX message.
-    if (BMX_MANAGEMENT_HANDLER != smc->get_bmx_protocol())
+    if (BMX_MANAGEMENT_HANDLER_INFO != smc->get_bmx_handler_info())
         return 1;
 
     // Getting the response part of the chunk.

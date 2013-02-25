@@ -7,6 +7,7 @@ using Starcounter.ABCIPC.Internal;
 using Starcounter.Internal;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
+using StarcounterAppsLogTester;
 
 // http://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.aspx
 
@@ -116,7 +117,16 @@ namespace StarcounterApps3 {
 
 
             GET("/query", () => {
-                return new Master() { View = "sql.html" };
+
+                SqlApp sqlApp = new SqlApp();
+                sqlApp.View = "sql.html";
+                sqlApp.DatabaseName = "default";
+                sqlApp.Query = "SELECT m FROM systable m";
+                sqlApp.Port = 8181;
+
+                return sqlApp;
+
+                //return new SqlApp() { View = "sql.html", DatabaseName = "default", Query = "SELECT m FROM systable m", Port = 8181 };
             });
 
             GET("/log", () => {

@@ -25,7 +25,7 @@ static void __shutdown_event_handler()
 }
 
 // Is called when scservice crashes.
-VOID SCAPI LogGatewayCrash(VOID *pc, LPCWSTR str)
+VOID LogGatewayCrash(VOID *pc, LPCWSTR str)
 {
     LogWriteCritical(str);
 }
