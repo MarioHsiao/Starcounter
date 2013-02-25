@@ -1,18 +1,13 @@
 ﻿// ***********************************************************************
-// <copyright file="ParentTemplate.cs" company="Starcounter AB">
+// <copyright file="TContainer.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 using System;
 using System.Collections.Generic;
-using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
-namespace Starcounter.Templates {
-#endif
 
+namespace Starcounter.Templates {
 
     /// <summary>
     /// Base class for Obj and Arr templates.
