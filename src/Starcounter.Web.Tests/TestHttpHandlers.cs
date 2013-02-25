@@ -564,6 +564,9 @@ namespace Starcounter.Internal.Test {
             byte[] h8 = Encoding.UTF8.GetBytes("DELETE /allanballan\r\n\r\n");
             byte[] h9 = Encoding.UTF8.GetBytes("GET /test\r\n\r\n");
             byte[] h10 = Encoding.UTF8.GetBytes("GET /testing\r\n\r\n");
+            byte[] h11 = Encoding.UTF8.GetBytes("PUT /players/123/\r\n\r\n");
+            byte[] h12 = Encoding.UTF8.GetBytes("PUT /players/123 ");
+            byte[] h13 = Encoding.UTF8.GetBytes("PUT /players/123\n");
 
             Main(); // Register some handlers
             var um = RequestHandler.RequestProcessor;
@@ -579,6 +582,9 @@ namespace Starcounter.Internal.Test {
             Assert.False(um.Invoke(new HttpRequest(h8), out resource), "There is no handler DELETE /allanballan. How could it be called.");
             Assert.True(um.Invoke(new HttpRequest(h9), out resource));
             Assert.False(um.Invoke(new HttpRequest(h10), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h11), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h13), out resource));
 
         }
 
