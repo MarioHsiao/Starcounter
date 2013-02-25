@@ -62,7 +62,12 @@ namespace Starcounter.Internal.Test {
             */
 
             GET("/", () => {
-                Console.WriteLine("Root called");
+                Console.WriteLine("GET / called");
+                return null;
+            });
+
+            GET("/test", () => {
+                Console.WriteLine("GET /test called");
                 return null;
             });
 
@@ -304,6 +309,8 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public void GenerateCppRequestProcessor() {
+
+
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
@@ -313,7 +320,6 @@ namespace Starcounter.Internal.Test {
             var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
 
             Console.WriteLine(str);
-
         }
 
 
@@ -322,6 +328,13 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public void GenerateSimpleCppRequestProcessor() {
+
+            var file = new System.IO.StreamReader("facit.cpp.txt");
+            var facit = file.ReadToEnd();
+            file.Close();
+
+
+
             RegisterSimpleHandlers(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
@@ -330,7 +343,12 @@ namespace Starcounter.Internal.Test {
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
 
+//            Assert.AreEqual(facit, str);
+
+            Console.WriteLine("Complete codegenerated C/C++ file");
             Console.WriteLine(str);
+
+
 
         }
 
@@ -396,6 +414,7 @@ namespace Starcounter.Internal.Test {
             byte[] h505 = Encoding.UTF8.GetBytes("GET /test-double/DDDD\r\n\r\n"); // DDDD -> Not a double value
             byte[] h506 = Encoding.UTF8.GetBytes("GET /test-datetime/DDDD\r\n\r\n"); // DDDD -> Not a datetime value
             byte[] h507 = Encoding.UTF8.GetBytes("GET /test-bool/DDDD\r\n\r\n"); // DDDD -> Not a boolean value
+            byte[] h508 = Encoding.UTF8.GetBytes("DELETE /allanballan/DDDD\r\n\r\n"); // DDDD -> Not a boolean value
 
             Main();
 
@@ -442,6 +461,7 @@ namespace Starcounter.Internal.Test {
             Assert.False(um.Invoke(new HttpRequest(h505), out resource));
             Assert.False(um.Invoke(new HttpRequest(h506), out resource));
             Assert.False(um.Invoke(new HttpRequest(h507), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h508), out resource), "There is no handler DELETE /allanballan. How could it be found?");
 
         }
 
@@ -541,6 +561,12 @@ namespace Starcounter.Internal.Test {
             byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
             byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
             byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
+            byte[] h8 = Encoding.UTF8.GetBytes("DELETE /allanballan\r\n\r\n");
+            byte[] h9 = Encoding.UTF8.GetBytes("GET /test\r\n\r\n");
+            byte[] h10 = Encoding.UTF8.GetBytes("GET /testing\r\n\r\n");
+            byte[] h11 = Encoding.UTF8.GetBytes("PUT /players/123/\r\n\r\n");
+            byte[] h12 = Encoding.UTF8.GetBytes("PUT /players/123 ");
+            byte[] h13 = Encoding.UTF8.GetBytes("PUT /players/123\n");
 
             Main(); // Register some handlers
             var um = RequestHandler.RequestProcessor;
@@ -553,6 +579,12 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h5), out resource));
             Assert.True(um.Invoke(new HttpRequest(h6), out resource));
             Assert.True(um.Invoke(new HttpRequest(h7), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h8), out resource), "There is no handler DELETE /allanballan. How could it be called.");
+            Assert.True(um.Invoke(new HttpRequest(h9), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h10), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h11), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h13), out resource));
 
         }
 
