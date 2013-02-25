@@ -91,6 +91,11 @@ internal class ExtentNode : IOptimizationNode
     internal Boolean InnermostExtent = false;
 
     /// <summary>
+    /// True, if all conditions can code gen.
+    /// </summary>
+    Boolean canCodeGen = true;
+
+    /// <summary>
     /// Constructor.
     /// </summary>
     /// <param name="rowTypeBind">The comp type bind.</param>
@@ -271,8 +276,10 @@ internal class ExtentNode : IOptimizationNode
         for (Int32 j = 0; j < conditionList.Count; j++) {
             if (conditionList[j] is IComparison)
                 if ((conditionList[j] as IComparison).GetPathTo(extentNumber) != null &&
-                Optimizer.RangeOperator((conditionList[j] as IComparison).Operator))
+                Optimizer.RangeOperator((conditionList[j] as IComparison).Operator)) {
                     comparisonList.Add(conditionList[j] as IComparison);
+                    canCodeGen = canCodeGen && ((CodeGenFilterNode)conditionList[j]).CanCodeGen;
+                }
         }
         // Get all index infos for the current type.
         IndexInfo[] indexInfoArr = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllInheritedIndexInfos();
@@ -392,7 +399,7 @@ internal class ExtentNode : IOptimizationNode
 
         if (extentIndexInfo != null)
         {
-            if (conditionList.Count > 0)
+            if (conditionList.Count > 0 && canCodeGen)
             {
                 // Trying to create a scan which uses native filter code generation.
                 try

@@ -30,6 +30,15 @@ internal abstract class Variable : CodeGenFilterNode
         }
     }
 
+    /// <summary>
+    /// Always true
+    /// </summary>
+    public override bool CanCodeGen {
+        get {
+                return true;
+        }
+    }
+
     public Boolean InvolvesCodeExecution()
     {
         return false;

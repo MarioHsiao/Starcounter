@@ -1,6 +1,6 @@
 #include "bmx.hpp"
 
-EXTERN_C uint32_t SCAPI sccoredb_set_current_transaction(int32_t unlock_tran_from_thread, uint64_t handle, uint64_t verify);
+EXTERN_C uint32_t sccoredb_set_current_transaction(int32_t unlock_tran_from_thread, uint64_t handle, uint64_t verify);
 
 using namespace starcounter::bmx;
 using namespace starcounter::core;

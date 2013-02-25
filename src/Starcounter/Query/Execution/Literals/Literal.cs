@@ -22,6 +22,10 @@ internal abstract class Literal : CodeGenFilterNode
         return false;
     }
 
+    public override bool CanCodeGen {
+        get { return true; }
+    }
+
     // String representation of this instruction.
     protected override String CodeAsString()
     {

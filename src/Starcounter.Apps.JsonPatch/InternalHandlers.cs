@@ -9,21 +9,20 @@ using Starcounter.Apps;
 using Starcounter.Internal.Web;
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using Newtonsoft.Json;
+using System.Collections.Specialized;
+using System.Diagnostics;
 
-namespace Starcounter.Internal.JsonPatch
-{
+namespace Starcounter.Internal.JsonPatch {
     /// <summary>
     /// Class InternalHandlers
     /// </summary>
-    public class InternalHandlers : Puppet
-    {
+    public class InternalHandlers : Puppet {
         /// <summary>
         /// Registers this instance.
         /// </summary>
-        public static void Register()
-        {
-            GET("/__vm/{?}", (int viewModelId) =>
-            {
+        public static void Register() {
+            GET("/__vm/{?}", (int viewModelId) => {
                 Puppet rootApp;
                 Byte[] json;
                 HttpResponse response = null;
@@ -35,12 +34,47 @@ namespace Starcounter.Internal.JsonPatch
                 return response;
             });
 
-            GET("/__sql/{?}", (string query) => {
-                return "Running SQL " + query;
+
+            Debug.Assert(Db.Environment != null, "Db.Environment is not initlized");
+            Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
+
+            Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
+
+            // SQL command
+            POST("/__sql/" + Db.Environment.DatabaseName, (HttpRequest r) => {
+
+                try {
+                    //                    System.Uri myUri = new System.Uri("http://www.example.com" + r.Uri);
+                    //                    NameValueCollection parameters = System.Web.HttpUtility.ParseQueryString(myUri.Query);
+                    //                    string offset = parameters.Get("offset");
+                    //                    string rows = parameters.Get("rows");
+                    string bodyData = r.GetBodyStringUtf8_Slow();   // Retrice the sql command in the body
+                    SqlResult sqlresult = Db.SQL(bodyData);
+
+                    string result = JsonConvert.SerializeObject(sqlresult);
+                    return result;
+                }
+                catch (Starcounter.SqlException sqle) {
+                    return sqle.Message;
+                }
+                catch (Exception e) {
+                    return e.ToString();
+                }
+
             });
 
-            PATCH("/__vm/{?}", (int viewModelId) =>
-            {
+
+            GET("/errorcode/{?}", (int code) => {
+
+                HttpResponse response = new HttpResponse();
+
+                response.Uncompressed = HttpPatchBuilder.Create400Response("my message");
+                return response;
+
+//                return code.ToString();
+            });
+
+            PATCH("/__vm/{?}", (int viewModelId) => {
                 Puppet rootApp;
                 Session session;
                 HttpResponse response = null;
@@ -49,7 +83,7 @@ namespace Starcounter.Internal.JsonPatch
                 try {
                     session = Session.Current;
                     rootApp = session.GetRootApp(viewModelId);
-                    
+
                     JsonPatch.EvaluatePatches(rootApp, session.HttpRequest.GetBodyByteArray_Slow());
 
                     // TODO:
@@ -58,9 +92,11 @@ namespace Starcounter.Internal.JsonPatch
                     RefreshAllValues(rootApp, session.changeLog);
 
                     response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(session.changeLog);
-                } catch (NotSupportedException nex) {
+                }
+                catch (NotSupportedException nex) {
                     response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     response.Uncompressed = HttpPatchBuilder.Create400Response(ex.Message);
                 }
                 return response;
@@ -79,12 +115,12 @@ namespace Starcounter.Internal.JsonPatch
                     }
                     continue;
                 }
-                
+
                 if (template is TPuppet) {
                     RefreshAllValues(app.GetValue((TPuppet)template), log);
                     continue;
                 }
-                
+
                 if (template is ActionProperty)
                     continue;
 
