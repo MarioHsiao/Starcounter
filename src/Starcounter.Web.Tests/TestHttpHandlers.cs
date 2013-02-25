@@ -565,6 +565,8 @@ namespace Starcounter.Internal.Test {
             byte[] h9 = Encoding.UTF8.GetBytes("GET /test\r\n\r\n");
             byte[] h10 = Encoding.UTF8.GetBytes("GET /testing\r\n\r\n");
             byte[] h11 = Encoding.UTF8.GetBytes("PUT /players/123/\r\n\r\n");
+            byte[] h12 = Encoding.UTF8.GetBytes("PUT /players/123 ");
+            byte[] h13 = Encoding.UTF8.GetBytes("PUT /players/123\n");
 
             Main(); // Register some handlers
             var um = RequestHandler.RequestProcessor;
@@ -581,6 +583,8 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h9), out resource));
             Assert.False(um.Invoke(new HttpRequest(h10), out resource));
             Assert.False(um.Invoke(new HttpRequest(h11), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h11), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h11), out resource));
 
         }
 
