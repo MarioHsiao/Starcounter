@@ -18,10 +18,10 @@ static void (*__shutdown_event_handler)();
 static BOOL WINAPI __console_handler(DWORD console_event);
 
 
-void _set_shutdown_event_handler(void (*shutdown_event_handler)())
+BOOL _set_shutdown_event_handler(void (*shutdown_event_handler)())
 {
     __shutdown_event_handler = shutdown_event_handler;
-    SetConsoleCtrlHandler(__console_handler, TRUE);
+    return SetConsoleCtrlHandler(__console_handler, TRUE);
 }
 
 
