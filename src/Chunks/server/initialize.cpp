@@ -235,6 +235,7 @@ is_system, uint32_t chunks_total_number) try {
 		scheduler_interface_alloc_inst2,
 		scheduler_interface_alloc_inst2,
 		segment_name,
+		server_name,
 		i);
 	}
 

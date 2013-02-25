@@ -148,7 +148,6 @@ owner_id_(ipc_monitor_owner_id) {
 		// Failed to create event.
 		throw bad_monitor("failed to create the ipc_monitor_cleanup_event");
 	}
-	std::wcout << "w_ipc_monitor_cleanup_event_name = " << w_ipc_monitor_cleanup_event_name << std::endl;
 
 	//--------------------------------------------------------------------------
 	// Check if the monitor_interface with the name
