@@ -2917,7 +2917,7 @@ void Gateway::InitTestHttpEchoRequests()
 } // namespace network
 } // namespace starcounter
 
-VOID SCAPI LogGatewayCrash(VOID *pc, LPCWSTR str)
+VOID LogGatewayCrash(VOID *pc, LPCWSTR str)
 {
     starcounter::network::g_gateway.LogWriteCritical(str);
 }

@@ -36,7 +36,15 @@ namespace StarcounterApps3 {
         }
 
         public void RefreshLogEntriesList() {
-            this.LogEntries.Clear(); // Clearlist
+            
+            
+            //this.LogEntries.Clear(); // Clearlist
+
+            // The .Clear() method dosent work
+            while (this.LogEntries.Count > 0) {
+                this.LogEntries.RemoveAt(0);
+            }
+
 
             int limit = 30;   // Limith the result
 

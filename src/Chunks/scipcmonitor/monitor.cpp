@@ -77,7 +77,7 @@
 #include <iostream>
 #include <vector>
 #include <utility>
-#include <boost/cstdint.hpp>
+#include <cstdint>
 #include <boost/array.hpp>
 #include <map>
 #include <boost/unordered_map.hpp>
@@ -131,7 +131,8 @@
 // "active_databases" file can be stored.
 //
 
-int wmain(int argc, wchar_t* argv[], wchar_t* envp[]) try {
+int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
+try {
 	using namespace starcounter::core;
 	
 	// Start the monitor application.
@@ -174,12 +175,11 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[]) try {
 	#endif
 }
 catch (starcounter::core::bad_monitor& e) {
-	std::wcerr << "error: bad_monitor exception caught: " << e.what()
-	<< std::endl;
+	std::wcerr << "error: bad_monitor exception: " << e.what() << std::endl;
 	return _E_UNSPECIFIED; /// TODO: Return suitable error code.
 }
 catch (...) {
-	std::wcerr << "error: unknown exception caught" << std::endl;
+	std::wcerr << "error: unknown exception" << std::endl;
 	return _E_UNSPECIFIED;
 }
 
