@@ -92,41 +92,6 @@ namespace Starcounter {
         public override void SetBoundValueAsObject(Obj app, object value) {
             dataBinding.SetValue((Puppet)app, (T)value);
         }
-
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="value">The value.</param>
-        public void ProcessInput(Puppet app, T value)
-        {
-            Input<T> input = null;
-
-            if (CustomInputEventCreator != null)
-                input = CustomInputEventCreator.Invoke(app, this, value);
-
-            if (input != null)
-            {
-                foreach (var h in CustomInputHandlers)
-                {
-                    h.Invoke(app, input);
-                }
-                if (!input.Cancelled)
-                {
-                    Debug.WriteLine("Setting value after custom handler: " + input.Value);
-                    app.SetValue((TValue<T>)this, input.Value);
-                }
-                else
-                {
-                    Debug.WriteLine("Handler cancelled: " + value);
-                }
-            }
-            else
-            {
-                Debug.WriteLine("Setting value after no handler: " + value);
-                app.SetValue((TValue<T>)this, value);
-            }
-        }
     }
 
 

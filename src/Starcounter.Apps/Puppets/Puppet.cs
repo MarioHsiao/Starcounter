@@ -19,9 +19,9 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// See App with generics 
+    /// See Puppet TODO! REF 
     /// </summary>
-    public class Puppet : Puppet<NullData> {
+    public partial class Puppet : Puppet<NullData> {
 
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// An App is a live view model object controlled by your C# application code.
+    /// A Puppet is a live view model object controlled by your C# application code.
     /// It is mirrored between the server and the client in an MVVM or MVC application.
     /// App objects can be used to drive MVVM views or other such model driven clients.
     /// </summary>
@@ -64,7 +64,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Deletes this instance.
+        /// 
         /// </summary>
         public void Delete() {
             throw new NotImplementedException();

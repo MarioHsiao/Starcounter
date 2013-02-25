@@ -35,7 +35,7 @@ namespace Starcounter.Templates {
             // Superslow way of parsing the decimal value. Needs to be rewritten.
             decimal value;
             decimal.TryParse(Encoding.UTF8.GetString(rawValue), out value);
-            ProcessInput(app, value);
+            app.ProcessInput<decimal>(this, value);
         }
 
         /// <summary>

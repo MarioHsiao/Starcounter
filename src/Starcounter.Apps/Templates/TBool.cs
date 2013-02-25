@@ -31,9 +31,9 @@ namespace Starcounter.Templates {
             // TODO:
             // Proper implementation.
             if (rawValue != null && rawValue.Length == 4)
-                ProcessInput(app, true);
+                app.ProcessInput<bool>(this, true);
             else
-                ProcessInput(app, false);
+                app.ProcessInput<bool>(this, false);
         }
 
         /// <summary>

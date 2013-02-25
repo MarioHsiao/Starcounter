@@ -89,6 +89,7 @@
     <Compile Include="Obj.GetSetValue.cs" />
     <Compile Include="Obj.Json.cs" />
     <Compile Include="Obj.QuickTuple.cs" />
+    <Compile Include="Puppets\Puppet.Input.cs" />
     <Compile Include="Puppets\Session.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="Puppets\TApp.cs" />
