@@ -56,7 +56,9 @@ int32_t make_sc_server_uri(const char *server_name, wchar_t *buffer, size_t *pbu
 	char computer_name[MAX_COMPUTERNAME_LENGTH + 1];
 	
 	computer_name_size = MAX_COMPUTERNAME_LENGTH;
-	GetComputerNameA(computer_name, (DWORD *)&computer_name_size);
+	if( GetComputerNameA(computer_name, (DWORD *)&computer_name_size) == 0 ) {
+		return GetLastError();
+	}
 
 	size_t buffer_size_needed;
 	size_t buffer_size;
