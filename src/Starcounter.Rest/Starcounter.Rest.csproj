@@ -67,10 +67,10 @@
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="RGiesecke.DllExport.Metadata">
+    <!-- <Reference Include="RGiesecke.DllExport.Metadata">
       <HintPath>..\packages\UnmanagedExports.1.2.2.23707\lib\net\RGiesecke.DllExport.Metadata.dll</HintPath>
       <Private>False</Private>
-    </Reference>
+    </Reference> -->
     <Reference Include="Roslyn.Compilers">
       <HintPath>..\packages\Roslyn.Compilers.Common.1.2.20906.2\lib\net45\Roslyn.Compilers.dll</HintPath>
     </Reference>
