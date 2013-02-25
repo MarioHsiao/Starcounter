@@ -60,7 +60,7 @@ public:
         GW_ASSERT(1 == handler_lists_[0].get_handlers_list()[0].get_num_entries());
 
         return CreateHandlerInfoType(
-            handler_lists_[0].get_handlers_list()[0].get_handler_id(),
+            handler_lists_[0].get_handlers_list()[0].get_handler_info(),
             handler_lists_[0].get_db_index());
     }
 
@@ -242,22 +242,7 @@ public:
     }
 
     // Running all registered handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
-    {
-        uint32_t err_code;
-
-        // Going through all handler list.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
-        {
-            err_code = handler_lists_[i].get_handlers_list()->RunHandlers(gw, sd, is_handled);
-
-            // Checking if information was handled and no errors occurred.
-            if (*is_handled || err_code)
-                return err_code;
-        }
-
-        return 0;
-    }
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled);
 };
 
 struct RegisteredUriManaged

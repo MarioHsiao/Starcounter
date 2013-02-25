@@ -4,12 +4,6 @@
 // Copyright © 2006-2012 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
-//------------------------------------------------------------------------------
-// NOTES:
-// The IPC monitor_interface shared memory object name shall match the server's
-// (not the database process) name, because we need to be able to start multiple
-// IPC monitors.
-//------------------------------------------------------------------------------
 
 #ifndef STARCOUNTER_CORE_MONITOR_INTERFACE_HPP
 #define STARCOUNTER_CORE_MONITOR_INTERFACE_HPP
@@ -41,6 +35,7 @@
 //# include <intrin.h>
 # undef WIN32_LEAN_AND_MEAN
 #endif // defined(_MSC_VER)
+#include "../common/bit_operations.hpp"
 #include "../common/pid_type.hpp"
 #include "../common/owner_id.hpp"
 #include "../common/config_param.hpp"
@@ -53,6 +48,8 @@ namespace core {
 
 class monitor_interface {
 public:
+	typedef char segment_name_type[segment_name_size];
+
 	explicit monitor_interface();
 	
 	uint32_t register_database_process(pid_type pid, std::string segment_name,
@@ -107,8 +104,74 @@ public:
 	void set_in_data_available_state(bool state);
 	void set_out_data_available_state(bool state);
 	
-	smp::spinlock& sp() {
-		return sp_;
+	/// insert_segment_name() is used by the monitor::wait_for_client_process_event()
+	/// to insert segment names that are involved in cleanup tasks. The index in the
+	/// table is set in the client_interface[] where cleanup is to be done by the
+	/// scheduler(s). The scheduler that releases the last channel in a given
+	/// client_interface[] will use that index to set the corresponding flag in the
+	/// cleanup_mask_, and then set the ipc_monitor_cleanup_event_. This will wake
+	/// up the monitor::cleanup() thread which will check the cleanup_mask_ and open
+	/// the IPC shared memory segment with the name stored in the table corresponing
+	/// to the bit index. When done it will update the cleanup_task data.
+	/**
+	 * @param segment_name The name of the IPC shared memory segment.
+	 * @return The index in the array where the name was inserted on success, otherwise
+	 *		-1 if could not insert the name.
+	 */
+	int32_t insert_segment_name(const char* segment_name) {
+		return cleanup_task_.insert_segment_name(segment_name);
+	}
+
+	/// erase_segment_name() is used by the monitor::wait_for_database_process_event()
+	/// to erase segment names of terminated database processes.
+	/**
+	 * @param segment_name The name of the IPC shared memory segment.
+	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
+	 */
+	void erase_segment_name(const char* segment_name, HANDLE ipc_monitor_cleanup_event) {
+		cleanup_task_.erase_segment_name(segment_name, ipc_monitor_cleanup_event);
+	}
+
+	/// get_a_segment_name() is used by the monitor::cleanup() thread trying to get
+	/// a segment name, which it will use to open it and do the rest of the cleanup.
+	/**
+	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
+	 * @return The segment_name, otherwise 0 if there are no segment names stored.
+	 */
+	const char* get_a_segment_name(HANDLE ipc_monitor_cleanup_event) {
+		return cleanup_task_.get_a_segment_name(ipc_monitor_cleanup_event);
+	}
+
+	void print_segment_name_list() {
+		for (int i = 0; i < 64; ++i) {
+			std::cout << i << ": ";
+			if (cleanup_task_.segment_name_[i]) {
+				std::cout << cleanup_task_.segment_name_[i];
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	/// set_cleanup_flag() is used by the last scheduler thread doing a cleanup task,
+	/// to signal to the IPC monitor that it should start the cleanup of chunk(s) and
+	/// client_interface(s). The schedulers have done their cleanup tasks related to
+	/// this client process.
+	/**
+	 * @param index The index in the cleanup task table containing the segment name.
+	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
+	 * @return The segment_name, otherwise 0 if there are no segment names stored.
+	 */
+	void set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event) {
+		cleanup_task_.set_cleanup_flag(index, ipc_monitor_cleanup_event);
+	}
+
+	uint64_t get_cleanup_flag() {
+		return cleanup_task_.get_cleanup_flag();
+	}
+
+	/// Get reference to the spinlock.
+	smp::spinlock& spinlock() {
+		return cleanup_task_.spinlock();
 	}
 
 private:
@@ -117,7 +180,6 @@ private:
 	boost::interprocess::interprocess_condition is_ready_;
 	bool is_ready() const;
 	bool is_ready_flag_;
-	smp::spinlock sp_;
 
 	// Synchronize access to the monitor_interface among all database- and
 	// client processes. The monitor threads never locks this mutex.
@@ -168,6 +230,80 @@ private:
 	
 	// Hack until I can figure how to bind it.
 	bool out_is_data_available() const;
+
+	struct cleanup_task {
+		typedef uint64_t mask_type;
+
+		cleanup_task();
+
+		/// insert_segment_name() is used by the monitor::wait_for_client_process_event()
+		/// to insert segment names that are involved in cleanup tasks. The index in the
+		/// table is set in the client_interface[] where cleanup is to be done by the
+		/// scheduler(s). The scheduler that releases the last channel in a given
+		/// client_interface[] will use that index to set the corresponding flag in the
+		/// cleanup_mask_, and then set the ipc_monitor_cleanup_event_. This will wake
+		/// up the monitor::cleanup() thread which will check the cleanup_mask_ and open
+		/// the IPC shared memory segment with the name stored in the table corresponing
+		/// to the bit index. When done it will update the cleanup_task data.
+		/**
+		 * @param segment_name The name of the IPC shared memory segment.
+		 * @return The index in the array where the name was inserted on success, otherwise
+		 *		-1 if could not insert the name.
+		 */
+		int32_t insert_segment_name(const char* segment_name);
+		
+		/// erase_segment_name() is used by the monitor::wait_for_database_process_event()
+		/// to erase segment names of terminated database processes.
+		/**
+		 * @param segment_name The name of the IPC shared memory segment.
+		 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
+		 */
+		void erase_segment_name(const char* segment_name, HANDLE ipc_monitor_cleanup_event);
+
+		/// get_a_segment_name() is used by the monitor::cleanup() thread trying to get
+		/// a segment name, which it will use to open it and do the rest of the cleanup.
+		/**
+		 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
+		 * @return The segment_name, otherwise 0 if there are no segment names stored.
+		 */
+		const char* get_a_segment_name(HANDLE ipc_monitor_cleanup_event);
+
+		mask_type segment_name_mask() {
+			return segment_name_mask_;
+		}
+
+		/// set_cleanup_flag() is used by the last scheduler thread doing a cleanup task,
+		/// to signal to the IPC monitor that it should start the cleanup of chunk(s) and
+		/// client_interface(s). The schedulers have done their cleanup tasks related to
+		/// this client process.
+		/**
+		 * @param index The index in the cleanup task table containing the segment name.
+		 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
+		 * @return The segment_name, otherwise 0 if there are no segment names stored.
+		 */
+		void set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event);
+
+		uint64_t get_cleanup_flag();
+
+		/// Get reference to the spinlock.
+		smp::spinlock& spinlock() {
+			return spinlock_;
+		}
+
+		// The segment_name_ table holds names of segments related to active cleanup tasks.
+		segment_name_type segment_name_[max_number_of_databases];
+
+		// The segment_name_mask_ flags segment_names related to active cleanup tasks.
+		volatile mask_type segment_name_mask_;
+
+		// The cleanup_mask_ flags segment_name_[s] that are ready to be
+		// opened by the monitor::cleanup() thread and doing the rest of the
+		// cleanup task.
+		volatile mask_type cleanup_mask_;
+
+		// spinlock_ synchronizes updates to cleanup_mask_ and set/reset of the event.
+		smp::spinlock spinlock_;
+	} cleanup_task_;
 };
 
 /// Exception class.

@@ -101,8 +101,7 @@ namespace StarcounterInternal.Bootstrap
             OnExceptionFactoryInstalled();
 
             ApplicationArguments arguments;
-            if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
-                return false;
+            ProgramCommandLine.TryGetProgramArguments(args, out arguments);
             OnCommandLineParsed();
 
             configuration = Configuration.Load(arguments);
@@ -140,6 +139,9 @@ namespace StarcounterInternal.Bootstrap
 
             // Initializing REST.
             RequestHandler.InitREST(configuration.TempDirectory);
+
+            // Initilize the Db environment (database name)
+            Db.SetEnvironment(new DbEnvironment(configuration.Name));
 
             // Initializing AppsBootstrapper.
             AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);
@@ -454,7 +456,6 @@ namespace StarcounterInternal.Bootstrap
             uint e = sccoreapp.sccoreapp_init((void*)hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            Db.SetEnvironment(new DbEnvironment(configuration.Name));
             LogManager.Setup(hlogs);
 
             // Decide what interface to expose locally, to handle requests

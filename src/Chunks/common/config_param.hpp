@@ -13,6 +13,7 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <cstdlib>
+#include "macro_definitions.hpp"
 
 namespace starcounter {
 namespace core {
@@ -31,11 +32,15 @@ const std::size_t chunk_size = 1 << 12; // 4K chunks.
 // exceed 32, because chunk_index is 32-bit and sometimes both the chunk_index
 // and the channel shared the same 32-bit word. This means that
 // chunks_total_number_max can not be more than 1 << 24 when channel_bits = 8.
-const std::size_t chunks_total_number_max = 1 << 16;
+const std::size_t chunks_total_number_max = 1 << 20;
 
 // The number of channels.
 const std::size_t channel_bits = 8;
 const std::size_t channels = 1 << channel_bits;
+
+// The number of client_interfaces.
+const std::size_t client_interface_bits = 8;
+const std::size_t client_interfaces = 1 << client_interface_bits;
 
 // The capacity of each channels in and out queues.
 // This parameter is currently hard coded in the channel class itself
@@ -43,20 +48,14 @@ const std::size_t channels = 1 << channel_bits;
 const std::size_t channel_capacity_bits = 8;
 const std::size_t channel_capacity = 1 << channel_capacity_bits;
 
+// The max number of databses that can exist (per IPC monitor).
+const std::size_t max_number_of_databases = 64;
+
 // The max number of schedulers that can exist (per NUMA node).
 const std::size_t max_number_of_schedulers = 31;
 
 // The max number of clients that can exist (maybe per NUMA node).
 const std::size_t max_number_of_clients = 256;
-
-// The default capacity of the bounded_message_buffer in the monitor is
-// important. Without any deeper thought, I set it to:
-const std::size_t bounded_message_buffer_capacity = 1 << 12;
-// If a thread need to push a log message and it is full, the thread blocks
-// until the log_thread extracts a message, and the log_thread may block while
-// waiting for messages to be written to disk. Therefore it is best if the
-// capacity is large enough so that threads pushing messages are unlikely to
-// block.
 
 // The size of the array to hold the server name, including terminating null.
 const std::size_t server_name_size = 32;
@@ -71,9 +70,16 @@ const std::size_t segment_name_size = 64;
 // including terminating null. The format is:
 // "Local\<segment_name>_notify_scheduler_<N>", and
 // "Local\<segment_name>_notify_client_<N>".
-// where N is number in the range 0..31 for schedulers and 0..255 for clients.
+// where N is number in the range 0..30 for schedulers and 0..255 for clients.
 // For example: "Local\starcounter_PERSONAL_LOADANDLATENCY_64_notify_scheduler_0"
 const std::size_t segment_and_notify_name_size = 96;
+
+// The size of the array to hold the server name and ipc monitor cleanup event name,
+// including terminating null. The format is:
+// "Local\<server_name>_ipc_monitor_cleanup_event"
+const std::size_t ipc_monitor_cleanup_event_name_size
+= server_name_size -1 /* null */ +sizeof("Local\\") -1 /* null */ 
++sizeof(IPC_MONITOR_CLEANUP_EVENT);
 
 // The size of the array to hold the interface name.
 const std::size_t interface_name_size = 64;

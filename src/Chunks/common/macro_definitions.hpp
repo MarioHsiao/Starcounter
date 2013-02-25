@@ -26,17 +26,12 @@
 /// to show the activity in shared memory between database(s) and client(s).
 /// It shows resource usage and activity in channels. Only used for debug, it shall
 /// not be defined when pushing code.
-//#define CONNECTIVITY_MONITOR_SHOW_ACTIVITY
+//#define IPC_MONITOR_SHOW_ACTIVITY
 
 /// Debug switch to see atomic_buffer performance counters used in
 /// starcounter::core::channel. NOTE: This macro must be commented out before pushing
 /// code so that performance counters are not used because it degrades performance a bit.
 //#define STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS
-
-/// Define INTERPROCESS_COMMUNICATION_USE_SMP_SPINLOCK_TO_SYNC to use spinlocks to
-/// synchronize access to certain objects. Currently these objects involve:
-/// shared_chunk_pool
-//#define INTERPROCESS_COMMUNICATION_USE_SMP_SPINLOCK_TO_SYNC
 
 /// Define IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC to use spinlocks to
 /// synchronize access to the IPC monitors monitor_interface shared memory segment.
@@ -46,16 +41,27 @@
 //#endif // defined (IPC_MONITOR_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 
 ///********************************************************************************************
+/// Define IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+/// to use a robust spinlock and windows events to synchronize access to
+/// client_number_pool.
+#define IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
+
+#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+
+///********************************************************************************************
 /// Define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 /// to use a robust spinlock and windows events to synchronize access to
 /// scheduler_interface.
 
+/// NOT OPTIONAL TO DISABLE THIS ANYMORE - TODO.
 #define IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC
 
 ///********************************************************************************************
 /// Defining IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
 /// means the IPC monitor do the release of chunks instead of the schedulers.
-////#define IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
+#define IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP
 
 #if defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
 #else // !defined (IPC_MONITOR_RELEASES_CHUNKS_DURING_CLEAN_UP)
@@ -75,19 +81,16 @@
 /// While experimenting with this, don't define it when pushing code.
 #define INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC
 
-// The SCHEDULERS macro is a bit malplaced but it works for now. It is only used
-// in the test server and test client. I think those two projects are more or less
-// replaced by the \Yellow\src\Connectivity\NetworkGateway\
-// There is probably no longer any point in testing the performance of the channels
-// throughput stand alone. Now we do ping-pong tests with a real database.
-//#define SCHEDULERS 2
-
 // Prefix for database names.
 #define DATABASE_NAME_PREFIX "starcounter"
 #define W_DATABASE_NAME_PREFIX L"starcounter"
 
 // Suffix for monitor_interfaces.
 #define MONITOR_INTERFACE_SUFFIX "starcounter_monitor_interface"
+
+// Suffix for monitor_interfaces.
+#define IPC_MONITOR_CLEANUP_EVENT "ipc_monitor_cleanup_event"
+#define W_IPC_MONITOR_CLEANUP_EVENT L"ipc_monitor_cleanup_event"
 
 // Default monitor directory name
 #define DEFAULT_MONITOR_DIR_NAME "ipc_monitor"

@@ -67,9 +67,9 @@ public:
 		return type_id;
 	}
 
-    BMX_HANDLER_TYPE read_handler_id()
+    BMX_HANDLER_TYPE read_handler_info()
     {
-        return read_int16();
+        return read_uint64();
     }
 
     void write_handler_id(BMX_HANDLER_TYPE handler_id)
@@ -257,33 +257,13 @@ class blast_chunk : public starcounter::core::chunk<T, N>
 public:
 	request_chunk_part* get_request_chunk() 
 	{ 
-		return (chunk_part*)(elems + REQUEST_SIZE_BEGIN);
+		return (chunk_part*)(elems + request_size_begin);
 	}
 
 	response_chunk_part* get_response_chunk()
 	{
-		uint32_t offset = STATIC_HEADER_SIZE + get_request_size();
+		uint32_t offset = static_header_size + get_request_size();
 		return (chunk_part*)(elems + offset);
-	}
-
-	uint32_t get_available_request_size()
-	{
-		return ((uint32_t)size()
-				- STATIC_HEADER_SIZE 
-				- get_request_size()
-				- sizeof (link_type)
-		);
-	}
-
-	uint32_t get_available_response_size()
-	{
-		return ((uint32_t)size()
-				- STATIC_HEADER_SIZE // including size of request size type
-				- get_request_size()
-				- get_response_chunk()->get_offset()
-				- sizeof (message_size_type) // size of response size type
-				- sizeof (link_type)
-		);
 	}
 
 	// TODO:
@@ -298,10 +278,5 @@ public:
 // TODO:
 // rename shared_memory_chunk to something better.
 typedef blast_chunk<uint8_t, starcounter::core::chunk_size> shared_memory_chunk;
-
-INLINE uint32_t on_dummy(response_chunk_part* response_chunk, shared_memory_chunk* main_chunk)
-{
-	return 1;
-}
 
 #endif

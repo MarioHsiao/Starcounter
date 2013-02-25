@@ -50,7 +50,7 @@ inline bool shared_chunk_pool<T, Alloc>::full() const {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks(chunk_type*
 chunk_base, chunk_index& head, std::size_t size, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "A"
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	std::size_t chunks_to_acquire = (size +chunk_type::static_data_size -1)
 	/ chunk_type::static_data_size;
 	
@@ -135,8 +135,6 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 		current = container_[--unread_];
 		_mm_mfence(); // TODO: Figure if _mm_sfence() is enough.
 		client_interface_ptr->set_chunk_flag(current);
-		
-		///Not chunk_base[head].set_link(current); which was a bug.
 		head = current;
 		
 		for (std::size_t i = 1; i < chunks_to_acquire; ++i) {
@@ -178,7 +176,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks_counted(chunk_type*
 chunk_base, chunk_index& head, std::size_t num_chunks_to_acquire, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "B"
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
 	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
 	
@@ -196,8 +194,6 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "B"
 		current = container_[--unread_];
 		_mm_mfence(); // TODO: Figure if _mm_sfence() is enough.
 		client_interface_ptr->set_chunk_flag(current);
-		
-		///Not chunk_base[head].set_link(current); which was a bug.
 		head = current;
 		
 		for (std::size_t i = 1; i < num_chunks_to_acquire; ++i) {
@@ -258,8 +254,6 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 		current = container_[--unread_];
 		_mm_mfence(); // TODO: Figure if _mm_sfence() is enough.
 		client_interface_ptr->set_chunk_flag(current);
-		
-		///Not chunk_base[head].set_link(current); which was a bug.
 		head = current;
 		
 		for (std::size_t i = 1; i < num_chunks_to_acquire; ++i) {
@@ -301,7 +295,7 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::release_linked_chunks(chunk_type*
 chunk_, chunk_index& head, client_interface_type* client_interface_ptr,
-smp::spinlock::milliseconds timeout) { /// "C"
+smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
 	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
 	
@@ -394,7 +388,7 @@ template<class T, class Alloc>
 template<typename U>
 inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "D"
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
 	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
 
@@ -525,7 +519,7 @@ template<class T, class Alloc>
 template<typename U>
 std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "E"
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
 	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
 	
@@ -620,7 +614,7 @@ template<class T, class Alloc>
 template<typename U>
 inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire,
-smp::spinlock::milliseconds timeout) { /// "F"
+smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
 	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
 	
@@ -744,7 +738,7 @@ template<class T, class Alloc>
 template<typename U>
 std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_release,
-smp::spinlock::milliseconds timeout) { /// "G"
+smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
 	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
 	
@@ -836,7 +830,7 @@ timeout_milliseconds) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 bool shared_chunk_pool<T, Alloc>::release_clients_chunks(client_interface_type*
-client_interface_ptr, smp::spinlock::milliseconds timeout) { /// "H"
+client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
 	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
 	
@@ -981,7 +975,7 @@ chunk_index head) {
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::push_front(param_type item, uint32_t
-spin_count, smp::spinlock::milliseconds timeout) { /// "I"
+spin_count, smp::spinlock::milliseconds timeout) {
 	// Spin at most spin_count number of times, and try to push the item...
 	for (std::size_t s = 0; s < spin_count; ++s) {
 		if (try_push_front(item)) {
@@ -1126,7 +1120,7 @@ spin_count, uint32_t timeout_milliseconds) {
 //------------------------------------------------------------------------------
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
-inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) { /// "K"
+inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) {
 	smp::spinlock::scoped_lock lock(spinlock(),
 	smp::spinlock::scoped_lock::try_to_lock_type());
 	
@@ -1177,7 +1171,6 @@ inline bool shared_chunk_pool<T, Alloc>::try_push_front(param_type item) {
 
 //------------------------------------------------------------------------------
 #if defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
-/// "L"
 #else // !defined (IPC_REPLACE_IPC_SYNC_IN_THE_SHARED_CHUNK_POOL)
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::try_pop_back(value_type* item) {
@@ -1228,7 +1221,6 @@ inline const wchar_t* shared_chunk_pool<T, Alloc>::not_full_notify_name() const 
 template<class T, class Alloc>
 inline bool shared_chunk_pool<T, Alloc>::if_locked_with_id_recover_and_unlock
 (smp::spinlock::locker_id_type id) {
-	std::cout << "<N> if_locked_with_id_recover_and_unlock()\n";
 	if (spinlock().is_locked_with_id(id)) {
 		// Recover...NOT! We accept a resource leak in IPC version 1.0.
 		// TODO: Fix recovery of chunks in IPC version 2.0.

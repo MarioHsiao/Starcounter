@@ -11,8 +11,8 @@ class HandlersList
     // Type of the underlying handler.
     bmx::HANDLER_TYPE type_;
 
-    // Assigned handler id.
-    BMX_HANDLER_TYPE handler_id_;
+    // Assigned handler info.
+    BMX_HANDLER_TYPE handler_info_;
 
     // Current number of handlers.
     uint8_t num_entries_;
@@ -30,8 +30,16 @@ class HandlersList
     char uri_string_[bmx::MAX_URI_STRING_LEN];
     uint32_t uri_len_chars_;
     bmx::HTTP_METHODS http_method_;
+    uint8_t param_types_[bmx::MAX_URI_CALLBACK_PARAMS];
+    uint8_t num_params_;
 
 public:
+
+    // Getting handler index.
+    BMX_HANDLER_INDEX_TYPE get_handler_index()
+    {
+        return GetBmxHandlerIndex(handler_info_);
+    }
 
     // Constructor.
     explicit HandlersList()
@@ -39,10 +47,10 @@ public:
         Unregister();
     }
 
-    // Getting handler id.
-    BMX_HANDLER_TYPE get_handler_id()
+    // Getting handler info.
+    BMX_HANDLER_TYPE get_handler_info()
     {
-        return handler_id_;
+        return handler_info_;
     }
 
     // Getting number of entries.
@@ -93,6 +101,12 @@ public:
         return type_;
     }
 
+    // Get number of URI callback parameters.
+    int32_t get_num_params()
+    {
+        return num_params_;
+    }
+
     // Find existing handler.
     bool HandlerAlreadyExists(GENERIC_HANDLER_CALLBACK handler_callback)
     {
@@ -132,7 +146,9 @@ public:
         bmx::BMX_SUBPORT_TYPE subport,
         const char* uri_string,
         uint32_t uri_len_chars,
-        bmx::HTTP_METHODS http_method)
+        bmx::HTTP_METHODS http_method,
+        uint8_t* param_types,
+        int32_t num_params)
     {
         num_entries_ = 0;
 
@@ -140,10 +156,14 @@ public:
         port_ = port;
 
         subport_ = subport;
-        handler_id_ = handler_id;
+        handler_info_ = handler_id;
 
         http_method_ = http_method;
         uri_len_chars_ = uri_len_chars;
+
+        num_params_ = num_params;
+        if (num_params_ > 0)
+            memcpy(param_types_, param_types, bmx::MAX_URI_CALLBACK_PARAMS);
 
         // Checking the type of handler.
         switch(type_)
@@ -185,7 +205,7 @@ public:
     uint32_t Unregister()
     {
         type_ = bmx::HANDLER_TYPE::UNUSED_HANDLER;
-        handler_id_ = INVALID_HANDLER_INDEX;
+        handler_info_ = bmx::BMX_INVALID_HANDLER_INFO;
         num_entries_ = 0;
 
         return 0;
@@ -237,7 +257,7 @@ public:
         for (int32_t i = 0; i < num_entries_; i++)
         {
             // Running the handler.
-            err_code = handlers_[i](gw, sd, handler_id_, is_handled);
+            err_code = handlers_[i](gw, sd, handler_info_, is_handled);
 
             // Checking if information was handled and no errors occurred.
             if (*is_handled || err_code)
@@ -297,7 +317,7 @@ class HandlersTable
 public:
 
     // Find port handler id.
-    BMX_HANDLER_TYPE FindPortHandlerIndex(uint16_t port_num)
+    BMX_HANDLER_INDEX_TYPE FindPortHandlerIndex(uint16_t port_num)
     {
         for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
         {
@@ -310,13 +330,13 @@ public:
             }
         }
 
-        return INVALID_HANDLER_INDEX;
+        return bmx::BMX_INVALID_HANDLER_INDEX;
     }
 
     // Find subport handler id.
-    BMX_HANDLER_TYPE FindSubPortHandlerIndex(uint16_t port_num, bmx::BMX_SUBPORT_TYPE subport_num)
+    BMX_HANDLER_INDEX_TYPE FindSubPortHandlerIndex(uint16_t port_num, bmx::BMX_SUBPORT_TYPE subport_num)
     {
-        for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
+        for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
         {
             if (bmx::SUBPORT_HANDLER == registered_handlers_[i].get_type())
             {
@@ -330,11 +350,11 @@ public:
             }
         }
 
-        return INVALID_HANDLER_INDEX;
+        return bmx::BMX_INVALID_HANDLER_INDEX;
     }
 
     // Find URI handler id.
-    BMX_HANDLER_TYPE FindUriHandlerIndex(uint16_t port_num, const char* uri_string, uint32_t uri_len_chars)
+    BMX_HANDLER_INDEX_TYPE FindUriHandlerIndex(uint16_t port_num, const char* uri_string, uint32_t uri_len_chars)
     {
         int32_t longest_matched_uri = 0;
 
@@ -353,7 +373,7 @@ public:
             }
         }
 
-        return INVALID_HANDLER_INDEX;
+        return bmx::BMX_INVALID_HANDLER_INDEX;
     }
 
     // Gets specific handler.
@@ -393,6 +413,8 @@ public:
         const char* uri_string,
         uint32_t uri_str_chars,
         bmx::HTTP_METHODS http_method,
+        uint8_t* param_types,
+        int32_t num_params,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
         int32_t db_index);
@@ -610,7 +632,7 @@ public:
             }
         }
 
-        return INVALID_HANDLER_INDEX;
+        return INVALID_INDEX;
     }
 
     // Checking if certain handler is contained.
@@ -625,7 +647,7 @@ public:
             }
         }
 
-        return INVALID_HANDLER_INDEX;
+        return INVALID_INDEX;
     }
 
     // Checking if certain handler is contained.
@@ -641,7 +663,7 @@ public:
             }
         }
 
-        return INVALID_HANDLER_INDEX;
+        return INVALID_INDEX;
     }
 
     void set_port_number(uint16_t port_num)
@@ -654,7 +676,7 @@ public:
     {
         // Checking if does not have this handler.
         int32_t index = GetEntryIndex(handler);
-        if (index < 0)
+        if (INVALID_INDEX == index)
         {
             // Creating and pushing new handlers list.
             UniquePortHandler new_entry;
@@ -664,7 +686,7 @@ public:
         else
         {
             // Checking if does not contain entry for this database.
-            if (GetEntryIndex(db_index, handler) < 0)
+            if (INVALID_INDEX == GetEntryIndex(db_index, handler))
                 handlers_[index].Add(db_index);
         }
     }
@@ -686,7 +708,7 @@ public:
         // Going through all handler list.
         for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
-            err_code = (handlers_[i].get_handler())(gw, sd, INVALID_HANDLER_INDEX, is_handled);
+            err_code = (handlers_[i].get_handler())(gw, sd, bmx::BMX_INVALID_HANDLER_INDEX, is_handled);
 
             // Checking if information was handled and no errors occurred.
             if (*is_handled || err_code)
