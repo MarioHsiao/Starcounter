@@ -48,6 +48,8 @@
     <Compile Include="DataBinding.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
+    <Compile Include="Messages\Message.cs" />
+    <Compile Include="Messages\TMessage.cs" />
     <Compile Include="Obj.cs" />
     <Compile Include="Obj.Dynamic.cs" />
     <Compile Include="Obj.GetSetValue.cs" />

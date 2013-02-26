@@ -49,4 +49,15 @@ namespace Starcounter {
     /// </summary>
     public class Message : Message<NullData> {
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class NullData : IBindable {
+        /// <summary>
+        /// 
+        /// </summary>
+        public UInt64 UniqueID { get { return 0; } }
+    }
+
 }
