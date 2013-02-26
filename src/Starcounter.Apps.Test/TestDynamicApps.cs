@@ -78,8 +78,51 @@ namespace Starcounter.Client.Tests.Application {
             return ret;
         }
 
+        [Test]
+        public static void TestDynamic() {
+            // First, let's create the schema (template)
+            var personSchema = new TPuppet();
+            var firstName = personSchema.Add<TString>("FirstName$");
+            var lastName = personSchema.Add<TString>("LastName");
+            var age = personSchema.Add<TLong>("Age");
+
+            var phoneNumber = new TPuppet();
+            var phoneNumbers = personSchema.Add<TArr<Puppet, TPuppet>>("Phonenumbers", phoneNumber);
+            var number = phoneNumber.Add<TString>("Number");
+
+            Assert.AreEqual("FirstName$", firstName.Name);
+            Assert.AreEqual("FirstName", firstName.PropertyName);
+
+            // Now let's create instances using that schema
+            dynamic jocke = new Puppet() { Template = personSchema };
+            dynamic tim = new Puppet() { Template = personSchema };
+
+            jocke.FirstName = "Joachim";
+            jocke.LastName = "Wester";
+            //jocke.Age = 30;
+
+            tim.FirstName = "Timothy";
+            tim.LastName = "Wester";
+            //tim.Age = 16;
+
+            Assert.AreEqual(0, firstName.Index);
+            Assert.AreEqual(1, lastName.Index);
+            Assert.AreEqual(2, age.Index);
+            Assert.AreEqual(3, phoneNumbers.Index);
+            Assert.AreEqual(0, number.Index);
+
+            Assert.AreEqual("Joachim", jocke.GetValue(firstName));
+            Assert.AreEqual("Wester", jocke.GetValue(lastName));
+            Assert.AreEqual("Timothy", tim.GetValue(firstName));
+            Assert.AreEqual("Wester", tim.GetValue(lastName));
+
+            var ret = new List<Puppet>();
+            ret.Add(jocke);
+            ret.Add(tim);
+        }
+
         /// <summary>
-        /// Reads the dynamic.
+        /// Test using dynamic codegen
         /// </summary>
         [Test]
         public static void ReadDynamic() {
