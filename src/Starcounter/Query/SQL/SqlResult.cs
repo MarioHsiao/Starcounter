@@ -65,7 +65,7 @@ namespace Starcounter
         /// </summary>
         /// <returns>SqlEnumerator.</returns>
         /// <exception cref="Starcounter.SqlException">Literal in query is not supported. Use variable and parameter instead.</exception>
-        public SqlEnumerator GetEnumerator() {
+        public override IEnumerator GetEnumerator() {
             // Note that error handling here prevents this method from being
             // inline by caller.
 

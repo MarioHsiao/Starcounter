@@ -19,7 +19,7 @@ namespace Starcounter {
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator() {
+        public virtual IEnumerator GetEnumerator() {
             // The compiler does not allow us to declare this abstract although it is
             throw new NotImplementedException();
         }
@@ -42,7 +42,7 @@ namespace Starcounter {
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() {
             // The compiler does not allow us to declare this abstract although it is
-           throw new NotFiniteNumberException();
+            return (IEnumerator<T>)base.GetEnumerator();
         }
     }
 }
