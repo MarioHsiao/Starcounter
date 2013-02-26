@@ -204,10 +204,9 @@ namespace Starcounter {
 
 
         /// <summary>
-        /// Returns true if this Obj have been serialized and sent to the client.
+        /// Returns true if this puppet have been sent to the client.
         /// </summary>
-        /// <value>The is serialized.</value>
-        public Boolean IsSerialized { get; internal set; }
+        public Boolean IsSentExternally { get; internal set; }
 
         /// <summary>
         /// Commits this instance.
