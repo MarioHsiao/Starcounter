@@ -177,6 +177,9 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("");
             analyzer.ParseQuery(" ");
             analyzer.ParseQuery("\n");
+            analyzer.ParseQuery("select a from account a where accountid > ? fetch ?");
+            analyzer.ParseQuery("select a from account a where accountid > ? fetch ? offset ?");
+            analyzer.ParseQuery("select a from account a where accountid > ? fetch ? offsetkey ?");
         }
 
         [Test]
