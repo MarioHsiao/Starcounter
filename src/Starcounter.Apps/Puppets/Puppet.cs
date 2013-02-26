@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Starcounter.Advanced;
 using Starcounter.Templates;
 using System;
+using System.ComponentModel;
 using System.Text;
 
 namespace Starcounter {
@@ -269,6 +270,37 @@ namespace Starcounter {
         /// </summary>
         internal Transaction TransactionOnThisApp {
             get { return _transaction; }
+        }
+
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>Action.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Action GetValue(TTrigger property) {
+#if QUICKTUPLE
+            return _Values[property.Index];
+#else
+            throw new JockeNotImplementedException();
+#endif
+        }
+
+
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void SetValue(TTrigger property, Action value) {
+#if QUICKTUPLE
+            _Values[property.Index] = value;
+#else
+            throw new JockeNotImplementedException();
+#endif
         }
 
 

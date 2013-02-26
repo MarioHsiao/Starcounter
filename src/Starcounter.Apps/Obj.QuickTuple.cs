@@ -34,7 +34,7 @@ namespace Starcounter {
         /// Stores the actual values of each app property. The value is stored according to the Index value
         /// of the Template of the property.
         /// </summary>
-        private dynamic[] _Values;
+        internal dynamic[] _Values;
 #endif
 
     }
