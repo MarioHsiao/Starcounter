@@ -271,10 +271,10 @@ namespace Starcounter {
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
-        /// <returns>Listing.</returns>
+        /// <returns>Arr.</returns>
         /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Listing GetValue(TObjArr property) {
+        public Arr GetValue(TObjArr property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
@@ -290,7 +290,7 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(TObjArr property, SqlResult data) {
-            Listing current = _Values[property.Index];
+            Arr current = _Values[property.Index];
             if (current != null) {
                 current.Clear();
                 current.notEnumeratedResult = data;
@@ -305,8 +305,8 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TObjArr templ, Listing data) {
-            Listing current = _Values[templ.Index];
+        public void SetValue(TObjArr templ, Arr data) {
+            Arr current = _Values[templ.Index];
             if (current != null)
                 current.Clear();
 
@@ -319,12 +319,12 @@ namespace Starcounter {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="property">The property.</param>
-        /// <returns>Listing{``0}.</returns>
+        /// <returns>Arr{``0}.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Listing<T> GetTypedValue<T>(TObjArr property) where T : Obj, new() {
+        public Arr<T> GetTypedValue<T>(TObjArr property) where T : Obj, new() {
 #if QUICKTUPLE
-            return (Listing<T>)(_Values[property.Index]);
+            return (Arr<T>)(_Values[property.Index]);
 #else
             throw new NotImplementedException();
 #endif
@@ -339,8 +339,8 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue<T>(TObjArr templ, SqlResult data) where T : Obj, new() {
-            Listing<T> newList;
-            Listing<T> current = _Values[templ.Index];
+            Arr<T> newList;
+            Arr<T> current = _Values[templ.Index];
             if (current != null)
                 current.Clear();
 
@@ -357,8 +357,8 @@ namespace Starcounter {
         /// <param name="templ">The templ.</param>
         /// <param name="data">The data.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(TObjArr templ, Listing<T> data) where T : Obj, new() {
-            Listing<T> current = _Values[templ.Index];
+        public void SetValue<T>(TObjArr templ, Arr<T> data) where T : Obj, new() {
+            Arr<T> current = _Values[templ.Index];
             if (current != null)
                 current.Clear();
 

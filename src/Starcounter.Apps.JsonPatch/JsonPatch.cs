@@ -336,7 +336,7 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Listing list = mainApp.GetValue((TObjArr)current);
+                    Arr list = mainApp.GetValue((TObjArr)current);
                     current = list[index];
                 } else {
                     if (currentIsTApp) {
@@ -431,7 +431,7 @@ namespace Starcounter.Internal.JsonPatch {
             Container parent;
             Boolean nextIndexIsPositionInList;
             Int32[] path;
-            Listing list;
+            Arr list;
             TObjArr listProp;
             Template template;
 
@@ -447,7 +447,7 @@ namespace Starcounter.Internal.JsonPatch {
             for (Int32 i = 0; i < path.Length; i++) {
                 if (nextIndexIsPositionInList) {
                     nextIndexIsPositionInList = false;
-                    list = (Listing)app.GetValue(listProp);
+                    list = (Arr)app.GetValue(listProp);
                     app = list[path[i]];
                     sb.Append('/');
                     sb.Append(path[i]);

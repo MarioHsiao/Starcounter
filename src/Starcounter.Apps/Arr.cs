@@ -9,35 +9,32 @@ using System.Collections.Generic;
 using Starcounter.Templates.Interfaces;
 using Starcounter;
 
-#if CLIENT
-using Starcounter.Client.Template;
-namespace Starcounter.Client {
-#else
 using Starcounter.Templates;
 using Starcounter.Apps;
 using Starcounter.Advanced;
+
 namespace Starcounter {
-#endif
+
     /// <summary>
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Listing<T> : Listing where T : Obj, new() {
+    public class Arr<T> : Arr where T : Obj, new() {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Listing<T>(SqlResult res) {
-            return new Listing<T>(res);
+        public static implicit operator Arr<T>(SqlResult res) {
+            return new Arr<T>(res);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="result"></param>
-        protected Listing(SqlResult result) : base(result) {
+        protected Arr(SqlResult result) : base(result) {
         }
 
         /// <summary>
@@ -45,7 +42,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(Obj parent, TObjArr templ)
+        public Arr(Obj parent, TObjArr templ)
             : base(parent, templ) {
         }
 
@@ -111,7 +108,7 @@ namespace Starcounter {
     /// <summary>
     /// 
     /// </summary>
-    public class Listing : Container, IList<Obj>
+    public class Arr : Container, IList<Obj>
 #if IAPP
 //, IAppArray
 #endif
@@ -126,8 +123,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Listing(SqlResult res) {
-            return new Listing(res);
+        public static implicit operator Arr(SqlResult res) {
+            return new Arr(res);
         }
 
 #if QUICKTUPLE
@@ -151,12 +148,12 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="result"></param>
-        protected Listing(SqlResult result) {
+        protected Arr(SqlResult result) {
             notEnumeratedResult = result;
         }
 
         /// <summary>
-        /// Initializes this Listing and sets the template and parent if not already done.
+        /// Initializes this Arr and sets the template and parent if not already done.
         /// If the notEnumeratedResult is not null the list is filled from the sqlresult.
         /// </summary>
         /// <param name="parent"></param>
@@ -187,7 +184,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Listing(Obj parent, TObjArr templ) {
+        public Arr(Obj parent, TObjArr templ) {
             this.Template = templ;
             Parent = parent;
         }

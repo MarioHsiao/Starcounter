@@ -100,7 +100,7 @@ namespace Starcounter.Internal.JsonPatch {
                     continue;
 
                 if (template is TObjArr) {
-                    Listing l = app.GetValue((TObjArr)template);
+                    Arr l = app.GetValue((TObjArr)template);
                     foreach (Puppet childApp in l) {
                         RefreshAllValues(childApp, log);
                     }
