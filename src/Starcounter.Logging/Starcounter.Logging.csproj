@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>..\..\bin\Release\Starcounter.Logging.XML</DocumentationFile>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ExceptionFormatter.cs" />

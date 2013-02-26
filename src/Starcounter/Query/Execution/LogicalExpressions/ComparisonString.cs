@@ -85,6 +85,18 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
         }
     }
 
+    /// <summary>
+    /// Gets if all three expressions can code gen or third expression is null.
+    /// </summary>
+    public override bool CanCodeGen {
+        get {
+            if ((expr1 is CodeGenFilterNode) && (expr2 is CodeGenFilterNode) && ((expr3 == null) || (expr3 is CodeGenFilterNode)))
+                return (expr1 as CodeGenFilterNode).CanCodeGen && (expr2 as CodeGenFilterNode).CanCodeGen && ((expr3 == null) || (expr3 as CodeGenFilterNode).CanCodeGen);
+            else
+                return false;
+        }
+    }
+
     public Boolean InvolvesCodeExecution()
     {
         return (expr1.InvolvesCodeExecution() || expr2.InvolvesCodeExecution());

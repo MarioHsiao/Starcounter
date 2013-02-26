@@ -62,7 +62,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
-    <NoWarn>;2008;1591</NoWarn>
+    <NoWarn>;2008;1591;1570;1571;1572;1573;1574</NoWarn>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisLogFile>bin\Release\Starcounter.Internal.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>

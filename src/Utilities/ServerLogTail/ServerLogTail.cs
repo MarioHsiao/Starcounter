@@ -10,7 +10,8 @@ namespace ServerLogTail
 
 public static class Program
 {
-	private static ConsoleColor _originalColor;
+
+    private static ConsoleColor _originalColor;
 
     public static void Main(String[] args)
     {

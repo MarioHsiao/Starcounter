@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <list>
 #include <vector>
+#include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 #include "coalmine.h"
 #include "chunk_helper.h"
 #include "..\common\chunk.hpp"
@@ -30,7 +31,7 @@
 struct TASK_INFO_TYPE {
     uint8_t flags;
     uint8_t scheduler_number;
-    BMX_HANDLER_TYPE handler_id;
+    BMX_HANDLER_INDEX_TYPE handler_index;
     uint8_t fill1;
     starcounter::core::chunk_index chunk_index;
     uint64_t transaction_handle;
@@ -58,16 +59,13 @@ namespace bmx
     const uint32_t SCHEDULER_SPIN_COUNT = 1000000;
 
     // Constants needed for chunks processing.
-    const uint32_t CHUNK_MAX_DATA_BYTES = starcounter::core::chunk_size - shared_memory_chunk::LINK_SIZE;
+    const uint32_t CHUNK_MAX_DATA_BYTES = starcounter::core::chunk_size - shared_memory_chunk::link_size;
 
     // NOTE: Excluding original chunk since its for extra linked.
     const uint32_t MAX_EXTRA_LINKED_WSABUFS = CHUNK_MAX_DATA_BYTES / sizeof(WSABUF) - 1;
     const uint32_t MAX_BYTES_EXTRA_LINKED_WSABUFS = MAX_EXTRA_LINKED_WSABUFS * CHUNK_MAX_DATA_BYTES;
 
-    const uint32_t BMX_HANDLER_SIZE = 2;
-    const uint32_t BMX_PROTOCOL_BEGIN_OFFSET = 16;
-    const uint32_t REQUEST_SIZE_BEGIN = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
-    const uint32_t BMX_HEADER_MAX_SIZE_BYTES = 24;
+    const uint32_t BMX_HEADER_MAX_SIZE_BYTES = MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES;
 
     // Some socket data constants.
     const uint32_t  SOCKET_DATA_FLAGS_JUST_SEND = 64;
@@ -77,23 +75,31 @@ namespace bmx
     const uint32_t SESSION_STRUCT_SIZE = 32;
     const uint32_t OVERLAPPED_STRUCT_SIZE = 32;
 
-    const uint32_t SOCKET_DATA_OFFSET_NUM_CHUNKS = 84;
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 144;
-    const uint32_t SOCKET_DATA_OFFSET_HTTP_REQUEST = 224;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 152;
 
     // Offset of data blob in socket data.
-    const int32_t SOCKET_DATA_OFFSET_BLOB = 704;
+    const int32_t SOCKET_DATA_OFFSET_BLOB = 712;
 
     const uint32_t CHUNK_OFFSET_USER_DATA = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_STRUCT_SIZE + SESSION_STRUCT_SIZE;
     const uint32_t CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA + 4;
     const uint32_t CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = CHUNK_OFFSET_MAX_USER_DATA_BYTES + 4;
     const uint32_t CHUNK_OFFSET_SOCKET_FLAGS = BMX_HEADER_MAX_SIZE_BYTES + 112;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
-    const uint32_t CHUNK_OFFSET_BMX_HTTP_REQUEST = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_HTTP_REQUEST;
-    const uint32_t SOCKET_DATA_MAX_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::LINK_SIZE;
+    const uint32_t CHUNK_OFFSET_BMX_HTTP_REQUEST = BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST;
+    const uint32_t SOCKET_DATA_MAX_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::link_size;
+
+    const BMX_HANDLER_TYPE BMX_INVALID_HANDLER_INFO = ~(BMX_HANDLER_TYPE)0;
+    const BMX_HANDLER_INDEX_TYPE BMX_INVALID_HANDLER_INDEX = ~(BMX_HANDLER_INDEX_TYPE)0;
 
     // Predefined BMX management handler.
-    const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER = 0;
+    const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_ID = 0;
+
+    inline BMX_HANDLER_TYPE MakeHandlerInfo(BMX_HANDLER_INDEX_TYPE handler_index, BMX_HANDLER_UNIQUE_NUM_TYPE unique_num)
+    {
+        return (((uint64_t)unique_num) << 16) | handler_index;
+    }
+
+    const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_INFO = MakeHandlerInfo(bmx::BMX_MANAGEMENT_HANDLER_ID, 1);
 
     // Maximum total number of registered handlers.
     const uint32_t MAX_TOTAL_NUMBER_OF_HANDLERS = 256;
@@ -101,11 +107,11 @@ namespace bmx
     // Maximum number of the same handlers in a list.
     const uint32_t MAX_NUMBER_OF_HANDLERS_IN_LIST = 8;
 
+    // Maximum number of URI callback parameters.
+    const uint32_t MAX_URI_CALLBACK_PARAMS = 32;
+
     // Maximum URI string length.
     const uint32_t MAX_URI_STRING_LEN = 512;
-
-    // Bad handler index.
-    const uint32_t INVALID_HANDLER_ID = 0;
 
     // BMX message types.
     const uint8_t BMX_REGISTER_PORT = 0;
@@ -121,6 +127,7 @@ namespace bmx
     const uint8_t BMX_SESSION_DESTROYED = 10;
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
+    const uint8_t BMX_REGISTER_URI_NEW = 253;
 
     // Supported HTTP methods.
     enum HTTP_METHODS
@@ -161,8 +168,8 @@ namespace bmx
         // Type of the underlying handler.
         bmx::HANDLER_TYPE type_;
 
-        // Assigned handler id.
-        BMX_HANDLER_TYPE handler_id_;
+        // Assigned handler info.
+        BMX_HANDLER_TYPE handler_info_;
 
         // Current number of handlers.
         uint8_t num_entries_;
@@ -181,6 +188,9 @@ namespace bmx
         uint32_t uri_len_chars_;
         bmx::HTTP_METHODS http_method_;
 
+        uint8_t num_params_;
+        uint8_t param_types_[MAX_URI_CALLBACK_PARAMS];
+
     public:
 
         // Constructor.
@@ -189,10 +199,16 @@ namespace bmx
             Unregister();
         }
 
-        // Getting handler id.
-        BMX_HANDLER_TYPE get_handler_id()
+        // Getting handler index.
+        BMX_HANDLER_INDEX_TYPE get_handler_index()
         {
-            return handler_id_;
+            return GetBmxHandlerIndex(handler_info_);
+        }
+
+        // Getting handler id.
+        BMX_HANDLER_TYPE get_handler_info()
+        {
+            return handler_info_;
         }
 
         // Getting number of entries.
@@ -237,6 +253,12 @@ namespace bmx
             return http_method_;
         }
 
+        // Get number of URI callback parameters.
+        int32_t get_num_params()
+        {
+            return num_params_;
+        }
+
         // Gets handler type.
         bmx::HANDLER_TYPE get_type()
         {
@@ -277,12 +299,14 @@ namespace bmx
         // Init.
         uint32_t Init(
             bmx::HANDLER_TYPE type,
-            BMX_HANDLER_TYPE handler_id,
+            BMX_HANDLER_TYPE handler_info,
             uint16_t port,
             BMX_SUBPORT_TYPE subport,
             char* uri_string,
             uint32_t uri_len_chars,
-            bmx::HTTP_METHODS http_method)
+            bmx::HTTP_METHODS http_method,
+            uint8_t* param_types,
+            int32_t num_params)
         {
             num_entries_ = 0;
 
@@ -290,10 +314,14 @@ namespace bmx
             port_ = port;
 
             subport_ = subport;
-            handler_id_ = handler_id;
+            handler_info_ = handler_info;
 
             http_method_ = http_method;
             uri_len_chars_ = uri_len_chars;
+
+            num_params_ = num_params;
+            if (num_params_ > 0)
+                memcpy(param_types_, param_types, MAX_URI_CALLBACK_PARAMS);
 
             // Checking the type of handler.
             switch(type)
@@ -335,14 +363,14 @@ namespace bmx
         uint32_t WriteRegisteredPortHandler(response_chunk_part *resp_chunk)
         {
             // Checking if message fits the chunk.
-            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::LINK_SIZE) <=
-                sizeof(BMX_REGISTER_PORT) + sizeof(handler_id_) + sizeof(port_))
+            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
+                sizeof(BMX_REGISTER_PORT) + sizeof(handler_info_) + sizeof(port_))
             {
                 return 0;
             }
 
             resp_chunk->write(BMX_REGISTER_PORT);
-            resp_chunk->write(handler_id_);
+            resp_chunk->write(handler_info_);
             resp_chunk->write(port_);
 
             return resp_chunk->get_offset();
@@ -352,14 +380,14 @@ namespace bmx
         uint32_t WriteRegisteredSubPortHandler(response_chunk_part *resp_chunk)
         {
             // Checking if message fits the chunk.
-            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::LINK_SIZE) <=
-                sizeof(BMX_REGISTER_PORT_SUBPORT) + sizeof(handler_id_) + sizeof(port_) + sizeof(subport_))
+            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
+                sizeof(BMX_REGISTER_PORT_SUBPORT) + sizeof(handler_info_) + sizeof(port_) + sizeof(subport_))
             {
                 return 0;
             }
 
             resp_chunk->write(BMX_REGISTER_PORT_SUBPORT);
-            resp_chunk->write(handler_id_);
+            resp_chunk->write(handler_info_);
             resp_chunk->write(port_);
             resp_chunk->write(subport_);
 
@@ -370,14 +398,14 @@ namespace bmx
         uint32_t WriteRegisteredUriHandler(response_chunk_part *resp_chunk)
         {
             // Checking if message fits the chunk.
-            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::LINK_SIZE) <=
-                sizeof(BMX_REGISTER_URI) + sizeof(handler_id_) + sizeof(port_) + uri_len_chars_ * sizeof(char) + 1)
+            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
+                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + uri_len_chars_ * sizeof(char) + 1)
             {
                 return 0;
             }
 
             resp_chunk->write(BMX_REGISTER_URI);
-            resp_chunk->write(handler_id_);
+            resp_chunk->write(handler_info_);
             resp_chunk->write(port_);
             resp_chunk->write_string(uri_string_, uri_len_chars_);
             resp_chunk->write((uint8_t)http_method_);
@@ -385,8 +413,30 @@ namespace bmx
             return resp_chunk->get_offset();
         }
 
+        // Writes needed URI handler data into chunk.
+        uint32_t WriteRegisteredUriHandlerNew(response_chunk_part *resp_chunk)
+        {
+            // Checking if message fits the chunk.
+            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
+                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + uri_len_chars_ * sizeof(char) + 1)
+            {
+                return 0;
+            }
+
+            resp_chunk->write(BMX_REGISTER_URI_NEW);
+            resp_chunk->write(handler_info_);
+            resp_chunk->write(port_);
+            resp_chunk->write_string(uri_string_, uri_len_chars_);
+            resp_chunk->write((uint8_t)http_method_);
+            resp_chunk->write(num_params_);
+            resp_chunk->write_data_only(param_types_, MAX_URI_CALLBACK_PARAMS);
+
+            return resp_chunk->get_offset();
+        }
+
         // Pushes registered URI handler.
         uint32_t PushRegisteredUriHandler(BmxData* bmx_data);
+        uint32_t PushRegisteredUriHandlerNew(BmxData* bmx_data);
 
         // Pushes registered port handler.
         uint32_t PushRegisteredPortHandler(BmxData* bmx_data);
@@ -398,7 +448,7 @@ namespace bmx
         uint32_t Unregister()
         {
             type_ = bmx::HANDLER_TYPE::UNUSED_HANDLER;
-            handler_id_ = -1;
+            handler_info_ = BMX_INVALID_HANDLER_INFO;
             num_entries_ = 0;
 
             return 0;
@@ -469,13 +519,16 @@ namespace bmx
     class BmxData
     {
         // Current maximum number of handlers.
-        BMX_HANDLER_TYPE max_num_entries_;
+        uint32_t max_num_entries_;
 
         // All registered handlers.
         HandlersList* registered_handlers_;
 
         // Number of registered push channels.
         volatile uint32_t num_registered_push_channels_;
+
+        // Current unique number.
+        BMX_HANDLER_UNIQUE_NUM_TYPE unique_handler_num_;
 
     public:
 
@@ -499,6 +552,7 @@ namespace bmx
 
             new_copy->max_num_entries_ = max_num_entries_;
             new_copy->num_registered_push_channels_ = num_registered_push_channels_;
+            new_copy->unique_handler_num_ = unique_handler_num_;
 
             // Note: for non-linear HandlersList structure, need to copy element by element.
             memcpy(new_copy->registered_handlers_, registered_handlers_, sizeof(registered_handlers_[0]) * max_num_entries_);
@@ -510,7 +564,7 @@ namespace bmx
         uint32_t CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t session_id);
 
         // Pushes unregistered handler.
-        uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_id);
+        uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info);
         uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
         uint32_t HandleDestroyedSession(request_chunk_part* request, TASK_INFO_TYPE* task_info);
 
@@ -518,8 +572,8 @@ namespace bmx
         uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
 
         // Unregisters certain handler.
-        uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id, bool* is_empty_handler);
-        uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK user_handler, bool* is_empty_handler);
+        uint32_t UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* is_empty_handler);
+        uint32_t UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, GENERIC_HANDLER_CALLBACK user_handler, bool* is_empty_handler);
 
         // Registers port handler.
         uint32_t RegisterPortHandler(
@@ -539,6 +593,8 @@ namespace bmx
             uint16_t port,
             char* uri_string,
             HTTP_METHODS http_method,
+            uint8_t* param_types,
+            int32_t num_params,
             GENERIC_HANDLER_CALLBACK uri_handler, 
             BMX_HANDLER_TYPE* handler_id);
 
@@ -547,6 +603,7 @@ namespace bmx
         {
             registered_handlers_ = new HandlersList[max_total_handlers];
             max_num_entries_ = 0;
+            unique_handler_num_ = 0;
             num_registered_push_channels_ = 0;
         }
 
@@ -607,6 +664,17 @@ EXTERN_C uint32_t sc_bmx_register_uri_handler(
     uint16_t port,
     char* uri_string,
     uint8_t http_method,
+    GENERIC_HANDLER_CALLBACK callback, 
+    BMX_HANDLER_TYPE* handler_id
+    );
+
+// Register URI handler.
+EXTERN_C uint32_t sc_bmx_register_uri_handler_new(
+    uint16_t port,
+    char* uri_info,
+    uint8_t http_method,
+    uint8_t* param_types,
+    uint8_t num_params,
     GENERIC_HANDLER_CALLBACK callback, 
     BMX_HANDLER_TYPE* handler_id
     );

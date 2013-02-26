@@ -20,7 +20,7 @@ type ITemplateFactory =
     interface
         abstract AddObjectProperty : obj * string -> obj               // Name
         abstract AddObjectElement : obj -> obj                           // Name
-        abstract AddStringProperty : obj * string * string -> obj        // Name, value
+        abstract AddTString : obj * string * string -> obj        // Name, value
         abstract AddBooleanProperty : obj * string * bool -> obj        // Name, value
         abstract AddEventProperty : obj * string * string -> obj        // Name, value
         abstract AddArrayProperty : obj * string -> obj                // Name
@@ -53,7 +53,7 @@ module public Materializer =
         let rec materializePrimitive (parent:obj) (name:string) (ast:Ast.Tree) (factory:ITemplateFactory) : obj =
             match ast with
                 | Ast.String (str) ->
-                    factory.AddStringProperty(parent,name,str)
+                    factory.AddTString(parent,name,str)
                 | Ast.Boolean(b) ->
                     factory.AddBooleanProperty(parent,name,b)
                 | Ast.Identifier(identifier) ->

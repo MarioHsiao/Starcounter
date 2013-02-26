@@ -149,7 +149,7 @@ byte 4092..4095:
 // http://www.boost.org/doc/libs/1_46_1/doc/html/boost/array.html
 // C:\boost\x86_64\include\boost-1_46_1\boost\array.hpp
 
-typedef int16_t bmx_protocol_type;
+typedef uint64_t bmx_handler_type;
 
 template<class T, std::size_t N>
 class chunk : public boost::array<T,N> {
@@ -164,10 +164,10 @@ public:
 
 	enum {
 		// There are two links: The stream_link, and the next_link.
-		// The links have no pad bytes inbetween.
+		// The links have no pad bytes in between.
 		// link_size represents the space required for these two links.
 		link_size = 2 * sizeof(link_type),
-		bmx_handler_size = sizeof(bmx_protocol_type),
+		bmx_handler_size = sizeof(bmx_handler_type),
 
 		// The last chunk in a stream (chain) of 1..N chunks is terminated by setting
 		// the stream_link to link_terminator. Likewise, to terminate the "overflow"
@@ -181,8 +181,8 @@ public:
 		// user_data_begin should be 0, bmx_protocol_begin should be 8, etc.
 		// Just make sure that all code use these constants.
 		//owner_id_begin = 0,
-		user_data_begin = 8,
-		bmx_protocol_begin = 16,
+		user_data_begin = sizeof(owner_id),
+		bmx_protocol_begin = user_data_begin + sizeof(user_data_type),
 		request_size_begin = bmx_protocol_begin +bmx_handler_size,
 		stream_link_begin = static_size -(1 * sizeof(link_type)),
 		next_link_begin = static_size -(2 * sizeof(link_type))
@@ -194,8 +194,9 @@ public:
 		static_header_size =
 		+sizeof(owner_id) // to be removed later
 		+sizeof(user_data_type)
+        +bmx_handler_size
 		+sizeof(message_size_type)
-		+4 // Padding for 8-bytes alignment.
+        +4
 	};
 	
 	// data size is constant
@@ -203,17 +204,6 @@ public:
 		static_data_size = static_size -static_header_size -link_size,
 	};
 
-	/// TODO: Follow the coding standard - avoid ALL_CAPITAL identifiers.
-	/// Only macros shall use capital letters.
-    enum {
-        LINK_SIZE = link_size,
-        BMX_HANDLER_SIZE = bmx_handler_size,
-        LINK_TERMINATOR = link_terminator,
-		STATIC_DATA_SIZE = static_data_size,
-		STATIC_HEADER_SIZE = static_header_size,
-		REQUEST_SIZE_BEGIN = request_size_begin
-    };
-	
 	/// data_size() returns the number of bytes of the chunks data area. It does
 	/// not take into consideration the amount of data in use.
 	/**
@@ -269,25 +259,27 @@ public:
 	 * @param b The protocol value to write to the chunk.
 	 * @return A reference to this chunk.
 	 */
-	const chunk& set_bmx_protocol(bmx_protocol_type b) {
-		(*(bmx_protocol_type*)(elems +bmx_protocol_begin)) = b;
+	const chunk& set_bmx_handler_info(bmx_handler_type b) {
+		(*(bmx_handler_type*)(elems +bmx_protocol_begin)) = b;
 		return *this;
 	}
 	
 	/**
 	 * @return The bmx protocol type.
 	 */
-	bmx_protocol_type get_bmx_protocol() const {
-		return *((bmx_protocol_type*)(elems +bmx_protocol_begin));
+	bmx_handler_type get_bmx_handler_info() const {
+		return *((bmx_handler_type*)(elems +bmx_protocol_begin));
 	}
-	
+
 	/// set_request_size() writes the request size value to the chunk.
 	/**
 	 * @param sz The request size value to write to the chunk.
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_request_size(message_size_type sz) {
-		InterlockedExchange((LONG*)(elems +request_size_begin), sz);
+        // TODO: Remove if not needed.
+		//InterlockedExchange((LONG*)(elems +request_size_begin), sz);
+        (*(message_size_type*)(elems +request_size_begin)) = sz;
 		return *this;
 	}
 	
@@ -415,6 +407,13 @@ inline void little_endian_to_host(uint64_t&);
 } // namespace starcounter
 
 // Bmx handler type.
-typedef starcounter::core::bmx_protocol_type BMX_HANDLER_TYPE;
+typedef starcounter::core::bmx_handler_type BMX_HANDLER_TYPE;
+typedef uint16_t BMX_HANDLER_INDEX_TYPE;
+typedef uint32_t BMX_HANDLER_UNIQUE_NUM_TYPE;
+
+inline BMX_HANDLER_INDEX_TYPE GetBmxHandlerIndex(BMX_HANDLER_TYPE handler_info)
+{
+    return (BMX_HANDLER_INDEX_TYPE)handler_info;
+}
 
 #endif // STARCOUNTER_CORE_CHUNK_HPP

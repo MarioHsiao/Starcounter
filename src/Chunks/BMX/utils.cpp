@@ -20,7 +20,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_read_from_chunk(
 	request_size = smc->get_request_size();
 
 	link_index = smc->get_link();
-	if (link_index == smc->LINK_TERMINATOR)
+	if (link_index == smc->link_terminator)
 	{
 		request_chunk->copy_data_to_buffer(dest_buffer, length);
 		return 0;
@@ -60,7 +60,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
         // Getting next chunk.
         cur_chunk_index = smc->get_link();
     }
-    while (cur_chunk_index != shared_memory_chunk::LINK_TERMINATOR);
+    while (cur_chunk_index != shared_memory_chunk::link_terminator);
 
     // Returning all linked chunks to private/shared pool.
     shared_memory_chunk* first_smc = ((shared_memory_chunk*) first_chunk_data);
@@ -105,7 +105,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_all_chunks(
     starcounter::core::chunk_index cur_chunk_index = smc->get_link();
 
     // Until we get the last chunk in chain.
-    while (cur_chunk_index != shared_memory_chunk::LINK_TERMINATOR)
+    while (cur_chunk_index != shared_memory_chunk::link_terminator)
     {
         // Obtaining chunk memory.
         err_code = cm_get_shared_memory_chunk(cur_chunk_index, &chunk_mem);
@@ -362,10 +362,10 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     uint32_t remaining_bytes_in_orig_chunk = (starcounter::bmx::CHUNK_MAX_DATA_BYTES - chunk_user_data_offset);
 
     // Setting non-bmx-management chunk type.
-    (*(int16_t*)(src_chunk_buf + starcounter::bmx::BMX_PROTOCOL_BEGIN_OFFSET)) = 0x7FFF;
+    (*(BMX_HANDLER_TYPE*)(src_chunk_buf + starcounter::core::chunk_type::bmx_protocol_begin)) = starcounter::bmx::BMX_INVALID_HANDLER_INFO;
 
     // Setting request size to zero.
-    (*(uint32_t*)(src_chunk_buf + starcounter::bmx::REQUEST_SIZE_BEGIN)) = 0;
+    (*(uint32_t*)(src_chunk_buf + starcounter::core::chunk_type::request_size_begin)) = 0;
 
     uint32_t err_code;
 
@@ -383,7 +383,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     }
 
     // Chunk becomes unusable.
-    *src_chunk_index = shared_memory_chunk::LINK_TERMINATOR;
+    *src_chunk_index = shared_memory_chunk::link_terminator;
 
     return err_code;
 }

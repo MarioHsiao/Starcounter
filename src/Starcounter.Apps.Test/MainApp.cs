@@ -8,13 +8,14 @@ using Starcounter;
 using System;
 using NUnit.Framework;
 using HttpStructs;
+using Starcounter.Advanced;
 
 namespace PlayersDemoApp {
 
     /// <summary>
     /// Class MainApp
     /// </summary>
-    partial class MainApp : RequestHandler {
+    partial class MainApp : StarcounterBase {
 
         /// <summary>
         /// Defines the entry point of the application.

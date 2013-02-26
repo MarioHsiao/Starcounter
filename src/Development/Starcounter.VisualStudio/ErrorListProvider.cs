@@ -35,8 +35,8 @@ namespace Starcounter.VisualStudio {
 
         /// <summary>
         /// Creates a new error task. The task is not stored in the
-        /// <see cref="Tasks"/> collection of this <see cref="ErrorListProvider"/>.
-        /// Use <see cref="Tasks.Add"/> to add the created task to
+        /// tasks. collection of this <see cref="ErrorListProvider"/>.
+        /// Use Tasks.Add to add the created task to
         /// the list of errors to be displayed in the GUI.
         /// </summary>
         /// <param name="source">The source of the new task item.</param>
@@ -49,8 +49,8 @@ namespace Starcounter.VisualStudio {
 
         /// <summary>
         /// Creates a new error task. The task is not stored in the
-        /// <see cref="Tasks"/> collection of this <see cref="ErrorListProvider"/>.
-        /// Use <see cref="Tasks.Add"/> to add the created task to
+        /// tasks collection of this <see cref="ErrorListProvider"/>.
+        /// Use Tasks.Add to add the created task to
         /// the list of errors to be displayed in the GUI.
         /// </summary>
         /// <param name="source">The source of the new task item.</param>
@@ -66,8 +66,8 @@ namespace Starcounter.VisualStudio {
 
         /// <summary>
         /// Creates a new error task. The task is not stored in the
-        /// <see cref="Tasks"/> collection of this <see cref="ErrorListProvider"/>.
-        /// Use <see cref="Tasks.Add"/> to add the created task to
+        /// Tasks collection of this <see cref="ErrorListProvider"/>.
+        /// Use Tasks.Add to add the created task to
         /// the list of errors to be displayed in the GUI.
         /// </summary>
         /// <param name="source">The source of the new task item.</param>
@@ -85,7 +85,7 @@ namespace Starcounter.VisualStudio {
         /// <summary>
         /// Clears the underlying task item collection from all tasks
         /// added using this provider. To clear the full set of tasks,
-        /// no matter of provider, use <see cref="Tasks.Clear"/>.
+        /// no matter of provider, use Tasks.Clear.
         /// </summary>
         public void Clear() {
             throw new NotImplementedException();
@@ -95,7 +95,7 @@ namespace Starcounter.VisualStudio {
         /// Clears the underlying task item collection from all tasks
         /// added using this provider matching the given source. To
         /// clear the full set of tasks, no matter of provider,
-        /// use <see cref="Tasks.Clear"/>.
+        /// use Tasks.Clear.
         /// </summary>
         public void Clear(ErrorTaskSource source) {
             int subcategory;

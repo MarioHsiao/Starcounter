@@ -55,6 +55,12 @@ namespace Starcounter.Binding
             }
         }
 
+        public String TableName {
+            get {
+                return Bindings.GetTypeDef((int)_tableId).Name;
+            }
+        }
+
         /// <summary>
         /// Name of the index. Used by user to identify the index, for example in query hints.
         /// </summary>

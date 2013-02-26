@@ -94,6 +94,15 @@ internal class StringPath : Path, IStringExpression, IPath
         }
     }
 
+    public override bool CanCodeGen {
+        get {
+            if (member is CodeGenFilterNode)
+                return (member as CodeGenFilterNode).CanCodeGen;
+            else
+                return false;
+        }
+    }
+
     public Boolean InvolvesCodeExecution()
     {
         Boolean codeExecution = member.InvolvesCodeExecution();

@@ -29,6 +29,7 @@ internal abstract class ExecutionEnumerator
 
     protected INumericalExpression fetchNumberExpr = null; // Represents fetch literal or variable.
     protected Int64 fetchNumber = Int64.MaxValue; // Maximum fetch number.
+    protected INumericalExpression fetchOffsetExpr = null; // Represents offset literal or variable.
     protected IBinaryExpression fetchOffsetKeyExpr = null; // Represents offset key literal or variable.
     protected Boolean innermostExtent = false; // True, if this execution-enumerator represents the innermost extent, otherwise false.
 
@@ -431,7 +432,7 @@ internal abstract class ExecutionEnumerator
             {
                 slotsBuf[0] = dbObject.ThisRef.ETI;
                 slotsBuf[1] = dbObject.ThisRef.ObjectID;
-                slotsBuf[2] = dbObject.TableId;
+                slotsBuf[2] = dbObject.TypeBinding.TableId;
             }
             else
             {
@@ -465,6 +466,25 @@ internal abstract class ExecutionEnumerator
 
     // Concrete build string method should be defined in every execution enumerator.
     public abstract void BuildString(MyStringBuilder stringBuilder, Int32 tabs);
+
+    public void BuildFetchString(MyStringBuilder stringBuilder, Int32 tabs) {
+        if (fetchNumberExpr != null) {
+            stringBuilder.AppendLine(tabs, "Fetch Number(");
+            fetchNumberExpr.BuildString(stringBuilder, tabs + 1);
+            stringBuilder.AppendLine(tabs, ")");
+        }
+        if (fetchOffsetExpr != null)
+        {
+            stringBuilder.AppendLine(tabs, "Fetch Offset(");
+            fetchOffsetExpr.BuildString(stringBuilder, tabs+1);
+            stringBuilder.AppendLine(tabs, ")");
+        }
+        if (fetchOffsetKeyExpr != null) {
+            stringBuilder.AppendLine(tabs, "Fetch Offset Key(");
+            fetchOffsetKeyExpr.BuildString(stringBuilder, tabs+1);
+            stringBuilder.AppendLine(tabs, ")");
+        }
+    }
 
     /// <summary>
     /// Returns a string presentation of the execution enumerator including

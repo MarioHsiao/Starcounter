@@ -125,15 +125,23 @@ internal class SortSpecification
         return indexUseInfoList;
     }
 
-    private static IndexUseInfo GetIndexUseInfo(RowTypeBinding rowTypeBind, List<IPathComparer> pathComparerList)
-    {
-        if (pathComparerList.Count == 0)
-        {
+    private static IndexUseInfo GetIndexUseInfo(RowTypeBinding rowTypeBind, List<IPathComparer> pathComparerList) {
+        if (pathComparerList.Count == 0) {
             return null;
         }
 
         Int32 extentNumber = pathComparerList[0].Path.ExtentNumber;
         TypeBinding typeBind = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding);
+        IndexUseInfo found = GetIndexUseInfo(typeBind, pathComparerList);
+        while (typeBind.TypeDef.BaseName != null && found == null) {
+            found = GetIndexUseInfo(typeBind, pathComparerList);
+            typeBind = Bindings.GetTypeBinding(typeBind.TypeDef.BaseName);
+        }
+        return found;
+    }
+
+    private static IndexUseInfo GetIndexUseInfo(TypeBinding typeBind, List<IPathComparer> pathComparerList)
+    {
 
 #if true
         unsafe

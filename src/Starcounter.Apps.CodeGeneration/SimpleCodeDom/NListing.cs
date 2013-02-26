@@ -11,25 +11,28 @@ using System.Text;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// The source code representation of each Listing&lt;T1&gt;, ListingProperty&lt;T1,T2&gt; 
-    /// or ListingMetadata&lt;T1,T2&gt; class where 
-    /// T1 is the link to the App class and T2 is the link to the AppTemplate class being used in the list.
+    /// The source code representation of each Listing&lt;T1&gt;, TArr&lt;T1,T2&gt; 
+    /// or ArrMetadata&lt;T1,T2&gt; class where 
+    /// T1 is the link to the App class and T2 is the link to the TApp class being used in the list.
     /// This means that there is one instance of this class for each T1,T2 combination used.
     /// </summary>
     public class NListingXXXClass : NValueClass {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NListingXXXClass" /> class.
+        /// 
         /// </summary>
-        /// <param name="typename">The typename.</param>
-        /// <param name="appType">Type of the app.</param>
-        /// <param name="templateType">Type of the template.</param>
+        /// <param name="gen"></param>
+        /// <param name="typename"></param>
+        /// <param name="appType"></param>
+        /// <param name="templateType"></param>
         /// <param name="template"></param>
-        public NListingXXXClass(string typename, NClass appType, NClass templateType, Template template ) {
+        public NListingXXXClass(DomGenerator gen, string typename, NClass appType, NClass templateType, Template template ) 
+        :base( gen)
+        {
             //this.NTemplateClass.Template = template;            
             TypeName = typename;
             NApp = appType;
-            NAppTemplate = templateType;
+            NTApp = templateType;
         }
 
         /// <summary>
@@ -38,9 +41,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public NClass NApp;
 
         /// <summary>
-        /// The typeof the AppTemplate
+        /// The typeof the TApp
         /// </summary>
-        public NClass NAppTemplate;
+        public NClass NTApp;
 
      //   public NPredefinedClass NFixedSet;
 
@@ -68,9 +71,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 sb.Append(TypeName);
                 sb.Append('<');
                 sb.Append(NApp.FullClassName);
-                if (NAppTemplate != null) {
+                if (NTApp != null) {
                     sb.Append(", ");
-                    sb.Append(NAppTemplate.FullClassName);
+                    sb.Append(NTApp.FullClassName);
                 }
                 sb.Append('>');
                 return sb.ToString();

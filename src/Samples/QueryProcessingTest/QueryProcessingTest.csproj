@@ -43,9 +43,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountDataModel.cs" />
+    <Compile Include="AggregationTest.cs" />
     <Compile Include="BindingTestDataModel.cs" />
     <Compile Include="BindingTestDirect.cs" />
+    <Compile Include="CodePropertiesTesting.cs" />
     <Compile Include="DataPopulation.cs" />
+    <Compile Include="FetchTest.cs" />
+    <Compile Include="HelpMethods.cs" />
     <Compile Include="QueryProcessingTestProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlBugsTest.cs" />

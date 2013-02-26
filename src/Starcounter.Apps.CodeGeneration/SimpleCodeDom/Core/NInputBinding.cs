@@ -53,14 +53,14 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         public bool HasValue {
             get {
-                return (!(BindsToProperty.Template is ActionProperty));
+                return (!(BindsToProperty.Template is TTrigger));
             }
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NInputBinding" /> class.
         /// </summary>
-        public NInputBinding() {
+        public NInputBinding( DomGenerator gen ) : base(gen) {
 
         }
 

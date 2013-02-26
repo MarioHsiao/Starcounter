@@ -32,7 +32,10 @@ inline bool monitor_interface::out::is_data_available() const {
 #endif /// TODO: Figure how to bind this.
 
 inline monitor_interface::monitor_interface()
-: in_(), out_(), is_ready_flag_(false) {}
+: in_(),
+out_(),
+is_ready_flag_(false),
+cleanup_task_() {}
 
 inline void monitor_interface::wait_until_ready() {
 	boost::interprocess::scoped_lock<boost::interprocess
@@ -487,6 +490,93 @@ inline void monitor_interface::set_owner_id(owner_id oid) {
 
 inline owner_id monitor_interface::get_owner_id() const {
 	return out_.owner_id_;
+}
+
+inline monitor_interface::cleanup_task::cleanup_task()
+: segment_name_mask_(0),
+cleanup_mask_(0),
+spinlock_() {
+	// Initialize segment_name_[s] to 0. 
+	for (std::size_t s = 0; s < max_number_of_databases; ++s) {
+		*segment_name_[s] = 0;
+	}
+}
+
+inline int32_t monitor_interface::cleanup_task::insert_segment_name
+(const char* segment_name) {
+	smp::spinlock::scoped_lock lock(spinlock());
+
+	// bit_scan_forward() returns a valid index if at least one bit is set.
+	if (~segment_name_mask_) {
+		// Search for the first 0 bit.
+		int32_t i = bit_scan_forward(~segment_name_mask_);
+		segment_name_mask_ |= 1ULL << i;
+
+		// Successfully acquired an index. Inserting the segment name.
+		std::strcpy(segment_name_[i], segment_name);
+		return i;
+	}
+	else {
+		// Trying to insert more segment name's than can fit. A bug.
+		return -1;
+	}
+}
+
+inline void monitor_interface::cleanup_task::erase_segment_name
+(const char* segment_name, HANDLE ipc_monitor_cleanup_event) {
+	smp::spinlock::scoped_lock lock(spinlock());
+
+	for (cleanup_task::mask_type segment_name_mask = segment_name_mask_;
+	segment_name_mask; segment_name_mask &= segment_name_mask -1) {
+		int32_t i = bit_scan_forward(segment_name_mask);
+		if (!std::strcmp(segment_name_[i], segment_name)) {
+			*segment_name_[i] = 0;
+			segment_name_mask_ &= ~(1ULL << i);
+			
+			if ((cleanup_mask_ &= ~(1ULL << i)) == 0) {
+				::ResetEvent(ipc_monitor_cleanup_event);
+			}
+		}
+	}
+}
+
+inline const char* monitor_interface::cleanup_task::get_a_segment_name(HANDLE ipc_monitor_cleanup_event) {
+	smp::spinlock::scoped_lock lock(spinlock());
+
+	// bit_scan_forward() returns a valid index if at least one bit is set.
+	if (cleanup_mask_) {
+		int32_t i = bit_scan_forward(cleanup_mask_);
+
+		if ((cleanup_mask_ &= ~(1ULL << i)) == 0) {
+			::ResetEvent(ipc_monitor_cleanup_event);
+		}
+
+		// Found a segment_name.
+		return segment_name_[i];
+	}
+	else {
+		// There are no segment names in the table. Possibly a bug.
+		return 0;
+	}
+}
+
+inline void monitor_interface::cleanup_task::set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event) {
+	smp::spinlock::scoped_lock lock(spinlock());
+	cleanup_mask_ |= 1ULL << index;
+
+	// Notify the IPC monitor to do the rest of the cleanup
+	// (releasing chunks and the client_interface.)
+	if (::SetEvent(ipc_monitor_cleanup_event)) {
+		// Successfully notified the IPC monitor to do cleanup.
+	}
+	else {
+		// Error. Failed to notify the IPC monitor to do cleanup.
+	}
+}
+
+inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {
+	smp::spinlock::scoped_lock lock(spinlock());
+	return cleanup_mask_;
 }
 
 // output operator for monitor_interface::process_type

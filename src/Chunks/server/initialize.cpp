@@ -56,9 +56,17 @@ static shared_memory_object global_segment_shared_memory_object;
 
 //typedef DWORD affinity_mask; // experimenting
 
-unsigned long initialize(const char* segment_name, std::size_t schedulers, bool
+unsigned long initialize(const char* segment_name, const char* server_name, std::size_t schedulers, bool
 is_system, uint32_t chunks_total_number) try {
 	using namespace starcounter::core;
+
+	if (chunks_total_number > chunks_total_number_max) {
+		std::cout << "Warning: Setting number of chunks from the requested "
+		<< chunks_total_number << " to " << chunks_total_number_max << "." << std::endl;
+		
+		chunks_total_number = chunks_total_number_max;
+	}
+
 	//--------------------------------------------------------------------------
 	// if (strlen(segment_name) > 31) return;
 	
@@ -177,6 +185,9 @@ is_system, uint32_t chunks_total_number) try {
 		10000 /* timeout ms */);
 	}
 	
+	//--------------------------------------------------------------------------
+	// Construct the common_scheduler_interface in shared memory.
+	
 	const shm_alloc_for_the_common_scheduler_interface2
 	common_scheduler_interface_alloc_inst(segment_region.get_address());
 	
@@ -185,7 +196,8 @@ is_system, uint32_t chunks_total_number) try {
 	sizeof(common_scheduler_interface_type));
 	
 	common_scheduler_interface_type* common_scheduler_interface = new(p)
-	common_scheduler_interface_type(common_scheduler_interface_alloc_inst);
+	common_scheduler_interface_type(server_name,
+	common_scheduler_interface_alloc_inst);
 	
 	//--------------------------------------------------------------------------
 	// Construct the scheduler_interface array in shared memory.
@@ -217,17 +229,14 @@ is_system, uint32_t chunks_total_number) try {
 		chunks_total_number,
 		chunks_total_number,
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-		scheduler_interface_alloc_inst2,
-		scheduler_interface_alloc_inst2,
-		segment_name,
-		i);
 #else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		scheduler_interface_alloc_inst,
+#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		scheduler_interface_alloc_inst2,
 		scheduler_interface_alloc_inst2,
 		segment_name,
+		server_name,
 		i);
-#endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 
 	// Initialize the scheduler_interface by pushing in channel_number(s).
@@ -273,15 +282,22 @@ is_system, uint32_t chunks_total_number) try {
 	(starcounter_core_shared_memory_common_client_interface_name,
 	sizeof(common_client_interface_type));
 	
+#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	common_client_interface_type* common_client_interface = new(p)
+	common_client_interface_type(segment_name);
+#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	common_client_interface_type* common_client_interface = new(p)
 	common_client_interface_type(max_number_of_clients,
 	common_client_interface_alloc_inst);
-	
-	//common_client_interface->set_spin_count(spin_count);
+#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	// Initialize the client_number_pool queue with client numbers.
 	for (client_number n = 0; n < max_number_of_clients; ++n) {
+#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+		common_client_interface->insert_client_number(n, client_interface, owner_id(1));
+#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 		common_client_interface->release_client_number(n, client_interface);
+#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	}
 	
 	//--------------------------------------------------------------------------

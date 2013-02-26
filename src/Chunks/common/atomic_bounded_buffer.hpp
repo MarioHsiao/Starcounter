@@ -83,13 +83,7 @@ public:
 		boost::interprocess::scoped_lock
 		<boost::interprocess::interprocess_mutex> lock(mutex_);
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-		//not_full_.wait(lock, boost::bind(&bounded_buffer<value_type,
-		//allocator_type>::is_not_full, this));
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-		
 		int32_t head = head_;
 		int32_t next_head = next(head);
 
@@ -115,11 +109,7 @@ public:
 			_mm_sfence();
 			_InterlockedDecrement(&unread_);
 			_mm_sfence();
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-		// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-			not_full_.notify_one();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+			// Not using any synchronization to indicate that the queue is not full.
 			return true;
 		}
 		return false;
@@ -152,13 +142,6 @@ private:
 
 	// Mutex to protect access to the queue
 	boost::interprocess::interprocess_mutex mutex_;
-
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	// Condition to wait until the queue is not full
-	boost::interprocess::interprocess_condition not_full_;
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 };
 
 // Template specialization for 256 elements, N = 8. This case should improve
@@ -195,13 +178,7 @@ public:
 		boost::interprocess::scoped_lock
 		<boost::interprocess::interprocess_mutex> lock(mutex_);
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-		//not_full_.wait(lock, boost::bind(&bounded_buffer<value_type,
-		//allocator_type>::is_not_full, this));
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-		
 		int32_t head = head_;
 		int32_t next_head = next(head);
 		
@@ -227,11 +204,7 @@ public:
 			_mm_sfence();
 			_InterlockedDecrement(&unread_);
 			_mm_sfence();
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-		// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-			not_full_.notify_one();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+			// Not using any synchronization to indicate that the queue is not full.
 			return true;
 		}
 		return false;
@@ -269,13 +242,6 @@ private:
 	
 	// Mutex to protect access to the queue
 	boost::interprocess::interprocess_mutex mutex_;
-
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	// Condition to wait until the queue is not full
-	boost::interprocess::interprocess_condition not_full_;
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 };
 
 // Template specialization for 65536 elements, N = 16.
@@ -312,13 +278,7 @@ public:
 		boost::interprocess::scoped_lock
 		<boost::interprocess::interprocess_mutex> lock(mutex_);
 
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 		// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-		//not_full_.wait(lock, boost::bind(&bounded_buffer<value_type,
-		//allocator_type>::is_not_full, this));
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-		
 		int32_t head = head_;
 		int32_t next_head = next(head);
 
@@ -344,11 +304,7 @@ public:
 			_mm_sfence();
 			_InterlockedDecrement(&unread_);
 			_mm_sfence();
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-		// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-			not_full_.notify_one();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
+			// Not using any synchronization to indicate that the queue is not full.
 			return true;
 		}
 		return false;
@@ -381,13 +337,6 @@ private:
 	
 	// Mutex to protect access to the queue
 	boost::interprocess::interprocess_mutex mutex_;
-
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-	// Not using any synchronization to indicate that the queue is not full.
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-	// Condition to wait until the queue is not full
-	boost::interprocess::interprocess_condition not_full_;
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
 };
 
 } // namespace core

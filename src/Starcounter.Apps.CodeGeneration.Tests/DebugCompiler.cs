@@ -13,7 +13,7 @@ using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Apps.CodeGeneration.Tests {
     internal class GenereratedJsonCodeCompiler {
-        internal static App CompileCode(string generatedCode, string codebehindCode, string fullClassName) {
+        internal static Puppet CompileCode(string generatedCode, string codebehindCode, string fullClassName) {
             Assembly assembly;
             Compilation compilation;
             CompilationOptions copts;
@@ -36,7 +36,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
                                 new MetadataFileReference(typeof(Entity).Assembly.Location),                    // Starcounter.dll
                                 new MetadataFileReference(typeof(JsonHelper).Assembly.Location),                // Starcounter.JsonPatch.dll
                                 new MetadataFileReference(typeof(Template).Assembly.Location),                  // Starcounter.Apps.dll
-                                new MetadataFileReference(typeof(IStatefullTemplate).Assembly.Location),        // Starcounter.Apps.Interfaces.dll
+                                new MetadataFileReference(typeof(ITemplateCodeGenerator).Assembly.Location),        // Starcounter.Apps.Interfaces.dll
                                 new MetadataFileReference(typeof(RequestHandler).Assembly.Location),            // Starcounter.REST.dll
                                 new MetadataFileReference(typeof(IDynamicMetaObjectProvider).Assembly.Location) // System.Core.dll
                           );   

@@ -9,6 +9,7 @@ using Starcounter.Internal.Uri;
 using System;
 using System.Text;
 using HttpStructs;
+using Starcounter.Advanced;
 namespace Starcounter.Internal.Test {
 
     /// <summary>
@@ -23,7 +24,7 @@ namespace Starcounter.Internal.Test {
         [SetUp]
         public void InitHttpStructsTests()
         {
-            HttpStructs.HttpRequest.sc_init_http_parser();
+            HttpRequest.sc_init_http_parser();
         }
     }
 
@@ -32,6 +33,23 @@ namespace Starcounter.Internal.Test {
     /// </summary>
     [TestFixture]
     class TestRoutes : RequestHandler {
+
+        public static void RegisterSimpleHandlers() {
+            Reset();
+            GET("/", () => {
+                Console.WriteLine("Root called");
+                return null;
+            });
+            GET("/{?}", (int x) => {
+                Console.WriteLine("Root int called with x " + x );
+                return null;
+            });
+            GET("/{?}/{?}", (string a, int x) => {
+                Console.WriteLine("Root int called with string " + a + " and int " + x);
+                return null;
+            });
+        }
+
         public static void Main() {
             Reset();
 
@@ -44,7 +62,12 @@ namespace Starcounter.Internal.Test {
             */
 
             GET("/", () => {
-                Console.WriteLine("Root called");
+                Console.WriteLine("GET / called");
+                return null;
+            });
+
+            GET("/test", () => {
+                Console.WriteLine("GET /test called");
                 return null;
             });
 
@@ -219,7 +242,20 @@ namespace Starcounter.Internal.Test {
 
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
-            var tree = umb.CreateAstTree();
+            var tree = umb.CreateAstTree(false);
+            tree.Namespace = "__urimatcher__";
+            Console.WriteLine(tree.ToString());
+        }
+
+
+        [Test]
+        public void GenerateAstTreeOverviewWithInline() {
+
+            Reset();
+
+            Main(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+            var tree = umb.CreateAstTree(true);
             tree.Namespace = "__urimatcher__";
             Console.WriteLine(tree.ToString());
         }
@@ -258,7 +294,7 @@ namespace Starcounter.Internal.Test {
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
-            var ast = umb.CreateAstTree();
+            var ast = umb.CreateAstTree(false);
             ast.Namespace = "__urimatcher__";
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCSharpSourceCode( ast );
@@ -273,13 +309,62 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         [Test]
         public void GenerateCppRequestProcessor() {
+
+
             Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
-            var ast = umb.CreateAstTree();
+            var ast = umb.CreateAstTree(true);
             ast.Namespace = "__urimatcher__";
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
+
+            Console.WriteLine(str);
+        }
+
+
+        /// <summary>
+        /// Generates the request processor in the C++ language.
+        /// </summary>
+        [Test]
+        public void GenerateSimpleCppRequestProcessor() {
+
+            var file = new System.IO.StreamReader("facit.cpp.txt");
+            var facit = file.ReadToEnd();
+            file.Close();
+
+
+
+            RegisterSimpleHandlers(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var ast = umb.CreateAstTree(true);
+            ast.Namespace = "__urimatcher__";
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCppSourceCode(ast);
+
+//            Assert.AreEqual(facit, str);
+
+            Console.WriteLine("Complete codegenerated C/C++ file");
+            Console.WriteLine(str);
+
+
+
+        }
+
+
+        /// <summary>
+        /// Generates the request processor in the C++ language.
+        /// </summary>
+        [Test]
+        public void GenerateSimpleCsRequestProcessor() {
+            RegisterSimpleHandlers(); // Register some handlers
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var ast = umb.CreateAstTree(false);
+            ast.Namespace = "__urimatcher__";
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
 
             Console.WriteLine(str);
 
@@ -329,6 +414,7 @@ namespace Starcounter.Internal.Test {
             byte[] h505 = Encoding.UTF8.GetBytes("GET /test-double/DDDD\r\n\r\n"); // DDDD -> Not a double value
             byte[] h506 = Encoding.UTF8.GetBytes("GET /test-datetime/DDDD\r\n\r\n"); // DDDD -> Not a datetime value
             byte[] h507 = Encoding.UTF8.GetBytes("GET /test-bool/DDDD\r\n\r\n"); // DDDD -> Not a boolean value
+            byte[] h508 = Encoding.UTF8.GetBytes("DELETE /allanballan/DDDD\r\n\r\n"); // DDDD -> Not a boolean value
 
             Main();
 
@@ -375,8 +461,52 @@ namespace Starcounter.Internal.Test {
             Assert.False(um.Invoke(new HttpRequest(h505), out resource));
             Assert.False(um.Invoke(new HttpRequest(h506), out resource));
             Assert.False(um.Invoke(new HttpRequest(h507), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h508), out resource), "There is no handler DELETE /allanballan. How could it be found?");
 
         }
+
+        /// <summary>
+        /// </summary>
+        [Test]
+        public void TestSimpleUriConflict() {
+
+            Reset();
+
+            GET("/ab", () => {
+                Console.WriteLine("Handler /ab was called" );
+                return 2;
+            });
+
+            GET("/{?}", (string rest) => {
+                Console.WriteLine("Handler / was called");
+                return 1;
+            });
+
+            var umb = RequestHandler.UriMatcherBuilder;
+
+            var pt = umb.CreateParseTree();
+            var ast = umb.CreateAstTree(false);
+            ast.Namespace = "__urimatcher__";
+            
+            var compiler = umb.CreateCompiler();
+            var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
+
+            Console.WriteLine(pt.ToString(false));
+//            Console.WriteLine(pt.ToString(true));
+            Console.WriteLine(ast.ToString());
+            Console.WriteLine(str);
+
+            byte[] h1 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
+            byte[] h2 = Encoding.UTF8.GetBytes("GET /ab\r\n\r\n");
+
+            var um = RequestHandler.RequestProcessor;
+            object resource;
+            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.AreEqual(1, (int)resource);
+            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
+            Assert.AreEqual(2, (int)resource);
+        }
+
 
         /// <summary>
         /// Tests the simple rest handler.
@@ -392,19 +522,19 @@ namespace Starcounter.Internal.Test {
             });
 
             GET("/products/{?}", (string prodid) => {
-                Console.WriteLine("Handler 2 was called with " + prodid );
+                Console.WriteLine("Handler 2 was called with " + prodid);
                 return null;
             });
 
             var umb = RequestHandler.UriMatcherBuilder;
 
             var pt = umb.CreateParseTree();
-            var ast = umb.CreateAstTree();
+            var ast = umb.CreateAstTree(false);
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
 
             Console.WriteLine(pt.ToString(false));
-//            Console.WriteLine(pt.ToString(true));
+            //            Console.WriteLine(pt.ToString(true));
             Console.WriteLine(ast.ToString());
             Console.WriteLine(str);
 
@@ -416,6 +546,7 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h1), out resource));
             Assert.True(um.Invoke(new HttpRequest(h2), out resource));
         }
+
 
         /// <summary>
         /// Tests the rest handler.
@@ -430,6 +561,12 @@ namespace Starcounter.Internal.Test {
             byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
             byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
             byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
+            byte[] h8 = Encoding.UTF8.GetBytes("DELETE /allanballan\r\n\r\n");
+            byte[] h9 = Encoding.UTF8.GetBytes("GET /test\r\n\r\n");
+            byte[] h10 = Encoding.UTF8.GetBytes("GET /testing\r\n\r\n");
+            byte[] h11 = Encoding.UTF8.GetBytes("PUT /players/123/\r\n\r\n");
+            byte[] h12 = Encoding.UTF8.GetBytes("PUT /players/123 ");
+            byte[] h13 = Encoding.UTF8.GetBytes("PUT /players/123\n");
 
             Main(); // Register some handlers
             var um = RequestHandler.RequestProcessor;
@@ -442,6 +579,12 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new HttpRequest(h5), out resource));
             Assert.True(um.Invoke(new HttpRequest(h6), out resource));
             Assert.True(um.Invoke(new HttpRequest(h7), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h8), out resource), "There is no handler DELETE /allanballan. How could it be called.");
+            Assert.True(um.Invoke(new HttpRequest(h9), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h10), out resource));
+            Assert.False(um.Invoke(new HttpRequest(h11), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
+            Assert.True(um.Invoke(new HttpRequest(h13), out resource));
 
         }
 
