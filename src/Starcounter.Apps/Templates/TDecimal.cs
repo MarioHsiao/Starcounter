@@ -7,19 +7,14 @@
 using System;
 using System.Text;
 using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
+
 namespace Starcounter.Templates {
-#endif
 
     /// <summary>
-    /// Class TDecimal
     /// </summary>
     public class TDecimal : TValue<decimal>
     {
         /// <summary>
-        /// The _ default value
         /// </summary>
         decimal _DefaultValue = 0;
 
@@ -33,9 +28,8 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets or sets the default value.
+        /// 
         /// </summary>
-        /// <value>The default value.</value>
         public decimal DefaultValue {
             get { return _DefaultValue; }
             set { _DefaultValue = value; }

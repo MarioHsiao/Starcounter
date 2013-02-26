@@ -9,7 +9,7 @@ using System;
 namespace Starcounter.Templates
 {
     /// <summary>
-    /// Class DecimalMetadata
+    /// 
     /// </summary>
 	public class DecimalMetadata : ValueMetadata
 	{

@@ -9,7 +9,7 @@ using Starcounter;
 namespace Starcounter.Templates {
 
     /// <summary>
-    /// Class ActionMetadata
+    /// 
     /// </summary>
     public class ActionMetadata : ValueMetadata {
         /// <summary>

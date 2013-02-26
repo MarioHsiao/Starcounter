@@ -8,21 +8,15 @@ using System;
 using System.Collections.Generic;
 using Starcounter.Templates.Interfaces;
 
-#if CLIENT
-using Starcounter.Client;
-namespace Starcounter.Client.Template {
-#else
 using Starcounter;
 using System.Collections;
 namespace Starcounter.Templates {
-#endif
 
     /// <summary>
     /// The collection of properties (Templates) in an Obj template. I.e. for the template PersonTemplate, the
     /// list might contain two elements such as TString "FirstName" and TString "LastName".
     /// </summary>
-    public class PropertyList
-       : IEnumerable<Template>, IList<Template>
+    public class PropertyList : IEnumerable<Template>, IList<Template>
     {
         /// <summary>
         /// The Obj having the properties in this collection

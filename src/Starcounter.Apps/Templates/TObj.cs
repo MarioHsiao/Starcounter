@@ -10,20 +10,12 @@ using Starcounter.Templates.DataBinding;
 using Starcounter.Templates.Interfaces;
 using Starcounter.Advanced;
 
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
 namespace Starcounter.Templates {
-#endif
 
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public abstract class TObj : TContainer
-#if IAPP
-//, ITApp
-#endif
- {
+    public abstract class TObj : TContainer {
         private DataBinding<IBindable> dataBinding;
 
         /// <summary>
@@ -216,5 +208,4 @@ namespace Starcounter.Templates {
             dataBinding.SetValue(app, entity);
         }
     }
-
 }

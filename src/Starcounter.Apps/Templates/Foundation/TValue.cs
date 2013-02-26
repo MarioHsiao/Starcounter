@@ -6,16 +6,12 @@
 
 using System;
 using Starcounter.Templates.Interfaces;
-#if CLIENT
-using Starcounter.Client;
-namespace Starcounter.Client.Template {
-#else
 using Starcounter.Templates;
 using System.Collections.Generic;
 using Starcounter.Templates.DataBinding;
 using System.Diagnostics;
+
 namespace Starcounter {
-#endif
     /// <summary>
     /// 
     /// </summary>

@@ -5,8 +5,9 @@
 // ***********************************************************************
 
 namespace Starcounter.Templates {
+
     /// <summary>
-    /// Class ObjMetadataBase
+    /// 
     /// </summary>
     public class ObjMetadataBase  {
 
@@ -20,13 +21,7 @@ namespace Starcounter.Templates {
             _Template = template;
         }
 
-        /// <summary>
-        /// The _ app
-        /// </summary>
         private Obj _App;
-        /// <summary>
-        /// The _ template
-        /// </summary>
         private Template _Template;
 
         /// <summary>
@@ -34,6 +29,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The app.</value>
         public Obj App { get { return _App; } }
+
         /// <summary>
         /// Gets the template.
         /// </summary>

@@ -9,7 +9,7 @@ using System;
 namespace Starcounter.Templates
 {
     /// <summary>
-    /// Class DoubleMetadata
+    /// 
     /// </summary>
 	public class DoubleMetadata : ValueMetadata
 	{

@@ -8,25 +8,16 @@ using System;
 using Starcounter.Templates.Interfaces;
 using System.Collections.Generic;
 
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
 namespace Starcounter.Templates {
-#endif
 
     /// <summary>
-    /// Class TString
+    /// 
     /// </summary>
-    public class TString : TValue<string>
-    {
-        internal override void ProcessInput(Obj obj, byte[] rawValue)
-        {
+    public class TString : TValue<string> {
+        internal override void ProcessInput(Obj obj, byte[] rawValue) {
             obj.ProcessInput<string>(this, System.Text.Encoding.UTF8.GetString(rawValue));
         }
 
-        /// <summary>
-        /// The _ default value
-        /// </summary>
         private string _DefaultValue = "";
 
         /// <summary>

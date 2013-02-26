@@ -5,10 +5,12 @@
 // ***********************************************************************
 
 namespace Starcounter.Templates {
+
     /// <summary>
-    /// Class ValueMetadata
+    /// 
     /// </summary>
     public class ValueMetadata : ObjMetadataBase {
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ValueMetadata" /> class.
         /// </summary>

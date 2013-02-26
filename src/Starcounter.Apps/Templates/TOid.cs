@@ -6,17 +6,13 @@
 
 using System;
 using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
+
 namespace Starcounter.Templates {
-#endif
 
     /// <summary>
-    /// Class TOid
+    /// 
     /// </summary>
-    public class TOid : TValue<UInt64>
-    {
+    public class TOid : TValue<UInt64> {
 
         /// <summary>
         /// Gets or sets the default value.
@@ -24,8 +20,7 @@ namespace Starcounter.Templates {
         /// <value>The default value.</value>
         public UInt64 DefaultValue { get; set; }
 
-        internal override void ProcessInput(Obj obj, byte[] rawValue)
-        {
+        internal override void ProcessInput(Obj obj, byte[] rawValue) {
             throw new NotImplementedException();
         }
 
