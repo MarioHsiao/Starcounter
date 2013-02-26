@@ -4647,6 +4647,20 @@ select_offsetkey_value:
  */
 opt_select_fetch_first_value:
 			SignedIconst						{ $$ = makeIntConst($1, @1); }
+			| PARAM
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = $1;
+					SET_LOCATION(p, @1);
+					$$ = (Node *) p;
+				}
+			| '?'
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = -1;
+					SET_LOCATION(p, @1);
+					$$ = (Node *) p;
+				}
 			| '(' a_expr ')'					{ $$ = $2; }
 			| /*EMPTY*/							{ $$ = makeIntConst(1, -1); }
 		;
