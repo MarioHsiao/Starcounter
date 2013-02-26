@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Starcounter
 {
@@ -99,6 +100,22 @@ public class SqlException : Exception
         this.tokenList = (List<String>)info.GetValue("tokenList", typeof(List<String>));
         this.beginPosition = info.GetInt32("beginPosition");
         this.endPosition = info.GetInt32("endPosition");
+    }
+
+    public override String ToString() {
+        StringBuilder str = new StringBuilder(Message);
+        if (tokenList != null && tokenList.Count > 0) {
+            str.AppendLine();
+            str.Append("Tokens: ");
+            foreach (String token in tokenList)
+                str.Append(token);
+            str.AppendLine();
+        }
+        if (beginPosition > -1)
+            str.AppendLine("Begin position: " + beginPosition);
+        if (endPosition > beginPosition)
+            str.AppendLine("End position: " + endPosition);
+        return str.ToString();
     }
 }
 }

@@ -23,6 +23,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         internal ConditionDictionary WhereCondition { get; private set; }
 
         internal INumericalExpression FetchNumExpr { get; private set; }
+        internal INumericalExpression FethcOffsetExpr { get; private set; }
         internal IBinaryExpression FetchOffsetKeyExpr { get; private set; }
         internal HintSpecification HintSpec { get; private set; }
         internal VariableArray VarArray { get; private set; }
@@ -37,7 +38,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// </summary>
         internal void Optimize() {
             Debug.Assert(JoinTree != null && WhereCondition != null && HintSpec != null, "Query should parsed and analyzed before optimization");
-            OptimizedPlan = Optimizer.Optimize(JoinTree, WhereCondition, FetchNumExpr, FetchOffsetKeyExpr, HintSpec);
+            OptimizedPlan = Optimizer.Optimize(JoinTree, WhereCondition, FetchNumExpr, FethcOffsetExpr, FetchOffsetKeyExpr, HintSpec);
         }
         
         /// <summary>
