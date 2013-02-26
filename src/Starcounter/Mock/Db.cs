@@ -76,13 +76,13 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static Rows SQL(String query, params Object[] values)
+        public static Rows<dynamic> SQL(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
 
 #if true
-            return new SqlResult(0, query, false, values);
+            return new SqlResult<dynamic>(0, query, false, values);
 #else
             if (Starcounter.Transaction.Current != null)
                 return new SqlResult(Starcounter.Transaction.Current.TransactionId, query, false, values); 
@@ -120,7 +120,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static Rows SlowSQL(String query, params Object[] values)
+        public static Rows<dynamic> SlowSQL(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
@@ -132,13 +132,13 @@ namespace Starcounter
 #endif
 
             if (query == "")
-                return new SqlResult(transactionId, query, true, values);
+                return new SqlResult<dynamic>(transactionId, query, true, values);
 
             switch (query[0])
             {
                 case 'S':
                 case 's':
-                    return new SqlResult(transactionId, query, true, values);
+                    return new SqlResult<dynamic>(transactionId, query, true, values);
 
                 case 'C':
                 case 'c':
@@ -150,7 +150,7 @@ namespace Starcounter
                     if (SqlProcessor.ProcessDQuery(query, values))
                         return null;
                     else
-                        return new SqlResult(transactionId, query, true, values);
+                        return new SqlResult<dynamic>(transactionId, query, true, values);
 
                 case ' ':
                 case '\t':
@@ -159,7 +159,7 @@ namespace Starcounter
                     {
                         case 'S':
                         case 's':
-                            return new SqlResult(transactionId, query, true, values);
+                            return new SqlResult<dynamic>(transactionId, query, true, values);
 
                         case 'C':
                         case 'c':
@@ -171,14 +171,14 @@ namespace Starcounter
                             if (SqlProcessor.ProcessDQuery(query, values))
                                 return null;
                             else
-                                return new SqlResult(transactionId, query, true, values);
+                                return new SqlResult<dynamic>(transactionId, query, true, values);
 
                         default:
-                            return new SqlResult(transactionId, query, true, values);
+                            return new SqlResult<dynamic>(transactionId, query, true, values);
                     }
 
                 default:
-                    return new SqlResult(transactionId, query, true, values);
+                    return new SqlResult<dynamic>(transactionId, query, true, values);
             }
         }
 

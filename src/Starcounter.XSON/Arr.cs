@@ -24,7 +24,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Arr<T>(Rows res) {
+        public static implicit operator Arr<T>(Rows<object> res) {
             return new Arr<T>(res);
         }
 
@@ -32,7 +32,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="result"></param>
-        protected Arr(Rows result) : base(result) {
+        protected Arr(Rows<object> result) : base(result) {
         }
 
         /// <summary>
@@ -114,14 +114,14 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        internal Rows notEnumeratedResult = null;
+        internal Rows<object> notEnumeratedResult = null;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Arr(Rows res) {
+        public static implicit operator Arr(Rows<object> res) {
             return new Arr(res);
         }
 
@@ -146,7 +146,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="result"></param>
-        protected Arr(Rows result) {
+        protected Arr(Rows<object> result) {
             notEnumeratedResult = result;
         }
 
