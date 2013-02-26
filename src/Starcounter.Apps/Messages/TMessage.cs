@@ -1,11 +1,21 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="TMessage.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using System;
+
 namespace Starcounter.Templates {
 
     /// <summary>
     /// Defines the schema (properties) for a Message object.
     /// </summary>
+    /// <remarks>
+    /// Schemas for all Obj objects (like Puppets and Messages) are done in the same way.
+    /// By creating a tree of TObj, TValue and TArr objects (and their derived classes), you
+    /// create a schema to which each instance object (Obj) belongs.
+    /// </remarks>
     public class TMessage : TObj {
 
         /// <summary>
