@@ -45,7 +45,7 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// <see cref="Message<T>"/>
+    /// <see cref="Message"/>
     /// </summary>
     public class Message : Message<NullData> {
     }
