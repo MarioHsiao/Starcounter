@@ -60,6 +60,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             JoinTree = null;
             WhereCondition = null;
             FetchNumExpr = null;
+            FethcOffsetExpr = null;
             FetchOffsetKeyExpr = null;
             HintSpec = null;
             VarArray = null;
@@ -205,6 +206,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             SQLParserAssert(stmt->sortClause == null, "Assuming no order by");
             SQLParserAssert(stmt->whereClause == null, "Assuming no where clause");
             SQLParserAssert(stmt->optionClause == null, "Assuming no option clause with optimizer hints");
+            SQLParserAssert(stmt->limitOffset == null, "Assuming no fetch clauses");
             // Creating output structures
             RowTypeBinding typeBindings = new RowTypeBinding();
             Int32 extNum = 0;
@@ -336,7 +338,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// </summary>
         /// <param name="condition">The condition to check</param>
         internal void SQLParserAssert(bool condition) {
-            Debug.Assert(condition);
+            //Debug.Assert(condition);
             if (!condition)
                 throw new SQLParserAssertException();
         }
@@ -349,7 +351,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         /// <param name="condition">The condition to check</param>
         /// <param name="message">Adds message to Debug.Assert</param>
         internal void SQLParserAssert(bool condition, string message) {
-            Debug.Assert(condition, message);
+            //Debug.Assert(condition, message);
             if (!condition)
                 throw new SQLParserAssertException();
         }
