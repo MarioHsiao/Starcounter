@@ -112,6 +112,7 @@
     <Compile Include="PublicModel\CommandTaskInfo.cs" />
     <Compile Include="PublicModel\DatabaseInfo.cs" />
     <Compile Include="PublicModel\ErrorInfo.cs" />
+    <Compile Include="PublicModel\ExecRequest.cs" />
     <Compile Include="PublicModel\IServerRuntime.cs" />
     <Compile Include="PublicModel\ProgressInfo.cs" />
     <Compile Include="PublicModelProvider.cs" />
