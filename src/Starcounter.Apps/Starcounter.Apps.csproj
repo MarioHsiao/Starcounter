@@ -81,7 +81,7 @@
     <Compile Include="Puppets\ChangeLog.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="DataBinding.cs" />
-    <Compile Include="Puppets\Input.cs" />
+    <Compile Include="Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
     <Compile Include="Obj.cs" />
     <Compile Include="Obj.Dynamic.cs" />

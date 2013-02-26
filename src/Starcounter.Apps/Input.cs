@@ -11,7 +11,7 @@ namespace Starcounter {
 
     /// <summary>
     /// An event that encapsulates a single incomming update for a specific value in
-    /// a Puppet. Used as base class for incomming event data in Puppets.
+    /// a Obj. Used as base class for incomming event data in Objs.
     /// </summary>
     /// <typeparam name="TValue">The type of the value that is being updated</typeparam>
     public class Input<TValue> : Input {
@@ -36,12 +36,12 @@ namespace Starcounter {
 
     /// <summary>
     /// An event that encapsulates a single incomming action trigger for a specific value in
-    /// a Puppet. Used as base class for incomming trigger events in Puppets.
+    /// a Obj. Used as base class for incomming trigger events in Objs.
     /// </summary>
-    /// <typeparam name="TApp">The type of the Puppet.</typeparam>
+    /// <typeparam name="TApp">The type of the Obj.</typeparam>
     /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
     public class Input<TApp, TTemplate> : Input
-        where TApp : Puppet
+        where TApp : Obj
         where TTemplate : Template {
 
             /// <summary>
@@ -66,12 +66,12 @@ namespace Starcounter {
 
     /// <summary>
     /// An event that encapsulates a single incomming update for a specific value in
-    /// a Puppet. Used as base class for incomming event data in Puppets.
+    /// a Obj. Used as base class for incomming event data in Objs.
     /// </summary>
-    /// <typeparam name="TApp">The type of the Puppet.</typeparam>
+    /// <typeparam name="TApp">The type of the Obj.</typeparam>
     /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
     /// <typeparam name="TValue">The type of the value that is being updated</typeparam>
-    public class Input<TApp, TTemplate, TValue> : Input<TValue> where TApp : Puppet where TTemplate : Template {
+    public class Input<TApp, TTemplate, TValue> : Input<TValue> where TApp : Obj where TTemplate : Template {
 
         /// <summary>
         /// The _app
@@ -107,7 +107,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parentProperty">The parent property.</param>
         /// <returns>App.</returns>
-        public Puppet FindParent(TContainer parentProperty) {
+        public Obj FindParent(TContainer parentProperty) {
             return null;
         }
 
@@ -116,7 +116,7 @@ namespace Starcounter {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns>``0.</returns>
-        public T FindParent<T>() where T:Puppet {
+        public T FindParent<T>() where T:Obj {
             return null;
         }
 
@@ -124,7 +124,7 @@ namespace Starcounter {
 
     /// <summary>
     /// Base class for Input events. Input events are events triggered by the client
-    /// and catched on the server when Puppets receive input from the end user.
+    /// and catched on the server when Objs receive input from the end user.
     /// </summary>
     public class Input {
 
