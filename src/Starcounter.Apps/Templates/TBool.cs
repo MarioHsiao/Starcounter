@@ -6,11 +6,9 @@
 
 using System;
 using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
+
 namespace Starcounter.Templates {
-#endif
+
     /// <summary>
     /// Defines a boolean property in an App object.
     /// </summary>

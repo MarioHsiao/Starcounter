@@ -9,20 +9,14 @@ using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Templates.DataBinding;
 using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
-namespace Starcounter.Templates {
-#endif
 
-//    public class SetProperty<AppType, SchemaType> : TObjArr<AppType> where AppType : App, new() where SchemaType : TApp {
-//    }
+namespace Starcounter.Templates {
 
     /// <summary>
-    /// Class TArr
+    /// 
     /// </summary>
-    /// <typeparam name="OT">The type of the app type.</typeparam>
-    /// <typeparam name="OTT">The type of the app template type.</typeparam>
+    /// <typeparam name="OT"></typeparam>
+    /// <typeparam name="OTT"></typeparam>
     public class TArr<OT,OTT> : TObjArr
         where OT : Obj, new()
         where OTT : TObj

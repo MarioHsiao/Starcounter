@@ -5,8 +5,9 @@
 // ***********************************************************************
 
 namespace Starcounter.Templates {
+
     /// <summary>
-    /// Class ObjMetadata
+    /// 
     /// </summary>
     public class ObjMetadata : ObjMetadataBase {
 

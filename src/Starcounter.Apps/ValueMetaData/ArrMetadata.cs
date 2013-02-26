@@ -9,11 +9,12 @@ using Starcounter;
 namespace Starcounter.Templates {
 
     /// <summary>
-    /// Class ArrMetadata
+    /// 
     /// </summary>
-    /// <typeparam name="AppType">The type of the app type.</typeparam>
-    /// <typeparam name="TemplateType">The type of the template type.</typeparam>
+    /// <typeparam name="AppType"></typeparam>
+    /// <typeparam name="TemplateType"></typeparam>
     public class ArrMetadata<AppType,TemplateType> : ValueMetadata {
+
         /// <summary>
         /// 
         /// </summary>

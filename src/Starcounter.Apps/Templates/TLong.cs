@@ -7,21 +7,15 @@
 using System;
 using Starcounter.Internal;
 using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
+
 namespace Starcounter.Templates {
-#endif
 
     /// <summary>
-    /// Class TLong
+    /// 
     /// </summary>
     public class TLong : TValue<long>
     {
 
-        /// <summary>
-        /// The _ default value
-        /// </summary>
         private long _DefaultValue = 0;
 
         internal override void ProcessInput(Obj obj, byte[] rawValue)

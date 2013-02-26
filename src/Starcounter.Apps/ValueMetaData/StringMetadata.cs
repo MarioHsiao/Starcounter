@@ -10,9 +10,10 @@ using Starcounter;
 namespace Starcounter.Templates {
 
     /// <summary>
-    /// Class StringMetadata
+    /// 
     /// </summary>
     public class StringMetadata : ValueMetadata {
+
         /// <summary>
         /// Initializes a new instance of the <see cref="StringMetadata" /> class.
         /// </summary>

@@ -6,31 +6,26 @@
 
 using System;
 using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
+
 namespace Starcounter.Templates {
-#endif
 
     /// <summary>
-    /// Class TDouble
+    /// 
     /// </summary>
-    public class TDouble : TValue<double>
-    {
+    public class TDouble : TValue<double> {
         /// <summary>
-        /// The _ default value
+        /// 
         /// </summary>
-       private double _DefaultValue = 0;
+        private double _DefaultValue = 0;
 
-       internal override void ProcessInput(Obj obj, byte[] rawValue)
-       {
-           throw new NotImplementedException();
-       }
+        internal override void ProcessInput(Obj obj, byte[] rawValue) {
+            throw new NotImplementedException();
+        }
 
-       /// <summary>
-       /// Gets or sets the default value.
-       /// </summary>
-       /// <value>The default value.</value>
+        /// <summary>
+        /// Gets or sets the default value.
+        /// </summary>
+        /// <value>The default value.</value>
         public double DefaultValue {
             get { return _DefaultValue; }
             set { _DefaultValue = value; }
