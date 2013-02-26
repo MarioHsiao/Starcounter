@@ -253,7 +253,7 @@ internal static class SqlProcessor
             tableName = tableName.Substring(0, wherePos);
         }
 
-        var result = Db.SlowSQL("SELECT x FROM " + tableName + " x" + whereClause, values);
+        var result = Db.SlowSQL<Entity>("SELECT x FROM " + tableName + " x" + whereClause, values);
         foreach (Entity entity in result)
         {
             entity.Delete();

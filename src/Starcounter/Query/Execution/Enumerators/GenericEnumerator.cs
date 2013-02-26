@@ -9,7 +9,8 @@ namespace Starcounter {
 
     /// <summary>
     /// </summary>
-    public class SqlEnumerator : IRowEnumerator, IEnumerator, IDisposable {
+    public class SqlEnumerator<T> : IRowEnumerator<T>, IEnumerator<T>, IEnumerator, IDisposable {
+
 
         internal IExecutionEnumerator subEnumerator;
         private XNode node;
@@ -22,20 +23,6 @@ namespace Starcounter {
 
             node = new XNode(this, subEnumerator);
             ThreadData.Current.RegisterObject(node);
-        }
-
-        /// <summary>
-        /// Gets the current item (row) in the result of the query.
-        /// </summary>
-        public dynamic Current {
-            get {
-                if (subEnumerator != null) {
-                    return subEnumerator.Current;
-                }
-                else {
-                    throw new ObjectDisposedException("Enumerator");
-                }
-            }
         }
 
         /// <summary>
@@ -149,13 +136,9 @@ namespace Starcounter {
                 return Current;
             }
         }
-    }
 
-    /// <summary>
-    /// </summary>
-    public class SqlEnumerator<T> : SqlEnumerator, IEnumerator<T> {
 
-        internal SqlEnumerator(IExecutionEnumerator subEnumerator) : base(subEnumerator) { }
+//        internal SqlEnumerator(IExecutionEnumerator subEnumerator) : base(subEnumerator) { }
 
         // We hide the base Current property to return an instance of T instead
         // of a dynamic in case the property is accessed from generic
@@ -165,7 +148,7 @@ namespace Starcounter {
         /// <summary>
         /// Gets the current item (row) in the result of the query.
         /// </summary>
-        new public T Current {
+        public T Current {
             get {
                 if (subEnumerator != null)
                     return subEnumerator.Current;

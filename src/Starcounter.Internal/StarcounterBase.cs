@@ -44,7 +44,7 @@ namespace Starcounter.Advanced {
         /// <param name="query">The SQL query string excluding parameters. Parameters are supplied as ? marks.</param>
         /// <param name="args">The parameters corresponding to the ? marks in the query string.</param>
         /// <returns></returns>
-        public static Rows SQL(string query, params object[] args) {
+        public static Rows<dynamic> SQL(string query, params object[] args) {
             return _DB.SQL(query, args);
         }
 
@@ -65,7 +65,7 @@ namespace Starcounter.Advanced {
         /// <param name="str"></param>
         /// <param name="pars"></param>
         /// <returns></returns>
-        public static Rows SlowSQL(string str, params object[] pars) {
+        public static Rows<dynamic> SlowSQL(string str, params object[] pars) {
             return _DB.SlowSQL(str, pars);
         }
 

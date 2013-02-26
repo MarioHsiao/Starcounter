@@ -15,10 +15,13 @@ using Sc.Query.Execution;
 namespace Starcounter
 {
 
+   
     /// <summary>
     /// 
     /// </summary>
     public class SqlResult<T> : Rows<T>, IEnumerable, IEnumerable<T> {
+
+
 
         protected UInt64 transactionId; // The handle of the transaction to which this SQL result belongs.
         protected String query; // SQL query string.
@@ -33,41 +36,7 @@ namespace Starcounter
             sqlParams = sqlParamsValues;
         }
 
-        // We hide the base First property to return an instance of T instead
-        // of a dynamic in case the property is accessed from generic SqlResult
-        // instance in order to not polute the calling code with dynamic code
-        // when you explicitly specify the type.
 
-        /// <summary>
-        /// Obtaining only the first hit/result and disposing the enumerator.
-        /// </summary>
-        /// <value></value>
-        new public T First {
-            get {
-                // Note that we needed to copy the code because if simply
-                // calling base.First the CLR refused to inline this method.
-
-                IExecutionEnumerator execEnum = null;
-                dynamic current = null;
-
-                try {
-                    execEnum = GetExecutionEnumerator();
-
-                    current = default(T);
-
-                    // Setting the fetch first only flag.
-                    execEnum.SetFirstOnlyFlag();
-
-                    if (execEnum.MoveNext())
-                        current = execEnum.Current;
-                }
-                finally {
-                    if (execEnum != null) execEnum.Dispose();
-                }
-
-                return current;
-            }
-        }
 
         // Getting enumerator for manual use.
         /// <summary>
@@ -75,7 +44,7 @@ namespace Starcounter
         /// </summary>
         /// <returns>SqlEnumerator.</returns>
         /// <exception cref="Starcounter.SqlException">Literal in query is not supported. Use variable and parameter instead.</exception>
-        public new SqlEnumerator<T> GetEnumerator() {
+        public override IRowEnumerator<T> GetEnumerator() {
             // Note that error handling here prevents this method from being
             // inline by caller.
 
@@ -89,14 +58,11 @@ namespace Starcounter
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() {
+
+        // Implementing the IEnumerable.GetEnumerator() method.
+        IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
         }
-
 
         internal IExecutionEnumerator GetExecutionEnumerator() {
             IExecutionEnumerator execEnum = null;
@@ -138,5 +104,60 @@ namespace Starcounter
                 throw;
             }
         }
+
+
+
+        // We hide the base First property to return an instance of T instead
+        // of a dynamic in case the property is accessed from generic SqlResult
+        // instance in order to not polute the calling code with dynamic code
+        // when you explicitly specify the type.
+
+        /// <summary>
+        /// Obtaining only the first hit/result and disposing the enumerator.
+        /// </summary>
+        /// <value></value>
+        public override T First {
+            get {
+                // Note that we needed to copy the code because if simply
+                // calling base.First the CLR refused to inline this method.
+
+                IExecutionEnumerator execEnum = null;
+                dynamic current = null;
+
+                try {
+                    execEnum = GetExecutionEnumerator();
+
+                    current = default(T);
+
+                    // Setting the fetch first only flag.
+                    execEnum.SetFirstOnlyFlag();
+
+                    if (execEnum.MoveNext())
+                        current = execEnum.Current;
+                }
+                finally {
+                    if (execEnum != null) execEnum.Dispose();
+                }
+
+                return current;
+            }
+        }
+
+
+//        public override IRowEnumerator GetEnumerator() {
+//            return (IRowEnumerator)GetEnumerator();
+//        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() {
+            return (IEnumerator<T>)GetEnumerator();
+        }
+
+
+
     }
 }
