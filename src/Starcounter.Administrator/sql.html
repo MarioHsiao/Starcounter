@@ -1,38 +1,66 @@
-﻿
-<!doctype html>
+﻿<!doctype html>
 
 <head>
     <title>Starcounter</title>
 
-    <link rel="stylesheet" href="/css/bootstrap-2.2.1.css">
+    <link rel="stylesheet" href="/css/bootstrap-2.3.0.css">
 
-    <script src="/sys/angular-1.0.2.js"></script>
+    <script src="/sys/angular-1.1.3.min.js"></script>
+    <script src="/sys/angular-cookies-1.1.3.min.js"></script>
     <script src="/sys/angular-patch.js"></script>
-    <!--<script src="/sys/bootstrap-2.2.1.js"></script>-->
-
-
 </head>
 
 
 <body ng-remoteapp class="container">
 
     <div class="navbar">
-      <div class="navbar-inner">
-        <a class="brand" href="/">Starcounter</a>
-        <ul class="nav">
-          <li><a href="/server">Server</a></li>
-          <li><a href="/databases">Databases</a></li>
-          <li class="active"><a href="/query">Query</a></li>
-          <li><a href="/log">Log</a></li>
-        </ul>
-      </div>
+        <div class="navbar-inner">
+            <a class="brand" href="/">Starcounter</a>
+            <ul class="nav">
+                <li><a href="/server">Server</a></li>
+                <li><a href="/databases">Databases</a></li>
+                <li class="active"><a href="/query">Query</a></li>
+                <li><a href="/log">Log</a></li>
+            </ul>
+        </div>
     </div>
 
+    <form class="form-inline">
+        <input type="text" class="input-small" placeholder="Databasename" ng-model="DatabaseName$">
+        <input type="text" placeholder="sql query" ng-model="Query$">
 
-    <h1>Under construction...</h1>
-    <!--
-    <iframe frameBorder="0" seamless="seamless" scrolling="no" class="span12" src="http://127.0.0.1:8080/query" >Browser not compatible with iframes.</iframe>
-    -->
+        <button type="submit" class="btn" ui-click="Execute$">Execute</button>
+
+    </form>
+
+
+    <!--<h1>Under construction...</h1>-->
+
+    <!--    <p>Columns.length: {{Columns.length}}</p>
+    <p>Count: {{Count}}</p>
+    <p>Offset: {{Offset}}</p>
+    <p>Items.length: {{Items.length}}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <td ng-repeat="col in Columns">{{col.ID}}-{{col.Title}}
+                </td>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr ng-repeat="item in Items">
+                <td ng-repeat="col in Columns">{{item[col.ID]}}
+                </td>
+            </tr>
+        </tbody>
+    </table>-->
+
+    <label>Output</label>
+    <p>{{Output}}</p>
+
+
 </body>
 
 

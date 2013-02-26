@@ -6,21 +6,13 @@
 
 using NUnit.Framework;
 using Starcounter;
-using Starcounter.Internal.ExeModule;
 using Starcounter.Templates;
 using System;
 
 /// <summary>
 /// Class Master
 /// </summary>
-partial class Master : App {
-
-    /// <summary>
-    /// Initializes static members of the <see cref="Master" /> class.
-    /// </summary>
-    static Master() {
-            AppExeModule.IsRunningTests = true;
-    }
+partial class Master : Puppet {
 
     /// <summary>
     /// Handles the specified test.
@@ -39,10 +31,10 @@ partial class Master : App {
 
 
         var m = new Master();
-        StringProperty x = m.Template.Test;
+        TString x = m.Template.Test;
 
 
-        x.ProcessInput(m,"Hej hopp");
+        m.ProcessInput<string>(x,"Hej hopp");
 
 
     }

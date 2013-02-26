@@ -7,6 +7,7 @@
 #include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
+#include "urimatch_codegen.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
@@ -277,6 +278,8 @@ Gateway::Gateway()
     global_statistics_stream_ << "Empty string!";
     memcpy(global_statistics_string_, kHttpStatsHeader, kHttpStatsHeaderLength);
 
+    codegen_uri_matcher_ = NULL;
+
 #ifdef GW_TESTING_MODE
 
     // Master IP address.
@@ -326,7 +329,7 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
     }
 
     // Reading the Starcounter log directory.
-    setting_output_dir_ = argv[3];
+    setting_server_output_dir_ = argv[3];
 
     char temp[128];
 
@@ -368,20 +371,40 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 
     setting_config_file_path_ = argv[2];
 
-    std::wstring setting_log_file_dir_ = setting_output_dir_ + L"\\" + GW_PROGRAM_NAME;
+    // Getting executable directory.
+    wchar_t exe_dir[1024];
+    DWORD r = GetModuleFileName(NULL, exe_dir, 1024);
+    GW_ASSERT((r > 0) && (r < 1024));
+
+    // Getting directory name from executable path.
+    int32_t c = r;
+    while (c > 0)
+    {
+        c--;
+
+        if (exe_dir[c] == L'\\')
+            break;
+    }
+    exe_dir[c] = L'\0';
+
+    // Creating Starcounter bin directory property.
+    setting_sc_bin_dir_ = std::wstring(exe_dir);
+
+    // Specifying gateway output directory as subfolder for server output.
+    setting_gateway_output_dir_ = setting_server_output_dir_ + L"\\" + GW_PROGRAM_NAME;
 
     // Trying to create network gateway log directory.
-    if ((!CreateDirectory(setting_log_file_dir_.c_str(), NULL)) &&
+    if ((!CreateDirectory(setting_gateway_output_dir_.c_str(), NULL)) &&
         (ERROR_ALREADY_EXISTS != GetLastError()))
     {
-        std::wcout << L"Can't create network gateway log directory: " << setting_log_file_dir_ << std::endl;
+        std::wcout << L"Can't create network gateway log directory: " << setting_gateway_output_dir_ << std::endl;
 
         return SCERRGWCANTCREATELOGDIR;
     }
 
     // Obtaining full path to log directory.
     wchar_t log_file_dir_full[1024];
-    DWORD num_copied_chars = GetFullPathName(setting_log_file_dir_.c_str(), 1024, log_file_dir_full, NULL);
+    DWORD num_copied_chars = GetFullPathName(setting_gateway_output_dir_.c_str(), 1024, log_file_dir_full, NULL);
     GW_ASSERT(num_copied_chars != 0);
 
     // Full path to gateway log file.
@@ -784,10 +807,33 @@ uint32_t Gateway::AssertCorrectState()
     if (err_code)
         goto FAILED;
 
+    GW_ASSERT(core::chunk_type::static_header_size == bmx::BMX_HEADER_MAX_SIZE_BYTES);
+
     // Checking overall gateway stuff.
     GW_ASSERT(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
 
     GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
+
+    // Checking HTTP related fields.
+    GW_ASSERT(kFullSessionIdStringLength == (SC_SESSION_STRING_LEN_CHARS + kScSessionIdStringWithExtraCharsLength));
+    GW_ASSERT(kSetCookieStringPrefixLength == 20);
+    GW_ASSERT(kFullSessionIdSetCookieStringLength == 46);
+
+    int64_t accept_8bytes = *(int64_t*)"Accept: ";
+    int64_t accept_enc_8bytes = *(int64_t*)"Accept-E";
+    int64_t cookie_8bytes = *(int64_t*)"Cookie: ";
+    int64_t content_len_8bytes = *(int64_t*)"Content-Length";
+    int64_t upgrade_8bytes = *(int64_t*)"Upgrade:";
+    int64_t websocket_8bytes = *(int64_t*)"Sec-WebSocket";
+    int64_t scsessionid_8bytes = *(int64_t*)kScSessionIdStringWithExtraChars;
+
+    GW_ASSERT(ACCEPT_HEADER_VALUE_8BYTES == accept_8bytes);
+    GW_ASSERT(ACCEPT_ENCODING_HEADER_VALUE_8BYTES == accept_enc_8bytes);
+    GW_ASSERT(COOKIE_HEADER_VALUE_8BYTES == cookie_8bytes);
+    GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == content_len_8bytes);
+    GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == upgrade_8bytes);
+    GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == websocket_8bytes);
+    GW_ASSERT(SCSESSIONID_HEADER_VALUE_8BYTES == scsessionid_8bytes);
 
     return 0;
 
@@ -1067,7 +1113,7 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                         &gw_workers_[0],
                         gw_handlers_,
                         port_number,
-                        bmx::INVALID_HANDLER_ID,
+                        bmx::BMX_INVALID_HANDLER_INFO,
                         empty_db_index,
                         GatewayPortProcessEcho);
 
@@ -1093,7 +1139,9 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                         test_http_echo_requests_[g_gateway.setting_mode()].uri,
                         test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
                         bmx::HTTP_METHODS::OTHER_METHOD,
-                        bmx::INVALID_HANDLER_ID,
+                        NULL,
+                        0,
+                        bmx::BMX_INVALID_HANDLER_INFO,
                         empty_db_index,
                         GatewayUriProcessEcho);
 
@@ -1124,7 +1172,9 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                     reverse_proxies_[i].service_uri_.c_str(),
                     reverse_proxies_[i].service_uri_len_,
                     bmx::HTTP_METHODS::OTHER_METHOD,
-                    bmx::INVALID_HANDLER_ID,
+                    NULL,
+                    0,
+                    bmx::BMX_INVALID_HANDLER_INFO,
                     empty_db_index,
                     GatewayUriProcessProxy);
 
@@ -1149,7 +1199,9 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 "/gwstats",
                 1,
                 bmx::HTTP_METHODS::OTHER_METHOD,
-                bmx::INVALID_HANDLER_ID,
+                NULL,
+                0,
+                bmx::BMX_INVALID_HANDLER_INFO,
                 empty_db_index,
                 GatewayStatisticsInfo);
 
@@ -1429,6 +1481,12 @@ uint32_t Gateway::Init()
 
     InitTestHttpEchoRequests();
 
+#endif
+
+#ifdef GW_URI_MATCHING_CODEGEN
+    // Loading URI codegen matcher.
+    codegen_uri_matcher_ = new CodegenUriMatcher();
+    codegen_uri_matcher_->Init();
 #endif
 
     // Indicating that network gateway is ready
@@ -1741,7 +1799,7 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
     uint32_t err_code = 0;
 
     // Creating path to IPC monitor directory active databases.
-    std::wstring active_databases_dir = g_gateway.get_setting_output_dir() + L"\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
+    std::wstring active_databases_dir = g_gateway.get_setting_server_output_dir() + L"\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
 
     // Obtaining full path to IPC monitor directory.
     wchar_t active_databases_dir_full[1024];
@@ -2593,6 +2651,40 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 
 #endif
 
+// Generate the code using managed generator.
+uint32_t Gateway::GenerateUriMatcher(uint16_t port)
+{
+    // Getting the port structure.
+    ServerPort* server_port = FindServerPort(port);
+    GW_ASSERT(NULL != server_port);
+
+    // Registering URI on port.
+    RegisteredUris* all_port_uris = server_port->get_registered_uris();
+
+    // Getting registered URIs.
+    std::vector<RegisteredUriManaged> uris_managed = all_port_uris->GetRegisteredUriManaged();
+
+    // Calling managed function.
+    uint32_t err_code = codegen_uri_matcher_->GenerateUriMatcher(&uris_managed.front(), uris_managed.size());
+    if (err_code)
+        return err_code;
+
+    MatchUriType match_uri_func;
+
+    // Building URI matcher from generated code and loading the library.
+    err_code = codegen_uri_matcher_->CompileIfNeededAndLoadDll(
+        UriMatchCodegenCompilerType::COMPILER_GCC,
+        L"codegen_uri_matcher",
+        match_uri_func);
+
+    if (err_code)
+        return err_code;
+
+    all_port_uris->set_latest_match_uri_func(match_uri_func);
+
+    return 0;
+}
+
 // Adds some URI handler: either Apps or Gateway.
 uint32_t Gateway::AddUriHandler(
     GatewayWorker* gw,
@@ -2601,6 +2693,8 @@ uint32_t Gateway::AddUriHandler(
     const char* uri,
     uint32_t uri_len_chars,
     bmx::HTTP_METHODS http_method,
+    uint8_t* param_types,
+    int32_t num_params,
     BMX_HANDLER_TYPE handler_id,
     int32_t db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
@@ -2614,6 +2708,8 @@ uint32_t Gateway::AddUriHandler(
         uri,
         uri_len_chars,
         http_method,
+        param_types,
+        num_params,
         handler_id,
         handler_proc,
         db_index);
@@ -2671,14 +2767,14 @@ uint32_t Gateway::AddPortHandler(
     GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     int32_t db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
 {
     return handlers_table->RegisterPortHandler(
         gw,
         port,
-        handler_id,
+        handler_info,
         handler_proc,
         db_index);
 }
@@ -2702,22 +2798,42 @@ uint32_t Gateway::AddSubPortHandler(
         db_index);
 }
 
+extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
+extern "C" int32_t make_sc_server_uri(const char *server_name, wchar_t *buffer, size_t *pbuffer_size);
+
 // Opens Starcounter log for writing.
 uint32_t Gateway::OpenStarcounterLog()
 {
-    uint32_t err_code = sccorelog_init(0);
-    if (err_code)
-        return err_code;
+	size_t host_name_size;
+	wchar_t *host_name;
+	uint32_t err_code;
 
-    err_code = sccorelog_connect_to_logs(GW_PROGRAM_NAME, NULL, &sc_log_handle_);
-    if (err_code)
-        return err_code;
+	host_name_size = 0;
+//	make_sc_server_uri(setting_sc_server_type_.c_str(), 0, &host_name_size);
+	make_sc_process_uri(setting_sc_server_type_.c_str(), GW_PROCESS_NAME, 0, &host_name_size);
+	host_name = (wchar_t *)malloc(host_name_size * sizeof(wchar_t));
+	if (host_name)
+	{
+//		make_sc_server_uri(setting_sc_server_type_.c_str(), host_name, &host_name_size);
+		make_sc_process_uri(setting_sc_server_type_.c_str(), GW_PROCESS_NAME, host_name, &host_name_size);
 
-    err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_output_dir_.c_str());
-    if (err_code)
-        return err_code;
+		err_code = sccorelog_init(0);
+		if (err_code) goto err;
 
-    return 0;
+		err_code = sccorelog_connect_to_logs(host_name, NULL, &sc_log_handle_);
+		if (err_code) goto err;
+
+		err_code = sccorelog_bind_logs_to_dir(sc_log_handle_, setting_server_output_dir_.c_str());
+		if (err_code) goto err;
+
+		goto end;
+	}
+	
+	err_code = SCERROUTOFMEMORY;
+err:
+end:
+	if (host_name) free(host_name);
+	return err_code;
 }
 
 // Closes Starcounter log.
@@ -2731,7 +2847,19 @@ void Gateway::CloseStarcounterLog()
 // Write critical into log.
 void Gateway::LogWriteCritical(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, msg);
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
+
+    GW_ASSERT(0 == err_code);
+
+    err_code = sccorelog_flush_to_logs(sc_log_handle_);
+
+    GW_ASSERT(0 == err_code);
+}
+
+// Write error into log.
+void Gateway::LogWriteError(const wchar_t* msg)
+{
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_ERROR, 0, msg);
 
     GW_ASSERT(0 == err_code);
 
@@ -2791,7 +2919,7 @@ void Gateway::InitTestHttpEchoRequests()
 } // namespace network
 } // namespace starcounter
 
-VOID SCAPI LogGatewayCrash(VOID *pc, LPCWSTR str)
+VOID LogGatewayCrash(VOID *pc, LPCWSTR str)
 {
     starcounter::network::g_gateway.LogWriteCritical(str);
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Internal.Application.CodeGeneration;
-using Starcounter.Internal.Application.JsonReader;
+using Starcounter.Internal.JsonTemplate;
 using Starcounter.Internal.Uri;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
@@ -18,8 +18,8 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             //String className = "TestMessage";
             //CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
 
-            //AppTemplate actual = TemplateFromJs.ReadFile(className + ".json");
-            //Assert.IsInstanceOf(typeof(AppTemplate), actual);
+            //TApp actual = TemplateFromJs.ReadFile(className + ".json");
+            //Assert.IsInstanceOf(typeof(TApp), actual);
 
             //actual.Namespace = metadata.RootNamespace;
             //Assert.IsNotNullOrEmpty(actual.Namespace);
@@ -40,7 +40,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateSerializationParseTreeOverview() {
-            List<RequestProcessorMetaData> handlers = RegisterTemplatesForApp(CreateAppTemplate());
+            List<RequestProcessorMetaData> handlers = RegisterTemplatesForApp(CreateTApp());
             Console.WriteLine(ParseTreeGenerator.BuildParseTree(handlers).ToString(false));
         }
 
@@ -49,7 +49,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateSerializationParseTreeDetails() {
-            List<RequestProcessorMetaData> handlers = RegisterTemplatesForApp(CreateAppTemplate());
+            List<RequestProcessorMetaData> handlers = RegisterTemplatesForApp(CreateTApp());
             Console.WriteLine(ParseTreeGenerator.BuildParseTree(handlers).ToString(true));
         }
 
@@ -58,7 +58,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateSerializationAstTreeOverview() {
-            CodeGen.AstNode astTree = CodeGen.AstTreeGenerator.BuildAstTree(CreateAppTemplate());
+            CodeGen.AstNode astTree = CodeGen.AstTreeGenerator.BuildAstTree(CreateTApp());
             Console.WriteLine(astTree.ToString());
         }
 
@@ -67,17 +67,17 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateSerializationCode() {
-            CodeGen.AstNode astTree = CodeGen.AstTreeGenerator.BuildAstTree(CreateAppTemplate());
+            CodeGen.AstNode astTree = CodeGen.AstTreeGenerator.BuildAstTree(CreateTApp());
             Console.WriteLine(astTree.GenerateCsSourceCode());
         }
 
-        private static AppTemplate CreateAppTemplate() {
-            AppTemplate template = TemplateFromJs.ReadFile("TestMessage.json");
+        private static TPuppet CreateTApp() {
+            TPuppet template = TemplateFromJs.ReadPuppetTemplateFromFile("TestMessage.json");
             template.ClassName = "TestMessage";
             return template;
         }
 
-        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(AppTemplate appTemplate) {
+        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TPuppet appTemplate) {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
             foreach (Template child in appTemplate.Children) {
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
@@ -118,7 +118,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// <summary>
         /// The app
         /// </summary>
-        public readonly App App;
+        public readonly Puppet App;
         /// <summary>
         /// The template
         /// </summary>
@@ -129,7 +129,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public AppAndTemplate(App app, Template template) {
+        public AppAndTemplate(Puppet app, Template template) {
             App = app;
             Template = template;
         }

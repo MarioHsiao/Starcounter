@@ -4,13 +4,13 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Advanced;
+using Starcounter.Internal.REST;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using HttpStructs;
-using Starcounter.Internal.REST;
 
 namespace Starcounter.Internal.Web {
 

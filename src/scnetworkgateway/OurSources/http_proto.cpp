@@ -11,6 +11,37 @@
 namespace starcounter {
 namespace network {
 
+// Running all registered handlers.
+uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
+{
+    uint32_t err_code;
+
+    // Going through all handler list.
+    for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
+    {
+        // Checking if chunk belongs to the destination database.
+        if (sd->get_db_index() != handler_lists_[i].get_db_index())
+        {
+            // Getting new chunk and copy contents from old one.
+            SocketDataChunk* new_sd = NULL;
+            err_code = gw->CloneChunkForNewDatabase(sd, handler_lists_[i].get_db_index(), &new_sd);
+            if (err_code)
+                return err_code;
+
+            // Setting new chunk reference.
+            sd = new_sd;
+        }
+
+        // Running handlers.
+        err_code = handler_lists_[i].get_handlers_list()->RunHandlers(gw, sd, is_handled);
+
+        // Checking if information was handled and no errors occurred.
+        if (*is_handled || err_code)
+            return err_code;
+    }
+
+    return 0;
+}
 // Fetches method and URI from HTTP request data.
 inline uint32_t GetMethodAndUri(
     char* http_data,
@@ -192,18 +223,24 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
     {
         case COOKIE_FIELD:
         {
-            // Check if its an old session from a different socket.
-            const char* session_id_value_string = GetSessionIdValueString(at, length);
+            // Setting needed HttpRequest fields.
+            http->http_request_.cookies_offset_ = at - (char*)http->sd_ref_;
+            http->http_request_.cookies_len_bytes_ = length;
 
+            break;
+        }
+
+        case SCSESSIONID_FIELD:
+        {
             // Checking if Starcounter session id is presented.
-            if (session_id_value_string)
+            if (SC_SESSION_STRING_LEN_CHARS == length)
             {
                 // Setting the session offset.
-                http->http_request_.session_string_offset_ = session_id_value_string - (char*)http->sd_ref_;
+                http->http_request_.session_string_offset_ = at - (char*)http->sd_ref_;
                 http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
 
                 // Reading received session index (skipping session header name and equality).
-                session_index_type cookie_session_index = hex_string_to_uint64(session_id_value_string, SC_SESSION_STRING_INDEX_LEN_CHARS);
+                session_index_type cookie_session_index = hex_string_to_uint64(at, SC_SESSION_STRING_INDEX_LEN_CHARS);
                 if (INVALID_CONVERTED_NUMBER == cookie_session_index)
                 {
                     GW_COUT << "Session index stored in the HTTP header has wrong format." << GW_ENDL;
@@ -211,7 +248,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 }
 
                 // Reading received session random salt.
-                uint64_t cookie_random_salt = hex_string_to_uint64(session_id_value_string + SC_SESSION_STRING_INDEX_LEN_CHARS, SC_SESSION_STRING_SALT_LEN_CHARS);
+                uint64_t cookie_random_salt = hex_string_to_uint64(at + SC_SESSION_STRING_INDEX_LEN_CHARS, SC_SESSION_STRING_SALT_LEN_CHARS);
                 if (INVALID_CONVERTED_NUMBER == cookie_random_salt)
                 {
                     GW_COUT << "Session random salt stored in the HTTP header has wrong format." << GW_ENDL;
@@ -239,10 +276,6 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                     http->sd_ref_->AssignSession(global_session_copy);
                 }
             }
-
-            // Setting needed HttpRequest fields.
-            http->http_request_.cookies_offset_ = at - (char*)http->sd_ref_;
-            http->http_request_.cookies_len_bytes_ = length;
 
             break;
         }
@@ -760,7 +793,7 @@ ALL_DATA_ACCUMULATED:
         if (sd->get_new_session_flag())
         {
             // New session cookie was created so searching for it.
-            char* session_cookie = strstr((char*)sd->get_data_blob(), kScFullSessionIdString);
+            char* session_cookie = strstr((char*)sd->get_data_blob(), kFullSessionIdSetCookieString);
             if (NULL == session_cookie)
             {
                 // Destroying the socket data since session cookie is not embedded.
@@ -768,7 +801,7 @@ ALL_DATA_ACCUMULATED:
             }
 
             // Skipping cookie header and equality symbol.
-            session_cookie += kScSessionIdStringPlusEqualsLength;
+            session_cookie += kSetCookieStringPrefixLength;
 
             // Getting session global copy.
             ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
@@ -783,10 +816,6 @@ ALL_DATA_ACCUMULATED:
             // Session has been created.
             sd->set_new_session_flag(false);
         }
-
-        // Checking for correct behavior for sessions.
-        char* session_cookie = strstr((char*)sd->get_data_blob(), kScFullSessionIdString);
-        GW_ASSERT(NULL == session_cookie);
 
         // Prepare buffer to send outside.
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());

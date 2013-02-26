@@ -37,7 +37,7 @@ namespace Starcounter.Server {
         }
 
         internal const string DatabaseExeFileName = StarcounterConstants.ProgramNames.ScData + ".exe";
-        internal const string WorkerProcessExeFileName = StarcounterConstants.ProgramNames.ScCode + ".exe";
+        internal const string CodeHostExeFileName = StarcounterConstants.ProgramNames.ScCode + ".exe";
         internal const string MinGWCompilerFileName = "x86_64-w64-mingw32-gcc.exe";
 
         /// <summary>
@@ -54,9 +54,9 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
-        /// Gets the full path to the worker process executable.
+        /// Gets the full path to the code host executable.
         /// </summary>
-        internal string WorkerProcessExePath {
+        internal string CodeHostExePath {
             get;
             private set;
         }
@@ -86,9 +86,9 @@ namespace Starcounter.Server {
             if (!File.Exists(databaseExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Database engine executable not found: {0}", databaseExe));
             }
-            var workerProcExe = Path.Combine(this.Server.InstallationDirectory, WorkerProcessExeFileName);
-            if (!File.Exists(workerProcExe)) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Worker process executable not found: {0}", databaseExe));
+            var codeHostExe = Path.Combine(this.Server.InstallationDirectory, CodeHostExeFileName);
+            if (!File.Exists(codeHostExe)) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Code host executable not found: {0}", databaseExe));
             }
             var compilerPath = Path.Combine(this.Server.InstallationDirectory, @"MinGW\bin", MinGWCompilerFileName);
             if (!File.Exists(compilerPath)) {
@@ -96,7 +96,7 @@ namespace Starcounter.Server {
             }
 
             this.DatabaseExePath = databaseExe;
-            this.WorkerProcessExePath = workerProcExe;
+            this.CodeHostExePath = codeHostExe;
             this.MinGWCompilerPath = compilerPath;
         }
 
@@ -215,26 +215,26 @@ namespace Starcounter.Server {
 #endif
         }
 
-        internal bool StartWorkerProcess(Database database, out Process process) {
-            return StartWorkerProcess(database, false, out process);
+        internal bool StartCodeHostProcess(Database database, out Process process) {
+            return StartCodeHostProcess(database, false, out process);
         }
 
-        internal bool StartWorkerProcess(Database database, bool startWithNoDb, out Process process) {
-            process = database.GetRunningWorkerProcess();
+        internal bool StartCodeHostProcess(Database database, bool startWithNoDb, out Process process) {
+            process = database.GetRunningCodeHostProcess();
             if (process != null) 
                 return false;
 
             // No process referenced, or the referenced process was not
-            // alive. Start a worker process.
+            // alive. Start a code host process.
 
-            process = Process.Start(GetWorkerProcessStartInfo(database, startWithNoDb));
-            database.WorkerProcess = process;
+            process = Process.Start(GetCodeHostProcessStartInfo(database, startWithNoDb));
+            database.CodeHostProcess = process;
             database.SupposedToBeStarted = true;
             return true;
         }
 
-        internal bool StopWorkerProcess(Database database) {
-            var process = database.WorkerProcess;
+        internal bool StopCodeHostProcess(Database database) {
+            var process = database.CodeHostProcess;
             if (process == null)
                 return false;
 
@@ -242,7 +242,7 @@ namespace Starcounter.Server {
             if (process.HasExited) {
                 process.Close();
                 database.Apps.Clear();
-                database.WorkerProcess = null;
+                database.CodeHostProcess = null;
                 return false;
             }
 
@@ -255,7 +255,7 @@ namespace Starcounter.Server {
                 // kill it by force. Instead, we raise an exception that will later
                 // be logged, describing this scenario.
                 throw ErrorCode.ToException(
-                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP, FormatWorkerProcessInfoString(database, process));
+                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP, FormatCodeHostProcessInfoString(database, process));
             }
 
             // Wait for the user code process to exit. First wait for a short while,
@@ -264,7 +264,7 @@ namespace Starcounter.Server {
             // finally kill the process.
             if (!process.WaitForExit(1000 * 5)) {
                 var log = ServerLogSources.Default;
-                var infoString = FormatWorkerProcessInfoString(database, process);
+                var infoString = FormatCodeHostProcessInfoString(database, process);
                 log.LogWarning("User code process takes longer than expected to exit. ({0})", infoString);
                 if (!process.WaitForExit(1000 * 15)) {
                     // Emit the error and kill it.
@@ -280,7 +280,7 @@ namespace Starcounter.Server {
                 process.Close();
             } catch { }
 
-            database.WorkerProcess = null;
+            database.CodeHostProcess = null;
             database.Apps.Clear();
             database.SupposedToBeStarted = false;
             return true;
@@ -299,6 +299,7 @@ namespace Starcounter.Server {
 
             arguments.Append('\"');
             arguments.Append(database.Uri);
+            //arguments.Append(database.Name);
             arguments.Append('\"');
             arguments.Append(' ');
 
@@ -309,21 +310,21 @@ namespace Starcounter.Server {
             return new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
         }
 
-        ProcessStartInfo GetWorkerProcessStartInfo(Database database) {
-            return GetWorkerProcessStartInfo(database, false);
+        ProcessStartInfo GetCodeHostProcessStartInfo(Database database) {
+            return GetCodeHostProcessStartInfo(database, false);
         }
 
-        ProcessStartInfo GetWorkerProcessStartInfo(Database database, bool startWithNoDb) {
+        ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb) {
             ProcessStartInfo processStart;
             StringBuilder args;
 
             args = new StringBuilder();
             // args.Append("--FLAG:attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             args.Append(database.Name.ToUpper());
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + " \"{0}\"", database.Configuration.Runtime.ImageDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + " \"{0}\"", database.Server.Configuration.LogDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + " \"{0}\"", database.Configuration.Runtime.TempDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.CompilerPath + " \"{0}\"", this.MinGWCompilerPath);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.CompilerPath + "=\"{0}\"", this.MinGWCompilerPath);
             
             if (startWithNoDb) {
                 args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.NoDb);
@@ -331,10 +332,10 @@ namespace Starcounter.Server {
             // args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoNetworkGateway);
 
             if (database.Configuration.Runtime.SchedulerCount.HasValue) {
-                args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + " {0}", database.Configuration.Runtime.SchedulerCount.Value);
+                args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + "={0}", database.Configuration.Runtime.SchedulerCount.Value);
             }
             
-            processStart = new ProcessStartInfo(this.WorkerProcessExePath, args.ToString().Trim());
+            processStart = new ProcessStartInfo(this.CodeHostExePath, args.ToString().Trim());
             processStart.CreateNoWindow = true;
             processStart.UseShellExecute = false;
             processStart.RedirectStandardInput = true;
@@ -363,8 +364,10 @@ namespace Starcounter.Server {
             return processControlEventName;
         }
 
-        string FormatWorkerProcessInfoString(Database database, Process process) {
+        internal static string FormatCodeHostProcessInfoString(Database database, Process process, bool checkExited = false) {
             string pid;
+            string info;
+
             try {
                 pid = process.Id.ToString();
             } catch {
@@ -372,7 +375,16 @@ namespace Starcounter.Server {
             }
 
             // Example: ScCode.exe, PID=123, Database=Foo
-            return string.Format("{0}, PID={1}, Database={2}", DatabaseEngine.WorkerProcessExeFileName, pid, database.Name);
+            info = string.Format("{0}, PID={1}, Database={2}", DatabaseEngine.CodeHostExeFileName, pid, database.Name);
+            if (checkExited) {
+                try {
+                    if (process.HasExited) {
+                        info += string.Format(", Exitcode={0}", process.ExitCode);
+                    }
+                } catch { }
+            }
+
+            return info;
         }
     }
 }

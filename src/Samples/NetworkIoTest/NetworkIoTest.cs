@@ -8,48 +8,54 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
+using Starcounter.Advanced;
 
 namespace NetworkIoTestApp
 {
     /// <summary>
     /// Some Apps handlers.
     /// </summary>
-    public class AppsClass : App
+    public class AppsClass : Puppet
     {
         /// <summary>
         /// Initializes some Apps handlers.
         /// </summary>
         public static void InitAppHandlers()
         {
-            GET("/first", () =>
-            {
-                return "first";
-            });
-
-            GET("/{?}", (string str) =>
-            {
-                return "str_parameter=" + str;
-            });
-
-            /*
-            GET("/{?}", (int num) =>
-            {
-                return "int_parameter=" + num;
-            });
-
-            GET("/second", () =>
-            {
-                return "second";
-            });
-
-            GET("/{?}/{?}", (string str1, string str2) =>
+            /*GET("/{?}/{?}", (string str1, string str2) =>
             {
                 return "str_concat=" + str1 + str2;
             });
 
+            GET("/{?}/static/{?}", (string str1, string str2) =>
+            {
+                return "str_concat_with_static=" + str1 + "static" + str2;
+            });
+            */
+
+            /*UserHandlerCodegen.GET_NEW("/ab", () =>
+            {
+                return "ab";
+            });*/
+
+            UserHandlerCodegen.GET_NEW("/{?}", (int anyString) =>
+            {
+                return "root";
+            });
+
+            /*GET("/{?}", (string anyString) =>
+            {
+                return "root";
+            });
+
             GET("/{?}", (string str) =>
             {
                 return "str_parameter=" + str;
+            });
+
+            GET("/{?}/{?}", (string str1, int int1) =>
+            {
+                return "str_int=" + str1 + int1;
             });
             */
         }
@@ -81,7 +87,7 @@ namespace NetworkIoTestApp
 
         // Performance related counters.
         static volatile UInt32 perf_counter = 0;
-        static void PrintPerformanceThread()
+        static void PrintPerformanceThread(Object p)
         {
             while (true)
             {
@@ -135,6 +141,8 @@ namespace NetworkIoTestApp
             // Starting performance statistics thread.
             Thread perf_thread = new Thread(PrintPerformanceThread);
             perf_thread.Start();
+
+            //TaskScheduler.QueueUserWorkItem(PrintPerformanceThread, 0);
         }
 
         // Handlers registration.
@@ -690,7 +698,7 @@ namespace NetworkIoTestApp
                 Console.WriteLine("Generated new session with index: " + p.UniqueSessionIndex);
 
                 // Adding the session cookie stub.
-                responseHeader += "Set-Cookie: " + p.SessionStruct.SessionCookieStubString + "; HttpOnly\r\n";
+                responseHeader += ScSessionStruct.SessionIdCookiePlusEndlineStubString;
             }
 
             // Converting string to byte array.

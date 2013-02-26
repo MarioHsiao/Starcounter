@@ -35,6 +35,35 @@ class RegisteredUri
 
 public:
 
+    // Converts handler id and database index.
+    static handler_info_type CreateHandlerInfoType(
+        BMX_HANDLER_TYPE handler_id,
+        int32_t db_index)
+    {
+        return db_index | (handler_id << 8);
+    }
+
+    // Converts handler id and database index.
+    static void ParseHandlerInfoType(
+        handler_info_type handler_info,
+        BMX_HANDLER_TYPE& handler_id,
+        int32_t& db_index)
+    {
+        db_index = (int32_t) handler_info;
+        handler_id = (BMX_HANDLER_TYPE) (handler_info >> 8);
+    }
+
+    // Getting first handler entry.
+    handler_info_type GetFirstHandlerInfo()
+    {
+        GW_ASSERT(1 == handler_lists_.get_num_entries());
+        GW_ASSERT(1 == handler_lists_[0].get_handlers_list()[0].get_num_entries());
+
+        return CreateHandlerInfoType(
+            handler_lists_[0].get_handlers_list()[0].get_handler_info(),
+            handler_lists_[0].get_db_index());
+    }
+
     // Getting number of handler lists.
     uint32_t GetHandlersListsNumber()
     {
@@ -213,34 +242,60 @@ public:
     }
 
     // Running all registered handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
-    {
-        uint32_t err_code;
-
-        // Going through all handler list.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
-        {
-            err_code = handler_lists_[i].get_handlers_list()->RunHandlers(gw, sd, is_handled);
-
-            // Checking if information was handled and no errors occurred.
-            if (*is_handled || err_code)
-                return err_code;
-        }
-
-        return 0;
-    }
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled);
 };
+
+struct RegisteredUriManaged
+{
+    char* uri_string;
+    uint32_t uri_len_chars;
+    handler_info_type handler_info;
+};
+
+typedef handler_info_type (*MatchUriType) (char* uri, uint32_t uri_len);
 
 class RegisteredUris
 {
     // Array of all registered URIs.
     LinearList<RegisteredUri, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_uris_;
 
+    // Pointer to generated code verification function.
+    MatchUriType latest_match_uri_func_;
+
 public:
+
+    // Setting latest uri matching function pointer.
+    void set_latest_match_uri_func(MatchUriType latest_match_uri_func)
+    {
+        latest_match_uri_func_ = latest_match_uri_func;
+    }
+
+    // Getting array of RegisteredUriManaged.
+    std::vector<RegisteredUriManaged> GetRegisteredUriManaged()
+    {
+        std::vector<RegisteredUriManaged> uris_vec;
+
+        // Going through all URIs.
+        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
+        {
+            if (!reg_uris_[i].IsEmpty())
+            {
+                RegisteredUriManaged uri;
+                uri.uri_string = reg_uris_[i].get_uri();
+                uri.uri_len_chars = reg_uris_[i].get_uri_len_chars();
+                uri.handler_info = reg_uris_[i].GetFirstHandlerInfo();
+
+                uris_vec.push_back(uri);
+            }
+        }
+
+        return uris_vec;
+    }
 
     // Constructor.
     RegisteredUris()
     {
+        latest_match_uri_func_ = NULL;
     }
 
     // Sorting all entries.

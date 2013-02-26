@@ -17,6 +17,6 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="prop">The prop.</param>
-        public ActionMetadata(App app, Template prop) : base(app, prop) { }
+        public ActionMetadata(Obj app, Template prop) : base(app, prop) { }
     }
 }

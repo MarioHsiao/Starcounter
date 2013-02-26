@@ -122,7 +122,7 @@ namespace BuildLevel0
                     {
                         if (BuildSystem.IsPersonalBuild())
                         {
-                            errorOut.WriteLine("Skipping uploading Level0 '{0}' build artifacts since its a Personal build...", level0_BuildBranch);
+                            Console.WriteLine("Skipping uploading Level0 '{0}' build artifacts since its a Personal build...", level0_BuildBranch);
                             return 0;
                         }
                         else if (releaseConfBuild)

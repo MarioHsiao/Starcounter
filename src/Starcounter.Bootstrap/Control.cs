@@ -12,6 +12,7 @@ using Starcounter.CommandLine;
 using Starcounter; // TODO:
 using Starcounter.ABCIPC;
 using Starcounter.ABCIPC.Internal;
+using Starcounter.Advanced;
 using Starcounter.Hosting;
 using Starcounter.Internal; // TODO:
 using Starcounter.Logging;
@@ -100,8 +101,7 @@ namespace StarcounterInternal.Bootstrap
             OnExceptionFactoryInstalled();
 
             ApplicationArguments arguments;
-            if (!ProgramCommandLine.TryGetProgramArguments(args, out arguments))
-                return false;
+            ProgramCommandLine.TryGetProgramArguments(args, out arguments);
             OnCommandLineParsed();
 
             configuration = Configuration.Load(arguments);
@@ -124,6 +124,9 @@ namespace StarcounterInternal.Bootstrap
             mem += 512;
             OnKernelMemoryConfigured();
 
+            ulong hlogs = ConfigureLogging(configuration, hmenv);
+            OnLoggingConfigured();
+
             // Initializing Apps internal HTTP request parser.
             HttpRequest.sc_init_http_parser();
 
@@ -137,11 +140,11 @@ namespace StarcounterInternal.Bootstrap
             // Initializing REST.
             RequestHandler.InitREST(configuration.TempDirectory);
 
+            // Initilize the Db environment (database name)
+            Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
+
             // Initializing AppsBootstrapper.
             AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);
-
-            ulong hlogs = ConfigureLogging(configuration, hmenv);
-            OnLoggingConfigured();
 
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();
@@ -429,7 +432,11 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.sccorelog_connect_to_logs(c.Name, null, &hlogs);
+            e = sccorelog.sccorelog_connect_to_logs(
+                ScUri.MakeDatabaseUri(ScUri.GetMachineName(), c.ServerName, c.Name),
+                null,
+                &hlogs
+                );
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, c.OutputDirectory);
@@ -548,10 +555,6 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = sccoredb.sccoredb_set_system_variable("OUTDIR", c.OutputDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            // TODO: What is this configuration for?
-            e = sccoredb.sccoredb_set_system_variable("ELOGDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             var callbacks = new sccoredb.sccoredb_callbacks();

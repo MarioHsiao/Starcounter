@@ -77,6 +77,11 @@ internal class ExtentNode : IOptimizationNode
     /// </summary>
     IndexInfo extentIndexInfo;
 
+    /// <summary>
+    /// List of conditions, where scan can/should be done on type of IsTypePredicate.
+    /// </summary>
+    IsTypePredicate subtypeCondition;
+
     VariableArray variableArr;
     String query;
 
@@ -84,6 +89,11 @@ internal class ExtentNode : IOptimizationNode
     /// True, if this extent-node represents the innermost extent, otherwise false.
     /// </summary>
     internal Boolean InnermostExtent = false;
+
+    /// <summary>
+    /// True, if all conditions can code gen.
+    /// </summary>
+    Boolean canCodeGen = true;
 
     /// <summary>
     /// Constructor.
@@ -180,39 +190,96 @@ internal class ExtentNode : IOptimizationNode
         conditionList.AddRange(condList);
     }
 
-    internal void EvaluateScanAlternatives()
-    {
+    internal void EvaluateScanAlternatives() {
+        IsTypePredicate mostSubtypeCondition = null; // Condition of most specific type over all conditions where object is supertype to the type
+        int posMostSubtypeCondition = -1;
         // If there is a hinted index then it should be used.
-        if (hintedIndexInfo != null)
-        {
+        if (hintedIndexInfo != null) {
             return;
         }
         // Try to find a reference lookup.
         Int32 i = 0;
-        while (refLookUpExpression == null && i < conditionList.Count)
-        {
-            if (conditionList[i] is ComparisonObject)
-            {
+        while (refLookUpExpression == null && i < conditionList.Count) {
+            if (conditionList[i] is ComparisonObject) {
                 refLookUpExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
             }
-            if (refLookUpExpression != null)
-            {
+            if (refLookUpExpression != null) {
                 conditionList.RemoveAt(i);
                 return;
             }
             i++;
         }
+        // Find if there are IsTypeExpressions and evaluate them
+        // Objects in all Is type conditions are from the same extent
+        Boolean noFalseConditions = true;
+        for (Int32 j = 0; j < conditionList.Count && noFalseConditions; j++)
+            if (conditionList[j] is IsTypePredicate) {
+                // notice or decide strategy
+                IsTypeCompare res = ((IsTypePredicate)conditionList[j]).EvaluateAtCompile();
+                switch (res) {
+                    case IsTypeCompare.TRUE:
+                    case IsTypeCompare.EQUAL:
+                    case IsTypeCompare.SUBTYPE:
+                        // It is known that the condition will be always true, thus the condition can be removed
+                        conditionList.RemoveAt(j);
+                        j--;
+                        break;
+                    case IsTypeCompare.SUPERTYPE:
+                        // The actual object might be subtype.
+                        if (mostSubtypeCondition == null) {
+                            mostSubtypeCondition = (IsTypePredicate)conditionList[j];
+                            posMostSubtypeCondition = j;
+                        }  else {
+                            //compare conditions
+                            IsTypePredicate currentCondition = (IsTypePredicate)conditionList[j];
+                            switch (mostSubtypeCondition.CompareTypeTo(currentCondition)) {
+                                case IsTypeCompare.TRUE:
+                                case IsTypeCompare.EQUAL:
+                                case IsTypeCompare.SUBTYPE:
+                                    conditionList.RemoveAt(j);
+                                    j--;
+                                    break;
+                                case IsTypeCompare.SUPERTYPE:
+                                    conditionList.RemoveAt(posMostSubtypeCondition);
+                                    j--;
+                                    mostSubtypeCondition = currentCondition;
+                                    posMostSubtypeCondition = j;
+                                    break;
+                                case IsTypeCompare.FALSE:
+                                    noFalseConditions = false;
+                                    break;
+                            }
+                        }
+                        break;
+                    case IsTypeCompare.UNKNOWNTYPE:
+                        // Generate few plans to guess possible way
+                        break;
+                    case IsTypeCompare.UNKNOWNOBJECT:
+                        // If type is subtype to current extent, then use index on the type
+                        break;
+                    case IsTypeCompare.UNKNOWN:
+                        // Will be known at run time. Do nothing here. Run filter at runtime
+                        break;
+                    case IsTypeCompare.FALSE:
+                        // It is not expected that object will be of the type. Run filter at runtime
+                        // Empty enumerator flag
+                        // Return an empty extent
+                        noFalseConditions = false;
+                        break;
+                }
+            }
+        subtypeCondition = mostSubtypeCondition;
+
         // Try to find an appropriate index for an index scan.
         // Collect all comparisons with paths that might be used for index scans.
         List<IComparison> comparisonList = new List<IComparison>();
-        for (Int32 j = 0; j < conditionList.Count; j++)
-        {
-            if (conditionList[j] is IComparison &&
-                (conditionList[j] as IComparison).GetPathTo(extentNumber) != null &&
-                Optimizer.RangeOperator((conditionList[j] as IComparison).Operator))
-            {
-                comparisonList.Add(conditionList[j] as IComparison);
-            }
+        for (Int32 j = 0; j < conditionList.Count; j++) {
+            if (conditionList[j] is IComparison)
+                if ((conditionList[j] as IComparison).GetPathTo(extentNumber) != null &&
+                Optimizer.RangeOperator((conditionList[j] as IComparison).Operator)) {
+                    comparisonList.Add(conditionList[j] as IComparison);
+                    canCodeGen = canCodeGen && ((CodeGenFilterNode)conditionList[j]).CanCodeGen;
+                }
         }
         // Get all index infos for the current type.
         IndexInfo[] indexInfoArr = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllInheritedIndexInfos();
@@ -221,21 +288,35 @@ internal class ExtentNode : IOptimizationNode
         Int32 bestValue = 0;
         Int32 currentValue = 0;
         Int32 usedArity = 0;
-        for (Int32 k = 0; k < indexInfoArr.Length; k++)
-        {
+        for (Int32 k = 0; k < indexInfoArr.Length; k++) {
             currentValue = EvaluateIndex(indexInfoArr[k], comparisonList, out usedArity);
-            if (currentValue > bestValue)
-            {
+            if (currentValue > bestValue) {
                 bestIndexInfo = indexInfoArr[k];
                 bestIndexInfoUsedArity = usedArity;
                 bestValue = currentValue;
             }
         }
         // Save an index to be used for an extent scan (index scan over the whole extent).
-        if (indexInfoArr.Length > 0)
-        {
+        if (indexInfoArr.Length > 0) {
             extentIndexInfo = indexInfoArr[0]; // Currently, it is always auto-generated index
         }
+
+        // If the extent type is supertype to type in IS predicate, then try to find index on the type of IS predicate.
+        if (subtypeCondition != null && noFalseConditions)
+            FindSetBestIndex((TypeBinding)subtypeCondition.GetTypeBinding());
+    }
+
+    private Boolean FindSetBestIndex(TypeBinding typeBinding) {
+        // Try to find an appropriate index for an index scan.
+        // Collect all comparisons with paths that might be used for index scans.
+        //List<IComparison> comparisonList = new List<IComparison>();
+        //for (Int32 j = 0; j < conditionList.Count; j++) {
+        //    if (conditionList[j] is IComparison)
+        //        if ((conditionList[j] as IComparison).GetPathTo(extentNumber) != null &&
+        //        Optimizer.RangeOperator((conditionList[j] as IComparison).Operator))
+        //            comparisonList.Add(conditionList[j] as IComparison);
+        //}
+        return false;
     }
 
     private Int32 EvaluateIndex(IndexInfo indexInfo, List<IComparison> comparisonList, out Int32 usedArity)
@@ -294,16 +375,16 @@ internal class ExtentNode : IOptimizationNode
         return EXTENT_SCAN_COST;
     }
 
-    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
         if (hintedIndexInfo != null)
         {
-            return CreateIndexScan(hintedIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(hintedIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (sortIndexInfo != null)
         {
-            return CreateIndexScan(sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering, fetchNumExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (refLookUpExpression != null)
@@ -313,12 +394,12 @@ internal class ExtentNode : IOptimizationNode
 
         if (bestIndexInfo != null)
         {
-            return CreateIndexScan(bestIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(bestIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (extentIndexInfo != null)
         {
-            if (conditionList.Count > 0)
+            if (conditionList.Count > 0 && canCodeGen)
             {
                 // Trying to create a scan which uses native filter code generation.
                 try
@@ -329,6 +410,7 @@ internal class ExtentNode : IOptimizationNode
                         GetCondition(),
                         SortOrder.Ascending,
                         fetchNumExpr, 
+                        fetchOffsetExpr,
                         fetchOffsetKeyExpr,
                         InnermostExtent, 
                         null, variableArr, query);
@@ -345,13 +427,13 @@ internal class ExtentNode : IOptimizationNode
             }
 
             // Proceeding with the worst case: full table scan on managed code level.
-            return CreateIndexScan(extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
         ITypeBinding typeBind = rowTypeBind.GetTypeBinding(extentNumber);
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "There is no index for type: " + typeBind.Name);
     }
 
-    private IExecutionEnumerator CreateIndexScan(IndexInfo indexInfo, SortOrder sortOrdering, INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    private IExecutionEnumerator CreateIndexScan(IndexInfo indexInfo, SortOrder sortOrdering, INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
         List<String> strPathList = new List<String>();
         String strPath = null;
@@ -421,12 +503,13 @@ internal class ExtentNode : IOptimizationNode
                              strPathList,
                              dynamicRangeList, GetCondition(),
                              sortOrdering, 
-                             fetchNumExpr, fetchOffsetKeyExpr, 
+                             fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, 
                              InnermostExtent, 
                              variableArr, query);
     }
 
-    private IExecutionEnumerator CreateFullTableScan(IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    private IExecutionEnumerator CreateFullTableScan(IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IIntegerExpression fetchOffsetExpr, 
+        IBinaryExpression fetchOffsetKeyExpr)
     {
         return new FullTableScan(rowTypeBind,
                                  extentNumber,
@@ -434,6 +517,7 @@ internal class ExtentNode : IOptimizationNode
                                  GetCondition(),
                                  SortOrder.Ascending,
                                  fetchNumExpr, 
+                                 fetchOffsetExpr,
                                  fetchOffsetKeyExpr,
                                  InnermostExtent, 
                                  null, variableArr, query);

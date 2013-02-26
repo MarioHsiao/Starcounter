@@ -70,6 +70,7 @@
     <Compile Include="PregeneratedRequestProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="Temp.cs" />
+    <Compile Include="TestNewRequestHandlers.cs" />
     <Compile Include="TestHttpRequestWriter.cs" />
     <Compile Include="TestHttpHandlers.cs" />
     <Compile Include="WebResourcesTest.cs" />
@@ -78,6 +79,10 @@
     <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
       <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
       <Name>HttpStructs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
@@ -107,6 +112,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\bin\$(Configuration)\scerrres.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="facit.cpp.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

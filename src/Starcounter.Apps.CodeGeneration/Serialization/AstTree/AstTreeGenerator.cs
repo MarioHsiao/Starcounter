@@ -19,20 +19,20 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="appTemplate"></param>
+        /// <param name="puppletTemplate"></param>
         /// <returns></returns>
-        internal static AstJsonSerializerClass BuildAstTree(AppTemplate appTemplate) {
-            ParseNode parseTree = ParseTreeGenerator.BuildParseTree(RegisterTemplatesForApp(appTemplate));
+        internal static AstJsonSerializerClass BuildAstTree(TPuppet puppletTemplate) {
+            ParseNode parseTree = ParseTreeGenerator.BuildParseTree(RegisterTemplatesForApp(puppletTemplate));
             return CreateJsonSerializer(parseTree);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="appTemplate"></param>
-        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(AppTemplate appTemplate) {
+        /// <param name="puppetTemplate"></param>
+        private static List<RequestProcessorMetaData> RegisterTemplatesForApp(TPuppet puppetTemplate) {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
-            foreach (Template child in appTemplate.Children) {
+            foreach (Template child in puppetTemplate.Children) {
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
                 rp.UnpreparedVerbAndUri = child.Name;
                 rp.Code = child;
@@ -97,7 +97,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     Parent = astObj
                 };
 
-                if (template is ListingProperty) {
+                if (template is TObjArr) {
                     var astArray = new AstWriteArray() {
                         Parent = astObj
                     };
@@ -108,7 +108,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     };
 
                     new AstWritePropertyValue() {
-                        Template = ((ListingProperty)template).App,
+                        Template = ((TObjArr)template).App,
                         VariableName = "listApp",
                         Parent = astLoop
                     };
@@ -242,7 +242,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     };
 
                     bool addGotoValue = false;
-                    if (pn.Handler.Code is ListingProperty) {
+                    if (pn.Handler.Code is TObjArr) {
                         // If the value to parse is a list we need to add some additional 
                         // code for looping and checking end of array.
                         nextParent = new AstParseJsonObjectArray() {
@@ -261,7 +261,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                         Parent = nextParent
                     };
 
-                    if (!(pn.Handler.Code is ActionProperty)) {
+                    if (!(pn.Handler.Code is TTrigger)) {
                         new AstSetValue() {
                             ParseNode = pn,
                             Parent = pj

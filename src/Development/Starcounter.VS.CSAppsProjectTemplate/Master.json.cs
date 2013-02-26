@@ -3,9 +3,9 @@ using Starcounter;
 using Starcounter.Internal;
 
 namespace $safeprojectname$ {
-    partial class Master : App {
+    partial class Master : Puppet {
         static void Main(string[] args) {
-            AppsBootstrapper.Bootstrap(8585);
+            AppsBootstrapper.Bootstrap();
             GET("/master", () => {
                 return new Master(){ 
                     View = "Master.html", 

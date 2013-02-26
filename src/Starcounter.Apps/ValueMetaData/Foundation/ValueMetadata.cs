@@ -8,13 +8,13 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Class ValueMetadata
     /// </summary>
-    public class ValueMetadata : AppMetadataBase {
+    public class ValueMetadata : ObjMetadataBase {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValueMetadata" /> class.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public ValueMetadata(App app, Template template ) : base( app, template ) {
+        public ValueMetadata(Obj app, Template template ) : base( app, template ) {
         }
 
         /// <summary>

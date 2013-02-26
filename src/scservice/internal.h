@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 
-extern void _set_shutdown_event_handler(void (*shutdown_event_handler)());
+extern BOOL _set_shutdown_event_handler(void (*shutdown_event_handler)());
 
 extern uint32_t _create_event(const wchar_t *name, void **phandle);
 extern void _destroy_event(void *handle);
@@ -43,7 +43,7 @@ extern uint32_t _read_database_config(
     wchar_t **pdatabase_scheduler_count);
 
 // Opens Starcounter log for writing.
-uint32_t OpenStarcounterLog(wchar_t* server_log_dir);
+uint32_t OpenStarcounterLog(const char *server_name, const wchar_t* server_log_dir);
 
 // Closes Starcounter log.
 void CloseStarcounterLog();
@@ -53,3 +53,5 @@ void LogWriteCritical(const wchar_t* msg);
 
 // Write error into log.
 void LogWriteError(const wchar_t* msg);
+
+void LogVerboseMessage(const wchar_t* msg);

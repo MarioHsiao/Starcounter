@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="NAppMetadata.cs" company="Starcounter AB">
+// <copyright file="NObjMetadata.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -9,18 +9,27 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// Each App can have a metadata class. See AppMetadata.
+    /// Each App can have a metadata class. See ObjMetadata.
     /// </summary>
-    public class NAppMetadata : NMetadataClass {
+    public class NObjMetadata : NMetadataClass {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NObjMetadata(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// The template
         /// </summary>
-        public AppTemplate Template;
+        public TPuppet Template;
 
         /// <summary>
         /// The instances
         /// </summary>
-        public static Dictionary<AppTemplate, NClass> Instances = new Dictionary<AppTemplate, NClass>();
+        public static Dictionary<TPuppet, NClass> Instances = new Dictionary<TPuppet, NClass>();
 
         /// <summary>
         /// Gets the name of the class.

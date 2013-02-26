@@ -120,11 +120,11 @@ internal class SortNode : IOptimizationNode
         return null;
     }
 
-    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, IBinaryExpression fetchOffsetKeyExpr)
+    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
         // For sort we ignore the fetch specification. Instead we return the complete result set.
-        IExecutionEnumerator subEnumerator = subNode.CreateExecutionEnumerator(null, null);
-        return new Sort(subEnumerator.RowTypeBinding, subEnumerator, sortSpec.CreateComparer(), variableArr, query, fetchNumExpr, fetchOffsetKeyExpr);
+        IExecutionEnumerator subEnumerator = subNode.CreateExecutionEnumerator(null, null, null);
+        return new Sort(subEnumerator.RowTypeBinding, subEnumerator, sortSpec.CreateComparer(), variableArr, query, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
     }
 
 #if DEBUG

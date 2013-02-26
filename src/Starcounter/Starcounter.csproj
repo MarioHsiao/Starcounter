@@ -36,8 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>
-    </NoWarn>
+    <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>..\..\bin\Release\Starcounter.XML</DocumentationFile>
   </PropertyGroup>
@@ -55,6 +54,7 @@
     <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Advanced\DbEnvironment.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\Bootstrap\AppProcess.cs" />
@@ -91,21 +91,6 @@
     <Compile Include="Binding\TypeDef.cs" />
     <Compile Include="Binding\TypeLoader.cs" />
     <Compile Include="Binding\UIntPropertyBinding.cs" />
-    <Compile Include="CommandLine\ApplicationArguments.cs" />
-    <Compile Include="CommandLine\CommandLineSection.cs" />
-    <Compile Include="CommandLine\GivenOption.cs" />
-    <Compile Include="CommandLine\IApplicationInput.cs" />
-    <Compile Include="CommandLine\Parser.cs" />
-    <Compile Include="CommandLine\Syntax\ApplicationSyntaxDefinition.cs" />
-    <Compile Include="CommandLine\Syntax\CommandSyntaxDefinition.cs" />
-    <Compile Include="CommandLine\Syntax\FlagDefinition.cs" />
-    <Compile Include="CommandLine\Syntax\IApplicationSyntax.cs" />
-    <Compile Include="CommandLine\Syntax\ICommandSyntax.cs" />
-    <Compile Include="CommandLine\Syntax\OptionAttributes.cs" />
-    <Compile Include="CommandLine\Syntax\OptionDefinition.cs" />
-    <Compile Include="CommandLine\Syntax\OptionInfo.cs" />
-    <Compile Include="CommandLine\Syntax\PropertyDefinition.cs" />
-    <Compile Include="CommandLine\Syntax\SyntaxDefinition.cs" />
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
     <Compile Include="Internal\bmx.cs" />
@@ -121,6 +106,7 @@
     <Compile Include="Internal\Kernel32.cs" />
     <Compile Include="Internal\Scheduler.cs" />
     <Compile Include="Internal\ThreadData.cs" />
+    <Compile Include="Metadata\SysColumn.cs" />
     <Compile Include="Metadata\SysIndex.cs" />
     <Compile Include="Metadata\SysTable.cs" />
     <Compile Include="Mock\Db.cs" />
@@ -404,6 +390,10 @@
     <ProjectReference Include="..\Starcounter.Logging\Starcounter.Logging.csproj">
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
+      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
+      <Name>Starcounter.Rest</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

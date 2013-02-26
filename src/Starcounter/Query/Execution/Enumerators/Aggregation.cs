@@ -36,7 +36,8 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         List<ISetFunction> setFuncList,
         ILogicalExpression condition,
         VariableArray varArr,
-        String query)
+        String query,
+        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
         : base(rowTypeBind, varArr)
     {
         if (rowTypeBind == null)
@@ -82,11 +83,19 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
         }
 
-        enumerator = null;
+        if (this.comparer.ComparerCount == 0) {
+            this.enumerator = this.subEnumerator;
+        } else {
+            this.enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, null, null, null);
+        }
         cursorObject = null;
         currentObject = null;
         contextObject = null;
         firstCallOfMoveNext = true;
+
+        this.fetchNumberExpr = fetchNumExpr;
+        this.fetchOffsetExpr = fetchOffsetExpr;
+        this.fetchOffsetKeyExpr = fetchOffsetKeyExpr;
 
         this.query = query;
     }
@@ -206,19 +215,8 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    private void CreateEnumerator()
-    {
-        if (enumerator != null)
-            enumerator.Reset();
-
-        if (comparer.ComparerCount == 0)
-        {
-            enumerator = subEnumerator;
-        }
-        else
-        {
-            enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, fetchNumberExpr, fetchOffsetKeyExpr);
-        }
+    private void CreateEnumerator() {
+        enumerator.Reset();
     }
 
     /// <summary>
@@ -227,18 +225,18 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// <param name="obj">Context object from another enumerator.</param>
     public override void Reset(Row obj)
     {
-        if (enumerator != null)
-        {
-            enumerator.Reset();
-            enumerator = null;
-        }
+        //if (enumerator != null)
+        //{
+        //    enumerator.Reset();
+        //    enumerator = null;
+        //}
 
         currentObject = null;
         cursorObject = null;
         counter = 0;
 
         contextObject = obj;
-        subEnumerator.Reset(contextObject);
+        enumerator.Reset(contextObject);
         firstCallOfMoveNext = true;
     }
 
@@ -248,13 +246,10 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         // for example "SELECT COUNT(*) FROM PERSON" should give one result even when there are no objects of type PERSON.
         Boolean produceOneResult = firstCallOfMoveNext && comparer.ComparerCount == 0;
 
-        if (enumerator == null)
-        {
-            CreateEnumerator();
-        }
         // If first call to MoveNext then initiate cursorObj to the first element in enumerator.
         if (currentObject == null)
         {
+            enumerator.Reset();
             if (enumerator.MoveNext())
             {
                 cursorObject = enumerator.CurrentRow;
@@ -271,49 +266,39 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
             currentObject = null;
             return false;
         }
-        // Create new object.
-        TemporaryObject tempObject = new TemporaryObject(tempTypeBinding);
-        Row compObject = new Row(rowTypeBinding);
-        compObject.AttachObject(extentNumber, tempObject);
-        Boolean conditionValue = false;
-        //while (cursorObject != null && !conditionValue)
-        while ((cursorObject != null || produceOneResult) && !conditionValue)
-            {
-            // Set comparer values to new object.
-            for (Int32 i = 0; i < comparer.ComparerCount; i++)
-            {
-                tempObject.SetValue(i, comparer.GetValue(cursorObject, i));
-            }
-            // Reset results of set-functions.
-            for (Int32 i = 0; i < setFunctionList.Count; i++)
-            {
-                setFunctionList[i].ResetResult();
-            }
-            // Loop cursorObj until it refers the first element in the next group,
-            // or if no such element exists then set cursorObj to null.
-            while (cursorObject != null && comparer.Compare(tempObject, cursorObject) == 0)
-            {
-                for (Int32 i = 0; i < setFunctionList.Count; i++)
-                {
-                    setFunctionList[i].UpdateResult(cursorObject);
-                }
-                if (enumerator.MoveNext())
-                {
-                    cursorObject = enumerator.CurrentRow;
-                }
-                else
-                {
-                    cursorObject = null;
-                }
-            }
-            // Set set-function result values to new object.
-            for (Int32 i = 0; i < setFunctionList.Count; i++)
-            {
-                tempObject.SetValue(comparer.ComparerCount + i, setFunctionList[i].GetResult());
-            }
-            conditionValue = condition.Instantiate(contextObject).Filtrate(compObject);
+
+        if (currentObject == null && fetchNumberExpr != null) {
+            if (fetchNumberExpr.EvaluateToInteger(null) != null)
+                fetchNumber = fetchNumberExpr.EvaluateToInteger(null).Value;
+            else
+                fetchNumber = 0;
         }
-        if (conditionValue)
+        // Create new object
+        Row compObject = new Row(rowTypeBinding);
+        // Do Offset
+        if (currentObject == null && fetchOffsetExpr != null)
+            if (fetchOffsetExpr.EvaluateToInteger(null) != null) {
+                for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
+                    if (!CreateNewObject(compObject, produceOneResult)) {
+                        currentObject = null;
+                        firstCallOfMoveNext = false;
+                        return false;
+                    } else {
+                        //currentObject = compObject;
+                        //counter++;
+                        firstCallOfMoveNext = false;
+                        produceOneResult = firstCallOfMoveNext && comparer.ComparerCount == 0;
+                        compObject = new Row(rowTypeBinding);
+                    }
+                counter = 0;
+            }
+        // Check fetch
+        if (counter >= fetchNumber) {
+            currentObject = null;
+            firstCallOfMoveNext = false;
+            return false;
+        }
+        if (CreateNewObject(compObject, produceOneResult))
         {
             currentObject = compObject;
             counter++;
@@ -326,6 +311,41 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
             firstCallOfMoveNext = false;
             return false;
         }
+    }
+
+    internal Boolean CreateNewObject(Row compObject, Boolean produceOneResult) {
+        TemporaryObject tempObject = new TemporaryObject(tempTypeBinding);
+        compObject.AttachObject(extentNumber, tempObject);
+        Boolean conditionValue = false;
+        //while (cursorObject != null && !conditionValue)
+        while ((cursorObject != null || produceOneResult) && !conditionValue) {
+            // Set comparer values to new object.
+            for (Int32 i = 0; i < comparer.ComparerCount; i++) {
+                tempObject.SetValue(i, comparer.GetValue(cursorObject, i));
+            }
+            // Reset results of set-functions.
+            for (Int32 i = 0; i < setFunctionList.Count; i++) {
+                setFunctionList[i].ResetResult();
+            }
+            // Loop cursorObj until it refers the first element in the next group,
+            // or if no such element exists then set cursorObj to null.
+            while (cursorObject != null && comparer.Compare(tempObject, cursorObject) == 0) {
+                for (Int32 i = 0; i < setFunctionList.Count; i++) {
+                    setFunctionList[i].UpdateResult(cursorObject);
+                }
+                if (enumerator.MoveNext()) {
+                    cursorObject = enumerator.CurrentRow;
+                } else {
+                    cursorObject = null;
+                }
+            }
+            // Set set-function result values to new object.
+            for (Int32 i = 0; i < setFunctionList.Count; i++) {
+                tempObject.SetValue(comparer.ComparerCount + i, setFunctionList[i].GetResult());
+            }
+            conditionValue = condition.Instantiate(contextObject).Filtrate(compObject);
+        }
+        return conditionValue;
     }
 
     public Boolean MoveNextSpecial(Boolean force)
@@ -355,7 +375,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// </summary>
     public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
     {
-        return subEnumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
+        return enumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
     }
 
     /// <summary>
@@ -363,31 +383,46 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// </summary>
     public unsafe override void PopulateQueryFlags(UInt32* flags)
     {
-        subEnumerator.PopulateQueryFlags(flags);
+        enumerator.PopulateQueryFlags(flags);
     }
 
     /// <summary>
     /// Creating the clone of enumerator.
     /// </summary>
     /// <returns>Returns clone of the enumerator.</returns>
-    public override IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArray)
+    public override IExecutionEnumerator Clone(RowTypeBinding rowTypeBindClone, VariableArray varArrClone)
     {
         List<ISetFunction> setFuncListClone = new List<ISetFunction>();
         for (Int32 i = 0; i < setFunctionList.Count; i++)
         {
-            setFuncListClone.Add(setFunctionList[i].Clone(varArray));
+            setFuncListClone.Add(setFunctionList[i].Clone(varArrClone));
         }
+
+        // Clone fetch data and update varArrClone
+        INumericalExpression fetchNumberExprClone = null;
+        if (fetchNumberExpr != null)
+            fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
+
+        IBinaryExpression fetchOffsetKeyExprClone = null;
+        if (fetchOffsetKeyExpr != null)
+            fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
+
+        INumericalExpression fetchOffsetExprClone = null;
+        if (fetchOffsetExpr != null)
+            fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
+        
         return new Aggregation(rowTypeBindClone, extentNumber,
-                               subEnumerator.Clone(rowTypeBindClone, varArray),
-                               comparer.Clone(varArray), setFuncListClone,
-                               condition.Clone(varArray), varArray, query);
+                               subEnumerator.Clone(rowTypeBindClone, varArrClone),
+                               comparer.Clone(varArrClone), setFuncListClone,
+                               condition.Clone(varArrClone), varArrClone, query,
+                               fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
     {
         stringBuilder.AppendLine(tabs, "Aggregation(");
         stringBuilder.AppendLine(tabs + 1, extentNumber.ToString());
-        subEnumerator.BuildString(stringBuilder, tabs + 1);
+        enumerator.BuildString(stringBuilder, tabs + 1);
         comparer.BuildString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs + 1, "SetFunctions(");
         for (Int32 i = 0; i < setFunctionList.Count; i++)
@@ -396,6 +431,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         }
         stringBuilder.AppendLine(tabs + 1, ")");
         condition.BuildString(stringBuilder, tabs + 1);
+        base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 

@@ -14,6 +14,15 @@ namespace Starcounter.Internal.Application.CodeGeneration
     /// </summary>
     public class NPrimitiveType : NValueClass
     {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NPrimitiveType(DomGenerator gen)
+            : base(gen) {
+        }
+
         /// <summary>
         /// Gets the inherits.
         /// </summary>
@@ -32,7 +41,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         {
             get
             {
-                if (NTemplateClass.Template is ActionProperty)
+                if (NTemplateClass.Template is TTrigger)
                     return "Action";
 
                 var type = NTemplateClass.Template.InstanceType;

@@ -7,61 +7,83 @@ using Sc.Tools.Logging;
 using Starcounter;
 
 namespace StarcounterApps3 {
-//    [Json.LogEntries]
-    partial class LogApp : App {
+    partial class LogApp : Puppet {
 
+        static string directoryPath;
 
-        //private bool Show_Debug;
-        //private bool Show_SuccessAudit;
-        //private bool Show_FailureAudit;
-        //private bool Show_Notice;
-        //private bool Show_Warning;
-        //private bool Show_Error;
-        //private bool Show_Critical;
+        static public void Setup(string directory) {
+            directoryPath = directory;
+        }
 
         void Handle(Input.RefreshList action) {
-            // TODO: Select from database
-
-            this.UpdateResult();
+            this.RefreshLogEntriesList();
         }
 
-        void Handle(Input.ClearList action) {
-
-            Db.Transaction(() => {
-                Db.SlowSQL("DELETE from LogItem");
-            });
-
-            this.UpdateResult();
+        void Handle(Input.FilterNotice action) {
+            this.RefreshLogEntriesList();
         }
 
-        private string GetFilter() {
-            return string.Format("WHERE Type is {0}");
+        void Handle(Input.FilterWarning action) {
+            this.RefreshLogEntriesList();
         }
 
-        public void UpdateResult() {
-            int count = 100;
-            // TODO: ORDER BY doesn't work
-            //logApp.LogEntries = Db.SQL("SELECT o FROM LogItem o ORDER BY o.SeqNumber FETCH ?", count);
+        void Handle(Input.FilterError action) {
+            this.RefreshLogEntriesList();
+        }
 
-            try {
-                this.LogEntries = Db.SQL("SELECT o FROM LogItem o ORDER BY o.SeqNumber DESC FETCH ?", count);
-            } catch (Exception e) {
-                Console.WriteLine(e.ToString());
+        void Handle(Input.FilterDebug action) {
+            this.RefreshLogEntriesList();
+        }
+
+        public void RefreshLogEntriesList() {
+            
+            
+            //this.LogEntries.Clear(); // Clearlist
+
+            // The .Clear() method dosent work
+            while (this.LogEntries.Count > 0) {
+                this.LogEntries.RemoveAt(0);
             }
 
 
-            // Trying to use indexes
-            // Db.SQL("select e from employee e OPTION INDEX (e companyIndx)"))
+            int limit = 30;   // Limith the result
 
+            var lr = new LogReader();
+            var i = 0;
+            lr.Open(directoryPath, ReadDirection.Reverse, (64 * 1024));
+            for (; ; ) {
+                var le = lr.Next();
+                if (le == null) break;
+
+                if (this.FilterDebug == false && le.Severity == Severity.Debug) {
+                    continue;
+                }
+
+                if (this.FilterWarning == false && le.Severity == Severity.Warning) {
+                    continue;
+                }
+
+                if (this.FilterNotice == false && (le.Severity == Severity.Notice || le.Severity == Severity.SuccessAudit)) {
+                    continue;
+                }
+
+                if (this.FilterError == false && (le.Severity == Severity.Error || le.Severity == Severity.FailureAudit || le.Severity == Severity.Critical)) {
+                    continue;
+                }
+
+                if (++i > limit) break;
+
+                LogEntries.Add(
+                    new LogEntryApp() {
+                        DateTimeStr = le.DateTime.ToString(),
+                        TypeStr = le.Severity.ToString(),
+                        HostName = le.HostName,
+                        Source = le.Source,
+                        Message = le.Message
+                    }
+                    );
+            }
+            lr.Close();
         }
-
-
-        [Json.LogEntries]
-        partial class LogEntryApp : App<LogItem> { }
-
     }
-
-
-
-
 }

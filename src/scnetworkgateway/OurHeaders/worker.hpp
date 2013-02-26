@@ -241,6 +241,9 @@ public:
         return worker_dbs_[dbSlotIndex];
     }
 
+    // Gets a new chunk for new database and copies the old one into it.
+    uint32_t CloneChunkForNewDatabase(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** out_sd);
+
     // Deleting inactive database.
     void DeleteInactiveDatabase(int32_t dbSlotIndex);
 
@@ -379,14 +382,14 @@ public:
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
         // Checking if handler id is not determined yet.
-        BMX_HANDLER_TYPE fixed_handler_id = sd->get_fixed_handler_id();
-        if (bmx::INVALID_HANDLER_ID == fixed_handler_id)
+        BMX_HANDLER_TYPE fixed_handler_info = sd->get_fixed_handler_id();
+        if (bmx::BMX_INVALID_HANDLER_INFO == fixed_handler_info)
         {
             return g_gateway.get_server_port(sd->get_port_index())->get_port_handlers()->RunHandlers(gw, sd, is_handled);
         }
         else // We have a determined handler id.
         {
-            return g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers()->get_handler_list(fixed_handler_id)->RunHandlers(gw, sd, is_handled);
+            return g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers()->get_handler_list(fixed_handler_info)->RunHandlers(gw, sd, is_handled);
         }
     }
 

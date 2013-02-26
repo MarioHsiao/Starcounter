@@ -58,6 +58,10 @@ namespace Starcounter.Query.Execution {
             }
         }
 
+        internal ITypeBinding GetTypeBinding() {
+            return typeBinding == null ? typeExpr.EvaluateToType(null) : typeBinding;
+        }
+
         public Boolean InvolvesCodeExecution() {
             return objExpr.InvolvesCodeExecution();
         }
@@ -111,6 +115,32 @@ namespace Starcounter.Query.Execution {
         }
 
         /// <summary>
+        /// Compares object expression and type expression if possible.
+        /// It tries to evaluate object expression, if not it uses typebinding from the object expression.
+        /// If type binding of object is used, then the result might be not valid at running time.
+        /// This method can be called only during optimization time, before constructing enumerator.
+        /// </summary>
+        /// <returns>Result of comparison</returns>
+        public IsTypeCompare EvaluateAtCompile() {
+            // Object is null or result is unknown
+            ITypeBinding objType = objExpr.TypeBinding; // Object type cannot be null
+            ITypeBinding typeType = typeBinding == null ? typeExpr.EvaluateToType(null) : typeBinding;
+            if (objType is TypeBinding && typeType is TypeBinding)
+                if (objType == typeType)
+                    return IsTypeCompare.EQUAL;
+                else if (((TypeBinding)objType).SubTypeOf((TypeBinding)typeType))
+                    return IsTypeCompare.SUBTYPE;
+                else if (((TypeBinding)typeType).SubTypeOf((TypeBinding)objType))
+                    return IsTypeCompare.SUPERTYPE;
+                else return IsTypeCompare.FALSE;
+            if (objType is TypeBinding)
+                return IsTypeCompare.UNKNOWNTYPE;
+            if (typeType is TypeBinding)
+                return IsTypeCompare.UNKNOWNOBJECT;
+            return IsTypeCompare.UNKNOWN;
+        }
+
+        /// <summary>
         /// Creates an more instantiated copy of this expression by evaluating it on a Row.
         /// Properties, with extent numbers for which there exist objects attached to the Row,
         /// are evaluated and instantiated to literals, other properties are not changed.
@@ -139,13 +169,27 @@ namespace Starcounter.Query.Execution {
             return null;
         }
 
+        internal IsTypeCompare CompareTypeTo(IsTypePredicate otherPredicate) {
+            TypeBinding thisType = this.typeExpr.EvaluateToType(null) as TypeBinding;
+            TypeBinding otherType = otherPredicate.GetTypeBinding() as TypeBinding;
+            if (thisType == null || otherType == null)
+                return IsTypeCompare.FALSE;
+            if (thisType.LowerName == otherType.LowerName)
+                return IsTypeCompare.EQUAL;
+            if (thisType.SubTypeOf(otherType))
+                return IsTypeCompare.SUBTYPE;
+            else if (otherType.SubTypeOf(thisType))
+                return IsTypeCompare.SUPERTYPE;
+            else return IsTypeCompare.FALSE;
+        }
+
         public RangePoint CreateRangePoint(Int32 extentNumber, String strPath) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+            return null;
         }
         
         public ILogicalExpression Clone(VariableArray varArray) {
             if (typeExpr != null)
-                return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeExpr);
+                return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeExpr.CloneToType(varArray));
             // else
             return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeBinding);
         }

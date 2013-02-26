@@ -31,6 +31,8 @@ try {
 	boost::scoped_ptr<starcounter::interprocess_communication::test> app
 	(new starcounter::interprocess_communication::test(argc, argv));
 	
+	std::cout << "workers: " << starcounter::interprocess_communication::test::workers << std::endl;
+
 	app->run(200 /* interval time milliseconds */,
 	6000000 /* duration time milliseconds */);
 	

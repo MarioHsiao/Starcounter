@@ -34,6 +34,8 @@
 #include "../Chunks/bmx/bmx.hpp"
 #include "../Chunks/bmx/chunk_helper.h"
 
+#include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
+
 // Internal includes.
 #include "utilities.hpp"
 #include "profiler.hpp"
@@ -49,6 +51,7 @@ typedef uint32_t session_index_type;
 typedef uint64_t session_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t log_handle_type;
+typedef uint64_t handler_info_type;
 
 // Statistics macros.
 #define GW_GLOBAL_STATISTICS
@@ -86,6 +89,7 @@ typedef uint64_t log_handle_type;
 //#define GW_LOOPED_TEST_MODE
 //#define GW_PROFILER_ON
 //#define GW_LIMITED_ECHO_TEST
+//#define GW_URI_MATCHING_CODEGEN
 
 // Checking that macro definitions are correct.
 #ifdef GW_LOOPED_TEST_MODE
@@ -213,20 +217,20 @@ const int32_t INVALID_WORKER_INDEX = -1;
 // Bad port index.
 const int32_t INVALID_PORT_INDEX = -1;
 
+// Bad index.
+const int32_t INVALID_INDEX = -1;
+
 // Bad port number.
 const int32_t INVALID_PORT_NUMBER = 0;
 
 // Bad URI index.
 const int32_t INVALID_URI_INDEX = -1;
 
-// Bad handler index.
-const int32_t INVALID_HANDLER_INDEX = -1;
-
 // Bad log handler.
 const log_handle_type INVALID_LOG_HANDLE = 0;
 
 // Bad chunk index.
-const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::LINK_TERMINATOR;
+const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::link_terminator;
 
 // Bad linear session index.
 const session_index_type INVALID_SESSION_INDEX = ~0;
@@ -362,6 +366,7 @@ const int32_t WS_BLOB_USER_DATA_OFFSET = 16;
 
 // Gateway program name.
 const wchar_t* const GW_PROGRAM_NAME = L"scnetworkgateway";
+const char* const GW_PROCESS_NAME = "networkgateway";
 
 // Port types.
 enum PortType
@@ -397,7 +402,7 @@ class GatewayWorker;
 typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #ifdef GW_LOOPED_TEST_MODE
@@ -417,13 +422,13 @@ extern uint32_t DefaultRawEchoResponseProcessor(char* buf, uint32_t buf_len, ech
 uint32_t OuterPortProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsPortProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #ifdef GW_TESTING_MODE
@@ -431,7 +436,7 @@ uint32_t AppsPortProcessData(
 uint32_t GatewayPortProcessEcho(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #endif
@@ -439,13 +444,13 @@ uint32_t GatewayPortProcessEcho(
 uint32_t OuterSubportProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsSubportProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #ifdef GW_TESTING_MODE
@@ -453,7 +458,7 @@ uint32_t AppsSubportProcessData(
 uint32_t GatewaySubportProcessEcho(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #endif
@@ -461,13 +466,13 @@ uint32_t GatewaySubportProcessEcho(
 uint32_t OuterUriProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 uint32_t AppsUriProcessData(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #ifdef GW_TESTING_MODE
@@ -475,7 +480,7 @@ uint32_t AppsUriProcessData(
 uint32_t GatewayUriProcessEcho(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #endif
@@ -486,7 +491,7 @@ uint32_t GatewayUriProcessEcho(
 uint32_t GatewayStatisticsInfo(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 #endif
@@ -494,7 +499,7 @@ uint32_t GatewayStatisticsInfo(
 uint32_t GatewayUriProcessProxy(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
+    BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
 extern std::string GetOperTypeString(SocketOperType typeOfOper);
@@ -1298,6 +1303,8 @@ public:
 #endif
 };
 
+class CodegenUriMatcher;
+struct RegisteredUriManaged;
 class GatewayWorker;
 class Gateway
 {
@@ -1312,8 +1319,10 @@ class Gateway
     std::string setting_sc_server_type_;
 
     // Gateway log file name.
-    std::wstring setting_output_dir_;
+    std::wstring setting_server_output_dir_;
+    std::wstring setting_gateway_output_dir_;
     std::wstring setting_log_file_path_;
+    std::wstring setting_sc_bin_dir_;
 
     // Gateway config file name.
     std::wstring setting_config_file_path_;
@@ -1531,7 +1540,19 @@ class Gateway
     // Critical section for statistics.
     CRITICAL_SECTION cs_statistics_;
 
+    // Codegen URI matcher.
+    CodegenUriMatcher* codegen_uri_matcher_;
+
 public:
+
+    // Generate the code using managed generator.
+    uint32_t GenerateUriMatcher(uint16_t port);
+
+    // Codegen URI matcher.
+    CodegenUriMatcher* get_codegen_uri_matcher()
+    {
+        return codegen_uri_matcher_;
+    }
 
 #ifdef GW_SOCKET_ID_CHECK
     // Checking if unique socket number is correct.
@@ -1668,6 +1689,8 @@ public:
         const char* uri,
         uint32_t uri_len_chars,
         bmx::HTTP_METHODS http_method,
+        uint8_t* param_types,
+        int32_t num_params,
         BMX_HANDLER_TYPE user_handler_id,
         int32_t db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
@@ -1677,7 +1700,7 @@ public:
         GatewayWorker *gw,
         HandlersTable* handlers_table,
         uint16_t port,
-        BMX_HANDLER_TYPE handler_id,
+        BMX_HANDLER_TYPE handler_info,
         int32_t db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
 
@@ -1687,7 +1710,7 @@ public:
         HandlersTable* handlers_table,
         uint16_t port,
         bmx::BMX_SUBPORT_TYPE subport,
-        BMX_HANDLER_TYPE handler_id,
+        BMX_HANDLER_TYPE handler_info,
         int32_t db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
 
@@ -1897,9 +1920,21 @@ public:
     }
 
     // Getting settings log file directory.
-    std::wstring& get_setting_output_dir()
+    std::wstring& get_setting_server_output_dir()
     {
-        return setting_output_dir_;
+        return setting_server_output_dir_;
+    }
+
+    // Getting gateway output directory.
+    std::wstring& get_setting_gateway_output_dir()
+    {
+        return setting_gateway_output_dir_;
+    }
+
+    // Getting Starcounter bin directory.
+    std::wstring& get_setting_sc_bin_dir()
+    {
+        return setting_sc_bin_dir_;
     }
 
     // Getting maximum number of connections.
@@ -2168,6 +2203,9 @@ public:
 
     // Write critical into log.
     void LogWriteCritical(const wchar_t* msg);
+
+    // Write error into log.
+    void LogWriteError(const wchar_t* msg);
 
     // Deletes existing session.
     uint32_t KillSession(session_index_type session_index, bool* was_killed)

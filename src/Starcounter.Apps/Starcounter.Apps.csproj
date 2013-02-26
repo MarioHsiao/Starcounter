@@ -48,8 +48,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>..\..\bin\Debug\Starcounter.Apps.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
@@ -62,6 +61,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>..\..\bin\Release\Starcounter.Apps.XML</DocumentationFile>
+    <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -74,54 +74,51 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="App.Entity.cs" />
-    <Compile Include="App.Json.cs" />
-    <Compile Include="App.QuickTuple.cs" />
-    <Compile Include="App.GetSetValue.cs" />
-    <Compile Include="ChangeLog.cs" />
+    <Compile Include="Messages\Message.cs" />
+    <Compile Include="Messages\TMessage.cs" />
+    <Compile Include="Puppets\Puppet.cs" />
+    <Compile Include="Arr.cs" />
+    <Compile Include="Puppets\ChangeLog.cs" />
+    <Compile Include="Container.cs" />
     <Compile Include="DataBinding.cs" />
-    <Compile Include="Input\Input.cs" />
+    <Compile Include="Puppets\Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
-    <Compile Include="Session.cs" />
-    <Compile Include="Temp.cs" />
+    <Compile Include="Obj.cs" />
+    <Compile Include="Obj.Dynamic.cs" />
+    <Compile Include="Obj.IBindable.cs" />
+    <Compile Include="Obj.GetSetValue.cs" />
+    <Compile Include="Obj.Json.cs" />
+    <Compile Include="Obj.QuickTuple.cs" />
+    <Compile Include="Puppets\Puppet.Input.cs" />
+    <Compile Include="Puppets\Session.cs" />
     <Compile Include="TemplateAttribute.cs" />
+    <Compile Include="Puppets\TApp.cs" />
+    <Compile Include="Templates\TArr.cs" />
+    <Compile Include="Templates\Foundation\TValue.cs" />
+    <Compile Include="Templates\TObj.cs" />
     <Compile Include="ValueMetadata\DecimalMetadata.cs" />
     <Compile Include="ValueMetadata\DoubleMetadata.cs" />
-    <Compile Include="ValueMetadata\IntMetadata.cs" />
+    <Compile Include="ValueMetadata\LongMetadata.cs" />
     <Compile Include="ValueMetadata\ObjectMetadata.cs" />
     <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
-    <Compile Include="AppParent.cs" />
-    <Compile Include="ExeModule\App.ExeModule.cs" />
-    <Compile Include="ExeModule\ExeModule.cs" />
-    <Compile Include="ExeModule\TellServerToStartMe.cs" />
-    <Compile Include="ValueMetadata\Foundation\AppMetadataBase.cs" />
-    <Compile Include="ValueMetadata\AppMetadata.cs" />
+    <Compile Include="ValueMetadata\Foundation\ObjMetadataBase.cs" />
+    <Compile Include="ValueMetadata\ObjMetadata.cs" />
     <Compile Include="ValueMetadata\BoolMetadata.cs" />
     <Compile Include="ValueMetadata\ActionMetadata.cs" />
     <Compile Include="ValueMetadata\Foundation\ValueMetadata.cs" />
     <Compile Include="ValueMetadata\StringMetadata.cs" />
-    <Compile Include="ValueMetadata\ListingMetadata.cs" />
-    <Compile Include="Templates\ActionProperty.cs" />
-    <Compile Include="App.Dynamic.cs" />
-    <Compile Include="AppList.cs" />
-    <Compile Include="AppFactory.cs" />
+    <Compile Include="ValueMetadata\ArrMetadata.cs" />
+    <Compile Include="Puppets\TTrigger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Templates\ListingProperty.cs" />
-    <Compile Include="Templates\AppTemplate.cs" />
-    <Compile Include="Templates\IntProperty.cs" />
-    <Compile Include="Templates\Foundation\ListTemplate.cs" />
-    <Compile Include="Templates\BoolProperty.cs" />
-    <Compile Include="Templates\DecimalProperty.cs" />
-    <Compile Include="Templates\DoubleProperty.cs" />
-    <Compile Include="Templates\Foundation\ParentTemplate.cs" />
-    <Compile Include="Templates\OidProperty.cs" />
+    <Compile Include="Templates\TLong.cs" />
+    <Compile Include="Templates\TBool.cs" />
+    <Compile Include="Templates\TDecimal.cs" />
+    <Compile Include="Templates\TDouble.cs" />
+    <Compile Include="Templates\Foundation\TContainer.cs" />
+    <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\Foundation\PropertyList.cs" />
-    <Compile Include="Templates\StringProperty.cs" />
+    <Compile Include="Templates\TString.cs" />
     <Compile Include="Templates\Foundation\Template.cs" />
-    <Compile Include="Templates\Foundation\ValueTemplate.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
@@ -135,6 +132,10 @@
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
+      <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
+      <Name>Starcounter.Hypermedia</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
@@ -151,10 +152,6 @@
     <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
       <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
       <Name>Newtonsoft.Json</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
-      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
-      <Name>Starcounter.Rest</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>

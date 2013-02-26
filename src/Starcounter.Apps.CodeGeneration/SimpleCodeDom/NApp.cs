@@ -17,11 +17,19 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         //        public NClass MetaDataClass;
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gen"></param>
+        public NAppClass(DomGenerator gen)
+            : base(gen) {
+        }
+
+        /// <summary>
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
-        public AppTemplate Template {
-            get { return (AppTemplate)(NTemplateClass.Template); }
+        public TPuppet Template {
+            get { return (TPuppet)(NTemplateClass.Template); }
         }
 
        // public new NAppClass Parent {
@@ -58,10 +66,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get {
                 if (Template.ClassName != null)
                     return Template.ClassName;
-                else if (!IsCustomAppTemplate) {
-                    return "App";
-                } else if (Template.Parent is ListingProperty) {
-                    var alt = (ListingProperty)Template.Parent;
+                else if (!IsCustomGeneratedClass) {
+                    return this.Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Message"
+                } else if (Template.Parent is TObjArr) {
+                    var alt = (TObjArr)Template.Parent;
                     return AppifyName(alt.PropertyName); // +"App";
                 } else
                     return AppifyName(Template.PropertyName); // +"App";
@@ -78,8 +86,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get {
                 if (Template.ClassName != null)
                     return Template.ClassName;
-                else if (Template.Parent is ListingProperty) {
-                    var alt = (ListingProperty)Template.Parent;
+                else if (Template.Parent is TObjArr) {
+                    var alt = (TObjArr)Template.Parent;
                     return alt.PropertyName;
                 } else
                     return Template.PropertyName;
@@ -100,12 +108,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
         /// <summary>
         /// Returns false if there are no children defined. This indicates that the property
-        /// that uses this node as a type should instead use the generic App class inside
+        /// that uses this node as a type should instead use the default Obj class (Message,Puppet) inside
         /// the Starcounter library. This is done by the NApp node pretending to be the App class
         /// node to make DOM generation easier (this cheating is intentional).
         /// </summary>
         /// <value><c>true</c> if this instance is custom app template; otherwise, <c>false</c>.</value>
-        public bool IsCustomAppTemplate {
+        public bool IsCustomGeneratedClass {
             get {
                 return (Template.Properties.Count > 0);
             }

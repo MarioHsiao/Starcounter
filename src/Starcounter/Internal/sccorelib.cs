@@ -531,7 +531,6 @@ namespace Starcounter.Internal
     /// </summary>
     public static class sccorelib_ext
     {
-
         /// <summary>
         /// </summary>
         public const ushort TYPE_RECYCLE_SCRAP = 0x0100;
@@ -543,5 +542,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         public const ushort TYPE_PROCESS_PACKAGE = 0x0102;
+
+        /// <summary>
+        /// </summary>
+        public const ushort SC_JOBT_EXECUTE_UJOB = 0x0200;
     }
 }

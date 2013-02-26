@@ -15,31 +15,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     public class NMetadataClass : NClass {
 
         /// <summary>
-        /// The classes
+        /// 
         /// </summary>
-        public static Dictionary<Template, NMetadataClass> Classes = new Dictionary<Template, NMetadataClass>();
-
-        /// <summary>
-        /// Finds the specified template.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <returns>NMetadataClass.</returns>
-        public static NMetadataClass Find( Template template ) {
-            template = NTemplateClass.GetPrototype(template);
-            return NMetadataClass.Classes[template];
-        }
-
-        /// <summary>
-        /// Initializes static members of the <see cref="NMetadataClass" /> class.
-        /// </summary>
-        static NMetadataClass() {
-            Classes[NTemplateClass.StringProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.StringProperty] };
-            Classes[NTemplateClass.IntProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.IntProperty] };
-            Classes[NTemplateClass.DecimalProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.DecimalProperty] };
-            Classes[NTemplateClass.DoubleProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.DoubleProperty] };
-            Classes[NTemplateClass.BoolProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.BoolProperty] };
-            Classes[NTemplateClass.ActionProperty] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.ActionProperty] };
-            Classes[NTemplateClass.AppTemplate] = new NMetadataClass { NTemplateClass = NTemplateClass.Classes[NTemplateClass.AppTemplate] };
+        /// <param name="gen"></param>
+        public NMetadataClass(DomGenerator gen)
+            : base(gen) {
         }
 
         /// <summary>
@@ -58,9 +38,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public override string ClassName {
             get {
                 var type = NTemplateClass.NValueClass.ClassName;
-                if (type.Equals("long"))
-                    type = "Int";
-                else
+                //if (type.Equals("long"))
+                //    type = "Int";
+                //else
                     type = UpperFirst(type);
                 return type + "Metadata";
             }

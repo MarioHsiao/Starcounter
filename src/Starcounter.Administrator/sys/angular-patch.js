@@ -4,10 +4,10 @@
  * Date: Tue Nov 27 2012 14:45:43 GMT+0100 (Central European Standard Time)
 */
 
-angular.module('StarcounterLib.config', []).value('StarcounterLib.config', {});
+angular.module('StarcounterLib.config', ['ngCookies']).value('StarcounterLib.config', {});
 
 function ngAppFactory() {
-  return ['$http', 'appContext', '$rootScope', 'StarcounterLib.config', function ($http, appContext, $rootScope, appConfig) {
+    return ['$http', 'appContext', '$rootScope', 'StarcounterLib.config', '$cookies', function ($http, appContext, $rootScope, appConfig, $cookies) {
 
     var defaultConfig = {
       getRequestUrl: function (scope) {
@@ -41,20 +41,36 @@ function ngAppFactory() {
           }
         }
 
+        //function readSpecificCookie(name) {
+        //    name += '=';
+        //    var parts = document.cookie.split(/;\s*/);
+        //    for (var i = 0; i < parts.length; i++) {
+        //        var part = parts[i];
+        //        if (part.indexOf(name) == 0)
+        //            return part.substring(name.length)
+        //    }
+        //    return null;
+        //}
+
         function parseViewModelId(scope) {
           var meta = document.getElementsByTagName('meta');
           for (var i = 0, ilen = meta.length; i < ilen; i++) {
             if (angular.element(meta[i]).attr('name') == 'View-Model') {
               scope['View-Model'] = angular.element(meta[i]).attr('content');
-              break;
+              //break;
             }
           }
+//          console.log("Cookie: "+$cookies.ScSsnId);
+//          scope['ScSsnId'] = $cookies.ScSsnId;
+
+          //scope['ScSsnId'] = readSpecificCookie('ScSsnId');
         }
 
         function getRoot(scope) {
           $http({
             method: 'GET',
-            url: config.getRequestUrl(scope)
+            url: config.getRequestUrl(scope),
+            headers: { 'ScSsnId': ' ' + $cookies.ScSsnId }
           }).success(function (data, status, headers, config) {
             overwriteRoot(data);
             rootLoaded = true;
@@ -65,6 +81,7 @@ function ngAppFactory() {
           $http({
             method: 'PATCH',
             url: config.getRequestUrl(scope),
+            headers: { 'ScSsnId': ' ' + $cookies.ScSsnId },
             data: update
           }).success(function (data, status, headers, config) {
             patchRoot(scope, data);

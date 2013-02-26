@@ -497,7 +497,6 @@ namespace Starcounter.InstallerEngine
             StarcounterConstants.ProgramNames.ScNetworkGateway,
             StarcounterConstants.ProgramNames.ScWeaver,
             StarcounterConstants.ProgramNames.ScSqlParser,
-            StarcounterConstants.ProgramNames.ScReferenceServer,
             "ServerLogTail",
             "x86_64-w64-mingw32-gcc"
         };

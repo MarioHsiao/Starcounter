@@ -219,7 +219,7 @@ namespace Starcounter.Internal.Web {
 
          len = payload.Length;
 
-         string str = "HTTP/1.1 200 OK\r\nServer:SC\nConnection:close\r\n";
+         string str = "HTTP/1.1 200 OK\r\nServer:SC\r\nConnection:close\r\n";
 
          isText = contentType.StartsWith("text/");
 
