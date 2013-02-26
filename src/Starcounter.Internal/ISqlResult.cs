@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 namespace Starcounter {
 
+    // ***********************************************************************
+    // <copyright file="SqlInterfaces.cs" company="Starcounter AB">
+    //     Copyright (c) Starcounter AB.  All rights reserved.
+    // </copyright>
+    // ***********************************************************************
+
+    
     /// <summary>
     /// 
     /// </summary>
@@ -27,12 +34,26 @@ namespace Starcounter {
             }
         }
 
-        public virtual IEnumerator GetEnumerator() {
+        IEnumerator IEnumerable.GetEnumerator() {
+            // The compiler does not allow us to declare this abstract although it is
+            return (IEnumerator)GetEnumerator();
+        }
+
+
+        public virtual IRowEnumerator GetEnumerator() {
             // The compiler does not allow us to declare this abstract although it is
             throw new NotImplementedException();
         }
     }
 
+    public interface IRowEnumerator : IEnumerator, IDisposable {
+
+        /// <summary>
+        /// Gets offset key of the SQL enumerator if it is possible.
+        /// </summary>
+        Byte[] GetOffsetKey();
+
+    }
 
     /// <summary>
     /// 

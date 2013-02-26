@@ -9,7 +9,7 @@ namespace Starcounter {
 
     /// <summary>
     /// </summary>
-    public class SqlEnumerator : IEnumerator, IDisposable {
+    public class SqlEnumerator : IRowEnumerator, IEnumerator, IDisposable {
 
         internal IExecutionEnumerator subEnumerator;
         private XNode node;
