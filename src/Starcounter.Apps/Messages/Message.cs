@@ -1,28 +1,51 @@
-﻿
+﻿// ***********************************************************************
+// <copyright file="Mesasge.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
 
 using Starcounter.Advanced;
+using System;
+
 
 namespace Starcounter {
 
     /// <summary>
-    /// A message that is automatically populated by a bound data object (typically a
+    /// A message is a data object that can contain properties. The property can be a simple
+    /// value, a nested message or an array of messages.
+    /// 
+    /// Messages are used to retrieve data from incomming communication calls or to return
+    /// content to callers.
+    /// 
+    /// The REST handling mechanism of Starcounter uses Messages to conveniently allow the
+    /// programmer to retreive parameters and data as well as returning data.
+    ///
+    /// A message can be automatically populated by a bound data object (typically a
     /// database Entity).
-    /// A message is a temporary object typically serialized to a Json text as part
+    /// </summary>
+    /// <remarks>
+    /// A message can be serialized to a Json text as part
     /// of a response to a request or deserialized from a Json text as a part of data
     /// in a request.
-    /// </summary>
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class Message<T> : Obj<T> where T : IBindable {
 
+        /// <summary>
+        /// As messages are not kept at the server, it does not make sense to interact with
+        /// them using "user input".
+        /// </summary>
+        /// <typeparam name="V">The type of the input value</typeparam>
+        /// <param name="template">The property having changed</param>
+        /// <param name="value">The new value of the property</param>
         internal override void ProcessInput<V>(TValue<V> template, V value) {
-            throw new System.NotImplementedException();
+            // TODO! SCERR????
+            throw new Exception("You should not send input to a Message object. Use Puppets instead.");
         }
     }
 
     /// <summary>
-    /// A message is a temporary object typically serialized to a Json text as part
-    /// of a response to a request or deserialized from a Json text as a part of data
-    /// in a request.
+    /// <see cref="Message<T>"/>
     /// </summary>
     public class Message : Message<NullData> {
     }
