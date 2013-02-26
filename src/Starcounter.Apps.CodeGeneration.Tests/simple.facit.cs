@@ -18,7 +18,7 @@ public partial class PlayerApp {
     public App Page { get { return GetValue<App>(Template.Page); } set { SetValue(Template.Page, value); } }
     public int PlayerId { get { return GetValue(Template.PlayerId); } set { SetValue(Template.PlayerId, value); } }
     public String FullName { get { return GetValue(Template.FullName); } set { SetValue(Template.FullName, value); } }
-    public Listing<PlayerApp.AccountsApp> Accounts { get { return GetValue<PlayerApp.AccountsApp>(Template.Accounts); } set { SetValue<PlayerApp.AccountsApp>(Template.Accounts, value); } }
+    public Arr<PlayerApp.AccountsApp> Accounts { get { return GetValue<PlayerApp.AccountsApp>(Template.Accounts); } set { SetValue<PlayerApp.AccountsApp>(Template.Accounts, value); } }
     public class KidApp : App {
         public static KidTApp DefaultTemplate = new KidTApp();
         public KidApp() { Template = DefaultTemplate; }
@@ -51,7 +51,7 @@ public partial class PlayerApp {
         public AccountsApp(AccountsTApp template) { Template = template; }
         public new AccountsTApp Template { get { return (AccountsTApp)base.Template; } set { base.Template = value; } }
         public new AccountsObjMetadata Metadata { get { return (AccountsObjMetadata)base.Metadata; } }
-        public new Listing<PlayerApp.AccountsApp> Parent { get { return (Listing<PlayerApp.AccountsApp>)base.Parent; } set { base.Parent = value; } }
+        public new Arr<PlayerApp.AccountsApp> Parent { get { return (Arr<PlayerApp.AccountsApp>)base.Parent; } set { base.Parent = value; } }
         public int AccountId { get { return GetValue(Template.AccountId); } set { SetValue(Template.AccountId, value); } }
         public int AccountType { get { return GetValue(Template.AccountType); } set { SetValue(Template.AccountType, value); } }
         public Decimal Balance { get { return GetValue(Template.Balance); } set { SetValue(Template.Balance, value); } }
@@ -64,7 +64,7 @@ public partial class PlayerApp {
                 AccountType = Register<TLong>("AccountType$", "AccountType", Editable = true);
                 Balance = Register<TDecimal>("Balance", "Balance");
             }
-            public override object CreateInstance(Container parent) { return new AccountsApp(this) { Parent = (Listing<PlayerApp.AccountsApp>)parent }; }
+            public override object CreateInstance(Container parent) { return new AccountsApp(this) { Parent = (Arr<PlayerApp.AccountsApp>)parent }; }
             public TLong AccountId;
             public TLong AccountType;
             public TDecimal Balance;

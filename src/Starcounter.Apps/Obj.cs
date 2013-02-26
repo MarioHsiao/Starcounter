@@ -98,9 +98,9 @@ namespace Starcounter {
         /// <param name="pos">The position to fill</param>
         internal override void FillIndexPath(int[] path, int pos) {
             if (Parent != null) {
-                if (Parent is Listing) {
+                if (Parent is Arr) {
                     if (_cacheIndexInArr == -1) {
-                        _cacheIndexInArr = ((Listing)Parent).IndexOf(this);
+                        _cacheIndexInArr = ((Arr)Parent).IndexOf(this);
                     }
                     path[pos] = _cacheIndexInArr;
                 }

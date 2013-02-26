@@ -33,7 +33,7 @@ namespace Starcounter.Templates {
         /// <param name="parent">The parent.</param>
         /// <returns>System.Object.</returns>
         public override object CreateInstance(Container parent) {
-            return new Listing<OT>((Obj)parent, this);
+            return new Arr<OT>((Obj)parent, this);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The type of the instance.</value>
         public override System.Type InstanceType {
-            get { return typeof(Listing<OT>); }
+            get { return typeof(Arr<OT>); }
         }
 
         internal override void ProcessInput(Obj obj, byte[] rawValue) {

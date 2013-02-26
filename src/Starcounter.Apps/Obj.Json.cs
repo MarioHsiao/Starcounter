@@ -88,7 +88,7 @@ namespace Starcounter {
                     if (prop is TObjArr) {
                         sb.Append('[');
                         int i = 0;
-                        foreach (var x in val as Listing) {
+                        foreach (var x in val as Arr) {
                             if (i++ > 0) {
                                 sb.Append(',');
                             }
