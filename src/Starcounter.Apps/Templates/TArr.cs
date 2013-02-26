@@ -8,7 +8,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Templates.DataBinding;
-using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Templates {
 

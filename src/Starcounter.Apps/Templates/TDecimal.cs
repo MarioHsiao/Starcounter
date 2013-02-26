@@ -6,7 +6,6 @@
 
 using System;
 using System.Text;
-using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Templates {
 
