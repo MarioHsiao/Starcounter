@@ -9,15 +9,6 @@ using System.Text;
 
 namespace Starcounter {
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class NullData : IBindable {
-        /// <summary>
-        /// 
-        /// </summary>
-        public UInt64 UniqueID { get { return 0; } }
-    }
 
     /// <summary>
     /// See Puppet TODO! REF 

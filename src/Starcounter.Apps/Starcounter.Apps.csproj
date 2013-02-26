@@ -74,8 +74,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Messages\Message.cs" />
-    <Compile Include="Messages\TMessage.cs" />
     <Compile Include="Puppets\Puppet.cs" />
     <Compile Include="Puppets\ChangeLog.cs" />
     <Compile Include="Puppets\Puppet.Input.cs" />
