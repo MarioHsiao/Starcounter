@@ -104,7 +104,7 @@
     <Compile Include="ValueMetadata\Foundation\ObjMetadataBase.cs" />
     <Compile Include="ValueMetadata\ObjMetadata.cs" />
     <Compile Include="ValueMetadata\BoolMetadata.cs" />
-    <Compile Include="ValueMetadata\ActionMetadata.cs" />
+    <Compile Include="Puppets\TriggerMetadata.cs" />
     <Compile Include="ValueMetadata\Foundation\ValueMetadata.cs" />
     <Compile Include="ValueMetadata\StringMetadata.cs" />
     <Compile Include="ValueMetadata\ArrMetadata.cs" />
