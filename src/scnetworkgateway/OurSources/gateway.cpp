@@ -1139,6 +1139,8 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                         test_http_echo_requests_[g_gateway.setting_mode()].uri,
                         test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
                         bmx::HTTP_METHODS::OTHER_METHOD,
+                        NULL,
+                        0,
                         bmx::BMX_INVALID_HANDLER_INFO,
                         empty_db_index,
                         GatewayUriProcessEcho);

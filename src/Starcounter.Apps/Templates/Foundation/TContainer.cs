@@ -1,26 +1,27 @@
 ﻿// ***********************************************************************
-// <copyright file="ParentTemplate.cs" company="Starcounter AB">
+// <copyright file="TContainer.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 using System;
 using System.Collections.Generic;
-using Starcounter.Templates.Interfaces;
-#if CLIENT
-namespace Starcounter.Client.Template {
-#else
-namespace Starcounter.Templates {
-#endif
 
+namespace Starcounter.Templates {
 
     /// <summary>
     /// Base class for Obj and Arr templates.
     /// </summary>
+    /// <remarks>
+    /// Both arrays and objects can have children. Arrays has elements and objects has properties.
+    /// In addition, the templates (TContainer) for this complex objects are frozen/sealed whenever there are
+    /// instance Obj or Arr objects pertaining to them. This means that new templates need to be created to
+    /// use alternate schemas.
+    /// </remarks>
     public abstract class TContainer : TValue
     {
         /// <summary>
-        /// The _ sealed
+        /// <see cref="Sealed"/>
         /// </summary>
         private bool _Sealed;
 

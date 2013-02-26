@@ -96,11 +96,11 @@ namespace Starcounter {
                         }
                         sb.Append(']');
                     }
-                    else if (prop is TPuppet) {
+                    else if (prop is TObj) {
 //                       var x = includeViewContent;
 //                       if (x == IncludeView.Default)
 //                          x = IncludeView.Always;
-                       sb.Append(((Puppet)val).ToJson());
+                       sb.Append(((Obj)val).ToJson());
                     }
                     else {
                         object papa = val;
@@ -123,9 +123,6 @@ namespace Starcounter {
 //            sb.Append(JsonConvert.SerializeObject(templ.ClassName));
 
             sb.Append('}');
-            if (this is Puppet) {
-                ((Puppet)this).IsSerialized = true; // TODO! Set when sending to client.
-            }
             return sb.ToString();
 #else
             throw new NotImplementedException();

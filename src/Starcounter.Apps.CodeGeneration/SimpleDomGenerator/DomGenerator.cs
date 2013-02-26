@@ -140,7 +140,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             else if (template is TBool) {
                 return TPBool;
             }
-            else if (template is ActionProperty) {
+            else if (template is TTrigger) {
                 return TPAction;
             }
             return template;
@@ -165,7 +165,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         internal TObj DefaultObjTemplate = null;
         internal TDouble TPDouble = new TDouble();
         internal TBool TPBool = new TBool();
-        internal ActionProperty TPAction = new ActionProperty();
+        internal TTrigger TPAction = new TTrigger();
 
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 if (property != null) {
                     if ((property.MemberName == null) 
                         || (property.MemberName[0] == '_')
-                        || (property.Template is ActionProperty)) {
+                        || (property.Template is TTrigger)) {
                         continue;
                     }
 
@@ -648,7 +648,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             // TODO: 
             // How do we set notbound on an autobound property?
             bool bound = false;
-            if (!(at is ActionProperty))
+            if (!(at is TTrigger))
             {
                 bound = (at.Bound || (appClassParent.AutoBindPropertiesToEntity));
             }

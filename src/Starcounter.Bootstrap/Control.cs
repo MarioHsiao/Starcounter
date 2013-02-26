@@ -144,7 +144,7 @@ namespace StarcounterInternal.Bootstrap
             RequestHandler.InitREST(configuration.TempDirectory);
 
             // Initilize the Db environment (database name)
-            Db.SetEnvironment(new DbEnvironment(configuration.Name));
+            Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
             // Initializing AppsBootstrapper.
             AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);

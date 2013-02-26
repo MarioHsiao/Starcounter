@@ -9,7 +9,6 @@ using NUnit.Framework;
 using Starcounter.Client;
 using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
-using Starcounter.Internal.ExeModule;
 
 namespace Starcounter.Client.Tests.Application {
 
@@ -28,7 +27,6 @@ namespace Starcounter.Client.Tests.Application {
         /// </remarks>
         [Test]
         public static void CreateTemplatesAndAppsByCode() {
-            AppExeModule.IsRunningTests = true;
             _CreateTemplatesAndAppsByCode();
         }
 

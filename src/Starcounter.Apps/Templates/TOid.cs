@@ -24,16 +24,9 @@ namespace Starcounter.Templates {
         /// <value>The default value.</value>
         public UInt64 DefaultValue { get; set; }
 
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(Puppet app, byte[] rawValue)
+        internal override void ProcessInput(Obj obj, byte[] rawValue)
         {
             throw new NotImplementedException();
-            // ProcessInput(app, value);
         }
 
         /// <summary>

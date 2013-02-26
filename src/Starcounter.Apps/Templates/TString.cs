@@ -19,14 +19,9 @@ namespace Starcounter.Templates {
     /// </summary>
     public class TString : TValue<string>
     {
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        public override void ProcessInput(Puppet app, byte[] rawValue)
+        internal override void ProcessInput(Obj obj, byte[] rawValue)
         {
-            ProcessInput(app, System.Text.Encoding.UTF8.GetString(rawValue));
+            obj.ProcessInput<string>(this, System.Text.Encoding.UTF8.GetString(rawValue));
         }
 
         /// <summary>

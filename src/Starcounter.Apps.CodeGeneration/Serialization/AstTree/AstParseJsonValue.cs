@@ -43,7 +43,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             if (template is TPuppet) {
                 appClassName = AstTreeHelper.GetAppClassName((TPuppet)template);
                 Prefix.Add("var" + valueName + " = " + appClassName + "JsonSerializer.Deserialize((IntPtr)pfrag, nextSize, out valueSize);");
-            } else if (template is ActionProperty) {
+            } else if (template is TTrigger) {
                 Prefix.Add("if (JsonHelper.IsNullValue((IntPtr)pfrag, nextSize, out valueSize)) {");
                 Suffix.Add("} else {");
                 Suffix.Add("    throw new Exception(\"Unable to deserialize App. Content not compatible.\");"); // TODO: pinpoint error in deserializer.

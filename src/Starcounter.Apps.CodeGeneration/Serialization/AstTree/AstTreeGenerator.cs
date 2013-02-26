@@ -261,7 +261,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                         Parent = nextParent
                     };
 
-                    if (!(pn.Handler.Code is ActionProperty)) {
+                    if (!(pn.Handler.Code is TTrigger)) {
                         new AstSetValue() {
                             ParseNode = pn,
                             Parent = pj
