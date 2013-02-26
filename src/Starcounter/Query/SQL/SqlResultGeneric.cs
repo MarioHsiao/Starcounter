@@ -18,10 +18,19 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class SqlResult<T> : SqlResult, IEnumerable<T> {
+    public class SqlResult<T> : Rows<T>, IEnumerable, IEnumerable<T> {
+
+        protected UInt64 transactionId; // The handle of the transaction to which this SQL result belongs.
+        protected String query; // SQL query string.
+        protected Object[] sqlParams; // SQL query parameters, all given at once.
+        protected Boolean slowSQL; // Describes if queries with slow executions are allowed or not.
+
         // Creating SQL result with query parameters all given at once.
-        internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues)
-            : base(transactionId, query, slowSQL, sqlParamsValues) {
+        internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues) {
+            this.transactionId = transactionId;
+            this.query = query;
+            this.slowSQL = slowSQL;
+            sqlParams = sqlParamsValues;
         }
 
         // We hide the base First property to return an instance of T instead
@@ -66,7 +75,7 @@ namespace Starcounter
         /// </summary>
         /// <returns>SqlEnumerator.</returns>
         /// <exception cref="Starcounter.SqlException">Literal in query is not supported. Use variable and parameter instead.</exception>
-        new public SqlEnumerator<T> GetEnumerator() {
+        public SqlEnumerator<T> GetEnumerator() {
             // Note that error handling here prevents this method from being
             // inline by caller.
 
@@ -86,6 +95,48 @@ namespace Starcounter
         /// <returns></returns>
         IEnumerator<T> IEnumerable<T>.GetEnumerator() {
             return GetEnumerator();
+        }
+
+
+        internal IExecutionEnumerator GetExecutionEnumerator() {
+            IExecutionEnumerator execEnum = null;
+#if true // TODO: Lucent objects.
+#else
+            // Obtaining enumerator from query cache or creating it from scratch.
+            Boolean isRunningOnClient = ApplicationBackend.Current.BackendKind != ApplicationBackend.Kind.Database;
+
+            // Obtaining either server side or client side enumerator.
+            if (isRunningOnClient)
+                execEnum = LucentObjectsRuntime.ClientQueryCache.GetCachedEnumerator(query);
+            else
+                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query);
+                //execEnum = Scheduler.GetInstance().ClientExecEnumCache.GetCachedEnumerator(query);
+#endif
+            try {
+                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query);
+
+                // Check if the query includes anything non-supported.
+                if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {
+                    if ((execEnum.QueryFlags & QueryFlags.IncludesAggregation) != QueryFlags.None)
+                        throw new SqlException("Aggregation in query is not supported.");
+
+                    if ((execEnum.QueryFlags & QueryFlags.IncludesLiteral) != QueryFlags.None)
+                        throw new SqlException("Literal in query is not supported. Use variable and parameter instead.");
+                }
+
+                // Setting SQL parameters if any are given.
+                if (sqlParams != null)
+                    execEnum.SetVariables(sqlParams);
+
+                // Prolonging transaction handle.
+                execEnum.TransactionId = transactionId;
+
+                return execEnum;
+            }
+            catch {
+                if (execEnum != null) execEnum.Dispose();
+                throw;
+            }
         }
     }
 }
