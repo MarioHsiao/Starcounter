@@ -79,7 +79,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="condition">The condition to check</param>
         /// <param name="message">Adds message to Debug.Assert</param>
         internal void SQLParserAssert(bool condition, string message) {
-            Debug.Assert(condition, message);
+            //Debug.Assert(condition, message);
             if (!condition)
                 throw new SQLParserAssertException();
         }
