@@ -212,15 +212,16 @@ namespace Starcounter {
         /// <param name="item"></param>
         public void Insert(int index, Obj item) {
             Obj otherItem;
-            TObjArr template;
+//            TObjArr template;
 
 #if QUICKTUPLE
             QuickAndDirtyArray.Insert(index, item);
 #else
          throw new JockeNotImplementedException();
 #endif
-            template = (TObjArr)this.Template;
-            ChangeLog.AddItemInList((Puppet)this.Parent, template, index);
+//            template = (TObjArr)this.Template;
+//            ChangeLog.AddItemInList((Puppet)this.Parent, template, index);
+            Parent.HasAddedElement((TObjArr)this.Template, index);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
@@ -235,13 +236,14 @@ namespace Starcounter {
         /// <param name="index"></param>
         public void RemoveAt(int index) {
             Obj otherItem;
-            TObjArr template;
+//            TObjArr template;
 
 #if QUICKTUPLE
 
-            template = (TObjArr)this.Template;
+//            template = (TObjArr)this.Template;
             QuickAndDirtyArray.RemoveAt(index);
-            ChangeLog.RemoveItemInList((Puppet)this.Parent, template, index);
+//            ChangeLog.RemoveItemInList((Puppet)this.Parent, template, index);
+            this.HasRemovedElement((TObjArr)this.Template, index);
 
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
