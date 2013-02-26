@@ -158,6 +158,10 @@
       <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
       <Name>Starcounter.Apps.JsTemplateParser</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
+      <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
+      <Name>Starcounter.XSON</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>

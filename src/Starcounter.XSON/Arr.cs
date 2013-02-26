@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using Starcounter;
 
 using Starcounter.Templates;
-using Starcounter.Apps;
 using Starcounter.Advanced;
 
 namespace Starcounter {

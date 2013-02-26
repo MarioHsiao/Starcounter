@@ -17,7 +17,7 @@ namespace Starcounter.Templates {
         /// </summary>
         decimal _DefaultValue = 0;
 
-        internal override void ProcessInput(Obj obj, byte[] rawValue)
+        public override void ProcessInput(Obj obj, byte[] rawValue)
         {
             // TODO:
             // Superslow way of parsing the decimal value. Needs to be rewritten.

@@ -38,7 +38,7 @@ namespace Starcounter {
         /// <typeparam name="V">The type of the input value</typeparam>
         /// <param name="template">The property having changed</param>
         /// <param name="value">The new value of the property</param>
-        internal override void ProcessInput<V>(TValue<V> template, V value) {
+        public override void ProcessInput<V>(TValue<V> template, V value) {
             // TODO! SCERR????
             throw new Exception("You should not send input to a Message object. Use Puppets instead.");
         }

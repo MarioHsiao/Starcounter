@@ -132,7 +132,7 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        internal virtual void InternalSetData(IBindable data) {
+        protected virtual void InternalSetData(IBindable data) {
 
             _Data = data;
 
@@ -168,7 +168,7 @@ namespace Starcounter {
         /// Returns the nearest parent that is not an Arr (list).
         /// </summary>
         /// <returns>An Obj or null if this is the root Obj.</returns>
-        internal Obj GetNearestObjParent() {
+        public Obj GetNearestObjParent() {
             Container parent = Parent;
             while ((parent != null) && (!(parent is Obj))) {
                 parent = parent.Parent;
@@ -240,7 +240,7 @@ namespace Starcounter {
             }
         }
 
-        internal abstract void ProcessInput<V>(TValue<V> template, V value);
+        public abstract void ProcessInput<V>(TValue<V> template, V value);
 
 
     }

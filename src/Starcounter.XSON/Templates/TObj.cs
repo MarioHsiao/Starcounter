@@ -101,7 +101,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// 
         /// </summary>
-        internal Type _AppType;
+        protected Type _AppType;
 
         /// <summary>
         /// The .NET type of the instance represented by this template.
@@ -166,7 +166,7 @@ namespace Starcounter.Templates {
         /// <param name="obj">The parent obj.</param>
         /// <param name="value">The input value.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        internal override void ProcessInput(Obj obj, byte[] value) {
+        public override void ProcessInput(Obj obj, byte[] value) {
             throw new NotImplementedException();
         }
 

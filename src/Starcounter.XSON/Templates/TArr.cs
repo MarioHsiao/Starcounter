@@ -37,7 +37,7 @@ namespace Starcounter.Templates {
             get { return typeof(Arr<OT>); }
         }
 
-        internal override void ProcessInput(Obj obj, byte[] rawValue) {
+        public override void ProcessInput(Obj obj, byte[] rawValue) {
             throw new System.NotImplementedException();
         }
 

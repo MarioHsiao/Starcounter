@@ -121,7 +121,7 @@ namespace Starcounter {
         /// <param name="sb"></param>
         /// <param name="addComma"></param>
         /// <returns></returns>
-        internal override int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
+        protected override int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
 
             int t = 0;
 
@@ -195,11 +195,16 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The array property of this Puppet</param>
         /// <param name="elementIndex">The added element index</param>
-        internal override void HasAddedElement(TObjArr property, int elementIndex) {
+        public override void HasAddedElement(TObjArr property, int elementIndex) {
             ChangeLog.AddItemInList(this, (TObjArr)property, elementIndex);
         }
 
-        internal override void HasRemovedElement(TObjArr property, int elementIndex) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="elementIndex"></param>
+        public override void HasRemovedElement(TObjArr property, int elementIndex) {
             ChangeLog.RemoveItemInList(this, property, elementIndex );
         }
 
@@ -233,7 +238,11 @@ namespace Starcounter {
         /// </summary>
         private Transaction _transaction;
 
-        internal override void InternalSetData(IBindable data) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        protected override void InternalSetData(IBindable data) {
             if (Transaction == null) {
                 Transaction = Transaction._current;
             }
