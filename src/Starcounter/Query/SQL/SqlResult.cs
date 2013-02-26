@@ -17,24 +17,10 @@ namespace Starcounter
     /// 
     /// </summary>
     public class SqlResult : Rows, IEnumerable {
-        /// <summary>
-        /// 
-        /// </summary>
+
         protected UInt64 transactionId; // The handle of the transaction to which this SQL result belongs.
-        
-        /// <summary>
-        /// 
-        /// </summary>
         protected String query; // SQL query string.
-        
-        /// <summary>
-        /// 
-        /// </summary>
         protected Object[] sqlParams; // SQL query parameters, all given at once.
-        
-        /// <summary>
-        /// 
-        /// </summary>
         protected Boolean slowSQL; // Describes if queries with slow executions are allowed or not.
 
         // Creating SQL result with query parameters all given at once.
