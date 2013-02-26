@@ -5,7 +5,6 @@
 // ***********************************************************************
 
 using System;
-using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
 using System.Collections.Generic;
 using Starcounter.Templates.DataBinding;

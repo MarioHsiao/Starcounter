@@ -5,7 +5,6 @@
 // ***********************************************************************
 
 using System;
-using Starcounter.Templates.Interfaces;
 using System.Collections.Generic;
 
 namespace Starcounter.Templates {

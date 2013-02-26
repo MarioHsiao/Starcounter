@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
 using Starcounter.Apps;
 using Starcounter.Advanced;
 

@@ -5,17 +5,12 @@
 // ***********************************************************************
 
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
 using System;
 using System.ComponentModel;
 using Starcounter.Apps;
 using Starcounter.Advanced;
 
-#if CLIENT
-namespace Starcounter.Client {
-#else
 namespace Starcounter {
-#endif
 
     public partial class Obj {
         /// <summary>

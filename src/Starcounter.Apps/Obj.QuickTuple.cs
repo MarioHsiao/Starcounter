@@ -5,8 +5,8 @@
 // ***********************************************************************
 
 using System.Text;
-using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
+
 namespace Starcounter {
     /// <summary>
     /// Class App
