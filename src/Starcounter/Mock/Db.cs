@@ -76,7 +76,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static Rows SQL(String query, params Object[] values)
+        public static SqlResult SQL(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
@@ -98,7 +98,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static Rows<T> SQL<T>(String query, params Object[] values)
+        public static SqlResult<T> SQL<T>(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
@@ -120,7 +120,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static Rows SlowSQL(String query, params Object[] values)
+        public static SqlResult SlowSQL(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
@@ -189,7 +189,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static Rows<T> SlowSQL<T>(String query, params Object[] values)
+        public static SqlResult<T> SlowSQL<T>(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
