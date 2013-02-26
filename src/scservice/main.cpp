@@ -187,6 +187,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	wchar_t *admin_working_dir;
 	wchar_t *database_cfg_path;
 	wchar_t *server_cfg_path;
+	wchar_t *admin_logsteps_flag = logsteps != 0 ? L"--LogSteps" : L"";
 
 	str_num_chars = wcslen(srv_name) + 1;
 	str_size_bytes = str_num_chars * sizeof(wchar_t);
@@ -435,7 +436,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		database_scheduler_count);
 
 #else
-	str_template = L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultUserHttpPort=%s --FLAG:NoDb";
+	str_template = L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultUserHttpPort=%s --FLAG:NoDb %s";
 
 	str_num_chars +=
 		wcslen(str_template) + 
@@ -449,6 +450,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		wcslen(system_http_port) +			// UserArguments
 		wcslen(admin_working_dir) +			// WorkingDir
 		wcslen(default_user_http_port) +	// DefaultUserHttpPort
+		wcslen(admin_logsteps_flag) +		// --LogSteps (or "" if not set)
 		1;
 
 	str_size_bytes = str_num_chars * sizeof(wchar_t);
@@ -468,7 +470,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		server_cfg_path,
 		system_http_port,
 		admin_working_dir,
-		default_user_http_port);
+		default_user_http_port,
+		admin_logsteps_flag);
 #endif
 
 	// Create shutdown event. Will fail if event already exists and so also

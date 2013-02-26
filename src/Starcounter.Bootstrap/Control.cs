@@ -125,6 +125,9 @@ namespace StarcounterInternal.Bootstrap
             OnKernelMemoryConfigured();
 
             ulong hlogs = ConfigureLogging(configuration, hmenv);
+            if (arguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging)) {
+                System.Diagnostics.Trace.Listeners.Add(new LogTraceListener());
+            }
             OnLoggingConfigured();
 
             // Initializing Apps internal HTTP request parser.
@@ -442,6 +445,7 @@ namespace StarcounterInternal.Bootstrap
             e = sccorelog.sccorelog_bind_logs_to_dir(hlogs, c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
+            LogManager.Setup(hlogs);
             return hlogs;
         }
 
@@ -455,8 +459,6 @@ namespace StarcounterInternal.Bootstrap
         {
             uint e = sccoreapp.sccoreapp_init((void*)hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
-
-            LogManager.Setup(hlogs);
 
             // Decide what interface to expose locally, to handle requests
             // from the server and from executables being loaded from the

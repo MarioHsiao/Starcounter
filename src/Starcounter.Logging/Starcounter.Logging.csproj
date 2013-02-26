@@ -37,6 +37,7 @@
     <Compile Include="ExceptionFormatter.cs" />
     <Compile Include="LogManager.cs" />
     <Compile Include="LogSource.cs" />
+    <Compile Include="LogTraceListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

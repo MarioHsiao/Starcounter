@@ -77,6 +77,16 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Gets or sets a value indicating if the server should apply
+        /// the "LogSteps" switch to the code host process in which the
+        /// executable represented by this command is to be hosted.
+        /// </summary>
+        public bool LogSteps {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets all arguments targeting Starcounter.
         /// </summary>
         internal string[] ArgumentsToStarcounter {
@@ -137,6 +147,10 @@ namespace Starcounter.Server.PublicModel.Commands {
 
             if (this.NoDb == false) {
                 this.NoDb = scargs.Contains<string>("NoDb", StringComparer.InvariantCultureIgnoreCase);
+            }
+
+            if (this.LogSteps == false) {
+                this.LogSteps = scargs.Contains<string>("LogSteps", StringComparer.InvariantCultureIgnoreCase);
             }
 
             base.GetReadyToEnqueue();
