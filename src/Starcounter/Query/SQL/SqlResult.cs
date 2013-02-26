@@ -16,7 +16,7 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class SqlResult : ISqlResult, IEnumerable {
+    public class SqlResult : Rows, IEnumerable {
         /// <summary>
         /// 
         /// </summary>
@@ -49,7 +49,7 @@ namespace Starcounter
         /// Obtaining only the first hit/result and disposing the enumerator.
         /// </summary>
         /// <value></value>
-        public dynamic First {
+        public override dynamic First {
             get {
                 IExecutionEnumerator execEnum = null;
                 dynamic current = null;

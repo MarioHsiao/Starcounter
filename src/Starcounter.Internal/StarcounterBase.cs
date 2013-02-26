@@ -44,7 +44,7 @@ namespace Starcounter.Advanced {
         /// <param name="query">The SQL query string excluding parameters. Parameters are supplied as ? marks.</param>
         /// <param name="args">The parameters corresponding to the ? marks in the query string.</param>
         /// <returns></returns>
-        public static ISqlResult SQL(string query, params object[] args) {
+        public static Rows SQL(string query, params object[] args) {
             return _DB.SQL(query, args);
         }
 
@@ -55,7 +55,7 @@ namespace Starcounter.Advanced {
         /// <param name="query">The SQL query string excluding parameters. Parameters are supplied as ? marks.</param>
         /// <param name="args">The parameters corresponding to the ? marks in the query string.</param>
         /// <returns></returns>
-        public static ISqlResult<T> SQL<T>(string query, params object[] args) {
+        public static Rows<T> SQL<T>(string query, params object[] args) {
             return _DB.SQL<T>(query, args);
         }
 
@@ -65,7 +65,7 @@ namespace Starcounter.Advanced {
         /// <param name="str"></param>
         /// <param name="pars"></param>
         /// <returns></returns>
-        public static ISqlResult SlowSQL(string str, params object[] pars) {
+        public static Rows SlowSQL(string str, params object[] pars) {
             return _DB.SlowSQL(str, pars);
         }
 
@@ -76,7 +76,7 @@ namespace Starcounter.Advanced {
         /// <param name="str"></param>
         /// <param name="pars"></param>
         /// <returns></returns>
-        public static ISqlResult<T> SlowSQL<T>(string str, params object[] pars) {
+        public static Rows<T> SlowSQL<T>(string str, params object[] pars) {
             return _DB.SlowSQL<T>(str, pars);
         }
 

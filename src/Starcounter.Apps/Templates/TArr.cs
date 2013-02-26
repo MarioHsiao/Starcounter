@@ -86,14 +86,14 @@ namespace Starcounter.Templates {
 #endif
     {
 
-        private DataBinding<SqlResult> dataBinding;
+        private DataBinding<Rows> dataBinding;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<Obj, SqlResult> dataGetter) {
-            dataBinding = new DataBinding<SqlResult>(dataGetter);
+        public void AddDataBinding(Func<Obj, Rows> dataGetter) {
+            dataBinding = new DataBinding<Rows>(dataGetter);
             Bound = true;
         }
 
@@ -102,7 +102,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
-        public SqlResult GetBoundValue(Obj app) {
+        public Rows GetBoundValue(Obj app) {
             return dataBinding.GetValue(app);
         }
         

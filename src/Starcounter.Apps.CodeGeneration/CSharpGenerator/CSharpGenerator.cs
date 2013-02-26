@@ -283,9 +283,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
             dataType = null;
             if (m.Template is TObjArr) {
-                dataType = "SqlResult";
+                dataType = "Rows";
             } else if (m.Template is TPuppet) {
-                dataType = "Entity";
+                dataType = "IBinding";
                 castTo = ((NAppClass)m.Type).GenericTypeArgument;
             } 
 
@@ -419,9 +419,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
                 string dataType = null;
                 if (m.Template is TObjArr) {
-                    dataType = "SqlResult";
+                    dataType = "Rows";
                 } else if (m.Template is TPuppet) {
-                    dataType = "Entity";//((NAppClass)((NTAppClass)m.Type).NValueClass).GenericTypeArgument;
+                    dataType = "IBinding";//((NAppClass)((NTAppClass)m.Type).NValueClass).GenericTypeArgument;
                 }
 
                 if (dataType == null) {

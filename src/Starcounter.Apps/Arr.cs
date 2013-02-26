@@ -25,7 +25,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Arr<T>(SqlResult res) {
+        public static implicit operator Arr<T>(Rows res) {
             return new Arr<T>(res);
         }
 
@@ -33,7 +33,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="result"></param>
-        protected Arr(SqlResult result) : base(result) {
+        protected Arr(Rows result) : base(result) {
         }
 
         /// <summary>
@@ -115,14 +115,14 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        internal SqlResult notEnumeratedResult = null;
+        internal Rows notEnumeratedResult = null;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Arr(SqlResult res) {
+        public static implicit operator Arr(Rows res) {
             return new Arr(res);
         }
 
@@ -147,7 +147,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="result"></param>
-        protected Arr(SqlResult result) {
+        protected Arr(Rows result) {
             notEnumeratedResult = result;
         }
 
@@ -171,7 +171,7 @@ namespace Starcounter {
             if (notEnumeratedResult != null) {
                 foreach (var entity in notEnumeratedResult) {
                     newApp = (Obj)template.App.CreateInstance(this);
-                    newApp.Data = entity;
+                    newApp.Data = (IBindable)entity;
                     Add(newApp);
                 }
                 notEnumeratedResult = null;
