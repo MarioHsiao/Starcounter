@@ -19,7 +19,7 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// See App with generics 
+    /// See Puppet TODO! REF 
     /// </summary>
     public class Puppet : Puppet<NullData> {
 
@@ -35,7 +35,7 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// An App is a live view model object controlled by your C# application code.
+    /// A Puppet is a live view model object controlled by your C# application code.
     /// It is mirrored between the server and the client in an MVVM or MVC application.
     /// App objects can be used to drive MVVM views or other such model driven clients.
     /// </summary>
@@ -54,7 +54,7 @@ namespace Starcounter {
     /// your C# code will be called. If you make a property editable, changes by the user will change App object (and an event will be triggered
     /// in case you which to validate the change).
     /// </remarks>
-    public class Puppet<T> : Obj<T> where T : IBindable {
+    public partial class Puppet<T> : Obj<T> where T : IBindable {
 
         /// <summary>
         /// 
@@ -64,7 +64,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Deletes this instance.
+        /// 
         /// </summary>
         public void Delete() {
             throw new NotImplementedException();
@@ -204,10 +204,9 @@ namespace Starcounter {
 
 
         /// <summary>
-        /// Returns true if this Obj have been serialized and sent to the client.
+        /// Returns true if this puppet have been sent to the client.
         /// </summary>
-        /// <value>The is serialized.</value>
-        public Boolean IsSerialized { get; internal set; }
+        public Boolean IsSentExternally { get; internal set; }
 
         /// <summary>
         /// Commits this instance.

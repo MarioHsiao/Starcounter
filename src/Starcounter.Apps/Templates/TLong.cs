@@ -24,15 +24,10 @@ namespace Starcounter.Templates {
         /// </summary>
         private long _DefaultValue = 0;
 
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        public override void ProcessInput(Puppet app, byte[] rawValue)
+        internal override void ProcessInput(Obj obj, byte[] rawValue)
         {
             long v = (long)Utf8Helper.IntFastParseFromAscii(rawValue, 0, (uint)rawValue.Length);
-            ProcessInput(app, v);
+            obj.ProcessInput<long>(this, v);
         }
 
         /// <summary>

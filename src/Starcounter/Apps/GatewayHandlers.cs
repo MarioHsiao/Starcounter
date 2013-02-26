@@ -22,6 +22,7 @@ namespace Starcounter
         /// The user session id
         /// </summary>
         public UInt64 UserSessionId;
+
         /// <summary>
         /// The data stream
         /// </summary>
@@ -46,10 +47,12 @@ namespace Starcounter
         /// The user session id
         /// </summary>
         public UInt64 UserSessionId;
+
         /// <summary>
         /// The subport id
         /// </summary>
         public UInt32 SubportId;
+
         /// <summary>
         /// The data stream
         /// </summary>
@@ -70,32 +73,6 @@ namespace Starcounter
     /// </summary>
 	public unsafe class GatewayHandlers
 	{
-        /// <summary>
-        /// Linked chunk flag.
-        /// </summary>
-        const Int32 LINKED_CHUNKS_FLAG = 1;
-
-        /// <summary>
-        /// Maximum size of BMX header in the beginning of the chunk
-        /// after which the gateway data can be placed.
-        /// </summary>
-        const Int32 BMX_HEADER_MAX_SIZE_BYTES = 32;
-
-        /// <summary>
-        /// Offset in bytes for HttpRequest structure.
-        /// </summary>
-        const Int32 SOCKET_DATA_OFFSET_HTTP_REQUEST = 232;
-
-        /// <summary>
-        /// Number of chunks offset in gateway.
-        /// </summary>
-        const Int32 SOCKET_DATA_OFFSET_NUM_CHUNKS = 84;
-
-        /// <summary>
-        /// Shared memory chunk size.
-        /// </summary>
-        const Int32 SM_CHUNK_SIZE = 1 << 12; // 4K chunks.
-
         /// <summary>
         /// Maximum number of user handlers to register.
         /// </summary>
@@ -253,7 +230,7 @@ namespace Starcounter
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
 
             // Determining if chunk is single.
-            Boolean is_single_chunk = ((task_info->flags & LINKED_CHUNKS_FLAG) == 0);
+            Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
             // Creating network data stream object.
             NetworkDataStream data_stream = new NetworkDataStream();
@@ -261,9 +238,9 @@ namespace Starcounter
             // Checking if we need to process linked chunks.
             if (!is_single_chunk)
             {
-                UInt32 num_chunks = *(UInt32*)(raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_NUM_CHUNKS);
+                UInt32 num_chunks = *(UInt32*)(raw_chunk + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants.SOCKET_DATA_OFFSET_NUM_CHUNKS);
 
-                Byte[] plain_chunks_data = new Byte[num_chunks * SM_CHUNK_SIZE];
+                Byte[] plain_chunks_data = new Byte[num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE];
 
                 fixed (Byte* p_plain_chunks_data = plain_chunks_data)
                 {
@@ -281,8 +258,8 @@ namespace Starcounter
                         raw_chunk,
                         is_single_chunk,
                         task_info->chunk_index,
-                        p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                        p_plain_chunks_data + BMX_HEADER_MAX_SIZE_BYTES,
+                        p_plain_chunks_data + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                        p_plain_chunks_data + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES,
                         data_stream);
 
                     // Calling user callback.
@@ -296,8 +273,8 @@ namespace Starcounter
                     raw_chunk,
                     is_single_chunk,
                     task_info->chunk_index,
-                    raw_chunk + BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                    raw_chunk + BMX_HEADER_MAX_SIZE_BYTES,
+                    raw_chunk + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                    raw_chunk + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES,
                     data_stream);
 
                 // Calling user callback.

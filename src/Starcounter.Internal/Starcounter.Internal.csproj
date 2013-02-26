@@ -57,22 +57,23 @@
     <Compile Include="ABCIPC\Server.cs" />
     <Compile Include="CommandLine\CommandLineStringParser.cs" />
     <Compile Include="CommandLine\InvalidCommandLineException.cs" />
-	<Compile Include="CommandLine\ApplicationArguments.cs" />
-	<Compile Include="CommandLine\CommandLineSection.cs" />
-	<Compile Include="CommandLine\GivenOption.cs" />
-	<Compile Include="CommandLine\IApplicationInput.cs" />
-	<Compile Include="CommandLine\Parser.cs" />
-	<Compile Include="CommandLine\Syntax\ApplicationSyntaxDefinition.cs" />
-	<Compile Include="CommandLine\Syntax\CommandSyntaxDefinition.cs" />
-	<Compile Include="CommandLine\Syntax\FlagDefinition.cs" />
-	<Compile Include="CommandLine\Syntax\IApplicationSyntax.cs" />
-	<Compile Include="CommandLine\Syntax\ICommandSyntax.cs" />
-	<Compile Include="CommandLine\Syntax\OptionAttributes.cs" />
-	<Compile Include="CommandLine\Syntax\OptionDefinition.cs" />
-	<Compile Include="CommandLine\Syntax\OptionInfo.cs" />
-	<Compile Include="CommandLine\Syntax\PropertyDefinition.cs" />
-	<Compile Include="CommandLine\Syntax\SyntaxDefinition.cs" />
+    <Compile Include="CommandLine\ApplicationArguments.cs" />
+    <Compile Include="CommandLine\CommandLineSection.cs" />
+    <Compile Include="CommandLine\GivenOption.cs" />
+    <Compile Include="CommandLine\IApplicationInput.cs" />
+    <Compile Include="CommandLine\Parser.cs" />
+    <Compile Include="CommandLine\Syntax\ApplicationSyntaxDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\CommandSyntaxDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\FlagDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\IApplicationSyntax.cs" />
+    <Compile Include="CommandLine\Syntax\ICommandSyntax.cs" />
+    <Compile Include="CommandLine\Syntax\OptionAttributes.cs" />
+    <Compile Include="CommandLine\Syntax\OptionDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\OptionInfo.cs" />
+    <Compile Include="CommandLine\Syntax\PropertyDefinition.cs" />
+    <Compile Include="CommandLine\Syntax\SyntaxDefinition.cs" />
     <Compile Include="Constants\Constants.cs" />
+    <Compile Include="Constants\MixedCodeConstants.cs" />
     <Compile Include="HttpResponse.cs" />
     <Compile Include="HttpSessions.cs" />
     <Compile Include="HttpStructs.cs" />
@@ -102,15 +103,17 @@
     <None Include="..\Starcounter.snk" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Starcounter.BitsAndBytes.Native, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\bin\Debug\Starcounter.BitsAndBytes.Native.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Starcounter.ErrorCodes\errorcodes.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
+      <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
+      <Name>BitsAndBytes.Unsafe</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

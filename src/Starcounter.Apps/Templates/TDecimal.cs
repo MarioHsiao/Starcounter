@@ -23,19 +23,13 @@ namespace Starcounter.Templates {
         /// </summary>
         decimal _DefaultValue = 0;
 
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(Puppet app, byte[] rawValue)
+        internal override void ProcessInput(Obj obj, byte[] rawValue)
         {
             // TODO:
             // Superslow way of parsing the decimal value. Needs to be rewritten.
             decimal value;
             decimal.TryParse(Encoding.UTF8.GetString(rawValue), out value);
-            ProcessInput(app, value);
+            obj.ProcessInput<decimal>(this, value);
         }
 
         /// <summary>

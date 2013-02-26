@@ -15,10 +15,10 @@
     <JsonToPuppetCsMsBuildTaskNoLocking
        InputFiles="@(Puppet)"
        OutputFiles="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
+       <Output TaskParameter="OutputFiles" ItemName="puppetFiles" /> 
     </JsonToPuppetCsMsBuildTaskNoLocking>
 	<ItemGroup>
-      <Compile Include="@(gFiles)" />
+      <Compile Include="@(puppetFiles)" />
     </ItemGroup>
   </Target>
 
@@ -28,10 +28,10 @@
     <JsonToMessageCsMsBuildTaskNoLocking
        InputFiles="@(Message)"
        OutputFiles="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="gFiles" /> 
+       <Output TaskParameter="OutputFiles" ItemName="messageFiles" /> 
     </JsonToMessageCsMsBuildTaskNoLocking>
 	<ItemGroup>
-      <Compile Include="@(gFiles)" />
+      <Compile Include="@(messageFiles)" />
     </ItemGroup>
   </Target>
   

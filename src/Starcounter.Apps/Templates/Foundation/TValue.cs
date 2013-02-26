@@ -78,54 +78,19 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="app"></param>
+        /// <param name="obj"></param>
         /// <returns></returns>
-        public override object GetBoundValueAsObject(Obj app) {
-            return dataBinding.GetValue((Puppet)app);
+        public override object GetBoundValueAsObject(Obj obj) {
+            return dataBinding.GetValue(obj);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="app"></param>
+        /// <param name="obj"></param>
         /// <param name="value"></param>
-        public override void SetBoundValueAsObject(Obj app, object value) {
-            dataBinding.SetValue((Puppet)app, (T)value);
-        }
-
-        /// <summary>
-        /// Processes the input.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="value">The value.</param>
-        public void ProcessInput(Puppet app, T value)
-        {
-            Input<T> input = null;
-
-            if (CustomInputEventCreator != null)
-                input = CustomInputEventCreator.Invoke(app, this, value);
-
-            if (input != null)
-            {
-                foreach (var h in CustomInputHandlers)
-                {
-                    h.Invoke(app, input);
-                }
-                if (!input.Cancelled)
-                {
-                    Debug.WriteLine("Setting value after custom handler: " + input.Value);
-                    app.SetValue((TValue<T>)this, input.Value);
-                }
-                else
-                {
-                    Debug.WriteLine("Handler cancelled: " + value);
-                }
-            }
-            else
-            {
-                Debug.WriteLine("Setting value after no handler: " + value);
-                app.SetValue((TValue<T>)this, value);
-            }
+        public override void SetBoundValueAsObject(Obj obj, object value) {
+            dataBinding.SetValue(obj, (T)value);
         }
     }
 
@@ -144,10 +109,14 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Processes the input.
+        /// 
         /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="rawValue">The raw value.</param>
-        public abstract void ProcessInput(Puppet app, Byte[] rawValue);
+        /// <remarks>
+        /// TODO!
+        /// Should be changed to accept IntPtr to rawValue using an int size parameter. This way is not fast enough.
+        /// </remarks>
+        /// <param name="obj"></param>
+        /// <param name="rawValue"></param>
+        internal abstract void ProcessInput(Obj obj, Byte[] rawValue);
     }
 }

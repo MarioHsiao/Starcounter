@@ -161,11 +161,8 @@ namespace Starcounter.Apps {
             request = null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        private void DisposeAppRecursively(Puppet app) {
+        private void DisposeAppRecursively(Obj obj) {
+            Puppet app = (Puppet)obj;
             if (app == null)
                 return;
 
@@ -178,7 +175,7 @@ namespace Starcounter.Apps {
 
             foreach (Template child in app.Template.Children) {
                 if (child is TPuppet) {
-                    DisposeAppRecursively(app.GetValue((TPuppet)child));
+                    DisposeAppRecursively(app.GetValue((TObj)child));
                 } else if (child is TObjArr) {
                     Listing listing = app.GetValue((TObjArr)child);
                     foreach (Puppet listApp in listing) {

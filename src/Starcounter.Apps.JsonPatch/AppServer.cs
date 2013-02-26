@@ -90,6 +90,7 @@ namespace Starcounter.Internal.Web {
                         view = "/" + view;
                         request.GzipAdvisable = false;
                         response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
+                        app.IsSentExternally = true;
                     } else if (x is HttpResponse) {
                         response = x as HttpResponse;
                     } else if (x is string) {

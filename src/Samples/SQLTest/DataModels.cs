@@ -36,6 +36,10 @@ namespace SQLTest.EmployeeDb
         public Person Father;
 
         public Person() { }
+
+        public String Name {
+            get { return FirstName + " " + LastName; }
+        }
     }
 
     public class Employee : Person
@@ -76,6 +80,10 @@ namespace SQLTest.EmployeeDb
         public Nullable<Double> NSalaryDouble;
 
         public SalaryEmployee() { }
+
+        public Int32 NetSalary {
+            get { return (int)(SalaryInt32 * 0.68); }
+        }
     }
 }
 

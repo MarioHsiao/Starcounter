@@ -347,6 +347,8 @@ namespace SQLTest.EmployeeDb
             Db.SlowSQL("create index Department_IdBinary on SqlTest.EmployeeDb.Department (IdBinary)");
             // Index on Object property ASC.
             Db.SlowSQL("create index Employee_Department on SqlTest.EmployeeDb.Employee (Department)");
+            // Index on DateTime property ASC.
+            Db.SlowSQL("create index Employee_HireDate on SqlTest.EmployeeDb.Employee (HireDate)");
             // Index on Boolean property ASC.
             Db.SlowSQL("create index SalaryEmployee_Commission on SqlTest.EmployeeDb.SalaryEmployee (Commission)");
             // Index on Nullable Boolean property ASC.
@@ -408,6 +410,7 @@ namespace SQLTest.EmployeeDb
             Db.SlowSQL("drop index Location_NType on SqlTest.EmployeeDb.Location");
             Db.SlowSQL("drop index Department_IdBinary on SqlTest.EmployeeDb.Department");
             Db.SlowSQL("drop index Employee_Department on SqlTest.EmployeeDb.Employee");
+            Db.SlowSQL("drop index Employee_HireDate on SqlTest.EmployeeDb.Employee");
             Db.SlowSQL("drop index SalaryEmployee_Commission on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_NCommission on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_SalaryByte on SqlTest.EmployeeDb.SalaryEmployee");

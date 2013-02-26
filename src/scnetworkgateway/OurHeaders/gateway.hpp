@@ -34,6 +34,8 @@
 #include "../Chunks/bmx/bmx.hpp"
 #include "../Chunks/bmx/chunk_helper.h"
 
+#include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
+
 // Internal includes.
 #include "utilities.hpp"
 #include "profiler.hpp"

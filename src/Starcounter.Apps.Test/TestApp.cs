@@ -7,7 +7,6 @@
 using System;
 using NUnit.Framework;
 using Starcounter.Templates;
-using Starcounter.Internal.ExeModule;
 using System.Diagnostics;
 
 namespace Starcounter.Internal.Test {
@@ -15,12 +14,6 @@ namespace Starcounter.Internal.Test {
     /// Class TestApp
     /// </summary>
     class TestApp {
-        /// <summary>
-        /// Initializes static members of the <see cref="TestApp" /> class.
-        /// </summary>
-        static TestApp() {
-            AppExeModule.IsRunningTests = true;
-        }
 
         /// <summary>
         /// Tests the set get.
