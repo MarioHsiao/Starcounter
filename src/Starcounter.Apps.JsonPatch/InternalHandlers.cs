@@ -50,7 +50,7 @@ namespace Starcounter.Internal.JsonPatch {
                         //                    string offset = parameters.Get("offset");
                         //                    string rows = parameters.Get("rows");
                         string bodyData = r.GetBodyStringUtf8_Slow();   // Retrice the sql command in the body
-                        SqlResult sqlresult = Db.SQL(bodyData);
+                        Rows sqlresult = Db.SQL(bodyData);
 
                         string result = JsonConvert.SerializeObject(sqlresult);
                         return result;

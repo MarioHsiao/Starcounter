@@ -18,7 +18,7 @@ namespace Starcounter
     /// <summary>
     /// 
     /// </summary>
-    public class SqlResult<T> : SqlResult, ISqlResult<T>, IEnumerable<T> {
+    public class SqlResult<T> : SqlResult, IEnumerable<T> {
         // Creating SQL result with query parameters all given at once.
         internal SqlResult(UInt64 transactionId, String query, Boolean slowSQL, params Object[] sqlParamsValues)
             : base(transactionId, query, slowSQL, sqlParamsValues) {

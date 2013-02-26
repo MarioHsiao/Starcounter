@@ -254,7 +254,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TObjArr property, SqlResult data) {
+        public void SetValue(TObjArr property, Rows data) {
             Arr current = _Values[property.Index];
             if (current != null) {
                 current.Clear();
@@ -303,7 +303,7 @@ namespace Starcounter {
         /// <param name="data">The data.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(TObjArr templ, SqlResult data) where T : Obj, new() {
+        public void SetValue<T>(TObjArr templ, Rows data) where T : Obj, new() {
             Arr<T> newList;
             Arr<T> current = _Values[templ.Index];
             if (current != null)
