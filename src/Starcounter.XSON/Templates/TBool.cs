@@ -18,7 +18,7 @@ namespace Starcounter.Templates {
         /// </summary>
         private bool _DefaultValue = false;
 
-        internal override void ProcessInput(Obj obj, byte[] rawValue)
+        public override void ProcessInput(Obj obj, byte[] rawValue)
         {
             // TODO:
             // Proper implementation.

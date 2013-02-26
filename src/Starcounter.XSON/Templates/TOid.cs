@@ -1,31 +1,26 @@
 ﻿// ***********************************************************************
-// <copyright file="TString.cs" company="Starcounter AB">
+// <copyright file="TOid.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 using System;
-using System.Collections.Generic;
 
 namespace Starcounter.Templates {
 
     /// <summary>
     /// 
     /// </summary>
-    public class TString : TValue<string> {
-        internal override void ProcessInput(Obj obj, byte[] rawValue) {
-            obj.ProcessInput<string>(this, System.Text.Encoding.UTF8.GetString(rawValue));
-        }
-
-        private string _DefaultValue = "";
+    public class TOid : TValue<UInt64> {
 
         /// <summary>
         /// Gets or sets the default value.
         /// </summary>
         /// <value>The default value.</value>
-        public string DefaultValue {
-            get { return _DefaultValue; }
-            set { _DefaultValue = value; }
+        public UInt64 DefaultValue { get; set; }
+
+        public override void ProcessInput(Obj obj, byte[] rawValue) {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -34,20 +29,15 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The default value as object.</value>
         public override object DefaultValueAsObject {
-            get {
-                return DefaultValue;
-            }
-            set {
-                DefaultValue = (string)value;
-            }
+            get { return DefaultValue; }
+            set { DefaultValue = (UInt64)value; }
         }
-
         /// <summary>
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
         public override Type InstanceType {
-            get { return typeof(string); }
+            get { return typeof(UInt64); }
         }
     }
 }

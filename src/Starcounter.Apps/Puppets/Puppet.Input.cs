@@ -14,7 +14,7 @@ namespace Starcounter {
         /// <typeparam name="V"></typeparam>
         /// <param name="template"></param>
         /// <param name="value"></param>
-        internal override void ProcessInput<V>(TValue<V> template, V value) {
+        public override void ProcessInput<V>(TValue<V> template, V value) {
             Input<V> input = null;
 
             if (template.CustomInputEventCreator != null)

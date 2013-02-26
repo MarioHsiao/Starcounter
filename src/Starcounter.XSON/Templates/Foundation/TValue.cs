@@ -16,8 +16,8 @@ namespace Starcounter {
     /// </summary>
     /// <typeparam name="T">The primitive system type of this property.</typeparam>
     public abstract class TValue<T> : TValue {
-        internal Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
-        internal List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
+        public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
+        public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
 
         private DataBinding<T> dataBinding;
         
@@ -112,6 +112,6 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
-        internal abstract void ProcessInput(Obj obj, Byte[] rawValue);
+        public abstract void ProcessInput(Obj obj, Byte[] rawValue);
     }
 }

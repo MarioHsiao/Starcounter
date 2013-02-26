@@ -1,31 +1,29 @@
 ﻿// ***********************************************************************
-// <copyright file="TDouble.cs" company="Starcounter AB">
+// <copyright file="TString.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 using System;
+using System.Collections.Generic;
 
 namespace Starcounter.Templates {
 
     /// <summary>
     /// 
     /// </summary>
-    public class TDouble : TValue<double> {
-        /// <summary>
-        /// 
-        /// </summary>
-        private double _DefaultValue = 0;
-
-        internal override void ProcessInput(Obj obj, byte[] rawValue) {
-            throw new NotImplementedException();
+    public class TString : TValue<string> {
+        public override void ProcessInput(Obj obj, byte[] rawValue) {
+            obj.ProcessInput<string>(this, System.Text.Encoding.UTF8.GetString(rawValue));
         }
+
+        private string _DefaultValue = "";
 
         /// <summary>
         /// Gets or sets the default value.
         /// </summary>
         /// <value>The default value.</value>
-        public double DefaultValue {
+        public string DefaultValue {
             get { return _DefaultValue; }
             set { _DefaultValue = value; }
         }
@@ -40,7 +38,7 @@ namespace Starcounter.Templates {
                 return DefaultValue;
             }
             set {
-                DefaultValue = (double)value;
+                DefaultValue = (string)value;
             }
         }
 
@@ -49,7 +47,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The type of the instance.</value>
         public override Type InstanceType {
-            get { return typeof(double); }
+            get { return typeof(string); }
         }
     }
 }

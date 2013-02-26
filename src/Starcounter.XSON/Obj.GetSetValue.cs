@@ -7,7 +7,6 @@
 using Starcounter.Templates;
 using System;
 using System.ComponentModel;
-using Starcounter.Apps;
 using Starcounter.Advanced;
 
 namespace Starcounter {

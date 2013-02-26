@@ -135,7 +135,7 @@ namespace Starcounter {
         /// <param name="sb"></param>
         /// <param name="addComma"></param>
         /// <returns></returns>
-        internal virtual int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
+        protected virtual int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
             return 0;
         }
 

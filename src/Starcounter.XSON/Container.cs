@@ -71,10 +71,10 @@ namespace Starcounter {
             child._parent = this;
         }
 
-        internal virtual void HasAddedElement(TObjArr property, int elementIndex) {
+        public virtual void HasAddedElement(TObjArr property, int elementIndex) {
         }
 
-        internal virtual void HasRemovedElement(TObjArr property, int elementIndex) {
+        public virtual void HasRemovedElement(TObjArr property, int elementIndex) {
         }
 
 
@@ -153,7 +153,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="template">The template.</param>
         /// <returns>Int32[][].</returns>
-        internal Int32[] IndexPathFor(Template template)
+        public Int32[] IndexPathFor(Template template)
         {
             Int32[] path = new Int32[ChildPathDepth];
             path[path.Length - 1] = template.Index;

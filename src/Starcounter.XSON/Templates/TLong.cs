@@ -17,7 +17,7 @@ namespace Starcounter.Templates {
 
         private long _DefaultValue = 0;
 
-        internal override void ProcessInput(Obj obj, byte[] rawValue)
+        public override void ProcessInput(Obj obj, byte[] rawValue)
         {
             long v = (long)Utf8Helper.IntFastParseFromAscii(rawValue, 0, (uint)rawValue.Length);
             obj.ProcessInput<long>(this, v);
