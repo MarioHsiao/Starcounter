@@ -9,8 +9,6 @@ namespace Starcounter.Advanced {
     /// Class HttpRequest
     /// </summary>
     public class HttpRequest {
-
-
         /// <summary>
         /// Creates a minimalistic Http 1.0 GET request with the given uri without any headers or even protocol version specifier.
         /// </summary>
@@ -39,14 +37,17 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Offset in bytes for the session.
+        /// Internal structure with HTTP request information.
         /// </summary>
-        const Int32 SESSION_OFFSET_BYTES = 32;
+        unsafe HttpRequestInternal* http_request_struct_;
 
         /// <summary>
         /// Internal structure with HTTP request information.
         /// </summary>
-        unsafe HttpRequestInternal* http_request_struct_;
+        public unsafe HttpRequestInternal* HttpRequestInternalStruct
+        {
+            get { return http_request_struct_; }
+        }
 
         /// <summary>
         /// Direct pointer to session data.
@@ -177,14 +178,16 @@ namespace Starcounter.Advanced {
             Byte* chunk_data,
             Boolean single_chunk,
             UInt32 chunk_index,
+            UInt16 handler_id,
             Byte* http_request_begin,
             Byte* socket_data,
             INetworkDataStream data_stream) {
             http_request_struct_ = (HttpRequestInternal*)http_request_begin;
-            session_ = (ScSessionStruct*)(socket_data + SESSION_OFFSET_BYTES);
+            session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
             http_request_struct_->socket_data_ = socket_data;
             data_stream_ = data_stream;
             data_stream_.Init(chunk_data, single_chunk, chunk_index);
+            handlerId_ = handler_id;
         }
 
         // TODO
@@ -209,6 +212,15 @@ namespace Starcounter.Advanced {
         public bool NeedsScriptInjection {
             get { return needsScriptInjection_; }
             set { needsScriptInjection_ = value; }
+        }
+
+        /// <summary>
+        /// Linear index for this handler.
+        /// </summary>
+        UInt16 handlerId_;
+        public UInt16 HandlerId
+        {
+            get { return handlerId_; }
         }
 
         // TODO
@@ -707,6 +719,15 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
+        /// Gets the raw parameters structure.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="sizeBytes">The size bytes.</param>
+        public IntPtr GetRawParametersInfo() {
+            return (IntPtr)(socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
+        }
+
+        /// <summary>
         /// Gets the body raw pointer.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
@@ -777,6 +798,16 @@ namespace Starcounter.Advanced {
 
             ptr = new IntPtr(socket_data_ + request_offset_);
             sizeBytes = uri_offset_ - request_offset_ + uri_len_bytes_;
+        }
+
+        /// <summary>
+        /// Gets the raw method and URI.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="sizeBytes">The size bytes.</param>
+        public IntPtr GetRawMethodAndUri() {
+            // NOTE: Method and URI must always exist.
+            return (IntPtr)(socket_data_ + request_offset_);
         }
 
         /// <summary>
