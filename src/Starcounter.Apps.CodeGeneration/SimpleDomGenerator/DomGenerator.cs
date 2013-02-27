@@ -519,10 +519,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
                         }
                         else if (kid is TObjArr)
                         {
-//                            var type = new NListingXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; // Orphaned by design as primitive types dont get custom template classes
+//                            var type = new NArrXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; // Orphaned by design as primitive types dont get custom template classes
 //                            NTemplateClass.Classes[kid] = type;
 
-                            GenerateForListing(kid as TObjArr,
+                            GenerateForArr(kid as TObjArr,
                                                appClassParent,
                                                templParent,
                                                metaParent,
@@ -695,7 +695,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="templParent">The templ parent.</param>
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
-        private void GenerateForListing(TObjArr alt, 
+        private void GenerateForArr(TObjArr alt, 
                                         NAppClass appClassParent, 
                                         NTAppClass templParent, 
                                         NClass metaParent, 
@@ -730,17 +730,17 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 Bound = bound
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
-            var vlist = new NListingXXXClass(this, "Listing", ValueClasses[alt.App], null,alt);
+            var vlist = new NArrXXXClass(this, "Arr", ValueClasses[alt.App], null,alt);
             amn.Type = vlist;
 
-            tmn.Type = new NListingXXXClass(this, "TArr", 
+            tmn.Type = new NArrXXXClass(this, "TArr", 
                                             ValueClasses[alt.App], 
                                             TemplateClasses[alt.App], alt);
-            cstmn.Type = new NListingXXXClass(this, "TArr",
+            cstmn.Type = new NArrXXXClass(this, "TArr",
                                             ValueClasses[alt.App],
                                             TemplateClasses[alt.App], alt);
 
-            mmn.Type = new NListingXXXClass(this,"ArrMetadata", 
+            mmn.Type = new NArrXXXClass(this,"ArrMetadata", 
                                             ValueClasses[alt.App], 
                                             TemplateClasses[alt.App], alt);
 
@@ -790,12 +790,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 if (kid is NProperty)
                 {
                     var mn = kid as NProperty;
-                    if (mn.Type is NListingXXXClass || 
+                    if (mn.Type is NArrXXXClass || 
                        (mn.Type is NAppClass && mn.Type.Children.Count > 0))
                     {
                         NClass type;
-                        if (mn.Type is NListingXXXClass)
-                            type = (mn.Type as NListingXXXClass).NApp;
+                        if (mn.Type is NArrXXXClass)
+                            type = (mn.Type as NArrXXXClass).NApp;
                         else
                             type = mn.Type as NAppClass;
                         var x = new NOtherClass(this)

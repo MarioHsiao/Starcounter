@@ -4,19 +4,11 @@ using Newtonsoft.Json;
 using Starcounter.Advanced;
 using Starcounter.Templates;
 using System;
+using System.ComponentModel;
 using System.Text;
 
 namespace Starcounter {
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class NullData : IBindable {
-        /// <summary>
-        /// 
-        /// </summary>
-        public UInt64 UniqueID { get { return 0; } }
-    }
 
     /// <summary>
     /// See Puppet TODO! REF 
@@ -120,7 +112,7 @@ namespace Starcounter {
         /// <param name="sb"></param>
         /// <param name="addComma"></param>
         /// <returns></returns>
-        internal override int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
+        protected override int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
 
             int t = 0;
 
@@ -194,11 +186,16 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The array property of this Puppet</param>
         /// <param name="elementIndex">The added element index</param>
-        internal override void HasAddedElement(TObjArr property, int elementIndex) {
+        public override void HasAddedElement(TObjArr property, int elementIndex) {
             ChangeLog.AddItemInList(this, (TObjArr)property, elementIndex);
         }
 
-        internal override void HasRemovedElement(TObjArr property, int elementIndex) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="elementIndex"></param>
+        public override void HasRemovedElement(TObjArr property, int elementIndex) {
             ChangeLog.RemoveItemInList(this, property, elementIndex );
         }
 
@@ -232,7 +229,11 @@ namespace Starcounter {
         /// </summary>
         private Transaction _transaction;
 
-        internal override void InternalSetData(IBindable data) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        protected override void InternalSetData(IBindable data) {
             if (Transaction == null) {
                 Transaction = Transaction._current;
             }
@@ -269,6 +270,37 @@ namespace Starcounter {
         /// </summary>
         internal Transaction TransactionOnThisApp {
             get { return _transaction; }
+        }
+
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>Action.</returns>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Action GetValue(TTrigger property) {
+#if QUICKTUPLE
+            return _Values[property.Index];
+#else
+            throw new JockeNotImplementedException();
+#endif
+        }
+
+
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void SetValue(TTrigger property, Action value) {
+#if QUICKTUPLE
+            _Values[property.Index] = value;
+#else
+            throw new JockeNotImplementedException();
+#endif
         }
 
 

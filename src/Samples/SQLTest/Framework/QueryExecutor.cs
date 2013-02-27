@@ -15,7 +15,7 @@ namespace SQLTest
             Db.Transaction(delegate
             {
                 List<String> resultList = null;
-                SqlEnumerator sqlEnum = null;
+                SqlEnumerator<dynamic> sqlEnum = null;
 
                 for (Int32 i = 0; i < queryList.Count; i++)
                 {
@@ -41,17 +41,17 @@ namespace SQLTest
                         {
                             // Call appropriate method to create execution enumerator.
                             if (queryList[i].IncludesLiteral)
-                                sqlEnum = Db.SlowSQL(queryList[i].QueryString, queryList[i].VariableValuesArr).GetEnumerator() as SqlEnumerator;
+                                sqlEnum = Db.SlowSQL(queryList[i].QueryString, queryList[i].VariableValuesArr).GetEnumerator() as SqlEnumerator<dynamic>;
                             else
-                                sqlEnum = Db.SQL(queryList[i].QueryString, queryList[i].VariableValuesArr).GetEnumerator() as SqlEnumerator;
+                                sqlEnum = Db.SQL(queryList[i].QueryString, queryList[i].VariableValuesArr).GetEnumerator() as SqlEnumerator<dynamic>;
                         }
                         else
                         {
                             // Call appropriate method to create execution enumerator.
                             if (queryList[i].IncludesLiteral)
-                                sqlEnum = Db.SlowSQL(queryList[i].QueryString).GetEnumerator() as SqlEnumerator;
+                                sqlEnum = Db.SlowSQL(queryList[i].QueryString).GetEnumerator() as SqlEnumerator<dynamic>;
                             else
-                                sqlEnum = Db.SQL(queryList[i].QueryString).GetEnumerator() as SqlEnumerator;
+                                sqlEnum = Db.SQL(queryList[i].QueryString).GetEnumerator() as SqlEnumerator<dynamic>;
                         }
                         // Collect the result of the query.
                         if (!queryList[i].SingleObjectProjection)
@@ -96,7 +96,7 @@ namespace SQLTest
             });
         }
 
-        private static void ResultLoop(SqlEnumerator sqlEnum)
+        private static void ResultLoop(SqlEnumerator<IObjectView> sqlEnum)
         {
             IObjectView obj = null;
             while (sqlEnum.MoveNext())
@@ -105,7 +105,7 @@ namespace SQLTest
             }
         }
 
-        private static List<String> CreateResultSingleton(SqlEnumerator sqlEnum)
+        private static List<String> CreateResultSingleton(SqlEnumerator<dynamic> sqlEnum)
         {
             String result = headerFieldSeparator + sqlEnum.ProjectionTypeCode.ToString() + headerFieldSeparator;
             List<String> resultList = new List<String>();
@@ -125,7 +125,7 @@ namespace SQLTest
             return resultList;
         }
 
-        private static List<String> CreateResultComposite(SqlEnumerator sqlEnum)
+        private static List<String> CreateResultComposite(SqlEnumerator<dynamic> sqlEnum)
         {
             String result = headerFieldSeparator;
             List<String> resultList = new List<String>();
