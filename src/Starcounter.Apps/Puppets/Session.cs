@@ -5,7 +5,7 @@
 // ***********************************************************************
 
 using System;
-using System.Diagnostics; // TODO: Remove when HttpRequest can be sent in to the handler. And remove reference from Apps
+using System.Diagnostics; 
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using HttpStructs;
@@ -25,7 +25,6 @@ namespace Starcounter.Apps {
         private Puppet[] rootApps;
         private VMID nextVMId;
         private bool isInUse;
-        private HttpRequest request; // TODO: Remove when it can be sent in to the handler.
         internal ChangeLog changeLog;
 
         /// <summary>
@@ -86,21 +85,11 @@ namespace Starcounter.Apps {
         }
 
         /// <summary>
-        /// Gets the HTTP request.
-        /// </summary>
-        /// <value>The HTTP request.</value>
-        public HttpRequest HttpRequest { // TODO: Remove when it can be sent in to the handler.
-            get { return request; }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="request"></param>
         internal void Start(HttpRequest request) {
             Debug.Assert(current == null);
-
-            this.request = request;
             Session.current = this;
         }
 
@@ -109,7 +98,6 @@ namespace Starcounter.Apps {
         /// </summary>
         internal void End() {
             this.changeLog.Clear();
-            this.request = null;
             Session.current = null;
         }
 
@@ -158,7 +146,6 @@ namespace Starcounter.Apps {
             }
             rootApps = null;
             changeLog = null;
-            request = null;
         }
 
         private void DisposeAppRecursively(Obj obj) {
