@@ -4,6 +4,12 @@ namespace Starcounter.Server.PublicModel {
     /// Represents a request to execute user code in a Starcounter
     /// host code process.
     /// </summary>
+    /// <remarks>
+    /// By design, the request to execute holds has no representation
+    /// of what host/database it targets. Such information is assumed
+    /// to be given in addition to the actual request (for example,
+    /// in the form of a database URI when making a REST call).
+    /// </remarks>
     public sealed class ExecRequest {
 
         /// <summary>
@@ -11,19 +17,6 @@ namespace Starcounter.Server.PublicModel {
         /// concerns.
         /// </summary>
         public string ExecutablePath {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the identity of the database the code
-        /// host should connect to.
-        /// </summary>
-        /// <remarks>
-        /// We probably want to support both a simple name and
-        /// a full Starcounter URI for this property.
-        /// </remarks>
-        public string Database {
             get;
             set;
         }
