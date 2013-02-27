@@ -1,10 +1,9 @@
-#if !_MANAGED
+#if __LINE__
 #pragma once
+#define internal
 #endif
 
-#if _MANAGED
 internal 
-#endif
 enum NodeTag
 {
 	T_Invalid = 0,
@@ -135,9 +134,7 @@ enum NodeTag
 	T_CommonTableExpr,
 };
 
-#if _MANAGED
 internal 
-#endif
  enum SetOperation
 {
     SETOP_NONE = 0,
@@ -146,9 +143,7 @@ internal
     SETOP_EXCEPT
 };
 
-#if _MANAGED
 internal
-#endif
  enum InhOption
 {
     INH_NO,						/* Do NOT scan child tables */
@@ -156,9 +151,7 @@ internal
     INH_DEFAULT					/* Use current SQL_inheritance option */
 };
 
-#if _MANAGED
 internal
-#endif
 enum A_Expr_Kind
 {
 	AEXPR_OP,					/* normal operator */
@@ -173,9 +166,7 @@ enum A_Expr_Kind
 	AEXPR_IN					/* [NOT] IN - name must be "=" or "<>" */
 };
 
-#if _MANAGED
 internal
-#endif
 enum SortByDir
 {
 	SORTBY_DEFAULT,
@@ -184,12 +175,14 @@ enum SortByDir
 	SORTBY_USING				/* not allowed in CREATE INDEX ... */
 };
 
-#if _MANAGED
 internal
-#endif
 enum SortByNulls
 {
 	SORTBY_NULLS_DEFAULT,
 	SORTBY_NULLS_FIRST,
 	SORTBY_NULLS_LAST
 };
+
+#if __LINE__
+#undef internal
+#endif
