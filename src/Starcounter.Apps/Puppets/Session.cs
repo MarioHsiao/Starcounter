@@ -177,7 +177,7 @@ namespace Starcounter.Apps {
                 if (child is TPuppet) {
                     DisposeAppRecursively(app.GetValue((TObj)child));
                 } else if (child is TObjArr) {
-                    Listing listing = app.GetValue((TObjArr)child);
+                    Arr listing = app.GetValue((TObjArr)child);
                     foreach (Puppet listApp in listing) {
                         DisposeAppRecursively(listApp);
                     }

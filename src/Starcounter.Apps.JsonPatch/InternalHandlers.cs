@@ -50,7 +50,7 @@ namespace Starcounter.Internal.JsonPatch {
                         //                    string offset = parameters.Get("offset");
                         //                    string rows = parameters.Get("rows");
                         string bodyData = r.GetBodyStringUtf8_Slow();   // Retrice the sql command in the body
-                        SqlResult sqlresult = Db.SQL(bodyData);
+                        var sqlresult = Db.SQL(bodyData);
 
                         string result = JsonConvert.SerializeObject(sqlresult);
                         return result;
@@ -100,7 +100,7 @@ namespace Starcounter.Internal.JsonPatch {
                     continue;
 
                 if (template is TObjArr) {
-                    Listing l = app.GetValue((TObjArr)template);
+                    Arr l = app.GetValue((TObjArr)template);
                     foreach (Puppet childApp in l) {
                         RefreshAllValues(childApp, log);
                     }

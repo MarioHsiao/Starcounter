@@ -233,9 +233,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.Type.FullClassName);
             sb.Append(' ');
             sb.Append(m.MemberName);
-//            if (m.Type is NListing) {
+//            if (m.Type is NArr) {
 //                sb.Append('<');
-//                sb.Append(((NListing)m.Type).NApp.FullClassName);
+//                sb.Append(((NArr)m.Type).NApp.FullClassName);
 //                sb.Append('>');
 //            }
             if (m.FunctionGeneric != null) {
@@ -249,9 +249,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append("(Template.");
             sb.Append(m.MemberName);
             sb.Append("); } set { SetValue");
-            if (m.Type is NListingXXXClass) {
+            if (m.Type is NArrXXXClass) {
                 sb.Append('<');
-                sb.Append(((NListingXXXClass)m.Type).NApp.FullClassName);
+                sb.Append(((NArrXXXClass)m.Type).NApp.FullClassName);
                 sb.Append('>');
             }
             sb.Append("(Template.");
@@ -283,9 +283,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
             dataType = null;
             if (m.Template is TObjArr) {
-                dataType = "SqlResult";
+                dataType = "Rows";
             } else if (m.Template is TPuppet) {
-                dataType = "Entity";
+                dataType = "IBinding";
                 castTo = ((NAppClass)m.Type).GenericTypeArgument;
             } 
 
@@ -419,9 +419,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 
                 string dataType = null;
                 if (m.Template is TObjArr) {
-                    dataType = "SqlResult";
+                    dataType = "Rows";
                 } else if (m.Template is TPuppet) {
-                    dataType = "Entity";//((NAppClass)((NTAppClass)m.Type).NValueClass).GenericTypeArgument;
+                    dataType = "IBinding";//((NAppClass)((NTAppClass)m.Type).NValueClass).GenericTypeArgument;
                 }
 
                 if (dataType == null) {

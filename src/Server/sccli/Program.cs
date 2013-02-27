@@ -167,6 +167,7 @@ namespace star {
             Console.WriteLine(formatting, "-v, --version", "Prints the version of Starcounter.");
             Console.WriteLine(formatting, "-i, --info", "Prints information about the Starcounter installation.");
             Console.WriteLine(formatting, "-d, --db name|uri", "The database to use for commands that support it.");
+            Console.WriteLine(formatting, "--logsteps", "Enables diagnostic logging.");
             // Console.WriteLine(formatting, "--verbosity level", "Sets the verbosity level of star.exe (quiet, minimal, verbose, diagnostic). Minimal is the default.");
             Console.WriteLine();
             Console.WriteLine("Commands:");
@@ -215,6 +216,10 @@ namespace star {
             appSyntax.DefineProperty(
                 "verbosity",
                 "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
+                );
+            appSyntax.DefineFlag(
+                "logsteps",
+                "Enables diagnostic logging. When set, Starcounter will produce a set of diagnostic log entries in the log."
                 );
 
             // NOTE:

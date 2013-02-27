@@ -47,8 +47,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <value>The function generic.</value>
         public NClass FunctionGeneric {
             get {
-                if (Type is NListingXXXClass) {
-                    return (Type as NListingXXXClass).NApp;
+                if (Type is NArrXXXClass) {
+                    return (Type as NArrXXXClass).NApp;
                 }
                 else if (Type is NAppClass) {
                     return Type;

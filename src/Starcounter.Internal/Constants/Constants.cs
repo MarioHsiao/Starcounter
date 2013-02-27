@@ -205,6 +205,12 @@ namespace Starcounter.Internal
             /// Explicit working directory.
             /// </summary>
             public const string WorkingDir = "WorkingDir";
+
+            /// <summary>
+            /// Holds the name of the command-line allowing a program to install
+            /// a trace listener that writes every trace to the log.
+            /// </summary>
+            public const string EnableTraceLogging = "LogSteps";
         }
     }
 }
