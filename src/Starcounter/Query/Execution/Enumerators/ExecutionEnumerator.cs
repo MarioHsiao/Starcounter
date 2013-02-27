@@ -495,9 +495,9 @@ internal abstract class ExecutionEnumerator
     {
         MyStringBuilder stringBuilder = new MyStringBuilder();
 
-        if (rowTypeBinding != null)
+        if (RowTypeBinding != null)
         {
-            rowTypeBinding.BuildString(stringBuilder, 0);
+            RowTypeBinding.BuildString(stringBuilder, 0);
         }
 
         BuildString(stringBuilder, 0);
