@@ -65,7 +65,7 @@ namespace Starcounter.Internal.JsonPatch {
                 });
             }
 
-            PATCH("/__vm/{?}", (int viewModelId) => {
+            PATCH("/__vm/{?}", (int viewModelId, HttpRequest request) => {
                 Puppet rootApp;
                 Session session;
                 HttpResponse response = null;
@@ -75,7 +75,7 @@ namespace Starcounter.Internal.JsonPatch {
                     session = Session.Current;
                     rootApp = session.GetRootApp(viewModelId);
 
-                    JsonPatch.EvaluatePatches(rootApp, session.HttpRequest.GetBodyByteArray_Slow());
+                    JsonPatch.EvaluatePatches(rootApp, request.GetBodyByteArray_Slow());
 
                     // TODO:
                     // Quick and dirty hack to autorefresh dependent properties that might have been 
