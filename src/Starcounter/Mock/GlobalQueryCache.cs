@@ -62,8 +62,7 @@ internal sealed class GlobalQueryCache
                 // Query is not cached, adding it.
                 // Parser and optimize it
                 // Creating enumerator from scratch.
-                Scheduler vproc = Scheduler.GetInstance();
-                IExecutionEnumerator newEnum = PrologManager.ProcessSqlQuery(vproc, query);
+                IExecutionEnumerator newEnum = Starcounter.Query.QueryPreparation.PrepareQuery(query);
 
                 // Assigning unique query ID.
                 newEnum.UniqueQueryID = (UInt64)numUniqueQueries;
