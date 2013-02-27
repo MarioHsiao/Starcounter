@@ -312,6 +312,7 @@
     <Compile Include="Query\prologbeans\QueryAnswer.cs" />
     <Compile Include="Query\prologbeans\SupportClass.cs" />
     <Compile Include="Query\prologbeans\Term.cs" />
+    <Compile Include="Query\QueryPreparation.cs" />
     <Compile Include="Query\RawParserAnalyzer\IParserTreeAnalyzer.cs" />
     <Compile Include="Query\RawParserAnalyzer\MapParserTree.cs" />
     <Compile Include="Query\RawParserAnalyzer\ParserTreeWalker.cs" />
