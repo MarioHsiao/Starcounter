@@ -123,6 +123,33 @@ namespace Starcounter.Server.PublicModel.Commands {
             this.Arguments = arguments;
         }
 
+        /// <summary>
+        /// Initialize an instance of <see cref="ExecAppCommand"/>, populating
+        /// properties from a given <see cref="ExecRequest"/>.
+        /// </summary>
+        /// <param name="engine">The <see cref="ServerEngine"/> where this command
+        /// are to execute.</param>
+        /// <param name="request">The request received whose values will
+        /// initialize the properties of the current command.</param>
+        public ExecAppCommand(ServerEngine engine, ExecRequest request)
+            : base(engine, null, "Starting {0}", Path.GetFileName(request.ExecutablePath)) {
+            if (string.IsNullOrEmpty(request.ExecutablePath)) {
+                throw new ArgumentNullException("request.ExecutablePath");
+            }
+            this.AssemblyPath = request.ExecutablePath;
+            if (request.ResourceDirectories == null || request.ResourceDirectories.Length == 0) {
+                this.WorkingDirectory = Path.GetDirectoryName(this.AssemblyPath);
+            } else if (request.ResourceDirectories.Length > 1) {
+                throw new NotImplementedException("Will soon be implemented.");
+            } else {
+                this.WorkingDirectory = request.ResourceDirectories[0];
+            }
+
+            this.Arguments = request.CommandLineArguments;
+            this.NoDb = request.NoDb;
+            this.LogSteps = request.LogSteps;
+        }
+
         /// <inheritdoc />
         internal override void GetReadyToEnqueue() {
             string[] scargs;
