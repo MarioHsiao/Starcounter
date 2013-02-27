@@ -24,6 +24,12 @@ namespace Starcounter.Templates {
         /// <param name="parent">The parent for the new message (if any)</param>
         /// <returns>The new message</returns>
         public override object CreateInstance(Container parent) {
+            if (_AppType != null) {
+                var msg = (Message)Activator.CreateInstance(_AppType);
+                msg.Template = this;
+                msg.Parent = parent;
+                return msg;
+            }
             return new Message() { Template = this, Parent = parent };
         }
 

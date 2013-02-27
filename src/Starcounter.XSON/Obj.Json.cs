@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using Starcounter.Templates;
@@ -139,5 +140,79 @@ namespace Starcounter {
             return 0;
         }
 
+        /// <summary>
+        /// Populates the current object with values parsed from the specified json string.
+        /// </summary>
+        /// <param name="json"></param>
+        public void PopulateFromJson(string json) {
+            using (JsonTextReader reader = new JsonTextReader(new StringReader(json))) {
+                if (reader.Read()) {
+                    if (!(reader.TokenType == JsonToken.StartObject)) {
+                        throw new Exception("Invalid json data. Cannot populate object");
+                    }
+                    PopulateObject(this, reader);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Poplulates the object with values from read from the jsonreader. This method is recursively
+        /// called for each new object that is parsed from the json.
+        /// </summary>
+        /// <param name="obj">The object to set the parsed values in</param>
+        /// <param name="reader">The JsonReader containing the json to be parsed.</param>
+        private void PopulateObject(Obj obj, JsonReader reader) {
+            bool insideArray = false;
+            Template tChild = null;
+            TObj tobj = obj.Template;
+            
+            while (reader.Read()) {
+                switch (reader.TokenType) {
+                    case JsonToken.StartObject:
+                        Obj newObj;
+                        if (insideArray) {
+                            newObj = obj.GetValue((TObjArr)tChild).Add();
+                        } else {
+                            newObj = obj.GetValue((TObj)tChild);
+                        }
+                        PopulateObject(newObj, reader);
+                        break;
+                    case JsonToken.EndObject:
+                        return;
+                    case JsonToken.PropertyName:
+                        tChild = tobj.Properties.GetTemplateByName((string)reader.Value);
+                        if (tChild == null) {
+                            // TODO: 
+                            // How should we handle properties in the json string that does not exist in the Obj?
+                            throw new Exception("Unknown property '" + reader.Value + "' found in json. Cannot populate object.");
+                        }
+                        break;
+                    case JsonToken.String:
+                        obj.SetValue((TString)tChild, (string)reader.Value);
+                        break;
+                    case JsonToken.Integer:
+                        obj.SetValue((TLong)tChild, (long)reader.Value);
+                        break;
+                    case JsonToken.Boolean:
+                        obj.SetValue((TBool)tChild, (bool)reader.Value);
+                        break;
+                    case JsonToken.Float:
+                        if (tChild is TDecimal) {
+                            obj.SetValue((TDecimal)tChild, Convert.ToDecimal(reader.Value));
+                        } else {
+                            obj.SetValue((TDouble)tChild, (double)reader.Value);
+                        }
+                        break;
+                    case JsonToken.StartArray:
+                        insideArray = true;
+                        break;
+                    case JsonToken.EndArray:
+                        insideArray = false;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+        }
     }
 }
