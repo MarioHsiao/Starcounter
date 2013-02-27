@@ -35,6 +35,18 @@ namespace QueryProcessingTest {
             TestOffsetkeyWithSorting();
             // See simple aggregate plan. Try to get aggregate node on top
             HelpMethods.PrintSlowQueryPlan("select sum(amount) from account");
+            // Test queries with LIKE ?
+            HelpMethods.PrintQueryPlan("select u from user u where userid like ?");
+            nrs = 0;
+            foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "kati%"))
+                nrs++;
+            Console.WriteLine(nrs);
+            nrs = 0;
+            foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "%ti1%"))
+                nrs++;
+            Console.WriteLine(nrs);
+            foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "kati1"))
+                Console.WriteLine(u.UserId);
         }
 
         public static void TestOffsetkeyWithSorting() {
