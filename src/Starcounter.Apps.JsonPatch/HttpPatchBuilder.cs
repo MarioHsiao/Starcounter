@@ -196,7 +196,7 @@ namespace Starcounter.Internal.JsonPatch
             if (template is TString) {
                 ret = change.App.GetValue((TString)template);
             } else if (template is TObjArr) {
-                Listing appList = (Listing)change.App.GetValue((TObjArr)template);
+                Arr appList = (Arr)change.App.GetValue((TObjArr)template);
                 ret = appList[change.Index];
             } else if (template is TLong) {
                 ret = change.App.GetValue((TLong)template);

@@ -216,10 +216,10 @@ namespace Starcounter.Server {
         }
 
         internal bool StartCodeHostProcess(Database database, out Process process) {
-            return StartCodeHostProcess(database, false, out process);
+            return StartCodeHostProcess(database, false, false, out process);
         }
 
-        internal bool StartCodeHostProcess(Database database, bool startWithNoDb, out Process process) {
+        internal bool StartCodeHostProcess(Database database, bool startWithNoDb, bool applyLogSteps, out Process process) {
             process = database.GetRunningCodeHostProcess();
             if (process != null) 
                 return false;
@@ -227,7 +227,7 @@ namespace Starcounter.Server {
             // No process referenced, or the referenced process was not
             // alive. Start a code host process.
 
-            process = Process.Start(GetCodeHostProcessStartInfo(database, startWithNoDb));
+            process = Process.Start(GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps));
             database.CodeHostProcess = process;
             database.SupposedToBeStarted = true;
             return true;
@@ -310,11 +310,7 @@ namespace Starcounter.Server {
             return new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
         }
 
-        ProcessStartInfo GetCodeHostProcessStartInfo(Database database) {
-            return GetCodeHostProcessStartInfo(database, false);
-        }
-
-        ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb) {
+        ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false) {
             ProcessStartInfo processStart;
             StringBuilder args;
 
@@ -330,6 +326,9 @@ namespace Starcounter.Server {
                 args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.NoDb);
             }
             // args.Append(" --FLAG:" + ProgramCommandLine.OptionNames.NoNetworkGateway);
+            if (applyLogSteps) {
+                args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
+            }
 
             if (database.Configuration.Runtime.SchedulerCount.HasValue) {
                 args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SchedulerCount + "={0}", database.Configuration.Runtime.SchedulerCount.Value);

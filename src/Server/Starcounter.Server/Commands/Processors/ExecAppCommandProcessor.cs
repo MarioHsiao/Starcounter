@@ -95,7 +95,7 @@ namespace Starcounter.Server.Commands {
 
             OnDatabaseProcessStarted();
 
-            Engine.DatabaseEngine.StartCodeHostProcess(database, command.NoDb, out codeHostProcess);
+            Engine.DatabaseEngine.StartCodeHostProcess(database, command.NoDb, command.LogSteps, out codeHostProcess);
 
             OnWorkerProcessStarted();
 

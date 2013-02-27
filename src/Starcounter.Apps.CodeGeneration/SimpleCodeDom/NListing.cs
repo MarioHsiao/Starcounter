@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="NListing.cs" company="Starcounter AB">
+// <copyright file="NArr.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -11,12 +11,12 @@ using System.Text;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// The source code representation of each Listing&lt;T1&gt;, TArr&lt;T1,T2&gt; 
+    /// The source code representation of each Arr&lt;T1&gt;, TArr&lt;T1,T2&gt; 
     /// or ArrMetadata&lt;T1,T2&gt; class where 
     /// T1 is the link to the App class and T2 is the link to the TApp class being used in the list.
     /// This means that there is one instance of this class for each T1,T2 combination used.
     /// </summary>
-    public class NListingXXXClass : NValueClass {
+    public class NArrXXXClass : NValueClass {
 
         /// <summary>
         /// 
@@ -26,7 +26,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="appType"></param>
         /// <param name="templateType"></param>
         /// <param name="template"></param>
-        public NListingXXXClass(DomGenerator gen, string typename, NClass appType, NClass templateType, Template template ) 
+        public NArrXXXClass(DomGenerator gen, string typename, NClass appType, NClass templateType, Template template ) 
         :base( gen)
         {
             //this.NTemplateClass.Template = template;            
