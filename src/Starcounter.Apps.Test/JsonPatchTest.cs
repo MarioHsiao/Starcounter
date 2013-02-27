@@ -10,8 +10,8 @@ using System.Text;
 using NUnit.Framework;
 using Starcounter.Apps;
 using Starcounter.Internal;
-using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
+using Starcounter.Internal.JsonTemplate;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {
@@ -229,7 +229,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
             TObjArr itemProperty = (TObjArr)appt.Properties[2];
-            Listing items = aat.App.GetValue(itemProperty);
+            Arr items = aat.App.GetValue(itemProperty);
 
             nearestApp = items[1];
             anotherAppt = nearestApp.Template;
