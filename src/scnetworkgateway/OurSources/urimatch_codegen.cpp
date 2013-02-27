@@ -21,15 +21,16 @@ void CodegenUriMatcher::Init()
     HINSTANCE rest_dll = LoadLibrary(L"Starcounter.Rest.dll");
     GW_ASSERT(rest_dll != NULL);
 
-    generate_uri_matcher_ = (GenerateUriMatcherType) GetProcAddress(rest_dll, "GenerateNativeUriMatcher");
+    generate_uri_matcher_ = (MixedCodeConstants::GenerateNativeUriMatcherType) GetProcAddress(rest_dll, "GenerateNativeUriMatcher");
     GW_ASSERT(generate_uri_matcher_ != NULL);
 }
 
 // Compile given code into native dll.
 uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
     UriMatchCodegenCompilerType comp_type,
-    std::wstring out_name,
-    MatchUriType& match_uri_func)
+    std::wstring gen_file_name,    
+    MixedCodeConstants::MatchUriType* out_match_uri_func,
+    HMODULE* out_codegen_dll_handle)
 {
     switch(comp_type)
     {
@@ -37,9 +38,9 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
         case COMPILER_GCC:
         {
             std::wstring out_dir = g_gateway.get_setting_gateway_output_dir() + L"\\rps";
-            std::wstring out_cpp_path = out_dir + L"\\" + out_name + L".cpp";
-            std::wstring out_dll_path = out_dir + L"\\" + out_name + L".dll";
-            std::wstring compiler_output_path = out_dir + L"\\" + out_name + L".out";
+            std::wstring out_cpp_path = out_dir + L"\\" + gen_file_name + L".cpp";
+            std::wstring out_dll_path = out_dir + L"\\" + gen_file_name + L".dll";
+            std::wstring compiler_output_path = out_dir + L"\\" + gen_file_name + L".out";
 
             // Creating directory if it does not exist.
             if ((!CreateDirectory(out_dir.c_str(), NULL)) &&
@@ -49,9 +50,9 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             }
 
             // Checking if dll file already exists.
-            std::ifstream dll_file(out_dll_path);
-            if (dll_file.good())
-                GW_ASSERT(false);
+            //std::ifstream dll_file(out_dll_path);
+            //if (dll_file.good())
+            //    GW_ASSERT(false);
 
             std::wstring compiler_path;
             std::wstring compiler_cmd;
@@ -59,7 +60,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             if (comp_type == COMPILER_GCC)
             {
                 compiler_path = L"\\MinGW\\bin\\x86_64-w64-mingw32-gcc.exe";
-                compiler_cmd = std::wstring(L"\"") + g_gateway.get_setting_sc_bin_dir() + compiler_path + L"\" \"" + out_name + L".cpp" + L"\" -nostdlib -shared -O2 -o \"" + out_name + L".dll" + L"\"";
+                compiler_cmd = std::wstring(L"\"") + g_gateway.get_setting_sc_bin_dir() + compiler_path + L"\" \"" + gen_file_name + L".cpp" + L"\" -nostdlib -shared -O2 -o \"" + gen_file_name + L".dll" + L"\"";
             }
             else
             {
@@ -70,11 +71,11 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 SetEnvironmentVariable(L"LIB", msvc_libs_dir.c_str());
                 SetEnvironmentVariable(L"Platform", L"x64");
 
-                compiler_cmd = std::wstring(L"\"") + compiler_path + L"\" \"" + out_name + L".cpp" + L"\" /Od /Zi /LDd /MDd /link /SUBSYSTEM:WINDOWS /MACHINE:X64 /DEBUG /DLL";
+                compiler_cmd = std::wstring(L"\"") + compiler_path + L"\" \"" + gen_file_name + L".cpp" + L"\" /Od /Zi /LDd /MDd /link /SUBSYSTEM:WINDOWS /MACHINE:X64 /DEBUG /DLL";
             }
 
             // Saving code to file.
-            //std::ofstream out_cpp_file = std::ofstream(out_cpp_path, std::ios::out | std::ios::app);
+            //std::ofstream out_cpp_file = std::ofstream(out_cpp_path, std::ios::out | std::ios::binary);
             //out_cpp_file.write(uri_matching_code_, uri_code_size_bytes_);
             //out_cpp_file.close();
 
@@ -151,11 +152,11 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             }
 
             // Load generated library into memory and load procedure by name.
-            HINSTANCE codegen_dll = LoadLibrary(out_dll_path.c_str());
-            GW_ASSERT(codegen_dll != NULL);
+            *out_codegen_dll_handle = LoadLibrary(out_dll_path.c_str());
+            GW_ASSERT(*out_codegen_dll_handle != NULL);
 
-            match_uri_func = (MatchUriType) GetProcAddress(codegen_dll, "Process");
-            GW_ASSERT(match_uri_func != NULL);
+            *out_match_uri_func = (MixedCodeConstants::MatchUriType) GetProcAddress(*out_codegen_dll_handle, "MatchUriRoot");
+            GW_ASSERT(*out_match_uri_func != NULL);
 
             break;
         }
