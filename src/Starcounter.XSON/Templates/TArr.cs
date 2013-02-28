@@ -7,7 +7,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Starcounter.Templates.DataBinding;
 
 namespace Starcounter.Templates {
 
@@ -84,28 +83,7 @@ namespace Starcounter.Templates {
 #if IAPP
 //        , ITObjArr
 #endif
-    {
-
-        private DataBinding<Rows<object>> dataBinding;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<Obj, Rows<object>> dataGetter) {
-            dataBinding = new DataBinding<Rows<object>>(dataGetter);
-            Bound = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <returns></returns>
-        public Rows<object> GetBoundValue(Obj app) {
-            return dataBinding.GetValue(app);
-        }
-        
+    {   
         /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements
         /// in this array.

@@ -14,7 +14,8 @@ namespace Starcounter {
     public partial class Obj {
         private TVal Get<TTemplate, TVal>(TTemplate property) where TTemplate : TValue<TVal> {
             if (property.Bound)
-                return property.GetBoundValue(this);
+                throw new NotImplementedException();
+//                return property.GetBoundValue(this);
 
 #if QUICKTUPLE
                 return _Values[property.Index];
@@ -24,9 +25,10 @@ namespace Starcounter {
         }
         private void Set<TTemplate, TVal>(TTemplate property, TVal value) where TTemplate : TValue<TVal> {
             if (property.Bound) {
-                property.SetBoundValue(this, value);
-                this.HasChanged(property);
-                return;
+                throw new NotImplementedException();
+//                property.SetBoundValue(this, value);
+                //this.HasChanged(property);
+                //return;
             }
 
 #if QUICKTUPLE
@@ -112,7 +114,8 @@ namespace Starcounter {
         public object this[TValue property] {
             get {
                 if (property.Bound)
-                    return (object)property.GetBoundValue(this);
+                    throw new NotImplementedException();
+//                    return (object)property.GetBoundValue(this);
 
                 #if QUICKTUPLE
                     return _Values[property.Index];
@@ -122,9 +125,10 @@ namespace Starcounter {
             }
             set {
                 if (property.Bound) {
-                    property.SetBoundValue(this, value);
-                    this.HasChanged(property);
-                    return;
+                    throw new NotImplementedException();
+//                    property.SetBoundValue(this, value);
+                    //this.HasChanged(property);
+                    //return;
                 }
 
                 #if QUICKTUPLE
@@ -171,7 +175,8 @@ namespace Starcounter {
         public Obj this[TObj property] {
             get {
                 if (property.Bound)
-                    return (Obj)property.GetBoundValue(this);
+                    throw new NotImplementedException();
+//                    return (Obj)property.GetBoundValue(this);
 
 #if QUICKTUPLE
                 return _Values[property.Index];
@@ -181,9 +186,10 @@ namespace Starcounter {
             }
             set {
                 if (property.Bound) {
-                    property.SetBoundValue(this, value);
-                    this.HasChanged(property);
-                    return;
+                    throw new NotImplementedException();
+//                    property.SetBoundValue(this, value);
+                    //this.HasChanged(property);
+                    //return;
                 }
 
 #if QUICKTUPLE

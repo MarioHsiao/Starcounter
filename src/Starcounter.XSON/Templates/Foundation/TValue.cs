@@ -7,7 +7,6 @@
 using System;
 using Starcounter.Templates;
 using System.Collections.Generic;
-using Starcounter.Templates.DataBinding;
 using System.Diagnostics;
 
 namespace Starcounter {
@@ -19,8 +18,6 @@ namespace Starcounter {
         public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
 
-        private DataBinding<T> dataBinding;
-        
         /// <summary>
         /// Adds an inputhandler to this property.
         /// </summary>
@@ -31,61 +28,6 @@ namespace Starcounter {
             Action<Obj, Input<T>> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<Obj, T> dataGetter) {
-            dataBinding = new DataBinding<T>(dataGetter);
-            Bound = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataGetter"></param>
-        /// <param name="dataSetter"></param>
-        public void AddDataBinding(Func<Obj, T> dataGetter, Action<Obj, T> dataSetter) {
-            dataBinding = new DataBinding<T>(dataGetter, dataSetter);
-            Bound = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="value"></param>
-        public void SetBoundValue(Obj app, T value) {
-            dataBinding.SetValue(app, value);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <returns></returns>
-        public T GetBoundValue(Obj app) {
-            return dataBinding.GetValue(app);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public override object GetBoundValueAsObject(Obj obj) {
-            return dataBinding.GetValue(obj);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="value"></param>
-        public override void SetBoundValueAsObject(Obj obj, object value) {
-            dataBinding.SetValue(obj, (T)value);
         }
     }
 
@@ -104,6 +46,18 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Gets or sets the name of the property this template is bound to.
+        /// </summary>
+        /// <value>The bind.</value>
+        public string Bind { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this template is bound.
+        /// </summary>
+        /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
+        public bool Bound { get { return (Bind != null); } }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <remarks>
@@ -113,5 +67,14 @@ namespace Starcounter {
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
         public abstract void ProcessInput(Obj obj, Byte[] rawValue);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="toTemplate"></param>
+        public override void CopyTo(Template toTemplate) {
+            base.CopyTo(toTemplate);
+            ((TValue)toTemplate).Bind = Bind;
+        }
     }
 }

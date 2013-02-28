@@ -136,9 +136,9 @@ namespace Starcounter {
 
             _Data = data;
 
-            if (Template.Bound) {
-                Template.SetBoundValue((Obj)this.Parent, data);
-            }
+            //if (Template.Bound) {
+            //    Template.SetBoundValue((Obj)this.Parent, data);
+            //}
 
             RefreshAllBoundValues();
             OnData();
@@ -152,9 +152,9 @@ namespace Starcounter {
             Template child;
             for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
                 child = Template.Properties[i];
-                if (child.Bound) {
-                    Refresh(child);
-                }
+                //if (child.Bound) {
+                //    Refresh(child);
+                //}
             }
         }
 
@@ -183,15 +183,15 @@ namespace Starcounter {
         public void Refresh(Template property) {
             if (property is TObjArr) {
                 TObjArr apa = (TObjArr)property;
-                this.SetValue(apa, apa.GetBoundValue(this));
+//                this[apa] = apa.GetBoundValue(this);
             }
             else if (property is TObj) {
                 var at = (TObj)property;
 
                 // TODO:
-                IBindable v = at.GetBoundValue(this);
+                IBindable v = null; //at.GetBoundValue(this);
                 if (v != null)
-                    this.SetValue(at, v);
+                    this.Set(at, v);
             }
             else {
                 TValue p = property as TValue;
