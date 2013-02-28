@@ -115,28 +115,26 @@ namespace star {
 
         static void Usage(IApplicationSyntax syntax) {
             string formatting;
-            Console.WriteLine("Usage: star [options] [command] [[options] parameters]");
-            Console.WriteLine();
-            Console.WriteLine("\"exec\" is the default command.");
-            // Console.WriteLine("To get help about a command, use star [command] -h");
+            Console.WriteLine("Usage: star [options] executable [parameters]");
             Console.WriteLine();
             Console.WriteLine("Options:");
             formatting = "  {0,-22}{1,25}";
             Console.WriteLine(formatting, "-h, --help", "Shows help about star.exe.");
             Console.WriteLine(formatting, "-v, --version", "Prints the version of Starcounter.");
             Console.WriteLine(formatting, "-i, --info", "Prints information about the Starcounter installation.");
-            Console.WriteLine(formatting, "-d, --db name|uri", "The database to use for commands that support it.");
+            Console.WriteLine(formatting, "-p, --serverport port", "The port to use to the admin server.");
+            Console.WriteLine(formatting, "-d, --db name|uri", "The database to use. 'Default' is used if not given.");
+            Console.WriteLine(formatting, "--server name", "Specifies the name of the server. If no port is");
+            Console.WriteLine(formatting, "", "specified, star.exe use the known port of server.");
             Console.WriteLine(formatting, "--logsteps", "Enables diagnostic logging.");
-            // Console.WriteLine(formatting, "--verbosity level", "Sets the verbosity level of star.exe (quiet, minimal, verbose, diagnostic). Minimal is the default.");
+            Console.WriteLine(formatting, "--verbosity level", "Sets the verbosity level of star.exe (quiet, ");
+            Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
             Console.WriteLine();
-            Console.WriteLine("Commands:");
-            Console.WriteLine("  exec file [arguments to main]");
-            Console.WriteLine("  create name|uri");
-            Console.WriteLine("  show name|uri");
+            Console.WriteLine("TEMPORARY: Creating a repository.");
+            Console.WriteLine("Run star.exe @@CreateRepo path [servername] to create a repository.");
             Console.WriteLine();
             Console.WriteLine("Environment variables:");
             Console.WriteLine("STAR_SERVER\t{0,8}", "Sets the server to use by default.");
-            Console.WriteLine("STAR_CLI_TEST\t{0,8}", "Used for tests. If set, validates the command-line and return.");
             Console.WriteLine();
             Console.WriteLine("For complete help, see http://www.starcounter.com/wiki/star.exe");
         }
