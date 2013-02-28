@@ -77,9 +77,6 @@ namespace bmx
 
     const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 152;
 
-    // Offset of data blob in socket data.
-    const int32_t SOCKET_DATA_OFFSET_BLOB = 712;
-
     const uint32_t CHUNK_OFFSET_USER_DATA = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_STRUCT_SIZE + SESSION_STRUCT_SIZE;
     const uint32_t CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA + 4;
     const uint32_t CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = CHUNK_OFFSET_MAX_USER_DATA_BYTES + 4;
@@ -106,9 +103,6 @@ namespace bmx
 
     // Maximum number of the same handlers in a list.
     const uint32_t MAX_NUMBER_OF_HANDLERS_IN_LIST = 8;
-
-    // Maximum number of URI callback parameters.
-    const uint32_t MAX_URI_CALLBACK_PARAMS = 32;
 
     // Maximum URI string length.
     const uint32_t MAX_URI_STRING_LEN = 512;
@@ -189,7 +183,7 @@ namespace bmx
         bmx::HTTP_METHODS http_method_;
 
         uint8_t num_params_;
-        uint8_t param_types_[MAX_URI_CALLBACK_PARAMS];
+        uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
 
     public:
 
@@ -321,7 +315,7 @@ namespace bmx
 
             num_params_ = num_params;
             if (num_params_ > 0)
-                memcpy(param_types_, param_types, MAX_URI_CALLBACK_PARAMS);
+                memcpy(param_types_, param_types, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
 
             // Checking the type of handler.
             switch(type)
@@ -429,7 +423,7 @@ namespace bmx
             resp_chunk->write_string(uri_string_, uri_len_chars_);
             resp_chunk->write((uint8_t)http_method_);
             resp_chunk->write(num_params_);
-            resp_chunk->write_data_only(param_types_, MAX_URI_CALLBACK_PARAMS);
+            resp_chunk->write_data_only(param_types_, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
 
             return resp_chunk->get_offset();
         }

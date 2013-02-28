@@ -14,6 +14,12 @@ namespace Starcounter.Templates {
         /// <param name="parent">The parent for the new Puppet (if any)</param>
         /// <returns>The new puppet</returns>
         public override object CreateInstance(Container parent) {
+            if (_AppType != null) {
+                var p = (Puppet)Activator.CreateInstance(_AppType);
+                p.Template = this;
+                p.Parent = parent;
+                return p;
+            }
             return new Puppet() { Template = this, Parent = parent };
         }
 

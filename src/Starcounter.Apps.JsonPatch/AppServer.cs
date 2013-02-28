@@ -58,7 +58,13 @@ namespace Starcounter.Internal.Web {
                 }
 
                 object x;
+
+                // Invoking original user delegate with parameters here.
+#if GW_URI_MATCHING_CODEGEN
+                UserHandlerCodegen.UHC.HandlersManager.RunDelegate(request, out x);
+#else
                 RequestHandler.RequestProcessor.Invoke(request, out x);
+#endif
                 if (x != null) {
                     if (x is Puppet) {
                         var app = (Puppet)x;
