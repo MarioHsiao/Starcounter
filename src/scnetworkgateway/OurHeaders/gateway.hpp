@@ -51,7 +51,6 @@ typedef uint32_t session_index_type;
 typedef uint64_t session_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t log_handle_type;
-typedef uint64_t handler_info_type;
 
 // Statistics macros.
 #define GW_GLOBAL_STATISTICS
@@ -200,7 +199,7 @@ const int32_t MAX_PROXIED_URIS = 32;
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
-const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = bmx::SOCKET_DATA_OFFSET_BLOB;
+const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
 
 // Length of blob data in bytes.
 const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::CHUNK_MAX_DATA_BYTES - bmx::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
@@ -1304,7 +1303,6 @@ public:
 };
 
 class CodegenUriMatcher;
-struct RegisteredUriManaged;
 class GatewayWorker;
 class Gateway
 {

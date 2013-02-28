@@ -42,8 +42,81 @@ uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bo
 
     return 0;
 }
+
 // Fetches method and URI from HTTP request data.
 inline uint32_t GetMethodAndUri(
+    char* http_data,
+    uint32_t http_data_len,
+    uint32_t* out_method_and_uri_len,
+    uint32_t* out_uri_offset,
+    uint32_t uri_max_len)
+{
+    uint32_t pos = 0;
+
+    // Reading method.
+    while (pos < http_data_len)
+    {
+        if (http_data[pos] == ' ')
+            break;
+
+        pos++;
+    }
+
+    // Copying offset to URI.
+    *out_uri_offset = pos + 1;
+
+    // Reading URI.
+    pos++;
+    while (pos < http_data_len)
+    {
+        if (http_data[pos] == ' ')
+        {
+#ifdef GW_URI_MATCHING_CODEGEN
+            pos++;
+#endif
+
+            break;
+        }
+
+        pos++;
+    }
+
+    // TODO!
+    // Checking that we have HTTP protocol.
+    if (pos < http_data_len)
+    {
+        // Checking for HTTP keyword.
+#ifdef GW_URI_MATCHING_CODEGEN
+        if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
+#else
+        if (*(uint32_t*)(http_data + pos + 1) != *(uint32_t*)"HTTP")
+#endif
+        {
+            // Wrong protocol.
+            return SCERRGWNONHTTPPROTOCOL;
+        }
+    }
+    else
+    {
+        // Either wrong protocol or not enough accumulated data.
+        return SCERRGWNONHTTPPROTOCOL;
+    }
+
+    // Checking if method and URI has correct length.
+    if (pos < uri_max_len)
+    {
+        // Setting output length.
+        *out_method_and_uri_len = pos;
+
+        return 0;
+    }
+
+    // Wrong protocol.
+    return SCERRGWNONHTTPPROTOCOL;
+}
+
+// Fetches method and URI from HTTP request data.
+inline uint32_t GetMethodAndUriLowerCase(
     char* http_data,
     uint32_t http_data_len,
     char* out_methoduri_lower_case,
@@ -70,7 +143,13 @@ inline uint32_t GetMethodAndUri(
     while (pos < http_data_len)
     {
         if (http_data[pos] == ' ')
+        {
+#ifdef GW_URI_MATCHING_CODEGEN
+            pos++;
+#endif
+
             break;
+        }
 
         pos++;
     }
@@ -80,7 +159,11 @@ inline uint32_t GetMethodAndUri(
     if (pos < http_data_len)
     {
         // Checking for HTTP keyword.
+#ifdef GW_URI_MATCHING_CODEGEN
+        if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
+#else
         if (*(uint32_t*)(http_data + pos + 1) != *(uint32_t*)"HTTP")
+#endif
         {
             // Wrong protocol.
             return SCERRGWNONHTTPPROTOCOL;
@@ -99,7 +182,7 @@ inline uint32_t GetMethodAndUri(
         strncpy_s(out_methoduri_lower_case, pos + 1, http_data, pos);
 
         // Converting to lower case.
-        _strlwr_s(out_methoduri_lower_case, pos + 1);
+        _strlwr_s(out_methoduri_lower_case + (*out_uri_offset), pos + 1 - (*out_uri_offset));
 
         // Setting output length.
         *out_len = pos;
@@ -434,17 +517,30 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             return ws_proto_.ProcessWsDataToDb(gw, sd, handler_index);
 
         // Obtaining method and URI.
-        char* method_and_uri_lower_case = gw->get_uri_lower_case();
+        char* method_and_uri = (char*)(sd->get_data_blob());
         uint32_t method_and_uri_len, uri_offset;
 
-        // Checking for any errors.
+        // Getting method and URI information.
         uint32_t err_code = GetMethodAndUri(
+            method_and_uri,
+            sd->get_accum_buf()->get_accum_len_bytes(),
+            &method_and_uri_len,
+            &uri_offset,
+            bmx::MAX_URI_STRING_LEN);
+
+        /*
+        // TODO: Support alternative lower-case strategy when URI didn't match.
+        method_and_uri_lower_case = gw->get_uri_lower_case();
+
+        // Converting URI to lower case.
+        err_code = GetMethodAndUriLowerCase(
             (char*)(sd->get_data_blob()),
             sd->get_accum_buf()->get_accum_len_bytes(),
             method_and_uri_lower_case,
             &method_and_uri_len,
             &uri_offset,
             bmx::MAX_URI_STRING_LEN);
+        */
 
         // Checking for any errors.
         if (err_code)
@@ -482,17 +578,43 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         uint16_t port_num = server_port->get_port_number();
         RegisteredUris* reg_uris = server_port->get_registered_uris();
 
+        // Determining which matched handler to pick.
+        int32_t matched_index = INVALID_URI_INDEX;
+
+#ifdef GW_URI_MATCHING_CODEGEN
+
+        // Checking if URI matching code is generated.
+        if (!reg_uris->get_latest_gen_dll_handle())
+        {
+            // Entering global lock.
+            gw->EnterGlobalLock();
+
+            // Generating and loading URI matcher.
+            err_code = g_gateway.GenerateUriMatcher(port_num);
+
+            // Releasing global lock.
+            gw->LeaveGlobalLock();
+
+            if (err_code)
+                return err_code;
+        }
+
+        // Getting the matched uri index.
+        matched_index = reg_uris->RunCodegenUriMatcher(method_and_uri, method_and_uri_len, sd->get_accept_data());
+        goto DONE_URI_MATCHING;
+
+#endif
+
         // Searching matching method and URI.
         int32_t max_matched_chars_method_and_uri;
-        int32_t matched_index_method_and_uri = reg_uris->SearchMatchingUriHandler(method_and_uri_lower_case, method_and_uri_len, max_matched_chars_method_and_uri);
+        int32_t matched_index_method_and_uri = reg_uris->SearchMatchingUriHandler(method_and_uri, method_and_uri_len, max_matched_chars_method_and_uri);
         max_matched_chars_method_and_uri -= uri_offset;
 
         // Searching on URIs only now.
         int32_t max_matched_chars_just_uri;
-        int32_t matched_index_just_uri = reg_uris->SearchMatchingUriHandler(method_and_uri_lower_case + uri_offset, method_and_uri_len - uri_offset, max_matched_chars_just_uri);
+        int32_t matched_index_just_uri = reg_uris->SearchMatchingUriHandler(method_and_uri + uri_offset, method_and_uri_len - uri_offset, max_matched_chars_just_uri);
 
-        // Determining which matched handler to pick.
-        int32_t matched_index = INVALID_URI_INDEX;
+        // Checking if succeeded.
         if (matched_index_method_and_uri >= 0)
         {
             matched_index = matched_index_method_and_uri;
@@ -509,6 +631,8 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         {
             matched_index = matched_index_just_uri;
         }
+
+DONE_URI_MATCHING:
 
         // Checking if we failed to find again.
         if (matched_index < 0)

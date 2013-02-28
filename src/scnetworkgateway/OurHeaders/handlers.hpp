@@ -30,7 +30,7 @@ class HandlersList
     char uri_string_[bmx::MAX_URI_STRING_LEN];
     uint32_t uri_len_chars_;
     bmx::HTTP_METHODS http_method_;
-    uint8_t param_types_[bmx::MAX_URI_CALLBACK_PARAMS];
+    uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
     uint8_t num_params_;
 
 public:
@@ -45,6 +45,18 @@ public:
     explicit HandlersList()
     {
         Unregister();
+    }
+
+    // Getting params.
+    uint8_t* get_param_types()
+    {
+        return param_types_;
+    }
+
+    // Getting number of parameters.
+    uint8_t get_num_params()
+    {
+        return num_params_;
     }
 
     // Getting handler info.
@@ -101,12 +113,6 @@ public:
         return type_;
     }
 
-    // Get number of URI callback parameters.
-    int32_t get_num_params()
-    {
-        return num_params_;
-    }
-
     // Find existing handler.
     bool HandlerAlreadyExists(GENERIC_HANDLER_CALLBACK handler_callback)
     {
@@ -141,7 +147,7 @@ public:
     // Init.
     uint32_t Init(
         bmx::HANDLER_TYPE type,
-        BMX_HANDLER_TYPE handler_id,
+        BMX_HANDLER_TYPE handler_info,
         uint16_t port,
         bmx::BMX_SUBPORT_TYPE subport,
         const char* uri_string,
@@ -156,14 +162,14 @@ public:
         port_ = port;
 
         subport_ = subport;
-        handler_info_ = handler_id;
+        handler_info_ = handler_info;
 
         http_method_ = http_method;
         uri_len_chars_ = uri_len_chars;
 
         num_params_ = num_params;
         if (num_params_ > 0)
-            memcpy(param_types_, param_types, bmx::MAX_URI_CALLBACK_PARAMS);
+            memcpy(param_types_, param_types, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
 
         // Checking the type of handler.
         switch(type_)

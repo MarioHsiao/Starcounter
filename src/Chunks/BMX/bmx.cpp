@@ -312,7 +312,8 @@ uint32_t BmxData::RegisterUriHandler(
     strncpy_s(uri_str_lc, MAX_URI_STRING_LEN, uri_string, uri_len_chars);
 
     // Convert string to lower case.
-    _strlwr_s(uri_str_lc);
+    // TODO: Remove lower casing if not needed.
+    //_strlwr_s(uri_str_lc);
 
     BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
 

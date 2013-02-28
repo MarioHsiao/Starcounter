@@ -2662,25 +2662,32 @@ uint32_t Gateway::GenerateUriMatcher(uint16_t port)
     RegisteredUris* all_port_uris = server_port->get_registered_uris();
 
     // Getting registered URIs.
-    std::vector<RegisteredUriManaged> uris_managed = all_port_uris->GetRegisteredUriManaged();
+    std::vector<MixedCodeConstants::RegisteredUriManaged> uris_managed = all_port_uris->GetRegisteredUriManaged();
 
     // Calling managed function.
     uint32_t err_code = codegen_uri_matcher_->GenerateUriMatcher(&uris_managed.front(), uris_managed.size());
     if (err_code)
         return err_code;
 
-    MatchUriType match_uri_func;
+    MixedCodeConstants::MatchUriType match_uri_func;
+    HMODULE gen_dll_handle;
+
+    // Unloading existing matcher DLL if any.
+    all_port_uris->UnloadLatestUriMatcherDllIfAny();
 
     // Building URI matcher from generated code and loading the library.
     err_code = codegen_uri_matcher_->CompileIfNeededAndLoadDll(
-        UriMatchCodegenCompilerType::COMPILER_GCC,
+        UriMatchCodegenCompilerType::COMPILER_MSVC,
         L"codegen_uri_matcher",
-        match_uri_func);
+        &match_uri_func,
+        &gen_dll_handle);
 
     if (err_code)
         return err_code;
 
+    // Setting the entry point for new URI matcher.
     all_port_uris->set_latest_match_uri_func(match_uri_func);
+    all_port_uris->set_latest_gen_dll_handle(gen_dll_handle);
 
     return 0;
 }
