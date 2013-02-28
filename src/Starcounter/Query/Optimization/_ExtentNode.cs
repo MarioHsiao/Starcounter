@@ -212,7 +212,9 @@ internal class ExtentNode : IOptimizationNode
         // Find if there are IsTypeExpressions and evaluate them
         // Objects in all Is type conditions are from the same extent
         Boolean noFalseConditions = true;
-        for (Int32 j = 0; j < conditionList.Count && noFalseConditions; j++)
+        for (Int32 j = 0; j < conditionList.Count && noFalseConditions; j++) {
+            if (conditionList[j] is CodeGenFilterNode)
+                canCodeGen = canCodeGen && (conditionList[j] as CodeGenFilterNode).CanCodeGen;
             if (conditionList[j] is IsTypePredicate) {
                 // notice or decide strategy
                 IsTypeCompare res = ((IsTypePredicate)conditionList[j]).EvaluateAtCompile();
@@ -229,7 +231,7 @@ internal class ExtentNode : IOptimizationNode
                         if (mostSubtypeCondition == null) {
                             mostSubtypeCondition = (IsTypePredicate)conditionList[j];
                             posMostSubtypeCondition = j;
-                        }  else {
+                        } else {
                             //compare conditions
                             IsTypePredicate currentCondition = (IsTypePredicate)conditionList[j];
                             switch (mostSubtypeCondition.CompareTypeTo(currentCondition)) {
@@ -268,6 +270,7 @@ internal class ExtentNode : IOptimizationNode
                         break;
                 }
             }
+        }
         subtypeCondition = mostSubtypeCondition;
 
         // Try to find an appropriate index for an index scan.
@@ -276,10 +279,8 @@ internal class ExtentNode : IOptimizationNode
         for (Int32 j = 0; j < conditionList.Count; j++) {
             if (conditionList[j] is IComparison)
                 if ((conditionList[j] as IComparison).GetPathTo(extentNumber) != null &&
-                Optimizer.RangeOperator((conditionList[j] as IComparison).Operator)) {
+                Optimizer.RangeOperator((conditionList[j] as IComparison).Operator))
                     comparisonList.Add(conditionList[j] as IComparison);
-                    canCodeGen = canCodeGen && ((CodeGenFilterNode)conditionList[j]).CanCodeGen;
-                }
         }
         // Get all index infos for the current type.
         IndexInfo[] indexInfoArr = (rowTypeBind.GetTypeBinding(extentNumber) as TypeBinding).GetAllInheritedIndexInfos();

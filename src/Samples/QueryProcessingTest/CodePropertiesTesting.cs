@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Starcounter;
 
 namespace QueryProcessingTest {
@@ -46,6 +47,14 @@ namespace QueryProcessingTest {
                 foreach (IObjectView o in Db.SlowSQL("select age, count(name) from user u where age < ? group by age fetch ? offset ?", 35, 3, 2))
                     Console.WriteLine(o.GetInt64(0) + " " + o.GetDecimal(1));
             });
+            int nrs = 0;
+            Db.Transaction(delegate {
+                foreach (String name in Db.SQL<String>("select name from user where name like ?", "Fn100%")) {
+                    Console.WriteLine(name);
+                    nrs++;
+                }
+            });
+            Trace.Assert(nrs == 11);
         }
     }
 }

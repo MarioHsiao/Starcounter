@@ -128,6 +128,8 @@ namespace Starcounter.Query.Execution
             // Setting variable array to reference most efficient execution enumerator.
             bestEnumIndex = combNum - 1;
             variableArray = subExecEnums[bestEnumIndex].VarArray;
+            rowTypeBinding = subExecEnums[bestEnumIndex].RowTypeBinding;
+            projectionTypeCode = subExecEnums[bestEnumIndex].ProjectionTypeCode;
 
             // Selecting appropriate execution enumerator.
             currentExecEnum = subExecEnums[bestEnumIndex];
@@ -141,6 +143,15 @@ namespace Starcounter.Query.Execution
             get
             {
                 return currentExecEnum.RowTypeBinding;
+            }
+        }
+
+        /// <summary>
+        /// If the projection is a singleton, then the DbTypeCode of that singleton, otherwise null.
+        /// </summary>
+        public override Nullable<DbTypeCode> ProjectionTypeCode {
+            get {
+                return currentExecEnum.ProjectionTypeCode;
             }
         }
 
