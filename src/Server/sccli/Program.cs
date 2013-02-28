@@ -172,6 +172,12 @@ namespace star {
                 new string[] { "i" }
                 );
             appSyntax.DefineProperty(
+                "serverport",
+                "The port of the server to use.",
+                OptionAttributes.Default,
+                new string[] { "p" }
+                );
+            appSyntax.DefineProperty(
                 "db",
                 "The database to use for commands that support it.",
                 OptionAttributes.Default,
@@ -180,6 +186,10 @@ namespace star {
             appSyntax.DefineProperty(
                 "verbosity",
                 "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
+                );
+            appSyntax.DefineProperty(
+                "server",
+                "Sets the name of the server to use."
                 );
             appSyntax.DefineFlag(
                 "logsteps",
@@ -193,9 +203,6 @@ namespace star {
             // if we invoke star.exe with a single global option, like --help, the parser will fail
             // since it will apply exec as the default command and force it to have parameters.
             commandSyntax = appSyntax.DefineCommand("exec", "Executes an application", 0, int.MaxValue);
-
-            commandSyntax = appSyntax.DefineCommand("create", "Creates a database", 1);
-            commandSyntax = appSyntax.DefineCommand("show", "Prints info about an object, e.g. a database.", 1);
 
             return appSyntax.CreateSyntax();
         }
