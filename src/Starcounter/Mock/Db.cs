@@ -12,6 +12,7 @@ using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Sql;
 using Starcounter.Binding;
+using System.Text;
 
 
 namespace Starcounter
@@ -249,6 +250,16 @@ namespace Starcounter
                 default:
                     return new SqlResult<T>(transactionId, query, true, values);
             }
+        }
+    }
+
+    /// <summary>
+    /// Enables you to use SQL (Structured Query Language) on the
+    /// Starcounter database.
+    /// </summary>
+    public static class SQL {
+        public static SqlResult<T> SELECT<T>(string query, params Object[] values) {
+            return Db.SQL<T>( String.Concat( "SELECT X FROM ", typeof(T).FullName, query ), values);
         }
     }
 }
