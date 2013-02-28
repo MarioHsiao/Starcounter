@@ -14,134 +14,93 @@ using System.IO;
 namespace star {
 
     class Program {
-        
-        static Dictionary<string, Action<Client, string[]>> supportedCommands;
-        static Program() {
-            supportedCommands = new Dictionary<string, Action<Client, string[]>>();
-            supportedCommands.Add("help", (c, args) => {
-                var s = "Supported commands:" + Environment.NewLine;
-                foreach (var item in supportedCommands) {
-                    s += "  *" + item.Key + Environment.NewLine;
-                }
-                s += Environment.NewLine;
-                ToConsoleWithColor(s, ConsoleColor.Yellow);
-            });
-            supportedCommands.Add("ping", Program.Ping);
-            supportedCommands.Add("getdatabase", Program.GetDatabase);
-            supportedCommands.Add("getdatabases", Program.GetDatabases);
-            supportedCommands.Add("getserver", Program.GetServerInfo);
-            supportedCommands.Add("createdatabase", Program.CreateDatabase);
-            supportedCommands.Add("startdatabase", Program.StartDatabase);
-            supportedCommands.Add("stopdatabase", Program.StopDatabase);
-            supportedCommands.Add("exec", Program.ExecApp);
-            supportedCommands.Add("createrepo", Program.CreateServerRepository);
-        }
-
+       
         static void Main(string[] args) {
             string pipeName;
-            string command;
-            Action<Client, string[]> action;
+            
+            ApplicationArguments appArgs;
 
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NEW_CLI"))) {
-                ApplicationArguments appArgs;
-
-                if (args.Length == 0) {
-                    Usage(null);
-                    return;
-                }
-
-                var syntaxTests = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_CLI_TEST"));
-                var syntax = DefineCommandLineSyntax();
-
-                if (syntaxTests) {
-                    ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
-                }
-
-                // Parse and evaluate the given input
-                
-                var parser = new Parser(args);
-                try {
-                    appArgs = parser.Parse(syntax);
-                } catch (InvalidCommandLineException e) {
-                    ConsoleUtil.ToConsoleWithColor(e.ToString(), ConsoleColor.Red);
-                    Environment.ExitCode = (int)e.ErrorCode;
-                    return;
-                }
-
-                if (syntaxTests) {
-                    ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
-                }
-
-                // Process global options that has precedence
-
-                if (appArgs.ContainsFlag("help", CommandLineSection.GlobalOptions)) {
-                    Usage(syntax);
-                    return;
-                }
-
-                if (appArgs.ContainsFlag("info", CommandLineSection.GlobalOptions)) {
-                    ShowInfoAboutStarcounter();
-                    return;
-                }
-
-                if (appArgs.ContainsFlag("version", CommandLineSection.GlobalOptions)) {
-                    ShowVersionInfo();
-                    return;
-                }
-
-                // Currently, nothing more than syntax tests and global switches are
-                // supported when using the new syntax.
-                // TODO:
-
-                ConsoleUtil.ToConsoleWithColor(
-                    string.Format("Support for command \"{0}\" is not yet implemented using the new syntax.", appArgs.Command), ConsoleColor.Red);
-
+            if (args.Length == 0) {
+                Usage(null);
                 return;
             }
+
+            // Change to port (default 8181).
+            // The different options to specify port and/or server and
+            // what has precedence.
+            //   If NOTHING is given, star.exe should detect the configured
+            // default server and use the default port of that.
+            //   If a port is specified (as an option or as set in the
+            // environment), star.exe should utilize that port to communicate.
+            //   If a server name is given,
+            //     and no port is given, star.exe should use the default port
+            // for the specified server. If the name is not recognized, it
+            // should emit an error.
+            //     and a port is given, the port takes precedence. The server
+            // name will be queried from said port, and compared to the name
+            // given.
+            // TODO:
 
             pipeName = Environment.GetEnvironmentVariable("STAR_SERVER");
             if (string.IsNullOrEmpty(pipeName)) {
                 pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
             }
-            pipeName = ScUriExtensions.MakeLocalServerPipeString(pipeName);
-            
-            ToConsoleWithColor(string.Format("[Using server \"{0}\"]", pipeName), ConsoleColor.DarkGray);
-            var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
-            
-            command = args.Length == 0 ? string.Empty : args[0].ToLowerInvariant();
-            if (command.StartsWith("@")) {
-                command = command.Substring(1);
-            } else if (!command.Equals(string.Empty)){
-                var args2 = new string[args.Length + 1];
-                Array.Copy(args, args2, args.Length);
-                args2[args2.Length - 1] = "@@Synchronous";
-                args = args2;
+
+            // If not silent or suppressed banner:
+            ConsoleUtil.ToConsoleWithColor(string.Format("[Using server \"{0}\"]", pipeName), ConsoleColor.DarkGray);
+
+            // Make this a (non-documented) option.
+            // TODO:
+
+            var syntax = DefineCommandLineSyntax();
+
+            var syntaxTests = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_CLI_TEST"));
+            if (syntaxTests) {
+                ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
             }
 
-            if (!supportedCommands.TryGetValue(command, out action)) {
-                ToConsoleWithColor(string.Format("Unknown command: {0}", command), ConsoleColor.Red);
-                action = supportedCommands["help"];
-            }
+            // Parse and evaluate the given input
 
+            var parser = new Parser(args);
             try {
-                action(client, args);
-            } catch (TimeoutException timeout) {
-                if (timeout.TargetSite.Name.Equals("Connect")) {
-                    ToConsoleWithColor(string.Format("Unable to connect to {0}. Have you started the server?", pipeName), ConsoleColor.Red);
-                    return;
-                }
-                throw;
+                appArgs = parser.Parse(syntax);
+            } catch (InvalidCommandLineException e) {
+                ConsoleUtil.ToConsoleWithColor(e.ToString(), ConsoleColor.Red);
+                Environment.ExitCode = (int)e.ErrorCode;
+                return;
             }
 
-#if false
-            ToConsoleWithColor(
-                string.Format(
-                    "Command executed in {0} ms.",
-                    (DateTime.Now - System.Diagnostics.Process.GetCurrentProcess().StartTime).TotalMilliseconds
-                    ),
-                ConsoleColor.Green
-                );
-#endif
+            if (syntaxTests) {
+                ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
+                // Exiting, because we were asked to test syntax only.
+                return;
+            }
+
+            // Process global options that has precedence
+
+            if (appArgs.ContainsFlag("help", CommandLineSection.GlobalOptions)) {
+                Usage(syntax);
+                return;
+            }
+
+            if (appArgs.ContainsFlag("info", CommandLineSection.GlobalOptions)) {
+                ShowInfoAboutStarcounter();
+                return;
+            }
+
+            if (appArgs.ContainsFlag("version", CommandLineSection.GlobalOptions)) {
+                ShowVersionInfo();
+                return;
+            }
+
+            // Currently, nothing more than syntax tests and global switches are
+            // supported when using the new syntax.
+            // TODO:
+
+            ConsoleUtil.ToConsoleWithColor(
+                string.Format("Support for command \"{0}\" is not yet implemented using the new syntax.", appArgs.Command), ConsoleColor.Red);
+
+            return;
         }
 
         static void ShowVersionInfo() {
@@ -314,61 +273,6 @@ namespace star {
             Console.WriteLine();
         }
 
-        static void Ping(Client client, string[] args) {
-            client.Send("Ping", (Reply reply) => WriteReplyToConsole(reply));
-        }
-
-        static void GetServerInfo(Client client, string[] args) {
-            client.Send("GetServerInfo", (Reply reply) => WriteReplyToConsole(reply));
-        }
-
-        static void CreateDatabase(Client client, string[] args) {
-            var props = new Dictionary<string, string>();
-            props["Name"] = args[1];
-            if (args.Contains<string>("@@Synchronous")) {
-                props["@@Synchronous"] = bool.TrueString;
-            }
-            client.Send("CreateDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
-        }
-
-        static void StartDatabase(Client client, string[] args) {
-            var props = new Dictionary<string, string>();
-            props["Name"] = args[1];
-            if (args.Contains<string>("@@Synchronous")) {
-                props["@@Synchronous"] = bool.TrueString;
-            }
-            client.Send("StartDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
-        }
-
-        static void StopDatabase(Client client, string[] args) {
-            var props = new Dictionary<string, string>();
-            props["Name"] = args[1];
-            if (args.Contains<string>("stopdb")) {
-                props["StopDb"] = bool.TrueString;
-            }
-            if (args.Contains<string>("@@Synchronous")) {
-                props["@@Synchronous"] = bool.TrueString;
-            }
-            client.Send("StopDatabase", props, (Reply reply) => WriteReplyToConsole(reply));
-        }
-
-        static void ExecApp(Client client, string[] args) {
-            var props = new Dictionary<string, string>();
-            props["AssemblyPath"] = args[1];
-            if (args.Contains<string>("@@Synchronous")) {
-                props["@@Synchronous"] = bool.TrueString;
-            }
-            client.Send("ExecApp", props, (Reply reply) => WriteReplyToConsole(reply));
-        }
-
-        static void GetDatabase(Client client, string[] args) {
-            client.Send("GetDatabase", args[1], (Reply reply) => WriteReplyToConsole(reply));
-        }
-
-        static void GetDatabases(Client client, string[] args) {
-            client.Send("GetDatabases", (Reply reply) => WriteReplyToConsole(reply));
-        }
-
         static void CreateServerRepository(Client client, string[] args) {
             string repositoryPath = args[1];
             string serverName;
@@ -384,18 +288,8 @@ namespace star {
             var setup = RepositorySetup.NewDefault(repositoryPath, serverName);
             setup.Execute();
 
-            ToConsoleWithColor(
+            ConsoleUtil.ToConsoleWithColor(
                 string.Format("New repository \"{0}\" created at {1}", serverName, repositoryPath), ConsoleColor.Green);
-        }
-
-        static void WriteReplyToConsole(Reply reply) {
-            if (reply.IsResponse) {
-                ToConsoleWithColor(reply.ToString(), reply.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
-            }
-        }
-
-        static void ToConsoleWithColor(string text, ConsoleColor color) {
-            ConsoleUtil.ToConsoleWithColor(text, color);
         }
     }
 }
