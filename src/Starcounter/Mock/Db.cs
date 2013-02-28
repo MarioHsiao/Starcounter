@@ -13,6 +13,7 @@ using Starcounter.Query.Execution;
 using Starcounter.Query.Sql;
 using Starcounter.Binding;
 using System.Text;
+using Starcounter.Advanced;
 
 
 namespace Starcounter
@@ -261,5 +262,12 @@ namespace Starcounter
         public static SqlResult<T> SELECT<T>(string query, params Object[] values) {
             return Db.SQL<T>( String.Concat( "SELECT _O_ FROM ", typeof(T).FullName, " _O_ ", query ), values);
         }
+    }
+
+   /// <summary>
+   /// Holds the global functions SQL, GET/POST/PUT/DELETE/PATCH and Transaction functions that operates on 
+   /// Starcounters database and communication server.
+   /// </summary>
+    public class F : StarcounterBase {
     }
 }
