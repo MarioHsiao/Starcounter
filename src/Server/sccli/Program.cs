@@ -100,14 +100,21 @@ namespace star {
                 return;
             }
 
-            // Currently, nothing more than syntax tests and global switches are
-            // supported when using the new syntax.
-            // TODO:
+            // We got an executable to host.
 
-            ConsoleUtil.ToConsoleWithColor(
-                string.Format("Support for command \"{0}\" is not yet implemented using the new syntax.", appArgs.Command), ConsoleColor.Red);
+            var executable = appArgs.CommandParameters[0];
+            executable = Path.GetFullPath(executable);
 
-            return;
+            if (!File.Exists(executable)) {
+                // Return file not found error code.
+                // TODO:
+                ConsoleUtil.ToConsoleWithColor(
+                    string.Format("Unable to find specified executable \"{0}\".", executable), ConsoleColor.Red);
+                Environment.ExitCode = (int)Error.SCERRUNSPECIFIED;
+                return;
+            }
+
+            new NotImplementedException();
         }
 
         static void ShowVersionInfo() {
