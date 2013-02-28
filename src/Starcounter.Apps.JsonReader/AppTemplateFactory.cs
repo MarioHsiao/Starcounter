@@ -98,13 +98,6 @@ namespace Starcounter.Internal.JsonTemplate
 
                 property.Editable = v;
             }
-            else if (upperName == "BOUND")
-            {
-                property = _template as TValue;
-                if (property == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-
-                property.Bound = v;
-            }
             else
             {
                 if (_stringProperties.Contains(upperName))
@@ -163,7 +156,6 @@ namespace Starcounter.Internal.JsonTemplate
                 valueTemplate = _template as TValue;
                 if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 valueTemplate.Bind = v;
-                valueTemplate.Bound = true;
             }
             else if (upperName == "TYPE")
             {
@@ -701,17 +693,6 @@ namespace Starcounter.Internal.JsonTemplate
         }
 
         /// <summary>
-        /// Sets the bound property.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <param name="b">if set to <c>true</c> [b].</param>
-        /// <param name="debugInfo">The debug info.</param>
-        void ITemplateFactory.SetBoundProperty(object template, bool b, DebugInfo debugInfo)
-        {
-            ((Template)template).Bound = b;
-        }
-
-        /// <summary>
         /// Sets the class property.
         /// </summary>
         /// <param name="template">The template.</param>
@@ -771,7 +752,7 @@ namespace Starcounter.Internal.JsonTemplate
         /// <param name="debugInfo">The debug info.</param>
         void ITemplateFactory.SetBindProperty(object template, string path, DebugInfo debugInfo)
         {
-            ((Template)template).Bind = path;
+            ((TValue)template).Bind = path;
         }
     }
 
