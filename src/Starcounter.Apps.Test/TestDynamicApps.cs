@@ -53,13 +53,13 @@ namespace Starcounter.Client.Tests.Application {
             Puppet jocke = new Puppet() { Template = personSchema };
             Puppet tim = new Puppet() { Template = personSchema };
 
-            jocke.SetValue(firstName, "Joachim");
-            jocke.SetValue(lastName, "Wester");
-            jocke.SetValue(age, 30);
+            jocke[firstName] = "Joachim";
+            jocke[lastName] = "Wester";
+            jocke[age] = 30;
 
-            tim.SetValue(firstName, "Timothy");
-            tim.SetValue(lastName, "Wester");
-            tim.SetValue(age, 16);
+            tim[firstName] = "Timothy";
+            tim[lastName] = "Wester";
+            tim[age] = 16;
 
             Assert.AreEqual(0, firstName.Index);
             Assert.AreEqual(1, lastName.Index);
@@ -67,10 +67,10 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual(3, phoneNumbers.Index);
             Assert.AreEqual(0, number.Index);
 
-            Assert.AreEqual("Joachim", jocke.GetValue(firstName));
-            Assert.AreEqual("Wester", jocke.GetValue(lastName));
-            Assert.AreEqual("Timothy", tim.GetValue(firstName));
-            Assert.AreEqual("Wester", tim.GetValue(lastName));
+            Assert.AreEqual("Joachim", jocke[firstName]);
+            Assert.AreEqual("Wester", jocke[lastName]);
+            Assert.AreEqual("Timothy", tim[firstName]);
+            Assert.AreEqual("Wester", tim[lastName]);
 
             var ret = new List<Puppet>();
             ret.Add(jocke);
@@ -111,10 +111,10 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual(3, phoneNumbers.Index);
             Assert.AreEqual(0, number.Index);
 
-            Assert.AreEqual("Joachim", jocke.GetValue(firstName));
-            Assert.AreEqual("Wester", jocke.GetValue(lastName));
-            Assert.AreEqual("Timothy", tim.GetValue(firstName));
-            Assert.AreEqual("Wester", tim.GetValue(lastName));
+            Assert.AreEqual("Joachim", jocke[firstName]);
+            Assert.AreEqual("Wester", jocke[lastName]);
+            Assert.AreEqual("Timothy", tim[firstName]);
+            Assert.AreEqual("Wester", tim[lastName]);
 
             var ret = new List<Puppet>();
             ret.Add(jocke);

@@ -12,269 +12,195 @@ using Starcounter.Advanced;
 namespace Starcounter {
 
     public partial class Obj {
+        private TVal Get<TTemplate, TVal>(TTemplate property) where TTemplate : TValue<TVal> {
+            if (property.Bound)
+                return property.GetBoundValue(this);
+
+#if QUICKTUPLE
+                return _Values[property.Index];
+#else
+                throw new NotImplementedException();
+#endif
+        }
+        private void Set<TTemplate, TVal>(TTemplate property, TVal value) where TTemplate : TValue<TVal> {
+            if (property.Bound) {
+                property.SetBoundValue(this, value);
+                this.HasChanged(property);
+                return;
+            }
+
+#if QUICKTUPLE
+            _Values[property.Index] = value;
+#else
+                    throw new NotImplementedException();
+#endif
+            this.HasChanged(property);
+        }
+
         /// <summary>
-        /// Reads the value for a given property in this Obj. This method returns all values boxed
-        /// as a CLR object. Whenever possible, use the GetValue function specific to a type instead
-        /// (i.e. non abstract value templates such as for example GetValue( BoolTemplate property ).
+        /// Gets or sets the value for the specified template. If the property
+        /// is bound the value will be retrived or set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public bool this[TBool property] {
+            get { return Get<TBool, bool>(property); }
+            set { Set<TBool, bool>(property, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the value for the specified template. If the property
+        /// is bound the value will be retrived or set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public decimal this[TDecimal property] {
+            get { return Get<TDecimal, decimal>(property); }
+            set { Set<TDecimal, decimal>(property, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the value for the specified template. If the property
+        /// is bound the value will be retrived or set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public double this[TDouble property] {
+            get { return Get<TDouble, double>(property); }
+            set { Set<TDouble, double>(property, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the value for the specified template. If the property
+        /// is bound the value will be retrived or set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public long this[TLong property] {
+            get { return Get<TLong, long>(property); }
+            set { Set<TLong, long>(property, value); }
+        }
+
+        /// <summary>
+        /// Gets or sets the value for the specified template. If the property
+        /// is bound the value will be retrived or set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public String this[TString property] {
+            get { return Get<TString, string>(property); }
+            set { Set<TString, string>(property, value); }
+        }
+
+        /// <summary>
+        /// Gets the value for the specified template. If the property
+        /// is bound the value will be retrived from the underlying dataobject.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public UInt64 this[TOid property] {
+            get { return Get<TOid, UInt64>(property); }
+        }
+
+        /// <summary>
+        /// Gets or sets the value for a given property in this Obj. This method returns all values boxed
+        /// as a CLR object. Whenever possible, use the function specific to a type instead
+        /// (i.e. non abstract value templates such as for example this[BoolTemplate property].
         /// </summary>
         /// <param name="property">The template representing the property to read</param>
         /// <returns>The value of the property</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public object GetValue(TValue property) {
-            if (property.Bound)
-                return property.GetBoundValueAsObject(this);
+        public object this[TValue property] {
+            get {
+                if (property.Bound)
+                    return (object)property.GetBoundValue(this);
 
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
+                #if QUICKTUPLE
+                    return _Values[property.Index];
+                #else
+                    throw new NotImplementedException();
+                #endif
+            }
+            set {
+                if (property.Bound) {
+                    property.SetBoundValue(this, value);
+                    this.HasChanged(property);
+                    return;
+                }
 
-        /// <summary>
-        /// Sets the value for a given property in this Obj. This method takes the new value
-        /// as a boxed CLR object. Whenever possible, use the SetValue function specific to a type instead
-        /// (i.e. non abstract value templates such as for example SetValue( BoolTemplate property, bool value ).
-        /// </summary>
-        /// <param name="property">The template representing the property to set</param>
-        /// <param name="value">The new value to assign to the property</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TValue property, object value) {
-            if (property.Bound) {
-                property.SetBoundValueAsObject(this, value);
+                #if QUICKTUPLE
+                    _Values[property.Index] = value;
+                #else
+                    throw new NotImplementedException();
+                #endif
                 this.HasChanged(property);
-                return;
             }
-
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-            this.HasChanged(property);
         }
 
         /// <summary>
-        /// Reads the boolean value for a given property in this App.
+        /// 
         /// </summary>
-        /// <param name="property">The template representing the App property</param>
-        /// <returns>The value of the property</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool GetValue(TBool property) {
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public Arr this[TObjArr property] {
+            get {
 #if QUICKTUPLE
-
-            if (property.Bound)
-                return property.GetBoundValue(this);
-            return _Values[property.Index];
+                return _Values[property.Index];
 #else
-            throw new JockeNotImplementedException();
+                throw new NotImplementedException();
 #endif
-        }
-
-        /// <summary>
-        /// Sets the value for a given boolean property in this App.
-        /// </summary>
-        /// <param name="property">The template representing the App property</param>
-        /// <param name="value">The new value to assign to the property</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TBool property, bool value) {
-            if (property.Bound) {
-                property.SetBoundValue(this, value);
-                HasChanged(property);
-                //                ChangeLog.UpdateValue(this, property);
-                return;
             }
+            set {
+                Arr current = this[property];
+                if (current != null)
+                    current.Clear();
 
+                value.InitializeAfterImplicitConversion(this, property);
 #if QUICKTUPLE
-            _Values[property.Index] = value;
+                _Values[property.Index] = value;
 #else
-            throw new JockeNotImplementedException();
+                throw new NotImplementedException();
 #endif
-            HasChanged(property);
-            // ChangeLog.UpdateValue(this, property);
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>System.Decimal.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public decimal GetValue(TDecimal property) {
-#if QUICKTUPLE
-            if (property.Bound)
-                return property.GetBoundValue(this);
-
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TDecimal property, decimal value) {
-            if (property.Bound) {
-                property.SetBoundValue(this, value);
-                HasChanged(property);
-                //                ChangeLog.UpdateValue(this, property);
-                return;
             }
-
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-            this.HasChanged(property);
         }
 
         /// <summary>
-        /// Gets the value.
+        /// 
         /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>System.Double.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public double GetValue(TDouble property) {
-            if (property.Bound)
-                return property.GetBoundValue(this);
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public Obj this[TObj property] {
+            get {
+                if (property.Bound)
+                    return (Obj)property.GetBoundValue(this);
 
 #if QUICKTUPLE
-            return _Values[property.Index];
+                return _Values[property.Index];
 #else
-            throw new JockeNoaatImplementedException();
+                throw new NotImplementedException();
 #endif
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>System.Int32.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public long GetValue(TLong property) {
-            if (property.Bound)
-                return property.GetBoundValue(this);
-
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets the value for a given long property in this App.
-        /// </summary>
-        /// <param name="property">The template representing the App property</param>
-        /// <param name="value">The new value to assign to the property</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TLong property, long value) {
-            if (property.Bound) {
-                property.SetBoundValue(this, value);
-                HasChanged(property);
-                return;
             }
+            set {
+                if (property.Bound) {
+                    property.SetBoundValue(this, value);
+                    this.HasChanged(property);
+                    return;
+                }
 
 #if QUICKTUPLE
-            _Values[property.Index] = value;
+                _Values[property.Index] = value;
 #else
-            throw new JockeNotImplementedException();
+                throw new JockeNotImplementedException();
 #endif
-            HasChanged(property);
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>System.UInt64.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public ulong GetValue(TOid property) {
-            if (property.Bound)
-                return property.GetBoundValue(this);
-
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>System.String.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string GetValue(TString property) {
-            if (property.Bound)
-                return property.GetBoundValue(this);
-
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TString property, string value) {
-            if (property.Bound) {
-                property.SetBoundValue(this, value);
                 this.HasChanged(property);
-                return;
             }
-
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-            this.HasChanged(property);
         }
 
         /// <summary>
-        /// Gets the value.
+        /// 
         /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>Arr.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Arr GetValue(TObjArr property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="data">The data.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TObjArr property, Rows<object> data) {
+        /// <param name="property"></param>
+        /// <param name="data"></param>
+        public void Set(TObjArr property, Rows<object> data) {
             Arr current = _Values[property.Index];
             if (current != null) {
                 current.Clear();
@@ -284,46 +210,12 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="templ">The templ.</param>
-        /// <param name="data">The data.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TObjArr templ, Arr data) {
-            Arr current = _Values[templ.Index];
-            if (current != null)
-                current.Clear();
-
-            data.InitializeAfterImplicitConversion(this, templ);
-            _Values[templ.Index] = data;
-        }
-
-        /// <summary>
-        /// Gets the value.
+        /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="property">The property.</param>
-        /// <returns>Arr{``0}.</returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Arr<T> GetTypedValue<T>(TObjArr property) where T : Obj, new() {
-#if QUICKTUPLE
-            return (Arr<T>)(_Values[property.Index]);
-#else
-            throw new NotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="templ">The templ.</param>
-        /// <param name="data">The data.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(TObjArr templ, Rows<object> data) where T : Obj, new() {
+        /// <param name="templ"></param>
+        /// <param name="data"></param>
+        public void Set<T>(TObjArr templ, Rows<object> data) where T : Obj, new() {
             Arr<T> newList;
             Arr<T> current = _Values[templ.Index];
             if (current != null)
@@ -336,13 +228,40 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Sets the value.
+        /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="templ">The templ.</param>
-        /// <param name="data">The data.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue<T>(TObjArr templ, Arr<T> data) where T : Obj, new() {
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public Arr<T> Get<T>(TObjArr property) where T : Obj, new() {
+#if QUICKTUPLE
+            return (Arr<T>)(_Values[property.Index]);
+#else
+            throw new NotImplementedException();
+#endif
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public T Get<T>(TObj property) where T : Obj, new() {
+#if QUICKTUPLE
+            return (T)(_Values[property.Index]);
+#else
+            throw new NotImplementedException();
+#endif
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="templ"></param>
+        /// <param name="data"></param>
+        public void Set<T>(TObjArr templ, Arr<T> data) where T : Obj, new() {
             Arr<T> current = _Values[templ.Index];
             if (current != null)
                 current.Clear();
@@ -352,59 +271,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the value.
+        /// 
         /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>App.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Obj GetValue(TObj property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new JockeNotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="property">The property.</param>
-        /// <returns>``0.</returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public T GetTypedValue<T>(TObj property) where T : Obj, new() {
-#if QUICKTUPLE
-            return (T)(_Values[property.Index]);
-#else
-            throw new NotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TObj property, Obj value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new JockeNotImplementedException();
-#endif
-            this.HasChanged(property);
-        }
-
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void SetValue(TObj property, IBindable value) {
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        public void Set(TObj property, IBindable value) {
 #if QUICKTUPLE
             Obj app = (Obj)property.CreateInstance(this);
             app.Data = value;
