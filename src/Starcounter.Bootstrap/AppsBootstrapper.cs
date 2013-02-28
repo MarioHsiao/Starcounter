@@ -70,12 +70,13 @@ namespace Starcounter.Internal {
             if (port == 0)
                 port = defaultPort_;
 
+#if GW_URI_MATCHING_CODEGEN
             // Giving REST needed delegates.
-            /*UserHandlerCodegen.UHC.Setup(
+            UserHandlerCodegen.UHC.Setup(
                 port,
                 GatewayHandlers.RegisterUriHandlerNew,
-                OnHttpMessageRoot);*/
-
+                OnHttpMessageRoot);
+#else
             // TODO: 
             // The registration to the gateway should only be called once per port, not 
             // once for each registered handler.
@@ -83,6 +84,7 @@ namespace Starcounter.Internal {
                 UInt16 handlerId;
                 GatewayHandlers.RegisterUriHandler((ushort)port, "/", OnHttpMessageRoot, out handlerId);
             });
+#endif
         }
 
         /// <summary>

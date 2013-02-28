@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -18,11 +19,12 @@ namespace Starcounter.Internal.Test
     [TestFixture]
     public class UserHttpDelegateTests
     {
-        public static String UserFunc1(Int32 p1, Int64 p2, String p3)
+        public static String UserFunc1(Int32 p1, Int64 p2, HttpRequest r, String p3)
         {
             Assert.IsTrue(123 == p1);
             Assert.IsTrue(21 == p2);
             Assert.IsTrue("hehe!" == p3);
+            Assert.IsTrue("/dashboard/123" == r.Uri);
 
             return "UserFunc1!";
         }
@@ -37,7 +39,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc2!";
         }
 
-        public static String UserFunc3(Int32 p1, Int64 p2, String p3, Decimal p4, Double p5, Boolean p6)
+        public static String UserFunc3(Int32 p1, Int64 p2, String p3, HttpRequest r, Decimal p4, Double p5, Boolean p6)
         {
             Assert.IsTrue(123 == p1);
             Assert.IsTrue(21 == p2);
@@ -45,11 +47,12 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(3.141m == p4);
             Assert.IsTrue(9.8 == p5);
             Assert.IsTrue(true == p6);
+            Assert.IsTrue("/dashboard/123" == r.Uri);
 
             return "UserFunc3!";
         }
 
-        public static String UserFunc4(Int32 p1, Int64 p2, String p3, Decimal p4, Double p5, Boolean p6, DateTime p7)
+        public static String UserFunc4(Int32 p1, Int64 p2, String p3, Decimal p4, Double p5, Boolean p6, DateTime p7, HttpRequest r)
         {
             Assert.IsTrue(123 == p1);
             Assert.IsTrue(21 == p2);
@@ -58,6 +61,7 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(9.8 == p5);
             Assert.IsTrue(true == p6);
             Assert.IsTrue(0 == p7.CompareTo(DateTime.Parse("10-1-2009 19:34")));
+            Assert.IsTrue("/dashboard/123" == r.Uri);
 
             return "UserFunc4!";
         }
@@ -79,19 +83,19 @@ namespace Starcounter.Internal.Test
         public void TestUserHttpHandlers()
         {
             const Int32 numTests = 11;
-            UserHandlerParams[] paramsInfo = new UserHandlerParams[numTests]
+            MixedCodeConstants.UserDelegateParamInfo[] paramsInfo = new MixedCodeConstants.UserDelegateParamInfo[numTests]
             {
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0),
-                new UserHandlerParams(0, 0)
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0),
+                new MixedCodeConstants.UserDelegateParamInfo(0, 0)
             };
 
             String stringParams = "123#21#hehe!#3.141#9.8#true#10-1-2009 19:34#-3853984#-03535#0001234#-000078#";
@@ -106,23 +110,24 @@ namespace Starcounter.Internal.Test
                 prevOffset = (UInt16)(curOffset + 1);
             }
 
-            Func<IntPtr, IntPtr, Int32, Object> genDel1 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Object>(UserHttpDelegateTests.UserFunc1));
-            Func<IntPtr, IntPtr, Int32, Object> genDel2 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
-            Func<IntPtr, IntPtr, Int32, Object> genDel3 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
-            Func<IntPtr, IntPtr, Int32, Object> genDel4 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, Object>(UserHttpDelegateTests.UserFunc4));
-            Func<IntPtr, IntPtr, Int32, Object> genDel5 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel1 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, HttpRequest, String, Object>(UserHttpDelegateTests.UserFunc1));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel2 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel3 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, HttpRequest, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel4 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, HttpRequest, Object>(UserHttpDelegateTests.UserFunc4));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel5 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
 
             unsafe
             {
                 fixed (Byte* p1 = stringParamsBytes)
                 {
-                    fixed (UserHandlerParams* p2 = paramsInfo)
+                    fixed (MixedCodeConstants.UserDelegateParamInfo* p2 = paramsInfo)
                     {
-                        Assert.IsTrue("UserFunc1!" == (String)genDel1((IntPtr)p1, (IntPtr)p2, 3));
-                        Assert.IsTrue("UserFunc2!" == (String)genDel2((IntPtr)p1, (IntPtr)p2, 4));
-                        Assert.IsTrue("UserFunc3!" == (String)genDel3((IntPtr)p1, (IntPtr)p2, 6));
-                        Assert.IsTrue("UserFunc4!" == (String)genDel4((IntPtr)p1, (IntPtr)p2, 7));
-                        Assert.IsTrue("UserFunc5!" == (String)genDel5((IntPtr)p1, (IntPtr)(p2 + 7), 4));
+                        Byte[] r = Encoding.ASCII.GetBytes("GET /dashboard/123\r\n\r\n");
+                        Assert.IsTrue("UserFunc1!" == (String)genDel1(new HttpRequest(r), (IntPtr)p1, (IntPtr)p2));
+                        Assert.IsTrue("UserFunc2!" == (String)genDel2(null, (IntPtr)p1, (IntPtr)p2));
+                        Assert.IsTrue("UserFunc3!" == (String)genDel3(new HttpRequest(r), (IntPtr)p1, (IntPtr)p2));
+                        Assert.IsTrue("UserFunc4!" == (String)genDel4(new HttpRequest(r), (IntPtr)p1, (IntPtr)p2));
+                        Assert.IsTrue("UserFunc5!" == (String)genDel5(null, (IntPtr)p1, (IntPtr)(p2 + 7)));
                     }
                 }
             }

@@ -690,7 +690,10 @@ namespace Weaver {
                 "PostSharp*.dll",
                 "Roslyn*.dll",
                 "FasterThanJson.dll",
-                "Starcounter.dll"}
+                "Starcounter.dll",
+                "RGiesecke.DllExport.Metadata.dll",
+                "Starcounter.Rest.dll"
+            }
                 ) {
                 AddExcludeExpression(exclude, weaverExcludes);
             }
