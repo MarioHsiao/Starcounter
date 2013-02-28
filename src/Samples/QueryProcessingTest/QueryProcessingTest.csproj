@@ -52,6 +52,7 @@
     <Compile Include="HelpMethods.cs" />
     <Compile Include="QueryProcessingTestProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SelectClauseExpressionsTests.cs" />
     <Compile Include="SqlBugsTest.cs" />
   </ItemGroup>
   <ItemGroup>
