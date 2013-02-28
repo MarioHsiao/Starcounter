@@ -60,17 +60,13 @@ function ngAppFactory() {
               //break;
             }
           }
-//          console.log("Cookie: "+$cookies.ScSsnId);
-//          scope['ScSsnId'] = $cookies.ScSsnId;
-
-          //scope['ScSsnId'] = readSpecificCookie('ScSsnId');
         }
 
         function getRoot(scope) {
-          $http({
+            $http({
             method: 'GET',
             url: config.getRequestUrl(scope),
-            headers: { 'ScSsnId': ' ' + $cookies.ScSsnId }
+            headers: { 'ScSsnId': ' ' + $rootScope.ScSsnId }
           }).success(function (data, status, headers, config) {
             overwriteRoot(data);
             rootLoaded = true;
@@ -78,10 +74,10 @@ function ngAppFactory() {
         }
 
         function updateServer(scope, update) {
-          $http({
+            $http({
             method: 'PATCH',
             url: config.getRequestUrl(scope),
-            headers: { 'ScSsnId': ' ' + $cookies.ScSsnId },
+            headers: { 'ScSsnId': ' ' + $rootScope.ScSsnId },
             data: update
           }).success(function (data, status, headers, config) {
             patchRoot(scope, data);
@@ -206,7 +202,13 @@ function ngAppFactory() {
         }
 
         return function postLink(scope, element, attrs, controller) {
-          // Check if we should load local json file as a scope
+
+          // Keep the ScSsnId cookie local only
+          $rootScope.ScSsnId = $cookies.ScSsnId;
+          delete $cookies["ScSsnId"];
+
+
+            // Check if we should load local json file as a scope
           if (attrs.mockupData && typeof window.__elim_req == 'undefined') {
             // Load local file
             $http.get(attrs.mockupData).success(function (data, status, headers, config) {

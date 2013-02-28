@@ -795,14 +795,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 if (err_code)
                     return err_code;
 
-#ifdef GW_URI_MATCHING_CODEGEN
-                // Generating URI matcher.
-                err_code = g_gateway.GenerateUriMatcher(port);
-
-                if (err_code)
-                    return err_code;
-#endif
-
                 break;
             }
 
@@ -826,8 +818,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 uint8_t num_params = resp_chunk->read_uint8();
 
                 // Reading parameter types.
-                uint8_t param_types[bmx::MAX_URI_CALLBACK_PARAMS];
-                resp_chunk->copy_data_to_buffer(param_types, bmx::MAX_URI_CALLBACK_PARAMS);
+                uint8_t param_types[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
+                resp_chunk->copy_data_to_buffer(param_types, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
 
 
 #ifdef GW_TESTING_MODE
@@ -859,14 +851,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
                 if (err_code)
                     return err_code;
-
-#ifdef GW_URI_MATCHING_CODEGEN
-                // Generating URI matcher.
-                err_code = g_gateway.GenerateUriMatcher(port);
-
-                if (err_code)
-                    return err_code;
-#endif
 
                 break;
             }

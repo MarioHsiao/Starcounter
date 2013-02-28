@@ -174,6 +174,27 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Sets the value for a given long property in this App.
+        /// </summary>
+        /// <param name="property">The template representing the App property</param>
+        /// <param name="value">The new value to assign to the property</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void SetValue(TLong property, long value) {
+            if (property.Bound) {
+                property.SetBoundValue(this, value);
+                HasChanged(property);
+                return;
+            }
+
+#if QUICKTUPLE
+            _Values[property.Index] = value;
+#else
+            throw new JockeNotImplementedException();
+#endif
+            HasChanged(property);
+        }
+
+        /// <summary>
         /// Gets the value.
         /// </summary>
         /// <param name="property">The property.</param>
