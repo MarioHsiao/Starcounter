@@ -93,6 +93,13 @@ namespace star {
                 return;
             }
 
+            // We are told to execute. We got at least one parameter. Check if it's
+            // the temporary @@CreateRepo.
+            if (appArgs.CommandParameters[0].Equals("@@CreateRepo", StringComparison.InvariantCultureIgnoreCase)) {
+                CreateServerRepository(appArgs);
+                return;
+            }
+
             // Currently, nothing more than syntax tests and global switches are
             // supported when using the new syntax.
             // TODO:
@@ -271,14 +278,19 @@ namespace star {
             Console.WriteLine();
         }
 
-        static void CreateServerRepository(Client client, string[] args) {
-            string repositoryPath = args[1];
+        static void CreateServerRepository(ApplicationArguments args) {
+            if (args.CommandParameters.Count < 2) {
+                ConsoleUtil.ToConsoleWithColor("Missing required path argument to @@CreateRepo.", ConsoleColor.Red);
+                Console.WriteLine();
+                Usage(null);
+                return;
+            }
+
+            var repositoryPath = args.CommandParameters[1];
             string serverName;
 
-            // Three arguments assume [command] [repo path] [@@Synchronous]. If
-            // its more, we'll use the 3rd one as the name of the server.
-            if (args.Length > 3) {
-                serverName = args[2];
+            if (args.CommandParameters.Count > 2) {
+                serverName = args.CommandParameters[2];
             } else {
                 serverName = StarcounterEnvironment.ServerNames.PersonalServer;
             }
