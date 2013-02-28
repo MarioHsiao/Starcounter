@@ -259,7 +259,7 @@ namespace Starcounter
     /// </summary>
     public static class SQL {
         public static SqlResult<T> SELECT<T>(string query, params Object[] values) {
-            return Db.SQL<T>( String.Concat( "SELECT X FROM ", typeof(T).FullName, query ), values);
+            return Db.SQL<T>( String.Concat( "SELECT _O_ FROM ", typeof(T).FullName, " _O_ ", query ), values);
         }
     }
 }
