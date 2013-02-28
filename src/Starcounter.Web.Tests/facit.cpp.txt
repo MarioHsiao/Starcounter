@@ -41,7 +41,7 @@ inline bool IsDigit(char c) {
 }
 
 inline bool IsWhiteSpace(char c) {
-    return (c == ' ') || (c == '\n') || (c == '\t');
+    return (' ' == c) || ('\n' == c) || ('\t' == c);
 }
 
 inline int32_t MeasureSignedInt(char* puri, int offset, int32_t max_len) {
@@ -128,7 +128,7 @@ inline int32_t MeasureStringUntilSymbol(char* puri, int offset, int32_t max_len,
 }
 
 inline bool IsEndChar(char c) {
-    return (' ') || ('\r') || ('\n');
+    return (' ' == c) || ('\r' == c) || ('\n' == c);
 }
 #endif
 
