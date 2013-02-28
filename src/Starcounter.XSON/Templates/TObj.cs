@@ -6,55 +6,51 @@
 
 using System;
 using System.Collections.Generic;
-using Starcounter.Templates.DataBinding;
 using Starcounter.Advanced;
 
 namespace Starcounter.Templates {
-
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
     public abstract class TObj : TContainer {
-        private DataBinding<IBindable> dataBinding;
+        ///// <summary>
+        ///// Registers a template with the specified name.
+        ///// </summary>
+        ///// <typeparam name="TTemplate">The type of the template to register</typeparam>
+        ///// <param name="name">Name of the template</param>
+        ///// <param name="editable">if set to <c>true</c> the value should be editable</param>
+        ///// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
+        ///// <returns>A new instance of the specified template</returns>
+        //internal TTemplate Register<TTemplate>(string name, string dotNetName, bool editable = false)
+        //    where TTemplate : Template, new() {
+        //    return new TTemplate() {
+        //        Parent = this,
+        //        Name = name,
+        //        PropertyName = dotNetName,
+        //        Editable = editable
+        //    };
+        //}
 
-        /// <summary>
-        /// Registers a template with the specified name.
-        /// </summary>
-        /// <typeparam name="TTemplate">The type of the template to register</typeparam>
-        /// <param name="name">Name of the template</param>
-        /// <param name="editable">if set to <c>true</c> the value should be editable</param>
-        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
-        /// <returns>A new instance of the specified template</returns>
-        public TTemplate Register<TTemplate>(string name, string dotNetName, bool editable = false)
-            where TTemplate : Template, new() {
-            return new TTemplate() {
-                Parent = this,
-                Name = name,
-                PropertyName = dotNetName,
-                Editable = editable
-            };
-        }
-
-        /// <summary>
-        /// Registers the specified name.
-        /// </summary>
-        /// <typeparam name="TTemplate">The type of the T template.</typeparam>
-        /// <typeparam name="TValue">The type of the T value.</typeparam>
-        /// <param name="name">The name.</param>
-        /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
-        /// <param name="editable">if set to <c>true</c> [editable].</param>
-        /// <returns>``0.</returns>
-        public TTemplate Register<TTemplate, TValue>(
-            string name,
-            string dotNetName,
-            bool editable = false)
-            where TTemplate : TValue<TValue>, new() {
-            return new TTemplate() {
-                Parent = this,
-                Name = name,
-                Editable = editable,
-            };
-        }
+        ///// <summary>
+        ///// Registers the specified name.
+        ///// </summary>
+        ///// <typeparam name="TTemplate">The type of the T template.</typeparam>
+        ///// <typeparam name="TValue">The type of the T value.</typeparam>
+        ///// <param name="name">The name.</param>
+        ///// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
+        ///// <param name="editable">if set to <c>true</c> [editable].</param>
+        ///// <returns>``0.</returns>
+        //internal TTemplate Register<TTemplate, TValue>(
+        //    string name,
+        //    string dotNetName,
+        //    bool editable = false)
+        //    where TTemplate : TValue<TValue>, new() {
+        //    return new TTemplate() {
+        //        Parent = this,
+        //        Name = name,
+        //        Editable = editable,
+        //    };
+        //}
 
         /// <summary>
         /// The _ class name
@@ -168,43 +164,6 @@ namespace Starcounter.Templates {
         /// <exception cref="System.NotImplementedException"></exception>
         public override void ProcessInput(Obj obj, byte[] value) {
             throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<Obj, IBindable> dataGetter) {
-            dataBinding = new DataBinding<IBindable>(dataGetter);
-            Bound = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataGetter"></param>
-        /// <param name="dataSetter"></param>
-        public void AddDataBinding(Func<Obj, IBindable> dataGetter, Action<Obj, IBindable> dataSetter) {
-            dataBinding = new DataBinding<IBindable>(dataGetter, dataSetter);
-            Bound = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <returns></returns>
-        public IBindable GetBoundValue(Obj app) {
-            return dataBinding.GetValue(app);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="entity"></param>
-        public void SetBoundValue(Obj app, IBindable entity) {
-            dataBinding.SetValue(app, entity);
         }
     }
 }
