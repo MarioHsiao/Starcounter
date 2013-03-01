@@ -357,9 +357,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         }
 
         internal static Exception GetSqlException(uint errorCode, string message, int location, string token) {
-            List<string> tokens = new List<string>(1);
-            tokens.Add(token);
-            return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(m, tokens, location));
+            return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(m, token, location));
         }
     }
 

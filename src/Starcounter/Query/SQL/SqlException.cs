@@ -16,47 +16,84 @@ namespace Starcounter
 [Serializable]
 public class SqlException : Exception
 {
-    readonly List<String> tokenList;
+    readonly String unexpectedToken;
     readonly Int32 beginPosition;
     readonly Int32 endPosition;
+    readonly String queryString;
 
     internal SqlException(String message)
     : base(message)
     {
-        tokenList = null;
+        unexpectedToken = null;
         beginPosition = -1;
         endPosition = -1;
+        queryString = null;
     }
 
     internal SqlException(String message, Exception innerException)
     : base(message, innerException)
     {
-        tokenList = null;
+        unexpectedToken = null;
         beginPosition = -1;
         endPosition = -1;
+        queryString = null;
     }
 
-    internal SqlException(String message, List<String> tokenList, Int32 position)
+    internal SqlException(String message, String token)
+        : base(message) {
+        unexpectedToken = token;
+        beginPosition = -1;
+        endPosition = -1;
+        queryString = null;
+    }
+
+    internal SqlException(String message, String token, String query)
+        : base(message) {
+        unexpectedToken = token;
+        beginPosition = -1;
+        endPosition = -1;
+        queryString = query;
+    }
+
+    internal SqlException(String message, String token, Int32 position)
     : base(message)
     {
-        this.tokenList = tokenList;
+        unexpectedToken = token;
         beginPosition = position;
-        endPosition = position;
+        endPosition = -1;
+        queryString = null;
     }
 
-    internal SqlException(String message, List<String> tokenList, Int32 beginPosition, Int32 endPosition)
+    internal SqlException(String message, String token, Int32 position, String query)
+        : base(message) {
+        unexpectedToken = token;
+        beginPosition = position;
+        endPosition = -1;
+        queryString = query;
+    }
+
+    internal SqlException(String message, String token, Int32 beginPosition, Int32 endPosition)
     : base(message)
     {
-        this.tokenList = tokenList;
+        this.unexpectedToken = token;
         this.beginPosition = beginPosition;
         this.endPosition = endPosition;
+        queryString = null;
     }
 
-    internal List<String> TokenList
+    internal SqlException(String message, String token, Int32 beginPosition, Int32 endPosition, String query)
+        : base(message) {
+        this.unexpectedToken = token;
+        this.beginPosition = beginPosition;
+        this.endPosition = endPosition;
+        queryString = query;
+    }
+
+    internal String Token
     {
         get
         {
-            return tokenList;
+            return unexpectedToken;
         }
     }
 
@@ -68,12 +105,20 @@ public class SqlException : Exception
         }
     }
 
-    internal Int32 EndPosition
-    {
-        get
-        {
-            return endPosition;
+    internal Int32 EndPosition {
+        get {
+            if (endPosition == -1)
+                if (Token == null || Token == "")
+                    return beginPosition;
+                else
+                    return beginPosition + Token.Length - 1;
+            else
+                return endPosition;
         }
+    }
+
+    internal String Query {
+        get { return queryString; }
     }
 
     /// <summary>
@@ -84,7 +129,7 @@ public class SqlException : Exception
     public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
     {
         base.GetObjectData(info, context);
-        info.AddValue("tokenList", tokenList);
+        info.AddValue("tokenList", unexpectedToken);
         info.AddValue("beginPosition", beginPosition);
         info.AddValue("endPosition", endPosition);
     }
@@ -97,24 +142,23 @@ public class SqlException : Exception
     protected SqlException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
     : base(info, context)
     {
-        this.tokenList = (List<String>)info.GetValue("tokenList", typeof(List<String>));
+        this.unexpectedToken = info.GetString("token");
         this.beginPosition = info.GetInt32("beginPosition");
         this.endPosition = info.GetInt32("endPosition");
+        this.queryString = info.GetString("query");
     }
 
     public override String ToString() {
-        StringBuilder str = new StringBuilder(Message);
-        if (tokenList != null && tokenList.Count > 0) {
-            str.AppendLine();
-            str.Append("Tokens: ");
-            foreach (String token in tokenList)
-                str.Append(token);
-            str.AppendLine();
-        }
-        if (beginPosition > -1)
-            str.AppendLine("Begin position: " + beginPosition);
-        if (endPosition > beginPosition)
-            str.AppendLine("End position: " + endPosition);
+        StringBuilder str = new StringBuilder();
+        str.AppendLine(Message);
+        if (Query != null)
+            str.AppendLine("Query: " + Query);
+        if (Token != null && unexpectedToken != "")
+            str.AppendLine("Token: " + Token);
+        if (BeginPosition > -1)
+            str.AppendLine("Begin position: " + BeginPosition);
+        if (EndPosition >= BeginPosition)
+            str.AppendLine("End position: " + EndPosition);
         return str.ToString();
     }
 }

@@ -19,10 +19,9 @@ namespace Starcounter.Query.RawParserAnalyzer {
             if (scerrorcode > 0) {
                 // Unmanaged parser returned an error, thus throwing an exception.
                 unsafe {
-                    String message = GetErrorMessage(scerrorcode);
                     ScError* scerror = UnmanagedParserInterface.GetScError();
                     // Throw Starcounter exception for parsing error
-                    throw GetSqlException((uint)scerror->scerrorcode, message, scerror->scerrposition, scerror->tocken);
+                    throw GetSqlException((uint)scerror->scerrorcode, new String(scerror->scerrmessage), scerror->scerrposition, scerror->tocken, Query);
                 }
             }
         }
@@ -35,10 +34,8 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="location">Start of the error token in the query</param>
         /// <param name="token">The error token</param>
         /// <returns></returns>
-        internal static Exception GetSqlException(uint errorCode, string message, int location, string token) {
-            List<string> tokens = new List<string>(1);
-            tokens.Add(token);
-            return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(m, tokens, location));
+        internal static Exception GetSqlException(uint errorCode, string message, int location, string token, string query) {
+            return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(m, token, location, query));
         }
 
         /// <summary>
@@ -51,15 +48,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
                 return "No error";
             unsafe {
                 ScError* scerror = UnmanagedParserInterface.GetScError();
-                // Throw Starcounter exception for parsing error
-                String message = new String(scerror->scerrmessage);
-                if (scerror->scerrposition >= 0)
-                    message += " Position " + scerror->scerrposition + " in the query \"" + Query + "\"";
-                else
-                    message += " in the query \"" + Query + "\"";
-                if (scerror->tocken != null)
-                    message += "The error is near or at: " + scerror->tocken;
-                return message;
+                return GetSqlException((uint)scerror->scerrorcode, new String(scerror->scerrmessage), scerror->scerrposition, scerror->tocken, Query).ToString();
             }
         }
 
@@ -68,7 +57,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// </summary>
         /// <param name="node">The unknown node</param>
         internal unsafe void UnknownNode(Node* node) {
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Parsed tree contains unexpected node "+node->type.ToString().Substring(2));
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Parsed tree contains unexpected or unsupported node "+node->type.ToString().Substring(2));
         }
 
         /// <summary>
