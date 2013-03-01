@@ -134,19 +134,19 @@ namespace Starcounter.Internal.JsonPatch.Test
                 dynamic app = aat.App;
 
                 AppAndTemplate obj = JsonPatch.Evaluate(app, "/FirstName");
-                String value = obj.App[(TString)obj.Template];
+                String value = obj.App.Get((TString)obj.Template);
                 Assert.AreEqual(value, "Cliff");
 
                 obj = JsonPatch.Evaluate(app, "/LastName");
-                value = obj.App[(TString)obj.Template];
+                value = obj.App.Get((TString)obj.Template);
                 Assert.AreEqual(value, "Barnes");
 
                 obj = JsonPatch.Evaluate(app, "/Items/0/Description");
-                value = obj.App[(TString)obj.Template];
+                value = obj.App.Get((TString)obj.Template);
                 Assert.AreEqual(value, "Take a nap!");
 
                 obj = JsonPatch.Evaluate(app, "/Items/1/IsDone");
-                bool b = obj.App[(TBool)obj.Template];
+                bool b = obj.App.Get((TBool)obj.Template);
                 Assert.AreEqual(b, true);
 
                 obj = JsonPatch.Evaluate(app, "/Items/1");
@@ -222,14 +222,14 @@ namespace Starcounter.Internal.JsonPatch.Test
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
             TObj anotherAppt = (TPuppet)appt.Properties[3];
-            Obj nearestApp = aat.App[anotherAppt];
+            Obj nearestApp = aat.App.Get(anotherAppt);
 
             TString desc = (TString)anotherAppt.Properties[1];
             indexPath = nearestApp.IndexPathFor(desc);
             VerifyIndexPath(new Int32[] { 3, 1 }, indexPath);
 
             TObjArr itemProperty = (TObjArr)appt.Properties[2];
-            Arr items = aat.App[itemProperty];
+            Arr items = aat.App.Get(itemProperty);
 
             nearestApp = items[1];
             anotherAppt = nearestApp.Template;
