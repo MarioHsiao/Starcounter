@@ -8458,13 +8458,14 @@ makeOverlaps(List *largs, List *rargs, YYLTYPE location, core_yyscan_t yyscanner
 static void
 check_qualified_name(List *names, core_yyscan_t yyscanner)
 {
-	ListCell   *i;
+	check_func_name(names, yyscanner);
+/*	ListCell   *i;
 
 	foreach(i, names)
 	{
 		if (!IsA(lfirst(i), String))
-			parser_yyerror("syntax error");
-	}
+			parser_yyerror("Expecting qualified name, but found different token.");
+	}*/
 }
 
 /* check_func_name --- check the result of func_name production
@@ -8480,7 +8481,7 @@ check_func_name(List *names, core_yyscan_t yyscanner)
 	foreach(i, names)
 	{
 		if (!IsA(lfirst(i), String))
-			parser_yyerror("syntax error");
+			parser_yyerror("Expecting qualified identifier, but found different token.");
 	}
 	return names;
 }
