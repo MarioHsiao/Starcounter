@@ -131,6 +131,16 @@ namespace StarcounterApps3 {
             });
 
 
+            GET("/apps", () => {
+                AppsApp appsApp = new AppsApp();
+                appsApp.View = "apps.html";
+
+                appsApp.Setup();
+
+                return appsApp;
+            });
+
+
             GET("/query", () => {
 
                 SqlApp sqlApp = new SqlApp();
