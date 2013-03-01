@@ -390,14 +390,14 @@ typedef struct NullTest
  * BooleanTest
  *
  * BooleanTest represents the operation of determining whether a boolean
- * is TRUE, FALSE, or UNKNOWN (ie, NULL).  All six meaningful combinations
+ * is TRUE, FALSE.  All six meaningful combinations
  * are supported.  Note that a NULL input does *not* cause a NULL result.
  * The appropriate test is performed and returned as a boolean Datum.
  */
 
 typedef enum BoolTestType
 {
-	IS_TRUE, IS_NOT_TRUE, IS_FALSE, IS_NOT_FALSE, IS_UNKNOWN, IS_NOT_UNKNOWN
+	IS_TRUE, IS_NOT_TRUE, IS_FALSE, IS_NOT_FALSE
 } BoolTestType;
 
 typedef struct BooleanTest

@@ -488,7 +488,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 	TO TRAILING TRANSACTION TREAT TRIGGER TRIM TRUE_P
 	TRUNCATE TYPE_P TYPEOF
 
-	UNBOUNDED UNCOMMITTED UNENCRYPTED UNION UNIQUE UNKNOWN UNLOGGED
+	UNBOUNDED UNCOMMITTED UNENCRYPTED UNION UNIQUE UNLOGGED
 	UNTIL UPDATE USER USING
 
 	VALID VALIDATE VALUE_P VALUES VARCHAR VARIADIC VARYING
@@ -5916,20 +5916,6 @@ a_expr:		c_expr									{ $$ = $1; }
 					b->booltesttype = IS_NOT_FALSE;
 					$$ = (Node *)b;
 				}
-			| a_expr IS UNKNOWN							%prec IS
-				{
-					BooleanTest *b = makeNode(BooleanTest);
-					b->arg = (Expr *) $1;
-					b->booltesttype = IS_UNKNOWN;
-					$$ = (Node *)b;
-				}
-			| a_expr IS NOT UNKNOWN						%prec IS
-				{
-					BooleanTest *b = makeNode(BooleanTest);
-					b->arg = (Expr *) $1;
-					b->booltesttype = IS_NOT_UNKNOWN;
-					$$ = (Node *)b;
-				}
 			| a_expr IS DISTINCT FROM a_expr			%prec IS
 				{
 					$$ = (Node *) makeSimpleA_Expr(AEXPR_DISTINCT, "=", $1, $5, @2);
@@ -8019,7 +8005,6 @@ unreserved_keyword:
 			| UNBOUNDED
 			| UNCOMMITTED
 			| UNENCRYPTED
-			| UNKNOWN
 			| UNLOGGED
 			| UNTIL
 			| UPDATE
