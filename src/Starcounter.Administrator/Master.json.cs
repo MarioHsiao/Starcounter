@@ -7,7 +7,10 @@ using Starcounter.ABCIPC.Internal;
 using Starcounter.Internal;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 using StarcounterAppsLogTester;
+using Starcounter.Advanced;
+using Newtonsoft.Json;
 
 // http://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.aspx
 
@@ -57,6 +60,7 @@ namespace StarcounterApps3 {
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
             RegisterGETS();
+            RegisterPOSTS();
         }
 
         static void RegisterGETS() {
@@ -70,6 +74,7 @@ namespace StarcounterApps3 {
                 return new Master() { View = "index.html" };
             });
 
+            // Accept "", text/html, OR application/json. Otherwise, 406.
             GET("/server", () => {
 
                 ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
@@ -135,7 +140,28 @@ namespace StarcounterApps3 {
                 logApp.RefreshLogEntriesList();
                 return logApp;
             });
+        }
 
+        static void RegisterPOSTS() {
+
+            POST<HttpRequest, string>("/databases/{?}/executables", (HttpRequest request, string name) => {
+                ServerEngine engine = Master.ServerEngine;
+                IServerRuntime runtime = Master.ServerInterface;
+
+                var execRequest = JsonConvert.DeserializeObject<ExecRequest>(request.GetBodyStringUtf8_Slow());
+
+                var cmd = new ExecAppCommand(engine, execRequest);
+                cmd.DatabaseName = name;
+                cmd.EnableWaiting = true;
+                
+                var commandInfo = runtime.Execute(cmd);
+                commandInfo = runtime.Wait(commandInfo);
+
+                // If the command indicates failure, generate such HTTP response.
+                // TODO:
+
+                return JsonConvert.SerializeObject(commandInfo);
+            });
         }
 
         #region ServerServices
