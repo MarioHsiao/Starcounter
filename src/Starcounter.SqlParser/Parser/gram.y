@@ -155,7 +155,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 
 %glr-parser
 %define api.pure
-%expect 3
+%expect 5
 %expect-rr 0
 %name-prefix="base_yy"
 %locations
@@ -5936,6 +5936,24 @@ a_expr:		c_expr									{ $$ = $1; }
 				{
 					$$ = (Node *) makeSimpleA_Expr(AEXPR_OF, "<>", $1, (Node *) $6, @2);
 				}
+			| a_expr IS PARAM								%prec IS
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = $3;
+					SET_LOCATION(p, @3);
+					$$ = (Node *) makeSimpleA_Expr(AEXPR_OP, "IS", $1, (Node *)p, @2);
+				}
+			| a_expr IS '?'								%prec IS
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = -1;
+					SET_LOCATION(p, @3);
+					$$ = (Node *) makeSimpleA_Expr(AEXPR_OP, "IS", $1, (Node *)p, @2);
+				}
+			| a_expr IS GenericType						%prec IS
+				{
+					$$ = (Node *) makeSimpleA_Expr(AEXPR_OP, "IS", $1, $3, @2);
+				}
 			/*
 			 *	Ideally we would not use hard-wired operators below but
 			 *	instead use opclasses.  However, mixed data types and other
@@ -6110,6 +6128,24 @@ b_expr:		c_expr
 			| b_expr IS NOT OF '(' type_list ')'	%prec IS
 				{
 					$$ = (Node *) makeSimpleA_Expr(AEXPR_OF, "<>", $1, (Node *) $6, @2);
+				}
+			| b_expr IS PARAM								%prec IS
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = $3;
+					SET_LOCATION(p, @3);
+					$$ = (Node *) makeSimpleA_Expr(AEXPR_OP, "IS", $1, (Node *)p, @2);
+				}
+			| b_expr IS '?'								%prec IS
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = -1;
+					SET_LOCATION(p, @3);
+					$$ = (Node *) makeSimpleA_Expr(AEXPR_OP, "IS", $1, (Node *)p, @2);
+				}
+			| b_expr IS GenericType						%prec IS
+				{
+					$$ = (Node *) makeSimpleA_Expr(AEXPR_OP, "IS", $1, $3, @2);
 				}
 		;
 
