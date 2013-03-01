@@ -116,6 +116,33 @@ namespace Starcounter.Internal.REST {
         }
 
         /// <summary>
+        /// Formats a string confirming to the HTTP/1.1 response status line
+        /// tokens 2 and 3 from the given code and reason.
+        /// </summary>
+        /// <param name="code">The status code.</param>
+        /// <param name="reason">The reason phrase.</param>
+        /// <returns>A string formatted as described in the summary.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when
+        /// the given code is outside the range of given status codes (including
+        /// extension codes), i.e. 0-999.</exception>
+        public static string ToStatusLineFormat(int code, string reason) {
+            RaiseIfInvalidHTTP11CodeRange(code);
+            return ToStatusLineFormatNoValidate(code, reason);
+        }
+
+        /// <summary>
+        /// Formats a string confirming to the HTTP/1.1 response status line
+        /// tokens 2 and 3 from the given code and reason. This method does not
+        /// check the validness of the specified code.
+        /// </summary>
+        /// <param name="code">The status code.</param>
+        /// <param name="reason">The reason phrase.</param>
+        /// <returns>A string formatted as described in the summary.</returns>
+        public static string ToStatusLineFormatNoValidate(int code, string reason) {
+            return string.Format("{0:000} {1}", code, reason).TrimEnd();
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="HttpStatusCodeAndReason"/> with the
         /// given status code. The reason phrase is either set to the recommended
         /// for the given code according to the HTTP/1.1 specification, if the
@@ -239,7 +266,7 @@ namespace Starcounter.Internal.REST {
         /// </summary>
         /// <returns>A string representation of the current instance.</returns>
         public override string ToString() {
-            return string.Format("{0:000} {1}", this.StatusCode, this.ReasonPhrase).TrimEnd();
+            return ToStatusLineFormatNoValidate(this.StatusCode, this.ReasonPhrase);
         }
 
         static void RaiseIfInvalidHTTP11CodeRange(HttpStatusCode code) {
