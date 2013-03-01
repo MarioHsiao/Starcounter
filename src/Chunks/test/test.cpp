@@ -27,11 +27,6 @@
 
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
-	for (int size = 0; size < 7; ++size) {
-		uint64_t a = (0xFFFFFFFFFFFFFF0ULL >> (7 -size << 3)) << 4;
-		std::cout << a << std::endl;
-	}
-
 	// Start the interprocess_communication test application.
 	boost::scoped_ptr<starcounter::interprocess_communication::test> app
 	(new starcounter::interprocess_communication::test(argc, argv));
