@@ -8,7 +8,7 @@ using Starcounter.Internal;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using StarcounterAppsLogTester;
-using Newtonsoft.Json;
+using Starcounter.Internal.REST;
 
 // http://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.aspx
 
@@ -62,37 +62,27 @@ namespace StarcounterApps3 {
 
         static void RegisterGETS() {
 
-            GET("/", () => {
-                return new Master() { View = "index.html" };
-            });
-/*
-            GET("/apps/{?}", (string appid) => {
-                return "{" + "\"id\":\"" +appid+ "\"" + "," + "\"name\":\"app7 (" + appid + ")\"" + "}";
+            GET("/return/{?}", (int code) => {
+                return code;
             });
 
-            GET("/apps/available", () => {
-
-                return "[" +
-
-                       "{" + "\"id\":\"app1\"" + "," + "\"name\":\"nameapp1 (available)\"" + "}," +
-                       "{" + "\"id\":\"app2\"" + "," + "\"name\":\"nameapp2 (available)\"" + "}" +
-
-                       "]";
+            GET("/returnstatus/{?}", (int code) => {
+                return (System.Net.HttpStatusCode)code;
             });
 
-            GET("/apps/running", () => {
-
-                return "[" +
-
-                    "{" + "\"id\":\"app1\"" + "," + "\"name\":\"nameapp1 (running)\"" + "}," +
-                    "{" + "\"id\":\"app2\"" + "," + "\"name\":\"nameapp2 (running)\"" + "}" +
-
-                    "]";
-
+            GET("/returnwithreason/{?}", (string codeAndReason) => {
+                // Example input: 404ThisIsMyCustomReason
+                var code = int.Parse(codeAndReason.Substring(0, 3));
+                var reason = codeAndReason.Substring(3);
+                return new HttpStatusCodeAndReason(code, reason);
             });
-*/
+
             GET("/test", () => {
                 return "hello";
+            });
+
+            GET("/", () => {
+                return new Master() { View = "index.html" };
             });
 
             GET("/server", () => {
@@ -138,15 +128,6 @@ namespace StarcounterApps3 {
                 databaseApp.SetDatabaseInfo(database);
 
                 return databaseApp;
-            });
-
-            GET("/apps", () => {
-                AppsApp appsApp = new AppsApp();
-                appsApp.View = "apps.html";
-
-                appsApp.Setup();
-
-                return appsApp;
             });
 
 
@@ -203,8 +184,7 @@ namespace StarcounterApps3 {
             try {
                 Console.ForegroundColor = color;
                 Console.WriteLine(text);
-            }
-            finally {
+            } finally {
                 Console.ResetColor();
             }
         }
