@@ -35,6 +35,8 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="token">The error token</param>
         /// <returns></returns>
         internal static Exception GetSqlException(uint errorCode, string message, int location, string token, string query) {
+            if (message == "syntax error")
+                message = "Unexpected token.";
             return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(m, token, location, query));
         }
 
