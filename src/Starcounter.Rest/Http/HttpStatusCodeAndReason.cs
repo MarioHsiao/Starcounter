@@ -247,8 +247,8 @@ namespace Starcounter.Internal.REST {
         /// Two instances are considered valid if the have the same status
         /// code.
         /// </summary>
-        /// <param name="obj">The object to compare to.</param>
-        /// <returns>True if <paramref name="obj"/> is considered equal to
+        /// <param name="other">The object to compare to.</param>
+        /// <returns>True if <paramref name="other"/> is considered equal to
         /// the current instance; else false.</returns>
         public bool Equals(HttpStatusCodeAndReason other) {
             if (other == null) return false;
