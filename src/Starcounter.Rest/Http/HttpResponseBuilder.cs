@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal.REST;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -195,6 +196,14 @@ namespace Starcounter.Internal.Web {
          payload.CopyTo(response, header.Length);
 
          return response;
+      }
+
+      public static byte[] FromCodeAndReason_NOT_VALIDATING(int code, string reason) {
+          const string statusAndHeaders =
+              "HTTP/1.1 {0}\r\n" + "Server:Starcounter\r\n" + "Content-Length: 0\r\n" + "\r\n";
+          
+          string header = string.Format(statusAndHeaders, HttpStatusCodeAndReason.ToStatusLineFormatNoValidate(code, reason));
+          return Encoding.UTF8.GetBytes(header);
       }
 
         
