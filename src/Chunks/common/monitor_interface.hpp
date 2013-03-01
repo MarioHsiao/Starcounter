@@ -174,6 +174,14 @@ public:
 		return cleanup_task_.spinlock();
 	}
 
+	active_databases& active_databasesx() {
+		return active_databases_;
+	}
+	
+	const active_databases& active_databasesx() const {
+		return active_databases_;
+	}
+
 private:
 	// Synchronization to check if the monitor_interface is ready or not.
 	boost::interprocess::interprocess_mutex ready_mutex_;
@@ -304,7 +312,50 @@ private:
 		// spinlock_ synchronizes updates to cleanup_mask_ and set/reset of the event.
 		smp::spinlock spinlock_;
 	} cleanup_task_;
+
+	class active_databases {
+	public:
+		typedef char value_type[database_name_size];
+		typedef int32_t size_type;
+
+		active_databases() {
+			for (std::size_t i = 0; i < max_number_of_databases; ++i) {
+				*database_name_[i] = 0;
+			}
+		}
+
+		value_type& database_name(std::size_t i) {
+			return database_name_[i];
+		}
+		
+		const value_type& database_name(std::size_t i) const {
+			return database_name_[i];
+		}
+
+		size_type size() {
+			return size_;
+		}
+
+	private:
+		value_type database_name_[max_number_of_databases];
+		
+		// On multiple of cache-line boundary here.
+		size_type size_;
+		char cache_line_pad_0_[CACHE_LINE_SIZE -sizeof(size_type)]; // size_
+
+		// spinlock_ synchronizes updates to active_databases_ and set/reset of the event.
+		smp::spinlock spinlock_;
+		char cache_line_pad_1_[CACHE_LINE_SIZE -sizeof(smp::spinlock)]; // spinlock_
+
+		// Event to notifu when the active databases list is updated.
+		HANDLE active_databases_list_update_;
+		char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(HANDLE)]; // active_databases_list_update_
+	} active_databases_;
 };
+
+//monitor_interface().active_databases().size()
+//monitor_interface().active_databases().name(1)
+
 
 /// Exception class.
 class monitor_interface_ptr_exception {
