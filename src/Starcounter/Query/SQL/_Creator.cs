@@ -155,8 +155,8 @@ namespace Starcounter.Query.Sql
 #endif
             } catch (Starcounter.Query.RawParserAnalyzer.SQLParserAssertException) {
                 prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
-                LogSources.Sql.LogNotice("Using Prolog-based parser");
-                Console.WriteLine("Using Prolog-based parser");
+                //LogSources.Sql.LogNotice("Using Prolog-based parser");
+                //Console.WriteLine("Using Prolog-based parser");
                 return prologParsedQueryPlan;
             }
 #if DEBUG

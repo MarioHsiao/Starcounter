@@ -4,6 +4,13 @@ using Starcounter.Query.Sql;
 
 namespace Starcounter.Query {
     internal static class QueryPreparation {
+        /// <summary>
+        /// Prepares query by first parsing it and then optimizing. The preparation can be done in Prolog or Bison.
+        /// By default the preparation is done in both and if debug the results are compares before and after optimization.
+        /// LIKE case requires special treatment.
+        /// </summary>
+        /// <param name="query">Input query string to prepare</param>
+        /// <returns>The result enumerated with the execution plan.</returns>
         internal static IExecutionEnumerator PrepareQuery(String query) {
             Scheduler vproc = Scheduler.GetInstance();
             // Call to Bison parser and type checker
