@@ -101,7 +101,7 @@ namespace Starcounter.Internal.JsonPatch {
                     continue;
 
                 if (template is TObjArr) {
-                    Arr l = app[(TObjArr)template];
+                    Arr l = app.Get((TObjArr)template);
                     foreach (Puppet childApp in l) {
                         RefreshAllValues(childApp, log);
                     }
@@ -109,7 +109,7 @@ namespace Starcounter.Internal.JsonPatch {
                 }
 
                 if (template is TPuppet) {
-                    RefreshAllValues((Puppet)app[(TPuppet)template], log);
+                    RefreshAllValues((Puppet)app.Get((TPuppet)template), log);
                     continue;
                 }
 

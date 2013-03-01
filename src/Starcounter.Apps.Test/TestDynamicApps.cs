@@ -53,13 +53,13 @@ namespace Starcounter.Client.Tests.Application {
             Puppet jocke = new Puppet() { Template = personSchema };
             Puppet tim = new Puppet() { Template = personSchema };
 
-            jocke[firstName] = "Joachim";
-            jocke[lastName] = "Wester";
-            jocke[age] = 30;
+            jocke.Set(firstName, "Joachim");
+            jocke.Set(lastName, "Wester");
+            jocke.Set(age, 30);
 
-            tim[firstName] = "Timothy";
-            tim[lastName] = "Wester";
-            tim[age] = 16;
+            tim.Set(firstName, "Timothy");
+            tim.Set(lastName, "Wester");
+            tim.Set(age, 16);
 
             Assert.AreEqual(0, firstName.Index);
             Assert.AreEqual(1, lastName.Index);
@@ -67,10 +67,10 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual(3, phoneNumbers.Index);
             Assert.AreEqual(0, number.Index);
 
-            Assert.AreEqual("Joachim", jocke[firstName]);
-            Assert.AreEqual("Wester", jocke[lastName]);
-            Assert.AreEqual("Timothy", tim[firstName]);
-            Assert.AreEqual("Wester", tim[lastName]);
+            Assert.AreEqual("Joachim", jocke.Get(firstName));
+            Assert.AreEqual("Wester", jocke.Get(lastName));
+            Assert.AreEqual("Timothy", tim.Get(firstName));
+            Assert.AreEqual("Wester", tim.Get(lastName));
 
             var ret = new List<Puppet>();
             ret.Add(jocke);
@@ -98,6 +98,9 @@ namespace Starcounter.Client.Tests.Application {
             dynamic tim = new Puppet() { Template = personSchema };
 
             jocke.FirstName = "Joachim";
+
+            jocke.FirstName("j");
+
             jocke.LastName = "Wester";
             //jocke.Age = 30;
 

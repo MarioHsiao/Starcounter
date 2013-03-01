@@ -171,9 +171,9 @@ namespace Starcounter {
                     case JsonToken.StartObject:
                         Obj newObj;
                         if (insideArray) {
-                            newObj = obj[(TObjArr)tChild].Add();
+                            newObj = obj.Get((TObjArr)tChild).Add();
                         } else {
-                            newObj = obj[(TObj)tChild];
+                            newObj = obj.Get((TObj)tChild);
                         }
                         PopulateObject(newObj, reader);
                         break;
@@ -188,19 +188,19 @@ namespace Starcounter {
                         }
                         break;
                     case JsonToken.String:
-                        obj[(TString)tChild] = (string)reader.Value;
+                        obj.Set((TString)tChild, (string)reader.Value);
                         break;
                     case JsonToken.Integer:
-                        obj[(TLong)tChild] = (long)reader.Value;
+                        obj.Set((TLong)tChild, (long)reader.Value);
                         break;
                     case JsonToken.Boolean:
-                        obj[(TBool)tChild] = (bool)reader.Value;
+                        obj.Set((TBool)tChild, (bool)reader.Value);
                         break;
                     case JsonToken.Float:
                         if (tChild is TDecimal) {
-                            obj[(TDecimal)tChild] = Convert.ToDecimal(reader.Value);
+                            obj.Set((TDecimal)tChild, Convert.ToDecimal(reader.Value));
                         } else {
-                            obj[(TDouble)tChild] = (double)reader.Value;
+                            obj.Set((TDouble)tChild, (double)reader.Value);
                         }
                         break;
                     case JsonToken.StartArray:

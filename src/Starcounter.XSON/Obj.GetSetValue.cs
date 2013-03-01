@@ -40,131 +40,133 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets or sets the value for the specified template. If the property
-        /// is bound the value will be retrived or set in the underlying dataobject.
+        /// Gets the value for the specified template. If the property
+        /// is bound the value will be retrived from the underlying dataobject.
         /// </summary>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public bool this[TBool property] {
-            get { return Get<TBool, bool>(property); }
-            set { Set<TBool, bool>(property, value); }
-        }
+        /// <param name="property">The template to retrieve the value for.</param>
+        /// <returns>The value.</returns>
+        public bool Get(TBool property) { return Get<TBool, bool>(property); }
 
         /// <summary>
-        /// Gets or sets the value for the specified template. If the property
-        /// is bound the value will be retrived or set in the underlying dataobject.
+        /// Sets the value for the specified template. If the property
+        /// is bound the value will be set in the underlying dataobject.
         /// </summary>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public decimal this[TDecimal property] {
-            get { return Get<TDecimal, decimal>(property); }
-            set { Set<TDecimal, decimal>(property, value); }
-        }
-
-        /// <summary>
-        /// Gets or sets the value for the specified template. If the property
-        /// is bound the value will be retrived or set in the underlying dataobject.
-        /// </summary>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public double this[TDouble property] {
-            get { return Get<TDouble, double>(property); }
-            set { Set<TDouble, double>(property, value); }
-        }
-
-        /// <summary>
-        /// Gets or sets the value for the specified template. If the property
-        /// is bound the value will be retrived or set in the underlying dataobject.
-        /// </summary>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public long this[TLong property] {
-            get { return Get<TLong, long>(property); }
-            set { Set<TLong, long>(property, value); }
-        }
-
-        /// <summary>
-        /// Gets or sets the value for the specified template. If the property
-        /// is bound the value will be retrived or set in the underlying dataobject.
-        /// </summary>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public String this[TString property] {
-            get { return Get<TString, string>(property); }
-            set { Set<TString, string>(property, value); }
-        }
+        /// <param name="property">The template to set the value to.</param>
+        /// <param name="value">The value to set.</param>
+        public void Set(TBool property, bool value) { Set<TBool, bool>(property, value); }
 
         /// <summary>
         /// Gets the value for the specified template. If the property
         /// is bound the value will be retrived from the underlying dataobject.
         /// </summary>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public UInt64 this[TOid property] {
-            get { return Get<TOid, UInt64>(property); }
-        }
+        /// <param name="property">The template to retrieve the value for.</param>
+        /// <returns>The value.</returns>
+        public decimal Get(TDecimal property) { return Get<TDecimal, decimal>(property); }
 
         /// <summary>
-        /// Gets or sets the value for a given property in this Obj. This method returns all values boxed
+        /// Sets the value for the specified template. If the property
+        /// is bound the value will be set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to set the value to.</param>
+        /// <param name="value">The value to set.</param>
+        public void Set(TDecimal property, decimal value) { Set<TDecimal, decimal>(property, value); }
+
+        /// <summary>
+        /// Gets the value for the specified template. If the property
+        /// is bound the value will be retrived from the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to retrieve the value for.</param>
+        /// <returns>The value.</returns>
+        public double Get(TDouble property) { return Get<TDouble, double>(property); }
+
+        /// <summary>
+        /// Sets the value for the specified template. If the property
+        /// is bound the value will be set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to set the value to.</param>
+        /// <param name="value">The value to set.</param>
+        public void Set(TDouble property, double value) { Set<TDouble, double>(property, value); }
+
+        /// <summary>
+        /// Gets the value for the specified template. If the property
+        /// is bound the value will be retrived from the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to retrieve the value for.</param>
+        /// <returns>The value.</returns>
+        public long Get(TLong property) { return Get<TLong, long>(property); }
+
+        /// <summary>
+        /// Sets the value for the specified template. If the property
+        /// is bound the value will be set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to set the value to.</param>
+        /// <param name="value">The value to set.</param>
+        public void Set(TLong property, long value) { Set<TLong, long>(property, value); }
+
+        /// <summary>
+        /// Gets the value for the specified template. If the property
+        /// is bound the value will be retrived from the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to retrieve the value for.</param>
+        /// <returns>The value.</returns>
+        public string Get(TString property) { return Get<TString, string>(property); }
+
+        /// <summary>
+        /// Sets the value for the specified template. If the property
+        /// is bound the value will be set in the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to set the value to.</param>
+        /// <param name="value">The value to set.</param>
+        public void Set(TString property, string value) { Set<TString, string>(property, value); }
+
+        /// <summary>
+        /// Gets the value for the specified template. If the property
+        /// is bound the value will be retrived from the underlying dataobject.
+        /// </summary>
+        /// <param name="property">The template to retrieve the value for.</param>
+        /// <returns>The value.</returns>
+        public ulong Get(TOid property) { return Get<TOid, ulong>(property); }
+
+        /// <summary>
+        /// Gets the value for a given property in this Obj. This method returns all values boxed
         /// as a CLR object. Whenever possible, use the function specific to a type instead
-        /// (i.e. non abstract value templates such as for example this[BoolTemplate property].
+        /// (i.e. non abstract value templates such as for example this.Get(BoolTemplate property).
         /// </summary>
         /// <param name="property">The template representing the property to read</param>
         /// <returns>The value of the property</returns>
-        public object this[TValue property] {
-            get {
-                if (property.Bound)
-                    throw new NotImplementedException();
+        public object Get(TValue property) {
+            if (property.Bound)
+                throw new NotImplementedException();
 //                    return (object)property.GetBoundValue(this);
 
-                #if QUICKTUPLE
-                    return _Values[property.Index];
-                #else
-                    throw new NotImplementedException();
-                #endif
-            }
-            set {
-                if (property.Bound) {
-                    throw new NotImplementedException();
-//                    property.SetBoundValue(this, value);
-                    //this.HasChanged(property);
-                    //return;
-                }
-
-                #if QUICKTUPLE
-                    _Values[property.Index] = value;
-                #else
-                    throw new NotImplementedException();
-                #endif
-                this.HasChanged(property);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public Arr this[TObjArr property] {
-            get {
 #if QUICKTUPLE
                 return _Values[property.Index];
 #else
                 throw new NotImplementedException();
 #endif
-            }
-            set {
-                Arr current = this[property];
-                if (current != null)
-                    current.Clear();
+        }
 
-                value.InitializeAfterImplicitConversion(this, property);
-#if QUICKTUPLE
-                _Values[property.Index] = value;
-#else
+        /// <summary>
+        /// Sets the value for a given property in this Obj. Whenever possible, use the 
+        /// function specific to a type instead (i.e. non abstract value templates such 
+        /// as for example this.Set(BoolTemplate property, bool value).
+        /// </summary>
+        /// <param name="property">The template representing the property to write</param>
+        /// <param name="value">The value of the property</param>
+        public void Set(TValue property, object value) {
+            if (property.Bound) {
                 throw new NotImplementedException();
-#endif
+//                    property.SetBoundValue(this, value);
+                //this.HasChanged(property);
+                //return;
             }
+
+#if QUICKTUPLE
+            _Values[property.Index] = value;
+#else
+                    throw new NotImplementedException();
+#endif
+            this.HasChanged(property);
         }
 
         /// <summary>
@@ -172,35 +174,100 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Obj this[TObj property] {
-            get {
-                if (property.Bound)
-                    throw new NotImplementedException();
+        public Obj Get(TObj property) {
+            if (property.Bound)
+                throw new NotImplementedException();
 //                    return (Obj)property.GetBoundValue(this);
 
 #if QUICKTUPLE
-                return _Values[property.Index];
+            return _Values[property.Index];
 #else
-                throw new NotImplementedException();
+            throw new NotImplementedException();
 #endif
-            }
-            set {
-                if (property.Bound) {
-                    throw new NotImplementedException();
-//                    property.SetBoundValue(this, value);
-                    //this.HasChanged(property);
-                    //return;
-                }
-
-#if QUICKTUPLE
-                _Values[property.Index] = value;
-#else
-                throw new JockeNotImplementedException();
-#endif
-                this.HasChanged(property);
-            }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        public void Set(TObj property, Obj value) {
+            if (property.Bound) {
+                throw new NotImplementedException();
+                //                    property.SetBoundValue(this, value);
+                //this.HasChanged(property);
+                //return;
+            }
+
+#if QUICKTUPLE
+            _Values[property.Index] = value;
+#else
+            throw new JockeNotImplementedException();
+#endif
+            this.HasChanged(property);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public T Get<T>(TObj property) where T : Obj, new() {
+#if QUICKTUPLE
+            return (T)(_Values[property.Index]);
+#else
+            throw new NotImplementedException();
+#endif
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        public void Set(TObj property, IBindable value) {
+#if QUICKTUPLE
+            Obj app = (Obj)property.CreateInstance(this);
+            app.Data = value;
+            _Values[property.Index] = app;
+#else
+            throw new JockeNotImplementedException();
+#endif
+            this.HasChanged(property);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public Arr Get(TObjArr property) {
+#if QUICKTUPLE
+            return _Values[property.Index];
+#else
+            throw new NotImplementedException();
+#endif
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        public void Set(TObjArr property, Arr value) {
+            Arr current = this.Get(property);
+            if (current != null)
+                current.Clear();
+
+            value.InitializeAfterImplicitConversion(this, property);
+#if QUICKTUPLE
+            _Values[property.Index] = value;
+#else
+            throw new NotImplementedException();
+#endif
+        }
+        
         /// <summary>
         /// 
         /// </summary>
@@ -219,18 +286,18 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="templ"></param>
+        /// <param name="property"></param>
         /// <param name="data"></param>
-        public void Set<T>(TObjArr templ, Rows<object> data) where T : Obj, new() {
+        public void Set<T>(TObjArr property, Rows<object> data) where T : Obj, new() {
             Arr<T> newList;
-            Arr<T> current = _Values[templ.Index];
+            Arr<T> current = _Values[property.Index];
             if (current != null)
                 current.Clear();
 
             newList = data;
-            newList.InitializeAfterImplicitConversion(this, templ);
+            newList.InitializeAfterImplicitConversion(this, property);
 
-            _Values[templ.Index] = newList;
+            _Values[property.Index] = newList;
         }
 
         /// <summary>
@@ -251,20 +318,6 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public T Get<T>(TObj property) where T : Obj, new() {
-#if QUICKTUPLE
-            return (T)(_Values[property.Index]);
-#else
-            throw new NotImplementedException();
-#endif
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="templ"></param>
         /// <param name="data"></param>
         public void Set<T>(TObjArr templ, Arr<T> data) where T : Obj, new() {
@@ -274,22 +327,6 @@ namespace Starcounter {
 
             data.InitializeAfterImplicitConversion(this, templ);
             _Values[templ.Index] = data;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="property"></param>
-        /// <param name="value"></param>
-        public void Set(TObj property, IBindable value) {
-#if QUICKTUPLE
-            Obj app = (Obj)property.CreateInstance(this);
-            app.Data = value;
-            _Values[property.Index] = app;
-#else
-            throw new JockeNotImplementedException();
-#endif
-            this.HasChanged(property);
         }
     }
 }

@@ -162,9 +162,9 @@ namespace Starcounter.Apps {
 
             foreach (Template child in app.Template.Children) {
                 if (child is TPuppet) {
-                    DisposeAppRecursively(app[(TPuppet)child]);
+                    DisposeAppRecursively(app.Get((TPuppet)child));
                 } else if (child is TObjArr) {
-                    Arr listing = app[(TObjArr)child];
+                    Arr listing = app.Get((TObjArr)child);
                     foreach (Puppet listApp in listing) {
                         DisposeAppRecursively(listApp);
                     }
