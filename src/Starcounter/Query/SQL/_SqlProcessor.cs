@@ -94,7 +94,7 @@ internal static class SqlProcessor
         Int32 pos = 0;
         if (!Token("$CREATE", tokenList, pos))
         {
-            throw new SqlException("Expected word CREATE.", tokenList, pos);
+            throw new SqlException("Expected word CREATE.", tokenList[pos]);
         }
         pos++;
         if (Token("$UNIQUE", tokenList, pos))
@@ -104,18 +104,18 @@ internal static class SqlProcessor
         }
         if (!Token("$INDEX", tokenList, pos))
         {
-            throw new SqlException("Expected word INDEX.", tokenList, pos);
+            throw new SqlException("Expected word INDEX.", tokenList[pos]);
         }
         pos++;
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList, pos);
+            throw new SqlException("Expected identifier.", tokenList[pos]);
         }
         String indexName = tokenList[pos];
         pos++;
         if (!Token("$ON", tokenList, pos))
         {
-            throw new SqlException("Expected word ON.", tokenList, pos);
+            throw new SqlException("Expected word ON.", tokenList[pos]);
         }
         pos++;
         
@@ -126,7 +126,7 @@ internal static class SqlProcessor
         // Parse properties (column) names
         if (!Token("(", tokenList, pos))
         {
-            throw new SqlException("Expected opening bracket '('.", tokenList, pos);
+            throw new SqlException("Expected opening bracket '('.", tokenList[pos]);
         }
         pos++;
         List<String> propertyList = new List<String>(); // List of properties/columns
@@ -151,7 +151,7 @@ internal static class SqlProcessor
 
         if (!Token(")", tokenList, pos))
         {
-            throw new SqlException("Expected closing bracket ')'.", tokenList, pos);
+            throw new SqlException("Expected closing bracket ')'.", tokenList[pos]);
         }
         pos++;
 
@@ -223,7 +223,7 @@ internal static class SqlProcessor
                 ProcessDropTable(statement, tokenList, pos);
                 return true;
             }
-                throw new SqlException("Unexpected token after DROP", tokenList, pos);
+                throw new SqlException("Unexpected token after DROP", tokenList[pos]);
         }
         if (Token("$DELETE", tokenList, pos))
         {
@@ -271,13 +271,13 @@ internal static class SqlProcessor
         // Parse the rest of the statement and prepare variables to call kernel
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList, pos);
+            throw new SqlException("Expected identifier.", tokenList[pos]);
         }
         String indexName = tokenList[pos];
         pos++;
         if (!Token("$ON", tokenList, pos))
         {
-            throw new SqlException("Expected word ON.", tokenList, pos);
+            throw new SqlException("Expected word ON.", tokenList[pos]);
         }
         pos++;
 
@@ -614,7 +614,7 @@ internal static class SqlProcessor
     {
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList, pos);
+            throw new SqlException("Expected identifier.", tokenList[pos]);
         }
         String identifierPath = tokenList[pos];
         pos++;
@@ -715,7 +715,7 @@ internal static class SqlProcessor
         String propertyName;
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList, pos);
+            throw new SqlException("Expected identifier.", tokenList[pos]);
         }
         propertyName = tokenList[pos];
         pos++;
