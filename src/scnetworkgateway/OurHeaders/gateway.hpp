@@ -1302,6 +1302,11 @@ public:
 #endif
 };
 
+typedef void* (*GwClangCompileCodeAndGetFuntion)(
+    const char* code_str,
+    const char* func_name,
+    bool accumulate_old_modules);
+
 class CodegenUriMatcher;
 class GatewayWorker;
 class Gateway
@@ -1542,6 +1547,9 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    // Pointer to Clang compile and get function pointer.
+    GwClangCompileCodeAndGetFuntion ClangCompileAndGetFunc;
 
     // Generate the code using managed generator.
     uint32_t GenerateUriMatcher(uint16_t port);
