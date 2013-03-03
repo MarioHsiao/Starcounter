@@ -1489,14 +1489,39 @@ uint32_t Gateway::Init()
     codegen_uri_matcher_->Init();
 #endif
 
+    // Loading Clang for URI matching.
+    HMODULE clang = LoadLibrary(L"GatewayClang.dll");
+    GW_ASSERT(clang != NULL);
+
+    typedef void (*GwClangInit)();
+    GwClangInit clang_init = (GwClangInit) GetProcAddress(clang, "GwClangInit");
+    GW_ASSERT(clang_init != NULL);
+    clang_init();
+
+    ClangCompileAndGetFunc = (GwClangCompileCodeAndGetFuntion) GetProcAddress(
+        clang,
+        "GwClangCompileCodeAndGetFuntion");
+
+    GW_ASSERT(ClangCompileAndGetFunc != NULL);
+
+    // Running a test compilation.
+    typedef int (*example_main_func_type) ();
+    example_main_func_type example_main_func;
+    example_main_func = (example_main_func_type) g_gateway.ClangCompileAndGetFunc(
+        "int main() { return 124; }",
+        "main",
+        false);
+
+    GW_ASSERT(example_main_func != NULL);
+
     // Indicating that network gateway is ready
     // (should be first line of the output).
     GW_COUT << "Gateway is ready!" << GW_ENDL;
 
     // Indicating begin of new logging session.
-    time_t rawtime;
-    time(&rawtime);
-    tm *timeinfo = localtime(&rawtime);
+    time_t raw_time;
+    time(&raw_time);
+    tm *timeinfo = localtime(&raw_time);
     GW_PRINT_GLOBAL << "New logging session: " << asctime(timeinfo) << GW_ENDL;
 
     return 0;
@@ -2677,7 +2702,7 @@ uint32_t Gateway::GenerateUriMatcher(uint16_t port)
 
     // Building URI matcher from generated code and loading the library.
     err_code = codegen_uri_matcher_->CompileIfNeededAndLoadDll(
-        UriMatchCodegenCompilerType::COMPILER_MSVC,
+        UriMatchCodegenCompilerType::COMPILER_CLANG,
         L"codegen_uri_matcher",
         &match_uri_func,
         &gen_dll_handle);
@@ -2762,6 +2787,9 @@ uint32_t Gateway::AddUriHandler(
         }
     }
     GW_ERR_CHECK(err_code);
+
+    // Invalidating URI matching codegen.
+    all_port_uris->InvalidateCodegen();
 
     // Printing port information.
     server_port->Print();
