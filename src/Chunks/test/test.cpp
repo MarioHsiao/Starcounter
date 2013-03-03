@@ -1,11 +1,11 @@
 //
 // test.cpp
-// interprocess_communication/test
+// IPC test
 //
 // Copyright © 2006-2012 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
-// This interprocess_communication test is for the Windows platform.
+// This IPC test is for the Windows platform.
 //
 
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -36,18 +36,10 @@ try {
 	app->run(200 /* interval time milliseconds */,
 	6000000 /* duration time milliseconds */);
 	
-	/// After 10 seconds, all worker threads are signaled to exit their worker
-	/// loop and release their resources. This shall simulate a test to
-	/// correctly clean up resources before a thread exit, as have to be done in
-	/// Lucent Objects.
-	Sleep(INFINITE);
-	//Sleep(10000);
-	app->stop_all_workers();
-	
 	// Stop worker 0.
 	//app->stop_worker(0);
+	//app->stop_all_workers();
 	
-	//std::cout << "test: waiting. . .not terminating the process." << std::endl;
 	Sleep(INFINITE);
 	std::cout << "test: exit." << std::endl;
 }
