@@ -1,29 +1,9 @@
 ﻿{
 	"DatabaseName$" : "default",
+	"Exception":"message",
 	"Port$" : 8181,
 	"Query$" : "select m from systable m",
 	"Execute$" : null,
-	"Output" : "Some output",
-	Columns : [
-		{"ID":"Col1","Title":"Column 1"},
-		{"ID":"Col2","Title":"Column 2"}
-		],
-	"Items" : [
-		{"ID":"Mucho1","Value":1},
-		{"ID":"Mucho2","Value":2},
-		{"ID":"Mucho3","Value":3},
-		{"ID":"Mucho4","Value":4},
-		{"ID":"Mucho5","Value":5},
-		{"ID":"Mucho6","Value":6},
-		{"ID":"Mucho7","Value":7},
-		{"ID":"Mucho8","Value":8},
-		{"ID":"Mucho9","Value":9},
-		{"ID":"Mucho10","Value":10},
-		{"ID":"Mucho11","Value":11},
-		{"ID":"Mucho12","Value":12},
-		{"ID":"Mucho13","Value":13},
-		{"ID":"Mucho14","Value":14}
-		],
-	"Count" : 14,
-	"Offset" : 0
+	"Output" : "Some output"
+	
 }
