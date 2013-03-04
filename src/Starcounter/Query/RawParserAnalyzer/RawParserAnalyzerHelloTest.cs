@@ -286,9 +286,9 @@ namespace Starcounter.Query.RawParserAnalyzer
                         message += " Position " + scerror->scerrposition + " in the query \"" + Query + "\"";
                     else
                         message += " in the query \"" + Query + "\"";
-                    if (scerror->tocken != null)
-                        message += "The error is near or at: " + scerror->tocken;
-                    throw GetSqlException((uint)scerror->scerrorcode, message, scerror->scerrposition, scerror->tocken);
+                    if (scerror->token != null)
+                        message += "The error is near or at: " + scerror->token;
+                    throw GetSqlException((uint)scerror->scerrorcode, message, scerror->scerrposition, scerror->token);
                 }
             }
         }
@@ -304,8 +304,8 @@ namespace Starcounter.Query.RawParserAnalyzer
                     message += " Position " + scerror->scerrposition + " in the query \"" + Query + "\"";
                 else
                     message += " in the query \"" + Query + "\"";
-                if (scerror->tocken != null)
-                    message += "The error is near or at: " + scerror->tocken;
+                if (scerror->token != null)
+                    message += "The error is near or at: " + scerror->token;
                 return message;
             }
         }

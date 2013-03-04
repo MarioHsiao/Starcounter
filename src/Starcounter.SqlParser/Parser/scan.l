@@ -358,7 +358,7 @@ other			.
 					/* ignore */
 				}
 
-<xc><<EOF>>		{ yyerror("unterminated /* comment"); }
+<xc><<EOF>>		{ yyerror("Unterminated /* comment."); }
 
 {xbstart}		{
 					/* Binary bit type.
@@ -387,7 +387,7 @@ other			.
 <xb>{quotecontinue}	{
 					/* ignore */
 				}
-<xb><<EOF>>		{ yyerror("unterminated bit string literal"); }
+<xb><<EOF>>		{ yyerror("Unterminated bit string literal."); }
 
 {xhstart}		{
 					/* Hexadecimal bit type.
@@ -408,7 +408,7 @@ other			.
 					yylval->str = litbufdup(yyscanner);
 					return XCONST;
 				}
-<xh><<EOF>>		{ yyerror("unterminated hexadecimal string literal"); }
+<xh><<EOF>>		{ yyerror("Unterminated hexadecimal string literal."); }
 
 {xnstart}		{
 					/* National character.
@@ -457,7 +457,7 @@ other			.
 <xq>{quotecontinue} {
 					/* ignore */
 				}
-<xq><<EOF>>		{ yyerror("unterminated quoted string"); }
+<xq><<EOF>>		{ yyerror("Unterminated quoted string."); }
 
 
 {xdstart}		{
@@ -470,7 +470,7 @@ other			.
 
 					BEGIN(INITIAL);
 					if (yyextra->literallen == 0)
-						yyerror("zero-length delimited identifier");
+						yyerror("Zero-length delimited identifier.");
 					ident = litbufdup(yyscanner);
 					yylval->str = ident;
 					return IDENT;
@@ -647,7 +647,7 @@ scanner_yyerror(const char *message, core_yyscan_t yyscanner)
 	if (*loc == YY_END_OF_BUFFER_CHAR)
 	{
 		errprint("\nERROR SYNTAX_ERROR: %s at end of input, position %d",_(message), *yylloc);
-		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, *yylloc, NULL, ScErrMessageStr("%s at end of input", message));
+		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, *yylloc, NULL, ScErrMessageStr("%s", message));
 	}
 	else
 	{
@@ -672,7 +672,7 @@ scanner_init(const wchar_t *str,
 	if (yylex_init(&scanner) != 0)
 	{
 		errprint("\nERROR: yylex_init() failed: %m");
-		ScEreport(SCERRUNEXPSQLPARSER, -1, NULL, ScErrMessage("yylex_init() failed"));
+		ScEreport(SCERRUNEXPSQLPARSER, -1, NULL, ScErrMessage("yylex_init() failed."));
 		return NULL;
 	}
 

@@ -18,11 +18,8 @@ namespace Starcounter.Query.RawParserAnalyzer {
             Debug.Assert(IsOpenParserThread, "Raw parser error management requires an open parser.");
             if (scerrorcode > 0) {
                 // Unmanaged parser returned an error, thus throwing an exception.
-                unsafe {
-                    ScError* scerror = UnmanagedParserInterface.GetScError();
-                    // Throw Starcounter exception for parsing error
-                    throw GetSqlException((uint)scerror->scerrorcode, new String(scerror->scerrmessage), scerror->scerrposition, scerror->tocken, Query);
-                }
+                // Throw Starcounter exception for parsing error
+                throw GetSqlException(scerrorcode);
             }
         }
 
@@ -34,10 +31,23 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="location">Start of the error token in the query</param>
         /// <param name="token">The error token</param>
         /// <returns></returns>
-        internal static Exception GetSqlException(uint errorCode, string message, int location, string token, string query) {
-            if (message == "syntax error")
-                message = "Unexpected token.";
-            return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(m, token, location, query));
+        internal Exception GetSqlException(int scErrorCode) {
+            unsafe {
+                ScError* scerror = UnmanagedParserInterface.GetScError();
+                String message = new String(scerror->scerrmessage);
+                uint errorCode = (uint)scerror->scerrorcode;
+                Debug.Assert(scErrorCode == errorCode);
+                int position = scerror->scerrposition;
+                String token = scerror->token;
+                if (message == "syntax error" && token != null)
+                    message = "Unexpected token.";
+                if (message == "syntax error" && token == null)
+                    message = "Unexpected end of query.";
+                message += " The error near or at position " + position + ".";
+                if (token != null)
+                    message += " The error token: " + token;
+                return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, position, token, Query));
+            }
         }
 
         /// <summary>
@@ -48,10 +58,8 @@ namespace Starcounter.Query.RawParserAnalyzer {
         internal unsafe String GetErrorMessage(int scerrorcode) {
             if (scerrorcode == 0)
                 return "No error";
-            unsafe {
-                ScError* scerror = UnmanagedParserInterface.GetScError();
-                return GetSqlException((uint)scerror->scerrorcode, new String(scerror->scerrmessage), scerror->scerrposition, scerror->tocken, Query).ToString();
-            }
+            else
+                return GetSqlException(scerrorcode).ToString();
         }
 
         /// <summary>
