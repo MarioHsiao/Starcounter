@@ -15,14 +15,14 @@ namespace Starcounter.Hosting {
 
         /// <summary>
         /// </summary>
-        public void Run(ITask task) {
+        public void Run(ITask task, Byte schedId = Byte.MaxValue) {
             unsafe {
                 IntPtr hTask = (IntPtr)GCHandle.Alloc(task, GCHandleType.Normal);
 
                 try {
                     var e = sccorelib.cm2_schedule(
                         hsched_,
-                        Byte.MaxValue,
+                        schedId,
                         sccorelib_ext.TYPE_RUN_TASK,
                         0,
                         0,
