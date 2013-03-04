@@ -57,11 +57,11 @@ namespace Starcounter.Query.RawParserAnalyzer
             internal int scerrorcode;
             internal sbyte* scerrmessage;
             internal int scerrposition;
-            private IntPtr _tocken;
+            private IntPtr _token;
 
-            internal String tocken {
+            internal String token {
                 get {
-                    return Marshal.PtrToStringAuto(_tocken);
+                    return Marshal.PtrToStringAuto(_token);
                 }
             }
         }

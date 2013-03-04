@@ -20,6 +20,10 @@ public class SqlException : Exception
     readonly Int32 beginPosition;
     readonly Int32 endPosition;
     readonly String queryString;
+    readonly uint scErrorCode;
+    readonly String errorMessage;
+
+    // Required constructors
 
     internal SqlException(String message)
     : base(message)
@@ -39,20 +43,16 @@ public class SqlException : Exception
         queryString = null;
     }
 
+    // Additional custom constructors.
+
+    // Constructors used by Prolog-based parser
+
     internal SqlException(String message, String token)
         : base(message) {
         unexpectedToken = token;
         beginPosition = -1;
         endPosition = -1;
         queryString = null;
-    }
-
-    internal SqlException(String message, String token, String query)
-        : base(message) {
-        unexpectedToken = token;
-        beginPosition = -1;
-        endPosition = -1;
-        queryString = query;
     }
 
     internal SqlException(String message, String token, Int32 position)
@@ -64,32 +64,56 @@ public class SqlException : Exception
         queryString = null;
     }
 
-    internal SqlException(String message, String token, Int32 position, String query)
-        : base(message) {
-        unexpectedToken = token;
-        beginPosition = position;
-        endPosition = -1;
-        queryString = query;
-    }
-
     internal SqlException(String message, String token, Int32 beginPosition, Int32 endPosition)
-    : base(message)
-    {
+        : base(message) {
         this.unexpectedToken = token;
         this.beginPosition = beginPosition;
         this.endPosition = endPosition;
         queryString = null;
     }
 
-    internal SqlException(String message, String token, Int32 beginPosition, Int32 endPosition, String query)
+    // Constructors used by Bison-based parser
+
+    internal SqlException(uint errorCode, String message, Int32 position, String query)
         : base(message) {
-        this.unexpectedToken = token;
-        this.beginPosition = beginPosition;
-        this.endPosition = endPosition;
+        scErrorCode = errorCode;
+        errorMessage = message;
+        unexpectedToken = null;
+        beginPosition = position;
+        endPosition = -1;
         queryString = query;
     }
 
-    internal String Token
+    internal SqlException(uint errorCode, String message, Int32 position, String token, String query)
+        : base(message) {
+        scErrorCode = errorCode;
+        errorMessage = message;
+        unexpectedToken = token;
+        beginPosition = position;
+        endPosition = -1;
+        queryString = query;
+    }
+
+    // Public properties
+
+    /// <summary>
+    /// Returns Starcounter error code
+    /// </summary>
+    public uint ScErrorCode {
+        get { return scErrorCode; }
+    }
+
+    /// <summary>
+    /// Returns actual syntax error message
+    /// </summary>
+    public String ErrorMessage {
+        get { return errorMessage; }
+    }
+    
+    /// <summary>
+    /// Returns the unexpected token
+    /// </summary>
+    public String Token
     {
         get
         {
@@ -97,7 +121,10 @@ public class SqlException : Exception
         }
     }
 
-    internal Int32 BeginPosition
+    /// <summary>
+    /// Returns the begin position of the error token in the query
+    /// </summary>
+    public Int32 BeginPosition
     {
         get
         {
@@ -105,7 +132,10 @@ public class SqlException : Exception
         }
     }
 
-    internal Int32 EndPosition {
+    /// <summary>
+    /// Returns the end position of the error token in the query
+    /// </summary>
+    public Int32 EndPosition {
         get {
             if (endPosition == -1)
                 if (Token == null || Token == "")
@@ -117,7 +147,10 @@ public class SqlException : Exception
         }
     }
 
-    internal String Query {
+    /// <summary>
+    /// Returns the query string, where the error happened
+    /// </summary>
+    public String Query {
         get { return queryString; }
     }
 

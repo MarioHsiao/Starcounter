@@ -160,7 +160,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %name-prefix="base_yy"
 %locations
 //%debug
-//%verbose
+%verbose
 
 %parse-param {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
@@ -330,7 +330,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %type <sortby>	sortby
 %type <limitoffset> select_limit
 %type <ielem>	index_elem
-%type <node>	table_ref
+%type <node>	table_ref joined_table_ref
 %type <jexpr>	joined_table
 %type <range>	relation_expr
 %type <range>	relation_expr_opt_alias
@@ -768,7 +768,7 @@ AlterOptRoleElem:
 					else
 					{
 						errprint("\nERROR SYNTAX_ERROR: unrecognized role option \"%s\"", $1);
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $1, ScErrMessage("Unrecognized role option"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $1, ScErrMessage("Unrecognized role option."));
 					}
 				}
 		;
@@ -969,7 +969,7 @@ set_rest:	/* Generic SET syntaxes: */
 			| CATALOG_P Sconst
 				{
 					errprint("\nERROR FEATURE_NOT_SUPPORTED: current database cannot be changed");
-					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @2, $1, ScErrMessage("Current database cannot be changed"));
+					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @2, $1, ScErrMessage("Current database cannot be changed."));
 					$$ = NULL; /*not reached*/
 				}
 			| SCHEMA Sconst
@@ -1087,7 +1087,7 @@ zone_value:
 						if ((n->val.val.ival & ~(INTERVAL_MASK(HOUR) | INTERVAL_MASK(MINUTE))) != 0)
 						{
 							errprint("\nERROR SYNTAX_ERROR: time zone interval must be HOUR or HOUR TO MINUTE");
-							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @3, $3, ScErrMessage("time zone interval must be HOUR or HOUR TO MINUTE"));
+							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @3, $3, ScErrMessage("Time zone interval must be HOUR or HOUR TO MINUTE."));
 						}
 					}
 					t->typmods = $3;
@@ -1102,12 +1102,12 @@ zone_value:
 						if ((n->val.val.ival & ~(INTERVAL_MASK(HOUR) | INTERVAL_MASK(MINUTE))) != 0)
 						{
 							errprint("\nERROR SYNTAX_ERROR: time zone interval must be HOUR or HOUR TO MINUTE");
-							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @6, $6, ScErrMessage("time zone interval must be HOUR or HOUR TO MINUTE"));
+							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @6, $6, ScErrMessage("Time zone interval must be HOUR or HOUR TO MINUTE."));
 						}
 						if (list_length($6) != 1)
 						{
 							errprint("\nERROR SYNTAX_ERROR: interval precision specified twice");
-							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $6, ScErrMessage("interval precision specified twice"));
+							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $6, ScErrMessage("Interval precision specified twice."));
 						}
 						t->typmods = lappend($6, makeIntConst($3, @3));
 					}
@@ -2167,7 +2167,7 @@ key_match:  MATCH FULL
 		| MATCH PARTIAL
 			{
 				errprint("\nERROR FEATURE_NOT_SUPPORTED: MATCH PARTIAL not yet implemented");
-				ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $2, ScErrMessage("MATCH PARTIAL not supported"));
+				ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $2, ScErrMessage("MATCH PARTIAL not supported."));
 				$$ = FKCONSTR_MATCH_PARTIAL;
 			}
 		| MATCH SIMPLE
@@ -2284,7 +2284,7 @@ CreateAsStmt:
 					if (n->intoClause != NULL)
 					{
 						errprint("\nERROR SYNTAX_ERROR: CREATE TABLE AS cannot specify INTO");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) n->intoClause), $6, ScErrMessage("CREATE TABLE AS cannot specify INTO"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) n->intoClause), $6, ScErrMessage("CREATE TABLE AS cannot specify INTO."));
 						}
 					$4->rel->relpersistence = $2;
 					n->intoClause = $4;
@@ -2675,14 +2675,14 @@ ConstraintAttributeSpec:
 					if ((newspec & (CAS_NOT_DEFERRABLE | CAS_INITIALLY_DEFERRED)) == (CAS_NOT_DEFERRABLE | CAS_INITIALLY_DEFERRED))
 					{
 						errprint("\nERROR SYNTAX_ERROR: constraint declared INITIALLY DEFERRED must be DEFERRABLE");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $1, ScErrMessage("constraint declared INITIALLY DEFERRED must be DEFERRABLE"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $1, ScErrMessage("Constraint declared INITIALLY DEFERRED must be DEFERRABLE."));
 					}
 					/* generic message for other conflicts */
 					if ((newspec & (CAS_NOT_DEFERRABLE | CAS_DEFERRABLE)) == (CAS_NOT_DEFERRABLE | CAS_DEFERRABLE) ||
 						(newspec & (CAS_INITIALLY_IMMEDIATE | CAS_INITIALLY_DEFERRED)) == (CAS_INITIALLY_IMMEDIATE | CAS_INITIALLY_DEFERRED))
 					{
 						errprint("\nERROR SYNTAX_ERROR: conflicting constraint properties");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $1, ScErrMessage("conflicting constraint properties"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $1, ScErrMessage("Conflicting constraint properties."));
 					}
 					$$ = newspec;
 				}
@@ -3581,17 +3581,17 @@ opt_check_option:
 		WITH CHECK OPTION
 				{
 					errprint("\nERROR FEATURE_NOT_SUPPORTED: WITH CHECK OPTION is not implemented");
-					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("WITH CHECK OPTION is not supported"));
+					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("WITH CHECK OPTION is not supported."));
 				}
 		| WITH CASCADED CHECK OPTION
 				{
 					errprint("\nERROR FEATURE_NOT_SUPPORTED: WITH CHECK OPTION is not implemented");
-					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("WITH CHECK OPTION is not supported"));
+					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("WITH CHECK OPTION is not supported."));
 				}
 		| WITH LOCAL CHECK OPTION
 				{
 					errprint("\nERROR FEATURE_NOT_SUPPORTED: WITH CHECK OPTION is not implemented");
-					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("WITH CHECK OPTION is not supported"));
+					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("WITH CHECK OPTION is not supported."));
 				}
 		| /* EMPTY */							{ $$ = NIL; }
 		;
@@ -3924,7 +3924,7 @@ ExecuteStmt: EXECUTE name execute_param_clause
 					if ($4->colNames)
 					{
 						errprint("\nERROR FEATURE_NOT_SUPPORTED: column name list not allowed in CREATE TABLE / AS EXECUTE");
-						ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @4, $4, ScErrMessage("column name list not allowed in CREATE TABLE / AS EXECUTE"));
+						ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @4, $4, ScErrMessage("Column name list not allowed in CREATE TABLE / AS EXECUTE."));
 					}
 					/* ... because it's not implemented, but it could be */
 					$$ = (Node *) n;
@@ -4823,8 +4823,8 @@ from_clause:
 		;
 
 from_list:
-			table_ref								{ $$ = list_make1($1); }	%dprec 10
-			| from_list ',' table_ref				{ $$ = lappend($1, $3); }	%dprec 1
+			joined_table_ref						{ $$ = list_make1($1); }	%dprec 10
+			| from_list ',' joined_table_ref		{ $$ = lappend($1, $3); }	%dprec 1
 		;
 
 /*
@@ -4834,6 +4834,13 @@ from_list:
  * and joined_table := '(' joined_table ')'.  So, we must have the
  * redundant-looking productions here instead.
  */
+joined_table_ref :
+			table_ref								{ $$ = $1; }
+			| joined_table
+				{
+					$$ = (Node *) $1;
+				}
+
 table_ref:	member_func_expr
 				{
 					/* default inheritance */
@@ -4927,14 +4934,14 @@ table_ref:	member_func_expr
 					n->alias = $2;
 					$$ = (Node *) n;
 				}
-			| joined_table
-				{
-					$$ = (Node *) $1;
-				}
 			| '(' joined_table ')' alias_clause
 				{
 					$2->alias = $4;
 					$$ = (Node *) $2;
+				}
+			| '(' joined_table ')'
+				{
+					$$ = $2;
 				}
 		;
 
@@ -4957,11 +4964,7 @@ table_ref:	member_func_expr
  */
 
 joined_table:
-			'(' joined_table ')'
-				{
-					$$ = $2;
-				}
-			| table_ref CROSS JOIN table_ref
+			joined_table_ref CROSS JOIN table_ref
 				{
 					/* CROSS JOIN is same as unqualified inner join */
 					JoinExpr *n = makeNode(JoinExpr);
@@ -4973,7 +4976,7 @@ joined_table:
 					n->quals = NULL;
 					$$ = n;
 				}
-			| table_ref join_type JOIN table_ref join_qual
+			| joined_table_ref join_type JOIN table_ref join_qual
 				{
 					JoinExpr *n = makeNode(JoinExpr);
 					n->jointype = $2;
@@ -4986,7 +4989,7 @@ joined_table:
 						n->quals = $5; /* ON clause */
 					$$ = n;
 				}
-			| table_ref JOIN table_ref join_qual
+			| joined_table_ref JOIN table_ref join_qual
 				{
 					/* letting join_type reduce to empty doesn't work */
 					JoinExpr *n = makeNode(JoinExpr);
@@ -5000,7 +5003,7 @@ joined_table:
 						n->quals = $4; /* ON clause */
 					$$ = n;
 				}
-			| table_ref NATURAL join_type JOIN table_ref
+			| joined_table_ref NATURAL join_type JOIN table_ref
 				{
 					JoinExpr *n = makeNode(JoinExpr);
 					n->jointype = $3;
@@ -5011,7 +5014,7 @@ joined_table:
 					n->quals = NULL; /* fill later */
 					$$ = n;
 				}
-			| table_ref NATURAL JOIN table_ref
+			| joined_table_ref NATURAL JOIN table_ref
 				{
 					/* letting join_type reduce to empty doesn't work */
 					JoinExpr *n = makeNode(JoinExpr);
@@ -5060,6 +5063,7 @@ join_outer: OUTER_P									{ $$ = NULL; }
 
 join_qual:	USING '(' name_list ')'					{ $$ = (Node *) $3; }
 			| ON a_expr								{ $$ = $2; }
+			| /*EMPTY*/								{ $$ = NULL; }
 		;
 
 
@@ -5217,7 +5221,7 @@ SimpleTypename:
 						if (list_length($5) != 1)
 						{
 							errprint("\nERROR SYNTAX_ERROR: interval precision specified twice");
-							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $5, ScErrMessage("interval precision specified twice"));
+							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $5, ScErrMessage("Interval precision specified twice."));
 						}
 						$$->typmods = lappend($5, makeIntConst($3, @3));
 					}
@@ -5340,7 +5344,7 @@ opt_float:	'(' Iconst ')'
 					if ($2 < 1)
 					{
 						errprint("\nERROR INVALID_PARAMETER_VALUE: precision for type float must be at least 1 bit");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $2, ScErrMessage("precision for type float must be at least 1 bit"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $2, ScErrMessage("Precision for type float must be at least 1 bit."));
 					}
 					else if ($2 <= 24)
 						$$ = SystemTypeName("float4");
@@ -5349,7 +5353,7 @@ opt_float:	'(' Iconst ')'
 					else
 					{
 						errprint("\nERROR INVALID_PARAMETER_VALUE: precision for type float must be less than 54 bits");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $2, ScErrMessage("precision for type float must be less than 54 bits"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $2, ScErrMessage("Precision for type float must be less than 54 bits."));
 					}
 				}
 			| /*EMPTY*/
@@ -6069,7 +6073,7 @@ a_expr:		c_expr									{ $$ = $1; }
 					 * But, will probably implement a separate node in the executor.
 					 */
 					errprint("\nERROR FEATURE_NOT_SUPPORTED: UNIQUE predicate is not yet implemented");
-					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @2, $2, ScErrMessage("UNIQUE predicate is not supported"));
+					ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @2, $2, ScErrMessage("UNIQUE predicate is not supported."));
 				}
 		;
 
@@ -7078,13 +7082,13 @@ opt_frame_clause:
 										   FRAMEOPTION_END_VALUE_PRECEDING))
 					{
 						errprint("\nERROR FEATURE_NOT_SUPPORTED: RANGE PRECEDING is only supported with UNBOUNDED");
-						ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("RANGE PRECEDING is only supported with UNBOUNDED"));
+						ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("RANGE PRECEDING is only supported with UNBOUNDED."));
 					}
 					if (n->frameOptions & (FRAMEOPTION_START_VALUE_FOLLOWING |
 										   FRAMEOPTION_END_VALUE_FOLLOWING))
 					{
 						errprint("\nERROR FEATURE_NOT_SUPPORTED: RANGE FOLLOWING is only supported with UNBOUNDED");
-						ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("RANGE FOLLOWING is only supported with UNBOUNDED"));
+						ThrowExceptionReport(SCERRSQLNOTSUPPORTED, @1, $1, ScErrMessage("RANGE FOLLOWING is only supported with UNBOUNDED."));
 					}
 					$$ = n;
 				}
@@ -7111,12 +7115,12 @@ frame_extent: frame_bound
 					if (n->frameOptions & FRAMEOPTION_START_UNBOUNDED_FOLLOWING)
 					{
 						errprint("\nERROR WINDOWING_ERROR: frame start cannot be UNBOUNDED FOLLOWING");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $1, ScErrMessage("frame start cannot be UNBOUNDED FOLLOWING"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $1, ScErrMessage("Frame start cannot be UNBOUNDED FOLLOWING."));
 					}
 					if (n->frameOptions & FRAMEOPTION_START_VALUE_FOLLOWING)
 					{
 						errprint("\nERROR WINDOWING_ERROR: frame starting from following row cannot end with current row");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $1, ScErrMessage("frame starting from following row cannot end with current row"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $1, ScErrMessage("Frame starting from following row cannot end with current row."));
 					}
 					n->frameOptions |= FRAMEOPTION_END_CURRENT_ROW;
 					$$ = n;
@@ -7134,25 +7138,25 @@ frame_extent: frame_bound
 					if (frameOptions & FRAMEOPTION_START_UNBOUNDED_FOLLOWING)
 					{
 						errprint("\nERROR WINDOWING_ERROR: frame start cannot be UNBOUNDED FOLLOWING");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $2, ScErrMessage("frame start cannot be UNBOUNDED FOLLOWING"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @2, $2, ScErrMessage("Frame start cannot be UNBOUNDED FOLLOWING."));
 					}
 					if (frameOptions & FRAMEOPTION_END_UNBOUNDED_PRECEDING)
 					{
 						errprint("\nERROR WINDOWING_ERROR: frame end cannot be UNBOUNDED PRECEDING");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @4, $4, ScErrMessage("frame end cannot be UNBOUNDED PRECEDING"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @4, $4, ScErrMessage("Frame end cannot be UNBOUNDED PRECEDING."));
 					}
 					if ((frameOptions & FRAMEOPTION_START_CURRENT_ROW) &&
 						(frameOptions & FRAMEOPTION_END_VALUE_PRECEDING))
 					{
 						errprint("\nERROR WINDOWING_ERROR: frame starting from current row cannot have preceding rows");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @4, $4, ScErrMessage("frame starting from current row cannot have preceding rows"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @4, $4, ScErrMessage("Frame starting from current row cannot have preceding rows."));
 					}
 					if ((frameOptions & FRAMEOPTION_START_VALUE_FOLLOWING) &&
 						(frameOptions & (FRAMEOPTION_END_VALUE_PRECEDING |
 										 FRAMEOPTION_END_CURRENT_ROW)))
 					{
 						errprint("\nERROR WINDOWING_ERROR: frame starting from following row cannot have preceding rows");
-						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @4, $4, ScErrMessage("frame starting from following row cannot have preceding rows"));
+						ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @4, $4, ScErrMessage("Frame starting from following row cannot have preceding rows."));
 					}
 					n1->frameOptions = frameOptions;
 					n1->endOffset = n2->startOffset;
@@ -7764,7 +7768,7 @@ AexprConst: Iconst
 						if (IsA(arg, NamedArgExpr))
 						{
 							errprint("\nERROR SYNTAX_ERROR: type modifier cannot have parameter name");
-							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, arg->location, arg->name, ScErrMessage("type modifier cannot have parameter name"));
+							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, arg->location, arg->name, ScErrMessage("Type modifier cannot have parameter name."));
 						}
 					}
 					t->typmods = $3;
@@ -7789,7 +7793,7 @@ AexprConst: Iconst
 						if (list_length($6) != 1)
 						{
 							errprint("\nERROR SYNTAX_ERROR: interval precision specified twice");
-							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $1, ScErrMessage("interval precision specified twice"));
+							ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, @1, $1, ScErrMessage("Interval precision specified twice."));
 						}
 						t->typmods = lappend($6, makeIntConst($3, @3));
 					}
@@ -8321,7 +8325,7 @@ makeBinaryConst(char *str, YYLTYPE location)
 	if (!hexadecimalString(str))
 	{
 		errprint("SYNTAX_ERROR: %s is not hexadecimal string", str);
-		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, location, str, ScErrMessage("not hexadecimal string"));
+		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, location, str, ScErrMessage("Not hexadecimal string."));
 	}
 	n->val.type = T_Binary;
 	n->val.val.str = str;
@@ -8450,7 +8454,7 @@ makeOverlaps(List *largs, List *rargs, YYLTYPE location, core_yyscan_t yyscanner
 	else if (list_length(largs) != 2)
 	{
 		errprint("\nERROR: SYNTAX_ERROR: wrong number of parameters on left side of OVERLAPS expression");
-		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, location, n->funcname, ScErrMessage("wrong number of parameters on left side of OVERLAPS expression"));
+		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, location, n->funcname, ScErrMessage("Wrong number of parameters on left side of OVERLAPS expression."));
 		return NULL; // Sc: not reached
 	}
 	if (list_length(rargs) == 1)
@@ -8458,7 +8462,7 @@ makeOverlaps(List *largs, List *rargs, YYLTYPE location, core_yyscan_t yyscanner
 	else if (list_length(rargs) != 2)
 	{
 		errprint("\nERROR SYNTAX_ERROR: wrong number of parameters on right side of OVERLAPS expression");
-		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, location, n->funcname, ScErrMessage("wrong number of parameters on right side of OVERLAPS expression"));
+		ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, location, n->funcname, ScErrMessage("Wrong number of parameters on right side of OVERLAPS expression."));
 		return NULL; // Sc: not reached
 	}
 	n->args = list_concat(largs, rargs);
@@ -8564,7 +8568,7 @@ insertSelectOptions(SelectStmt *stmt,
 		if (stmt->sortClause)
 		{
 			errprint("\nERROR SYNTAX_ERROR: multiple ORDER BY clauses not allowed");
-			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) sortClause), NULL, ScErrMessage("multiple ORDER BY clauses not allowed"));
+			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) sortClause), NULL, ScErrMessage("Multiple ORDER BY clauses not allowed."));
 		}
 		stmt->sortClause = sortClause;
 	}
@@ -8575,7 +8579,7 @@ insertSelectOptions(SelectStmt *stmt,
 		if (stmt->limitOffset)
 		{
 			errprint("\nERROR SYNTAX_ERROR: multiple OFFSET clauses not allowed");
-			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) sortClause), NULL, ScErrMessage("multiple OFFSET clauses not allowed"));
+			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) sortClause), NULL, ScErrMessage("Multiple OFFSET clauses not allowed."));
 		}
 		stmt->limitOffset = limitOffset;
 	}
@@ -8584,7 +8588,7 @@ insertSelectOptions(SelectStmt *stmt,
 		if (stmt->withClause)
 		{
 			errprint("\nERROR SYNTAX_ERROR: multiple WITH clauses not allowed");
-			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) withClause), NULL, ScErrMessage("multiple WITH clauses not allowed"));
+			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) withClause), NULL, ScErrMessage("Multiple WITH clauses not allowed."));
 		}
 		stmt->withClause = withClause;
 	}
@@ -8593,12 +8597,12 @@ insertSelectOptions(SelectStmt *stmt,
 		if (stmt->optionClause)
 		{
 			errprint("\nERROR SYNTAX_ERROR: multiple OPTION clauses not allowed");
-			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) optionClause), NULL, ScErrMessage("multiple OPTION clauses not allowed"));
+			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) optionClause), NULL, ScErrMessage("Multiple OPTION clauses not allowed."));
 		}
 		if (stmt->op)
 		{
 			errprint("\nERROR SYNTAX_ERROR: OPTION clause on set operation not allowed");
-			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) optionClause), NULL, ScErrMessage("OPTION clause on set operation not allowed"));
+			ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, exprLocation((Node *) optionClause), NULL, ScErrMessage("OPTION clause on set operation not allowed."));
 		}
 		stmt->optionClause = optionClause;
 	}
@@ -8775,14 +8779,14 @@ SplitColQualList(List *qualList,
 			if (*collClause)
 			{
 				errprint("\nERROR SYNTAX_ERROR: multiple COLLATE clauses not allowed");
-				ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, c->location, NULL, ScErrMessage("multiple COLLATE clauses not allowed"));
+				ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, c->location, NULL, ScErrMessage("Multiple COLLATE clauses not allowed."));
 			}
 			*collClause = c;
 		}
 		else
 		{
 			errprint("\nERROR: unexpected node type %d", (int) n->type);
-			ThrowExceptionCode(SCERRSQLINCORRECTSYNTAX, ScErrMessageInt("unexpected node type %d", (int) n->type));
+			ThrowExceptionCode(SCERRSQLINCORRECTSYNTAX, ScErrMessageInt("Unexpected node type %d.", (int) n->type));
 		}
 		/* remove non-Constraint nodes from qualList */
 		qualList = list_delete_cell(qualList, cell, prev);
@@ -8816,7 +8820,7 @@ processCASbits(int cas_bits, YYLTYPE location, const char *constrType,
 		{
 			errprint("\nERROR FEATURE_NOT_SUPPORTED: %s constraints cannot be marked DEFERRABLE",
 							constrType);
-			ThrowExceptionReport(SCERRSQLNOTSUPPORTED, location, NULL, ScErrMessageStr("%s constraints cannot be marked DEFERRABLE", constrType));
+			ThrowExceptionReport(SCERRSQLNOTSUPPORTED, location, NULL, ScErrMessageStr("%s constraints cannot be marked DEFERRABLE.", constrType));
 					 /* translator: %s is CHECK, UNIQUE, or similar */
 		}
 	}
@@ -8829,7 +8833,7 @@ processCASbits(int cas_bits, YYLTYPE location, const char *constrType,
 		{
 			errprint("\nERROR FEATURE_NOT_SUPPORTED: %s constraints cannot be marked DEFERRABLE",
 							constrType);
-			ThrowExceptionReport(SCERRSQLNOTSUPPORTED, location, NULL, ScErrMessageStr("%s constraints cannot be marked DEFERRABLE", constrType));
+			ThrowExceptionReport(SCERRSQLNOTSUPPORTED, location, NULL, ScErrMessageStr("%s constraints cannot be marked DEFERRABLE.", constrType));
 					 /* translator: %s is CHECK, UNIQUE, or similar */
 		}
 	}
@@ -8842,7 +8846,7 @@ processCASbits(int cas_bits, YYLTYPE location, const char *constrType,
 		{
 			errprint("\nERROR FEATURE_NOT_SUPPORTED: %s constraints cannot be marked NOT VALID",
 							constrType);
-			ThrowExceptionReport(SCERRSQLNOTSUPPORTED, location, NULL, ScErrMessageStr("%s constraints cannot be marked NOT VALID", constrType));
+			ThrowExceptionReport(SCERRSQLNOTSUPPORTED, location, NULL, ScErrMessageStr("%s constraints cannot be marked NOT VALID.", constrType));
 					 /* translator: %s is CHECK, UNIQUE, or similar */
 		}
 	}
