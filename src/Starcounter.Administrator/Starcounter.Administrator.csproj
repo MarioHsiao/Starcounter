@@ -79,6 +79,9 @@
     <Compile Include="ServerApp.json.cs">
       <DependentUpon>ServerApp.json</DependentUpon>
     </Compile>
+	<Compile Include="ExecRequest.json.cs">
+      <DependentUpon>ExecRequest.json</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Puppet Include="Master.json">
@@ -285,6 +288,12 @@
     <Puppet Include="LogEntryApp.json">
       <Generator>MSBuild:Compile</Generator>
     </Puppet>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Group with including all messages supported -->
+	<Message Include="ExecRequest.json">
+      <Generator>MSBuild:Compile</Generator>
+    </Message>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
