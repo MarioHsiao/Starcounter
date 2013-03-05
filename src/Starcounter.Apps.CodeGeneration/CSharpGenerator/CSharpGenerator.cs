@@ -194,9 +194,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     WriteTAppMemberPrefix(node as NProperty);
                 else if (node.Parent is NObjMetadata)
                     WriteObjMetadataMemberPrefix(node as NProperty);
-            } else if (node is NAppSerializerClass) {
-                WriteSerializerPrefix(node as NAppSerializerClass);
-            }
+            } 
+
             foreach (var kid in node.Children) {
                 ProcessNode(kid);
             }
@@ -278,7 +277,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             // TODO: 
             // Add support for binding directly to en Enumerable of entities.
             sb = new StringBuilder();
-           
+
             bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
 
             dataType = null;
@@ -287,7 +286,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             } else if (m.Template is TPuppet) {
                 dataType = "IBinding";
                 castTo = ((NAppClass)m.Type).GenericTypeArgument;
-            } 
+            }
 
             if (dataType == null) {
                 dataType = m.Type.FullClassName;
@@ -315,7 +314,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(castTo);
                     sb.Append(')');
                 }
-                
+
                 sb.Append("value; } }");
             } else {
                 sb.Append('}');
@@ -732,10 +731,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                         a.Prefix.Add(
                             "    }");
              */
-        }
-
-        private static void WriteSerializerPrefix(NAppSerializerClass nas) {
-            nas.Prefix.Add(nas.GetSerializerClassCode());
         }
 
         /// <summary>

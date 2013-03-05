@@ -199,11 +199,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 _Inherits = "ObjMetadata"
             };
 
-            new NAppSerializerClass( this ) {
-                Parent = acn,
-                NAppClass = acn
-            };
-
 //            acn.NTemplateClass.Temp               NTemplateClass = NTemplateClass.Classes[at],
             tcn.NMetadataClass = mcn;
 
@@ -246,7 +241,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             ConnectCodeBehindClasses(root, metadata);
             GenerateInputBindings((NTAppClass)acn.NTemplateClass, metadata);
-            MoveSerializersToBottom(acn);
             return root;
         }
 
@@ -473,23 +467,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
         }
 
         /// <summary>
-        /// Provide a nicer default order of the generated. Puts all serializer 
-        /// classes in the end of the file.
-        /// </summary>
-        /// <param name="node">The node containing the children to rearrange</param>
-        private void MoveSerializersToBottom(NBase node) {
-            var move = new List<NBase>();
-            foreach (var kid in node.Children) {
-                if (kid is NAppSerializerClass) {
-                    move.Add(kid);
-                }
-            }
-            foreach (var kid in move) {
-                kid.Parent = node;
-            }
-        }
-
-        /// <summary>
         /// Generates the kids.
         /// </summary>
         /// <param name="appClassParent">The app class parent.</param>
@@ -598,11 +575,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 tcn.NMetadataClass = mcn;
                 racn.NTemplateClass = tcn;
 
-                new NAppSerializerClass( this ) {
-                    Parent = FindRootNAppClass(appClassParent),
-                    NAppClass = racn
-                };
-
                 GenerateKids(acn as NAppClass, 
                              tcn as NTAppClass, 
                              mcn as NObjMetadata, 
@@ -648,9 +620,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
             // TODO: 
             // How do we set notbound on an autobound property?
             bool bound = false;
-            if (!(at is TTrigger))
+
+            TValue tv = at as TValue;
+            if ((tv != null) && !(tv is TTrigger))
             {
-                bound = (at.Bound || (appClassParent.AutoBindPropertiesToEntity));
+                bound = (tv.Bound || (appClassParent.AutoBindPropertiesToEntity));
             }
 
             var valueClass = FindValueClass(at);
