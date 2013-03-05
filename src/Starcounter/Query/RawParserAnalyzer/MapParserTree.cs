@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
+using Starcounter.Query.SQL;
 
 namespace Starcounter.Query.RawParserAnalyzer {
     /// <summary>
@@ -38,7 +39,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// </summary>
         internal void Optimize() {
             Debug.Assert(JoinTree != null && WhereCondition != null && HintSpec != null, "Query should parsed and analyzed before optimization");
-            OptimizedPlan = Optimizer.Optimize(JoinTree, WhereCondition, FetchNumExpr, FethcOffsetExpr, FetchOffsetKeyExpr, HintSpec);
+            OptimizedPlan = Optimizer.Optimize(new OptimizerInput(JoinTree, WhereCondition, FetchNumExpr, FethcOffsetExpr, FetchOffsetKeyExpr, HintSpec));
         }
         
         /// <summary>

@@ -319,6 +319,7 @@
     <Compile Include="Query\RawParserAnalyzer\ParserTreeWalker.cs" />
     <Compile Include="Query\RawParserAnalyzer\NativeParserErrors.cs" />
     <Compile Include="Query\RawParserAnalyzer\PrintParserTree.cs" />
+    <Compile Include="Query\SQL\OptimizerInput.cs" />
     <Compile Include="Query\SQL\SqlResultGeneric.cs" />
     <Compile Include="Query\RawParserAnalyzer\RawParserAnalyzerHelloTest.cs" />
     <Compile Include="Query\RawParserAnalyzer\rawparser_enums.cs" />
