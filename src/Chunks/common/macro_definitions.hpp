@@ -92,6 +92,10 @@
 #define IPC_MONITOR_CLEANUP_EVENT "ipc_monitor_cleanup_event"
 #define W_IPC_MONITOR_CLEANUP_EVENT L"ipc_monitor_cleanup_event"
 
+// Suffix for monitor_interfaces.
+#define ACTIVE_DATABASES_UPDATED_EVENT "active_databases_updated_event"
+#define W_ACTIVE_DATABASES_UPDATED_EVENT L"active_databases_updated_event"
+
 // Default monitor directory name
 #define DEFAULT_MONITOR_DIR_NAME "ipc_monitor"
 #define W_DEFAULT_MONITOR_DIR_NAME L"ipc_monitor"

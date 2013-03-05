@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <boost/cstdint.hpp>
 #include <memory>
+#include <set>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -174,11 +175,120 @@ public:
 		return cleanup_task_.spinlock();
 	}
 
-	active_databases& active_databasesx() {
-		return active_databases_;
-	}
+	class active_databases {
+	public:	
+		typedef char value_type[max_number_of_databases][database_name_size];
+		typedef int32_t size_type;
+
+		active_databases()
+		: size_(0),
+		spinlock_(),
+		active_databases_set_update_() {
+			for (std::size_t i = 0; i < max_number_of_databases; ++i) {
+				*database_name_[i] = 0;
+			}
+		}
+
+		/// Get reference to the spinlock.
+		smp::spinlock& spinlock() {
+			return spinlock_;
+		}
+
+		bool insert(const char* database_name) {
+			smp::spinlock::scoped_lock lock(spinlock());
+
+			if (size_ < max_number_of_databases) {
+				std::strncpy(database_name_[size_], database_name, database_name_size -1);
+				database_name_[size_][database_name_size -1] = 0;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		bool remove(const char* database_name) {
+			smp::spinlock::scoped_lock lock(spinlock());
+
+			for (std::size_t i = 0; i < max_number_of_databases; ++i) {
+				if (std::strcmp(database_name, database_name_[i]) != 0) {
+					continue;
+				}
+				else {
+					std::cout << "[" << i << "]: " << database_name_[i] << " is removed." << std::endl;
+				}
+			}
+
+			if (size_ < max_number_of_databases) {
+				std::strncpy(database_name_[size_], database_name, database_name_size -1);
+				database_name_[size_][database_name_size -1] = 0;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		/// The IPC monitor uses update() to insert or remove database names.
+		/**
+		 * @param databases A reference to a set of strings with the current active databases
+		 *		which will be copied into the database_name_ array of c-strings in shared memory.
+		 * @return The number of active databases (names.)
+		 */
+		size_type update(const std::set<std::string>& databases) {
+			smp::spinlock::scoped_lock lock(spinlock()); // TODO: This one needs a timeout
+			std::cout << "monitor_interface::active_databases::update()" << std::endl;
+			std::size_t i = 0;
+
+			for (std::set<std::string>::iterator it = databases.begin(); it != databases.end(); ++it) {
+				std::strncpy(database_name_[i], (*it).c_str(), database_name_size -1);
+				database_name_[i][database_name_size -1] = 0;
+				++i;
+			}
+			
+			::SetEvent(active_databases_set_update_);
+			return size_ = i;
+		}
+
+		/// The client uses copy() by passing in a reference to a set of strings
+		/// that will be populated.
+		/**
+		 * @param databases A reference to a set of strings that upon return will contain
+		 *		the names of the current active databases.
+		 */
+		void copy(std::set<std::string>& databases) {
+			smp::spinlock::scoped_lock lock(spinlock());
+			std::cout << "monitor_interface::active_databases::copy()" << std::endl;
+			::ResetEvent(active_databases_set_update_);
+			databases.clear();
+
+			for (int i = 0; i < size_; ++i) {
+				// This can be done more efficiently. TODO: Optimize insert.
+				databases.insert(std::string(database_name_[i]));
+			}
+		}
+		
+	private:
+		value_type database_name_;
+		
+		// On multiple of cache-line boundary here.
+		size_type size_;
+		char cache_line_pad_0_[CACHE_LINE_SIZE -sizeof(size_type)]; // size_
+
+		// spinlock_ synchronizes updates to active_databases_ and set/reset of the event.
+		smp::spinlock spinlock_;
+		char cache_line_pad_1_[CACHE_LINE_SIZE -sizeof(smp::spinlock)]; // spinlock_
+
+		// Event to notifu when the active databases list is updated.
+		HANDLE active_databases_set_update_;
+		char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(HANDLE)]; // active_databases_set_update_
+	};
+
+	//active_databases::size_type active_database_list_size() {
+	//	return active_databases_.size();
+	//}
 	
-	const active_databases& active_databasesx() const {
+	active_databases& active_database_set() {
 		return active_databases_;
 	}
 
@@ -313,44 +423,7 @@ private:
 		smp::spinlock spinlock_;
 	} cleanup_task_;
 
-	class active_databases {
-	public:
-		typedef char value_type[database_name_size];
-		typedef int32_t size_type;
-
-		active_databases() {
-			for (std::size_t i = 0; i < max_number_of_databases; ++i) {
-				*database_name_[i] = 0;
-			}
-		}
-
-		value_type& database_name(std::size_t i) {
-			return database_name_[i];
-		}
-		
-		const value_type& database_name(std::size_t i) const {
-			return database_name_[i];
-		}
-
-		size_type size() {
-			return size_;
-		}
-
-	private:
-		value_type database_name_[max_number_of_databases];
-		
-		// On multiple of cache-line boundary here.
-		size_type size_;
-		char cache_line_pad_0_[CACHE_LINE_SIZE -sizeof(size_type)]; // size_
-
-		// spinlock_ synchronizes updates to active_databases_ and set/reset of the event.
-		smp::spinlock spinlock_;
-		char cache_line_pad_1_[CACHE_LINE_SIZE -sizeof(smp::spinlock)]; // spinlock_
-
-		// Event to notifu when the active databases list is updated.
-		HANDLE active_databases_list_update_;
-		char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(HANDLE)]; // active_databases_list_update_
-	} active_databases_;
+	active_databases active_databases_;
 };
 
 //monitor_interface().active_databases().size()
@@ -381,8 +454,15 @@ public:
 	 * @param monitor_interface_name Has the format
 	 *		<SERVER_NAME>_<MONITOR_INTERFACE_SUFFIX>
 	 */
-	monitor_interface_ptr(const char* monitor_interface_name)
-	: ptr_(0) {	
+	monitor_interface_ptr(const char* monitor_interface_name = 0)
+	: ptr_(0) {
+		// Try to open the monitor interface shared memory object.
+		if (monitor_interface_name) {
+			init(monitor_interface_name);
+		}
+	}
+	
+	void init(const char* monitor_interface_name) {
 		// Try to open the monitor interface shared memory object.
 		shared_memory_object_.init_open(monitor_interface_name);
 		
@@ -404,7 +484,7 @@ public:
 		// Obtain a pointer to the shared structure.
 		ptr_ = static_cast<monitor_interface*>(mapped_region_.get_address());
 	}
-	
+
 	monitor_interface_ptr(monitor_interface* ptr) {
 		ptr_ = ptr;
 	}
