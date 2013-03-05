@@ -64,18 +64,17 @@ internal sealed class GlobalQueryCache
                 // Creating enumerator from scratch.
                 IExecutionEnumerator newEnum = Starcounter.Query.QueryPreparation.PrepareQuery(query);
 
+                // Checking if its LikeExecEnumerator.
+                if (newEnum is LikeExecEnumerator) {
+                    (newEnum as LikeExecEnumerator).CreateLikeCombinations();
+                }
+
                 // Assigning unique query ID.
                 newEnum.UniqueQueryID = (UInt64)numUniqueQueries;
                 enumIndex = numUniqueQueries;
 
                 // Increasing number of unique queries.
                 numUniqueQueries++;
-
-                // Checking if its LikeExecEnumerator.
-                if (newEnum is LikeExecEnumerator)
-                {
-                    (newEnum as LikeExecEnumerator).CreateLikeCombinations();
-                }
 
                 // Adding to the linear array.
                 try
