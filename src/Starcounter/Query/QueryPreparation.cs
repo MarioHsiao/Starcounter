@@ -19,11 +19,18 @@ namespace Starcounter.Query {
             Starcounter.Query.RawParserAnalyzer.MapParserTree newAnalyzer = null;
             OptimizerInput optArgsProlog = null;
             IExecutionEnumerator prologParsedQueryPlan = null;
+            Exception prologException = null;
             // Call to Bison parser and type checker
             // Call to Prolog parser and type checker
 #if !BISON_ONLY
-            se.sics.prologbeans.QueryAnswer answer = PrologManager.CallProlog(vproc, query);
-            optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
+            se.sics.prologbeans.QueryAnswer answer = null;
+            try {
+                answer = PrologManager.CallProlog(vproc, query);
+            } catch (SqlException e) {
+                prologException = e;
+            }
+            if (prologException == null)
+                optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
             // Call Prolog and get answer
             // Transfer answer terms into pre-optimized structures
 #endif
@@ -39,7 +46,13 @@ namespace Starcounter.Query {
 #endif
             } catch (Starcounter.Query.RawParserAnalyzer.SQLParserAssertException) {
                 newAnalyzer = null;
+            } catch (SqlException) {
+                Debug.Assert(prologException != null);
+                //throw e;
+                throw prologException;
             }
+            if (prologException != null)
+                throw prologException;
 #endif
             // Check equality
 #if DEBUG
