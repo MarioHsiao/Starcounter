@@ -995,11 +995,13 @@ namespace Starcounter.Query.Sql
             {
                 throw CreateSqlException(query, errListTerm);
             }
+            return ProcessPrologAnswer(answer, query);
+        }
 
+        internal static IExecutionEnumerator ProcessPrologAnswer(QueryAnswer answer, String query) {
             // Get the number of variables in the query.
             Term varNumTerm = answer.getValue("VarNum");
-            if (varNumTerm.Integer == false)
-            {
+            if (varNumTerm.Integer == false) {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varNumTerm: " + varNumTerm);
             }
             Int32 varNumber = varNumTerm.intValue();
