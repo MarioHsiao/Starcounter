@@ -79,6 +79,9 @@ namespace SqlCacheTrasher
         {
             //System.Diagnostics.Debugger.Break();
 
+            // Turning off important messages by default.
+            logger.TurnOffImportantMessages = true;
+
             // Checking if we need to skip the process.
             if ((!startedOnClient) && (TestLogger.SkipInProcessTests()))
             {
