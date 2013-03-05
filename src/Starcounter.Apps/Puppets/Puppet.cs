@@ -277,13 +277,12 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>Action.</returns>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Action GetValue(TTrigger property) {
 #if QUICKTUPLE
             return _Values[property.Index];
 #else
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
 #endif
         }
 
@@ -293,13 +292,12 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
-        /// <exception cref="Starcounter.JockeNotImplementedException"></exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetValue(TTrigger property, Action value) {
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
 #endif
         }
 
