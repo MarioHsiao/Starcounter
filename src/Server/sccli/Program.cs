@@ -135,13 +135,22 @@ namespace star {
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             client.PostAsync(
-                "/databases/default/executables", 
+                "/databases/default/executables",
                 new StringContent(execRequestString, Encoding.UTF8, "application/json")).ContinueWith((posttask) => {
-                    Console.WriteLine(posttask.Result.StatusCode);
-                });
+                    Console.WriteLine("HTTP/{0} {1} {2}", posttask.Result.Version, (int)posttask.Result.StatusCode, posttask.Result.ReasonPhrase);
+                    foreach (var item in posttask.Result.Headers) {
+                        Console.Write("{0}: ", item.Key);
+                        foreach (var item2 in item.Value) {
+                            Console.Write(item2 + " ");
+                        }
+                        Console.WriteLine();
+                    }
+                    Console.WriteLine();
+                    posttask.Result.Content.ReadAsStringAsync().ContinueWith((xx) => {
+                        Console.WriteLine(xx.Result);
+                    }).Wait();
+                }).Wait();
 
-            Console.ReadLine();
-            // new NotImplementedException();
         }
 
         static void ShowVersionInfo() {
