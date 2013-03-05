@@ -149,7 +149,7 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// If the projection is a singleton, then the DbTypeCode of that singleton, otherwise null.
     /// </summary>
-    public Nullable<DbTypeCode> ProjectionTypeCode
+    public virtual Nullable<DbTypeCode> ProjectionTypeCode
     {
         get
         {
@@ -495,9 +495,9 @@ internal abstract class ExecutionEnumerator
     {
         MyStringBuilder stringBuilder = new MyStringBuilder();
 
-        if (rowTypeBinding != null)
+        if (RowTypeBinding != null)
         {
-            rowTypeBinding.BuildString(stringBuilder, 0);
+            RowTypeBinding.BuildString(stringBuilder, 0);
         }
 
         BuildString(stringBuilder, 0);

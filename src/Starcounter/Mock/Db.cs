@@ -12,6 +12,8 @@ using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Sql;
 using Starcounter.Binding;
+using System.Text;
+using Starcounter.Advanced;
 
 
 namespace Starcounter
@@ -71,18 +73,18 @@ namespace Starcounter
 #endif
 
         /// <summary>
-        /// Returns the result of an SQL query as an SqlResult which implements IEnumerable.
+        /// Returns the result of an SQL query as an Rows which implements IEnumerable.
         /// </summary>
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult SQL(String query, params Object[] values)
+        public static SqlResult<dynamic> SQL(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
 
 #if true
-            return new SqlResult(0, query, false, values);
+            return new SqlResult<dynamic>(0, query, false, values);
 #else
             if (Starcounter.Transaction.Current != null)
                 return new SqlResult(Starcounter.Transaction.Current.TransactionId, query, false, values); 
@@ -120,7 +122,7 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult SlowSQL(String query, params Object[] values)
+        public static SqlResult<dynamic> SlowSQL(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
@@ -132,13 +134,13 @@ namespace Starcounter
 #endif
 
             if (query == "")
-                return new SqlResult(transactionId, query, true, values);
+                return new SqlResult<dynamic>(transactionId, query, true, values);
 
             switch (query[0])
             {
                 case 'S':
                 case 's':
-                    return new SqlResult(transactionId, query, true, values);
+                    return new SqlResult<dynamic>(transactionId, query, true, values);
 
                 case 'C':
                 case 'c':
@@ -150,7 +152,7 @@ namespace Starcounter
                     if (SqlProcessor.ProcessDQuery(query, values))
                         return null;
                     else
-                        return new SqlResult(transactionId, query, true, values);
+                        return new SqlResult<dynamic>(transactionId, query, true, values);
 
                 case ' ':
                 case '\t':
@@ -159,7 +161,7 @@ namespace Starcounter
                     {
                         case 'S':
                         case 's':
-                            return new SqlResult(transactionId, query, true, values);
+                            return new SqlResult<dynamic>(transactionId, query, true, values);
 
                         case 'C':
                         case 'c':
@@ -171,14 +173,14 @@ namespace Starcounter
                             if (SqlProcessor.ProcessDQuery(query, values))
                                 return null;
                             else
-                                return new SqlResult(transactionId, query, true, values);
+                                return new SqlResult<dynamic>(transactionId, query, true, values);
 
                         default:
-                            return new SqlResult(transactionId, query, true, values);
+                            return new SqlResult<dynamic>(transactionId, query, true, values);
                     }
 
                 default:
-                    return new SqlResult(transactionId, query, true, values);
+                    return new SqlResult<dynamic>(transactionId, query, true, values);
             }
         }
 
@@ -250,5 +252,22 @@ namespace Starcounter
                     return new SqlResult<T>(transactionId, query, true, values);
             }
         }
+    }
+
+    /// <summary>
+    /// Enables you to use SQL (Structured Query Language) on the
+    /// Starcounter database.
+    /// </summary>
+    public static class SQL {
+        public static SqlResult<T> SELECT<T>(string query, params Object[] values) {
+            return Db.SQL<T>( String.Concat( "SELECT _O_ FROM ", typeof(T).FullName, " _O_ ", query ), values);
+        }
+    }
+
+   /// <summary>
+   /// Holds the global functions SQL, GET/POST/PUT/DELETE/PATCH and Transaction functions that operates on 
+   /// Starcounters database and communication server.
+   /// </summary>
+    public class F : StarcounterBase {
     }
 }

@@ -303,7 +303,30 @@ namespace CheckBuildSystem
 
                 RequiredPatterns = new String[] { @"<DocumentationFile>.*\.XML</DocumentationFile>" },
 
-                FileExceptions = new String[] { "TestApp.csproj", "CopyDependenciesBuildServer.csproj", "CopyDependenciesLocal.csproj", "CopyDependenciesRemote.csproj", "AdoptProjectToBuildSystem.csproj", "BuildLevel0.csproj", "BuildsFillupDaemon.csproj", "BuildSystemHelper.csproj", "CleanUpSourceDirectory.csproj", "DaemonObserver.csproj", "EnforceBuildSystemPolicy.csproj", "GenerateInstaller.csproj", "InstallshieldMod.csproj", "PackArtifactsAndUpload.csproj", "BuildAndDeploy.csproj", "CommonBuildTools.csproj", "Plugin_DragTabControl.csproj", "Plugin_SpeedGrid.csproj", "SetAssemblyVersion.csproj", "TeamCityBranchBuild.csproj", "TestLauncher.csproj", "TestsSplitter.csproj", "WikiErrorCodes.csproj", "AppsProjectTemplate.csproj", "Starcounter.VS.CSAppsProjectTemplate.csproj", "ExeProjectTemplate.csproj", "Starcounter.VS.CSExeProjectTemplate.csproj", "Starcounter.VS.VSIX.csproj", "FasterThanJson.Tests.csproj", "HttpStructs.Tests.csproj", "hello.csproj", "HelloGateway.csproj", "IndexQueryTest.csproj", "MySampleApp.csproj", "NetworkIoTest.csproj", "QueryProcessingTest.csproj", "SQLTest.csproj", "sccode.csproj", "scweaver.csproj", "star.csproj", "Starcounter.Administrator.csproj", "Starcounter.Apps.CodeGeneration.Tests.csproj", "Starcounter.Apps.HtmlReader.Tests.csproj", "Starcounter.Apps.JsonReader.Tests.csproj", "Starcounter.Apps.Tests.csproj", "BitsAndBytes.Test.csproj", "scerrcc.csproj", "Starcounter.Errors.csproj", "Starcounter.InstallerWPF.csproj", "Starcounter.Internal.Tests.csproj", "Starcounter.SqlParser.Tests.csproj", "Starcounter.Web.Tests.csproj", "DynamoIoc.csproj", "HtmlAgilityPack VS2008.csproj", "HtmlAgilityPack.Tests.csproj", "Newtonsoft.Json.csproj", "ServerLogTail.csproj" },
+                FileExceptions = new String[] {
+                "TestApp.csproj", "CopyDependenciesBuildServer.csproj", "CopyDependenciesLocal.csproj",
+                "CopyDependenciesRemote.csproj", "AdoptProjectToBuildSystem.csproj", "BuildLevel0.csproj",
+                "BuildsFillupDaemon.csproj", "BuildSystemHelper.csproj", "CleanUpSourceDirectory.csproj",
+                "DaemonObserver.csproj", "EnforceBuildSystemPolicy.csproj", "GenerateInstaller.csproj",
+                "InstallshieldMod.csproj", "PackArtifactsAndUpload.csproj", "BuildAndDeploy.csproj",
+                "CommonBuildTools.csproj", "Plugin_DragTabControl.csproj", "Plugin_SpeedGrid.csproj",
+                "SetAssemblyVersion.csproj", "TeamCityBranchBuild.csproj", "TestLauncher.csproj",
+                "TestsSplitter.csproj", "WikiErrorCodes.csproj", "AppsProjectTemplate.csproj",
+                "Starcounter.VS.CSAppsProjectTemplate.csproj", "ExeProjectTemplate.csproj",
+                "Starcounter.VS.CSExeProjectTemplate.csproj", "Starcounter.VS.VSIX.csproj",
+                "FasterThanJson.Tests.csproj", "HttpStructs.Tests.csproj", "hello.csproj",
+                "HelloGateway.csproj", "IndexQueryTest.csproj", "MySampleApp.csproj",
+                "NetworkIoTest.csproj", "QueryProcessingTest.csproj", "SQLTest.csproj",
+                "sccode.csproj", "scweaver.csproj", "star.csproj", "Starcounter.Administrator.csproj",
+                "Starcounter.Apps.CodeGeneration.Tests.csproj", "Starcounter.Apps.HtmlReader.Tests.csproj",
+                "Starcounter.Apps.JsonReader.Tests.csproj", "Starcounter.Apps.Tests.csproj",
+                "BitsAndBytes.Test.csproj", "scerrcc.csproj", "Starcounter.Errors.csproj",
+                "Starcounter.InstallerWPF.csproj", "Starcounter.Internal.Tests.csproj",
+                "Starcounter.SqlParser.Tests.csproj", "Starcounter.Web.Tests.csproj",
+                "DynamoIoc.csproj", "HtmlAgilityPack VS2008.csproj", "HtmlAgilityPack.Tests.csproj",
+                "Newtonsoft.Json.csproj", "ServerLogTail.csproj", "LoadAndLatency.csproj",
+                "SqlCacheTrasher.csproj", "PolePosition.csproj"
+                },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."
             },

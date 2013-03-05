@@ -57,7 +57,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="runAll.bat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

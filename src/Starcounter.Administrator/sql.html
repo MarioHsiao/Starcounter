@@ -5,19 +5,39 @@
 
     <link rel="stylesheet" href="/css/bootstrap-2.3.0.css">
 
+    <script src="/sys/jquery-1.9.1.min.js"></script>
     <script src="/sys/angular-1.1.3.min.js"></script>
     <script src="/sys/angular-cookies-1.1.3.min.js"></script>
     <script src="/sys/angular-patch.js"></script>
+
+    <script src="/js/sqlctrl.js"></script>
+
+    <link rel="stylesheet" media="screen" href="/css/angular-ui-handsontable-0.3.3.full.css">
+    <script src="/sys/angular-ui-handsontable-0.3.3.full.js"></script>
+
+
+    <style>
+        .handsontable .currentRow {
+            background-color: #E7E8EF;
+        }
+
+        .handsontable .currentCol {
+            background-color: #F9F9FB;
+        }
+    </style>
+
+
 </head>
 
 
-<body ng-remoteapp class="container">
+<body ng-remoteapp="uiHandsontable" class="container">
 
     <div class="navbar">
         <div class="navbar-inner">
             <a class="brand" href="/">Starcounter</a>
             <ul class="nav">
                 <li><a href="/server">Server</a></li>
+                <li><a href="/apps">Apps</a></li>
                 <li><a href="/databases">Databases</a></li>
                 <li class="active"><a href="/query">Query</a></li>
                 <li><a href="/log">Log</a></li>
@@ -27,6 +47,7 @@
 
     <form class="form-inline">
         <input type="text" class="input-small" placeholder="Databasename" ng-model="DatabaseName$">
+        <input type="text" class="input-small" placeholder="Port" ng-model="Port$">
         <input type="text" placeholder="sql query" ng-model="Query$">
 
         <button type="submit" class="btn" ui-click="Execute$">Execute</button>
@@ -34,31 +55,21 @@
     </form>
 
 
-    <!--<h1>Under construction...</h1>-->
+    <div ng-show="hasErrorMessage" ng-controller="sqlctrl">
 
-    <!--    <p>Columns.length: {{Columns.length}}</p>
-    <p>Count: {{Count}}</p>
-    <p>Offset: {{Offset}}</p>
-    <p>Items.length: {{Items.length}}</p>
+        <div class="alert alert-error">
+            <h4>Error!</h4>
+            {{ErrorMessage}}
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <td ng-repeat="col in Columns">{{col.ID}}-{{col.Title}}
-                </td>
-            </tr>
-        </thead>
+    </div>
 
-        <tbody>
-            <tr ng-repeat="item in Items">
-                <td ng-repeat="col in Columns">{{item[col.ID]}}
-                </td>
-            </tr>
-        </tbody>
-    </table>-->
 
-    <label>Output</label>
-    <p>{{Output}}</p>
+    <ui-handsontable height="400" stretchh="'last'" selectedindex="SelectedIndex" outsideclickdeselects="false" selectedindex="currentSelection" columns="Columns" minsparerows="0" startrows="0" datarows="row in Rows" currentrowclassname="'currentRow'"
+        manualcolumnmove="true" manualcolumnresize="true" columnsorting="true">
+	</ui-handsontable>
+
+    <p>{{Exception}}</p>
 
 
 </body>

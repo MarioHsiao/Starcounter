@@ -9,8 +9,8 @@ using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using StarcounterAppsLogTester;
-using Starcounter.Advanced;
 using Newtonsoft.Json;
+using Starcounter.Internal.REST;
 
 // http://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.aspx
 
@@ -65,6 +65,20 @@ namespace StarcounterApps3 {
 
         static void RegisterGETS() {
 
+            GET("/return/{?}", (int code) => {
+                return code;
+            });
+
+            GET("/returnstatus/{?}", (int code) => {
+                return (System.Net.HttpStatusCode)code;
+            });
+
+            GET("/returnwithreason/{?}", (string codeAndReason) => {
+                // Example input: 404ThisIsMyCustomReason
+                var code = int.Parse(codeAndReason.Substring(0, 3));
+                var reason = codeAndReason.Substring(3);
+                return new HttpStatusCodeAndReason(code, reason);
+            });
 
             GET("/test", () => {
                 return "hello";
@@ -118,6 +132,16 @@ namespace StarcounterApps3 {
                 databaseApp.SetDatabaseInfo(database);
 
                 return databaseApp;
+            });
+
+
+            GET("/apps", () => {
+                AppsApp appsApp = new AppsApp();
+                appsApp.View = "apps.html";
+
+                appsApp.Setup();
+
+                return appsApp;
             });
 
 

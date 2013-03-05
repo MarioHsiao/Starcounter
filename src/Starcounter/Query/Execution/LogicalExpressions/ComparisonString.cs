@@ -90,10 +90,20 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
     /// </summary>
     public override bool CanCodeGen {
         get {
-            if ((expr1 is CodeGenFilterNode) && (expr2 is CodeGenFilterNode) && ((expr3 == null) || (expr3 is CodeGenFilterNode)))
-                return (expr1 as CodeGenFilterNode).CanCodeGen && (expr2 as CodeGenFilterNode).CanCodeGen && ((expr3 == null) || (expr3 as CodeGenFilterNode).CanCodeGen);
-            else
-                return false;
+                Boolean can = true;
+                if (expr1 != null)
+                    if (expr1 is CodeGenFilterNode)
+                        can = can && (expr1 as CodeGenFilterNode).CanCodeGen;
+                    else return false;
+                if (expr2 != null)
+                    if (expr2 is CodeGenFilterNode)
+                        can = can && (expr2 as CodeGenFilterNode).CanCodeGen;
+                    else return false;
+                if (expr3 != null)
+                    if (expr3 is CodeGenFilterNode)
+                        can = can && (expr3 as CodeGenFilterNode).CanCodeGen;
+                    else return false;
+                return can;
         }
     }
 

@@ -38,9 +38,19 @@ namespace NetworkIoTestApp
                 return "ab";
             });*/
 
-            UserHandlerCodegen.GET_NEW("/{?}", (int anyString) =>
+            UserHandlerCodegen.GET_NEW("/", () =>
             {
                 return "root";
+            });
+
+            UserHandlerCodegen.GET_NEW("/{?}", (Int32 i) =>
+            {
+                return "integer: " + i;
+            });
+
+            UserHandlerCodegen.GET_NEW("/{?}/{?}", (HttpRequest r, String s, Int32 i) =>
+            {
+                return "string: " + s + " integer: " + i + " uri: " + r.Uri;
             });
 
             /*GET("/{?}", (string anyString) =>
@@ -87,7 +97,7 @@ namespace NetworkIoTestApp
 
         // Performance related counters.
         static volatile UInt32 perf_counter = 0;
-        static void PrintPerformanceThread(Object p)
+        static void PrintPerformanceThread(Byte sched)
         {
             while (true)
             {
@@ -139,10 +149,11 @@ namespace NetworkIoTestApp
             RegisterHandlers(db_number, port_number, test_type);
 
             // Starting performance statistics thread.
-            Thread perf_thread = new Thread(PrintPerformanceThread);
-            perf_thread.Start();
+            //Thread perf_thread = new Thread(PrintPerformanceThread);
+            //perf_thread.Start();
 
-            //TaskScheduler.QueueUserWorkItem(PrintPerformanceThread, 0);
+            DbSession dbs = new DbSession();
+            dbs.RunAsync(() => PrintPerformanceThread(0), 0);
         }
 
         // Handlers registration.

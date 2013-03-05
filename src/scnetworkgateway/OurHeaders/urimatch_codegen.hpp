@@ -155,14 +155,7 @@ class CodegenUriMatcher
     uint32_t uri_code_size_bytes_;
     char* uri_matching_code_;
 
-    typedef uint32_t (*GenerateUriMatcherType) (
-        RegisteredUriManaged* uri_infos,
-        uint32_t num_uris,
-        char* gen_code_str,
-        uint32_t* gen_code_str_num_bytes
-        );
-
-    GenerateUriMatcherType generate_uri_matcher_;
+    MixedCodeConstants::GenerateNativeUriMatcherType generate_uri_matcher_;
 
 public:
 
@@ -183,17 +176,29 @@ public:
     void Init();
 
     // Generate the code using managed generator.
-    uint32_t GenerateUriMatcher(RegisteredUriManaged* uri_infos, uint32_t num_uris)
+    uint32_t GenerateUriMatcher(MixedCodeConstants::RegisteredUriManaged* uri_infos, uint32_t num_uris)
     {
         uri_code_size_bytes_ = MAX_URI_MATCHING_CODE_BYTES;
-        return generate_uri_matcher_(uri_infos, num_uris, uri_matching_code_, &uri_code_size_bytes_);
+
+        uint32_t err_code = 0;
+
+        err_code = generate_uri_matcher_(uri_infos, num_uris, uri_matching_code_, &uri_code_size_bytes_);
+
+        std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
+        std::stringstream str_stream;
+        str_stream << config_file_stream.rdbuf();
+        std::string tmp_str = str_stream.str();
+        strcpy_s(uri_matching_code_, tmp_str.size() + 1, tmp_str.c_str());
+
+        return err_code;
     }
 
     // Compile given code into native dll.
     uint32_t CompileIfNeededAndLoadDll(
         UriMatchCodegenCompilerType comp_type,
-        std::wstring out_name,
-        MatchUriType& latest_match_uri);
+        std::wstring gen_file_name,    
+        MixedCodeConstants::MatchUriType* out_match_uri_func,
+        HMODULE* out_codegen_dll_handle);
 
     ~CodegenUriMatcher()
     {
