@@ -193,7 +193,14 @@ namespace StarcounterApps3 {
                 var commandInfo = runtime.Execute(cmd);
                 commandInfo = runtime.Wait(commandInfo);
 
-                return commandInfo.ToString();
+                // For illustration purposes, showing that we can return
+                // Message objects as the content, we simply return the
+                // one we have at hand. This should change, returning an
+                // entity that contains context-relative information about
+                // the resouce (i.e. the now running executable).
+                // TODO:
+
+                return execRequest;
             });
         }
 
