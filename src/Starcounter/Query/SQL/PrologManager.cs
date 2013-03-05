@@ -933,7 +933,7 @@ namespace Starcounter.Query.Sql
         }
 
         [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
-        internal static IExecutionEnumerator ProcessSqlQuery(Scheduler scheduler, String query)
+        internal static QueryAnswer CallProlog(Scheduler scheduler, String query)
         {
             // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
@@ -995,7 +995,7 @@ namespace Starcounter.Query.Sql
             {
                 throw CreateSqlException(query, errListTerm);
             }
-            return ProcessPrologAnswer(answer, query);
+            return answer;
         }
 
         internal static IExecutionEnumerator ProcessPrologAnswer(QueryAnswer answer, String query) {

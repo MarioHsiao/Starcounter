@@ -18,7 +18,7 @@ namespace Starcounter.Query {
 #endif
             // Call to Prolog parser and type checker
 #if !BISON_ONLY
-            IExecutionEnumerator newEnum = PrologManager.ProcessSqlQuery(vproc, query);
+            IExecutionEnumerator newEnum = PrologManager.ProcessPrologAnswer(PrologManager.CallProlog(vproc, query), query);
             // Call Prolog and get answer
             // Transfer answer terms into pre-optimized structures
 #endif
