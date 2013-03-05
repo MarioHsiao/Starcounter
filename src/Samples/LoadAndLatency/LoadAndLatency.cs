@@ -272,9 +272,6 @@ namespace LoadAndLatency
                 return;
             }
 
-            // Turning off important messages by default.
-            logger.TurnOffImportantMessages = true;
-
             LogEvent("--- Starting LoadAndLatency Test...");
 
             // Checking if its a nightly build.
