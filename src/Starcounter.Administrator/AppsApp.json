@@ -1,0 +1,20 @@
+﻿{
+	"Running": [
+					{
+						"id":"ID",
+						"appname":"AppName",
+						"ExecutablePath":"ExecutablePath",
+						"WorkingDirectory":"WorkingDirectory"
+					}
+	],
+	"Available": [
+					{
+						"id":"ID",
+						"appname":"AppName",
+						"ExecutablePath":"ExecutablePath",
+						"WorkingDirectory":"WorkingDirectory"
+					}
+	],
+	"Upload$" : null
+}
+

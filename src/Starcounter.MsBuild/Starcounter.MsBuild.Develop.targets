@@ -22,7 +22,7 @@
     </ItemGroup>
   </Target>
 
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToMessageCsMsBuildTaskNoLocking" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToMessageCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
 
   <Target Name="GenerateMessageCode" Inputs="@(Message)" Outputs="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
     <JsonToMessageCsMsBuildTaskNoLocking

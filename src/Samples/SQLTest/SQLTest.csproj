@@ -49,7 +49,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Framework\QueryExecutor.cs" />
-    <Compile Include="Framework\TestLogger.cs" />
     <Compile Include="Framework\TestQuery.cs" />
     <Compile Include="Framework\TestRunner.cs" />
     <Compile Include="Framework\Utilities.cs" />
@@ -57,7 +56,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="runAll.bat">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

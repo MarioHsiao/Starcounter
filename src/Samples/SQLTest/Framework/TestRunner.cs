@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using Starcounter;
 using Starcounter.Logging;
+using Starcounter.TestFramework;
 
 namespace SQLTest
 {
