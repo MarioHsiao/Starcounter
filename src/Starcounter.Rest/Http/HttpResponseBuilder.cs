@@ -243,6 +243,27 @@ namespace Starcounter.Internal.Web {
          return response;
       }
 
+       /// <summary>
+       /// Creates a response with a serialized JSON payload, assuming the
+       /// charset used is the default for the application/json media type
+       /// (i.e. UTF8).
+       /// </summary>
+       /// <param name="content">The serialized JSON entity body.</param>
+       /// <returns>An uncompressed representation of a response message,
+       /// with headers properly specifying the metadata of the enclosed
+       /// content.</returns>
+      public static byte[] FromJsonUTF8Content(byte[] content) {
+          var header = "HTTP/1.1 200 OK\r\nServer:SC\r\nConnection:close\r\n";
+          header += "Content-Length:" + content.Length.ToString() + "\r\n" +
+                "Content-Type:application/json;charset=UTF-8" + "\r\n\r\n";
+
+          var utf8Header = Encoding.UTF8.GetBytes(header);
+          var response = new byte[utf8Header.Length + content.Length];
+          utf8Header.CopyTo(response, 0);
+          content.CopyTo(response, utf8Header.Length);
+
+          return response;
+      }
 
       // TODO!
       /*
