@@ -58,24 +58,23 @@ namespace PolepositionStartup
             // Starting the test.
             pp.RunLaps(null);
 
+            // Exiting test successfully.
+            Environment.Exit(0);
+
             return 0;
         }
 
+        // Creating indexes.
         static bool CreateIndexes()
         {
-            Db.SlowSQL("CREATE INDEX TestClassIndex1 ON LoadAndLatency.TestClass (prop_int64)");
-            Db.SlowSQL("CREATE INDEX TestClassIndex2 ON LoadAndLatency.TestClass (prop_string)");
-            Db.SlowSQL("CREATE INDEX TestClassIndex3 ON LoadAndLatency.TestClass (prop_datetime)");
-            Db.SlowSQL("CREATE INDEX TestClassIndex4 ON LoadAndLatency.TestClass (prop_decimal)");
+            Db.SlowSQL("CREATE INDEX BahrainPilot_Name ON Starcounter.Poleposition.Circuits.Bahrain.Pilot (Name ASC)");
+            Db.SlowSQL("CREATE INDEX BahrainPilot_LicenseId ON Starcounter.Poleposition.Circuits.Bahrain.Pilot (LicenseId ASC)");
+            Db.SlowSQL("CREATE INDEX Barcelona2_Field2 ON Starcounter.Poleposition.Circuits.Barcelona.Barcelona2 (Field2 ASC)");
 
-            Db.SlowSQL("CREATE INDEX TestClassIndex5 ON LoadAndLatency.TestClass (prop_int64_update)");
-            Db.SlowSQL("CREATE INDEX TestClassIndex6 ON LoadAndLatency.TestClass (prop_string_update)");
-            Db.SlowSQL("CREATE INDEX TestClassIndex7 ON LoadAndLatency.TestClass (prop_decimal_update)");
-            Db.SlowSQL("CREATE INDEX TestClassIndex8 ON LoadAndLatency.TestClass (prop_int64_cycler)");
-
-            Db.SlowSQL("CREATE INDEX SimpleObjectIndex1 ON LoadAndLatency.SimpleObject (fetchInt)");
-            Db.SlowSQL("CREATE INDEX SimpleObjectIndex2 ON LoadAndLatency.SimpleObject (updateInt)");
-            Db.SlowSQL("CREATE INDEX SimpleObjectIndex3 ON LoadAndLatency.SimpleObject (updateString)");
+            Db.SlowSQL("CREATE INDEX InheritIndexHack_00 ON Starcounter.Poleposition.Circuits.Barcelona.Barcelona4 (Field2 ASC)");
+            Db.SlowSQL("CREATE INDEX ExtentScanHack_00 ON Starcounter.Poleposition.Circuits.Imola.Pilot (LicenseId ASC)");
+            Db.SlowSQL("CREATE INDEX ExtentScanHack_01 ON Starcounter.Poleposition.Circuits.Melbourne.Pilot (LicenseId ASC)");
+            Db.SlowSQL("CREATE INDEX ExtentScanHack_02 ON Starcounter.Poleposition.Circuits.Sepang.Tree (Depth ASC)");
 
             return true;
         }
