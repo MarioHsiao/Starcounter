@@ -272,6 +272,9 @@ namespace LoadAndLatency
                 return;
             }
 
+            // Turning off important messages by default.
+            logger.TurnOffImportantMessages = true;
+
             LogEvent("--- Starting LoadAndLatency Test...");
 
             // Checking if its a nightly build.
@@ -326,9 +329,6 @@ namespace LoadAndLatency
             // Running ladder test if its a nightly build.
             if (TestLogger.IsNightlyBuild() || ladderTest)
             {
-                // Turning off printing important messages.
-                logger.TurnOffImportantMessages = true;
-
                 // Disabling logging through error console.
                 logger.TurnOffStatistics = true;
 
@@ -373,7 +373,6 @@ namespace LoadAndLatency
 
                 // Enabling logging through error console and important messages.
                 logger.TurnOffStatistics = false;
-                logger.TurnOffImportantMessages = false;
             }
 
             // Indicating successful finish of the work.
