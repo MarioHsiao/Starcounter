@@ -67,11 +67,13 @@ namespace Starcounter.Apps.Bootstrap {
             starcounter = new List<string>();
             appMain = new List<string>();
 
-            foreach (var item in allArguments) {
-                if (item.StartsWith("@@")) {
-                    starcounter.Add(item.Substring(2));
-                } else {
-                    appMain.Add(item);
+            if (allArguments != null) {
+                foreach (var item in allArguments) {
+                    if (item.StartsWith("@@")) {
+                        starcounter.Add(item.Substring(2));
+                    } else {
+                        appMain.Add(item);
+                    }
                 }
             }
 

@@ -99,6 +99,11 @@ namespace Starcounter.Internal.Web {
                         request.GzipAdvisable = false;
                         response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
                         app.IsSentExternally = true;
+                    } else if (x is Message) {
+                        var msgxxx = x as Message;
+                        response = new HttpResponse() {
+                            Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
+                        };
                     } else if (x is int || x is HttpStatusCode) {
                         int statusCode = (int)x;
                         if (!HttpStatusCodeAndReason.TryGetRecommendedHttp11ReasonPhrase(
