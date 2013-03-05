@@ -9,7 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Starcounter.Server.Setup;
+using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace star {
 
@@ -46,7 +51,8 @@ namespace star {
                 pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
             }
 
-            // If not silent or suppressed banner:
+            // If not silent or suppressed banner, and only after we know
+            // we actually need to communicate with the server.
             ConsoleUtil.ToConsoleWithColor(string.Format("[Using server \"{0}\"]", pipeName), ConsoleColor.DarkGray);
 
             // Make this a (non-documented) option.
@@ -101,20 +107,41 @@ namespace star {
             }
 
             // We got an executable to host.
+            // Get the only required parameter - the executable - and send it
+            // to the server.
+            // We utilize a strategy where we do minimal client side validation,
+            // because everything we validate here (on the client) actually
+            // might not hold true on the server. For example, what if the
+            // server employs some cool fallback for sending a file that doesn't
+            // exist? We shouldnt take away the ability for the server to do so
+            // by validating if the file exist here.
+            // So bottomline: a client with "full" transparency.
 
             var executable = appArgs.CommandParameters[0];
+
+            // Aware of the above paragraph, we still do resolve the path of the
+            // given executable based on the location of the client.
             executable = Path.GetFullPath(executable);
 
-            if (!File.Exists(executable)) {
-                // Return file not found error code.
-                // TODO:
-                ConsoleUtil.ToConsoleWithColor(
-                    string.Format("Unable to find specified executable \"{0}\".", executable), ConsoleColor.Red);
-                Environment.ExitCode = (int)Error.SCERRUNSPECIFIED;
-                return;
-            }
+            // Craft a ExecRequest and POST it to the server.
 
-            new NotImplementedException();
+            var execRequestString = string.Format("{{ \"ExecutablePath\": \"{0}\" }}", executable);
+
+            // We need the base URI and the relative one for the database
+            // executable collection.
+            // TODO:
+
+            var client = new HttpClient() { BaseAddress = new Uri("http://localhost:8181") };
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            client.PostAsync(
+                "/databases/default/executables", 
+                new StringContent(execRequestString, Encoding.UTF8, "application/json")).ContinueWith((posttask) => {
+                    Console.WriteLine(posttask.Result.StatusCode);
+                });
+
+            Console.ReadLine();
+            // new NotImplementedException();
         }
 
         static void ShowVersionInfo() {
