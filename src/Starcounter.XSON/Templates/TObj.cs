@@ -7,50 +7,14 @@
 using System;
 using System.Collections.Generic;
 using Starcounter.Advanced;
+using Starcounter.XSON;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
     public abstract class TObj : TContainer {
-        ///// <summary>
-        ///// Registers a template with the specified name.
-        ///// </summary>
-        ///// <typeparam name="TTemplate">The type of the template to register</typeparam>
-        ///// <param name="name">Name of the template</param>
-        ///// <param name="editable">if set to <c>true</c> the value should be editable</param>
-        ///// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
-        ///// <returns>A new instance of the specified template</returns>
-        //internal TTemplate Register<TTemplate>(string name, string dotNetName, bool editable = false)
-        //    where TTemplate : Template, new() {
-        //    return new TTemplate() {
-        //        Parent = this,
-        //        Name = name,
-        //        PropertyName = dotNetName,
-        //        Editable = editable
-        //    };
-        //}
-
-        ///// <summary>
-        ///// Registers the specified name.
-        ///// </summary>
-        ///// <typeparam name="TTemplate">The type of the T template.</typeparam>
-        ///// <typeparam name="TValue">The type of the T value.</typeparam>
-        ///// <param name="name">The name.</param>
-        ///// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
-        ///// <param name="editable">if set to <c>true</c> [editable].</param>
-        ///// <returns>``0.</returns>
-        //internal TTemplate Register<TTemplate, TValue>(
-        //    string name,
-        //    string dotNetName,
-        //    bool editable = false)
-        //    where TTemplate : TValue<TValue>, new() {
-        //    return new TTemplate() {
-        //        Parent = this,
-        //        Name = name,
-        //        Editable = editable,
-        //    };
-        //}
+        private DataValueBinding<IBindable> dataBinding;
 
         /// <summary>
         /// The _ class name
@@ -142,6 +106,35 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// Creates a new template with the specified name and type and
+        /// adds it to this apps propertylist.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name">The name of the new template</param>
+        /// <param name="bind">The name of the property in the dataobject to bind to.</param>
+        /// <returns>A new instance of the specified template</returns>
+        public T Add<T>(string name, string bind) where T : TValue, new() {
+            T t = new T() { Name = name, Bind = bind };
+            Properties.Add(t);
+            return t;
+        }
+
+        /// <summary>
+        /// Creates a new template with the specified name and type and
+        /// adds it to this apps propertylist.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name">The name of the new template</param>
+        /// <param name="type"></param>
+        /// <param name="bind">The name of the property in the dataobject to bind to.</param>
+        /// <returns>A new instance of the specified template</returns>
+        public T Add<T>(string name, TObj type, string bind) where T : TObjArr, new() {
+            T t = new T() { Name = name, App = type, Bind = bind };
+            Properties.Add(t);
+            return t;
+        }
+
+        /// <summary>
         /// Gets a list of all properties for this app.
         /// </summary>
         /// <value></value>
@@ -155,7 +148,6 @@ namespace Starcounter.Templates {
             get { return (IEnumerable<Template>)Properties; }
         }
 
-
         /// <summary>
         /// Callback from internal functions responsible for handle external inputs.
         /// </summary>
@@ -164,6 +156,14 @@ namespace Starcounter.Templates {
         /// <exception cref="System.NotImplementedException"></exception>
         public override void ProcessInput(Obj obj, byte[] value) {
             throw new NotImplementedException();
+        }
+
+        internal DataValueBinding<IBindable> GetBinding(IBindable data) {
+            // TODO:
+            // Check if we have the same type as last call.
+            if (dataBinding == null)
+                dataBinding = DataBindingFactory.CreateBinding<IBindable>(data.GetType(), Bind);
+            return dataBinding;
         }
     }
 }

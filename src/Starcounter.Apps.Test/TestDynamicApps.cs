@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Starcounter.Client;
 using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
+using Starcounter.Advanced;
 
 namespace Starcounter.Client.Tests.Application {
 
@@ -98,15 +99,12 @@ namespace Starcounter.Client.Tests.Application {
             dynamic tim = new Puppet() { Template = personSchema };
 
             jocke.FirstName = "Joachim";
-
-            jocke.FirstName("j");
-
             jocke.LastName = "Wester";
-            //jocke.Age = 30;
+            jocke.Age = 30;
 
             tim.FirstName = "Timothy";
             tim.LastName = "Wester";
-            //tim.Age = 16;
+            tim.Age = 16;
 
             Assert.AreEqual(0, firstName.Index);
             Assert.AreEqual(1, lastName.Index);
@@ -270,6 +268,45 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual("Hi ha ho he", p1.ExtraInfo.Text);
         }
 
+        [Test]
+        public static void TestDataBinding() {
+            dynamic msg = new Message<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
+
+            var myDataObj = new PersonObject() { FirstName = "Kalle", LastName = "Kula", Age = 21 };
+            myDataObj.Number = new PhoneNumberObject() { Number = "123-555-7890" };
+            msg.Data = myDataObj;
+
+            // Reading bound values.
+            Assert.AreEqual("Kalle", msg.FirstName);
+            Assert.AreEqual("Kula", msg.LastName);
+            Assert.AreEqual(21, msg.Age);
+            Assert.AreEqual("123-555-7890", msg.PhoneNumber.Number);
+
+            // Setting bound values.
+            msg.FirstName = "Allan";
+            msg.LastName = "Ballan";
+            msg.Age = 109L;
+            msg.Number.Number = "666";
+
+            // Check dataobject is changed.
+            Assert.AreEqual("Allan", myDataObj.FirstName);
+            Assert.AreEqual("Ballan", myDataObj.LastName);
+            Assert.AreEqual(109, myDataObj.Age);
+            Assert.AreEqual("666", myDataObj.Number.Number);
+        }
+
+        private static TMessage CreateSimplePersonTemplateWithDataBinding() {
+            var personSchema = new TMessage();
+            personSchema.Add<TString>("FirstName$", "FirstName");
+            personSchema.Add<TString>("LastName", "LastName");
+            personSchema.Add<TLong>("Age", "Age");
+
+            var phoneNumber = personSchema.Add<TMessage>("PhoneNumber", "Number");
+            phoneNumber.Add<TString>("Number", "Number");
+            
+            return personSchema;
+        }
+
         private static TObj CreateSimplePersonTemplate() {
             var personSchema = new TMessage();
             personSchema.Add<TString>("FirstName$");
@@ -305,5 +342,25 @@ namespace Starcounter.Client.Tests.Application {
     }
 
     internal class MyFieldMessage : Message {
+    }
+
+    internal class PersonObject : IBindable {
+        public ulong UniqueID {
+            get { return 0; }
+        }
+
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public int Age { get; set; }
+
+        public PhoneNumberObject Number { get; set; }
+    }
+
+    internal class PhoneNumberObject : IBindable {
+        public ulong UniqueID {
+            get { return 0; }
+        }
+
+        public string Number { get; set; }
     }
 }

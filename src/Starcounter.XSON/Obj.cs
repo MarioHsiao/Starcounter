@@ -74,20 +74,20 @@ namespace Starcounter {
         /// or view models (Puppets) are often associated with database objects. I.e. a person form might
         /// reflect a person database object (Entity).
         /// </summary>
-        private IBindable _Data;
+        private IBindable data;
+
+        /// <summary>
+        /// Cache element index if the parent of this Obj is an array (Arr).
+        /// </summary>
+        internal int cacheIndexInArr;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
         /// </summary>
         public Obj()
             : base() {
-            _cacheIndexInArr = -1;
+            cacheIndexInArr = -1;
         }
-
-        /// <summary>
-        /// Cache element index if the parent of this Obj is an array (Arr).
-        /// </summary>
-        internal int _cacheIndexInArr;
 
         /// <summary>
         /// In order to support Json pointers (TODO REF), this method is called
@@ -99,10 +99,10 @@ namespace Starcounter {
         internal override void FillIndexPath(int[] path, int pos) {
             if (Parent != null) {
                 if (Parent is Arr) {
-                    if (_cacheIndexInArr == -1) {
-                        _cacheIndexInArr = ((Arr)Parent).IndexOf(this);
+                    if (cacheIndexInArr == -1) {
+                        cacheIndexInArr = ((Arr)Parent).IndexOf(this);
                     }
-                    path[pos] = _cacheIndexInArr;
+                    path[pos] = cacheIndexInArr;
                 }
                 else {
                     path[pos] = Template.Index;
@@ -119,7 +119,7 @@ namespace Starcounter {
         /// <value>The bound data object (often a database Entity)</value>
         public IBindable Data {
             get {
-                return (IBindable)_Data;
+                return (IBindable)data;
             }
             set {
                 InternalSetData(value);
@@ -133,12 +133,11 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
         protected virtual void InternalSetData(IBindable data) {
+            this.data = data;
 
-            _Data = data;
-
-            //if (Template.Bound) {
-            //    Template.SetBoundValue((Obj)this.Parent, data);
-            //}
+            if (Template.Bound) {
+//                Template.SetBoundValue((Obj)this.Parent, data);
+            }
 
             RefreshAllBoundValues();
             OnData();
@@ -149,12 +148,12 @@ namespace Starcounter {
         /// property.
         /// </summary>
         private void RefreshAllBoundValues() {
-            Template child;
+            TValue child;
             for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
-                child = Template.Properties[i];
-                //if (child.Bound) {
-                //    Refresh(child);
-                //}
+                child = Template.Properties[i] as TValue;
+                if (child != null && child.Bound) {
+                    Refresh(child);
+                }
             }
         }
 
@@ -241,7 +240,5 @@ namespace Starcounter {
         }
 
         public abstract void ProcessInput<V>(TValue<V> template, V value);
-
-
     }
 }
