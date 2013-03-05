@@ -19,17 +19,22 @@ namespace Starcounter.Query {
             // Call to Prolog parser and type checker
 #if !BISON_ONLY
             IExecutionEnumerator newEnum = PrologManager.ProcessSqlQuery(vproc, query);
+            // Call Prolog and get answer
+            // Transfer answer terms into pre-optimized structures
 #endif
             // Check equality
-#if !BISON_ONLY && !PROLOG_ONLY
+#if !BISON_ONLY && !PROLOG_ONLY && DEBUG
 #endif
-            // Call to Bison optimizer
+            // Call to optimizer of Bison result
 #if !PROLOG_ONLY
 #endif
-            // Call to Prolog optimizer
+            // Call to optimizer of Prolog result
 #if !BISON_ONLY
 #endif
-            // Return Bison based execution plan if available
+            // Check equality
+#if !BISON_ONLY && !PROLOG_ONLY && DEBUG
+#endif
+            // Choose Bison based execution plan if available
 
             // Checking if its LikeExecEnumerator.
             if (newEnum is LikeExecEnumerator) {
