@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Http\HttpRequestNext.cs" />
+    <Compile Include="Http\HttpStatusCodeAndReason.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstElseIfList.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstError.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstIfCallSub.cs" />
