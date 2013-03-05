@@ -90,7 +90,7 @@ namespace Starcounter.TestFramework
             set { _turnOffStatistics = value; }
         }
 
-        Boolean _turnOffImportantMessages = false;
+        Boolean _turnOffImportantMessages = true;
         /// <summary>
         /// Gets/Sets the important messages flag.
         /// </summary>

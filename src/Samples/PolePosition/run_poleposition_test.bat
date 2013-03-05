@@ -1,12 +1,12 @@
 
 :: Checking if test should be run.
-IF NOT "%SC_RUN_LOADANDLATENCY_TEST%"=="True" GOTO :EOF
+IF NOT "%SC_RUN_POLEPOSITION_TEST%"=="True" GOTO :EOF
 
 :: Some predefined constants.
 SET DB_DIR=.db
 SET DB_OUT_DIR=.db.output
-SET DB_NAME=LOADANDLATENCY
-SET TEST_NAME=LoadAndLatency
+SET DB_NAME=POLEPOSITION
+SET TEST_NAME=PolePosition
 SET TEST_ARGS=
 
 :: Killing all processes.
