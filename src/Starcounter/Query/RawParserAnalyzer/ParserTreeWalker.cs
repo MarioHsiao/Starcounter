@@ -49,7 +49,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="query">The query to parse.</param>
         /// <returns></returns>
         internal unsafe void ParseQuery(string query) {
-            if (query == "") return;
+            //if (query == "") return;
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             int scerrorcode = 0;
