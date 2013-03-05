@@ -18,6 +18,7 @@ namespace Starcounter.Query {
 #endif
             // Call to Prolog parser and type checker
 #if !BISON_ONLY
+            IExecutionEnumerator newEnum = PrologManager.ProcessSqlQuery(vproc, query);
 #endif
             // Check equality
 #if !BISON_ONLY && !PROLOG_ONLY
@@ -29,7 +30,12 @@ namespace Starcounter.Query {
 #if !BISON_ONLY
 #endif
             // Return Bison based execution plan if available
-            return PrologManager.ProcessSqlQuery(vproc, query);
+
+            // Checking if its LikeExecEnumerator.
+            if (newEnum is LikeExecEnumerator) {
+                (newEnum as LikeExecEnumerator).CreateLikeCombinations();
+            }
+            return newEnum;
         }
     }
 }
