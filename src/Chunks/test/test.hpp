@@ -172,15 +172,42 @@ public:
 	}
 #endif
 	
+	monitor_interface_ptr& the_monitor_interface() {
+		return the_monitor_interface_;
+	}
+
+	const monitor_interface_ptr& the_monitor_interface() const {
+		return the_monitor_interface_;
+	}
+
+	void watch_active_databases_updates();
+
+	/// Get a reference to the active_databases_updates_event_.
+	/**
+	 * @param A reference to the active_databases_updates_event_.
+	 */ 
+	HANDLE& active_databases_updates_event() {
+		return active_databases_updates_event_;
+	}
+
+	/// Get a const reference to the active_databases_updates_event_.
+	/**
+	 * @param A const reference to the active_databases_updates_event_.
+	 */ 
+	const HANDLE& active_databases_updates_event() const {
+		return active_databases_updates_event_;
+	}
+
 private:
 	//std::vector<database> database_;
 	shared_interface shared_[max_number_of_databases];
 	int32_t number_of_shared_;
 	std::size_t active_schedulers_[max_number_of_databases];
 	//monitor_interface_name_type
+	std::string server_name_;
 	std::string monitor_interface_name_;
 	std::string segment_name_[max_number_of_databases];
-
+	monitor_interface_ptr the_monitor_interface_;
 	pid_type pid_;
 
 	// One owner_id for each IPC monitor it registers with, so shared() should
@@ -192,6 +219,9 @@ private:
 	//std::map<std::string, owner_id> owner_id_;
 	owner_id owner_id_;
 
+	// Event to wait for active databases update.
+	HANDLE active_databases_updates_event_;
+
 	// message queue - to simulate fetching messages from a interprocess_communication via Win32API
 	
 	// The workers.
@@ -201,6 +231,8 @@ private:
 	// Statistics thread.
 	boost::thread statistics_thread_;
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+	
+	boost::thread active_databases_updates_;
 };
 
 } // namespace interprocess_communication

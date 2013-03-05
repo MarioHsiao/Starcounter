@@ -17,6 +17,7 @@ namespace core {
 
 monitor::monitor(int argc, wchar_t* argv[])
 : ipc_monitor_cleanup_event_(),
+active_databases_updated_event_(),
 monitor_interface_(),
 active_segments_update_(active_segments_buffer_capacity),
 active_databases_updated_flag_(false),
@@ -147,6 +148,38 @@ owner_id_(ipc_monitor_owner_id) {
 	w_ipc_monitor_cleanup_event_name)) == NULL) {
 		// Failed to create event.
 		throw bad_monitor("failed to create the ipc_monitor_cleanup_event");
+	}
+
+	//--------------------------------------------------------------------------
+	// Construct the active_databases_updated_event_name.
+	char active_databases_updated_event_name[active_databases_updated_event_name_size];
+
+	// Format: "Local\<server_name>_active_databases_updated_event".
+	// Example: "Local\PERSONAL_active_databases_updated_event"
+	if ((length = _snprintf_s(active_databases_updated_event_name, _countof
+	(active_databases_updated_event_name), active_databases_updated_event_name_size
+	-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name_.c_str()))
+	< 0) {
+		throw bad_monitor("failed to format the active_databases_updated_event_name");
+	}
+	active_databases_updated_event_name[length] = '\0';
+
+	wchar_t w_active_databases_updated_event_name[active_databases_updated_event_name_size];
+
+	/// TODO: Fix insecure
+	if ((length = mbstowcs(w_active_databases_updated_event_name,
+	active_databases_updated_event_name, segment_name_size)) < 0) {
+		// Failed to convert active_databases_updated_event_name to multi-byte string.
+		throw bad_monitor("failed to convert active_databases_updated_event_name to multi-byte string");
+	}
+	w_active_databases_updated_event_name[length] = L'\0';
+
+	// Create the active_databases_updated_event_ to be used when the active
+	// databases set is updated.
+	if ((active_databases_updated_event_ = ::CreateEvent(NULL, TRUE, FALSE,
+	w_active_databases_updated_event_name)) == NULL) {
+		// Failed to create event.
+		throw bad_monitor("failed to create the active_databases_updated_event");
 	}
 
 	//--------------------------------------------------------------------------
@@ -1156,15 +1189,15 @@ void monitor::cleanup() {
 
 									client_interface_ptr->set_owner_id(owner_id::none);
 
-	#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									bool release_client_number_res =
 									shared.common_client_interface().release_client_number
 									(n, &shared.client_interface(0), get_owner_id());
-	#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 									bool release_client_number_res =
 									shared.common_client_interface().release_client_number
 									(n, &shared.client_interface(0));
-	#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 								
 									////std::cout << "release_client_number_res = " << release_client_number_res << std::endl;
 
@@ -1275,6 +1308,7 @@ bool monitor::insert_database_name(const std::string& database_name) {
 	
 	if (active_databases_lock.owns_lock()) {
 		if (active_databases_.insert(database_name).second) {
+			the_monitor_interface_->active_database_set().update(active_databases_);
 			set_active_databases_updated_flag(true);
 			active_databases_lock.unlock();
 			active_databases_updated_.notify_one();
@@ -1299,6 +1333,7 @@ bool monitor::erase_database_name(const std::string& database_name) {
 	
 	if (active_databases_lock.owns_lock()) {
 		if (active_databases_.erase(database_name)) {
+			the_monitor_interface_->active_database_set().update(active_databases_);
 			set_active_databases_updated_flag(true);
 			active_databases_lock.unlock();
 			active_databases_updated_.notify_one();
@@ -1336,6 +1371,7 @@ void monitor::update_active_databases_file() {
 		}
 		
 		if (monitor_active_databases_file_.is_open()) {
+			std::size_t i = 0;
 			// Write the names of the active databases to the file.
 			for (std::set<std::string>::iterator it = active_databases_.begin();
 			it != active_databases_.end(); ++it) {
