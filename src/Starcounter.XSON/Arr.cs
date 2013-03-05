@@ -58,13 +58,8 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public new T Add() {
-        //    var app = new T();
-        //    Add(app);
-        //    return app;
             TObjArr template = (TObjArr)Template;
             var app = (T)template.App.CreateInstance(this);
-
-          //  app.Data = data;
             Add(app);
             return app;
         }
@@ -77,7 +72,6 @@ namespace Starcounter {
         public T Add(IBindable data) {
             TObjArr template = (TObjArr)Template;
             var app = (T)template.App.CreateInstance(this);
-            
             app.Data = data;
             Add(app);
             return app;
@@ -93,11 +87,11 @@ namespace Starcounter {
 #if QUICKTUPLE
                 return (T)QuickAndDirtyArray[index];
 #else
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
 #endif
             }
             set {
-                throw new JockeNotImplementedException();
+                throw new NotImplementedException();
             }
         }
 
@@ -196,7 +190,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             return QuickAndDirtyArray.IndexOf(item);
 #else
-         throw new JockeNotImplementedException();
+         throw new NotImplementedException();
 #endif
         }
 
@@ -212,7 +206,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             QuickAndDirtyArray.Insert(index, item);
 #else
-         throw new JockeNotImplementedException();
+         throw new NotImplementedException();
 #endif
 //            template = (TObjArr)this.Template;
 //            ChangeLog.AddItemInList((Puppet)this.Parent, template, index);
@@ -220,7 +214,7 @@ namespace Starcounter {
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem._cacheIndexInArr = i;
+                otherItem.cacheIndexInArr = i;
             }
 
         }
@@ -231,21 +225,17 @@ namespace Starcounter {
         /// <param name="index"></param>
         public void RemoveAt(int index) {
             Obj otherItem;
-//            TObjArr template;
 
 #if QUICKTUPLE
-
-//            template = (TObjArr)this.Template;
             QuickAndDirtyArray.RemoveAt(index);
-//            ChangeLog.RemoveItemInList((Puppet)this.Parent, template, index);
             this.HasRemovedElement((TObjArr)this.Template, index);
 
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem._cacheIndexInArr = i;
+                otherItem.cacheIndexInArr = i;
             }
 #else
-         throw new JockeNotImplementedException();
+         throw new NotImplementedException();
 #endif
         }
 
@@ -265,7 +255,7 @@ namespace Starcounter {
                 RemoveAt(index);
             return b;
 #else
-         throw new JockeNotImplementedException();
+         throw new NotImplementedException();
 #endif
         }
 
@@ -279,11 +269,11 @@ namespace Starcounter {
 #if QUICKTUPLE
                 return QuickAndDirtyArray[index];
 #else
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
 #endif
             }
             set {
-                throw new JockeNotImplementedException();
+                throw new NotImplementedException();
             }
         }
 
@@ -299,7 +289,7 @@ namespace Starcounter {
             Add(x);
             return x;
 #else
-         throw new JockeNotImplementedException();
+         throw new NotImplementedException();
 #endif
         }
 
@@ -322,15 +312,13 @@ namespace Starcounter {
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);
-            item._cacheIndexInArr = index;
+            item.cacheIndexInArr = index;
             item.Parent = this;
 #else
-         throw new JockeNotImplementedException();
+         throw new NotImplementedException();
 #endif
             Parent.HasAddedElement((TObjArr)this.Template, QuickAndDirtyArray.Count - 1);
         }
-
-
 
         /// <summary>
         /// 
@@ -348,7 +336,7 @@ namespace Starcounter {
             }
             QuickAndDirtyArray.Clear();
 #else
-         throw new JockeNotImplementedException();
+         throw new NotImplementedException();
 #endif
         }
 
@@ -361,7 +349,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             return QuickAndDirtyArray.Contains(item);
 #else
-         throw new JockeNotImplementedException();
+         throw new NotImplementedException();
 #endif
         }
 
@@ -371,7 +359,7 @@ namespace Starcounter {
         /// <param name="array"></param>
         /// <param name="arrayIndex"></param>
         public void CopyTo(Obj[] array, int arrayIndex) {
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -382,7 +370,7 @@ namespace Starcounter {
 #if QUICKTUPLE
                 return QuickAndDirtyArray.Count;
 #else
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
 #endif
             }
         }
@@ -395,7 +383,7 @@ namespace Starcounter {
 #if QUICKTUPLE
                 return false;
 #else
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
 #endif
             }
         }
@@ -404,22 +392,15 @@ namespace Starcounter {
 #if QUICKTUPLE
             return QuickAndDirtyArray.GetEnumerator();
 #endif
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
 #if QUICKTUPLE
             return QuickAndDirtyArray.GetEnumerator();
 #endif
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
         }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class JockeNotImplementedException : NotImplementedException {
-
     }
 }
 
