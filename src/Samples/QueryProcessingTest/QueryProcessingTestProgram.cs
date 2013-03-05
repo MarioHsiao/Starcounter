@@ -9,9 +9,7 @@ namespace QueryProcessingTest {
             FetchTest.RunFetchTest();
             AggregationTest.RunAggregationTest();
             CodePropertiesTesting.TestCodeProperties();
-#if false // Not supported
             SelectClauseExpressionsTests.TestSelectClauseExpressions();
-#endif
         }
 
         static void RunQueryProcessingTest() {
