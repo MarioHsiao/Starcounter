@@ -19,6 +19,46 @@ using System.Text;
 namespace star {
 
     class Program {
+
+        static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
+            string givenPort;
+
+            if (args.TryGetProperty("serverport", out givenPort)) {
+                port = int.Parse(givenPort);
+
+                // If a port is specified, that always have precedence.
+                // If it is, we try to pair it with a server name based on
+                // the following priorities:
+                //   1) Getting a given name on the command-line
+                //   2) Trying to pair the port with a default server based
+                // on known server port defaults.
+                //   3) Finding a server name configured in the environment.
+                //   4) Using a const string (e.g. "N/A")
+
+                if (!args.TryGetProperty("server", out serverName)) {
+                    if (port == StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort) {
+                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
+                    } else if (port == StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort) {
+                        serverName = StarcounterEnvironment.ServerNames.SystemServer;
+                    } else {
+                        serverName = Environment.GetEnvironmentVariable("STAR_SERVER");
+                        if (string.IsNullOrEmpty(serverName)) {
+                            serverName = "N/A";
+                        }
+                    }
+                }
+            } else {
+                // No port given. See if a server was specified by name and try
+                // to figure out a port based on that, or a port based on a server
+                // name given in the environment.
+                //   If a server name in fact IS specified (and no port is), we
+                // must match it against one of the known server names. If it is
+                // not part of them, we refuse it.
+                // TODO:
+            }
+
+            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+        }
        
         static void Main(string[] args) {
             string pipeName;
@@ -45,6 +85,12 @@ namespace star {
             // name will be queried from said port, and compared to the name
             // given.
             // TODO:
+
+            // If port, use port.
+            // If no port, find server name (option, then environment). Use
+            // the default of that. If not found, or not known, assume the
+            // developer server ("personal"); use default port of that.
+            // If we are given only a port, use that.
 
             pipeName = Environment.GetEnvironmentVariable("STAR_SERVER");
             if (string.IsNullOrEmpty(pipeName)) {
