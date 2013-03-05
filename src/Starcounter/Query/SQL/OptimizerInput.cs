@@ -22,5 +22,11 @@ namespace Starcounter.Query.SQL {
             FetchOffsetKeyExpr = fetchOffsetKeyExpr;
             HintSpec = hintSpec;
         }
+
+#if DEBUG
+        internal bool AssertEquals(OptimizerInput other) {
+            return false;
+        }
+#endif
     }
 }

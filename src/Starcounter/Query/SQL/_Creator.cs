@@ -22,14 +22,14 @@ namespace Starcounter.Query.Sql
 {
     internal static class Creator
     {
-        internal static IExecutionEnumerator CreateEnumerator(RowTypeBinding rowTypeBind,
+        internal static OptimizerInput CreateOptimizerInput(RowTypeBinding rowTypeBind,
                                                               Term term,
                                                               VariableArray varArray,
                                                               String query)
         {
             if (term.Name == "select2" && term.Arity == 7)
             {
-                return OptimizeAndCreateEnumerator(rowTypeBind, term.getArgument(3), term.getArgument(4), term.getArgument(5), term.getArgument(6), term.getArgument(7), 
+                return MapTermsToOptimizerInput(rowTypeBind, term.getArgument(3), term.getArgument(4), term.getArgument(5), term.getArgument(6), term.getArgument(7), 
                     varArray, query);
             }
 
@@ -37,7 +37,7 @@ namespace Starcounter.Query.Sql
             {
                 //if (!QueryModule.AggregationSupport) throw new SqlException("Aggregations are not supported.");
                 varArray.QueryFlags |= QueryFlags.IncludesAggregation;
-                return OptimizeAndCreateAggregationEnumerator(rowTypeBind, term.getArgument(3), term.getArgument(4), term.getArgument(5), term.getArgument(6),
+                return MapTermsToOptimizerInputWithAggregation(rowTypeBind, term.getArgument(3), term.getArgument(4), term.getArgument(5), term.getArgument(6),
                     term.getArgument(7), term.getArgument(8), term.getArgument(9), term.getArgument(10), term.getArgument(11), varArray, query);
             }
 
@@ -76,7 +76,7 @@ namespace Starcounter.Query.Sql
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expression: " + term);
         }
 
-        private static IExecutionEnumerator OptimizeAndCreateAggregationEnumerator(RowTypeBinding rowTypeBind, Term nodeTreeTerm,
+        private static OptimizerInput MapTermsToOptimizerInputWithAggregation(RowTypeBinding rowTypeBind, Term nodeTreeTerm,
                 Term whereCondTerm, Term groupbyComparerListTerm, Term setFuncListTerm, Term havingCondTerm, Term tempExtentTerm,
                 Term orderbyComparerListTerm, Term fetchTerm, Term hintListTerm, VariableArray varArray, String query)
         {
@@ -114,12 +114,10 @@ namespace Starcounter.Query.Sql
             CreateFetchSpecification(rowTypeBind, fetchTerm, varArray, out fetchNumExpr, out fetchOffsetExpr, out fetchOffsetKeyExpr);
             // Create hint specification.
             HintSpecification hintSpec = CreateHintSpecification(rowTypeBind, hintListTerm, varArray);
-            // Optimize and create enumerator.
-            OptimizerInput optArgs = new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
-            return Optimizer.Optimize(optArgs);
+            return new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
         }
 
-        private static IExecutionEnumerator OptimizeAndCreateEnumerator(RowTypeBinding rowTypeBind, Term nodeTreeTerm, Term whereCondTerm,
+        private static OptimizerInput MapTermsToOptimizerInput(RowTypeBinding rowTypeBind, Term nodeTreeTerm, Term whereCondTerm,
                 Term orderbyComparerListTerm, Term fetchTerm, Term hintListTerm, VariableArray varArray, String query)
         {
             // Create tree of optimizing nodes.
@@ -141,55 +139,7 @@ namespace Starcounter.Query.Sql
             CreateFetchSpecification(rowTypeBind, fetchTerm, varArray, out fetchNumExpr, out fetchOffsetExpr, out fetchOffsetKeyExpr);
             // Create hint specification.
             HintSpecification hintSpec = CreateHintSpecification(rowTypeBind, hintListTerm, varArray);
-            // Optimize and create enumerator.
-            IExecutionEnumerator prologParsedQueryPlan;
-#if HELLOTEST
-            Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest newAnalyzer = new Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest();
-#else
-            Starcounter.Query.RawParserAnalyzer.MapParserTree newAnalyzer = new Starcounter.Query.RawParserAnalyzer.MapParserTree();
-            Starcounter.Query.RawParserAnalyzer.ParserTreeWalker treeWalker = new Starcounter.Query.RawParserAnalyzer.ParserTreeWalker();
-#endif
-            try {
-#if HELLOTEST
-                newAnalyzer.ParseAndAnalyzeQuery(query);
-#else
-                treeWalker.ParseQueryAndWalkTree(query, newAnalyzer);
-#endif
-            } catch (Starcounter.Query.RawParserAnalyzer.SQLParserAssertException) {
-                prologParsedQueryPlan = Optimizer.Optimize(new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec));
-                //LogSources.Sql.LogNotice("Using Prolog-based parser");
-                //Console.WriteLine("Using Prolog-based parser");
-                return prologParsedQueryPlan;
-            }
-#if DEBUG
-            Debug.Assert(newAnalyzer.JoinTree.AssertEquals(nodeTree), "Join trees are not the same!");
-            Debug.Assert(newAnalyzer.WhereCondition.AssertEquals(conditionDict), "Logical conditions are not the same!");
-            if (newAnalyzer.FetchNumExpr == null)
-                Debug.Assert(fetchNumExpr == null, "Fetch limit expression is expected to be null.");
-            else
-                Debug.Assert(newAnalyzer.FetchNumExpr.AssertEquals(fetchNumExpr), "Fetch limit expression is not the same!");
-            if (newAnalyzer.FethcOffsetExpr == null)
-                Debug.Assert(fetchOffsetExpr == null, "Fetch offset expression is expected to be null.");
-            else
-                Debug.Assert(newAnalyzer.FethcOffsetExpr.AssertEquals(fetchOffsetExpr), "Fetch limit expression is not the same!");
-            if (newAnalyzer.FetchOffsetKeyExpr == null)
-                Debug.Assert(fetchOffsetKeyExpr == null, "Fetch offset key expression is expected to be null.");
-            else
-                Debug.Assert(newAnalyzer.FetchOffsetKeyExpr.AssertEquals(fetchOffsetKeyExpr), "Fetch offset key expression is not the same");
-            Debug.Assert(newAnalyzer.HintSpec.AssertEquals(hintSpec), "Hint expressions are not the same");
-            prologParsedQueryPlan = Optimizer.Optimize(new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec));
-            newAnalyzer.Optimize();
-            String prologParsedQueryPlanStr = prologParsedQueryPlan.ToString();
-            String bisonParsedQueryPlanStr = newAnalyzer.OptimizedPlan.ToString();
-            Debug.Assert(bisonParsedQueryPlanStr == prologParsedQueryPlanStr, "Strings of executions plans should be equally");
-            //Debug.Assert(newAnalyzer.CompareTo(prologParsedQueryPlan),"Query plans produces by Prolog-based and Bison-based optimizers should be the same.");
-#else
-            newAnalyzer.Optimize();
-#endif
-            LogSources.Sql.LogNotice("Using Bison-based parser");
-            Console.WriteLine("Using Bison-based parser");
-            return newAnalyzer.OptimizedPlan;
-            //            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetKeyExpr, hintSpec);
+            return new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
         }
 
         // Output is returned in arguments fetchNumExpr and fetchOffsetKeyExpr.
