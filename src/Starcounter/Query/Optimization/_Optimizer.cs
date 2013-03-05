@@ -55,7 +55,12 @@ internal static class Optimizer
         }
         FlagInnermostExtent(bestOptimizationTree);
         // Return the corresponding execution enumerator.
-        return bestOptimizationTree.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+        IExecutionEnumerator createdEnumerator = bestOptimizationTree.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+
+        // The special case where query includes "LIKE ?" is handled by special class LikeExecEnumerator.
+        if (((createdEnumerator.VarArray.QueryFlags & QueryFlags.IncludesLIKEvariable) != QueryFlags.None) && (createdEnumerator.QueryString[0] != ' '))
+            createdEnumerator = new LikeExecEnumerator(createdEnumerator.QueryString, null, null);
+        return createdEnumerator;
     }
 
     internal static List<OptimizationTree> CreateAllPermutations(IOptimizationNode nodeTree, 
