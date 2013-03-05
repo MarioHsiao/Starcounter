@@ -464,7 +464,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		admin_dbname_upr,
 		srv_name_upr,
 		server_logs_dir,
-		server_logs_dir,
+		server_temp_dir,
 		mingw,
 		admin_exe_path,
 		server_cfg_path,

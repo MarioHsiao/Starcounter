@@ -1,5 +1,4 @@
-﻿#if false
-// ***********************************************************************
+﻿// ***********************************************************************
 // <copyright file="Profiler.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -278,14 +277,5 @@ public class Profiler
 
         return outString;
     }
-
-    /// <summary>
-    /// Asks server to return all profiling results and reset all counters.
-    /// </summary>
-    public void DrawResultsFromServer()
-    {
-        Console.WriteLine(SqlConnectivity.GetServerProfilingString());
-    }
 }
 }
-#endif

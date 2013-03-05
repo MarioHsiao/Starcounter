@@ -17,20 +17,22 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;QUICKTUPLE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;QUICKTUPLE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\bin\Release\Starcounter.XSON.XML</DocumentationFile>
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -42,19 +44,68 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Arr.cs" />
+    <Compile Include="Container.cs" />
+    <Compile Include="DataBinding.cs" />
+    <Compile Include="Input.cs" />
+    <Compile Include="ManagedTupleWriter.cs" />
+    <Compile Include="Messages\Message.cs" />
+    <Compile Include="Messages\TMessage.cs" />
+    <Compile Include="Obj.cs" />
+    <Compile Include="Obj.Dynamic.cs" />
+    <Compile Include="Obj.GetSetValue.cs" />
+    <Compile Include="Obj.IBindable.cs" />
+    <Compile Include="Obj.Json.cs" />
+    <Compile Include="Obj.QuickTuple.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Xson.cs" />
+    <Compile Include="TemplateAttribute.cs" />
+    <Compile Include="Templates\Foundation\PropertyList.cs" />
+    <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
+    <Compile Include="Templates\Foundation\TContainer.cs" />
+    <Compile Include="Templates\Foundation\Template.cs" />
+    <Compile Include="Templates\Foundation\TValue.cs" />
+    <Compile Include="Templates\TArr.cs" />
+    <Compile Include="Templates\TBool.cs" />
+    <Compile Include="Templates\TDecimal.cs" />
+    <Compile Include="Templates\TDouble.cs" />
+    <Compile Include="Templates\TLong.cs" />
+    <Compile Include="Templates\TObj.cs" />
+    <Compile Include="Templates\TOid.cs" />
+    <Compile Include="Templates\TString.cs" />
+    <Compile Include="ValueMetaData\ArrMetadata.cs" />
+    <Compile Include="ValueMetaData\BoolMetadata.cs" />
+    <Compile Include="ValueMetaData\DecimalMetadata.cs" />
+    <Compile Include="ValueMetaData\DoubleMetadata.cs" />
+    <Compile Include="ValueMetaData\Foundation\ObjMetadataBase.cs" />
+    <Compile Include="ValueMetaData\Foundation\ValueMetadata.cs" />
+    <Compile Include="ValueMetaData\LongMetadata.cs" />
+    <Compile Include="ValueMetaData\ObjectMetadata.cs" />
+    <Compile Include="ValueMetaData\ObjMetadata.cs" />
+    <Compile Include="ValueMetaData\StringMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.Apps.Interfaces</Name>
+    <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
+      <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
+      <Name>FasterThanJson</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
+      <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
+      <Name>BitsAndBytes.Unsafe</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.BitsAndBytes\BitsAndBytes.csproj">
+      <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
+      <Name>BitsAndBytes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
+      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
+      <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Templates\Foundation\" />
-    <Folder Include="ValueMetaData\Foundation\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

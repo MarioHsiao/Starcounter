@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Templates {
 
@@ -72,7 +71,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
-        internal override void ProcessInput(Obj obj, byte[] rawValue) {
+        public override void ProcessInput(Obj obj, byte[] rawValue) {
             Input input = null;
 
             if (CustomInputEventCreator != null)

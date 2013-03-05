@@ -98,6 +98,10 @@
       <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
       <Name>BitsAndBytes</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
+      <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
+      <Name>Starcounter.XSON</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ThirdParty\HtmlAgilityPack\HtmlAgilityPack.fx.4.0.csproj">
       <Project>{1028002a-bbe2-4ff2-94b7-a8368a8f6887}</Project>
       <Name>HtmlAgilityPack.fx.4.0</Name>

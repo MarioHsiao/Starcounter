@@ -258,6 +258,7 @@ namespace Starcounter
                         raw_chunk,
                         is_single_chunk,
                         task_info->chunk_index,
+                        task_info->handler_id,
                         p_plain_chunks_data + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
                         p_plain_chunks_data + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES,
                         data_stream);
@@ -273,6 +274,7 @@ namespace Starcounter
                     raw_chunk,
                     is_single_chunk,
                     task_info->chunk_index,
+                    task_info->handler_id,
                     raw_chunk + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
                     raw_chunk + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES,
                     data_stream);

@@ -11,6 +11,7 @@ using HttpStructs;
 using Starcounter.Apps;
 using Starcounter.Internal.REST;
 using Starcounter.Advanced;
+using System.Net;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -50,6 +51,7 @@ namespace Starcounter.Internal.Web {
             HttpResponse response = null;
             Session session = null;
             uint errorCode;
+            string responseReasonPhrase;
 
             try {
                 if (request.HasSession) {
@@ -58,7 +60,13 @@ namespace Starcounter.Internal.Web {
                 }
 
                 object x;
+
+                // Invoking original user delegate with parameters here.
+#if GW_URI_MATCHING_CODEGEN
+                UserHandlerCodegen.UHC.HandlersManager.RunDelegate(request, out x);
+#else
                 RequestHandler.RequestProcessor.Invoke(request, out x);
+#endif
                 if (x != null) {
                     if (x is Puppet) {
                         var app = (Puppet)x;
@@ -91,6 +99,27 @@ namespace Starcounter.Internal.Web {
                         request.GzipAdvisable = false;
                         response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
                         app.IsSentExternally = true;
+                    } else if (x is int || x is HttpStatusCode) {
+                        int statusCode = (int)x;
+                        if (!HttpStatusCodeAndReason.TryGetRecommendedHttp11ReasonPhrase(
+                            statusCode, out responseReasonPhrase)) {
+                            // The code was outside the bounds of pre-defined, known codes
+                            // in the HTTP/1.1 specification, but still within the valid
+                            // range of codes - i.e. it's a so called "extension code". We
+                            // give back our default, "reason phrase not available" message.
+                            responseReasonPhrase = HttpStatusCodeAndReason.ReasonNotAvailable;
+                        }
+                        response = new HttpResponse() { 
+                            Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(statusCode, responseReasonPhrase)
+                        };
+                    }
+                    else if (x is HttpStatusCodeAndReason) {
+                        var codeAndReason = (HttpStatusCodeAndReason)x;
+                        response = new HttpResponse() {
+                            Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(
+                            codeAndReason.StatusCode, 
+                            codeAndReason.ReasonPhrase)
+                        };
                     } else if (x is HttpResponse) {
                         response = x as HttpResponse;
                     } else if (x is string) {

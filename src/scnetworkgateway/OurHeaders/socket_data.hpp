@@ -93,7 +93,7 @@ class SocketDataChunk
     HttpWsProto http_ws_proto_;
 
     // Accept data.
-    uint8_t accept_data_[ACCEPT_DATA_SIZE_BYTES];
+    uint8_t accept_data_or_params_[ACCEPT_DATA_SIZE_BYTES];
 
     // Blob buffer itself.
     uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];
@@ -114,6 +114,8 @@ public:
         uint8_t* sd = (uint8_t*) this;
 
         GW_ASSERT(SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_SEND == starcounter::bmx::SOCKET_DATA_FLAGS_JUST_SEND);
+
+        GW_ASSERT((accept_data_or_params_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
 
         GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
 
@@ -487,9 +489,9 @@ public:
     }
 
     // Accept data.
-    uint8_t* const accept_data()
+    uint8_t* const get_accept_data()
     {
-        return accept_data_;
+        return accept_data_or_params_;
     }
 
     // Size in bytes of written user data.
@@ -685,7 +687,7 @@ public:
         return AcceptExFunc(
             g_gateway.get_server_port(port_index_)->get_listening_sock(),
             sock_,
-            accept_data_,
+            accept_data_or_params_,
             0,
             SOCKADDR_SIZE_EXT,
             SOCKADDR_SIZE_EXT,

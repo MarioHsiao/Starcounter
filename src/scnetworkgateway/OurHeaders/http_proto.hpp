@@ -36,16 +36,16 @@ class RegisteredUri
 public:
 
     // Converts handler id and database index.
-    static handler_info_type CreateHandlerInfoType(
-        BMX_HANDLER_TYPE handler_id,
+    static BMX_HANDLER_TYPE CreateHandlerInfoType(
+        BMX_HANDLER_TYPE handler_info,
         int32_t db_index)
     {
-        return db_index | (handler_id << 8);
+        return db_index | (handler_info << 8);
     }
 
     // Converts handler id and database index.
     static void ParseHandlerInfoType(
-        handler_info_type handler_info,
+        BMX_HANDLER_TYPE handler_info,
         BMX_HANDLER_TYPE& handler_id,
         int32_t& db_index)
     {
@@ -54,14 +54,18 @@ public:
     }
 
     // Getting first handler entry.
-    handler_info_type GetFirstHandlerInfo()
+    void WriteUserParameters(
+        uint8_t* param_types,
+        uint8_t* num_params)
     {
         GW_ASSERT(1 == handler_lists_.get_num_entries());
-        GW_ASSERT(1 == handler_lists_[0].get_handlers_list()[0].get_num_entries());
 
-        return CreateHandlerInfoType(
-            handler_lists_[0].get_handlers_list()[0].get_handler_info(),
-            handler_lists_[0].get_db_index());
+        HandlersList handlers_list = handler_lists_[0].get_handlers_list()[0];
+
+        GW_ASSERT(1 == handlers_list.get_num_entries());
+
+        memcpy(param_types, handlers_list.get_param_types(), MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
+        *num_params = handlers_list.get_num_params();
     }
 
     // Getting number of handler lists.
@@ -245,47 +249,68 @@ public:
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled);
 };
 
-struct RegisteredUriManaged
-{
-    char* uri_string;
-    uint32_t uri_len_chars;
-    handler_info_type handler_info;
-};
-
-typedef handler_info_type (*MatchUriType) (char* uri, uint32_t uri_len);
-
 class RegisteredUris
 {
     // Array of all registered URIs.
     LinearList<RegisteredUri, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_uris_;
 
     // Pointer to generated code verification function.
-    MatchUriType latest_match_uri_func_;
+    MixedCodeConstants::MatchUriType latest_match_uri_func_;
+
+    // Handle to the latest generated library.
+    HMODULE latest_gen_dll_handle_;
 
 public:
 
     // Setting latest uri matching function pointer.
-    void set_latest_match_uri_func(MatchUriType latest_match_uri_func)
+    void set_latest_match_uri_func(MixedCodeConstants::MatchUriType latest_match_uri_func)
     {
         latest_match_uri_func_ = latest_match_uri_func;
     }
 
-    // Getting array of RegisteredUriManaged.
-    std::vector<RegisteredUriManaged> GetRegisteredUriManaged()
+    // Setting latest uri matching dll handle.
+    void set_latest_gen_dll_handle(HMODULE latest_gen_dll_handle)
     {
-        std::vector<RegisteredUriManaged> uris_vec;
+        latest_gen_dll_handle_ = latest_gen_dll_handle;
+    }
+
+    // Getting latest DLL handle.
+    HMODULE get_latest_gen_dll_handle()
+    {
+        return latest_gen_dll_handle_;
+    }
+
+    // Checks if generated dll is loaded and unloads it.
+    void UnloadLatestUriMatcherDllIfAny()
+    {
+        if (latest_gen_dll_handle_)
+        {
+            BOOL success = FreeLibrary(latest_gen_dll_handle_);
+            GW_ASSERT(TRUE == success);
+
+            latest_gen_dll_handle_ = NULL;
+        }
+    }
+
+    // Getting array of RegisteredUriManaged.
+    std::vector<MixedCodeConstants::RegisteredUriManaged> GetRegisteredUriManaged()
+    {
+        std::vector<MixedCodeConstants::RegisteredUriManaged> uris_vec;
 
         // Going through all URIs.
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             if (!reg_uris_[i].IsEmpty())
             {
-                RegisteredUriManaged uri;
-                uri.uri_string = reg_uris_[i].get_uri();
-                uri.uri_len_chars = reg_uris_[i].get_uri_len_chars();
-                uri.handler_info = reg_uris_[i].GetFirstHandlerInfo();
+                MixedCodeConstants::RegisteredUriManaged reg_uri; 
+                reg_uri.uri_info_string = reg_uris_[i].get_uri();
+                reg_uri.uri_len_chars = reg_uris_[i].get_uri_len_chars();
+                reg_uris_[i].WriteUserParameters(reg_uri.param_types, &reg_uri.num_params);
 
-                uris_vec.push_back(uri);
+                // TODO: Resolve this hack with only positive handler ids in generated code.
+                reg_uri.handler_id = i + 1;
+
+                uris_vec.push_back(reg_uri);
             }
         }
 
@@ -295,7 +320,24 @@ public:
     // Constructor.
     RegisteredUris()
     {
+        InvalidateCodegen();
+    }
+
+    // Invalidates code generation.
+    void InvalidateCodegen()
+    {
         latest_match_uri_func_ = NULL;
+        latest_gen_dll_handle_ = NULL;
+    }
+
+    // Runs the generated URI matcher and gets handler information as a result.
+    int32_t RunCodegenUriMatcher(char* uri_info, uint32_t uri_info_len, uint8_t* params_storage)
+    {
+        // Pointing to parameters storage.
+        MixedCodeConstants::UserDelegateParamInfo** out_params = (MixedCodeConstants::UserDelegateParamInfo**)&params_storage;
+
+        // TODO: Resolve this hack with only positive handler ids in generated code.
+        return latest_match_uri_func_(uri_info, uri_info_len, out_params) - 1;
     }
 
     // Sorting all entries.

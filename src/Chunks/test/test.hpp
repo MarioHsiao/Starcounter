@@ -1,6 +1,6 @@
 //
 // test.hpp
-// interprocess_communication/test
+// IPC test
 //
 // Copyright © 2006-2012 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
@@ -25,6 +25,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <memory> /// ?
+#include <map>
 #include <utility>
 #include <stdexcept>
 #include <boost/cstdint.hpp>
@@ -101,9 +102,11 @@ private:
 // Objects of type boost::thread are not copyable.
 class test : private boost::noncopyable {
 public:
+	//typedef std::set<std::string> monitor_interface_name_type;
+
 	enum {
 		// Number of workers to be instantiated in the test.
-		workers = 4
+		workers = 2
 	};
 	
 	/// Construction of the test application.
@@ -120,10 +123,10 @@ public:
 	~test();
 	
 	/// Initialize opens the database, etc.
-	void initialize(const char* database_name);
+	void initialize(const std::vector<std::string>& ipc_shm_params_name);
 	
-	test& set_segment_name(const std::string& segment_name);
-	std::string get_segment_name() const;
+	test& set_segment_name(std::size_t n, std::string& segment_name);
+	std::string get_segment_name(std::size_t n) const;
 	test& set_monitor_interface_name(const std::string& monitor_interface_name);
 	std::string get_monitor_interface_name() const;
 	test& set_pid(const pid_type pid);
@@ -143,14 +146,14 @@ public:
 	/// Stop the workers.
 	void stop_all_workers();
 	
-	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	int plot_dots(double rate);
 	void print_rate(double rate);
 	
 	/// Show statistics.
 	void show_statistics(uint32_t interval_time_milliseconds, uint32_t
 	duration_time_milliseconds);
-	#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	
 	void gotoxy(int16_t x, int16_t y) {
 		COORD coord;
@@ -159,13 +162,34 @@ public:
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 	}
 	
-private:
-	shared_interface shared_;
-	std::size_t active_schedulers_;
+#if 0
+	monitor_interface_name_type& monitor_interface_name() {
+		return monitor_interface_name_;
+	}
 	
+	const monitor_interface_name_type& monitor_interface_name() const {
+		return monitor_interface_name_;
+	}
+#endif
+	
+private:
+	//std::vector<database> database_;
+	shared_interface shared_[max_number_of_databases];
+	int32_t number_of_shared_;
+	std::size_t active_schedulers_[max_number_of_databases];
+	//monitor_interface_name_type
 	std::string monitor_interface_name_;
-	std::string segment_name_;
+	std::string segment_name_[max_number_of_databases];
+
 	pid_type pid_;
+
+	// One owner_id for each IPC monitor it registers with, so shared() should
+	// have the owner_id stored there. Then shared(N) picks the database.
+	// database(0).shared().
+	// database(1).owner_id();
+	// my_owner_id_for_database(2);
+
+	//std::map<std::string, owner_id> owner_id_;
 	owner_id owner_id_;
 
 	// message queue - to simulate fetching messages from a interprocess_communication via Win32API
@@ -173,10 +197,10 @@ private:
 	// The workers.
 	worker worker_[workers];
 
-	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	// Statistics thread.
 	boost::thread statistics_thread_;
-	#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 };
 
 } // namespace interprocess_communication
