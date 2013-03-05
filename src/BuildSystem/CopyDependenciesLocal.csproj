@@ -39,6 +39,9 @@
   <ItemGroup>
     <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_*" />
   </ItemGroup>
+  <ItemGroup>
+    <LocalTestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
+  </ItemGroup>
   <Target Name="CopyLocalFiles">
     <!-- Building Blue solution if any. -->
     <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True' AND Exists('$(LocalBlueSolution)')" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalBlueSolution) /property:Configuration=$(Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
@@ -50,6 +53,7 @@
     <Copy Condition="Exists('$(LocalBlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalBlueBinFiles)" DestinationFiles="@(LocalBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalStartAllScript)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalKillAllScript)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalTestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalGatewayTestFiles)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll)" DestinationFolder="$(OutputPath)" />

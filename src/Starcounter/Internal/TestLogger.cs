@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
-namespace SQLTest
+namespace Starcounter.TestFramework
 {
     public class TestLogger
     {
@@ -33,7 +33,7 @@ namespace SQLTest
         /// Constructor. Accepts test name (e.g. LoadAndLatency), client/database indicator.
         /// </summary>
         public TestLogger(String testName, Boolean isClient) :
-            this(testName, isClient, 0)
+            this (testName, isClient, 0)
         {
         }
 
@@ -90,7 +90,7 @@ namespace SQLTest
             set { _turnOffStatistics = value; }
         }
 
-        Boolean _turnOffImportantMessages = false;
+        Boolean _turnOffImportantMessages = true;
         /// <summary>
         /// Gets/Sets the important messages flag.
         /// </summary>
@@ -187,14 +187,14 @@ namespace SQLTest
                 // And printing it to console.
                 if (endLine)
                 {
-                    if (_turnOffImportantMessages || (type != LogMsgType.MSG_ERROR))
+                    if (_turnOffImportantMessages)
                         Console.WriteLine(fullMessage);
                     else
                         Console.Error.WriteLine(fullMessage);
                 }
                 else
                 {
-                    if (_turnOffImportantMessages || (type != LogMsgType.MSG_ERROR))
+                    if (_turnOffImportantMessages)
                         Console.Write(fullMessage);
                     else
                         Console.Error.Write(fullMessage);
@@ -307,7 +307,7 @@ namespace SQLTest
             if (_runningOnBuildServer != null)
                 return _runningOnBuildServer.Value;
 
-            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") == "True")
+            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") != null)
             {
                 _runningOnBuildServer = true;
                 return true;
