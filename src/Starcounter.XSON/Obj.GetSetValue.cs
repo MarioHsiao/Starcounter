@@ -8,14 +8,56 @@ using Starcounter.Templates;
 using System;
 using System.ComponentModel;
 using Starcounter.Advanced;
+using Starcounter.XSON;
 
 namespace Starcounter {
 
     public partial class Obj {
-        private TVal Get<TTemplate, TVal>(TTemplate property) where TTemplate : TValue<TVal> {
+        internal TVal GetBound<TVal>(TValue<TVal> template) {
+            IBindable data = this.Data;
+            if (data == null)
+                return default(TVal);
+            return template.GetBinding(data).Get(data);
+        }
+
+        internal void SetBound<TVal>(TValue<TVal> template, TVal value) {
+            IBindable data = this.Data;
+            if (data == null)
+                return;
+            template.GetBinding(data).Set(data, value);
+        }
+
+        internal object GetBound(TValue template) {
+            return template.GetBoundValueAsObject(this);
+        }
+
+        internal void SetBound(TValue template, object value) {
+            template.SetBoundValueAsObject(this, value);
+        }
+
+        internal IBindable GetBound(TObj template) {
+            IBindable data = this.Data;
+            if (data == null)
+                return null;
+            return template.GetBinding(data).Get(data);
+        }
+
+        internal void SetBound(TObj template, IBindable value) {
+            IBindable data = this.Data;
+            if (data == null)
+                return;
+            template.GetBinding(data).Set(data, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TVal"></typeparam>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        private TVal Get<TVal>(TValue<TVal> property) {
             if (property.Bound)
-                throw new NotImplementedException();
-//                return property.GetBoundValue(this);
+                return GetBound(property);
 
 #if QUICKTUPLE
                 return _Values[property.Index];
@@ -23,12 +65,18 @@ namespace Starcounter {
                 throw new NotImplementedException();
 #endif
         }
-        private void Set<TTemplate, TVal>(TTemplate property, TVal value) where TTemplate : TValue<TVal> {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TVal"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="value"></param>
+        private void Set<TVal>(TValue<TVal> property, TVal value) {
             if (property.Bound) {
-                throw new NotImplementedException();
-//                property.SetBoundValue(this, value);
-                //this.HasChanged(property);
-                //return;
+                SetBound(property, value);
+                this.HasChanged(property);
+                return;
             }
 
 #if QUICKTUPLE
@@ -45,7 +93,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to retrieve the value for.</param>
         /// <returns>The value.</returns>
-        public bool Get(TBool property) { return Get<TBool, bool>(property); }
+        public bool Get(TBool property) { return Get<bool>(property); }
 
         /// <summary>
         /// Sets the value for the specified template. If the property
@@ -53,7 +101,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to set the value to.</param>
         /// <param name="value">The value to set.</param>
-        public void Set(TBool property, bool value) { Set<TBool, bool>(property, value); }
+        public void Set(TBool property, bool value) { Set<bool>(property, value); }
 
         /// <summary>
         /// Gets the value for the specified template. If the property
@@ -61,7 +109,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to retrieve the value for.</param>
         /// <returns>The value.</returns>
-        public decimal Get(TDecimal property) { return Get<TDecimal, decimal>(property); }
+        public decimal Get(TDecimal property) { return Get<decimal>(property); }
 
         /// <summary>
         /// Sets the value for the specified template. If the property
@@ -69,7 +117,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to set the value to.</param>
         /// <param name="value">The value to set.</param>
-        public void Set(TDecimal property, decimal value) { Set<TDecimal, decimal>(property, value); }
+        public void Set(TDecimal property, decimal value) { Set<decimal>(property, value); }
 
         /// <summary>
         /// Gets the value for the specified template. If the property
@@ -77,7 +125,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to retrieve the value for.</param>
         /// <returns>The value.</returns>
-        public double Get(TDouble property) { return Get<TDouble, double>(property); }
+        public double Get(TDouble property) { return Get<double>(property); }
 
         /// <summary>
         /// Sets the value for the specified template. If the property
@@ -85,7 +133,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to set the value to.</param>
         /// <param name="value">The value to set.</param>
-        public void Set(TDouble property, double value) { Set<TDouble, double>(property, value); }
+        public void Set(TDouble property, double value) { Set<double>(property, value); }
 
         /// <summary>
         /// Gets the value for the specified template. If the property
@@ -93,7 +141,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to retrieve the value for.</param>
         /// <returns>The value.</returns>
-        public long Get(TLong property) { return Get<TLong, long>(property); }
+        public long Get(TLong property) { return Get<long>(property); }
 
         /// <summary>
         /// Sets the value for the specified template. If the property
@@ -101,7 +149,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to set the value to.</param>
         /// <param name="value">The value to set.</param>
-        public void Set(TLong property, long value) { Set<TLong, long>(property, value); }
+        public void Set(TLong property, long value) { Set<long>(property, value); }
 
         /// <summary>
         /// Gets the value for the specified template. If the property
@@ -109,7 +157,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to retrieve the value for.</param>
         /// <returns>The value.</returns>
-        public string Get(TString property) { return Get<TString, string>(property); }
+        public string Get(TString property) { return Get<string>(property); }
 
         /// <summary>
         /// Sets the value for the specified template. If the property
@@ -117,7 +165,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to set the value to.</param>
         /// <param name="value">The value to set.</param>
-        public void Set(TString property, string value) { Set<TString, string>(property, value); }
+        public void Set(TString property, string value) { Set<string>(property, value); }
 
         /// <summary>
         /// Gets the value for the specified template. If the property
@@ -125,7 +173,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to retrieve the value for.</param>
         /// <returns>The value.</returns>
-        public ulong Get(TOid property) { return Get<TOid, ulong>(property); }
+        public ulong Get(TOid property) { return Get<ulong>(property); }
 
         /// <summary>
         /// Gets the value for a given property in this Obj. This method returns all values boxed
@@ -136,8 +184,7 @@ namespace Starcounter {
         /// <returns>The value of the property</returns>
         public object Get(TValue property) {
             if (property.Bound)
-                throw new NotImplementedException();
-//                    return (object)property.GetBoundValue(this);
+                return GetBound(property);
 
 #if QUICKTUPLE
                 return _Values[property.Index];
@@ -155,10 +202,9 @@ namespace Starcounter {
         /// <param name="value">The value of the property</param>
         public void Set(TValue property, object value) {
             if (property.Bound) {
-                throw new NotImplementedException();
-//                    property.SetBoundValue(this, value);
-                //this.HasChanged(property);
-                //return;
+                SetBound(property, value);
+                this.HasChanged(property);
+                return;
             }
 
 #if QUICKTUPLE
@@ -175,12 +221,14 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <returns></returns>
         public Obj Get(TObj property) {
+            IBindable data = null;
             if (property.Bound)
-                throw new NotImplementedException();
-//                    return (Obj)property.GetBoundValue(this);
+                data = GetBound(property);
 
 #if QUICKTUPLE
-            return _Values[property.Index];
+            Obj v = _Values[property.Index]; 
+            v.Data = data;
+            return v;
 #else
             throw new NotImplementedException();
 #endif
@@ -192,17 +240,12 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObj property, Obj value) {
-            if (property.Bound) {
-                throw new NotImplementedException();
-                //                    property.SetBoundValue(this, value);
-                //this.HasChanged(property);
-                //return;
-            }
-
+            if (property.Bound)
+                SetBound(property, value.Data);
 #if QUICKTUPLE
             _Values[property.Index] = value;
 #else
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
 #endif
             this.HasChanged(property);
         }
@@ -215,7 +258,7 @@ namespace Starcounter {
         /// <returns></returns>
         public T Get<T>(TObj property) where T : Obj, new() {
 #if QUICKTUPLE
-            return (T)(_Values[property.Index]);
+            return (T)Get(property);
 #else
             throw new NotImplementedException();
 #endif
@@ -227,12 +270,15 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObj property, IBindable value) {
+            if (property.Bound)
+                SetBound(property, value);
+
 #if QUICKTUPLE
             Obj app = (Obj)property.CreateInstance(this);
             app.Data = value;
             _Values[property.Index] = app;
 #else
-            throw new JockeNotImplementedException();
+            throw new NotImplementedException();
 #endif
             this.HasChanged(property);
         }

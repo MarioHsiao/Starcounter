@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Arr.cs" />
     <Compile Include="Container.cs" />
+    <Compile Include="DataBindingFactory.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
     <Compile Include="Messages\Message.cs" />
@@ -68,7 +69,6 @@
     <Compile Include="Templates\TDecimal.cs" />
     <Compile Include="Templates\TDouble.cs" />
     <Compile Include="Templates\TLong.cs" />
-    <Compile Include="Templates\TObj.Bindable.cs" />
     <Compile Include="Templates\TObj.cs" />
     <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\TString.cs" />

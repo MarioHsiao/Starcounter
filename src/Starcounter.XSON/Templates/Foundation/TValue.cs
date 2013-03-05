@@ -8,6 +8,8 @@ using System;
 using Starcounter.Templates;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Starcounter.XSON;
+using Starcounter.Advanced;
 
 namespace Starcounter {
     /// <summary>
@@ -17,6 +19,16 @@ namespace Starcounter {
     public abstract class TValue<T> : TValue {
         public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
+
+        private DataValueBinding<T> dataBinding;
+
+        internal DataValueBinding<T> GetBinding(IBindable data) {
+            // TODO:
+            // Check if we have the same type as last call.
+            if (dataBinding == null)
+                dataBinding = DataBindingFactory.CreateBinding<T>(data.GetType(), Bind);
+            return dataBinding;
+        }
 
         /// <summary>
         /// Adds an inputhandler to this property.
@@ -29,14 +41,20 @@ namespace Starcounter {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
-    }
 
+        internal override object GetBoundValueAsObject(Obj obj) {
+            return obj.GetBound<T>(this);
+        }
+
+        internal override void SetBoundValueAsObject(Obj obj, object value) {
+            obj.SetBound<T>(this, (T)value);
+        }
+    }
 
     /// <summary>
     /// Class Property
     /// </summary>
-    public abstract class TValue : Template
-    {
+    public abstract class TValue : Template {
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
         /// </summary>
@@ -75,6 +93,24 @@ namespace Starcounter {
         public override void CopyTo(Template toTemplate) {
             base.CopyTo(toTemplate);
             ((TValue)toTemplate).Bind = Bind;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        internal virtual object GetBoundValueAsObject(Obj obj) {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="value"></param>
+        internal virtual void SetBoundValueAsObject(Obj obj, object value) {
+            throw new NotSupportedException();
         }
     }
 }
