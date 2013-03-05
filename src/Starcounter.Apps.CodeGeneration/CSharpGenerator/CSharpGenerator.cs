@@ -257,70 +257,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(m.MemberName);
             sb.Append(", value); } }");
             m.Prefix.Add(sb.ToString());
-
-            if (m.Bound) {
-                WriteBoundGetterAndSetter(m);
-            }
-        }
-
-        /// <summary>
-        /// Writes a getter and setter bound to the underlying entity using
-        /// either the name from Bind or the same name as the property.
-        /// </summary>
-        /// <param name="m"></param>
-        private void WriteBoundGetterAndSetter(NProperty m) {
-            string bindTo;
-            string dataType;
-            string castTo = null;
-            StringBuilder sb;
-
-            // TODO: 
-            // Add support for binding directly to en Enumerable of entities.
-            sb = new StringBuilder();
-
-            bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
-
-            dataType = null;
-            if (m.Template is TObjArr) {
-                dataType = "Rows";
-            } else if (m.Template is TPuppet) {
-                dataType = "IBinding";
-                castTo = ((NAppClass)m.Type).GenericTypeArgument;
-            }
-
-            if (dataType == null) {
-                dataType = m.Type.FullClassName;
-            }
-
-            sb.Append("private ");
-            sb.Append(dataType);
-            sb.Append(" __data_");
-            sb.Append(m.MemberName);
-            sb.Append(" { get { return (");
-            sb.Append(dataType);
-            sb.Append(")Data.");
-            sb.Append(bindTo);
-            sb.Append("; } ");
-
-            // TODO:
-            // We need another parameter saying if it's bound to a readonly property or not.
-            if (m.Template.Editable) {
-                sb.Append(" set { Data.");
-                sb.Append(bindTo);
-                sb.Append(" = ");
-
-                if (castTo != null) {
-                    sb.Append('(');
-                    sb.Append(castTo);
-                    sb.Append(')');
-                }
-
-                sb.Append("value; } }");
-            } else {
-                sb.Append('}');
-            }
-
-            m.Prefix.Add(sb.ToString());
         }
 
         /// <summary>
@@ -334,7 +270,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +
                 "();");
-            AddFromJsonFunction(a);
             /*            var sb = new StringBuilder();
 
                         sb.Append("    public ");
@@ -378,18 +313,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     parentClass +
                     ")base.Parent; } set { base.Parent = value; } }");
             }
-        }
-
-        private void AddFromJsonFunction(NAppClass a) {
-            a.Prefix.Add("    public static " + a.ClassName + " FromJson(HttpRequest request) {");
-            a.Prefix.Add("        IntPtr contentPtr;");
-            a.Prefix.Add("        uint contentLength;");
-            a.Prefix.Add("        int usedSize;");
-            a.Prefix.Add("        request.GetBodyRaw(out contentPtr, out contentLength);");
-            a.Prefix.Add("        if (contentLength > 0)");
-            a.Prefix.Add("            return " + a.ClassName + "JsonSerializer.Deserialize(contentPtr, (int)contentLength, out usedSize);");
-            a.Prefix.Add("        return null;");
-            a.Prefix.Add("    }");
         }
 
         private NClass GetParentPropertyType(Template a) {
