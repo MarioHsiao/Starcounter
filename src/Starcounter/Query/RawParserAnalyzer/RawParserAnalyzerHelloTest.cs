@@ -10,6 +10,7 @@ using Starcounter.Query.Optimization;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Starcounter.Binding;
+using Starcounter.Query.SQL;
 
 [assembly: InternalsVisibleTo("Starcounter.SqlParser.Tests")]
 namespace Starcounter.Query.RawParserAnalyzer
@@ -167,7 +168,7 @@ namespace Starcounter.Query.RawParserAnalyzer
         internal void Optimize()
         {
             Debug.Assert(JoinTree != null && WhereCondition != null && HintSpec != null, "Query should parsed and analyzed before optimization");
-            OptimizedPlan = Optimizer.Optimize(JoinTree, WhereCondition, FetchNumExpr, FethcOffsetExpr, FetchOffsetKeyExpr, HintSpec);
+            OptimizedPlan = Optimizer.Optimize(new OptimizerInput(JoinTree, WhereCondition, FetchNumExpr, FethcOffsetExpr, FetchOffsetKeyExpr, HintSpec));
         }
 
         /// <summary>

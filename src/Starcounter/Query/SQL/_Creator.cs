@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Starcounter.Binding;
+using Starcounter.Query.SQL;
 
 namespace Starcounter.Query.Sql
 {
@@ -114,7 +115,8 @@ namespace Starcounter.Query.Sql
             // Create hint specification.
             HintSpecification hintSpec = CreateHintSpecification(rowTypeBind, hintListTerm, varArray);
             // Optimize and create enumerator.
-            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
+            OptimizerInput optArgs = new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
+            return Optimizer.Optimize(optArgs);
         }
 
         private static IExecutionEnumerator OptimizeAndCreateEnumerator(RowTypeBinding rowTypeBind, Term nodeTreeTerm, Term whereCondTerm,
@@ -154,7 +156,7 @@ namespace Starcounter.Query.Sql
                 treeWalker.ParseQueryAndWalkTree(query, newAnalyzer);
 #endif
             } catch (Starcounter.Query.RawParserAnalyzer.SQLParserAssertException) {
-                prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
+                prologParsedQueryPlan = Optimizer.Optimize(new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec));
                 //LogSources.Sql.LogNotice("Using Prolog-based parser");
                 //Console.WriteLine("Using Prolog-based parser");
                 return prologParsedQueryPlan;
@@ -175,7 +177,7 @@ namespace Starcounter.Query.Sql
             else
                 Debug.Assert(newAnalyzer.FetchOffsetKeyExpr.AssertEquals(fetchOffsetKeyExpr), "Fetch offset key expression is not the same");
             Debug.Assert(newAnalyzer.HintSpec.AssertEquals(hintSpec), "Hint expressions are not the same");
-            prologParsedQueryPlan = Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
+            prologParsedQueryPlan = Optimizer.Optimize(new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec));
             newAnalyzer.Optimize();
             String prologParsedQueryPlanStr = prologParsedQueryPlan.ToString();
             String bisonParsedQueryPlanStr = newAnalyzer.OptimizedPlan.ToString();
