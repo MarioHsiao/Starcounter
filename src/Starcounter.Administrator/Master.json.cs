@@ -11,6 +11,7 @@ using Starcounter.Server.PublicModel.Commands;
 using StarcounterAppsLogTester;
 using Newtonsoft.Json;
 using Starcounter.Internal.REST;
+using Starcounter.Advanced;
 
 // http://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.aspx
 
