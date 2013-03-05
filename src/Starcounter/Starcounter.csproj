@@ -99,6 +99,7 @@
     </Compile>
     <Compile Include="Internal\ExceptionManager.cs" />
     <Compile Include="Internal\TaskHelper.cs" />
+    <Compile Include="Internal\TestLogger.cs" />
     <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />

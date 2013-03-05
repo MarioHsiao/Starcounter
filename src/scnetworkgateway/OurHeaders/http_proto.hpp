@@ -320,6 +320,12 @@ public:
     // Constructor.
     RegisteredUris()
     {
+        InvalidateCodegen();
+    }
+
+    // Invalidates code generation.
+    void InvalidateCodegen()
+    {
         latest_match_uri_func_ = NULL;
         latest_gen_dll_handle_ = NULL;
     }

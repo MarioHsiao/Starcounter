@@ -23,6 +23,16 @@ void CodegenUriMatcher::Init()
 
     generate_uri_matcher_ = (MixedCodeConstants::GenerateNativeUriMatcherType) GetProcAddress(rest_dll, "GenerateNativeUriMatcher");
     GW_ASSERT(generate_uri_matcher_ != NULL);
+
+    // Pre-loading the .NET CLR with the following fake URI data.
+    char* uri_test = "GET /";
+    MixedCodeConstants::RegisteredUriManaged uri_info_test;
+    uri_info_test.handler_id = 1;
+    uri_info_test.num_params = 0;
+    uri_info_test.uri_info_string = uri_test;
+    uri_info_test.uri_len_chars = 4;
+    uint32_t test_num_codegen_bytes;
+    generate_uri_matcher_(&uri_info_test, 1, uri_matching_code_, &test_num_codegen_bytes);
 }
 
 // Compile given code into native dll.
@@ -163,7 +173,13 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
         
         case COMPILER_CLANG:
         {
-            // TODO!
+            *out_match_uri_func = (MixedCodeConstants::MatchUriType) g_gateway.ClangCompileAndGetFunc(
+                uri_matching_code_,
+                "MatchUriRoot",
+                false);
+
+            GW_ASSERT(*out_match_uri_func != NULL);
+
             break;
         }
     }

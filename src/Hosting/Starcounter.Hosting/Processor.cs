@@ -22,7 +22,7 @@ namespace StarcounterInternal.Hosting
         /// <summary>
         /// </summary>
         public unsafe static void Setup(void* hsched) {
-            TaskScheduler.SetImplementation(new TaskSchedulerImpl(hsched), hsched);
+            TaskScheduler.SetImplementation(new TaskSchedulerImpl(hsched));
             ScrapHeap.Setup(hsched);
             new CaptureGC();
         }
