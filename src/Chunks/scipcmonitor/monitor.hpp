@@ -341,9 +341,6 @@ private:
 	// Event to notify the monitor to do cleanup.
 	HANDLE ipc_monitor_cleanup_event_;
 
-	// Event to notify active databases was updated.
-	HANDLE active_databases_updated_event_;
-
 	/// TODO Maybe put this in a nested struct. Saved time not doing it.
 	// The register_mutex_ is locked whenever a thread need to update any of the
 	// variables below: the process_register_, the owner_id_counter_.
