@@ -20,6 +20,7 @@ namespace SQLTest
         internal Boolean IncludesLiteral;
         internal Boolean IncludesObjectValue;
         internal Boolean ShouldBeReordered;
+        internal Boolean UseBisonParser;
         internal Boolean Evaluated;
         internal Boolean CorrectResult;
 
@@ -28,12 +29,14 @@ namespace SQLTest
         internal String ActualResult1;
         internal String ActualExceptionMessage1;
         internal String ActualFullException1;
+        internal Boolean ActualUseBisonParser1;
 
         // Second execution (using cache).
         internal String ActualExecutionPlan2;
         internal String ActualResult2;
         internal String ActualExceptionMessage2;
         internal String ActualFullException2;
+        internal Boolean ActualUseBisonParser2;
 
         internal TestQuery()
         {
@@ -50,6 +53,7 @@ namespace SQLTest
             IncludesLiteral = false;
             IncludesObjectValue = false;
             ShouldBeReordered = true;
+            UseBisonParser = false;
             Evaluated = false;
             CorrectResult = true;
             ActualExecutionPlan1 = "";
@@ -78,6 +82,16 @@ namespace SQLTest
             CorrectResult = true;
             ErrorMessage = "";
 
+            if (UseBisonParser != ActualUseBisonParser1) {
+                CorrectResult = false;
+                ErrorMessage += "Incorrect parser used (first execution). ";
+            }
+
+            if (UseBisonParser != ActualUseBisonParser2) {
+                CorrectResult = false;
+                ErrorMessage += "Incorrect parser used (second execution). ";
+            }
+
             if (!EqualStringsIgnoreWhiteSpace(ExpectedExecutionPlan, ActualExecutionPlan1))
             {
                 CorrectResult = false;
@@ -102,13 +116,11 @@ namespace SQLTest
                 ErrorMessage += "Incorrect result (second execution). ";
             }
 
-            if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage1)
-            {
+            if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage1) {
                 CorrectResult = false;
                 ErrorMessage += "Incorrect exception (first execution). ";
             }
-            if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage2)
-            {
+            if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage2) {
                 CorrectResult = false;
                 ErrorMessage += "Incorrect exception (second execution). ";
             }
@@ -185,6 +197,14 @@ namespace SQLTest
             stringBuilder.AppendLine(IncludesObjectValue.ToString());
             stringBuilder.Append("ShouldBeReordered: ");
             stringBuilder.AppendLine(ShouldBeReordered.ToString());
+            stringBuilder.Append("UseBisonParser: ");
+            stringBuilder.AppendLine(UseBisonParser.ToString());
+            if (fileType != FileType.Input) {
+                stringBuilder.Append("ActualUseBisonParser1 ");
+                stringBuilder.AppendLine(ActualUseBisonParser1.ToString());
+                stringBuilder.Append("ActualUseBisonParser2 ");
+                stringBuilder.AppendLine(ActualUseBisonParser2.ToString());
+            }
             stringBuilder.Append("ExpectedExceptionMessage: ");
             if (fileType != FileType.Input)
             {

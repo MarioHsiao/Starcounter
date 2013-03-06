@@ -105,6 +105,10 @@ namespace Starcounter {
             }
         }
 
+        public bool IsBisonPrarserUsed {
+            get { return subEnumerator.IsBisonPrarserUsed;}
+        }
+
         /// <summary>
         /// Gets offset key of the SQL enumerator if it is possible.
         /// </summary>
