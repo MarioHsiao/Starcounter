@@ -22,6 +22,7 @@ VariableValues:[Values for the variables in the query string in the form [type1]
 CompositeResultObjects:[The value True if the objects in the result set are of type CompositeObject, otherwise the value False.]
 IncludesLiteral:[The value True if the query includes one or more literals, otherwise the value False.]
 ShouldBeReordered:[The value False if the query has an "order by" clause, otherwise the value True.]
+UseBisonParser:[The value True if the query should be optimized on the parsed tree produced by bison-based parser, otherwise the value False.]
 ExpectedExceptionMessage: 
 ExpectedExecutionPlan: 
 [An empty line.]
@@ -37,6 +38,7 @@ VariableValues:[An empty string.]
 CompositeResultObjects:True
 IncludesLiteral:False
 ShouldBeReordered:True
+UseBisonParser:False
 ExpectedExceptionMessage:[An empty string.]
 ExpectedExecutionPlan: 
 [An empty line.]

@@ -87,11 +87,8 @@ namespace Starcounter.Query {
                 prologParsedQueryPlan = Optimizer.Optimize(optArgsProlog);
 
             // Call to optimizer of Bison result
-            if (newAnalyzer != null) {
+            if (newAnalyzer != null)
                 newAnalyzer.Optimize();
-                LogSources.Sql.LogNotice("Using Bison-based parser");
-                Console.WriteLine("Using Bison-based parser");
-            }
 
             // Check equality
 #if DEBUG
