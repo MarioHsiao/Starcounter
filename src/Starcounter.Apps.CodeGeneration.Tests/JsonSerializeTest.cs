@@ -13,27 +13,26 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
     /// 
     /// </summary>
     public class JsonSerializeTest {
-        [Test]
-        public static void DebugPregeneratedSerializationCode() {
-            //String className = "TestMessage";
-            //CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
+        //[Test]
+        //public static void DebugPregeneratedSerializationCode() {
+        //    //String className = "TestMessage";
+        //    //CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
 
-            //TApp actual = TemplateFromJs.ReadFile(className + ".json");
-            //Assert.IsInstanceOf(typeof(TApp), actual);
+        //    //TApp actual = TemplateFromJs.ReadFile(className + ".json");
+        //    //Assert.IsInstanceOf(typeof(TApp), actual);
 
-            //actual.Namespace = metadata.RootNamespace;
-            //Assert.IsNotNullOrEmpty(actual.Namespace);
+        //    //actual.Namespace = metadata.RootNamespace;
+        //    //Assert.IsNotNullOrEmpty(actual.Namespace);
 
 
 
-            //CodeGenerationModule codegenmodule = new CodeGenerationModule();
-            //ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#", actual, metadata);
+        //    //CodeGenerationModule codegenmodule = new CodeGenerationModule();
+        //    //ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator("C#", actual, metadata);
 
-            string generatedCode = System.IO.File.ReadAllText("TestMessage.g.cs");
-            string codebehindCode = System.IO.File.ReadAllText("TestMessage.json.cs");
-            GenereratedJsonCodeCompiler.CompileCode(generatedCode, codebehindCode, "MySampleNamespace.TestMessage");
-        }
-
+        //    string generatedCode = System.IO.File.ReadAllText("TestMessage.g.cs");
+        //    string codebehindCode = System.IO.File.ReadAllText("TestMessage.json.cs");
+        //    GenereratedJsonCodeCompiler.CompileCode(generatedCode, codebehindCode, "MySampleNamespace.TestMessage");
+        //}
 
         /// <summary>
         /// Generates the parse tree overview.
