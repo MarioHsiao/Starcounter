@@ -48,16 +48,34 @@ namespace star {
                     }
                 }
             } else {
+                
                 // No port given. See if a server was specified by name and try
                 // to figure out a port based on that, or a port based on a server
                 // name given in the environment.
                 //   If a server name in fact IS specified (and no port is), we
                 // must match it against one of the known server names. If it is
                 // not part of them, we refuse it.
-                // TODO:
-            }
+                //   If no server is specified either on the command line or in the
+                // environment, we'll assume personal and the default port for that.
 
-            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                if (!args.TryGetProperty("server", out serverName)) {
+                    serverName = Environment.GetEnvironmentVariable("STAR_SERVER");
+                    if (string.IsNullOrEmpty(serverName)) {
+                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
+                    }
+                }
+
+                var comp = StringComparison.InvariantCultureIgnoreCase;
+
+                if (serverName.Equals(StarcounterEnvironment.ServerNames.PersonalServer, comp)) {
+                    port = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+                } else if (serverName.Equals(StarcounterEnvironment.ServerNames.SystemServer, comp)) {
+                    port = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort;
+                } else {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED,
+                        string.Format("Unknown server name: {0}. Please specify the port using 'serverport', or give a server known.", serverName));
+                }                
+            }
         }
        
         static void Main(string[] args) {
