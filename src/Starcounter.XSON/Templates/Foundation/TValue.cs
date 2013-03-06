@@ -23,7 +23,7 @@ namespace Starcounter {
         private DataValueBinding<T> dataBinding;
 
         internal DataValueBinding<T> GetBinding(IBindable data) {
-            dataBinding = DataBindingFactory.VerifyOrCreateBinding<T>(dataBinding, data.GetType(), Bind);
+            dataBinding = DataBindingFactory.VerifyOrCreateBinding<T>(this, dataBinding, data.GetType(), Bind);
             return dataBinding;
         }
 

@@ -4,21 +4,22 @@ using System.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Starcounter.Advanced;
+using Starcounter.Logging;
 using Starcounter.Templates;
 
 namespace Starcounter.XSON {
     internal class DataBindingFactory {
-        internal static DataValueBinding<TVal> VerifyOrCreateBinding<TVal>(DataValueBinding<TVal> binding, Type dataType, string bindingName) {
+        private static LogSource logSource = new LogSource("json");
+        private static string warning = "The existing databinding for '{0}' was created for another type of dataobject. Binding needs to be recreated.";
+
+        internal static DataValueBinding<TVal> VerifyOrCreateBinding<TVal>(TValue template, DataValueBinding<TVal> binding, Type dataType, string bindingName) {
             PropertyInfo pInfo;
 
             if (binding != null) {
                 if (dataType.Equals(binding.DataType) || dataType.IsSubclassOf(binding.DataType)) {
                     return binding;
                 }
-
-                // TODO:
-                // How do we add a warning that binding needs to be recreated?
-                throw new Exception("Wrong dataobject for this binding.");
+                logSource.LogWarning(string.Format(warning, template.Parent.Name + "." + template.Name));
             }
 
             pInfo = dataType.GetProperty(bindingName, BindingFlags.Instance | BindingFlags.Public);

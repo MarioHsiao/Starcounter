@@ -111,7 +111,7 @@ namespace Starcounter.Templates {
         }
 
         internal DataValueBinding<Rows<object>> GetDataBinding(IBindable data) {
-            dataBinding = DataBindingFactory.VerifyOrCreateBinding<Rows<object>>(dataBinding, data.GetType(), Bind);
+            dataBinding = DataBindingFactory.VerifyOrCreateBinding<Rows<object>>(this, dataBinding, data.GetType(), Bind);
             return dataBinding;
         }
 
