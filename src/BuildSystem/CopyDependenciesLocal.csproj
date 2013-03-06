@@ -40,7 +40,7 @@
     <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_*" />
   </ItemGroup>
   <ItemGroup>
-    <LocalTestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat" />
+    <LocalTestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
   </ItemGroup>
   <Target Name="CopyLocalFiles">
     <!-- Building Blue solution if any. -->
