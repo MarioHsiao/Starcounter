@@ -58,7 +58,11 @@ namespace Starcounter.Query {
             if (prologException != null)
                 throw prologException;
 #endif
-            // Check equality
+#if BISON_ONLY
+            if (newAnalyzer == null)
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Semantic analyzer is not implemented for this type of query parsed by Bison");
+#endif
+                // Check equality
 #if DEBUG
             if (optArgsProlog != null && newAnalyzer != null) {
                 Debug.Assert(newAnalyzer.JoinTree.AssertEquals(optArgsProlog.NodeTree), "Join trees are not the same!");
