@@ -27,13 +27,13 @@ namespace Starcounter {
             template.GetBinding(data).Set(data, value);
         }
 
-        internal object GetBound(TValue template) {
-            return template.GetBoundValueAsObject(this);
-        }
+        //internal object GetBound(TValue template) {
+        //    return template.GetBoundValueAsObject(this);
+        //}
 
-        internal void SetBound(TValue template, object value) {
-            template.SetBoundValueAsObject(this, value);
-        }
+        //internal void SetBound(TValue template, object value) {
+        //    template.SetBoundValueAsObject(this, value);
+        //}
 
         internal IBindable GetBound(TObj template) {
             IBindable data = this.Data;
@@ -55,7 +55,7 @@ namespace Starcounter {
         /// <typeparam name="TVal"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        private TVal Get<TVal>(TValue<TVal> property) {
+        public TVal Get<TVal>(TValue<TVal> property) {
             if (property.Bound)
                 return GetBound(property);
 
@@ -72,7 +72,7 @@ namespace Starcounter {
         /// <typeparam name="TVal"></typeparam>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        private void Set<TVal>(TValue<TVal> property, TVal value) {
+        public void Set<TVal>(TValue<TVal> property, TVal value) {
             if (property.Bound) {
                 SetBound(property, value);
                 this.HasChanged(property);
@@ -175,45 +175,45 @@ namespace Starcounter {
         /// <returns>The value.</returns>
         public ulong Get(TOid property) { return Get<ulong>(property); }
 
-        /// <summary>
-        /// Gets the value for a given property in this Obj. This method returns all values boxed
-        /// as a CLR object. Whenever possible, use the function specific to a type instead
-        /// (i.e. non abstract value templates such as for example this.Get(BoolTemplate property).
-        /// </summary>
-        /// <param name="property">The template representing the property to read</param>
-        /// <returns>The value of the property</returns>
-        public object Get(TValue property) {
-            if (property.Bound)
-                return GetBound(property);
+//        /// <summary>
+//        /// Gets the value for a given property in this Obj. This method returns all values boxed
+//        /// as a CLR object. Whenever possible, use the function specific to a type instead
+//        /// (i.e. non abstract value templates such as for example this.Get(BoolTemplate property).
+//        /// </summary>
+//        /// <param name="property">The template representing the property to read</param>
+//        /// <returns>The value of the property</returns>
+//        public object Get(TValue property) {
+//            if (property.Bound)
+//                return GetBound(property);
 
-#if QUICKTUPLE
-                return _Values[property.Index];
-#else
-                throw new NotImplementedException();
-#endif
-        }
+//#if QUICKTUPLE
+//                return _Values[property.Index];
+//#else
+//                throw new NotImplementedException();
+//#endif
+//        }
 
-        /// <summary>
-        /// Sets the value for a given property in this Obj. Whenever possible, use the 
-        /// function specific to a type instead (i.e. non abstract value templates such 
-        /// as for example this.Set(BoolTemplate property, bool value).
-        /// </summary>
-        /// <param name="property">The template representing the property to write</param>
-        /// <param name="value">The value of the property</param>
-        public void Set(TValue property, object value) {
-            if (property.Bound) {
-                SetBound(property, value);
-                this.HasChanged(property);
-                return;
-            }
+//        /// <summary>
+//        /// Sets the value for a given property in this Obj. Whenever possible, use the 
+//        /// function specific to a type instead (i.e. non abstract value templates such 
+//        /// as for example this.Set(BoolTemplate property, bool value).
+//        /// </summary>
+//        /// <param name="property">The template representing the property to write</param>
+//        /// <param name="value">The value of the property</param>
+//        public void Set(TValue property, object value) {
+//            if (property.Bound) {
+//                SetBound(property, value);
+//                this.HasChanged(property);
+//                return;
+//            }
 
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-                    throw new NotImplementedException();
-#endif
-            this.HasChanged(property);
-        }
+//#if QUICKTUPLE
+//            _Values[property.Index] = value;
+//#else
+//                    throw new NotImplementedException();
+//#endif
+//            this.HasChanged(property);
+//        }
 
         /// <summary>
         /// 
