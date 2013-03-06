@@ -2,6 +2,6 @@
 using Starcounter;
 
 namespace MySampleNamespace {
-    partial class TestMessage : Puppet { // TODO: Change class to inherit Message
+    partial class TestMessage : Message {
     }
 }
