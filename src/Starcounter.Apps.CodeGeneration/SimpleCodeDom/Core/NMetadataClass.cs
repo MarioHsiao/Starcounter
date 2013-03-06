@@ -37,11 +37,18 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <value>The name of the class.</value>
         public override string ClassName {
             get {
-                var type = NTemplateClass.NValueClass.ClassName;
-                //if (type.Equals("long"))
-                //    type = "Int";
-                //else
+                string type;
+
+                // TODO: 
+                // If we have a Message or Puppet class either we need to use the ObjMetadata 
+                // class or have a separate MessageMetadata and PuppetMetadata class.
+                if (NTemplateClass.Template is TObj) {
+                    type = "Obj";
+                } else {
+                    type = NTemplateClass.NValueClass.ClassName;
                     type = UpperFirst(type);
+                }
+
                 return type + "Metadata";
             }
         }

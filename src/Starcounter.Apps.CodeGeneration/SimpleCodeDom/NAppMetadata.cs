@@ -24,12 +24,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// The template
         /// </summary>
-        public TPuppet Template;
+        public TObj Template;
 
         /// <summary>
         /// The instances
         /// </summary>
-        public static Dictionary<TPuppet, NClass> Instances = new Dictionary<TPuppet, NClass>();
+        public static Dictionary<TObj, NClass> Instances = new Dictionary<TObj, NClass>();
 
         /// <summary>
         /// Gets the name of the class.

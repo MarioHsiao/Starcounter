@@ -37,12 +37,20 @@ namespace Starcounter.Internal.JsonTemplate
         /// <param name="sourceReference">The source reference.</param>
         /// <param name="ignoreNonDesignTimeAssigments">if set to <c>true</c> [ignore non design time assigments].</param>
         /// <returns>TApp.</returns>
-        private static TObj _CreateFromJs(Type objTemplateType, string source,
-                                                 string sourceReference,
-                                                 bool ignoreNonDesignTimeAssigments)
+        private static TObj _CreateFromJs(Type objTemplateType, 
+                                          string source,
+                                          string sourceReference,
+                                          bool ignoreNonDesignTimeAssigments)
         {
             TObj appTemplate;
-            ITemplateFactory factory = new Internal.JsonTemplate.TAppFactory<Puppet,TPuppet>();
+            ITemplateFactory factory;
+
+            if (objTemplateType.Equals(typeof(TMessage))) {
+                factory = new TAppFactory<Message, TMessage>();
+            } else {
+                factory = new TAppFactory<Puppet, TPuppet>();
+            }
+            
             int skip = 0;
             if (!ignoreNonDesignTimeAssigments)
             {

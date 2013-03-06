@@ -258,7 +258,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             NAppClass nAppClass;
             NTemplateClass nTemplateclass;
 
-            classesInOrder = new TPuppet[metadata.JsonPropertyMapList.Count];
+            classesInOrder = new TObj[metadata.JsonPropertyMapList.Count];
             rootTemplate = root.AppClassClassNode.Template;
 
             for (Int32 i = 0; i < classesInOrder.Length; i++)
@@ -412,9 +412,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
             for (Int32 i = 1; i < mapParts.Length; i++)
             {
                 template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
-                if (template is TPuppet)
+                if (template is TObj)
                 {
-                    appTemplate = (TPuppet)template;
+                    appTemplate = (TObj)template;
                 }
                 else if (template is TObjArr)
                 {
@@ -486,9 +486,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 {
                     if (kid is TContainer)
                     {
-                        if (kid is TPuppet)
+                        if (kid is TObj)
                         {
-                            GenerateForApp(kid as TPuppet,
+                            GenerateForApp(kid as TObj,
                                            appClassParent,
                                            templParent,
                                            metaParent,
@@ -531,7 +531,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
         /// <exception cref="System.Exception"></exception>
-        private void GenerateForApp(TPuppet at,
+        private void GenerateForApp(TObj at,
                                     NAppClass appClassParent,
                                     NTAppClass templParent,
                                     NClass metaParent,
@@ -594,7 +594,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             TemplateClasses[at] = tcn;
             MetaClasses[at] = mcn;
 
-            if (at.Parent is TPuppet)
+            if (at.Parent is TObj)
                 GenerateProperty(at, appClassParent, templParent, metaParent);
         }
 
@@ -953,7 +953,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             {
                 Template current = DefaultObjTemplate;
                 while (current.Parent != null) current = (Template)current.Parent;
-                return ((TPuppet)current).Namespace;
+                return ((TObj)current).Namespace;
             }
         }
     }
