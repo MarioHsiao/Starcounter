@@ -286,7 +286,7 @@ namespace Starcounter.Client.Tests.Application {
             msg.FirstName = "Allan";
             msg.LastName = "Ballan";
             msg.Age = 109L;
-            msg.Number.Number = "666";
+            msg.PhoneNumber.Number = "666";
 
             // Check dataobject is changed.
             Assert.AreEqual("Allan", myDataObj.FirstName);
@@ -344,13 +344,7 @@ namespace Starcounter.Client.Tests.Application {
     internal class MyFieldMessage : Message {
     }
 
-    internal class PersonObject : IBindable {
-        public ulong UniqueID {
-            get { return 0; }
-        }
-
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+    internal class PersonObject : BasePerson {
         public int Age { get; set; }
 
         public PhoneNumberObject Number { get; set; }
@@ -362,5 +356,14 @@ namespace Starcounter.Client.Tests.Application {
         }
 
         public string Number { get; set; }
+    }
+
+    internal class BasePerson : IBindable {
+        public ulong UniqueID {
+            get { return 0; }
+        }
+
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
     }
 }

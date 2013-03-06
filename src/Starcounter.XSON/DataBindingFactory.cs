@@ -8,8 +8,19 @@ using Starcounter.Templates;
 
 namespace Starcounter.XSON {
     internal class DataBindingFactory {
-        internal static DataValueBinding<TVal> CreateBinding<TVal>(Type dataType, string bindingName) {
+        internal static DataValueBinding<TVal> VerifyOrCreateBinding<TVal>(DataValueBinding<TVal> binding, Type dataType, string bindingName) {
             PropertyInfo pInfo;
+
+            if (binding != null) {
+                if (dataType.Equals(binding.DataType) || dataType.IsSubclassOf(binding.DataType)) {
+                    return binding;
+                }
+
+                // TODO:
+                // How do we add a warning that binding needs to be recreated?
+                throw new Exception("Wrong dataobject for this binding.");
+            }
+
             pInfo = dataType.GetProperty(bindingName, BindingFlags.Instance | BindingFlags.Public);
             if (pInfo == null) {
                 throw new Exception("Cannot create binding. Property '" + bindingName + "' was not found in type " + dataType.FullName);
