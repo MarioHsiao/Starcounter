@@ -10,6 +10,7 @@ namespace QueryProcessingTest {
             AggregationTest.RunAggregationTest();
             CodePropertiesTesting.TestCodeProperties();
             SelectClauseExpressionsTests.TestSelectClauseExpressions();
+            QueryProcessingPerformance.MeasurePrepareQuery();
         }
 
         static void RunQueryProcessingTest() {
