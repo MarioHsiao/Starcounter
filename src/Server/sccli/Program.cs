@@ -115,10 +115,6 @@ namespace star {
                 pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
             }
 
-            // If not silent or suppressed banner, and only after we know
-            // we actually need to communicate with the server.
-            ConsoleUtil.ToConsoleWithColor(string.Format("[Using server \"{0}\"]", pipeName), ConsoleColor.DarkGray);
-
             // Make this a (non-documented) option.
             // TODO:
 
@@ -181,6 +177,29 @@ namespace star {
             // by validating if the file exist here.
             // So bottomline: a client with "full" transparency.
 
+            // First make sure we have a server/port to communicate with.
+            int serverPort;
+            string serverName;
+
+            try {
+                GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
+            } catch (Exception e) {
+                uint errorCode;
+                if (!ErrorCode.TryGetCode(e, out errorCode)) {
+                    errorCode = Error.SCERRUNSPECIFIED;
+                }
+                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
+                Environment.ExitCode = (int)errorCode;
+                return;
+            }
+
+            // Only do this if not silent or minimal verbosity
+            // TODO:
+
+            ConsoleUtil.ToConsoleWithColor(
+                string.Format("[Using admin server \"{0}\" on port {1}]", serverName, serverPort), ConsoleColor.DarkGray);
+
+
             var executable = appArgs.CommandParameters[0];
 
             // Aware of the above paragraph, we still do resolve the path of the
@@ -191,11 +210,9 @@ namespace star {
 
             var execRequestString = string.Format("{{ \"ExecutablePath\": \"{0}\" }}", executable);
 
-            // We need the base URI and the relative one for the database
-            // executable collection.
-            // TODO:
+            // Construct the client
 
-            var client = new HttpClient() { BaseAddress = new Uri("http://localhost:8181") };
+            var client = new HttpClient() { BaseAddress = new Uri(string.Format("http://localhost:{0}", serverPort)) };
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             client.PostAsync(
