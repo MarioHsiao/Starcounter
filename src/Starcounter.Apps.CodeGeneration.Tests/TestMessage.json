@@ -5,7 +5,6 @@
   
     "Child": {
         "ChildName":"Nisse",
-        "Button": null,
         "ASubApp":{ "IsInnerApp": true },
         "ASubApp2": { 
             "IsInnerApp": false,
@@ -31,5 +30,4 @@
     "ADecimal": 23.90,
     "ADouble": 2e4,
     "UserLink": "/users/admin",
-    "User": null
 }
