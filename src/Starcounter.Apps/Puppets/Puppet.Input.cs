@@ -26,7 +26,7 @@ namespace Starcounter {
                 }
                 if (!input.Cancelled) {
                     Debug.WriteLine("Setting value after custom handler: " + input.Value);
-                    this.Set((TValue<V>)template, input.Value);
+                    this.Set<V>((TValue<V>)template, input.Value);
                 }
                 else {
                     Debug.WriteLine("Handler cancelled: " + value);
@@ -34,7 +34,7 @@ namespace Starcounter {
             }
             else {
                 Debug.WriteLine("Setting value after no handler: " + value);
-                this.Set((TValue<V>)template, value);
+                this.Set<V>((TValue<V>)template, value);
             }
         }
     }
