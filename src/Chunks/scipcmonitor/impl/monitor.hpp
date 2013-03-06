@@ -17,7 +17,6 @@ namespace core {
 
 monitor::monitor(int argc, wchar_t* argv[])
 : ipc_monitor_cleanup_event_(),
-active_databases_updated_event_(),
 monitor_interface_(),
 active_segments_update_(active_segments_buffer_capacity),
 active_databases_updated_flag_(false),
@@ -158,7 +157,7 @@ owner_id_(ipc_monitor_owner_id) {
 	// Example: "Local\PERSONAL_active_databases_updated_event"
 	if ((length = _snprintf_s(active_databases_updated_event_name, _countof
 	(active_databases_updated_event_name), active_databases_updated_event_name_size
-	-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name_.c_str()))
+	-1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str()))
 	< 0) {
 		throw bad_monitor("failed to format the active_databases_updated_event_name");
 	}
@@ -173,10 +172,11 @@ owner_id_(ipc_monitor_owner_id) {
 		throw bad_monitor("failed to convert active_databases_updated_event_name to multi-byte string");
 	}
 	w_active_databases_updated_event_name[length] = L'\0';
+	HANDLE active_databases_updated_event;
 
 	// Create the active_databases_updated_event_ to be used when the active
 	// databases set is updated.
-	if ((active_databases_updated_event_ = ::CreateEvent(NULL, TRUE, FALSE,
+	if ((active_databases_updated_event = ::CreateEvent(NULL, TRUE, FALSE,
 	w_active_databases_updated_event_name)) == NULL) {
 		// Failed to create event.
 		throw bad_monitor("failed to create the active_databases_updated_event");
@@ -232,6 +232,10 @@ owner_id_(ipc_monitor_owner_id) {
 	
 	// Notify all waiting threads in other processes that the monitor_interface
 	// is ready to be used.
+
+	the_monitor_interface_->active_database_set()
+	.set_active_databases_set_update_event(active_databases_updated_event);
+	_mm_mfence();
 	the_monitor_interface_->is_ready_notify_all();
 	
 	//--------------------------------------------------------------------------

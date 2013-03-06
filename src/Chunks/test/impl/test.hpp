@@ -125,7 +125,7 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		database_shared_memory_parameters_ptr db_shm_params
 		(database_shared_memory_parameters_name);
 		
-		std::cout << "opened parameter file: " << database_shared_memory_parameters_name << std::endl;
+		//std::cout << "opened parameter file: " << database_shared_memory_parameters_name << std::endl;
 		
 		char monitor_interface_name[segment_name_size
 		+sizeof(MONITOR_INTERFACE_SUFFIX) +2 /* delimiter and null */];
@@ -308,7 +308,7 @@ void test::watch_active_databases_updates() {
 		// Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
 		if ((length = _snprintf_s(active_databases_updated_event_name, _countof
 		(active_databases_updated_event_name), active_databases_updated_event_name_size
-		-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name_.c_str())) < 0) {
+		-1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str())) < 0) {
 			return; // Throw exception error_code: "failed to format the active_databases_updated_event_name"
 		}
 		active_databases_updated_event_name[length] = '\0';
@@ -330,24 +330,24 @@ void test::watch_active_databases_updates() {
 			unsigned int err = GetLastError();
 			switch (err) {
 			case 2:
-				std::cout << "test::watch_active_databases_updates(): "
-				"Failed to open active_databases_updated event. The system cannot find the file specified. "
-				"OS error: " << err << "\n"; /// DEBUG
+				//std::cout << "test::watch_active_databases_updates(): "
+				//"Failed to open active_databases_updated event. The system cannot find the file specified. "
+				//"OS error: " << err << "\n"; /// DEBUG
 				break;
 			case 6:
-				std::cout << "test::watch_active_databases_updates(): "
-				"Failed to open active_databases_updated event. The handle is invalid. "
-				"OS error: " << err << "\n"; /// DEBUG
+				//std::cout << "test::watch_active_databases_updates(): "
+				//"Failed to open active_databases_updated event. The handle is invalid. "
+				//"OS error: " << err << "\n"; /// DEBUG
 				break;
-			
 			default:
-				std::cout << "test::watch_active_databases_updates(): "
-				"Failed to open active_databases_updated event. OS error: " << err << "\n"; /// DEBUG
+				//std::cout << "test::watch_active_databases_updates(): "
+				//"Failed to open active_databases_updated event. OS error: " << err << "\n"; /// DEBUG
+				break;
 			}
 			return; // TODO: Should throw an exception.
 		}
 		else {
-			std::cout << "Successfully opened the active_databases_updated_event_name." << std::endl;
+			//std::cout << "Successfully opened the active_databases_updated_event_name." << std::endl;
 		}
 	}
 
@@ -356,22 +356,34 @@ void test::watch_active_databases_updates() {
 	///=====================================================================
 	
 	std::cout << "Waiting for active database update events. . ." << std::endl;
-	std::set<std::string> databases;
+	std::set<std::string> active_databases;
 
 	while (true) {
+		std::cout << "--------------------------------------------------------------------------------" << std::endl;
 		switch (::WaitForSingleObject(active_databases_updates_event(), INFINITE)) {
 		case WAIT_OBJECT_0:
 			// The IPC monitor updated the active databases set.
-			std::cout << "Active databases update event!" << std::endl;
-			the_monitor_interface()->active_database_set().copy(databases);
+			the_monitor_interface()->active_database_set()
+			.copy(active_databases, active_databases_updates_event());
+
+			for (std::set<std::string>::iterator it = active_databases.begin();
+			it != active_databases.end(); ++it) {
+				std::cout << *it << "\n";
+			}
 			break;
 		case WAIT_TIMEOUT:
 			// A timeout occurred.
-			////std::cout << "test::watch_active_databases_updates(): Timeout." << std::endl;
+			the_monitor_interface()->active_database_set()
+			.copy(active_databases, active_databases_updates_event());
+
+			for (std::set<std::string>::iterator it = active_databases.begin();
+			it != active_databases.end(); ++it) {
+				std::cout << *it << "\n";
+			}
 			break;
 		case WAIT_FAILED:
 			// An error occurred.
-			////std::cout << "test::watch_active_databases_updates(): Wait failed." << std::endl;
+			//std::cout << "test::watch_active_databases_updates(): Wait failed." << std::endl;
 			break;
 		}
 	}
