@@ -23,6 +23,12 @@ namespace star {
         static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
             string givenPort;
 
+            // Use proper error code / message for unresolved server
+            // TODO:
+
+            // Use constants for known options
+            // TODO:
+
             if (args.TryGetProperty("serverport", out givenPort)) {
                 port = int.Parse(givenPort);
 
@@ -79,8 +85,6 @@ namespace star {
         }
        
         static void Main(string[] args) {
-            string pipeName;
-            
             ApplicationArguments appArgs;
 
             if (args.Length == 0) {
@@ -88,37 +92,10 @@ namespace star {
                 return;
             }
 
-            // Change to port (default 8181).
-            // The different options to specify port and/or server and
-            // what has precedence.
-            //   If NOTHING is given, star.exe should detect the configured
-            // default server and use the default port of that.
-            //   If a port is specified (as an option or as set in the
-            // environment), star.exe should utilize that port to communicate.
-            //   If a server name is given,
-            //     and no port is given, star.exe should use the default port
-            // for the specified server. If the name is not recognized, it
-            // should emit an error.
-            //     and a port is given, the port takes precedence. The server
-            // name will be queried from said port, and compared to the name
-            // given.
-            // TODO:
-
-            // If port, use port.
-            // If no port, find server name (option, then environment). Use
-            // the default of that. If not found, or not known, assume the
-            // developer server ("personal"); use default port of that.
-            // If we are given only a port, use that.
-
-            pipeName = Environment.GetEnvironmentVariable("STAR_SERVER");
-            if (string.IsNullOrEmpty(pipeName)) {
-                pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
-            }
+            var syntax = DefineCommandLineSyntax();
 
             // Make this a (non-documented) option.
             // TODO:
-
-            var syntax = DefineCommandLineSyntax();
 
             var syntaxTests = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_CLI_TEST"));
             if (syntaxTests) {
