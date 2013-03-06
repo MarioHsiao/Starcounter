@@ -23,9 +23,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="query">Query to process</param>
         /// <param name="consumer">Interface object to be called during tree walk</param>
         internal unsafe void ParseQueryAndWalkTree(string query, IParserTreeAnalyzer consumer) {
-            if (query == "")
-                throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, "Query string should not be empty",
-                    (m, e) => new SqlException(Error.SCERRSQLINCORRECTSYNTAX, m, 1, Query));
+            OnEmptyQueryError(query);
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             // Call parser
@@ -52,9 +50,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="query">The query to parse.</param>
         /// <returns></returns>
         internal unsafe void ParseQuery(string query) {
-            if (query == "")
-                throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, "Query string should not be empty",
-                    (m, e) => new SqlException(Error.SCERRSQLINCORRECTSYNTAX, m, 1, Query));
+            OnEmptyQueryError(query);
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             int scerrorcode = 0;
@@ -79,9 +75,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="errorExpected">If error expected or not</param>
         /// <returns>Error code.</returns>
         internal unsafe int ParseQuery(string query, bool errorExpected) {
-            if (query == "")
-                throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, "Query string should not be empty",
-                    (m, e) => new SqlException(Error.SCERRSQLINCORRECTSYNTAX, m, 1, Query));
+            OnEmptyQueryError(query);
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             int scerrorcode = 0;

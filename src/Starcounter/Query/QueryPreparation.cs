@@ -16,7 +16,11 @@ namespace Starcounter.Query {
         /// <returns>The result enumerated with the execution plan.</returns>
         internal static IExecutionEnumerator PrepareQuery(String query) {
             Scheduler vproc = Scheduler.GetInstance();
+#if HELLOTEST
+            Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest newAnalyzer = null;
+#else
             Starcounter.Query.RawParserAnalyzer.MapParserTree newAnalyzer = null;
+#endif
             OptimizerInput optArgsProlog = null;
             IExecutionEnumerator prologParsedQueryPlan = null;
             Exception prologException = null;
@@ -37,7 +41,7 @@ namespace Starcounter.Query {
 #if !PROLOG_ONLY
             try {
 #if HELLOTEST
-                Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest newAnalyzer = new Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest();
+                newAnalyzer = new Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest();
                 newAnalyzer.ParseAndAnalyzeQuery(query);
 #else
                 newAnalyzer = new Starcounter.Query.RawParserAnalyzer.MapParserTree();
