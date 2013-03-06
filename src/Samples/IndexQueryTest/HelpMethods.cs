@@ -13,7 +13,7 @@ namespace IndexQueryTest
             bool populated = false;
             Db.Transaction(delegate
             {
-                if (Db.SQL("select u from User u").First == null)
+                if (Db.SQL("select u from Accounttest.User u").First == null)
                 {
                     accounttest.User user = new accounttest.User
                     {

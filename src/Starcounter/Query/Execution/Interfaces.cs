@@ -1004,6 +1004,14 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     }
 
     /// <summary>
+    /// Returns if Bison-parser was used in creation of the enumerator.
+    /// It will be removed when Prolog-parser is deprecated.
+    /// </summary>
+    Boolean IsBisonPrarserUsed {
+        get;
+    }
+
+    /// <summary>
     /// Creates a clone of the execution enumerator.
     /// </summary>
     /// <param name="rowTypeBindClone">A cloned row-type-binding as input.</param>

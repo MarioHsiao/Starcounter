@@ -579,6 +579,146 @@ inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {
 	return cleanup_mask_;
 }
 
+inline int32_t monitor_interface::insert_segment_name(const char* segment_name) {
+	return cleanup_task_.insert_segment_name(segment_name);
+}
+
+
+inline void monitor_interface::erase_segment_name(const char* segment_name, HANDLE ipc_monitor_cleanup_event) {
+	cleanup_task_.erase_segment_name(segment_name, ipc_monitor_cleanup_event);
+}
+
+inline const char* monitor_interface::get_a_segment_name(HANDLE ipc_monitor_cleanup_event) {
+	return cleanup_task_.get_a_segment_name(ipc_monitor_cleanup_event);
+}
+
+inline void monitor_interface::print_segment_name_list() {
+	for (int i = 0; i < 64; ++i) {
+		std::cout << i << ": ";
+		if (cleanup_task_.segment_name_[i]) {
+			std::cout << cleanup_task_.segment_name_[i];
+		}
+		std::cout << std::endl;
+	}
+}
+
+inline void monitor_interface::set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event) {
+	cleanup_task_.set_cleanup_flag(index, ipc_monitor_cleanup_event);
+}
+
+inline uint64_t monitor_interface::get_cleanup_flag() {
+	return cleanup_task_.get_cleanup_flag();
+}
+
+inline smp::spinlock& monitor_interface::spinlock() {
+	return cleanup_task_.spinlock();
+}
+
+inline monitor_interface::active_databases::active_databases()
+: size_(0),
+spinlock_(),
+active_databases_set_update_() {
+	for (std::size_t i = 0; i < max_number_of_databases; ++i) {
+		*database_name_[i] = 0;
+	}
+}
+
+inline smp::spinlock& monitor_interface::active_databases::spinlock() {
+	return spinlock_;
+}
+
+inline void monitor_interface::active_databases
+::set_active_databases_set_update_event(HANDLE active_databases_set_update) {
+	active_databases_set_update_ = active_databases_set_update;
+}
+
+inline monitor_interface::active_databases::size_type
+monitor_interface::active_databases::update(const std::set<std::string>& databases) {
+	smp::spinlock::scoped_lock lock(spinlock()); // TODO: This one needs a timeout
+	std::size_t i = 0;
+
+	for (std::set<std::string>::iterator it = databases.begin();
+	it != databases.end(); ++it) {
+		std::strncpy(database_name_[i], (*it).c_str(), database_name_size -1);
+		database_name_[i][database_name_size -1] = 0;
+		++i;
+	}
+			
+	::SetEvent(active_databases_set_update_);
+	return size_ = i;
+}
+
+inline void monitor_interface::active_databases::copy
+(std::set<std::string>& databases, HANDLE active_databases_set_update_event) {
+	smp::spinlock::scoped_lock lock(spinlock());
+	::ResetEvent(active_databases_set_update_event);
+	databases.clear();
+
+	for (int i = 0; i < size_; ++i) {
+		// This can be done more efficiently. TODO: Optimize insert.
+		databases.insert(std::string(database_name_[i]));
+	}
+}
+
+inline monitor_interface_ptr_exception::monitor_interface_ptr_exception(int err)
+: err_(err) {}
+
+inline int monitor_interface_ptr_exception::error_code() const {
+	return err_;
+}
+
+inline monitor_interface_ptr::monitor_interface_ptr(const char* monitor_interface_name)
+: ptr_(0) {
+	// Try to open the monitor interface shared memory object.
+	if (monitor_interface_name) {
+		init(monitor_interface_name);
+	}
+}
+
+inline void monitor_interface_ptr::init(const char* monitor_interface_name) {
+	// Try to open the monitor interface shared memory object.
+	shared_memory_object_.init_open(monitor_interface_name);
+		
+	if (!shared_memory_object_.is_valid()) {
+		// Failed to open monitor interface.
+		throw monitor_interface_ptr_exception(SCERROPENMONITORINTERFACE);
+	}
+		
+	// Map the whole database shared memory parameters shared memory object
+	// in this process.
+	mapped_region_.init(shared_memory_object_);
+		
+	if (!mapped_region_.is_valid()) {
+		// Failed to map monitor interface in shared memory.
+		throw monitor_interface_ptr_exception
+		(SCERRMAPMONITORINTERFACEINSHM);
+	}
+		
+	// Obtain a pointer to the shared structure.
+	ptr_ = static_cast<monitor_interface*>(mapped_region_.get_address());
+}
+
+inline monitor_interface_ptr::monitor_interface_ptr(monitor_interface* ptr) {
+	ptr_ = ptr;
+}
+
+inline monitor_interface_ptr::~monitor_interface_ptr() {
+	ptr_ = 0;
+	// The shared_memory_object and mapped_region destructors are called.
+}
+
+inline monitor_interface& monitor_interface_ptr::operator*() const {
+	return *ptr_;
+}
+
+inline monitor_interface* monitor_interface_ptr::operator->() const {
+	return ptr_;
+}
+
+inline monitor_interface* monitor_interface_ptr::get() const {
+	return ptr_;
+}
+
 // output operator for monitor_interface::process_type
 template<class CharT, class Traits>
 inline std::basic_ostream<CharT, Traits>&

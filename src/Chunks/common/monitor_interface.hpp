@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <boost/cstdint.hpp>
 #include <memory>
+#include <set>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -118,9 +119,7 @@ public:
 	 * @return The index in the array where the name was inserted on success, otherwise
 	 *		-1 if could not insert the name.
 	 */
-	int32_t insert_segment_name(const char* segment_name) {
-		return cleanup_task_.insert_segment_name(segment_name);
-	}
+	int32_t insert_segment_name(const char* segment_name);
 
 	/// erase_segment_name() is used by the monitor::wait_for_database_process_event()
 	/// to erase segment names of terminated database processes.
@@ -128,9 +127,7 @@ public:
 	 * @param segment_name The name of the IPC shared memory segment.
 	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
 	 */
-	void erase_segment_name(const char* segment_name, HANDLE ipc_monitor_cleanup_event) {
-		cleanup_task_.erase_segment_name(segment_name, ipc_monitor_cleanup_event);
-	}
+	void erase_segment_name(const char* segment_name, HANDLE ipc_monitor_cleanup_event);
 
 	/// get_a_segment_name() is used by the monitor::cleanup() thread trying to get
 	/// a segment name, which it will use to open it and do the rest of the cleanup.
@@ -138,19 +135,9 @@ public:
 	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
 	 * @return The segment_name, otherwise 0 if there are no segment names stored.
 	 */
-	const char* get_a_segment_name(HANDLE ipc_monitor_cleanup_event) {
-		return cleanup_task_.get_a_segment_name(ipc_monitor_cleanup_event);
-	}
+	const char* get_a_segment_name(HANDLE ipc_monitor_cleanup_event);
 
-	void print_segment_name_list() {
-		for (int i = 0; i < 64; ++i) {
-			std::cout << i << ": ";
-			if (cleanup_task_.segment_name_[i]) {
-				std::cout << cleanup_task_.segment_name_[i];
-			}
-			std::cout << std::endl;
-		}
-	}
+	void print_segment_name_list();
 
 	/// set_cleanup_flag() is used by the last scheduler thread doing a cleanup task,
 	/// to signal to the IPC monitor that it should start the cleanup of chunk(s) and
@@ -161,17 +148,59 @@ public:
 	 * @param ipc_monitor_cleanup_event Event to be reset if no more cleanup tasks.
 	 * @return The segment_name, otherwise 0 if there are no segment names stored.
 	 */
-	void set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event) {
-		cleanup_task_.set_cleanup_flag(index, ipc_monitor_cleanup_event);
-	}
+	void set_cleanup_flag(int32_t index, HANDLE ipc_monitor_cleanup_event);
 
-	uint64_t get_cleanup_flag() {
-		return cleanup_task_.get_cleanup_flag();
-	}
+	uint64_t get_cleanup_flag();
 
 	/// Get reference to the spinlock.
-	smp::spinlock& spinlock() {
-		return cleanup_task_.spinlock();
+	smp::spinlock& spinlock();
+
+	class active_databases {
+	public:	
+		typedef char value_type[max_number_of_databases][database_name_size];
+		typedef int32_t size_type;
+
+		active_databases();
+
+		void set_active_databases_set_update_event(HANDLE active_databases_set_update);
+
+		/// The IPC monitor uses update() to insert or remove database names.
+		/**
+		 * @param databases A reference to a set of strings with the current active databases
+		 *		which will be copied into the database_name_ array of c-strings in shared memory.
+		 * @return The number of active databases (names.)
+		 */
+		size_type update(const std::set<std::string>& databases);
+
+		/// The client uses copy() by passing in a reference to a set of strings
+		/// that will be populated.
+		/**
+		 * @param databases A reference to a set of strings that upon return will contain
+		 *		the names of the current active databases.
+		 */
+		void copy(std::set<std::string>& databases, HANDLE active_databases_set_update_event);
+		
+	private:
+		/// Get reference to the spinlock.
+		smp::spinlock& spinlock();
+
+		value_type database_name_;
+		
+		// On multiple of cache-line boundary here.
+		size_type size_;
+		char cache_line_pad_0_[CACHE_LINE_SIZE -sizeof(size_type)]; // size_
+
+		// spinlock_ synchronizes updates to active_databases_ and set/reset of the event.
+		smp::spinlock spinlock_;
+		char cache_line_pad_1_[CACHE_LINE_SIZE -sizeof(smp::spinlock)]; // spinlock_
+
+		// Event to notify when the active databases list is updated.
+		HANDLE active_databases_set_update_;
+		char cache_line_pad_2_[CACHE_LINE_SIZE -sizeof(HANDLE)]; // active_databases_set_update_
+	};
+
+	active_databases& active_database_set() {
+		return active_databases_;
 	}
 
 private:
@@ -304,17 +333,16 @@ private:
 		// spinlock_ synchronizes updates to cleanup_mask_ and set/reset of the event.
 		smp::spinlock spinlock_;
 	} cleanup_task_;
+
+	active_databases active_databases_;
 };
 
 /// Exception class.
 class monitor_interface_ptr_exception {
 public:
-	explicit monitor_interface_ptr_exception(int err)
-	: err_(err) {}
+	explicit monitor_interface_ptr_exception(int err);
 	
-	int error_code() const {
-		return err_;
-	}
+	int error_code() const;
 	
 private:
 	int err_;
@@ -330,63 +358,32 @@ public:
 	 * @param monitor_interface_name Has the format
 	 *		<SERVER_NAME>_<MONITOR_INTERFACE_SUFFIX>
 	 */
-	monitor_interface_ptr(const char* monitor_interface_name)
-	: ptr_(0) {	
-		// Try to open the monitor interface shared memory object.
-		shared_memory_object_.init_open(monitor_interface_name);
-		
-		if (!shared_memory_object_.is_valid()) {
-			// Failed to open monitor interface.
-			throw monitor_interface_ptr_exception(SCERROPENMONITORINTERFACE);
-		}
-		
-		// Map the whole database shared memory parameters shared memory object
-		// in this process.
-		mapped_region_.init(shared_memory_object_);
-		
-		if (!mapped_region_.is_valid()) {
-			// Failed to map monitor interface in shared memory.
-			throw monitor_interface_ptr_exception
-			(SCERRMAPMONITORINTERFACEINSHM);
-		}
-		
-		// Obtain a pointer to the shared structure.
-		ptr_ = static_cast<monitor_interface*>(mapped_region_.get_address());
-	}
+	monitor_interface_ptr(const char* monitor_interface_name = 0);
 	
-	monitor_interface_ptr(monitor_interface* ptr) {
-		ptr_ = ptr;
-	}
+	void init(const char* monitor_interface_name);
+
+	monitor_interface_ptr(monitor_interface* ptr);
 	
 	/// Destructor.
-	~monitor_interface_ptr() {
-		ptr_ = 0;
-		// The shared_memory_object and mapped_region destructors are called.
-	}
+	~monitor_interface_ptr();
 	
 	/// Dereferences the smart pointer.
 	/**
 	 * @return A reference to the shared structure.
 	 */
-	monitor_interface& operator*() const {
-		return *ptr_;
-	}
+	monitor_interface& operator*() const;
 	
 	/// Dereferences the smart pointer to get at a member of what it points to.
 	/**
 	 * @return A pointer to the shared structure.
 	 */
-	monitor_interface* operator->() const {
-		return ptr_;
-	}
+	monitor_interface* operator->() const;
 	
 	/// Extract pointer.
 	/**
 	 * @return A pointer to the shared structure.
 	 */
-	monitor_interface* get() const {
-		return ptr_;
-	}
+	monitor_interface* get() const;
 	
 private:
 	/// The default copy constructor and assignment operator are made private.
