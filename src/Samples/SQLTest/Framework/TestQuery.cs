@@ -102,13 +102,11 @@ namespace SQLTest
                 ErrorMessage += "Incorrect result (second execution). ";
             }
 
-            if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage1)
-            {
+            if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage1) {
                 CorrectResult = false;
                 ErrorMessage += "Incorrect exception (first execution). ";
             }
-            if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage2)
-            {
+            if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage2) {
                 CorrectResult = false;
                 ErrorMessage += "Incorrect exception (second execution). ";
             }

@@ -50,10 +50,10 @@ namespace Starcounter.Query {
 #endif
             } catch (Starcounter.Query.RawParserAnalyzer.SQLParserAssertException) {
                 newAnalyzer = null;
-            } catch (SqlException) {
+            } catch (SqlException bisonAnalyzerException) {
                 Debug.Assert(prologException != null);
-                //throw e;
-                throw prologException;
+                throw bisonAnalyzerException;
+                //throw prologException;
             }
             if (prologException != null)
                 throw prologException;
