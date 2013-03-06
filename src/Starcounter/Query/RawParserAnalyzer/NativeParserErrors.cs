@@ -82,5 +82,11 @@ namespace Starcounter.Query.RawParserAnalyzer {
             if (!condition)
                 throw new SQLParserAssertException();
         }
+
+        internal static void OnEmptyQueryError(String query) {
+            if (query == "")
+                throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, "Query string should not be empty",
+                    (m, e) => new SqlException(Error.SCERRSQLINCORRECTSYNTAX, m, 1, query));
+        }
     }
 }
