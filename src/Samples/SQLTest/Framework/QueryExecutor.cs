@@ -75,12 +75,24 @@ namespace SQLTest
                     {
                         if (firstExecution)
                         {
-                            queryList[i].ActualExceptionMessage1 = exception.Message.Trim();
+                            String message = exception.Message.Trim();
+                            if (message.Contains("\r"))
+                                message = message.Substring(0, message.IndexOf("\r"));
+                            if (message.Contains("\n"))
+                                message = message.Substring(0, message.IndexOf("\n"));
+                            message.Trim();
+                            queryList[i].ActualExceptionMessage1 = message;
                             queryList[i].ActualFullException1 = exception.ToString();
                         }
                         else
                         {
-                            queryList[i].ActualExceptionMessage2 = exception.Message.Trim();
+                            String message = exception.Message.Trim();
+                            if (message.Contains("\r"))
+                                message = message.Substring(0, message.IndexOf("\r"));
+                            if (message.Contains("\n"))
+                                message = message.Substring(0, message.IndexOf("\n"));
+                            message.Trim();
+                            queryList[i].ActualExceptionMessage2 = message;
                             queryList[i].ActualFullException2 = exception.ToString();
                         }
                     }
