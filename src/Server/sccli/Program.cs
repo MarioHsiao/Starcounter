@@ -15,14 +15,100 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
+using System.Net.Sockets;
+using Newtonsoft.Json;
 
 namespace star {
 
     class Program {
+
+        const string UnresolvedServerName = "N/A";
+        const string DefaultAdminServerHost = "localhost";
+        const string DefaultDatabaseName = StarcounterConstants.DefaultDatabaseName;
+
+        static class Option {
+            public const string Help = "help";
+            public const string Version = "version";
+            public const string Info = "info";
+            public const string Serverport = "serverport";
+            public const string Server = "server";
+            public const string ServerHost = "serverhost";
+            public const string Db = "db";
+            public const string Verbosity = "verbosity";
+            public const string LogSteps = "logsteps";
+            public const string NoDb = "nodb";
+        }
+
+        static class EnvironmentVariable {
+            public const string ServerName = "STAR_SERVER";
+        }
+
+        static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
+            string givenPort;
+
+            // Use proper error code / message for unresolved server
+            // TODO:
+
+            if (args.TryGetProperty(Option.Serverport, out givenPort)) {
+                port = int.Parse(givenPort);
+
+                // If a port is specified, that always have precedence.
+                // If it is, we try to pair it with a server name based on
+                // the following priorities:
+                //   1) Getting a given name on the command-line
+                //   2) Trying to pair the port with a default server based
+                // on known server port defaults.
+                //   3) Finding a server name configured in the environment.
+                //   4) Using a const string (e.g. "N/A")
+
+                if (!args.TryGetProperty(Option.Server, out serverName)) {
+                    if (port == StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort) {
+                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
+                    } else if (port == StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort) {
+                        serverName = StarcounterEnvironment.ServerNames.SystemServer;
+                    } else {
+                        serverName = Environment.GetEnvironmentVariable(EnvironmentVariable.ServerName);
+                        if (string.IsNullOrEmpty(serverName)) {
+                            serverName = UnresolvedServerName;
+                        }
+                    }
+                }
+            } else {
+                
+                // No port given. See if a server was specified by name and try
+                // to figure out a port based on that, or a port based on a server
+                // name given in the environment.
+                //   If a server name in fact IS specified (and no port is), we
+                // must match it against one of the known server names. If it is
+                // not part of them, we refuse it.
+                //   If no server is specified either on the command line or in the
+                // environment, we'll assume personal and the default port for that.
+
+                if (!args.TryGetProperty(Option.Server, out serverName)) {
+                    serverName = Environment.GetEnvironmentVariable(EnvironmentVariable.ServerName);
+                    if (string.IsNullOrEmpty(serverName)) {
+                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
+                    }
+                }
+
+                var comp = StringComparison.InvariantCultureIgnoreCase;
+
+                if (serverName.Equals(StarcounterEnvironment.ServerNames.PersonalServer, comp)) {
+                    port = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+                } else if (serverName.Equals(StarcounterEnvironment.ServerNames.SystemServer, comp)) {
+                    port = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort;
+                } else {
+                    throw ErrorCode.ToException(
+                        Error.SCERRUNSPECIFIED,
+                        string.Format("Unknown server name: {0}. Please specify the port using '{1}'.", 
+                        serverName, 
+                        Option.Serverport));
+                }                
+            }
+        }
        
         static void Main(string[] args) {
-            string pipeName;
-            
             ApplicationArguments appArgs;
 
             if (args.Length == 0) {
@@ -30,35 +116,10 @@ namespace star {
                 return;
             }
 
-            // Change to port (default 8181).
-            // The different options to specify port and/or server and
-            // what has precedence.
-            //   If NOTHING is given, star.exe should detect the configured
-            // default server and use the default port of that.
-            //   If a port is specified (as an option or as set in the
-            // environment), star.exe should utilize that port to communicate.
-            //   If a server name is given,
-            //     and no port is given, star.exe should use the default port
-            // for the specified server. If the name is not recognized, it
-            // should emit an error.
-            //     and a port is given, the port takes precedence. The server
-            // name will be queried from said port, and compared to the name
-            // given.
-            // TODO:
-
-            pipeName = Environment.GetEnvironmentVariable("STAR_SERVER");
-            if (string.IsNullOrEmpty(pipeName)) {
-                pipeName = StarcounterEnvironment.ServerNames.PersonalServer.ToLower();
-            }
-
-            // If not silent or suppressed banner, and only after we know
-            // we actually need to communicate with the server.
-            ConsoleUtil.ToConsoleWithColor(string.Format("[Using server \"{0}\"]", pipeName), ConsoleColor.DarkGray);
+            var syntax = DefineCommandLineSyntax();
 
             // Make this a (non-documented) option.
             // TODO:
-
-            var syntax = DefineCommandLineSyntax();
 
             var syntaxTests = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_CLI_TEST"));
             if (syntaxTests) {
@@ -84,17 +145,17 @@ namespace star {
 
             // Process global options that has precedence
 
-            if (appArgs.ContainsFlag("help", CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(Option.Help, CommandLineSection.GlobalOptions)) {
                 Usage(syntax);
                 return;
             }
 
-            if (appArgs.ContainsFlag("info", CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(Option.Info, CommandLineSection.GlobalOptions)) {
                 ShowInfoAboutStarcounter();
                 return;
             }
 
-            if (appArgs.ContainsFlag("version", CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(Option.Version, CommandLineSection.GlobalOptions)) {
                 ShowVersionInfo();
                 return;
             }
@@ -116,41 +177,145 @@ namespace star {
             // exist? We shouldnt take away the ability for the server to do so
             // by validating if the file exist here.
             // So bottomline: a client with "full" transparency.
+            
+            // First make sure we have a server/port to communicate with.
+            int serverPort;
+            string serverName;
+            string serverHost;
 
-            var executable = appArgs.CommandParameters[0];
+            try {
+                GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
+            } catch (Exception e) {
+                uint errorCode;
+                if (!ErrorCode.TryGetCode(e, out errorCode)) {
+                    errorCode = Error.SCERRUNSPECIFIED;
+                }
+                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
+                Environment.ExitCode = (int)errorCode;
+                return;
+            }
+            if (!appArgs.TryGetProperty(Option.ServerHost, out serverHost)) {
+                serverHost = Program.DefaultAdminServerHost;
+            } else {
+                if (serverHost.StartsWith("http", true, null)) {
+                    serverHost = serverHost.Substring(4);
+                }
+                serverHost = serverHost.TrimStart(new char[] { ':', '/' });
+            }
 
-            // Aware of the above paragraph, we still do resolve the path of the
-            // given executable based on the location of the client.
+            HttpClient client;
+            HttpResponseMessage response;
+            
+            client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
+            var x = Exec(client, serverName, appArgs);
+            x.Wait();
+            response = x.Result;
+
+            ShowResultAndSetExitCode(response, appArgs).Wait();
+        }
+
+        static async Task<HttpResponseMessage> Exec(HttpClient client, string serverName, ApplicationArguments args) {
+            string database;
+            string uri;
+            string executable;
+            string requestBody;
+            Task<HttpResponseMessage> request;
+
+            if (!args.TryGetProperty(Option.Db, out database)) {
+                database = Program.DefaultDatabaseName;
+            }
+            uri = string.Format("/databases/{0}/executables", database);
+
+            // Aware of the client transparency guideline stated previously,
+            // we still do resolve the path of the given executable based on
+            // the location of the client. It's most likely what the user
+            // intended.
+            executable = args.CommandParameters[0];
             executable = Path.GetFullPath(executable);
 
-            // Craft a ExecRequest and POST it to the server.
+            // Create the request body, based on supplied arguments.
 
-            var execRequestString = string.Format("{{ \"ExecutablePath\": \"{0}\" }}", executable);
+            requestBody = CreateRequestBody(executable, args);
 
-            // We need the base URI and the relative one for the database
-            // executable collection.
-            // TODO:
+            // Post the request.
 
-            var client = new HttpClient() { BaseAddress = new Uri("http://localhost:8181") };
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request = client.PostAsync(uri, new StringContent(requestBody, Encoding.UTF8, "application/json"));
 
-            client.PostAsync(
-                "/databases/default/executables",
-                new StringContent(execRequestString, Encoding.UTF8, "application/json")).ContinueWith((posttask) => {
-                    Console.WriteLine("HTTP/{0} {1} {2}", posttask.Result.Version, (int)posttask.Result.StatusCode, posttask.Result.ReasonPhrase);
-                    foreach (var item in posttask.Result.Headers) {
-                        Console.Write("{0}: ", item.Key);
-                        foreach (var item2 in item.Value) {
-                            Console.Write(item2 + " ");
-                        }
-                        Console.WriteLine();
+            // After posting and while waiting for the result to become available,
+            // lets give some feedback.
+
+            ConsoleUtil.ToConsoleWithColor(
+                string.Format("[Executing \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
+                Path.GetFileName(executable),
+                database,
+                serverName,
+                client.BaseAddress.Host, 
+                client.BaseAddress.Port), 
+                ConsoleColor.DarkGray
+                );
+
+            // Await the requested result, then return the result.
+
+            await request;
+            return request.Result;
+        }
+
+        /// <summary>
+        /// Creates the request body expected by the admin server when
+        /// recieving requests to execute/host an executable.
+        /// </summary>
+        /// <remarks>
+        /// See the ExecRequest class in Administrator for the format being
+        /// used.
+        /// </remarks>
+        /// <param name="executable">The executable (required)</param>
+        /// <param name="args">Arguments, possibly holding options to be
+        /// part of the request string.</param>
+        /// <returns>A JSON-formatted string representing a request to
+        /// execute an executable, compatible with what is expected from
+        /// the admin server.</returns>
+        static string CreateRequestBody(string executable, ApplicationArguments args) {
+            // We use a simple but probably slow technique to construct
+            // the body. The upside is that we dont accidentally format
+            // the string inproperly.
+            // Revise and reconsider this when we redesign this and have
+            // it usable from all contexts (like VS and the shell).
+
+            var request = new {
+                ExecutablePath = executable,
+                CommandLineString = string.Empty,
+                ResourceDirectoriesString = string.Empty,
+                NoDb = args.ContainsFlag(Option.NoDb),
+                LogSteps = args.ContainsFlag(Option.LogSteps)
+            };
+            return JsonConvert.SerializeObject(request);
+        }
+
+        static async Task ShowResultAndSetExitCode(
+            HttpResponseMessage response, 
+            ApplicationArguments args) {
+            
+            var content = response.Content.ReadAsStringAsync();
+            var color = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
+            Console.ForegroundColor = color;
+            try {
+                Console.WriteLine();
+                Console.WriteLine("HTTP/{0} {1} {2}", response.Version, (int)response.StatusCode, response.ReasonPhrase);
+                foreach (var item in response.Headers) {
+                    Console.Write("{0}: ", item.Key);
+                    foreach (var item2 in item.Value) {
+                        Console.Write(item2 + " ");
                     }
                     Console.WriteLine();
-                    posttask.Result.Content.ReadAsStringAsync().ContinueWith((xx) => {
-                        Console.WriteLine(xx.Result);
-                    }).Wait();
-                }).Wait();
+                }
+                Console.WriteLine();
+                var body = await content;
+                Console.WriteLine(body);
 
+            } finally {
+                Console.ResetColor();
+                Environment.ExitCode = response.IsSuccessStatusCode ? 0 : (int)Error.SCERRUNSPECIFIED;
+            }
         }
 
         static void ShowVersionInfo() {
@@ -169,22 +334,26 @@ namespace star {
             Console.WriteLine();
             Console.WriteLine("Options:");
             formatting = "  {0,-22}{1,25}";
-            Console.WriteLine(formatting, "-h, --help", "Shows help about star.exe.");
-            Console.WriteLine(formatting, "-v, --version", "Prints the version of Starcounter.");
-            Console.WriteLine(formatting, "-i, --info", "Prints information about the Starcounter installation.");
-            Console.WriteLine(formatting, "-p, --serverport port", "The port to use to the admin server.");
-            Console.WriteLine(formatting, "-d, --db name|uri", "The database to use. 'Default' is used if not given.");
-            Console.WriteLine(formatting, "--server name", "Specifies the name of the server. If no port is");
+            Console.WriteLine(formatting, string.Format("-h, --{0}", Option.Help), "Shows help about star.exe.");
+            Console.WriteLine(formatting, string.Format("-v, --{0}", Option.Version), "Prints the version of Starcounter.");
+            Console.WriteLine(formatting, string.Format("-i, --{0}", Option.Info), "Prints information about the Starcounter installation.");
+            Console.WriteLine(formatting, string.Format("-p, --{0} port", Option.Serverport), "The port to use to the admin server.");
+            Console.WriteLine(formatting, string.Format("--{0} name", Option.Server), "Specifies the name of the server. If no port is");
             Console.WriteLine(formatting, "", "specified, star.exe use the known port of server.");
-            Console.WriteLine(formatting, "--logsteps", "Enables diagnostic logging.");
-            Console.WriteLine(formatting, "--verbosity level", "Sets the verbosity level of star.exe (quiet, ");
+            Console.WriteLine(formatting, string.Format("--{0} host", Option.ServerHost), "Specifies the identity of the server host. If no");
+            Console.WriteLine(formatting, "", "host is specified, 'localhost' is used.");
+            Console.WriteLine(formatting, string.Format("-d, --{0} name", Option.Db), "The database to use. 'Default' is used if not given.");
+            Console.WriteLine(formatting, string.Format("--{0}", Option.LogSteps), "Enables diagnostic logging.");
+            Console.WriteLine(formatting, string.Format("--{0}", Option.NoDb), "Tells the host to load and run the executable");
+            Console.WriteLine(formatting, "", "without loading any database into the process.");
+            Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
             Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
             Console.WriteLine();
             Console.WriteLine("TEMPORARY: Creating a repository.");
             Console.WriteLine("Run star.exe @@CreateRepo path [servername] to create a repository.");
             Console.WriteLine();
             Console.WriteLine("Environment variables:");
-            Console.WriteLine("STAR_SERVER\t{0,8}", "Sets the server to use by default.");
+            Console.WriteLine("{0}\t{1,8}", EnvironmentVariable.ServerName, "Sets the server to use by default.");
             Console.WriteLine();
             Console.WriteLine("For complete help, see http://www.starcounter.com/wiki/star.exe");
         }
@@ -197,46 +366,54 @@ namespace star {
             appSyntax.ProgramDescription = "star.exe";
             appSyntax.DefaultCommand = "exec";
             appSyntax.DefineFlag(
-                "help",
+                Option.Help,
                 "Prints the star.exe help message.",
                 OptionAttributes.Default,
                 new string[] { "h" }
                 );
             appSyntax.DefineFlag(
-                "version",
+                Option.Version,
                 "Prints the version of Starcounter.",
                 OptionAttributes.Default,
                 new string[] { "v" }
                 );
             appSyntax.DefineFlag(
-                "info",
-                "Prints information about the Starcounter and star.exe",
+                Option.Info,
+                "Prints information about Starcounter and star.exe",
                 OptionAttributes.Default,
                 new string[] { "i" }
                 );
             appSyntax.DefineProperty(
-                "serverport",
+                Option.Serverport,
                 "The port of the server to use.",
                 OptionAttributes.Default,
                 new string[] { "p" }
                 );
             appSyntax.DefineProperty(
-                "db",
+                Option.Db,
                 "The database to use for commands that support it.",
                 OptionAttributes.Default,
                 new string[] { "d" }
                 );
             appSyntax.DefineProperty(
-                "verbosity",
+                Option.Verbosity,
                 "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
                 );
             appSyntax.DefineProperty(
-                "server",
+                Option.Server,
                 "Sets the name of the server to use."
                 );
+            appSyntax.DefineProperty(
+                Option.ServerHost,
+                "Specifies identify of the server host. Default is 'localhost'."
+                );
             appSyntax.DefineFlag(
-                "logsteps",
+                Option.LogSteps,
                 "Enables diagnostic logging. When set, Starcounter will produce a set of diagnostic log entries in the log."
+                );
+            appSyntax.DefineFlag(
+                Option.NoDb,
+                "Specifies the code host should run the executable without loading any database data."
                 );
 
             // NOTE:
