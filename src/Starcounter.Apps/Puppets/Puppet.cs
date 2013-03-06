@@ -299,5 +299,25 @@ namespace Starcounter {
             throw new NotImplementedException();
 #endif
         }
+
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>Action.</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Puppet Get(TPuppet property) {
+            return Get<Puppet>(property);
+        }
+
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Set(TPuppet property, Puppet value) {
+            Set((TObj)property, value);
+        }
     }
 }
