@@ -47,6 +47,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value><c>true</c> if this instance has instance value on client; otherwise, <c>false</c>.</value>
         public abstract bool HasInstanceValueOnClient { get; }
+
         /// <summary>
         /// Gets a value indicating whether this instance has default properties on client.
         /// </summary>
@@ -62,39 +63,12 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value><c>true</c> if editable; otherwise, <c>false</c>.</value>
         public bool Editable { get; set; }
-        /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="Template" /> is bound.
-        /// </summary>
-        /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
-        public bool Bound { get; set; }
+
         /// <summary>
         /// Gets or sets the on update.
         /// </summary>
         /// <value>The on update.</value>
         public string OnUpdate { get; set; }
-        /// <summary>
-        /// Gets or sets the bind.
-        /// </summary>
-        /// <value>The bind.</value>
-        public string Bind { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <returns></returns>
-        public virtual object GetBoundValueAsObject(Obj app) {
-            return null;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="value"></param>
-        public virtual void SetBoundValueAsObject(Obj app, object value) {
-
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Template" /> class.
@@ -151,6 +125,7 @@ namespace Starcounter.Templates {
         /// The _ name
         /// </summary>
         private string _Name;
+
         /// <summary>
         /// The _ property name
         /// </summary>
@@ -207,10 +182,11 @@ namespace Starcounter.Templates {
                 _Name = value;
                 if (PropertyName == null) {
                     string name = value.Replace("$", "");
-                    PropertyName = name;
+                    _PropertyName = name;
                     if (Parent != null) {
                         var parent = (TObj)Parent;
                         var props = (PropertyList)(parent.Properties);
+                        props.ChildPropertyNameIsSet(this);
                         props.ChildNameIsSet(this);
                     }
                 }   
@@ -223,21 +199,8 @@ namespace Starcounter.Templates {
         /// as the property identifier in the App.
         /// </summary>
         /// <value>The name of the property.</value>
-        /// <exception cref="System.Exception">Once the PropertyName is set, it cannot be changed</exception>
         public string PropertyName {
-            get {
-                return _PropertyName;
-            }
-            set {
-                if (_PropertyName != null && _PropertyName != value )
-                    throw new Exception("Once the PropertyName is set, it cannot be changed");
-                _PropertyName = value;
-                if (Parent != null ) {
-                    var parent = (TObj)Parent;
-                    var props = (PropertyList)(parent.Properties);
-                    props.ChildPropertyNameIsSet(this);
-                }
-            }
+            get { return _PropertyName; }
         }
 
         /// <summary>
@@ -281,8 +244,6 @@ namespace Starcounter.Templates {
         {
             toTemplate._Name = _Name;
             toTemplate._PropertyName = _PropertyName;
-            toTemplate.Bind = Bind;
-            toTemplate.Bound = Bound;
             toTemplate.Editable = Editable;
             toTemplate.Enabled = Enabled;
             toTemplate.Visible = Visible;
@@ -306,7 +267,4 @@ namespace Starcounter.Templates {
         /// </summary>
         public int ColNo;
     }
-
-
-
 }
