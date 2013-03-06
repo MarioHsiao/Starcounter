@@ -17,6 +17,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using Newtonsoft.Json;
 
 namespace star {
 
@@ -231,11 +232,9 @@ namespace star {
             executable = args.CommandParameters[0];
             executable = Path.GetFullPath(executable);
 
-            // Currently, we utilize the simplest possible representation.
-            // This will change to a full JSON object based on the given
-            // parameters.
-            // TODO:
-            requestBody = string.Format("{{ \"ExecutablePath\": \"{0}\" }}", executable);
+            // Create the request body, based on supplied arguments.
+
+            requestBody = CreateRequestBody(executable, args);
 
             // Post the request.
 
@@ -243,6 +242,7 @@ namespace star {
 
             // After posting and while waiting for the result to become available,
             // lets give some feedback.
+
             ConsoleUtil.ToConsoleWithColor(
                 string.Format("[Executing \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
                 Path.GetFileName(executable),
@@ -257,6 +257,37 @@ namespace star {
 
             await request;
             return request.Result;
+        }
+
+        /// <summary>
+        /// Creates the request body expected by the admin server when
+        /// recieving requests to execute/host an executable.
+        /// </summary>
+        /// <remarks>
+        /// See the ExecRequest class in Administrator for the format being
+        /// used.
+        /// </remarks>
+        /// <param name="executable">The executable (required)</param>
+        /// <param name="args">Arguments, possibly holding options to be
+        /// part of the request string.</param>
+        /// <returns>A JSON-formatted string representing a request to
+        /// execute an executable, compatible with what is expected from
+        /// the admin server.</returns>
+        static string CreateRequestBody(string executable, ApplicationArguments args) {
+            // We use a simple but probably slow technique to construct
+            // the body. The upside is that we dont accidentally format
+            // the string inproperly.
+            // Revise and reconsider this when we redesign this and have
+            // it usable from all contexts (like VS and the shell).
+
+            var request = new {
+                ExecutablePath = executable,
+                CommandLineString = string.Empty,
+                ResourceDirectoriesString = string.Empty,
+                NoDb = false,
+                LogSteps = args.ContainsFlag(Option.LogSteps)
+            };
+            return JsonConvert.SerializeObject(request);
         }
 
         static async Task ShowResultAndSetExitCode(
