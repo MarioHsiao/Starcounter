@@ -8,20 +8,24 @@ namespace QueryProcessingTest {
             int nrs = 0;
             // Arithmetic in select without variables
             Db.Transaction(delegate {
+                foreach (Decimal a in Db.SQL("select amount / (accountid+?) from account where accountid < ?", 1, 3)) {
+                    Trace.Assert(a >= nrs);
+                    nrs++;
+                }
+            });
+            Trace.Assert(nrs == 3);
+#if false   // not supported
+            nrs = 0;
+            Db.Transaction(delegate {
                 foreach (Boolean a in Db.SQL<Boolean>("select amount > accountid from account where accountid < ?", 3)) {
                     Trace.Assert(a == (nrs > 0));
                     nrs++;
                 }
             });
             Trace.Assert(nrs == 3);
-            Db.Transaction(delegate {
-                foreach (IObjectView a in Db.SQL("select amount / accountid+1, amount > accountid from account where accountid < ?", 3)) {
-                    Trace.Assert(a.GetBoolean(1) == (nrs > 0));
-                    nrs++;
-                }
-            });
-            Trace.Assert(nrs == 3);
+            nrs = 0;
             // Arithmetic in select clause
+            nrs = 0;
             Db.Transaction(delegate {
                 foreach (IObjectView a in Db.SQL("select amount / ?, amount > ? from account where accountid < ?",
                     100, 95, 3)) {
@@ -69,6 +73,7 @@ namespace QueryProcessingTest {
                 }
             });
             Trace.Assert(nrs == 6);
+#endif
         }
     }
 }

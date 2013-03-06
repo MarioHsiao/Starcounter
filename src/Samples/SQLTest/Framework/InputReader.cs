@@ -115,6 +115,11 @@ namespace SQLTest
                             continue;
                         }
 
+                        if (line.StartsWith("UseBisonParser:")) {
+                            testQuery.UseBisonParser = Boolean.Parse(line.Substring(15).Trim());
+                            continue;
+                        }
+
                         if (line.StartsWith("ExpectedExceptionMessage:"))
                         {
                             testQuery.ExpectedExceptionMessage = line.Substring(25).Trim();
