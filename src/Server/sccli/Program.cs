@@ -15,6 +15,8 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
+using System.Net.Sockets;
 
 namespace star {
 
@@ -22,6 +24,7 @@ namespace star {
 
         const string UnresolvedServerName = "N/A";
         const string DefaultAdminServerHost = "localhost";
+        const string DefaultDatabaseName = StarcounterConstants.DefaultDatabaseName;
 
         static class Option {
             public const string Help = "help";
@@ -172,7 +175,7 @@ namespace star {
             // exist? We shouldnt take away the ability for the server to do so
             // by validating if the file exist here.
             // So bottomline: a client with "full" transparency.
-
+            
             // First make sure we have a server/port to communicate with.
             int serverPort;
             string serverName;
@@ -197,46 +200,90 @@ namespace star {
                 }
                 serverHost = serverHost.TrimStart(new char[] { ':', '/' });
             }
+
+            HttpClient client;
+            HttpResponseMessage response;
             
-            
-            // Only do this if not silent or minimal verbosity
-            // TODO:
+            client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
+            var x = Exec(client, serverName, appArgs);
+            x.Wait();
+            response = x.Result;
 
-            ConsoleUtil.ToConsoleWithColor(
-                string.Format("[Using admin server \"{0}\" at {1}:{2}]", serverName, serverHost, serverPort), ConsoleColor.DarkGray);
+            ShowResultAndSetExitCode(response, appArgs).Wait();
+        }
 
-            var executable = appArgs.CommandParameters[0];
+        static async Task<HttpResponseMessage> Exec(HttpClient client, string serverName, ApplicationArguments args) {
+            string database;
+            string uri;
+            string executable;
+            string requestBody;
+            Task<HttpResponseMessage> request;
 
-            // Aware of the above paragraph, we still do resolve the path of the
-            // given executable based on the location of the client.
+            if (!args.TryGetProperty(Option.Db, out database)) {
+                database = Program.DefaultDatabaseName;
+            }
+            uri = string.Format("/databases/{0}/executables", database);
+
+            // Aware of the client transparency guideline stated previously,
+            // we still do resolve the path of the given executable based on
+            // the location of the client. It's most likely what the user
+            // intended.
+            executable = args.CommandParameters[0];
             executable = Path.GetFullPath(executable);
 
-            // Craft a ExecRequest and POST it to the server.
+            // Currently, we utilize the simplest possible representation.
+            // This will change to a full JSON object based on the given
+            // parameters.
+            // TODO:
+            requestBody = string.Format("{{ \"ExecutablePath\": \"{0}\" }}", executable);
 
-            var execRequestString = string.Format("{{ \"ExecutablePath\": \"{0}\" }}", executable);
+            // Post the request.
 
-            // Construct the client
+            request = client.PostAsync(uri, new StringContent(requestBody, Encoding.UTF8, "application/json"));
 
-            var client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            // After posting and while waiting for the result to become available,
+            // lets give some feedback.
+            ConsoleUtil.ToConsoleWithColor(
+                string.Format("[Executing \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
+                Path.GetFileName(executable),
+                database,
+                serverName,
+                client.BaseAddress.Host, 
+                client.BaseAddress.Port), 
+                ConsoleColor.DarkGray
+                );
 
-            client.PostAsync(
-                "/databases/default/executables",
-                new StringContent(execRequestString, Encoding.UTF8, "application/json")).ContinueWith((posttask) => {
-                    Console.WriteLine("HTTP/{0} {1} {2}", posttask.Result.Version, (int)posttask.Result.StatusCode, posttask.Result.ReasonPhrase);
-                    foreach (var item in posttask.Result.Headers) {
-                        Console.Write("{0}: ", item.Key);
-                        foreach (var item2 in item.Value) {
-                            Console.Write(item2 + " ");
-                        }
-                        Console.WriteLine();
+            // Await the requested result, then return the result.
+
+            await request;
+            return request.Result;
+        }
+
+        static async Task ShowResultAndSetExitCode(
+            HttpResponseMessage response, 
+            ApplicationArguments args) {
+            
+            var content = response.Content.ReadAsStringAsync();
+            var color = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
+            Console.ForegroundColor = color;
+            try {
+                Console.WriteLine();
+                Console.WriteLine("HTTP/{0} {1} {2}", response.Version, (int)response.StatusCode, response.ReasonPhrase);
+                foreach (var item in response.Headers) {
+                    Console.Write("{0}: ", item.Key);
+                    foreach (var item2 in item.Value) {
+                        Console.Write(item2 + " ");
                     }
                     Console.WriteLine();
-                    posttask.Result.Content.ReadAsStringAsync().ContinueWith((xx) => {
-                        Console.WriteLine(xx.Result);
-                    }).Wait();
-                }).Wait();
+                }
+                Console.WriteLine();
+                var body = await content;
+                Console.WriteLine(body);
 
+            } finally {
+                Console.ResetColor();
+                Environment.ExitCode = response.IsSuccessStatusCode ? 0 : (int)Error.SCERRUNSPECIFIED;
+            }
         }
 
         static void ShowVersionInfo() {
@@ -298,7 +345,7 @@ namespace star {
                 );
             appSyntax.DefineFlag(
                 Option.Info,
-                "Prints information about the Starcounter and star.exe",
+                "Prints information about Starcounter and star.exe",
                 OptionAttributes.Default,
                 new string[] { "i" }
                 );
