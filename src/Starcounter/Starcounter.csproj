@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -32,7 +32,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;_MANAGED</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -313,7 +313,18 @@
     <Compile Include="Query\prologbeans\QueryAnswer.cs" />
     <Compile Include="Query\prologbeans\SupportClass.cs" />
     <Compile Include="Query\prologbeans\Term.cs" />
+    <Compile Include="Query\QueryPreparation.cs" />
+    <Compile Include="Query\RawParserAnalyzer\IParserTreeAnalyzer.cs" />
+    <Compile Include="Query\RawParserAnalyzer\MapParserTree.cs" />
+    <Compile Include="Query\RawParserAnalyzer\ParserTreeWalker.cs" />
+    <Compile Include="Query\RawParserAnalyzer\NativeParserErrors.cs" />
+    <Compile Include="Query\RawParserAnalyzer\PrintParserTree.cs" />
+    <Compile Include="Query\SQL\OptimizerInput.cs" />
     <Compile Include="Query\SQL\SqlResultGeneric.cs" />
+    <Compile Include="Query\RawParserAnalyzer\RawParserAnalyzerHelloTest.cs" />
+    <Compile Include="Query\RawParserAnalyzer\rawparser_enums.cs" />
+    <Compile Include="Query\RawParserAnalyzer\SelectStmtWalker.cs" />
+    <Compile Include="Query\RawParserAnalyzer\UnmanagedParserInterface.cs" />
     <Compile Include="Query\SQL\PrologManager.cs" />
     <Compile Include="Query\SQL\PrologProcess.cs" />
     <Compile Include="Query\SQL\SqlException.cs" />

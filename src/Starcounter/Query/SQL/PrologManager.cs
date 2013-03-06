@@ -19,6 +19,8 @@ using System.Net.Sockets;
 using System.Security.Permissions;
 using System.Text;
 using System.Threading;
+using Starcounter.Query.Optimization;
+using Starcounter.Query.SQL;
 
 namespace Starcounter.Query.Sql
 {
@@ -933,7 +935,7 @@ namespace Starcounter.Query.Sql
         }
 
         [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
-        internal static IExecutionEnumerator ProcessSqlQuery(Scheduler scheduler, String query)
+        internal static QueryAnswer CallProlog(Scheduler scheduler, String query)
         {
             // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
@@ -995,11 +997,13 @@ namespace Starcounter.Query.Sql
             {
                 throw CreateSqlException(query, errListTerm);
             }
+            return answer;
+        }
 
+        internal static OptimizerInput ProcessPrologAnswer(QueryAnswer answer, String query) {
             // Get the number of variables in the query.
             Term varNumTerm = answer.getValue("VarNum");
-            if (varNumTerm.Integer == false)
-            {
+            if (varNumTerm.Integer == false) {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect varNumTerm: " + varNumTerm);
             }
             Int32 varNumber = varNumTerm.intValue();
@@ -1007,9 +1011,12 @@ namespace Starcounter.Query.Sql
             // Creating variable array with specified number of entries (if any).
             VariableArray variableArray = new VariableArray(varNumber);
 
+            return Creator.CreateOptimizerInput(Creator.CreateRowTypeBinding(answer.getValue("TypeDef"), variableArray), 
+                answer.getValue("ExecInfo"), variableArray, query);
+#if false
             // Calling core enumerator creation function.
-            IExecutionEnumerator createdEnumerator = Creator.CreateEnumerator(Creator.CreateRowTypeBinding(answer.getValue("TypeDef"), variableArray),
-                                                                                answer.getValue("ExecInfo"), variableArray, query);
+            IExecutionEnumerator createdEnumerator = Optimizer.Optimize(Creator.CreateOptimizerInput(Creator.CreateRowTypeBinding(answer.getValue("TypeDef"), variableArray),
+                                                                                answer.getValue("ExecInfo"), variableArray, query));
 
             // The special case where query includes "LIKE ?" is handled by special class LikeExecEnumerator.
             if (((variableArray.QueryFlags & QueryFlags.IncludesLIKEvariable) != QueryFlags.None) && (query[0] != ' '))
@@ -1017,6 +1024,7 @@ namespace Starcounter.Query.Sql
 
             // Return the created execution enumerator.
             return createdEnumerator;
+#endif
         }
 
         private static SqlException CreateSqlException(String query, Term msgListTerm)
