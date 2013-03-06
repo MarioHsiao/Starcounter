@@ -162,9 +162,9 @@ namespace Starcounter.Apps {
 
             foreach (Template child in app.Template.Children) {
                 if (child is TPuppet) {
-                    DisposeAppRecursively(app.GetValue((TObj)child));
+                    DisposeAppRecursively(app.Get((TPuppet)child));
                 } else if (child is TObjArr) {
-                    Arr listing = app.GetValue((TObjArr)child);
+                    Arr listing = app.Get((TObjArr)child);
                     foreach (Puppet listApp in listing) {
                         DisposeAppRecursively(listApp);
                     }
@@ -172,7 +172,6 @@ namespace Starcounter.Apps {
             }
 
         }
-
     }
 
     internal struct VMID {

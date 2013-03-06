@@ -7,8 +7,9 @@
 using System;
 using Starcounter.Templates;
 using System.Collections.Generic;
-using Starcounter.Templates.DataBinding;
 using System.Diagnostics;
+using Starcounter.XSON;
+using Starcounter.Advanced;
 
 namespace Starcounter {
     /// <summary>
@@ -19,8 +20,13 @@ namespace Starcounter {
         public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
 
-        private DataBinding<T> dataBinding;
-        
+        private DataValueBinding<T> dataBinding;
+
+        internal DataValueBinding<T> GetBinding(IBindable data) {
+            dataBinding = DataBindingFactory.VerifyOrCreateBinding<T>(this, dataBinding, data.GetType(), Bind);
+            return dataBinding;
+        }
+
         /// <summary>
         /// Adds an inputhandler to this property.
         /// </summary>
@@ -33,68 +39,19 @@ namespace Starcounter {
             this.CustomInputHandlers.Add(handler);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<Obj, T> dataGetter) {
-            dataBinding = new DataBinding<T>(dataGetter);
-            Bound = true;
+        internal override object GetBoundValueAsObject(Obj obj) {
+            return obj.GetBound<T>(this);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataGetter"></param>
-        /// <param name="dataSetter"></param>
-        public void AddDataBinding(Func<Obj, T> dataGetter, Action<Obj, T> dataSetter) {
-            dataBinding = new DataBinding<T>(dataGetter, dataSetter);
-            Bound = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="value"></param>
-        public void SetBoundValue(Obj app, T value) {
-            dataBinding.SetValue(app, value);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <returns></returns>
-        public T GetBoundValue(Obj app) {
-            return dataBinding.GetValue(app);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public override object GetBoundValueAsObject(Obj obj) {
-            return dataBinding.GetValue(obj);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="value"></param>
-        public override void SetBoundValueAsObject(Obj obj, object value) {
-            dataBinding.SetValue(obj, (T)value);
+        internal override void SetBoundValueAsObject(Obj obj, object value) {
+            obj.SetBound<T>(this, (T)value);
         }
     }
-
 
     /// <summary>
     /// Class Property
     /// </summary>
-    public abstract class TValue : Template
-    {
+    public abstract class TValue : Template {
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
         /// </summary>
@@ -102,6 +59,18 @@ namespace Starcounter {
         public override bool HasInstanceValueOnClient {
             get { return true; }
         }
+
+        /// <summary>
+        /// Gets or sets the name of the property this template is bound to.
+        /// </summary>
+        /// <value>The bind.</value>
+        public string Bind { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this template is bound.
+        /// </summary>
+        /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
+        public bool Bound { get { return (Bind != null); } }
 
         /// <summary>
         /// 
@@ -113,5 +82,32 @@ namespace Starcounter {
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
         public abstract void ProcessInput(Obj obj, Byte[] rawValue);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="toTemplate"></param>
+        public override void CopyTo(Template toTemplate) {
+            base.CopyTo(toTemplate);
+            ((TValue)toTemplate).Bind = Bind;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        internal virtual object GetBoundValueAsObject(Obj obj) {
+            throw new NotSupportedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="value"></param>
+        internal virtual void SetBoundValueAsObject(Obj obj, object value) {
+            throw new NotSupportedException();
+        }
     }
 }
