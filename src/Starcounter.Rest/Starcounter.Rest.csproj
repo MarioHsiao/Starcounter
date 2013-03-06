@@ -104,6 +104,7 @@
     <Compile Include="RequestHandler\AstTree\Nodes\AstVerifier.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstDeserializeMessage.cs" />
     <Compile Include="RequestHandler\NewRequestHandlers.cs" />
+    <Compile Include="RequestHandler\NewUserHandlers.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseNode.PrettyPrint.cs" />
     <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />

@@ -76,6 +76,26 @@ namespace Starcounter.Internal.Test
             return "UserFunc5!";
         }
 
+        public static String UserFunc6(Int64 p1, Decimal p2, Int32 p3, Int32 p4, Message m)
+        {
+            Assert.IsTrue(-3853984 == p1);
+            Assert.IsTrue(-3535m == p2);
+            Assert.IsTrue(1234 == p3);
+            Assert.IsTrue(-78 == p4);
+
+            return "UserFunc6!";
+        }
+
+        public static String UserFunc7(Message m, Int64 p1, Decimal p2, Int32 p3, Int32 p4, HttpRequest r)
+        {
+            Assert.IsTrue(-3853984 == p1);
+            Assert.IsTrue(-3535m == p2);
+            Assert.IsTrue(1234 == p3);
+            Assert.IsTrue(-78 == p4);
+
+            return "UserFunc7!";
+        }
+
         /// <summary>
         /// Tests simple correct HTTP request.
         /// </summary>
@@ -110,11 +130,13 @@ namespace Starcounter.Internal.Test
                 prevOffset = (UInt16)(curOffset + 1);
             }
 
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel1 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, HttpRequest, String, Object>(UserHttpDelegateTests.UserFunc1));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel2 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel3 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, HttpRequest, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel4 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, HttpRequest, Object>(UserHttpDelegateTests.UserFunc4));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel5 = UserHandlerCodegen.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel1 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, HttpRequest, String, Object>(UserHttpDelegateTests.UserFunc1));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel2 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel3 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, HttpRequest, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel4 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, HttpRequest, Object>(UserHttpDelegateTests.UserFunc4));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel5 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel6 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Message, Object>(UserHttpDelegateTests.UserFunc6));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel7 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Message, Int64, Decimal, Int32, Int32, HttpRequest, Object>(UserHttpDelegateTests.UserFunc7));
 
             unsafe
             {
@@ -128,6 +150,8 @@ namespace Starcounter.Internal.Test
                         Assert.IsTrue("UserFunc3!" == (String)genDel3(new HttpRequest(r), (IntPtr)p1, (IntPtr)p2));
                         Assert.IsTrue("UserFunc4!" == (String)genDel4(new HttpRequest(r), (IntPtr)p1, (IntPtr)p2));
                         Assert.IsTrue("UserFunc5!" == (String)genDel5(null, (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc6!" == (String)genDel6(null, (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc7!" == (String)genDel7(new HttpRequest(r), (IntPtr)p1, (IntPtr)(p2 + 7)));
                     }
                 }
             }
