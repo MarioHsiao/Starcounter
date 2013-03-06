@@ -37,6 +37,8 @@ internal abstract class ExecutionEnumerator
     protected LinkedList<IExecutionEnumerator> enumCacheListFrom = null; // From which cache list this enumerator came from.
     protected LinkedListNode<IExecutionEnumerator> enumListNode = null; // Node with this execution enumerator.
 
+    protected Boolean isBisonParserUsed = false;
+
     /// <summary>
     /// Default constructor.
     /// </summary>
@@ -177,6 +179,15 @@ internal abstract class ExecutionEnumerator
         {
             return variableArray.QueryFlags;
         }
+    }
+
+    /// <summary>
+    /// Returns if Bison-parser was used in creation of the enumerator.
+    /// It will be removed when Prolog-parser is deprecated.
+    /// </summary>
+    public Boolean IsBisonPrarserUsed {
+        get { return isBisonParserUsed; }
+        internal set { isBisonParserUsed = value; }
     }
 
     /// <summary>
