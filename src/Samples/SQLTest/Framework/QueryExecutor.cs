@@ -64,23 +64,37 @@ namespace SQLTest
                         {
                             queryList[i].ActualExecutionPlan1 = sqlEnum.ToString();
                             queryList[i].ActualResult1 = CreateResultString(resultList, queryList[i].ShouldBeReordered);
+                            queryList[i].ActualUseBisonParser1 = sqlEnum.IsBisonPrarserUsed;
                         }
                         else
                         {
                             queryList[i].ActualExecutionPlan2 = sqlEnum.ToString();
                             queryList[i].ActualResult2 = CreateResultString(resultList, queryList[i].ShouldBeReordered);
+                            queryList[i].ActualUseBisonParser2 = sqlEnum.IsBisonPrarserUsed;
                         }
                     }
                     catch (Exception exception)
                     {
                         if (firstExecution)
                         {
-                            queryList[i].ActualExceptionMessage1 = exception.Message.Trim();
+                            String message = exception.Message.Trim();
+                            if (message.Contains("\r"))
+                                message = message.Substring(0, message.IndexOf("\r"));
+                            if (message.Contains("\n"))
+                                message = message.Substring(0, message.IndexOf("\n"));
+                            message.Trim();
+                            queryList[i].ActualExceptionMessage1 = message;
                             queryList[i].ActualFullException1 = exception.ToString();
                         }
                         else
                         {
-                            queryList[i].ActualExceptionMessage2 = exception.Message.Trim();
+                            String message = exception.Message.Trim();
+                            if (message.Contains("\r"))
+                                message = message.Substring(0, message.IndexOf("\r"));
+                            if (message.Contains("\n"))
+                                message = message.Substring(0, message.IndexOf("\n"));
+                            message.Trim();
+                            queryList[i].ActualExceptionMessage2 = message;
                             queryList[i].ActualFullException2 = exception.ToString();
                         }
                     }

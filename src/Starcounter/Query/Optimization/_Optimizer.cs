@@ -8,6 +8,7 @@ using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Starcounter.Query.SQL;
 
 namespace Starcounter.Query.Optimization
 {
@@ -23,39 +24,43 @@ internal static class Optimizer
     /// <param name="fetchOffsetKeyExpr">An offset-key expression.</param>
     /// <param name="hintSpec">A hint specification given by the user on how to execute the query.</param>
     /// <returns>An execution enumerator corresponding to an optimized query execution plan.</returns>
-    internal static IExecutionEnumerator Optimize(IOptimizationNode nodeTree, ConditionDictionary conditionDict,
-        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr, 
-        HintSpecification hintSpec)
-    {
-        if (nodeTree == null)
-        {
+    internal static IExecutionEnumerator Optimize(OptimizerInput args) {
+        IOptimizationNode nodeTree = args.NodeTree;
+        ConditionDictionary conditionDict = args.ConditionDict;
+        INumericalExpression fetchNumExpr = args.FetchNumExpr;
+        INumericalExpression fetchOffsetExpr = args.FetchOffsetExpr;
+        IBinaryExpression fetchOffsetKeyExpr = args.FetchOffsetKeyExpr;
+        HintSpecification hintSpec = args.HintSpec;
+
+        if (nodeTree == null) {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect nodeTree.");
         }
-        if (conditionDict == null)
-        {
+        if (conditionDict == null) {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect conditionDict.");
         }
-        if (hintSpec == null)
-        {
+        if (hintSpec == null) {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect hintSpec.");
         }
         List<OptimizationTree> optimizationTreeList = CreateAllPermutations(nodeTree, hintSpec);
         OptimizationTree bestOptimizationTree = null;
-        for (Int32 i = 0; i < optimizationTreeList.Count; i++)
-        {
+        for (Int32 i = 0; i < optimizationTreeList.Count; i++) {
             optimizationTreeList[i].DistributeIndexHints(hintSpec.IndexHintList);
             optimizationTreeList[i].DistributeConditions(conditionDict);
             optimizationTreeList[i].EvaluateScanAlternatives();
             optimizationTreeList[i].SortOptimize();
-            if (bestOptimizationTree == null || optimizationTreeList[i].EstimatedCost < bestOptimizationTree.EstimatedCost)
-            {
+            if (bestOptimizationTree == null || optimizationTreeList[i].EstimatedCost < bestOptimizationTree.EstimatedCost) {
                 bestOptimizationTree = optimizationTreeList[i];
             }
             // TODO: Aggregation optimize tree.
         }
         FlagInnermostExtent(bestOptimizationTree);
         // Return the corresponding execution enumerator.
-        return bestOptimizationTree.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+        IExecutionEnumerator createdEnumerator = bestOptimizationTree.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+
+        // The special case where query includes "LIKE ?" is handled by special class LikeExecEnumerator.
+        if (((createdEnumerator.VarArray.QueryFlags & QueryFlags.IncludesLIKEvariable) != QueryFlags.None) && (createdEnumerator.QueryString[0] != ' '))
+            createdEnumerator = new LikeExecEnumerator(createdEnumerator.QueryString, null, null);
+        return createdEnumerator;
     }
 
     internal static List<OptimizationTree> CreateAllPermutations(IOptimizationNode nodeTree, 

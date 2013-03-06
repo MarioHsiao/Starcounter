@@ -7,8 +7,13 @@ using Starcounter.ABCIPC.Internal;
 using Starcounter.Internal;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 using StarcounterAppsLogTester;
+using Newtonsoft.Json;
 using Starcounter.Internal.REST;
+using Starcounter.Advanced;
+
+using ExecRequest = StarcounterApps3.ExecRequest;
 
 // http://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.aspx
 
@@ -58,6 +63,7 @@ namespace StarcounterApps3 {
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
             RegisterGETS();
+            RegisterPOSTS();
         }
 
         static void RegisterGETS() {
@@ -85,6 +91,7 @@ namespace StarcounterApps3 {
                 return new Master() { View = "index.html" };
             });
 
+            // Accept "", text/html, OR application/json. Otherwise, 406.
             GET("/server", () => {
 
                 ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
@@ -160,7 +167,41 @@ namespace StarcounterApps3 {
                 logApp.RefreshLogEntriesList();
                 return logApp;
             });
+        }
 
+        static void RegisterPOSTS() {
+
+            // Define the handler responsible for handling requests to
+            // execute (implemented as a POST to a given database executable
+            // collection resource).
+            //   The handler will change to use the Message class as the input
+            // parameter rather than the request. For now, we'll have to do
+            // with the request and convert it's body to a Message instance by
+            // hand.
+            POST<HttpRequest, string>("/databases/{?}/executables", (HttpRequest request, string name) => {
+                ServerEngine engine = Master.ServerEngine;
+                IServerRuntime runtime = Master.ServerInterface;
+
+                var execRequest = ExecRequest.FromJson(request);
+                
+                var cmd = new ExecAppCommand(engine, execRequest.ExecutablePath, null, null);
+                cmd.DatabaseName = name;
+                cmd.EnableWaiting = true;
+                cmd.LogSteps = execRequest.LogSteps;
+                cmd.NoDb = execRequest.NoDb;
+
+                var commandInfo = runtime.Execute(cmd);
+                commandInfo = runtime.Wait(commandInfo);
+
+                // For illustration purposes, showing that we can return
+                // Message objects as the content, we simply return the
+                // one we have at hand. This should change, returning an
+                // entity that contains context-relative information about
+                // the resouce (i.e. the now running executable).
+                // TODO:
+
+                return execRequest;
+            });
         }
 
         #region ServerServices

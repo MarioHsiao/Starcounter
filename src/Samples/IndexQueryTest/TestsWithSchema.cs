@@ -13,13 +13,13 @@ namespace IndexQueryTest
         {
             Db.Transaction(delegate
             {
-                if (Db.SQL("select u from user u").First == null)
+                if (Db.SQL("select u from Accounttest.user u").First == null)
                 {
                     Console.WriteLine("It seems that User table was deleted");
                     PrintAllObjects();
                 }
                 Db.SlowSQL("DELETE FROM Account");
-                Db.SlowSQL("DELETE FROM User");
+                Db.SlowSQL("DELETE FROM Accounttest.User");
             });
         }
 
