@@ -159,7 +159,7 @@ namespace Starcounter.Templates {
         }
 
         internal DataValueBinding<IBindable> GetBinding(IBindable data) {
-            dataBinding = DataBindingFactory.VerifyOrCreateBinding<IBindable>(dataBinding, data.GetType(), Bind);
+            dataBinding = DataBindingFactory.VerifyOrCreateBinding<IBindable>(this, dataBinding, data.GetType(), Bind);
             return dataBinding;
         }
     }
