@@ -231,7 +231,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     }
 
                     break;
-                case NodeType.Heureka:
+                case NodeType.HeurekaNode:
                     nextParent = new AstElseIfList(){
                         ParseNode = pn,
                         Parent = parent

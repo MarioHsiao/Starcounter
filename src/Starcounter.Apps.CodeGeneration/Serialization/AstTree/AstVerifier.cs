@@ -18,8 +18,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             if (pn.Parent == null)
                 return;
 
-            numberToVerify = pn.MatchCharInTemplateRelative - 1;
-            verifyOffset = pn.Parent.MatchCharInTemplateAbsolute + 1;
+            numberToVerify = pn.Parent.MatchChildrenAt - 1;
+            verifyOffset = pn.Parent.Parent.MatchChildrenAtAbsolute + 1;
 
             if (pn.Parent.Parent == null) {
                 numberToVerify++;
