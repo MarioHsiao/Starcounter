@@ -22,11 +22,11 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v110</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -40,15 +40,24 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
+    <IncludePath>$(ProjectDir)\Include;$(IncludePath)</IncludePath>
+    <ExecutablePath>$(ExecutablePath);$(SolutionDir)packages\ParserTools</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(ProjectDir)\Include;$(IncludePath)</IncludePath>
+    <ExecutablePath>$(ExecutablePath);$(SolutionDir)packages\ParserTools</ExecutablePath>
+    <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ModuleDefinitionFile>Starcounter.SqlParser.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -57,14 +66,92 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>Starcounter.SqlParser.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ErrorManagment.h" />
+    <ClInclude Include="General\c.h" />
+    <ClInclude Include="General\pg_config.h" />
+    <ClInclude Include="General\port.h" />
+    <ClInclude Include="General\postgres.h" />
+    <ClInclude Include="Nodes\makefuncs.h" />
+    <ClInclude Include="Nodes\memnodes.h" />
+    <ClInclude Include="Nodes\nodeFuncs.h" />
+    <ClInclude Include="Nodes\nodes.h" />
+    <ClInclude Include="Nodes\parsenodes.h" />
+    <ClInclude Include="Nodes\pg_list.h" />
+    <ClInclude Include="Nodes\primnodes.h" />
+    <ClInclude Include="Nodes\value.h" />
+    <ClInclude Include="Parser\gram.h" />
+    <ClInclude Include="Parser\gramparse.h" />
+    <ClInclude Include="Parser\keywords.h" />
+    <ClInclude Include="Parser\kwlist.h" />
+    <ClInclude Include="Parser\parser.h" />
+    <ClInclude Include="Parser\scanfuncs.h" />
+    <ClInclude Include="Parser\scanner.h" />
+    <ClInclude Include="Parser\scansup.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="ThreadsafeParser.h" />
+    <ClInclude Include="Utils\datetime.h" />
+    <ClInclude Include="Utils\memutils.h" />
+    <ClInclude Include="Utils\palloc.h" />
+    <ClInclude Include="Utils\pg_wchar.h" />
+    <ClInclude Include="Utils\stringinfo.h" />
+    <ClInclude Include="Utils\xml.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ErrorManagement.cpp" />
+    <ClCompile Include="Nodes\copyfuncs.c" />
+    <ClCompile Include="Nodes\list.c" />
+    <ClCompile Include="Nodes\makefuncs.c" />
+    <ClCompile Include="Nodes\nodeFuncs.c" />
+    <ClCompile Include="Nodes\nodes.c" />
+    <ClCompile Include="Nodes\outfuncs.c" />
+    <ClCompile Include="Nodes\value.c" />
+    <ClCompile Include="Parser\gram.c" />
+    <ClCompile Include="Parser\keywords.c" />
+    <ClCompile Include="Parser\kwlookup.c" />
+    <ClCompile Include="Parser\parser.c" />
+    <ClCompile Include="SQLParser.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <None Include="Parser\scan.c" />
+    <ClCompile Include="Parser\scansup.c" />
+    <ClCompile Include="Utils\aset.c" />
+    <ClCompile Include="Utils\assert.c" />
+    <ClCompile Include="Utils\encnames.c" />
+    <ClCompile Include="Utils\mcxt.c" />
+    <ClCompile Include="Utils\snprintf.c" />
+    <ClCompile Include="Utils\stringinfo.c" />
+    <ClCompile Include="Utils\wchar.c" />
+    <None Include="Starcounter.SqlParser.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Parser\gram.y">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">call run_win_bison.cmd -d $(ProjectDir)Parser\%(filename).y -o $(ProjectDir)Parser\%(filename).c</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Parser\%(filename).c</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Running bison</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">call run_win_bison.cmd -d $(ProjectDir)Parser\%(filename).y -o $(ProjectDir)Parser\%(filename).c</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Running bison</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Parser\%(filename).c</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="Parser\scan.l">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">win_flex.exe -CF -o $(ProjectDir)Parser\%(filename).c $(ProjectDir)Parser\%(filename).l</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Running flex</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Parser\%(filename).c</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">win_flex.exe -CF -o $(ProjectDir)Parser\%(filename).c $(ProjectDir)Parser\%(filename).l</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Running flex</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Parser\%(filename).c</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

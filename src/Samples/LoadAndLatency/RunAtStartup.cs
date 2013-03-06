@@ -21,7 +21,7 @@ namespace LoadAndLatencyStartup
                 // Checking for help argument.
                 if (String.Compare(args[0], "?") == 0)
                 {
-                    Console.WriteLine("LoadAndLatencyClient.exe [NumberOfWorkers NumberOfTransactions [ParallelTestOnly] [pause]]");
+                    Console.WriteLine("LoadAndLatency.exe [NumberOfWorkers NumberOfTransactions [ParallelTestOnly] [pause]]");
                     Console.WriteLine("NumberOfWorkers: [1; 32]");
                     Console.WriteLine("NumberOfTransactions: [10; 10000]");
                     Console.WriteLine("ParallelTestOnly: s");

@@ -1,0 +1,16 @@
+LIBRARY "Starcounter.SqlParser"
+
+EXPORTS
+	InitParser
+	ParseQueryToString
+;	MyPrintNodes
+	ParseQuery
+	TreeToString
+	StrVal
+	ResetMemoryContext
+	DumpMemoryLeaks
+	CleanMemoryContext
+	GetScError
+	Location
+	LAppend
+	LCons

@@ -16,19 +16,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using Starcounter.Binding;
+using Starcounter.Query.SQL;
 
 namespace Starcounter.Query.Sql
 {
     internal static class Creator
     {
-        internal static IExecutionEnumerator CreateEnumerator(RowTypeBinding rowTypeBind,
+        internal static OptimizerInput CreateOptimizerInput(RowTypeBinding rowTypeBind,
                                                               Term term,
                                                               VariableArray varArray,
                                                               String query)
         {
             if (term.Name == "select2" && term.Arity == 7)
             {
-                return OptimizeAndCreateEnumerator(rowTypeBind, term.getArgument(3), term.getArgument(4), term.getArgument(5), term.getArgument(6), term.getArgument(7), 
+                return MapTermsToOptimizerInput(rowTypeBind, term.getArgument(3), term.getArgument(4), term.getArgument(5), term.getArgument(6), term.getArgument(7), 
                     varArray, query);
             }
 
@@ -36,7 +37,7 @@ namespace Starcounter.Query.Sql
             {
                 //if (!QueryModule.AggregationSupport) throw new SqlException("Aggregations are not supported.");
                 varArray.QueryFlags |= QueryFlags.IncludesAggregation;
-                return OptimizeAndCreateAggregationEnumerator(rowTypeBind, term.getArgument(3), term.getArgument(4), term.getArgument(5), term.getArgument(6),
+                return MapTermsToOptimizerInputWithAggregation(rowTypeBind, term.getArgument(3), term.getArgument(4), term.getArgument(5), term.getArgument(6),
                     term.getArgument(7), term.getArgument(8), term.getArgument(9), term.getArgument(10), term.getArgument(11), varArray, query);
             }
 
@@ -75,7 +76,7 @@ namespace Starcounter.Query.Sql
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expression: " + term);
         }
 
-        private static IExecutionEnumerator OptimizeAndCreateAggregationEnumerator(RowTypeBinding rowTypeBind, Term nodeTreeTerm,
+        private static OptimizerInput MapTermsToOptimizerInputWithAggregation(RowTypeBinding rowTypeBind, Term nodeTreeTerm,
                 Term whereCondTerm, Term groupbyComparerListTerm, Term setFuncListTerm, Term havingCondTerm, Term tempExtentTerm,
                 Term orderbyComparerListTerm, Term fetchTerm, Term hintListTerm, VariableArray varArray, String query)
         {
@@ -113,11 +114,10 @@ namespace Starcounter.Query.Sql
             CreateFetchSpecification(rowTypeBind, fetchTerm, varArray, out fetchNumExpr, out fetchOffsetExpr, out fetchOffsetKeyExpr);
             // Create hint specification.
             HintSpecification hintSpec = CreateHintSpecification(rowTypeBind, hintListTerm, varArray);
-            // Optimize and create enumerator.
-            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
+            return new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
         }
 
-        private static IExecutionEnumerator OptimizeAndCreateEnumerator(RowTypeBinding rowTypeBind, Term nodeTreeTerm, Term whereCondTerm,
+        private static OptimizerInput MapTermsToOptimizerInput(RowTypeBinding rowTypeBind, Term nodeTreeTerm, Term whereCondTerm,
                 Term orderbyComparerListTerm, Term fetchTerm, Term hintListTerm, VariableArray varArray, String query)
         {
             // Create tree of optimizing nodes.
@@ -139,8 +139,7 @@ namespace Starcounter.Query.Sql
             CreateFetchSpecification(rowTypeBind, fetchTerm, varArray, out fetchNumExpr, out fetchOffsetExpr, out fetchOffsetKeyExpr);
             // Create hint specification.
             HintSpecification hintSpec = CreateHintSpecification(rowTypeBind, hintListTerm, varArray);
-            // Optimize and create enumerator.
-            return Optimizer.Optimize(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
+            return new OptimizerInput(nodeTree, conditionDict, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, hintSpec);
         }
 
         // Output is returned in arguments fetchNumExpr and fetchOffsetKeyExpr.
