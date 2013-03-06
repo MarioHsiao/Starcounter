@@ -112,10 +112,10 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual(3, phoneNumbers.Index);
             Assert.AreEqual(0, number.Index);
 
-            Assert.AreEqual("Joachim", jocke[firstName]);
-            Assert.AreEqual("Wester", jocke[lastName]);
-            Assert.AreEqual("Timothy", tim[firstName]);
-            Assert.AreEqual("Wester", tim[lastName]);
+            Assert.AreEqual("Joachim", jocke.FirstName);
+            Assert.AreEqual("Wester", jocke.LastName);
+            Assert.AreEqual("Timothy", tim.FirstName);
+            Assert.AreEqual("Wester", tim.LastName);
 
             var ret = new List<Puppet>();
             ret.Add(jocke);
