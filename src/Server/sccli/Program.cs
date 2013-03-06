@@ -21,6 +21,7 @@ namespace star {
     class Program {
 
         const string UnresolvedServerName = "N/A";
+        const string DefaultAdminServerHost = "localhost";
 
         static class Option {
             public const string Help = "help";
@@ -175,6 +176,7 @@ namespace star {
             // First make sure we have a server/port to communicate with.
             int serverPort;
             string serverName;
+            string serverHost;
 
             try {
                 GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
@@ -187,13 +189,21 @@ namespace star {
                 Environment.ExitCode = (int)errorCode;
                 return;
             }
-
+            if (!appArgs.TryGetProperty(Option.ServerHost, out serverHost)) {
+                serverHost = Program.DefaultAdminServerHost;
+            } else {
+                if (serverHost.StartsWith("http", true, null)) {
+                    serverHost = serverHost.Substring(4);
+                }
+                serverHost = serverHost.TrimStart(new char[] { ':', '/' });
+            }
+            
+            
             // Only do this if not silent or minimal verbosity
             // TODO:
 
             ConsoleUtil.ToConsoleWithColor(
-                string.Format("[Using admin server \"{0}\" on port {1}]", serverName, serverPort), ConsoleColor.DarkGray);
-
+                string.Format("[Using admin server \"{0}\" at {1}:{2}]", serverName, serverHost, serverPort), ConsoleColor.DarkGray);
 
             var executable = appArgs.CommandParameters[0];
 
@@ -207,7 +217,7 @@ namespace star {
 
             // Construct the client
 
-            var client = new HttpClient() { BaseAddress = new Uri(string.Format("http://localhost:{0}", serverPort)) };
+            var client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             client.PostAsync(
