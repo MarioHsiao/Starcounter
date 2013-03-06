@@ -37,6 +37,7 @@ namespace star {
             public const string Db = "db";
             public const string Verbosity = "verbosity";
             public const string LogSteps = "logsteps";
+            public const string NoDb = "nodb";
         }
 
         static class EnvironmentVariable {
@@ -284,7 +285,7 @@ namespace star {
                 ExecutablePath = executable,
                 CommandLineString = string.Empty,
                 ResourceDirectoriesString = string.Empty,
-                NoDb = false,
+                NoDb = args.ContainsFlag(Option.NoDb),
                 LogSteps = args.ContainsFlag(Option.LogSteps)
             };
             return JsonConvert.SerializeObject(request);
@@ -341,8 +342,10 @@ namespace star {
             Console.WriteLine(formatting, "", "specified, star.exe use the known port of server.");
             Console.WriteLine(formatting, string.Format("--{0} host", Option.ServerHost), "Specifies the identity of the server host. If no");
             Console.WriteLine(formatting, "", "host is specified, 'localhost' is used.");
-            Console.WriteLine(formatting, string.Format("-d, --{0} name|uri", Option.Db), "The database to use. 'Default' is used if not given.");
+            Console.WriteLine(formatting, string.Format("-d, --{0} name", Option.Db), "The database to use. 'Default' is used if not given.");
             Console.WriteLine(formatting, string.Format("--{0}", Option.LogSteps), "Enables diagnostic logging.");
+            Console.WriteLine(formatting, string.Format("--{0}", Option.NoDb), "Tells the host to load and run the executable");
+            Console.WriteLine(formatting, "", "without loading any database into the process.");
             Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
             Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
             Console.WriteLine();
@@ -407,6 +410,10 @@ namespace star {
             appSyntax.DefineFlag(
                 Option.LogSteps,
                 "Enables diagnostic logging. When set, Starcounter will produce a set of diagnostic log entries in the log."
+                );
+            appSyntax.DefineFlag(
+                Option.NoDb,
+                "Specifies the code host should run the executable without loading any database data."
                 );
 
             // NOTE:
