@@ -20,16 +20,31 @@ namespace star {
 
     class Program {
 
+        const string UnresolvedServerName = "N/A";
+
+        static class Option {
+            public const string Help = "help";
+            public const string Version = "version";
+            public const string Info = "info";
+            public const string Serverport = "serverport";
+            public const string Server = "server";
+            public const string ServerHost = "serverhost";
+            public const string Db = "db";
+            public const string Verbosity = "verbosity";
+            public const string LogSteps = "logsteps";
+        }
+
+        static class EnvironmentVariable {
+            public const string ServerName = "STAR_SERVER";
+        }
+
         static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
             string givenPort;
 
             // Use proper error code / message for unresolved server
             // TODO:
 
-            // Use constants for known options
-            // TODO:
-
-            if (args.TryGetProperty("serverport", out givenPort)) {
+            if (args.TryGetProperty(Option.Serverport, out givenPort)) {
                 port = int.Parse(givenPort);
 
                 // If a port is specified, that always have precedence.
@@ -41,15 +56,15 @@ namespace star {
                 //   3) Finding a server name configured in the environment.
                 //   4) Using a const string (e.g. "N/A")
 
-                if (!args.TryGetProperty("server", out serverName)) {
+                if (!args.TryGetProperty(Option.Server, out serverName)) {
                     if (port == StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort) {
                         serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     } else if (port == StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort) {
                         serverName = StarcounterEnvironment.ServerNames.SystemServer;
                     } else {
-                        serverName = Environment.GetEnvironmentVariable("STAR_SERVER");
+                        serverName = Environment.GetEnvironmentVariable(EnvironmentVariable.ServerName);
                         if (string.IsNullOrEmpty(serverName)) {
-                            serverName = "N/A";
+                            serverName = UnresolvedServerName;
                         }
                     }
                 }
@@ -64,8 +79,8 @@ namespace star {
                 //   If no server is specified either on the command line or in the
                 // environment, we'll assume personal and the default port for that.
 
-                if (!args.TryGetProperty("server", out serverName)) {
-                    serverName = Environment.GetEnvironmentVariable("STAR_SERVER");
+                if (!args.TryGetProperty(Option.Server, out serverName)) {
+                    serverName = Environment.GetEnvironmentVariable(EnvironmentVariable.ServerName);
                     if (string.IsNullOrEmpty(serverName)) {
                         serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     }
@@ -78,8 +93,11 @@ namespace star {
                 } else if (serverName.Equals(StarcounterEnvironment.ServerNames.SystemServer, comp)) {
                     port = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort;
                 } else {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED,
-                        string.Format("Unknown server name: {0}. Please specify the port using 'serverport', or give a server known.", serverName));
+                    throw ErrorCode.ToException(
+                        Error.SCERRUNSPECIFIED,
+                        string.Format("Unknown server name: {0}. Please specify the port using '{1}'.", 
+                        serverName, 
+                        Option.Serverport));
                 }                
             }
         }
@@ -121,17 +139,17 @@ namespace star {
 
             // Process global options that has precedence
 
-            if (appArgs.ContainsFlag("help", CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(Option.Help, CommandLineSection.GlobalOptions)) {
                 Usage(syntax);
                 return;
             }
 
-            if (appArgs.ContainsFlag("info", CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(Option.Info, CommandLineSection.GlobalOptions)) {
                 ShowInfoAboutStarcounter();
                 return;
             }
 
-            if (appArgs.ContainsFlag("version", CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(Option.Version, CommandLineSection.GlobalOptions)) {
                 ShowVersionInfo();
                 return;
             }
@@ -227,22 +245,24 @@ namespace star {
             Console.WriteLine();
             Console.WriteLine("Options:");
             formatting = "  {0,-22}{1,25}";
-            Console.WriteLine(formatting, "-h, --help", "Shows help about star.exe.");
-            Console.WriteLine(formatting, "-v, --version", "Prints the version of Starcounter.");
-            Console.WriteLine(formatting, "-i, --info", "Prints information about the Starcounter installation.");
-            Console.WriteLine(formatting, "-p, --serverport port", "The port to use to the admin server.");
-            Console.WriteLine(formatting, "-d, --db name|uri", "The database to use. 'Default' is used if not given.");
-            Console.WriteLine(formatting, "--server name", "Specifies the name of the server. If no port is");
+            Console.WriteLine(formatting, string.Format("-h, --{0}", Option.Help), "Shows help about star.exe.");
+            Console.WriteLine(formatting, string.Format("-v, --{0}", Option.Version), "Prints the version of Starcounter.");
+            Console.WriteLine(formatting, string.Format("-i, --{0}", Option.Info), "Prints information about the Starcounter installation.");
+            Console.WriteLine(formatting, string.Format("-p, --{0} port", Option.Serverport), "The port to use to the admin server.");
+            Console.WriteLine(formatting, string.Format("--{0} name", Option.Server), "Specifies the name of the server. If no port is");
             Console.WriteLine(formatting, "", "specified, star.exe use the known port of server.");
-            Console.WriteLine(formatting, "--logsteps", "Enables diagnostic logging.");
-            Console.WriteLine(formatting, "--verbosity level", "Sets the verbosity level of star.exe (quiet, ");
+            Console.WriteLine(formatting, string.Format("--{0} host", Option.ServerHost), "Specifies the identity of the server host. If no");
+            Console.WriteLine(formatting, "", "host is specified, 'localhost' is used.");
+            Console.WriteLine(formatting, string.Format("-d, --{0} name|uri", Option.Db), "The database to use. 'Default' is used if not given.");
+            Console.WriteLine(formatting, string.Format("--{0}", Option.LogSteps), "Enables diagnostic logging.");
+            Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
             Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
             Console.WriteLine();
             Console.WriteLine("TEMPORARY: Creating a repository.");
             Console.WriteLine("Run star.exe @@CreateRepo path [servername] to create a repository.");
             Console.WriteLine();
             Console.WriteLine("Environment variables:");
-            Console.WriteLine("STAR_SERVER\t{0,8}", "Sets the server to use by default.");
+            Console.WriteLine("{0}\t{1,8}", EnvironmentVariable.ServerName, "Sets the server to use by default.");
             Console.WriteLine();
             Console.WriteLine("For complete help, see http://www.starcounter.com/wiki/star.exe");
         }
@@ -255,45 +275,49 @@ namespace star {
             appSyntax.ProgramDescription = "star.exe";
             appSyntax.DefaultCommand = "exec";
             appSyntax.DefineFlag(
-                "help",
+                Option.Help,
                 "Prints the star.exe help message.",
                 OptionAttributes.Default,
                 new string[] { "h" }
                 );
             appSyntax.DefineFlag(
-                "version",
+                Option.Version,
                 "Prints the version of Starcounter.",
                 OptionAttributes.Default,
                 new string[] { "v" }
                 );
             appSyntax.DefineFlag(
-                "info",
+                Option.Info,
                 "Prints information about the Starcounter and star.exe",
                 OptionAttributes.Default,
                 new string[] { "i" }
                 );
             appSyntax.DefineProperty(
-                "serverport",
+                Option.Serverport,
                 "The port of the server to use.",
                 OptionAttributes.Default,
                 new string[] { "p" }
                 );
             appSyntax.DefineProperty(
-                "db",
+                Option.Db,
                 "The database to use for commands that support it.",
                 OptionAttributes.Default,
                 new string[] { "d" }
                 );
             appSyntax.DefineProperty(
-                "verbosity",
+                Option.Verbosity,
                 "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
                 );
             appSyntax.DefineProperty(
-                "server",
+                Option.Server,
                 "Sets the name of the server to use."
                 );
+            appSyntax.DefineProperty(
+                Option.ServerHost,
+                "Specifies identify of the server host. Default is 'localhost'."
+                );
             appSyntax.DefineFlag(
-                "logsteps",
+                Option.LogSteps,
                 "Enables diagnostic logging. When set, Starcounter will produce a set of diagnostic log entries in the log."
                 );
 
