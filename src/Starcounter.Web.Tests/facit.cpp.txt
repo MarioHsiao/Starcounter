@@ -156,60 +156,58 @@ static const char VerificationBytes[] = {
     /* GET /@i */ 'G','E','T',' ','/','@','i',' '
     /* GET /@s/@i */ ,'G','E','T',' ','/','@','s','/','@','i',' '};
 
-static const HANDLER RootHandlerId = 1;
-static const HANDLER Sub0HandlerId = 2;
-static const HANDLER Sub2HandlerId = 3;
 
 class GeneratedRequestProcessor {
 
    public:
-      static HANDLER Process( char* puri, int fragment, int size, ParamInfo** params ) {
+   static HANDLER Process( char* puri, int fragment, int size, ParamInfo** params ) {
       HANDLER handler = NULL;
-      char* ptempl = (char*)VerificationBytes;
-         ptempl = ((char*)VerificationBytes + Sub0VerificationOffset + 0);
-         if (fragment >= size || (*(uint32*)(&puri[fragment])) !=  (*(uint32*)ptempl) ) {
-             return NULL;
-         }
-         fragment += 4;
-         ptempl += 4;
-         if (fragment >= size || (puri[fragment]) != (*ptempl) ) {
-             return NULL;
-         }
-         fragment ++;
-         ptempl ++;
-         switch (puri[fragment]) {
-            case ' ':
-            case '\r':
-            case '\n':
-               return RootHandlerId;
-               break;
-            default:
-               if ( handler = Sub0Processor::SubProcess(puri, fragment, size, params ) ) {
-                  return handler;
-
-               }
-               if ( handler = Sub1Processor::SubProcess(puri, fragment, size, params ) ) {
-                  return handler;
-
-               }
-               break;
-         }
+      char* ptempl;
+      ptempl = ((char*)VerificationBytes + Sub0VerificationOffset + 0);
+      if (fragment >= size || (*(uint32*)(&puri[fragment])) !=  (*(uint32*)ptempl) ) {
+         return NULL;
+      }
+      fragment += 4;
+      ptempl += 4;
+      if (fragment >= size || (puri[fragment]) != (*ptempl) ) {
+         return NULL;
+      }
+      fragment ++;
+      ptempl ++;
+      switch (puri[fragment]) {
+         case ' ':
+         case '\r':
+         case '\n':
+            return (HANDLER){{GET / }}
+            break;
+         default:
+            if ( handler = Sub0Processor::Process(puri, fragment, size, params ) ) {
+               return handler;
+            }
+            if ( handler = Sub1Processor::Process(puri, fragment, size, params ) ) {
+               return handler;
+            }
+            break;
+      }
       return NULL;
    }
 
    class Sub0Processor {
       public:
-
-      static HANDLER SubProcess(char* puri, int fragment, int size, ParamInfo** params ) {
-         int len = MeasureSignedInt(puri, fragment, size );
+      static HANDLER Process(char* puri, int fragment, int size, ParamInfo** params ) {
+         HANDLER handler = NULL;
+         char* ptempl;
+         int len = MeasureSignedInt(puri, fragment, size);
          if (len != -1) {
-             (*params)->offset = fragment;
-             (*params)->len = len;
-             fragment += len;
-             if (fragment >= size || !IsEndChar(puri[fragment]) ) {
-                 return NULL;
-             }
-             return Sub0HandlerId; // Found "GET /@i"
+            (*params)->offset = fragment;
+            (*params)->len = len;
+            (*params)++;
+            fragment += len;
+            if (fragment >= size || !IsEndChar(puri[fragment]) ) {
+               (*params)--;
+               return NULL;
+            }
+            return (HANDLER){{GET /@i }}
          }
          return NULL;
       }
@@ -217,55 +215,55 @@ class GeneratedRequestProcessor {
 
    class Sub1Processor {
       public:
-
-        static HANDLER SubProcess(char* puri, int fragment, int size, ParamInfo** params ) {
-            HANDLER handler = NULL;
-
-            char* ptempl = (char*)VerificationBytes;
+      static HANDLER Process(char* puri, int fragment, int size, ParamInfo** params ) {
+         HANDLER handler = NULL;
+         char* ptempl;
+         ptempl = ((char*)VerificationBytes + Sub2VerificationOffset + 7);
+         int len = MeasureStringUntilSymbol(puri, fragment, size, *ptempl);
+         if (len != -1) {
+            (*params)->offset = fragment;
+            (*params)->len = len;
+            (*params)++;
+            fragment += len;
             ptempl = ((char*)VerificationBytes + Sub2VerificationOffset + 7);
-
-            // TODO: Determine the end symbol for string.
-            int len = MeasureStringUntilSymbol( puri, fragment, size, *ptempl );
-            if (len != -1) {
-                (*params)->offset = fragment;
-                (*params)->len = len;
-                fragment += len;
-                if (fragment >= size || (puri[fragment]) != (*ptempl) ) {
-                    return NULL;
-                }
-                fragment ++;
-                (*params)++;
-                handler = Sub2Processor::SubProcess( puri, fragment, size, params );
-                if (handler == NULL) {
-                    (*params)--;
-                }
+            if (fragment >= size || (puri[fragment]) != (*ptempl) ) {
+               (*params)--;
+               return NULL;
             }
-            return handler;
-        }
-    };
-
-    class Sub2Processor {
-       public:
-        static HANDLER SubProcess(char* puri, int fragment, int size, ParamInfo** params ) {
-            int len = MeasureSignedInt( puri, fragment, size);
-            if (len != -1) {
-                (*params)->offset = fragment;
-                (*params)->len = len;
-                return Sub2HandlerId; // "GET /@s/@i
+            fragment ++;
+            ptempl ++;
+            if ( handler = Sub2Processor::Process(puri, fragment, size, params ) ) {
+               return handler;
             }
+            (*params)--;
             return NULL;
-        }
-    };
+         }
+         return NULL;
+      }
+   };
+
+   class Sub2Processor {
+      public:
+      static HANDLER Process(char* puri, int fragment, int size, ParamInfo** params ) {
+         HANDLER handler = NULL;
+         char* ptempl;
+         int len = MeasureSignedInt(puri, fragment, size);
+         if (len != -1) {
+            (*params)->offset = fragment;
+            (*params)->len = len;
+            (*params)++;
+            fragment += len;
+            if (fragment >= size || !IsEndChar(puri[fragment]) ) {
+               (*params)--;
+               return NULL;
+            }
+            return (HANDLER){{GET /@s/@i }}
+         }
+         return NULL;
+      }
+   };
 };
 
 extern "C" __declspec(dllexport) HANDLER MatchUriRoot( char* puri, int size, ParamInfo** params ) {
-    return GeneratedRequestProcessor::Process(puri, 0, size, params);
-}
-
-void main()
-{
-    ParamInfo test[16];
-    ParamInfo* ptest = test;
-    ParamInfo** pptest = &ptest;
-    HANDLER hid = GeneratedRequestProcessor::Process("GET /a/1 ", 9, pptest);
+   return GeneratedRequestProcessor::Process(puri, 0, size, params);
 }

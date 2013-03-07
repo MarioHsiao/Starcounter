@@ -185,7 +185,7 @@ internal abstract class ExecutionEnumerator
     /// Returns if Bison-parser was used in creation of the enumerator.
     /// It will be removed when Prolog-parser is deprecated.
     /// </summary>
-    public Boolean IsBisonPrarserUsed {
+    public Boolean IsBisonParserUsed {
         get { return isBisonParserUsed; }
         internal set { isBisonParserUsed = value; }
     }
