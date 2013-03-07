@@ -47,15 +47,15 @@
 namespace starcounter {
 namespace core {
 
-// Exception class.
+/// Exception class.
 class shared_interface_exception {
 public:
 	typedef uint32_t error_code_type;
 	
-	explicit shared_interface_exception(uint32_t err)
+	explicit shared_interface_exception(error_code_type err)
 	: err_(err) {}
 	
-	int error_code() const {
+	error_code_type error_code() const {
 		return err_;
 	}
 	
