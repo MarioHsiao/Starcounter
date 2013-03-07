@@ -174,9 +174,8 @@ try {
 	<< "Exit." << std::endl; /// debug
 	#endif
 }
-catch (starcounter::core::bad_monitor& e) {
-	std::wcerr << "error: bad_monitor exception: " << e.what() << std::endl;
-	return _E_UNSPECIFIED; /// TODO: Return suitable error code.
+catch (starcounter::core::ipc_monitor_exception& e) {
+	return e.error_code();
 }
 catch (...) {
 	std::wcerr << "error: unknown exception" << std::endl;
