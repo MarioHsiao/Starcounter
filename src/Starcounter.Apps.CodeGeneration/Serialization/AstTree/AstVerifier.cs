@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Starcounter.Internal.Uri;
 
 namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
 

@@ -16,7 +16,9 @@
 namespace starcounter {
 namespace interprocess_communication {
 
-test::test(int argc, wchar_t* argv[]) {
+test::test(int argc, wchar_t* argv[])
+: active_databases_updates_event_(),
+active_databases_updates_() {
 	///=========================================================================
 	/// Initialize the test. Change to the debug or release directory:
 	/// > cd %UserProfile%\code\Level1\bin\Debug
@@ -38,7 +40,7 @@ test::test(int argc, wchar_t* argv[]) {
 		// character string to multibyte string.
 		char server_name_buffer[server_name_size];
 		std::wcstombs(server_name_buffer, argv[1], server_name_size -1);
-		std::string server_name(server_name_buffer);
+		server_name_ = server_name_buffer;
 
 		// The second argument contains the first database name. Convert it from
 		// wide character string to multibyte string.
@@ -52,7 +54,7 @@ test::test(int argc, wchar_t* argv[]) {
 			std::wcstombs(database_name_buffer, argv[i], segment_name_size -1);
 			database_name = database_name_buffer;
 			
-			db_shm_params_name = server_name +"_"
+			db_shm_params_name = server_name_ +"_"
 			+boost::to_upper_copy<std::string>(database_name);
 			
 			ipc_shm_params_name.push_back(db_shm_params_name);
@@ -68,6 +70,9 @@ test::test(int argc, wchar_t* argv[]) {
 		else {
 			std::cout << "error: no database name(s) entered after server name." << std::endl;
 		}
+
+		// Start the watch_active_databases_updates thread.
+		active_databases_updates_ = boost::thread(boost::bind(&test::watch_active_databases_updates, this));
 	}
 	else {
 		std::cout << "error: please enter <server name> <database name(s)>" << std::endl;
@@ -79,6 +84,9 @@ test::~test() {
 	for (std::size_t i = 0; i < workers; ++i) {
 		worker_[i].join();
 	}
+
+	// Join the active_databases_updates thread.
+	active_databases_updates_.join();
 }
 
 void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
@@ -117,7 +125,7 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		database_shared_memory_parameters_ptr db_shm_params
 		(database_shared_memory_parameters_name);
 		
-		std::cout << "opened parameter file: " << database_shared_memory_parameters_name << std::endl;
+		//std::cout << "opened parameter file: " << database_shared_memory_parameters_name << std::endl;
 		
 		char monitor_interface_name[segment_name_size
 		+sizeof(MONITOR_INTERFACE_SUFFIX) +2 /* delimiter and null */];
@@ -143,7 +151,7 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		
 		if (!registered) {
 			// Get monitor_interface_ptr for monitor_interface_name.
-			monitor_interface_ptr the_monitor_interface(monitor_interface_name);
+			the_monitor_interface().init(monitor_interface_name);
 			
 			//--------------------------------------------------------------------------
 			// Send registration request to the monitor and try to acquire an owner_id.
@@ -154,7 +162,7 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 			uint32_t error_code;
 			
 			// Try to register this client process pid. Wait up to 10000 ms.
-			if ((error_code = the_monitor_interface->register_client_process(pid_,
+			if ((error_code = the_monitor_interface()->register_client_process(pid_,
 			owner_id_, 10000/*ms*/)) != 0) {
 				// Failed to register this client process pid.
 				throw test_exception(error_code);
@@ -282,6 +290,102 @@ void test::stop_all_workers() {
 	for (std::size_t i = 0; i < workers; ++i) {
 		worker_[i].set_state(worker::stopped);
 		worker_[i].join();
+	}
+}
+
+void test::watch_active_databases_updates() {
+	///=====================================================================
+	/// Open the active_databases_updated_event.
+	///=====================================================================
+	{
+		// Number of characters in the multibyte string after being converted.
+		std::size_t length;
+
+		// Construct the active_databases_updated_event_name.
+		char active_databases_updated_event_name[active_databases_updated_event_name_size];
+
+		// Format: "Local\<server_name>_ipc_monitor_cleanup_event".
+		// Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
+		if ((length = _snprintf_s(active_databases_updated_event_name, _countof
+		(active_databases_updated_event_name), active_databases_updated_event_name_size
+		-1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str())) < 0) {
+			return; // Throw exception error_code: "failed to format the active_databases_updated_event_name"
+		}
+		active_databases_updated_event_name[length] = '\0';
+
+		wchar_t w_active_databases_updated_event_name[active_databases_updated_event_name_size];
+
+		/// TODO: Fix insecure
+		if ((length = mbstowcs(w_active_databases_updated_event_name,
+		active_databases_updated_event_name, segment_name_size)) < 0) {
+			// Failed to convert active_databases_updated_event_name to multi-byte string.
+			return; // Throw exception error_code: "failed to convert active_databases_updated_event_name to multi-byte string"
+		}
+		w_active_databases_updated_event_name[length] = L'\0';
+
+		// Open the active_databases_updated_event_name.
+		if ((active_databases_updates_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
+		FALSE, w_active_databases_updated_event_name)) == NULL) {
+			// Failed to open the event.
+			unsigned int err = GetLastError();
+			switch (err) {
+			case 2:
+				//std::cout << "test::watch_active_databases_updates(): "
+				//"Failed to open active_databases_updated event. The system cannot find the file specified. "
+				//"OS error: " << err << "\n"; /// DEBUG
+				break;
+			case 6:
+				//std::cout << "test::watch_active_databases_updates(): "
+				//"Failed to open active_databases_updated event. The handle is invalid. "
+				//"OS error: " << err << "\n"; /// DEBUG
+				break;
+			default:
+				//std::cout << "test::watch_active_databases_updates(): "
+				//"Failed to open active_databases_updated event. OS error: " << err << "\n"; /// DEBUG
+				break;
+			}
+			return; // TODO: Should throw an exception.
+		}
+		else {
+			//std::cout << "Successfully opened the active_databases_updated_event_name." << std::endl;
+		}
+	}
+
+	///=====================================================================
+	/// Wait for active database update events
+	///=====================================================================
+	
+	std::cout << "Waiting for active database update events. . ." << std::endl;
+	std::set<std::string> active_databases;
+
+	while (true) {
+		std::cout << "--------------------------------------------------------------------------------" << std::endl;
+		switch (::WaitForSingleObject(active_databases_updates_event(), INFINITE)) {
+		case WAIT_OBJECT_0:
+			// The IPC monitor updated the active databases set.
+			the_monitor_interface()->active_database_set()
+			.copy(active_databases, active_databases_updates_event());
+
+			for (std::set<std::string>::iterator it = active_databases.begin();
+			it != active_databases.end(); ++it) {
+				std::cout << *it << "\n";
+			}
+			break;
+		case WAIT_TIMEOUT:
+			// A timeout occurred.
+			the_monitor_interface()->active_database_set()
+			.copy(active_databases, active_databases_updates_event());
+
+			for (std::set<std::string>::iterator it = active_databases.begin();
+			it != active_databases.end(); ++it) {
+				std::cout << *it << "\n";
+			}
+			break;
+		case WAIT_FAILED:
+			// An error occurred.
+			//std::cout << "test::watch_active_databases_updates(): Wait failed." << std::endl;
+			break;
+		}
 	}
 }
 

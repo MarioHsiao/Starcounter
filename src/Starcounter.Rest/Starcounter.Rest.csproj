@@ -83,7 +83,7 @@
   <ItemGroup>
     <Compile Include="Http\HttpRequestNext.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstElseIfList.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstAtEndVerifier.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstError.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstIfCallSub.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstCodeStatement.cs" />
@@ -104,6 +104,7 @@
     <Compile Include="RequestHandler\AstTree\Nodes\AstVerifier.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstDeserializeMessage.cs" />
     <Compile Include="RequestHandler\NewRequestHandlers.cs" />
+    <Compile Include="RequestHandler\NewUserHandlers.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseNode.PrettyPrint.cs" />
     <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />

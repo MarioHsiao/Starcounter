@@ -5,7 +5,6 @@
 // ***********************************************************************
 
 using System.Text;
-using Starcounter.Internal.Uri;
 
 namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
     /// <summary>
@@ -25,7 +24,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// <value>The debug string.</value>
         internal override string DebugString {
             get {
-                return "<VERIFY> -> switch (i=" + ParseNode.MatchCharInTemplateRelative + ")";
+              return "<VERIFY> -> switch (i=" + ParseNode.MatchCharInTemplateRelative + ")";
             }
         }
 

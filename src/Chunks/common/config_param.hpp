@@ -82,6 +82,13 @@ const std::size_t ipc_monitor_cleanup_event_name_size
 = server_name_size -1 /* null */ +sizeof("Local\\") -1 /* null */ 
 +sizeof(IPC_MONITOR_CLEANUP_EVENT);
 
+// The size of the array to hold the server name and active databases updated event name,
+// including terminating null. The format is:
+// "Local\<server_name>_ipc_monitor_active_databases_updated_event"
+const std::size_t active_databases_updated_event_name_size
+= server_name_size -1 /* null */ +sizeof("Local\\") -1 /* null */ 
++sizeof(ACTIVE_DATABASES_UPDATED_EVENT);
+
 // The size of the array to hold the interface name.
 const std::size_t interface_name_size = 64;
 
