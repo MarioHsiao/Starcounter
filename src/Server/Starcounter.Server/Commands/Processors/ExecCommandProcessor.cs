@@ -6,6 +6,7 @@
 
 using Starcounter.ABCIPC;
 using Starcounter.Internal;
+using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Generic;
@@ -18,8 +19,8 @@ namespace Starcounter.Server.Commands {
     /// Executes a queued and dispatched <see cref="ExecCommand"/>.
     /// </summary>
     [CommandProcessor(typeof(ExecCommand))]
-    internal sealed class ExecCommandProcessor : CommandProcessor {
-        
+    internal sealed partial class ExecCommandProcessor : CommandProcessor {
+
         /// <summary>
         /// Initializes a new <see cref="ExecCommandProcessor"/>.
         /// </summary>
@@ -52,6 +53,8 @@ namespace Starcounter.Server.Commands {
             // First see if we can find the database and take a look what
             // code is running inside it. We don't want to process the same
             // executable twice.
+
+            BeginTask(Task.CheckExeOutOfDate);
             
             databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
             if (databaseExist) {
@@ -81,9 +84,13 @@ namespace Starcounter.Server.Commands {
                 }
             }
 
+            EndTask(Task.CheckExeOutOfDate);
+
             // Create the database if it does not exist and if not told otherwise.
             // Add it to our internal model as well as to the public one.
             if (!databaseExist) {
+                BeginTask(Task.CreateDatabase);
+
                 var setup = new DatabaseSetup(this.Engine, new DatabaseSetupProperties(this.Engine, command.DatabaseName));
                 database = setup.CreateDatabase();
 
@@ -93,6 +100,7 @@ namespace Starcounter.Server.Commands {
                 Engine.CurrentPublicModel.AddDatabase(database);
 
                 OnDatabaseRegistered();
+                EndTask(Task.CreateDatabase);
             }
 
             // Assure the database is started and that there is user code worker
