@@ -105,8 +105,8 @@ namespace Starcounter {
             }
         }
 
-        public bool IsBisonPrarserUsed {
-            get { return subEnumerator.IsBisonPrarserUsed;}
+        public bool IsBisonParserUsed {
+            get { return subEnumerator.IsBisonParserUsed;}
         }
 
         /// <summary>

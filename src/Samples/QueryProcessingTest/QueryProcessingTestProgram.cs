@@ -4,13 +4,15 @@ namespace QueryProcessingTest {
     class QueryProcessingTestProgram {
         static void Main(string[] args) {
             BindingTestDirect.DirectBindingTest();
+            QueryProcessingPerformance.MeasurePrepareQuery();
+            QueryProcessingPerformance.MeasurePrepareQuery();
             RunQueryProcessingTest();
             SqlBugsTest.QueryTests();
             FetchTest.RunFetchTest();
             AggregationTest.RunAggregationTest();
             CodePropertiesTesting.TestCodeProperties();
             SelectClauseExpressionsTests.TestSelectClauseExpressions();
-            QueryProcessingPerformance.MeasurePrepareQuery();
+            Environment.Exit(0);
         }
 
         static void RunQueryProcessingTest() {
