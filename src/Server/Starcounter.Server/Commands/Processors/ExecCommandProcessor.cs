@@ -40,12 +40,19 @@ namespace Starcounter.Server.Commands {
             DatabaseApp app;
             Process codeHostProcess;
             bool databaseExist;
+
+            command = (ExecCommand)this.Command;
+
+            // Check that we can properly find the executable.
+            if (!File.Exists(command.ExecutablePath)) {
+                throw ErrorCode.ToException(
+                    Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.ExecutablePath));
+            }
             
             // First see if we can find the database and take a look what
             // code is running inside it. We don't want to process the same
             // executable twice.
-
-            command = (ExecCommand)this.Command;
+            
             databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
             if (databaseExist) {
                 app = database.Apps.Find(delegate(DatabaseApp candidate) {
