@@ -70,6 +70,9 @@ namespace Starcounter.Internal {
             if (port == 0)
                 port = defaultPort_;
 
+            // Setting the response handler.
+            Node.SetHandleResponse(appServer.HandleResponse);
+
 #if GW_URI_MATCHING_CODEGEN
             // Giving REST needed delegates.
             UserHandlerCodegen.UHC.Setup(

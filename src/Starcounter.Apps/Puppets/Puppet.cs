@@ -160,7 +160,7 @@ namespace Starcounter {
                         if (res is HttpResponse) {
                             var response = res as HttpResponse;
                             byte[] body = response.Uncompressed;
-                            var html = Encoding.UTF8.GetString(body, response._UncompressedBodyOffset, response._UncompressedBodyLength);
+                            var html = Encoding.UTF8.GetString(body, response.UncompressedContentOffset_, response.UncompressedContentLength_);
                             sb.Append(JsonConvert.SerializeObject(html));
                         }
                         else {

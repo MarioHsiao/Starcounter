@@ -148,7 +148,7 @@ namespace Starcounter
             // Creating parameters.
             PortHandlerParams handler_params = new PortHandlerParams
             {
-                UserSessionId = *(UInt32*)(raw_chunk + NetworkDataStream.SESSION_INDEX_OFFSET),
+                UserSessionId = *(UInt32*)(raw_chunk + MixedCodeConstants.SESSION_INDEX_OFFSET),
                 DataStream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index)
             };
 
@@ -191,7 +191,7 @@ namespace Starcounter
             // Creating parameters.
             SubportHandlerParams handler_params = new SubportHandlerParams
             {
-                UserSessionId = *(UInt32*)(raw_chunk + NetworkDataStream.SESSION_INDEX_OFFSET),
+                UserSessionId = *(UInt32*)(raw_chunk + MixedCodeConstants.SESSION_INDEX_OFFSET),
                 SubportId = 0,
                 DataStream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index)
             };
