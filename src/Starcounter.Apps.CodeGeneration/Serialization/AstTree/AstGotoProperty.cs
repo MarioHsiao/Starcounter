@@ -1,5 +1,4 @@
 ﻿using System;
-using Starcounter.Internal.Uri;
 using Starcounter.Templates;
 
 // TODO: 

@@ -110,6 +110,10 @@
     <Compile Include="Serialization\AstTree\AstWriteArray.cs" />
     <Compile Include="Serialization\AstTree\AstForLoop.cs" />
     <Compile Include="Serialization\AstTree\AstParseJsonObjectArray.cs" />
+    <Compile Include="Serialization\ParseTree\ParseNode.cs" />
+    <Compile Include="Serialization\ParseTree\ParseNode.PrettyPrint.cs" />
+    <Compile Include="Serialization\ParseTree\ParseTreeGenerator.cs" />
+    <Compile Include="Serialization\ParseTree\RequestProcessorMetaData.cs" />
     <Compile Include="SimpleCodeDom\Core\NConstructor.cs" />
     <Compile Include="SimpleCodeDom\Core\NInputBinding.cs" />
     <Compile Include="SimpleCodeDom\Core\NMetadataClass.cs" />
@@ -138,10 +142,6 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
-      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
-      <Name>Starcounter.Rest</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
       <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>

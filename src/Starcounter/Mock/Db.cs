@@ -264,6 +264,30 @@ namespace Starcounter
         }
     }
 
+
+    /// <summary>
+    /// Enables you to use SQL (Structured Query Language) on the
+    /// Starcounter database.
+    /// </summary>
+    public static class SELECT<T> {
+       public static SqlResult<T> WHERE(string query, params Object[] values) {
+          return Db.SQL<T>(String.Concat("SELECT _O_ FROM ", typeof(T).FullName, " _O_ WHERE ", query), values);
+       }
+    }
+
+    public static class Table<T> {
+       public static Type Get { get { return typeof(T); } }
+    }
+
+    public static class SELECT {
+       public static class FROM<T> {
+          public static SqlResult<T> WHERE(string query, params Object[] values) {
+             return Db.SQL<T>(String.Concat("SELECT _O_ FROM ", typeof(T).FullName, " _O_ WHERE ", query), values);
+          }
+       }
+    }
+
+
    /// <summary>
    /// Holds the global functions SQL, GET/POST/PUT/DELETE/PATCH and Transaction functions that operates on 
    /// Starcounters database and communication server.
