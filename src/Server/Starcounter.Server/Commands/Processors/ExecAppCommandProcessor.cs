@@ -15,24 +15,24 @@ using System.IO;
 namespace Starcounter.Server.Commands {
 
     /// <summary>
-    /// Executes a queued and dispatched <see cref="ExecAppCommand"/>.
+    /// Executes a queued and dispatched <see cref="ExecCommand"/>.
     /// </summary>
-    [CommandProcessor(typeof(ExecAppCommand))]
-    internal sealed class ExecAppCommandProcessor : CommandProcessor {
+    [CommandProcessor(typeof(ExecCommand))]
+    internal sealed class ExecCommandProcessor : CommandProcessor {
         
         /// <summary>
-        /// Initializes a new <see cref="ExecAppCommandProcessor"/>.
+        /// Initializes a new <see cref="ExecCommandProcessor"/>.
         /// </summary>
         /// <param name="server">The server in which the processor executes.</param>
-        /// <param name="command">The <see cref="ExecAppCommand"/> the
+        /// <param name="command">The <see cref="ExecCommand"/> the
         /// processor should exeucte.</param>
-        public ExecAppCommandProcessor(ServerEngine server, ServerCommand command)
+        public ExecCommandProcessor(ServerEngine server, ServerCommand command)
             : base(server, command) {
         }
 
         /// <inheritdoc />
         protected override void Execute() {
-            ExecAppCommand command;
+            ExecCommand command;
             WeaverService weaver;
             string appRuntimeDirectory;
             string weavedExecutable;
@@ -45,12 +45,12 @@ namespace Starcounter.Server.Commands {
             // code is running inside it. We don't want to process the same
             // executable twice.
 
-            command = (ExecAppCommand)this.Command;
+            command = (ExecCommand)this.Command;
             databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
             if (databaseExist) {
                 app = database.Apps.Find(delegate(DatabaseApp candidate) {
                     return candidate.OriginalExecutablePath.Equals(
-                        command.AssemblyPath, StringComparison.InvariantCultureIgnoreCase);
+                        command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
                 });
                 if (app != null) {
                     // If the app is running inside the database, we must stop the host,
@@ -106,17 +106,17 @@ namespace Starcounter.Server.Commands {
             weaver = Engine.WeaverService;
             appRuntimeDirectory = weaver.CreateFullRuntimePath(
                 Path.Combine(database.Configuration.Runtime.TempDirectory, StarcounterEnvironment.Directories.WeaverTempSubDirectory),
-                command.AssemblyPath);
+                command.ExecutablePath);
 
             if (command.NoDb)
             {
-                weavedExecutable = CopyAllFilesToRunNoDbApplication(command.AssemblyPath, appRuntimeDirectory);
+                weavedExecutable = CopyAllFilesToRunNoDbApplication(command.ExecutablePath, appRuntimeDirectory);
 
                 OnAssembliesCopiedToRuntimeDirectory();
             }
             else
             {
-                weavedExecutable = weaver.Weave(command.AssemblyPath, appRuntimeDirectory);
+                weavedExecutable = weaver.Weave(command.ExecutablePath, appRuntimeDirectory);
 
                 OnWeavingCompleted();
             }
@@ -162,7 +162,7 @@ namespace Starcounter.Server.Commands {
                     // keep it referenced in the server and consider the execution of this
                     // processor a success.
                     app = new DatabaseApp() {
-                        OriginalExecutablePath = command.AssemblyPath,
+                        OriginalExecutablePath = command.ExecutablePath,
                         WorkingDirectory = command.WorkingDirectory,
                         Arguments = command.Arguments,
                         ExecutionPath = weavedExecutable

@@ -184,7 +184,7 @@ namespace StarcounterApps3 {
 
                 var execRequest = ExecRequest.FromJson(request);
                 
-                var cmd = new ExecAppCommand(engine, execRequest.ExecutablePath, null, null);
+                var cmd = new ExecCommand(engine, execRequest.ExecutablePath, null, null);
                 cmd.DatabaseName = name;
                 cmd.EnableWaiting = true;
                 cmd.LogSteps = execRequest.LogSteps;

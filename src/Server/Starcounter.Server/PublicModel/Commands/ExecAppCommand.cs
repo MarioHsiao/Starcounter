@@ -15,13 +15,13 @@ namespace Starcounter.Server.PublicModel.Commands {
     /// <summary>
     /// A command representing the request to start an executable.
     /// </summary>
-    public sealed class ExecAppCommand : DatabaseCommand {
+    public sealed class ExecCommand : DatabaseCommand {
         string databaseName;
 
         /// <summary>
-        /// Gets the path to the assembly file requesting to start.
+        /// Gets the path to the executable file requesting to start.
         /// </summary>
-        public readonly string AssemblyPath;
+        public readonly string ExecutablePath;
 
         /// <summary>
         /// Gets the path to the directory the requesting executable
@@ -103,21 +103,21 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
-        /// Initializes an instance of <see cref="ExecAppCommand"/>.
+        /// Initializes an instance of <see cref="ExecCommand"/>.
         /// </summary>
         /// <param name="engine">The <see cref="ServerEngine"/> where this command
         /// are to execute.</param>
         /// <param name="assemblyPath">Path to the assembly requesting to start.</param>
         /// <param name="workingDirectory">Working directory the executable has requested to run in.</param>
         /// <param name="arguments">Arguments as passed to the requesting executable.</param>
-        public ExecAppCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
+        public ExecCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
             : base(engine, null, "Starting {0}", Path.GetFileName(assemblyPath)) {
             if (string.IsNullOrEmpty(assemblyPath)) {
                 throw new ArgumentNullException("assemblyPath");
             }
-            this.AssemblyPath = assemblyPath;
+            this.ExecutablePath = assemblyPath;
             if (string.IsNullOrEmpty(workingDirectory)) {
-                workingDirectory = Path.GetDirectoryName(this.AssemblyPath);
+                workingDirectory = Path.GetDirectoryName(this.ExecutablePath);
             }
             this.WorkingDirectory = workingDirectory;
             this.Arguments = arguments;
