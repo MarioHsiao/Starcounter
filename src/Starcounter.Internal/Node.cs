@@ -56,6 +56,9 @@ namespace Starcounter
         {
             HttpResponse resp;
             DoRESTRequest(uri, "GET", null, req, out resp);
+            if (resp == null) // TODO: Determine what to do in this situation.
+                return;
+
             Object o = func.Invoke(resp);
             HttpResponse respOnResp = HandleResponse_(req, o);
             req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
@@ -70,6 +73,9 @@ namespace Starcounter
         {
             HttpResponse resp;
             DoRESTRequest(uri, "POST", null, req, out resp);
+            if (resp == null) // TODO: Determine what to do in this situation.
+                return;
+
             Object o = func.Invoke(resp);
             HttpResponse respOnResp = HandleResponse_(req, o);
             req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
@@ -84,6 +90,9 @@ namespace Starcounter
         {
             HttpResponse resp;
             DoRESTRequest(uri, "PUT", null, req, out resp);
+            if (resp == null) // TODO: Determine what to do in this situation.
+                return;
+
             Object o = func.Invoke(resp);
             HttpResponse respOnResp = HandleResponse_(req, o);
             req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
@@ -98,6 +107,9 @@ namespace Starcounter
         {
             HttpResponse resp;
             DoRESTRequest(uri, "DELETE", null, req, out resp);
+            if (resp == null) // TODO: Determine what to do in this situation.
+                return;
+
             Object o = func.Invoke(resp);
             HttpResponse respOnResp = HandleResponse_(req, o);
             req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
@@ -153,6 +165,7 @@ namespace Starcounter
             // Sending the request.
             stream.Write(requestBytes, 0, requestBytes.Length);
 
+            // Temporary accumulating buffer.
             Byte[] tempBuf = new Byte[4096];
             Int32 recievedBytes, totallyReceivedBytes = 0, headersLen = 0, contentLen = 0;
 
@@ -174,10 +187,24 @@ namespace Starcounter
                         headersLen = (Int32)httpResponse.GetHeadersLength();
                         contentLen = (Int32)httpResponse.ContentLength;
                     }
-                    catch
+                    catch (Exception exc)
                     {
-                        // We need to continue receiving.
                         httpResponse = null;
+
+                        // Checking that we are in a good state.
+                        UInt32 errCode;
+                        if (ErrorCode.TryGetCode(exc, out errCode))
+                        {
+                            // Checking if its just not enough data.
+                            if (errCode != Error.SCERRAPPSHTTPPARSERINCOMPLETEHEADERS)
+                            {
+                                // Closing network streams.
+                                stream.Close();
+                                client.Close();
+
+                                return;
+                            }
+                        }
                     }
                 }
 
