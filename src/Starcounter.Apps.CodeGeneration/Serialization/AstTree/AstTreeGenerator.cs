@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Starcounter.Internal.Uri;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
@@ -231,7 +230,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                     }
 
                     break;
-                case NodeType.HeurekaNode:
+                case NodeType.Heureka:
                     nextParent = new AstElseIfList(){
                         ParseNode = pn,
                         Parent = parent
