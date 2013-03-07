@@ -39,7 +39,7 @@
 #include <boost/lexical_cast.hpp>
 #if defined(_MSC_VER)
 # define WIN32_LEAN_AND_MEAN
-# include <windows.h> /// TODO: thread_primitives.hpp might replace this include
+# include <windows.h>
 # include <intrin.h>
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
@@ -164,7 +164,7 @@ public:
 	/// thread. Otherwise resources it may have allocated will be leaked.
 	void release_all_resources();
 
-	// For debug. TODO: Remove it.
+	// For debug.
 	void show_linked_chunks(chunk_type* chunk_base, chunk_index head);
 	
 	std::size_t id() const {

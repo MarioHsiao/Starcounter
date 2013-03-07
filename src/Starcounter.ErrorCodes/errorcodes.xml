@@ -321,6 +321,51 @@
     <code hex="0022" severity="Error" name="ScErrOperationCancelled">
       <message>The operation was cancelled.</message>
     </code>
+    <code hex="0023" severity="Error" name="ScErrSharedInterfaceOpenDbShm">
+      <message>Opening the managed segment with the segment_name failed. Invalid segment or does not exist.</message>
+    </code>
+    <code hex="0024" severity="Error" name="ScErrFindChunks">
+      <message>Could not find the chunks shared memory object.</message>
+    </code>
+    <code hex="0025" severity="Error" name="ScErrFindSharedChunkPool">
+      <message>Could not find the shared_chunk_pool shared memory object.</message>
+    </code>
+    <code hex="0026" severity="Error" name="ScErrFindCommonSchedInterface">
+      <message>Could not find the common_scheduler_interface shared memory object.</message>
+    </code>
+    <code hex="0027" severity="Error" name="ScErrFindSchedulerInterfaces">
+      <message>Could not find the scheduler_interfaces shared memory object.</message>
+    </code>
+    <code hex="0028" severity="Error" name="ScErrFindCommonClientInterface">
+      <message>Could not find the common_client_interface shared memory object.</message>
+    </code>
+    <code hex="0029" severity="Error" name="ScErrFindClientInterfaces">
+      <message>Could not find the client_interfaces shared memory object.</message>
+    </code>
+    <code hex="002A" severity="Error" name="ScErrFindChannels">
+      <message>Could not find the channels shared memory object.</message>
+    </code>
+    <code hex="002B" severity="Error" name="ScErrOpenSchedulerWorkEvent">
+      <message>Failed to open a scheduler work event.</message>
+    </code>
+    <code hex="002C" severity="Error" name="ScErrOpenClientWorkEvent">
+      <message>Failed to open a client work event.</message>
+    </code>
+    <code hex="002D" severity="Error" name="ScErrOpenSchedNumPoolNotEmptyEv">
+      <message>Failed to open a scheduler number pool not empty event.</message>
+    </code>
+    <code hex="002E" severity="Error" name="ScErrOpenSchedNumPoolNotFullEv">
+      <message>Failed to open a scheduler number pool not full event.</message>
+    </code>
+    <code hex="002F" severity="Error" name="ScErrFormatActiveDbUpdatedEvName">
+      <message>Failed to format the active databases updated event name.</message>
+    </code>
+    <code hex="0030" severity="Error" name="ScErrConvertActiveDbUpdatedEvMBS">
+      <message>Failed to convert active databases updated event name to multi-byte string.</message>
+    </code>
+    <code hex="0031" severity="Error" name="ScErrOpenActiveDbUpdatedEv">
+      <message>Failed to open the active databases updated event.</message>
+    </code>
   </facility>
 
   <!--
@@ -1132,6 +1177,69 @@
                 isn't formatted correctly.
             </para>
         </remarks>
+    </code>
+    <code hex="0074" severity="Error" name="ScErrInvalidGlobalSegmentShmObj">
+      <message>Invalid Global Segment Shared Memory Object.</message>
+    </code>
+    <code hex="0075" severity="Error" name="ScErrServerInitUnknownException">
+      <message>Unknown exception thrown during initialization of server.</message>
+    </code>
+    <code hex="0076" severity="Error" name="ScErrServerPortInitInvalidShmObj">
+      <message>Server port initialization failed, invalid shared memory object.</message>
+    </code>
+    <code hex="0077" severity="Error" name="ScErrServerPortInitInvalidMapReg">
+      <message>Server port initialization failed, invalid mapped region.</message>
+    </code>
+    <code hex="0078" severity="Error" name="ScErrServerPortUnknownException">
+      <message>Server port initialization failed, unknown exception caught.</message>
+    </code>
+    <code hex="0079" severity="Error" name="ScErrCantCreateIPCMonitorDir">
+      <message>IPC monitor failed to create IPC monitor directory.</message>
+    </code>
+    <code hex="007A" severity="Error" name="ScErrIPCMonitorRequiredArguments">
+      <message>IPC monitor failed to start, required arguments are missing.</message>
+    </code>
+    <code hex="007B" severity="Error" name="ScErrFormatIPCMonitorCleanupEv">
+      <message>IPC monitor failed to format the ipc_monitor_cleanup_event_name.</message>
+    </code>
+    <code hex="007C" severity="Error" name="ScErrConvertIPCMonCleanupEvMBS">
+      <message>IPC monitor failed to convert the IPC monitor cleanup event name to multi-byte string.</message>
+    </code>
+    <code hex="007D" severity="Error" name="ScErrCreateIPCMonitorCleanupEv">
+      <message>IPC monitor failed to create the IPC monitor cleanup event.</message>
+    </code>
+    <code hex="007E" severity="Error" name="ScErrIPCMFormatActiveDbUpdatedEv">
+      <message>IPC monitor failed to format the active databases updated event name.</message>
+    </code>
+    <code hex="007F" severity="Error" name="ScErrIPCMConvActiveDbUpdatedEvMB">
+      <message>IPC monitor failed to convert active databases updated event name to multi-byte string.</message>
+    </code>
+    <code hex="0080" severity="Error" name="ScErrCreateActiveDbUpdatedEv">
+      <message>IPC monitor failed to failed to create the active databases updated event.</message>
+    </code>
+    <code hex="0081" severity="Error" name="ScErrInvalidIPCMonInterfacShmObj">
+      <message>IPC monitor invalid monitor_interface shared memory object.</message>
+    </code>
+    <code hex="0082" severity="Error" name="ScErrInvalidIPCMonInterfacMapReg">
+      <message>IPC monitor invalid monitor_interface mapped_region.</message>
+    </code>
+    <code hex="0083" severity="Error" name="ScErrIPCMonitorOpenProcessToken">
+      <message>IPC monitor OpenProcessToken() failed.</message>
+    </code>
+    <code hex="0084" severity="Error" name="ScErrIPCMonLookupPrivilegeValue">
+      <message>IPC monitor LookupPrivilegeValue() failed.</message>
+    </code>
+    <code hex="0085" severity="Error" name="ScErrIPCMonAdjustTokenPrivileges">
+      <message>IPC monitor AdjustTokenPrivileges() failed.</message>
+    </code>
+    <code hex="0086" severity="Error" name="ScErrIPCMonSetSeDebugPrivilege">
+      <message>IPC monitor failed to set SeDebugPrivilege.</message>
+    </code>
+    <code hex="0087" severity="Error" name="ScErrIPCMonitorCreateActiveDbDir">
+      <message>IPC monitor can't create monitor active databases directory.</message>
+    </code>
+    <code hex="0088" severity="Error" name="ScErrIPCMonitorDelActiveDbFile">
+      <message>IPC monitor can't delete monitor active databases file.</message>
     </code>
   </facility>
 
