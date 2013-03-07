@@ -73,11 +73,12 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             }
         }
 
-        /// <summary>
-        /// The ast class
-        /// </summary>
+        // <summary>
+        // The ast class
+        // </summary>
        // internal AstRequestProcessorClass AstClass;
-        /// <summary>
+
+       /// <summary>
         /// The code
         /// </summary>
         public object Code;
