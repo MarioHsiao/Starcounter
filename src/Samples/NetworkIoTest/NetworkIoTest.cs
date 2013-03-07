@@ -38,17 +38,17 @@ namespace NetworkIoTestApp
                 return "ab";
             });*/
 
-            UserHandlerCodegen.GET_NEW("/", () =>
+            NewUserHandlers.GET_NEW("/", () =>
             {
                 return "root";
             });
 
-            UserHandlerCodegen.GET_NEW("/{?}", (Int32 i) =>
+            NewUserHandlers.GET_NEW("/{?}", (Int32 i) =>
             {
                 return "integer: " + i;
             });
 
-            UserHandlerCodegen.GET_NEW("/{?}/{?}", (HttpRequest r, String s, Int32 i) =>
+            NewUserHandlers.GET_NEW("/{?}/{?}", (HttpRequest r, String s, Int32 i) =>
             {
                 return "string: " + s + " integer: " + i + " uri: " + r.Uri;
             });
