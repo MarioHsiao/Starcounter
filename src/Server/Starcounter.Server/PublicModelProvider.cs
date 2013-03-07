@@ -87,6 +87,17 @@ namespace Starcounter.Server {
         }
 
         /// <inheritdoc />
+        public CommandDescriptor[] Functionality {
+            get {
+                // NOTE: We are exposing the internal array "as is", instead
+                // of giving back a clone. But it's so unlikely that this will
+                // be exploited in the kind of controlled environment server
+                // hosting really is, so let's not lose sleep over that now.
+                return engine.Dispatcher.CommandDescriptors;
+            }
+        }
+
+        /// <inheritdoc />
         public CommandInfo Execute(ServerCommand command) {
             command.GetReadyToEnqueue();
             return this.engine.Dispatcher.Enqueue(command);
