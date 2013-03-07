@@ -1,6 +1,6 @@
 
 :: Checking if test should be run.
-REM IF NOT "%SC_RUN_LOADANDLATENCY_TEST%"=="True" GOTO :EOF
+IF "%SC_RUN_QUERYPROCESSING_TEST%"=="False" GOTO :EOF
 
 :: Some predefined constants.
 SET DB_DIR=.db
