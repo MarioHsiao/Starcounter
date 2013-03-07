@@ -105,8 +105,8 @@ namespace Starcounter {
                     }
                     else {
                         object papa = val;
-                        if (prop.Bound)
-                            papa = prop.GetBoundValueAsObject(this);
+                        //if (prop.Bound)
+                        //    papa = prop.GetBoundValueAsObject(this);
                        
                        sb.Append(JsonConvert.SerializeObject(papa));
                     }
@@ -171,9 +171,9 @@ namespace Starcounter {
                     case JsonToken.StartObject:
                         Obj newObj;
                         if (insideArray) {
-                            newObj = obj.GetValue((TObjArr)tChild).Add();
+                            newObj = obj.Get((TObjArr)tChild).Add();
                         } else {
-                            newObj = obj.GetValue((TObj)tChild);
+                            newObj = obj.Get((TObj)tChild);
                         }
                         PopulateObject(newObj, reader);
                         break;
@@ -188,19 +188,19 @@ namespace Starcounter {
                         }
                         break;
                     case JsonToken.String:
-                        obj.SetValue((TString)tChild, (string)reader.Value);
+                        obj.Set((TString)tChild, (string)reader.Value);
                         break;
                     case JsonToken.Integer:
-                        obj.SetValue((TLong)tChild, (long)reader.Value);
+                        obj.Set((TLong)tChild, (long)reader.Value);
                         break;
                     case JsonToken.Boolean:
-                        obj.SetValue((TBool)tChild, (bool)reader.Value);
+                        obj.Set((TBool)tChild, (bool)reader.Value);
                         break;
                     case JsonToken.Float:
                         if (tChild is TDecimal) {
-                            obj.SetValue((TDecimal)tChild, Convert.ToDecimal(reader.Value));
+                            obj.Set((TDecimal)tChild, Convert.ToDecimal(reader.Value));
                         } else {
-                            obj.SetValue((TDouble)tChild, (double)reader.Value);
+                            obj.Set((TDouble)tChild, (double)reader.Value);
                         }
                         break;
                     case JsonToken.StartArray:

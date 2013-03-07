@@ -17,12 +17,10 @@ namespace Starcounter {
         /// <summary>
         /// </summary>
         /// <value></value>
-        public new T Data 
-        {
-            get { return (T)base.Data; }
-            set { base.Data = value; }
-        }
-
-
+        //public new T Data 
+        //{
+        //    get { return (T)base.Data; }
+        //    set { base.Data = value; }
+        //}
     }
 }

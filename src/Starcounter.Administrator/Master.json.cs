@@ -182,7 +182,13 @@ namespace StarcounterApps3 {
                 ServerEngine engine = Master.ServerEngine;
                 IServerRuntime runtime = Master.ServerInterface;
 
-                var execRequest = ExecRequest.FromJson(request);
+                // TODO:
+                // Commented the following code until the codegenerated deserialization is in place.
+                // For now we need to manually create an instance and fill it from a string.
+//                var execRequest = ExecRequest.FromJson(request);
+
+                var execRequest = new ExecRequest();
+                execRequest.PopulateFromJson(request.GetBodyStringUtf8_Slow());
                 
                 var cmd = new ExecAppCommand(engine, execRequest.ExecutablePath, null, null);
                 cmd.DatabaseName = name;

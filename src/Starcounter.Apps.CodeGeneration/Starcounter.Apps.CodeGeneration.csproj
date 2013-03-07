@@ -119,7 +119,6 @@
     <Compile Include="SimpleCodeDom\Core\NMetadataClass.cs" />
     <Compile Include="SimpleCodeDom\Core\NValueClass.cs" />
     <Compile Include="SimpleCodeDom\NAppMetadata.cs" />
-    <Compile Include="SimpleCodeDom\NAppSerializerClass.cs" />
     <Compile Include="SimpleCodeDom\NPredefinedClass.cs" />
     <Compile Include="SimpleCodeDom\NEventClass.cs" />
     <Compile Include="SimpleCodeDom\NListing.cs" />

@@ -2,7 +2,6 @@
    $:{Editable:true},
 
    $userid$: {Bind:"uid"},
-   $password: {Bound:false},
    
    $doubleToInt: {Type:"int", Editable:false},
    $doubleToString: {Editable:false, Type:"string"},
