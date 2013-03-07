@@ -88,8 +88,8 @@
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />
     <Compile Include="PublicModel\Commands\ServerCommand.cs" />
-    <Compile Include="PublicModel\Commands\ExecAppCommand.cs" />
-    <Compile Include="Commands\Processors\ExecAppCommandProcessor.cs" />
+    <Compile Include="PublicModel\Commands\ExecCommand.cs" />
+    <Compile Include="Commands\Processors\ExecCommandProcessor.cs" />
     <Compile Include="Configuration\ConfigurationElement.cs" />
     <Compile Include="Configuration\ConfigurationFile.cs" />
     <Compile Include="Configuration\IConfigurationElement.cs" />
