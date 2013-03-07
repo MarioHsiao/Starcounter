@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="Arr.cs" />
     <Compile Include="Container.cs" />
-    <Compile Include="DataBinding.cs" />
+    <Compile Include="DataBindingFactory.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
     <Compile Include="Messages\Message.cs" />
@@ -99,6 +99,10 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Logging\Starcounter.Logging.csproj">
+      <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
+      <Name>Starcounter.Logging</Name>
     </ProjectReference>
     <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
       <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>

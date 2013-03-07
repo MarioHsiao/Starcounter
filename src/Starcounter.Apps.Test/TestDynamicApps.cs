@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Starcounter.Client;
 using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
+using Starcounter.Advanced;
 
 namespace Starcounter.Client.Tests.Application {
 
@@ -53,13 +54,13 @@ namespace Starcounter.Client.Tests.Application {
             Puppet jocke = new Puppet() { Template = personSchema };
             Puppet tim = new Puppet() { Template = personSchema };
 
-            jocke.SetValue(firstName, "Joachim");
-            jocke.SetValue(lastName, "Wester");
-            jocke.SetValue(age, 30);
+            jocke.Set(firstName, "Joachim");
+            jocke.Set(lastName, "Wester");
+            jocke.Set(age, 30);
 
-            tim.SetValue(firstName, "Timothy");
-            tim.SetValue(lastName, "Wester");
-            tim.SetValue(age, 16);
+            tim.Set(firstName, "Timothy");
+            tim.Set(lastName, "Wester");
+            tim.Set(age, 16);
 
             Assert.AreEqual(0, firstName.Index);
             Assert.AreEqual(1, lastName.Index);
@@ -67,10 +68,10 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual(3, phoneNumbers.Index);
             Assert.AreEqual(0, number.Index);
 
-            Assert.AreEqual("Joachim", jocke.GetValue(firstName));
-            Assert.AreEqual("Wester", jocke.GetValue(lastName));
-            Assert.AreEqual("Timothy", tim.GetValue(firstName));
-            Assert.AreEqual("Wester", tim.GetValue(lastName));
+            Assert.AreEqual("Joachim", jocke.Get(firstName));
+            Assert.AreEqual("Wester", jocke.Get(lastName));
+            Assert.AreEqual("Timothy", tim.Get(firstName));
+            Assert.AreEqual("Wester", tim.Get(lastName));
 
             var ret = new List<Puppet>();
             ret.Add(jocke);
@@ -99,11 +100,11 @@ namespace Starcounter.Client.Tests.Application {
 
             jocke.FirstName = "Joachim";
             jocke.LastName = "Wester";
-            //jocke.Age = 30;
+            jocke.Age = 30;
 
             tim.FirstName = "Timothy";
             tim.LastName = "Wester";
-            //tim.Age = 16;
+            tim.Age = 16;
 
             Assert.AreEqual(0, firstName.Index);
             Assert.AreEqual(1, lastName.Index);
@@ -111,10 +112,10 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual(3, phoneNumbers.Index);
             Assert.AreEqual(0, number.Index);
 
-            Assert.AreEqual("Joachim", jocke.GetValue(firstName));
-            Assert.AreEqual("Wester", jocke.GetValue(lastName));
-            Assert.AreEqual("Timothy", tim.GetValue(firstName));
-            Assert.AreEqual("Wester", tim.GetValue(lastName));
+            Assert.AreEqual("Joachim", jocke.FirstName);
+            Assert.AreEqual("Wester", jocke.LastName);
+            Assert.AreEqual("Timothy", tim.FirstName);
+            Assert.AreEqual("Wester", tim.LastName);
 
             var ret = new List<Puppet>();
             ret.Add(jocke);
@@ -267,6 +268,45 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual("Hi ha ho he", p1.ExtraInfo.Text);
         }
 
+        [Test]
+        public static void TestDataBinding() {
+            dynamic msg = new Message<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
+
+            var myDataObj = new PersonObject() { FirstName = "Kalle", LastName = "Kula", Age = 21 };
+            myDataObj.Number = new PhoneNumberObject() { Number = "123-555-7890" };
+            msg.Data = myDataObj;
+
+            // Reading bound values.
+            Assert.AreEqual("Kalle", msg.FirstName);
+            Assert.AreEqual("Kula", msg.LastName);
+            Assert.AreEqual(21, msg.Age);
+            Assert.AreEqual("123-555-7890", msg.PhoneNumber.Number);
+
+            // Setting bound values.
+            msg.FirstName = "Allan";
+            msg.LastName = "Ballan";
+            msg.Age = 109L;
+            msg.PhoneNumber.Number = "666";
+
+            // Check dataobject is changed.
+            Assert.AreEqual("Allan", myDataObj.FirstName);
+            Assert.AreEqual("Ballan", myDataObj.LastName);
+            Assert.AreEqual(109, myDataObj.Age);
+            Assert.AreEqual("666", myDataObj.Number.Number);
+        }
+
+        private static TMessage CreateSimplePersonTemplateWithDataBinding() {
+            var personSchema = new TMessage();
+            personSchema.Add<TString>("FirstName$", "FirstName");
+            personSchema.Add<TString>("LastName", "LastName");
+            personSchema.Add<TLong>("Age", "Age");
+
+            var phoneNumber = personSchema.Add<TMessage>("PhoneNumber", "Number");
+            phoneNumber.Add<TString>("Number", "Number");
+            
+            return personSchema;
+        }
+
         private static TObj CreateSimplePersonTemplate() {
             var personSchema = new TMessage();
             personSchema.Add<TString>("FirstName$");
@@ -302,5 +342,28 @@ namespace Starcounter.Client.Tests.Application {
     }
 
     internal class MyFieldMessage : Message {
+    }
+
+    internal class PersonObject : BasePerson {
+        public int Age { get; set; }
+
+        public PhoneNumberObject Number { get; set; }
+    }
+
+    internal class PhoneNumberObject : IBindable {
+        public ulong UniqueID {
+            get { return 0; }
+        }
+
+        public string Number { get; set; }
+    }
+
+    internal class BasePerson : IBindable {
+        public ulong UniqueID {
+            get { return 0; }
+        }
+
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
     }
 }
