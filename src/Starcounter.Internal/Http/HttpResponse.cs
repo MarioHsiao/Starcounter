@@ -28,10 +28,24 @@ namespace Starcounter.Advanced
         /// </summary>
         private byte[] CompressedResponse_ = null;
 
+        /// <summary>
+        /// UncompressedContentOffset_
+        /// </summary>
         public int UncompressedContentOffset_ = -1;
+
+        /// <summary>
+        /// CompressedContentOffset_
+        /// </summary>
         public int CompressedContentOffset_ = -1;
 
+        /// <summary>
+        /// UncompressedContentLength_
+        /// </summary>
         public int UncompressedContentLength_ = -1;
+
+        /// <summary>
+        /// CompressedContentLength_
+        /// </summary>
         public int CompressedContentLength_ = -1;
 
         /// <summary>
@@ -43,18 +57,22 @@ namespace Starcounter.Advanced
         /// The file path
         /// </summary>
         public string FilePath;
+
         /// <summary>
         /// The file directory
         /// </summary>
         public string FileDirectory;
+
         /// <summary>
         /// The file name
         /// </summary>
         public string FileName;
+
         /// <summary>
         /// The file exists
         /// </summary>
         public bool FileExists;
+
         /// <summary>
         /// The file modified
         /// </summary>
@@ -279,25 +297,37 @@ namespace Starcounter.Advanced
             UInt32 response_size_bytes,
             Byte* out_http_response);
 
+        /// <summary>
         /// Initializes a new instance of the <see cref="HttpResponse" /> class.
         /// </summary>
         public HttpResponse() {
             HeaderInjectionPoint = -1;
         }
 
-        // Pointer to corresponding HTTP request.
+        /// <summary>
+        /// Reference to corresponding HTTP request.
+        /// </summary>
         HttpRequest httpRequest_ = null;
 
-        // Setting corresponding HTTP request.
+        /// <summary>
+        /// Setting corresponding HTTP request.
+        /// </summary>
+        /// <param name="httpRequest"></param>
         public void SetHttpRequest(HttpRequest httpRequest)
         {
             httpRequest_ = httpRequest;
         }
 
-        // Underlying memory stream.
+        /// <summary>
+        /// Underlying memory stream.
+        /// </summary>
         MemoryStream mem_stream_ = null;
 
-        // Setting the response bytes.
+        /// <summary>
+        /// Setting the response bytes.
+        /// </summary>
+        /// <param name="mem_stream"></param>
+        /// <param name="response_len_bytes"></param>
         public void SetResponseBytes(MemoryStream mem_stream, Int32 response_len_bytes)
         {
             mem_stream_ = mem_stream;
@@ -306,7 +336,11 @@ namespace Starcounter.Advanced
             SetResponseBytes(UncompressedResponse_, response_len_bytes);
         }
 
-        // Setting the response bytes.
+        /// <summary>
+        /// Setting the response bytes.
+        /// </summary>
+        /// <param name="response_buf"></param>
+        /// <param name="response_len_bytes"></param>
         public void SetResponseBytes(Byte[] response_buf, Int32 response_len_bytes)
         {
             UncompressedResponse_ = response_buf;
@@ -470,7 +504,6 @@ namespace Starcounter.Advanced
             handlerId_ = handler_id;
         }
 
-        // TODO
         /// <summary>
         /// Debugs the specified message.
         /// </summary>
@@ -481,11 +514,12 @@ namespace Starcounter.Advanced
             Console.WriteLine(message);
         }
 
-        // TODO
+
         /// <summary>
         /// The needs script injection_
         /// </summary>
         bool needsScriptInjection_ = false;
+
         /// <summary>
         /// Gets or sets a value indicating whether [needs script injection].
         /// </summary>
@@ -505,7 +539,6 @@ namespace Starcounter.Advanced
             get { return handlerId_; }
         }
 
-        // TODO
         /// <summary>
         /// The is app view_
         /// </summary>
@@ -584,11 +617,12 @@ namespace Starcounter.Advanced
             unsafe { return http_response_struct_->GetContentByteArray_Slow(); }
         }
 
+        /*
         /// <summary>
         /// Gets the response as byte array.
         /// </summary>
         /// <returns>Response bytes.</returns>
-        /*public Byte[] GetResponseByteArray_Slow()
+        public Byte[] GetResponseByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
@@ -727,7 +761,9 @@ namespace Starcounter.Advanced
             }
         }
 
-        // New session creation indicator.
+        /// <summary>
+        /// New session creation indicator.
+        /// </summary>
         Boolean newSession_ = false;
 
         /// <summary>

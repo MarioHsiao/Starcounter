@@ -55,7 +55,7 @@ namespace Starcounter
         public void GET(String uri, HttpRequest req, Func<HttpResponse, Object> func)
         {
             HttpResponse resp;
-            SendRest(uri, "GET", null, req, out resp);
+            DoRESTRequest(uri, "GET", null, req, out resp);
             Object o = func.Invoke(resp);
             HttpResponse respOnResp = HandleResponse_(req, o);
             req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
@@ -63,13 +63,13 @@ namespace Starcounter
 
         public void GET(String uri, HttpRequest httpRequest, out HttpResponse httpResponse)
         {
-            SendRest(uri, "GET", null, httpRequest, out httpResponse);
+            DoRESTRequest(uri, "GET", null, httpRequest, out httpResponse);
         }
 
         public void POST(String uri, HttpRequest req, Func<HttpResponse, Object> func)
         {
             HttpResponse resp;
-            SendRest(uri, "POST", null, req, out resp);
+            DoRESTRequest(uri, "POST", null, req, out resp);
             Object o = func.Invoke(resp);
             HttpResponse respOnResp = HandleResponse_(req, o);
             req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
@@ -77,13 +77,13 @@ namespace Starcounter
 
         public void POST(String uri, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
         {
-            SendRest(uri, "POST", content, httpRequest, out httpResponse);
+            DoRESTRequest(uri, "POST", content, httpRequest, out httpResponse);
         }
 
         public void PUT(String uri, HttpRequest req, Func<HttpResponse, Object> func)
         {
             HttpResponse resp;
-            SendRest(uri, "PUT", null, req, out resp);
+            DoRESTRequest(uri, "PUT", null, req, out resp);
             Object o = func.Invoke(resp);
             HttpResponse respOnResp = HandleResponse_(req, o);
             req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
@@ -91,13 +91,13 @@ namespace Starcounter
 
         public void PUT(String uri, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
         {
-            SendRest(uri, "PUT", content, httpRequest, out httpResponse);
+            DoRESTRequest(uri, "PUT", content, httpRequest, out httpResponse);
         }
 
         public void DELETE(String uri, HttpRequest req, Func<HttpResponse, Object> func)
         {
             HttpResponse resp;
-            SendRest(uri, "DELETE", null, req, out resp);
+            DoRESTRequest(uri, "DELETE", null, req, out resp);
             Object o = func.Invoke(resp);
             HttpResponse respOnResp = HandleResponse_(req, o);
             req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
@@ -105,7 +105,7 @@ namespace Starcounter
 
         public void DELETE(String uri, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
         {
-            SendRest(uri, "DELETE", content, httpRequest, out httpResponse);
+            DoRESTRequest(uri, "DELETE", content, httpRequest, out httpResponse);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Starcounter
         /// <param name="content"></param>
         /// <param name="httpRequest"></param>
         /// <param name="httpResponse"></param>
-        void SendRest(String uri, String method, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
+        void DoRESTRequest(String uri, String method, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
         {
             httpResponse = null;
 
@@ -189,7 +189,9 @@ namespace Starcounter
                     (contentLen > 0) &&
                     (totallyReceivedBytes >= (headersLen + contentLen + 4)) &&
                     (stream.DataAvailable == false))
+                {
                     break;
+                }
 
                 // Checking if any data is available.
                 if (!stream.DataAvailable)
