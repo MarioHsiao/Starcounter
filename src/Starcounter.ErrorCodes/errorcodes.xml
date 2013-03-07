@@ -3477,6 +3477,16 @@
         but the process didn't exit gracefully in time.
       </message>
     </code>
+    <code hex="0013" severity="Error" name="ScErrExecutableNotFound">
+      <!--
+      Error used mainly by the server library when asked to run an executable
+      and the executable file could not be found where specified. The error
+      message should include the full path used (if possible).
+      -->
+      <message>
+        The executable file cound not be found.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
