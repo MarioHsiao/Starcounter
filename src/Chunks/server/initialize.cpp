@@ -40,6 +40,7 @@
 #include "../common/interprocess.hpp"
 #include "../common/name_definitions.hpp"
 #include "initialize.hpp"
+#include <scerrres.h>
 
 namespace {
 
@@ -143,7 +144,7 @@ is_system, uint32_t chunks_total_number) try {
 	shared_memory_segment_size, is_system);
 	
 	if (!global_segment_shared_memory_object.is_valid()) {
-		return _E_UNSPECIFIED;
+		return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
 	}
 	
 	mapped_region segment_region(global_segment_shared_memory_object);
@@ -349,8 +350,7 @@ is_system, uint32_t chunks_total_number) try {
 	return 0;
 }
 catch (...) {
-	//std::cerr << "initialize: unknown exception thrown" << std::endl;
-	return _E_UNSPECIFIED;
+	return SCERRSERVERINITUNKNOWNEXCEPTION;
 }
 
 } // namespace core

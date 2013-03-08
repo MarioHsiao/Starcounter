@@ -39,6 +39,7 @@ namespace IndexQueryTest
             Db.SlowSQL("DROP TABLE AccountTest.User");
 #endif
             Console.WriteLine("Test completed.");
+            Environment.Exit(0);
         }
     }
 }

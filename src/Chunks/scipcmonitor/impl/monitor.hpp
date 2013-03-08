@@ -68,7 +68,7 @@ owner_id_(ipc_monitor_owner_id) {
 		// Trying to create monitor directory.
 		if ((!CreateDirectory(active_databases_file_path_.c_str(), NULL))
 		&& (ERROR_ALREADY_EXISTS != GetLastError())) {
-			throw bad_monitor("can't create monitor directory!");
+			throw ipc_monitor_exception(SCERRCANTCREATEIPCMONITORDIR);
 		}
 
 		// Constructing path to active databases directory.
@@ -78,13 +78,13 @@ owner_id_(ipc_monitor_owner_id) {
 		// Trying to create active databases directory.
 		if ((!CreateDirectory(w_active_databases_dir_path.c_str(), NULL))
 		&& (ERROR_ALREADY_EXISTS != GetLastError())) {
-			throw bad_monitor("can't create monitor active databases directory!");
+			throw ipc_monitor_exception(SCERRIPCMONITORCREATEACTIVEDBDIR);
 		}
 	}
 	else {
 		// The first argument (name of the server that started this monitor),
 		// must be provided.
-		throw bad_monitor("required arguments are missing");
+		throw ipc_monitor_exception(SCERRIPCMONITORREQUIREDARGUMENTS);
 	}
 	
 	// Constructing the full path to active databases file.
@@ -96,7 +96,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if (GetFileAttributes(active_databases_file_path_.c_str())
 	!= INVALID_FILE_ATTRIBUTES) {
 		if (!DeleteFile(active_databases_file_path_.c_str())) {
-			throw bad_monitor("can't delete monitor active databases file!");
+			throw ipc_monitor_exception(SCERRIPCMONITORDELACTIVEDBFILE);
 		}
 	}
 
@@ -127,7 +127,7 @@ owner_id_(ipc_monitor_owner_id) {
 	(ipc_monitor_cleanup_event_name), ipc_monitor_cleanup_event_name_size
 	-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name_.c_str()))
 	< 0) {
-		throw bad_monitor("failed to format the ipc_monitor_cleanup_event_name");
+		throw ipc_monitor_exception(SCERRFORMATIPCMONITORCLEANUPEV);
 	}
 	ipc_monitor_cleanup_event_name[length] = '\0';
 
@@ -137,7 +137,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((length = mbstowcs(w_ipc_monitor_cleanup_event_name,
 	ipc_monitor_cleanup_event_name, segment_name_size)) < 0) {
 		// Failed to convert ipc_monitor_cleanup_event_name to multi-byte string.
-		throw bad_monitor("failed to convert ipc_monitor_cleanup_event_name to multi-byte string");
+		throw ipc_monitor_exception(SCERRCONVERTIPCMONCLEANUPEVMBS);
 	}
 	w_ipc_monitor_cleanup_event_name[length] = L'\0';
 
@@ -146,7 +146,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((ipc_monitor_cleanup_event_ = ::CreateEvent(NULL, TRUE, FALSE,
 	w_ipc_monitor_cleanup_event_name)) == NULL) {
 		// Failed to create event.
-		throw bad_monitor("failed to create the ipc_monitor_cleanup_event");
+		throw ipc_monitor_exception(SCERRCREATEIPCMONITORCLEANUPEV);
 	}
 
 	//--------------------------------------------------------------------------
@@ -159,7 +159,7 @@ owner_id_(ipc_monitor_owner_id) {
 	(active_databases_updated_event_name), active_databases_updated_event_name_size
 	-1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str()))
 	< 0) {
-		throw bad_monitor("failed to format the active_databases_updated_event_name");
+		throw ipc_monitor_exception(SCERRIPCMFORMATACTIVEDBUPDATEDEV);
 	}
 	active_databases_updated_event_name[length] = '\0';
 
@@ -169,7 +169,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((length = mbstowcs(w_active_databases_updated_event_name,
 	active_databases_updated_event_name, segment_name_size)) < 0) {
 		// Failed to convert active_databases_updated_event_name to multi-byte string.
-		throw bad_monitor("failed to convert active_databases_updated_event_name to multi-byte string");
+		throw ipc_monitor_exception(SCERRIPCMCONVACTIVEDBUPDATEDEVMB);
 	}
 	w_active_databases_updated_event_name[length] = L'\0';
 	HANDLE active_databases_updated_event;
@@ -179,7 +179,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((active_databases_updated_event = ::CreateEvent(NULL, TRUE, FALSE,
 	w_active_databases_updated_event_name)) == NULL) {
 		// Failed to create event.
-		throw bad_monitor("failed to create the active_databases_updated_event");
+		throw ipc_monitor_exception(SCERRCREATEACTIVEDBUPDATEDEV);
 	}
 
 	//--------------------------------------------------------------------------
@@ -215,14 +215,14 @@ owner_id_(ipc_monitor_owner_id) {
 	.c_str(), sizeof(monitor_interface), is_system);
 	
 	if (!monitor_interface_.is_valid()) {
-		throw bad_monitor("invalid monitor_interface mapped_region");
+		throw ipc_monitor_exception(SCERRINVALIDIPCMONINTERFACSHMOBJ);
 	}
 	
 	// Map the whole shared memory in this process.
 	monitor_interface_region_.init(monitor_interface_);
 	
 	if (!monitor_interface_region_.is_valid()) {
-		throw bad_monitor("invalid monitor_interface mapped_region");
+		throw ipc_monitor_exception(SCERRINVALIDIPCMONINTERFACMAPREG);
 	}
 	
 	// Get the address of the mapped region and construct the shared memory
@@ -264,7 +264,7 @@ owner_id_(ipc_monitor_owner_id) {
 		&access_token) == 0) {
 			err = GetLastError();
 			CloseHandle(access_token);
-			throw bad_monitor("OpenProcessToken() failed");
+			throw ipc_monitor_exception(SCERRIPCMONITOROPENPROCESSTOKEN);
 		}
 		
 		LUID luid;
@@ -272,7 +272,7 @@ owner_id_(ipc_monitor_owner_id) {
 		if (LookupPrivilegeValue(NULL, L"SeDebugPrivilege", &luid) == 0) {
 			err = GetLastError();
 			CloseHandle(access_token);
-			throw bad_monitor("LookupPrivilegeValue() failed");
+			throw ipc_monitor_exception(SCERRIPCMONLOOKUPPRIVILEGEVALUE);
 		}
 		
 		TOKEN_PRIVILEGES tp;
@@ -285,12 +285,12 @@ owner_id_(ipc_monitor_owner_id) {
 		sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES) NULL, (PDWORD) NULL)) {
 			err = GetLastError();
 			CloseHandle(access_token);
-			throw bad_monitor("AdjustTokenPrivileges() failed");
+			throw ipc_monitor_exception(SCERRIPCMONADJUSTTOKENPRIVILEGES);
 		}
 		
 		if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
 			CloseHandle(access_token);
-			throw bad_monitor("failed to set SeDebugPrivilege");
+			throw ipc_monitor_exception(SCERRIPCMONSETSEDEBUGPRIVILEGE);
 		}
 		CloseHandle(access_token);
 	}

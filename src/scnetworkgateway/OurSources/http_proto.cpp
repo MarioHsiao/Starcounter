@@ -294,10 +294,10 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
     // Increasing number of saved headers.
     http->http_request_.num_headers_++;
-    if (http->http_request_.num_headers_ >= MAX_HTTP_HEADERS)
+    if (http->http_request_.num_headers_ >= MixedCodeConstants::MAX_PREPARSED_HTTP_REQUEST_HEADERS)
     {
         // Too many HTTP headers.
-        GW_COUT << "Too many HTTP headers detected, maximum allowed: " << MAX_HTTP_HEADERS << GW_ENDL;
+        GW_COUT << "Too many HTTP headers detected, maximum allowed: " << MixedCodeConstants::MAX_PREPARSED_HTTP_REQUEST_HEADERS << GW_ENDL;
         return SCERRGWHTTPTOOMANYHEADERS;
     }
 
@@ -365,8 +365,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
         case CONTENT_LENGTH_FIELD:
         {
-            // Calculating body length.
-            http->http_request_.body_len_bytes_ = ParseDecimalStringToUint(at, length);
+            // Calculating content length.
+            http->http_request_.content_len_bytes_ = ParseDecimalStringToUint(at, length);
 
             break;
         }
@@ -457,12 +457,12 @@ inline int HttpWsProto::OnBody(http_parser* p, const char *at, size_t length)
 
     HttpWsProto *http = (HttpWsProto *)p;
 
-    // Setting body parameters.
-    if (http->http_request_.body_len_bytes_ <= 0)
-        http->http_request_.body_len_bytes_ = length;
+    // Setting content parameters.
+    if (http->http_request_.content_len_bytes_ <= 0)
+        http->http_request_.content_len_bytes_ = length;
 
-    // Setting body data offset.
-    http->http_request_.body_offset_ = at - (char*)http->sd_ref_;
+    // Setting content data offset.
+    http->http_request_.content_offset_ = at - (char*)http->sd_ref_;
 
     return 0;
 }
@@ -639,7 +639,7 @@ DONE_URI_MATCHING:
             return SCERRREQUESTONUNREGISTEREDURI;
 
         // Indicating that matching URI index was found.
-        set_matched_uri_index(matched_index);
+        //set_matched_uri_index(matched_index);
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
         sd->get_http_ws_proto()->http_request_.uri_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + uri_offset;
@@ -774,31 +774,31 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
 
 			// TODO: Check when resolved with NGINX http parser.
             // Setting content length.
-            //http_request_.body_len_bytes_ = http_parser_.content_length;
+            //http_request_.content_len_bytes_ = http_parser_.content_length;
             // Checking if content length was determined at all.
             //if (ULLONG_MAX == http_parser_.content_length)
-            //    http_request_.body_len_bytes_ = 0;
+            //    http_request_.content_len_bytes_ = 0;
 
-            // Checking if we have any body at all.
-            if (http_request_.body_len_bytes_ > 0)
+            // Checking if we have any content at all.
+            if (http_request_.content_len_bytes_ > 0)
             {
-                // Number of body bytes already received.
-                int32_t num_body_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.body_offset_;
+                // Number of content bytes already received.
+                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.content_offset_;
                 
-                // Checking if body was partially received at all.
-                if (http_request_.body_offset_ <= 0)
+                // Checking if content was partially received at all.
+                if (http_request_.content_offset_ <= 0)
                 {
-                    // Setting the value for body offset.
-                    http_request_.body_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
+                    // Setting the value for content offset.
+                    http_request_.content_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
 
-                    num_body_bytes_received = 0;
+                    num_content_bytes_received = 0;
                 }
 
-                // Checking if we need to continue receiving the body.
-                if (http_request_.body_len_bytes_ > num_body_bytes_received)
+                // Checking if we need to continue receiving the content.
+                if (http_request_.content_len_bytes_ > num_content_bytes_received)
                 {
-                    // Checking for maximum supported HTTP request body size.
-                    if (http_request_.body_len_bytes_ > MAX_HTTP_BODY_SIZE)
+                    // Checking for maximum supported HTTP request content size.
+                    if (http_request_.content_len_bytes_ > MAX_HTTP_CONTENT_SIZE)
                     {
                         // Handled successfully.
                         *is_handled = true;
@@ -807,7 +807,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                         sd->set_disconnect_after_send_flag(true);
 
 #ifdef GW_WARNINGS_DIAG
-                        GW_COUT << "Maximum supported HTTP request body size is 32 Mb!" << GW_ENDL;
+                        GW_COUT << "Maximum supported HTTP request content size is 32 Mb!" << GW_ENDL;
 #endif
 
                         // Sending corresponding HTTP response.
@@ -818,7 +818,7 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                     sd->set_accumulating_flag(true);
 
                     // Setting the desired number of bytes to accumulate.
-                    accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.body_len_bytes_ - num_body_bytes_received);
+                    accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received);
 
                     // Continue receiving.
                     accum_buf->ContinueReceive();
@@ -1076,31 +1076,31 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
 
             // TODO: Check when resolved with NGINX http parser.
             // Setting content length.
-            //http_request_.body_len_bytes_ = http_parser_.content_length;
+            //http_request_.content_len_bytes_ = http_parser_.content_length;
             // Checking if content length was determined at all.
             //if (ULLONG_MAX == http_parser_.content_length)
-            //    http_request_.body_len_bytes_ = 0;
+            //    http_request_.content_len_bytes_ = 0;
 
-            // Checking if we have any body at all.
-            if (http_request_.body_len_bytes_ > 0)
+            // Checking if we have any content at all.
+            if (http_request_.content_len_bytes_ > 0)
             {
-                // Number of body bytes already received.
-                int32_t num_body_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.body_offset_;
+                // Number of content bytes already received.
+                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.content_offset_;
 
-                // Checking if body was partially received at all.
-                if (http_request_.body_offset_ <= 0)
+                // Checking if content was partially received at all.
+                if (http_request_.content_offset_ <= 0)
                 {
-                    // Setting the value for body offset.
-                    http_request_.body_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
+                    // Setting the value for content offset.
+                    http_request_.content_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
 
-                    num_body_bytes_received = 0;
+                    num_content_bytes_received = 0;
                 }
 
-                // Checking if we need to continue receiving the body.
-                if (http_request_.body_len_bytes_ > num_body_bytes_received)
+                // Checking if we need to continue receiving the content.
+                if (http_request_.content_len_bytes_ > num_content_bytes_received)
                 {
-                    // Checking for maximum supported HTTP request body size.
-                    if (http_request_.body_len_bytes_ > MAX_HTTP_BODY_SIZE)
+                    // Checking for maximum supported HTTP request content size.
+                    if (http_request_.content_len_bytes_ > MAX_HTTP_CONTENT_SIZE)
                     {
                         // Handled successfully.
                         *is_handled = true;
@@ -1109,7 +1109,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                         sd->set_disconnect_after_send_flag(true);
 
 #ifdef GW_WARNINGS_DIAG
-                        GW_COUT << "Maximum supported HTTP request body size is 32 Mb!" << GW_ENDL;
+                        GW_COUT << "Maximum supported HTTP request content size is 32 Mb!" << GW_ENDL;
 #endif
 
                         // Sending corresponding HTTP response.
@@ -1120,7 +1120,7 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                     sd->set_accumulating_flag(true);
 
                     // Setting the desired number of bytes to accumulate.
-                    accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.body_len_bytes_ - num_body_bytes_received);
+                    accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received);
 
                     // Continue receiving.
                     accum_buf->ContinueReceive();
@@ -1144,21 +1144,21 @@ ALL_DATA_ACCUMULATED:
             g_gateway.IncrementNumProcessedHttpRequests();
 #endif
 
-            // Translating HTTP body.
-            GW_ASSERT(http_request_.body_len_bytes_ == kHttpEchoBodyLength);
+            // Translating HTTP content.
+            GW_ASSERT(http_request_.content_len_bytes_ == kHttpEchoContentLength);
 
             // Converting the string to number.
-            //echo_id_type echo_id = hex_string_to_uint64((char*)sd + http_request_.body_offset_, kHttpGatewayEchoRequestBodyLength);
+            //echo_id_type echo_id = hex_string_to_uint64((char*)sd + http_request_.content_offset_, kHttpGatewayEchoRequestBodyLength);
 
             // Saving echo string into temporary buffer.
-            char copied_echo_string[kHttpEchoBodyLength];
-            memcpy(copied_echo_string, (char*)sd + http_request_.body_offset_, kHttpEchoBodyLength);
+            char copied_echo_string[kHttpEchoContentLength];
+            memcpy(copied_echo_string, (char*)sd + http_request_.content_offset_, kHttpEchoContentLength);
 
             // Coping echo HTTP response.
             memcpy(sd->get_data_blob(), kHttpEchoResponse, kHttpEchoResponseLength);
 
             // Inserting echo id into HTTP response.
-            memcpy(sd->get_data_blob() + kHttpEchoResponseInsertPoint, copied_echo_string, kHttpEchoBodyLength);
+            memcpy(sd->get_data_blob() + kHttpEchoResponseInsertPoint, copied_echo_string, kHttpEchoContentLength);
 
             // Sending echo response.
             err_code = gw->SendPredefinedMessage(sd, NULL, kHttpEchoResponseLength);
@@ -1178,7 +1178,7 @@ ALL_DATA_ACCUMULATED:
 
         // Obtaining original echo number.
         //echo_id_type echo_id = *(int32_t*)sd->get_data_blob();
-        echo_id_type echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
+        echo_id_type echo_id = hex_string_to_uint64((char*)sd->get_data_blob() + kHttpEchoResponseInsertPoint, kHttpEchoContentLength);
 
 #ifdef GW_ECHO_STATISTICS
         GW_COUT << "Received echo: " << echo_id << GW_ENDL;

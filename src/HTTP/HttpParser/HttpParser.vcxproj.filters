@@ -4,7 +4,13 @@
     <ClCompile Include="ThirdPartySources\http_parser.c">
       <Filter>ThirdPartySources</Filter>
     </ClCompile>
-    <ClCompile Include="OurSources\apps_http_parser.cpp">
+    <ClCompile Include="OurSources\apps_http_parsers.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\apps_http_response_parser.cpp">
+      <Filter>OurSources</Filter>
+    </ClCompile>
+    <ClCompile Include="OurSources\apps_http_request_parser.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -14,6 +20,12 @@
     </ClInclude>
     <ClInclude Include="ThirdPartyHeaders\http_parser.h">
       <Filter>ThirdPartyHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\http_response.hpp">
+      <Filter>OurHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OurHeaders\http_common.hpp">
+      <Filter>OurHeaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

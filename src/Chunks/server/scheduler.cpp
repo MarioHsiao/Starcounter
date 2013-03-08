@@ -401,13 +401,13 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 		shared_memory_object_.init_open(database_name);
 		
 		if (!shared_memory_object_.is_valid()) {
-			return _E_UNSPECIFIED;
+			return SCERRSERVERPORTINITINVALIDSHMOBJ;
 		}
 		
 		mapped_region_.init(shared_memory_object_);
 		
 		if (!mapped_region_.is_valid()) {
-			return _E_UNSPECIFIED;
+			return SCERRSERVERPORTINITINVALIDMAPREG;
 		}
 		
 		id_ = id;
@@ -486,8 +486,7 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 		common_scheduler_interface_->set_scheduler_number_flag(id_);
 	}
 	catch (...) {
-		std::cerr << "scheduler: unknown exception caught" << std::endl;
-		return _E_UNSPECIFIED;
+		return SCERRSERVERPORTUNKNOWNEXCEPTION;
 	}
 	return 0;
 }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.Internal.Web;
 using Starcounter.Advanced;
+using Codeplex.Data;
 
 namespace NetworkIoTestApp
 {
@@ -92,7 +93,8 @@ namespace NetworkIoTestApp
             MODE_WEBSOCKETS_PORT,
             MODE_STANDARD_BROWSER,
             MODE_US_WEBSITE,
-            MODE_APPS_URIS
+            MODE_APPS_URIS,
+            MODE_HTTP_REST_CLIENT
         }
 
         // Performance related counters.
@@ -269,6 +271,21 @@ namespace NetworkIoTestApp
                 {
                     AppsBootstrapper.Bootstrap();
                     AppsClass.InitAppHandlers();
+
+                    break;
+                }
+
+                case TestTypes.MODE_HTTP_REST_CLIENT:
+                {
+                    AppsBootstrapper.Bootstrap();
+
+                    handler_uri = "/";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnRestClient, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+
+                    handler_uri = "/testrest";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnTestRest, out handler_id);
+                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
                 }
@@ -516,7 +533,7 @@ namespace NetworkIoTestApp
                 "<body>\r\n" +
                 "<h1>URI handler: OnHttpUpload </h1>\r\n" +
                 p.ToString() +
-                "<h1>Uploaded file of length: " + p.BodyLength + "</h1>" +
+                "<h1>Uploaded file of length: " + p.ContentLength + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
 
@@ -526,7 +543,7 @@ namespace NetworkIoTestApp
                 file_postfix = p.Uri.Substring(8/*/upload/*/);
 
             String file_name = "uploaded_" + file_postfix;
-            File.WriteAllBytes(file_name, p.GetBodyByteArray_Slow());
+            File.WriteAllBytes(file_name, p.GetContentByteArray_Slow());
             Console.WriteLine("Uploaded file saved: " + file_name);
 
             String responseHeader =
@@ -731,7 +748,7 @@ namespace NetworkIoTestApp
 
         private static Boolean OnHttpEcho(HttpRequest p)
         {
-            String responseBody = p.GetBodyStringUtf8_Slow();
+            String responseBody = p.GetContentStringUtf8_Slow();
             Debug.Assert(responseBody.Length == 8);
 
             //Console.WriteLine(responseBody);
@@ -758,6 +775,69 @@ namespace NetworkIoTestApp
 
             // Counting performance.
             perf_counter++;
+
+            return true;
+        }
+
+        static Node someNode = new Node("127.0.0.1");
+
+        private static Boolean OnRestClient(HttpRequest httpRequest)
+        {
+            someNode.GET("/testrest", httpRequest, (HttpResponse resp) => {
+                if (resp["Content-Type"] == "text/html; charset=UTF-8") {
+                    dynamic jsonData = DynamicJson.Parse(resp.GetContentStringUtf8_Slow());
+                    string htmlFileName = jsonData.FirstName;
+                    return htmlFileName;
+                } else {
+                    return resp;
+                }
+            });
+
+            /*
+            HttpResponse httpResponse;
+
+            someNode.GET("/testrest", httpRequest, out httpResponse);
+
+            Int32 contentLength = httpResponse.ContentLength;
+            String contentType = httpResponse["Content-Type"];
+
+            try
+            {
+                // Writing back the response.
+                httpRequest.SendResponse(httpResponse.ResponseBytes, 0, httpResponse.ResponseLength);
+            }
+            catch
+            {
+                // Writing back the error status.
+                httpRequest.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }*/
+
+            return true;
+        }
+
+        private static Boolean OnTestRest(HttpRequest p)
+        {
+            String jsonContent = "{\"FirstName\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"PhoneNumbers\":[{\"Number\":\"123-555-7890\"}]}";
+
+            String responseHeader =
+                "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html; charset=UTF-8\r\n" +
+                "Content-Length: " + jsonContent.Length + "\r\n" +
+                "\r\n";
+
+            // Converting string to byte array.
+            Byte[] responseBytes = Encoding.ASCII.GetBytes(responseHeader + jsonContent);
+
+            try
+            {
+                // Writing back the response.
+                p.SendResponse(responseBytes, 0, responseBytes.Length);
+            }
+            catch
+            {
+                // Writing back the error status.
+                p.SendResponse(kHttpServiceUnavailable, 0, kHttpServiceUnavailable.Length);
+            }
 
             return true;
         }

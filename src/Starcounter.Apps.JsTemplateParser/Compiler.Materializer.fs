@@ -38,7 +38,6 @@ type ITemplateFactory =
         abstract SetNamespaceProperty : obj * string * DebugInfo -> unit
         abstract SetOnUpdateProperty : obj * string * DebugInfo -> unit
         abstract SetBindProperty : obj * string * DebugInfo -> unit
-        abstract SetBoundProperty : obj * bool * DebugInfo -> unit
     end
 
 
@@ -119,8 +118,6 @@ module public Materializer =
             | "Unbound" ->
                 if (Seq.isEmpty parameters) then
                     match parentAst with
-                    | Ast.Tree.Invoke (_,_,debugInfo) ->
-                       factory.SetBoundProperty( parent, false, debugInfo )
                     | _ -> failedExpectation1 "Invoke" expr
                 else
                     failedExpectation1 ".Unbound() adorner function does not take any parameters." parameters

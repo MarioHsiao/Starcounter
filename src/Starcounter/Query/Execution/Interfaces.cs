@@ -1007,7 +1007,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// Returns if Bison-parser was used in creation of the enumerator.
     /// It will be removed when Prolog-parser is deprecated.
     /// </summary>
-    Boolean IsBisonPrarserUsed {
+    Boolean IsBisonParserUsed {
         get;
     }
 

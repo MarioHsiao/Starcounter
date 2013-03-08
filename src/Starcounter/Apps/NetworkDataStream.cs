@@ -18,76 +18,6 @@ namespace Starcounter
     public unsafe struct NetworkDataStream : INetworkDataStream
     {
         /// <summary>
-        /// Data offset/size constants. 
-        /// </summary>
-        public const Int32 BMX_HANDLER_SIZE = 2;
-
-        /// <summary>
-        /// BMX protocol begin offset.
-        /// </summary>
-        public const Int32 BMX_PROTOCOL_BEGIN_OFFSET = 16;
-        
-        /// <summary>
-        /// Request size begin offset.
-        /// </summary>
-        public const Int32 REQUEST_SIZE_BEGIN_OFFSET = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
-        
-        /// <summary>
-        /// BMX header max size.
-        /// </summary>
-        public const Int32 BMX_HEADER_MAX_SIZE_BYTES = 32;
-
-        /// <summary>
-        /// OVERLAPPED_SIZE
-        /// </summary>
-        const Int32 OVERLAPPED_SIZE = 32;
-
-        /// <summary>
-        /// Offset of gateway data in chunk.
-        /// </summary>
-        public const Int32 GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_SIZE;
-        
-        /// <summary>
-        /// Gateway session salt offset.
-        /// </summary>
-        public const Int32 SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN_OFFSET;
-       
-        /// <summary>
-        /// Gateway session index offset.
-        /// </summary>
-        public const Int32 SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 8;
-        
-        /// <summary>
-        /// Apps session index offset.
-        /// </summary>
-        public const Int32 SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 16;
-
-        /// <summary>
-        /// Size of the session structure in bytes.
-        /// </summary>
-        public const Int32 SESSION_STRUCT_SIZE = 32;
-
-        /// <summary>
-        /// User data offset in chunk.
-        /// </summary>
-        public const Int32 USER_DATA_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + SESSION_STRUCT_SIZE;
-        
-        /// <summary>
-        /// Max user data offset in chunk.
-        /// </summary>
-        public const Int32 MAX_USER_DATA_BYTES_OFFSET = USER_DATA_OFFSET + 4;
-        
-        /// <summary>
-        /// User data written bytes offset.
-        /// </summary>
-        public const Int32 USER_DATA_WRITTEN_BYTES_OFFSET = MAX_USER_DATA_BYTES_OFFSET + 4;
-
-        /// <summary>
-        /// Invalid chunk index.
-        /// </summary>
-        const UInt32 INVALID_CHUNK_INDEX = UInt32.MaxValue;
-
-        /// <summary>
         /// The unmanaged_chunk_
         /// </summary>
         Byte* unmanaged_chunk_;
@@ -142,7 +72,7 @@ namespace Starcounter
         {
             get
             {
-                return *((Int32*)(unmanaged_chunk_ + USER_DATA_WRITTEN_BYTES_OFFSET));
+                return *((Int32*)(unmanaged_chunk_ + MixedCodeConstants.USER_DATA_WRITTEN_BYTES_OFFSET));
             }
         }
 
@@ -172,11 +102,11 @@ namespace Starcounter
                         throw new ArgumentException("Not enough space to write user data.");
 
                     // Reading user data offset.
-                    Int32* userDataOffsetPtr = (Int32*)(unmanaged_chunk_ + USER_DATA_OFFSET);
+                    Int32* userDataOffsetPtr = (Int32*)(unmanaged_chunk_ + MixedCodeConstants.USER_DATA_OFFSET);
 
                     // Copying the data to user buffer.
                     Marshal.Copy(
-                        (IntPtr)(unmanaged_chunk_ + BMX_HEADER_MAX_SIZE_BYTES + *userDataOffsetPtr),
+                        (IntPtr)(unmanaged_chunk_ + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + *userDataOffsetPtr),
                         buffer,
                         offset,
                         PayloadSize);
@@ -212,10 +142,10 @@ namespace Starcounter
             unsafe
             {
                 // Reading user data offset.
-                Int32* user_data_offset_ptr = (Int32*)(unmanaged_chunk_ + USER_DATA_OFFSET);
+                Int32* user_data_offset_ptr = (Int32*)(unmanaged_chunk_ + MixedCodeConstants.USER_DATA_OFFSET);
 
                 // Returning scalar value.
-                return *(UInt64*)(unmanaged_chunk_ + BMX_HEADER_MAX_SIZE_BYTES + *user_data_offset_ptr + offset);
+                return *(UInt64*)(unmanaged_chunk_ + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + *user_data_offset_ptr + offset);
             }
         }
 
@@ -228,7 +158,7 @@ namespace Starcounter
         public void SendResponse(UInt64[] buffer, Int32 offset, Int32 length_bytes)
         {
             // Checking if already destroyed.
-            if (chunk_index_ == INVALID_CHUNK_INDEX)
+            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 return;
 
             fixed (UInt64* p = buffer)
@@ -246,7 +176,7 @@ namespace Starcounter
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes)
         {
             // Checking if already destroyed.
-            if (chunk_index_ == INVALID_CHUNK_INDEX)
+            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 return;
 
             fixed (Byte* p = buffer)
@@ -282,7 +212,7 @@ namespace Starcounter
         public void Destroy()
         {
             // Checking if already destroyed.
-            if (chunk_index_ == INVALID_CHUNK_INDEX)
+            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 return;
 
             // Returning linked chunks to pool.
@@ -291,7 +221,7 @@ namespace Starcounter
 
             // This data stream becomes unusable.
             unmanaged_chunk_ = null;
-            chunk_index_ = INVALID_CHUNK_INDEX;
+            chunk_index_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
         }
     }
 }

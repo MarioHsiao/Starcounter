@@ -50,6 +50,7 @@
     <Compile Include="DataPopulation.cs" />
     <Compile Include="FetchTest.cs" />
     <Compile Include="HelpMethods.cs" />
+    <Compile Include="QueryProcessingPerformance.cs" />
     <Compile Include="QueryProcessingTestProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SelectClauseExpressionsTests.cs" />
@@ -58,6 +59,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="run_queryprocessingtest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">

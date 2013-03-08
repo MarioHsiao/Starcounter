@@ -47,7 +47,7 @@
 #include <boost/timer.hpp>
 #if defined(_MSC_VER)
 # define WIN32_LEAN_AND_MEAN
-# include <windows.h> /// TODO: thread_primitives.hpp might replace this include
+# include <windows.h>
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
 ////#include "../common/pid_type.hpp"
@@ -84,15 +84,17 @@ using namespace starcounter::core;
 /// Exception class.
 class test_exception {
 public:
-	explicit test_exception(uint32_t err)
+	typedef uint32_t error_code_type;
+	
+	explicit test_exception(error_code_type err)
 	: err_(err) {}
 	
-	uint32_t error_code() const {
+	error_code_type error_code() const {
 		return err_;
 	}
 	
 private:
-	uint32_t err_;
+	error_code_type err_;
 };
 
 /// Class test.
@@ -179,6 +181,8 @@ public:
 	const monitor_interface_ptr& the_monitor_interface() const {
 		return the_monitor_interface_;
 	}
+
+	void open_active_databases_updated_event();
 
 	void watch_active_databases_updates();
 

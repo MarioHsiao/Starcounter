@@ -293,63 +293,43 @@ void test::stop_all_workers() {
 	}
 }
 
-void test::watch_active_databases_updates() {
-	///=====================================================================
-	/// Open the active_databases_updated_event.
-	///=====================================================================
-	{
-		// Number of characters in the multibyte string after being converted.
-		std::size_t length;
+void test::open_active_databases_updated_event() {
+	// Number of characters in the multibyte string after being converted.
+	std::size_t length;
 
-		// Construct the active_databases_updated_event_name.
-		char active_databases_updated_event_name[active_databases_updated_event_name_size];
+	// Construct the active_databases_updated_event_name.
+	char active_databases_updated_event_name[active_databases_updated_event_name_size];
 
-		// Format: "Local\<server_name>_ipc_monitor_cleanup_event".
-		// Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
-		if ((length = _snprintf_s(active_databases_updated_event_name, _countof
-		(active_databases_updated_event_name), active_databases_updated_event_name_size
-		-1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str())) < 0) {
-			return; // Throw exception error_code: "failed to format the active_databases_updated_event_name"
-		}
-		active_databases_updated_event_name[length] = '\0';
-
-		wchar_t w_active_databases_updated_event_name[active_databases_updated_event_name_size];
-
-		/// TODO: Fix insecure
-		if ((length = mbstowcs(w_active_databases_updated_event_name,
-		active_databases_updated_event_name, segment_name_size)) < 0) {
-			// Failed to convert active_databases_updated_event_name to multi-byte string.
-			return; // Throw exception error_code: "failed to convert active_databases_updated_event_name to multi-byte string"
-		}
-		w_active_databases_updated_event_name[length] = L'\0';
-
-		// Open the active_databases_updated_event_name.
-		if ((active_databases_updates_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
-		FALSE, w_active_databases_updated_event_name)) == NULL) {
-			// Failed to open the event.
-			unsigned int err = GetLastError();
-			switch (err) {
-			case 2:
-				//std::cout << "test::watch_active_databases_updates(): "
-				//"Failed to open active_databases_updated event. The system cannot find the file specified. "
-				//"OS error: " << err << "\n"; /// DEBUG
-				break;
-			case 6:
-				//std::cout << "test::watch_active_databases_updates(): "
-				//"Failed to open active_databases_updated event. The handle is invalid. "
-				//"OS error: " << err << "\n"; /// DEBUG
-				break;
-			default:
-				//std::cout << "test::watch_active_databases_updates(): "
-				//"Failed to open active_databases_updated event. OS error: " << err << "\n"; /// DEBUG
-				break;
-			}
-			return; // TODO: Should throw an exception.
-		}
-		else {
-			//std::cout << "Successfully opened the active_databases_updated_event_name." << std::endl;
-		}
+	// Format: "Local\<server_name>_ipc_monitor_cleanup_event".
+	// Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
+	if ((length = _snprintf_s(active_databases_updated_event_name, _countof
+	(active_databases_updated_event_name), active_databases_updated_event_name_size
+	-1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str())) < 0) {
+		throw test_exception(SCERRFORMATACTIVEDBUPDATEDEVNAME);
 	}
+	active_databases_updated_event_name[length] = '\0';
+
+	wchar_t w_active_databases_updated_event_name[active_databases_updated_event_name_size];
+
+	/// TODO: Fix insecure
+	if ((length = mbstowcs(w_active_databases_updated_event_name,
+	active_databases_updated_event_name, segment_name_size)) < 0) {
+		// Failed to convert active_databases_updated_event_name to multi-byte string.
+		throw test_exception(SCERRCONVERTACTIVEDBUPDATEDEVMBS);
+	}
+	w_active_databases_updated_event_name[length] = L'\0';
+
+	// Open the active_databases_updated_event_name.
+	if ((active_databases_updates_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
+	FALSE, w_active_databases_updated_event_name)) == NULL) {
+		// Failed to open the active_databases_updated_event.
+		throw test_exception(SCERROPENACTIVEDBUPDATEDEV);
+	}
+}
+
+void test::watch_active_databases_updates()
+try {
+	open_active_databases_updated_event();
 
 	///=====================================================================
 	/// Wait for active database update events
@@ -372,21 +352,14 @@ void test::watch_active_databases_updates() {
 			}
 			break;
 		case WAIT_TIMEOUT:
-			// A timeout occurred.
-			the_monitor_interface()->active_database_set()
-			.copy(active_databases, active_databases_updates_event());
-
-			for (std::set<std::string>::iterator it = active_databases.begin();
-			it != active_databases.end(); ++it) {
-				std::cout << *it << "\n";
-			}
 			break;
 		case WAIT_FAILED:
-			// An error occurred.
-			//std::cout << "test::watch_active_databases_updates(): Wait failed." << std::endl;
 			break;
 		}
 	}
+}
+catch (const test_exception& e) {
+	std::cout << "test_exception caught: " << e.error_code() << std::endl;
 }
 
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
