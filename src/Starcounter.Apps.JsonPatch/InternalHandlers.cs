@@ -127,7 +127,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             try {
 
-                dynamic resultJson = new DynamicJson();
+                dynamic resultJson = new Json();
 
                 sqle = (Starcounter.SqlEnumerator<object>)Db.SQL(query).GetEnumerator();
 
@@ -239,7 +239,7 @@ namespace Starcounter.Internal.JsonPatch {
             }
             catch (Exception e) {
 
-                dynamic resultJson = new DynamicJson();
+                dynamic resultJson = new Json();
                 resultJson.columns = new object[] { };
                 resultJson.rows = new object[] { };
 

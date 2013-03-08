@@ -23,7 +23,7 @@ namespace Starcounter.Query
         // Configuration of query module.
         internal static String ProcessFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
         internal const String ProcessFileName = StarcounterConstants.ProgramNames.ScSqlParser + ".exe";
-        internal const String ProcessVersion = "130308";
+        internal const String ProcessVersion = "130129";
         internal static Int32 ProcessPort = 0;
         internal const Int32 MaxQueryLength = 3000;
         internal const Int32 MaxQueryRetries = 10;
