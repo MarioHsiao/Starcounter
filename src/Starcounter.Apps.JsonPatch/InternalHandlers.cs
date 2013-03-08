@@ -47,7 +47,7 @@ namespace Starcounter.Internal.JsonPatch {
                 // SQL command
                 POST( "/__sql/" + Db.Environment.DatabaseName.ToLower(), (HttpRequest r) => {
                     try {
-                        string bodyData = r.GetBodyStringUtf8_Slow();   // Retrice the sql command in the body
+                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrice the sql command in the body
                         string resultJson = ExecuteQuery(bodyData);
                         return resultJson;
                     }
@@ -72,7 +72,7 @@ namespace Starcounter.Internal.JsonPatch {
                     session = Session.Current;
                     rootApp = session.GetRootApp(viewModelId);
 
-                    JsonPatch.EvaluatePatches(rootApp, request.GetBodyByteArray_Slow());
+                    JsonPatch.EvaluatePatches(rootApp, request.GetContentByteArray_Slow());
 
                     // TODO:
                     // Quick and dirty hack to autorefresh dependent properties that might have been 
@@ -93,11 +93,12 @@ namespace Starcounter.Internal.JsonPatch {
 
         private static void RefreshAllValues(Puppet app, ChangeLog log) {
             foreach (Template template in app.Template.Children) {
-                if (!template.Bound)
+                TValue tv = template as TValue;
+                if (tv != null && !tv.Bound)
                     continue;
 
                 if (template is TObjArr) {
-                    Arr l = app.GetValue((TObjArr)template);
+                    Arr l = app.Get((TObjArr)template);
                     foreach (Puppet childApp in l) {
                         RefreshAllValues(childApp, log);
                     }
@@ -105,7 +106,7 @@ namespace Starcounter.Internal.JsonPatch {
                 }
 
                 if (template is TPuppet) {
-                    RefreshAllValues((Puppet)app.GetValue((TPuppet)template), log);
+                    RefreshAllValues((Puppet)app.Get((TPuppet)template), log);
                     continue;
                 }
 

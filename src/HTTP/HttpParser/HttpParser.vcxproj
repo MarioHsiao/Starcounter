@@ -85,10 +85,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="OurSources\apps_http_parsers.cpp" />
+    <ClCompile Include="OurSources\apps_http_response_parser.cpp" />
     <ClCompile Include="ThirdPartySources\http_parser.c" />
-    <ClCompile Include="OurSources\apps_http_parser.cpp" />
+    <ClCompile Include="OurSources\apps_http_request_parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OurHeaders\http_common.hpp" />
+    <ClInclude Include="OurHeaders\http_response.hpp" />
     <ClInclude Include="ThirdPartyHeaders\http_parser.h" />
     <ClInclude Include="OurHeaders\http_request.hpp" />
   </ItemGroup>

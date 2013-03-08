@@ -182,7 +182,13 @@ namespace StarcounterApps3 {
                 ServerEngine engine = Master.ServerEngine;
                 IServerRuntime runtime = Master.ServerInterface;
 
-                var execRequest = ExecRequest.FromJson(request);
+                // TODO:
+                // Commented the following code until the code generated deserialization is in place.
+                // For now we need to manually create an instance and fill it from a string.
+//                var execRequest = ExecRequest.FromJson(request);
+
+                var execRequest = new ExecRequest();
+                execRequest.PopulateFromJson(request.GetContentStringUtf8_Slow());
                 
                 var cmd = new ExecAppCommand(engine, execRequest.ExecutablePath, null, null);
                 cmd.DatabaseName = name;
@@ -197,7 +203,7 @@ namespace StarcounterApps3 {
                 // Message objects as the content, we simply return the
                 // one we have at hand. This should change, returning an
                 // entity that contains context-relative information about
-                // the resouce (i.e. the now running executable).
+                // the resource (i.e. the now running executable).
                 // TODO:
 
                 return execRequest;

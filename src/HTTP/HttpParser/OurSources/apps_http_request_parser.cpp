@@ -5,9 +5,9 @@ namespace starcounter {
 namespace network {
 
 // Structure that is used during parsing.
-struct HttpParserStruct
+struct HttpRequestParserStruct
 {
-    // HttpProto is also an http_parser.
+    // An http_parser instance inside.
     http_parser http_parser_;
 
     // Structure that holds HTTP request.
@@ -35,15 +35,21 @@ struct HttpParserStruct
     }
 };
 
-inline int OnMessageBegin(http_parser* p)
+// Global HTTP parser settings.
+http_parser_settings* g_http_request_parser_settings = NULL;
+
+// Declaring thread-safe parser structure.
+__declspec(thread) HttpRequestParserStruct thread_http_request_parser;
+
+inline int HttpRequestOnMessageBegin(http_parser* p)
 {
     // Do nothing.
     return 0;
 }
 
-inline int OnHeadersComplete(http_parser* p)
+inline int HttpRequestOnHeadersComplete(http_parser* p)
 {
-    HttpParserStruct *http = (HttpParserStruct *)p;
+    HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
     // Setting complete header flag.
     http->complete_header_flag_ = true;
@@ -54,15 +60,15 @@ inline int OnHeadersComplete(http_parser* p)
     return 0;
 }
 
-inline int OnMessageComplete(http_parser* p)
+inline int HttpRequestOnMessageComplete(http_parser* p)
 {
     // Do nothing.
     return 0;
 }
 
-inline int OnUri(http_parser* p, const char *at, size_t length)
+inline int HttpRequestOnUri(http_parser* p, const char *at, size_t length)
 {
-    HttpParserStruct *http = (HttpParserStruct *)p;
+    HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
     // Setting the reference to URI.
     http->http_request_->uri_offset_ = (uint32_t)(at - (char*)http->request_buf_);
@@ -71,9 +77,9 @@ inline int OnUri(http_parser* p, const char *at, size_t length)
     return 0;
 }
 
-inline int OnHeaderField(http_parser* p, const char *at, size_t length)
+inline int HttpRequestOnHeaderField(http_parser* p, const char *at, size_t length)
 {
-    HttpParserStruct *http = (HttpParserStruct *)p;
+    HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
     // Determining what header field is that.
     http->last_field_ = DetermineField(at, length);
@@ -92,9 +98,9 @@ inline int OnHeaderField(http_parser* p, const char *at, size_t length)
     return 0;
 }
 
-inline int OnHeaderValue(http_parser* p, const char *at, size_t length)
+inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t length)
 {
-    HttpParserStruct *http = (HttpParserStruct *)p;
+    HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
     // Saving header length.
     http->http_request_->header_value_offsets_[http->http_request_->num_headers_] = (uint32_t)(at - (char*)http->request_buf_);
@@ -102,10 +108,10 @@ inline int OnHeaderValue(http_parser* p, const char *at, size_t length)
 
     // Increasing number of saved headers.
     http->http_request_->num_headers_++;
-    if (http->http_request_->num_headers_ >= MAX_HTTP_HEADERS)
+    if (http->http_request_->num_headers_ >= MixedCodeConstants::MAX_PREPARSED_HTTP_REQUEST_HEADERS)
     {
         // Too many HTTP headers.
-        std::cout << "Too many HTTP headers detected, maximum allowed: " << MAX_HTTP_HEADERS << std::endl;
+        std::cout << "Too many HTTP headers detected, maximum allowed: " << MixedCodeConstants::MAX_PREPARSED_HTTP_REQUEST_HEADERS << std::endl;
         return 1;
     }
 
@@ -124,7 +130,7 @@ inline int OnHeaderValue(http_parser* p, const char *at, size_t length)
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating body length.
-            http->http_request_->body_len_bytes_ = ParseDecimalStringToUint(at, length);
+            http->http_request_->content_len_bytes_ = ParseDecimalStringToUint(at, length);
 
             break;
         }
@@ -174,60 +180,40 @@ inline int OnHeaderValue(http_parser* p, const char *at, size_t length)
     return 0;
 }
 
-inline int OnBody(http_parser* p, const char *at, size_t length)
+inline int HttpRequestOnBody(http_parser* p, const char *at, size_t length)
 {
-    HttpParserStruct *http = (HttpParserStruct *)p;
+    HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
     // Setting body parameters.
-    if (http->http_request_->body_len_bytes_ <= 0)
-        http->http_request_->body_len_bytes_ = (uint32_t)length;
+    if (http->http_request_->content_len_bytes_ <= 0)
+        http->http_request_->content_len_bytes_ = (uint32_t)length;
 
     // Setting body data offset.
-    http->http_request_->body_offset_ = (uint32_t)(at - (char*)http->request_buf_);
-
-    return 0;
-}
-
-// Global HTTP parser settings.
-http_parser_settings* g_httpParserSettings = NULL;
-
-// Declaring thread-safe parser structure.
-__declspec(thread) HttpParserStruct thread_parser;
-
-// Initializes the internal Apps HTTP request parser.
-EXTERN_C uint32_t sc_init_http_parser()
-{
-    g_httpParserSettings = new http_parser_settings();
-
-    // Setting HTTP callbacks.
-    g_httpParserSettings->on_body = OnBody;
-    g_httpParserSettings->on_header_field = OnHeaderField;
-    g_httpParserSettings->on_header_value = OnHeaderValue;
-    g_httpParserSettings->on_headers_complete = OnHeadersComplete;
-    g_httpParserSettings->on_message_begin = OnMessageBegin;
-    g_httpParserSettings->on_message_complete = OnMessageComplete;
-    g_httpParserSettings->on_url = OnUri;
+    http->http_request_->content_offset_ = (uint32_t)(at - (char*)http->request_buf_);
 
     return 0;
 }
 
 // Parses HTTP request from the given buffer and returns corresponding instance of HttpRequest.
-EXTERN_C uint32_t sc_parse_http_request(uint8_t* request_buf, uint32_t request_size_bytes, uint8_t* out_http_request)
+EXTERN_C uint32_t sc_parse_http_request(
+    uint8_t* request_buf,
+    uint32_t request_size_bytes,
+    uint8_t* out_http_request)
 {
-    assert(g_httpParserSettings != NULL);
+    assert(g_http_request_parser_settings != NULL);
 
     // Resetting the parser structure.
-    thread_parser.Reset(request_buf, (HttpRequest*)out_http_request);
+    thread_http_request_parser.Reset(request_buf, (HttpRequest*)out_http_request);
 
     // Executing HTTP parser.
     size_t bytes_parsed = http_parser_execute(
-        (http_parser *)&thread_parser,
-        g_httpParserSettings,
+        (http_parser *)&thread_http_request_parser,
+        g_http_request_parser_settings,
         (const char *)request_buf,
         request_size_bytes);
 
     // Checking if we have complete data.
-    if (!thread_parser.complete_header_flag_)
+    if (!thread_http_request_parser.complete_header_flag_)
     {
         std::cout << "Incomplete HTTP request headers supplied!" << std::endl;
 
@@ -242,10 +228,10 @@ EXTERN_C uint32_t sc_parse_http_request(uint8_t* request_buf, uint32_t request_s
         return SCERRAPPSHTTPPARSERINCORRECT;
     }
 
-    HttpRequest* http_request = thread_parser.http_request_;
+    HttpRequest* http_request = thread_http_request_parser.http_request_;
 
     // Getting the HTTP method.
-    http_method method = (http_method)thread_parser.http_parser_.method;
+    http_method method = (http_method)thread_http_request_parser.http_parser_.method;
     switch (method)
     {
     case http_method::HTTP_GET: 
@@ -290,6 +276,23 @@ EXTERN_C uint32_t sc_parse_http_request(uint8_t* request_buf, uint32_t request_s
     // Setting request properties.
     http_request->request_offset_ = 0;
     http_request->request_len_bytes_ = request_size_bytes;
+
+    return 0;
+}
+
+// Initializes the internal Apps HTTP request parser.
+uint32_t sc_init_http_request_parser()
+{
+    g_http_request_parser_settings = new http_parser_settings();
+
+    // Setting HTTP callbacks.
+    g_http_request_parser_settings->on_body = HttpRequestOnBody;
+    g_http_request_parser_settings->on_header_field = HttpRequestOnHeaderField;
+    g_http_request_parser_settings->on_header_value = HttpRequestOnHeaderValue;
+    g_http_request_parser_settings->on_headers_complete = HttpRequestOnHeadersComplete;
+    g_http_request_parser_settings->on_message_begin = HttpRequestOnMessageBegin;
+    g_http_request_parser_settings->on_message_complete = HttpRequestOnMessageComplete;
+    g_http_request_parser_settings->on_url = HttpRequestOnUri;
 
     return 0;
 }

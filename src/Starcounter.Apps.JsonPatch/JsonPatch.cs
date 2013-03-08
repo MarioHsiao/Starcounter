@@ -336,11 +336,11 @@ namespace Starcounter.Internal.JsonPatch {
                     nextTokenShouldBeIndex = false;
                     index = ptr.CurrentAsInt;
 
-                    Arr list = mainApp.GetValue((TObjArr)current);
+                    Arr list = mainApp.Get((TObjArr)current);
                     current = list[index];
                 } else {
                     if (currentIsTApp) {
-                        mainApp = (Puppet)mainApp.GetValue((TPuppet)current);
+                        mainApp = (Puppet)mainApp.Get((TPuppet)current);
                         currentIsTApp = false;
                     }
 
@@ -447,7 +447,7 @@ namespace Starcounter.Internal.JsonPatch {
             for (Int32 i = 0; i < path.Length; i++) {
                 if (nextIndexIsPositionInList) {
                     nextIndexIsPositionInList = false;
-                    list = (Arr)app.GetValue(listProp);
+                    list = (Arr)app.Get(listProp);
                     app = list[path[i]];
                     sb.Append('/');
                     sb.Append(path[i]);
@@ -461,7 +461,7 @@ namespace Starcounter.Internal.JsonPatch {
                         listProp = (TObjArr)template;
                         nextIndexIsPositionInList = true;
                     } else if (template is TPuppet) {
-                        app = app.GetValue((TPuppet)template);
+                        app = app.Get((TPuppet)template);
                     }
                 }
             }

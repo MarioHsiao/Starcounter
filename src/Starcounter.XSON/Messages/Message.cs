@@ -6,6 +6,8 @@
 
 using Starcounter.Advanced;
 using System;
+using System.ComponentModel;
+using Starcounter.Templates;
 
 
 namespace Starcounter {
@@ -41,6 +43,26 @@ namespace Starcounter {
         public override void ProcessInput<V>(TValue<V> template, V value) {
             // TODO! SCERR????
             throw new Exception("You should not send input to a Message object. Use Puppets instead.");
+        }
+
+        /// <summary>
+        /// Gets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>Action.</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Message Get(TMessage property) {
+            return Get<Message>(property);
+        }
+
+        /// <summary>
+        /// Sets the value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="value">The value.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void Set(TMessage property, Message value) {
+            Set((TObj)property, value);
         }
     }
 

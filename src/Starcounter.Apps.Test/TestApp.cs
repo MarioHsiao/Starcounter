@@ -23,8 +23,8 @@ namespace Starcounter.Internal.Test {
             var at = new TPuppet();
             var st = new TString() { Name = "FirstName", Parent = at };
             var app = new Puppet() { Template = at };
-            app.SetValue(st, "Joachim");
-            Assert.AreEqual("Joachim", app.GetValue(st));
+            app.Set(st, "Joachim");
+            Assert.AreEqual("Joachim", app.Get(st));
             Console.WriteLine(app.ToJson());
         }
 
@@ -38,8 +38,8 @@ namespace Starcounter.Internal.Test {
             var search = new TPuppet() { Name = "Search", Parent = main };
             var app = new Puppet() { Template = main };
             var app2 = new Puppet() { Template = search };
-            app.SetValue(userId, "Jocke");
-            app.SetValue(search, app2);
+            app.Set(userId, "Jocke");
+            app.Set(search, app2);
             Console.WriteLine(app.ToJson()); //, IncludeView.Never));
         }
 
@@ -58,18 +58,18 @@ namespace Starcounter.Internal.Test {
 
             var app = new Puppet() { Template = appTemplate };
             var jocke = new Puppet() { Template = person };
-            jocke.SetValue(firstName, "Joachim");
-            jocke.SetValue(lastName, "Wester");
-            app.GetValue(persons).Add(jocke);
+            jocke.Set(firstName, "Joachim");
+            jocke.Set(lastName, "Wester");
+            app.Get(persons).Add(jocke);
 
             var addie = new Puppet() { Template = person };
-            addie.SetValue(firstName, "Adrienne");
-            addie.SetValue(lastName, "Wester");
-            app.GetValue(persons).Add(addie);
+            addie.Set(firstName, "Adrienne");
+            addie.Set(lastName, "Wester");
+            app.Get(persons).Add(addie);
 
             //	     Assert.AreEqual("[[[\"Joachim\",\"Wester\",null],[\"Adrienne\",\"Wester\",null]],null]",//
             //	                     app.QuickAndDirtyObject.DebugDump());
-            Assert.AreEqual("Adrienne", app.GetValue(persons)[1].GetValue(firstName));
+            Assert.AreEqual("Adrienne", app.Get(persons)[1].Get(firstName));
 
             Console.WriteLine("Raw tuple:");
             //	     Console.WriteLine(app.QuickAndDirtyObject.DebugDump());

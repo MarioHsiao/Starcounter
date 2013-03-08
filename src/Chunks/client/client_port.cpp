@@ -7,6 +7,7 @@
 //
 #include "client_port.hpp"
 #include "../common/database_shared_memory_parameters.hpp"
+#include <scerrres.h>
 
 //#define _E_WAIT_TIMEOUT 1012L
 
@@ -184,11 +185,11 @@ catch (starcounter::core::shared_interface_exception& e) {
 	return e.error_code();
 }
 catch (boost::interprocess::interprocess_exception&) {
-	return 4; /// TODO: Return a suitable error code.
+	return SCERRBOOSTIPCEXECPTION;
 }
 catch (...) {
 	// An unknown exception was caught.
-	return 999L; /// TODO: Return a suitable error code.
+	return SCERRCLIENTPORTUNKNOWNEXCEPTION;
 }
 
 void release_port(void* port)

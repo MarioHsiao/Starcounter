@@ -106,9 +106,6 @@
     <Reference Include="Starcounter.Apps.Interfaces">
       <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.Interfaces.dll</HintPath>
     </Reference>
-    <Reference Include="Starcounter.Apps.JsonPatch">
-      <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Apps.JsonPatch.dll</HintPath>
-    </Reference>
     <Reference Include="Starcounter.Hypermedia">
       <HintPath>..\..\..\bin\$(Configuration)\Starcounter.Hypermedia.dll</HintPath>
     </Reference>
@@ -261,6 +258,10 @@
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
+      <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
+      <Name>Starcounter.XSON</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

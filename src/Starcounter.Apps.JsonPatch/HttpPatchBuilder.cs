@@ -194,20 +194,20 @@ namespace Starcounter.Internal.JsonPatch
             // Need a faster way than checking type and casting to get the value.
                 
             if (template is TString) {
-                ret = change.App.GetValue((TString)template);
+                ret = change.App.Get((TString)template);
             } else if (template is TObjArr) {
-                Arr appList = (Arr)change.App.GetValue((TObjArr)template);
+                Arr appList = (Arr)change.App.Get((TObjArr)template);
                 ret = appList[change.Index];
             } else if (template is TLong) {
-                ret = change.App.GetValue((TLong)template);
+                ret = change.App.Get((TLong)template);
             } else if (template is TBool) {
-                ret = change.App.GetValue((TBool)template);
+                ret = change.App.Get((TBool)template);
             } else if (template is TDouble) {
-                ret = change.App.GetValue((TDouble)template);
+                ret = change.App.Get((TDouble)template);
             } else if (template is TDecimal) {
-                ret = change.App.GetValue((TDecimal)template);
+                ret = change.App.Get((TDecimal)template);
             } else if (template is TPuppet) {
-                ret = change.App.GetValue((TPuppet)template);
+                ret = change.App.Get((TPuppet)template);
             }
             return ret;
         }

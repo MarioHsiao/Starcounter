@@ -194,9 +194,8 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     WriteTAppMemberPrefix(node as NProperty);
                 else if (node.Parent is NObjMetadata)
                     WriteObjMetadataMemberPrefix(node as NProperty);
-            } else if (node is NAppSerializerClass) {
-                WriteSerializerPrefix(node as NAppSerializerClass);
-            }
+            } 
+
             foreach (var kid in node.Children) {
                 ProcessNode(kid);
             }
@@ -239,16 +238,16 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
 //                sb.Append('>');
 //            }
             if (m.FunctionGeneric != null) {
-                sb.Append(" { get { return GetTypedValue<");
+                sb.Append(" { get { return Get<");
                 sb.Append(m.FunctionGeneric.FullClassName);
                 sb.Append('>');
             }
             else {
-                sb.Append(" { get { return GetValue");
+                sb.Append(" { get { return Get");
             }
             sb.Append("(Template.");
             sb.Append(m.MemberName);
-            sb.Append("); } set { SetValue");
+            sb.Append("); } set { Set");
             if (m.Type is NArrXXXClass) {
                 sb.Append('<');
                 sb.Append(((NArrXXXClass)m.Type).NApp.FullClassName);
@@ -257,70 +256,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append("(Template.");
             sb.Append(m.MemberName);
             sb.Append(", value); } }");
-            m.Prefix.Add(sb.ToString());
-
-            if (m.Bound) {
-                WriteBoundGetterAndSetter(m);
-            }
-        }
-
-        /// <summary>
-        /// Writes a getter and setter bound to the underlying entity using
-        /// either the name from Bind or the same name as the property.
-        /// </summary>
-        /// <param name="m"></param>
-        private void WriteBoundGetterAndSetter(NProperty m) {
-            string bindTo;
-            string dataType;
-            string castTo = null;
-            StringBuilder sb;
-
-            // TODO: 
-            // Add support for binding directly to en Enumerable of entities.
-            sb = new StringBuilder();
-           
-            bindTo = (String.IsNullOrEmpty(m.Template.Bind)) ? m.MemberName : m.Template.Bind;
-
-            dataType = null;
-            if (m.Template is TObjArr) {
-                dataType = "Rows";
-            } else if (m.Template is TPuppet) {
-                dataType = "IBinding";
-                castTo = ((NAppClass)m.Type).GenericTypeArgument;
-            } 
-
-            if (dataType == null) {
-                dataType = m.Type.FullClassName;
-            }
-
-            sb.Append("private ");
-            sb.Append(dataType);
-            sb.Append(" __data_");
-            sb.Append(m.MemberName);
-            sb.Append(" { get { return (");
-            sb.Append(dataType);
-            sb.Append(")Data.");
-            sb.Append(bindTo);
-            sb.Append("; } ");
-
-            // TODO:
-            // We need another parameter saying if it's bound to a readonly property or not.
-            if (m.Template.Editable) {
-                sb.Append(" set { Data.");
-                sb.Append(bindTo);
-                sb.Append(" = ");
-
-                if (castTo != null) {
-                    sb.Append('(');
-                    sb.Append(castTo);
-                    sb.Append(')');
-                }
-                
-                sb.Append("value; } }");
-            } else {
-                sb.Append('}');
-            }
-
             m.Prefix.Add(sb.ToString());
         }
 
@@ -335,7 +270,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +
                 "();");
-            AddFromJsonFunction(a);
             /*            var sb = new StringBuilder();
 
                         sb.Append("    public ");
@@ -381,18 +315,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             }
         }
 
-        private void AddFromJsonFunction(NAppClass a) {
-            a.Prefix.Add("    public static " + a.ClassName + " FromJson(HttpRequest request) {");
-            a.Prefix.Add("        IntPtr contentPtr;");
-            a.Prefix.Add("        uint contentLength;");
-            a.Prefix.Add("        int usedSize;");
-            a.Prefix.Add("        request.GetBodyRaw(out contentPtr, out contentLength);");
-            a.Prefix.Add("        if (contentLength > 0)");
-            a.Prefix.Add("            return " + a.ClassName + "JsonSerializer.Deserialize(contentPtr, (int)contentLength, out usedSize);");
-            a.Prefix.Add("        return null;");
-            a.Prefix.Add("    }");
-        }
-
         private NClass GetParentPropertyType(Template a) {
             var x = Generator.FindValueClass((Template)a.Parent);
             return x;
@@ -412,51 +334,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             m.Prefix.Add(sb.ToString());
 
             var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Message"
-
-            if (m.Bound) {
-                sb.Clear();
-                sb.Append("private ");
-
-                string dataType = null;
-                if (m.Template is TObjArr) {
-                    dataType = "Rows";
-                } else if (m.Template is TPuppet) {
-                    dataType = "IBinding";//((NAppClass)((NTAppClass)m.Type).NValueClass).GenericTypeArgument;
-                }
-
-                if (dataType == null) {
-                    dataType = m.Template.InstanceType.Name;
-                }
-                sb.Append(dataType);
-
-                sb.Append(" __data_get_");
-                sb.Append(m.MemberName);
-                sb.Append('(');
-                sb.Append( objClassName ); // "Puppet", "Message"
-                sb.Append(" obj) { return ((");
-                sb.Append(((NTAppClass)m.Parent).NValueClass.FullClassName);
-                sb.Append(")obj).__data_");
-                sb.Append(m.MemberName);
-                sb.Append("; }");
-                m.Prefix.Add(sb.ToString());
-
-                if (m.Template.Editable) {
-                    sb.Clear();
-                    sb.Append("private void ");
-                    sb.Append("__data_set_");
-                    sb.Append(m.MemberName);
-                    sb.Append('(');
-                    sb.Append(objClassName); // "Puppet", "Message"
-                    sb.Append(" obj, ");
-                    sb.Append(dataType);
-                    sb.Append(" value) { ((");
-                    sb.Append(((NTAppClass)m.Parent).NValueClass.FullClassName);
-                    sb.Append(")obj).__data_");
-                    sb.Append(m.MemberName);
-                    sb.Append(" = value; }");
-                    m.Prefix.Add(sb.ToString());
-                }
-            }
         }
 
         /// <summary>
@@ -549,24 +426,26 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb = new StringBuilder();
                     sb.Append("        ");
                     sb.Append(mn.MemberName);
-                    sb.Append(" = Register<");
+                    sb.Append(" = Add<");
                     sb.Append(mn.Type.FullClassName);
 
                     sb.Append(">(\"");
                     sb.Append(mn.Template.Name);
-                    sb.Append("\", \"");
-                    sb.Append(mn.Template.PropertyName);
                     sb.Append('"');
 
-                    if (mn.Template.Editable)
-                    {
-                        sb.Append(", Editable = true);");
+                    TValue tv = mn.Template as TValue;
+                    if (tv != null && tv.Bound) {
+                        sb.Append(", Bind = \"");
+                        sb.Append(tv.Bind);
+                        sb.Append('"');
                     }
-                    else
-                    {
-                        sb.Append(");");
-                    }
+
+                    sb.Append(");");
                     a.Prefix.Add(sb.ToString());
+
+                    if (mn.Template.Editable) {
+                        a.Prefix.Add("        " + mn.MemberName + ".Editable = true;");
+                    }
 
                     string objClassName = Generator.DefaultObjTemplate.InstanceType.Name;
                     if ((mn.Template is TObjArr) && (!mn.FunctionGeneric.FullClassName.Equals( objClassName ))) { // TODO!
@@ -576,21 +455,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                         sb.Append(".App = ");
                         sb.Append(mn.FunctionGeneric.FullClassName);
                         sb.Append(".DefaultTemplate;");
-                        a.Prefix.Add(sb.ToString());
-                    }
-
-                    if (mn.Bound) {
-                        sb.Clear();
-                        sb.Append("        ");
-                        sb.Append(mn.MemberName);
-                        sb.Append(".AddDataBinding(__data_get_");
-                        sb.Append(mn.MemberName);
-                        
-                        if (mn.Template.Editable) {
-                            sb.Append(", __data_set_");
-                            sb.Append(mn.MemberName);
-                        }
-                        sb.Append(");");
                         a.Prefix.Add(sb.ToString());
                     }
                 }
@@ -699,43 +563,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(a.NTemplateClass.FullClassName);
             sb.Append(")base.Template; } }");
             a.Prefix.Add(sb.ToString());
-            /*            sb = new StringBuilder();
-                        sb.Append("        InstanceType = typeof(");
-                        sb.Append(a.Container.FullClassName);
-                        sb.Append(");");
-                        a.Prefix.Add(sb.ToString());
-                        sb = new StringBuilder();
-                        sb.Append("        ClassName = \"");
-                        sb.Append(a.Container.ClassName);
-                        sb.Append("\";");
-                        a.Prefix.Add(sb.ToString());
-                        foreach (var kid in a.Children) {
-                            if (kid is MemberNode) {
-                                var mn = kid as MemberNode;
-                                sb = new StringBuilder();
-                                sb.Append("        ");
-                                sb.Append(mn.MemberName);
-                                sb.Append(" = Register<");
-                                sb.Append(mn.Type.FullClassName);
-                                sb.Append(">( Name = \"");
-                                sb.Append(mn.MemberName);
-                                sb.Append('"');
-                                if (mn.Template.Editable) {
-                                    sb.Append(", Editable = true );");
-                                }
-                                else {
-                                    sb.Append(" );");
-                                }
-                                a.Prefix.Add(sb.ToString());
-                            }
-                        }
-                        a.Prefix.Add(
-                            "    }");
-             */
-        }
-
-        private static void WriteSerializerPrefix(NAppSerializerClass nas) {
-            nas.Prefix.Add(nas.GetSerializerClassCode());
         }
 
         /// <summary>

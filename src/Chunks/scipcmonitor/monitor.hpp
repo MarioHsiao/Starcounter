@@ -75,25 +75,23 @@
 #pragma intrinsic(_InterlockedExchange)
 #pragma intrinsic(_InterlockedExchangeAdd)
 
-namespace {
-
-enum {
-	_E_UNSPECIFIED = 999L
-};
-
-} // namespace
-
 namespace starcounter {
 namespace core {
 
 /// Exception class.
-class bad_monitor : public std::runtime_error {
+class ipc_monitor_exception {
 public:
-	/**
-	 * @param message The c-string formated message to be passed.
-	 */
-	explicit bad_monitor(const char* message)
-	: std::runtime_error(message) {}
+	typedef uint32_t error_code_type;
+	
+	explicit ipc_monitor_exception(error_code_type err)
+	: err_(err) {}
+	
+	error_code_type error_code() const {
+		return err_;
+	}
+	
+private:
+	error_code_type err_;
 };
 
 /// Class monitor.

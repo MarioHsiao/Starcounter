@@ -7,7 +7,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Starcounter.Templates.DataBinding;
+using Starcounter.Advanced;
+using Starcounter.XSON;
 
 namespace Starcounter.Templates {
 
@@ -85,27 +86,8 @@ namespace Starcounter.Templates {
 //        , ITObjArr
 #endif
     {
+        private DataValueBinding<Rows<object>> dataBinding;
 
-        private DataBinding<Rows<object>> dataBinding;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataGetter"></param>
-        public void AddDataBinding(Func<Obj, Rows<object>> dataGetter) {
-            dataBinding = new DataBinding<Rows<object>>(dataGetter);
-            Bound = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <returns></returns>
-        public Rows<object> GetBoundValue(Obj app) {
-            return dataBinding.GetValue(app);
-        }
-        
         /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements
         /// in this array.
@@ -128,6 +110,18 @@ namespace Starcounter.Templates {
             }
         }
 
+        internal DataValueBinding<Rows<object>> GetDataBinding(IBindable data) {
+            dataBinding = DataBindingFactory.VerifyOrCreateBinding<Rows<object>>(this, dataBinding, data.GetType(), Bind);
+            return dataBinding;
+        }
+
+        internal override object GetBoundValueAsObject(Obj obj) {
+            throw new NotImplementedException();
+        }
+
+        internal override void SetBoundValueAsObject(Obj obj, object value) {
+            throw new NotImplementedException();
+        }
     }
 
 }

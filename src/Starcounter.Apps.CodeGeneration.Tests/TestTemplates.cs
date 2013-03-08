@@ -82,14 +82,16 @@ namespace Test {
             String className = "TestMessage";
             CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
 
-            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile(className + ".json");
-            Assert.IsInstanceOf(typeof(TPuppet), actual);
+            TMessage actual = (TMessage)TemplateFromJs.CreateFromJs(typeof(TMessage), File.ReadAllText(className + ".json"), false);
+            Assert.IsInstanceOf(typeof(TMessage), actual);
 
             actual.Namespace = metadata.RootNamespace;
+            actual.ClassName = className;
+            
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet),"C#", actual, metadata);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TMessage),"C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
         }
 
