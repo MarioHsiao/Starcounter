@@ -4,7 +4,6 @@ using Starcounter.TestFramework;
 namespace QueryProcessingTest {
     class QueryProcessingTestProgram {
         static void Main(string[] args) {
-            HelpMethods.logger = new TestLogger("QueryProcessingTest", false);
             HelpMethods.LogEvent("Query processing tests are started");
             BindingTestDirect.DirectBindingTest();
             HelpMethods.LogEvent("Test query preparation performance, first round. Query parser was not yet accessed.");
