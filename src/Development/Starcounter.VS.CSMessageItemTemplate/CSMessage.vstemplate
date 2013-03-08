@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Starcounter JSON Message</Name>
+    <Description>An empty Starcounter JSON message</Description>
+    <Icon>Message.ico</Icon>
+    <TemplateID>e8f57391-d1df-43bd-bea8-6152d6a7b6b3</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>Starcounter</ProjectSubType>
+    <TemplateGroupID>StarcounterApplication</TemplateGroupID>
+    <ShowByDefault>True</ShowByDefault>
+    <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+    <DefaultName>Message.cs</DefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>System</Assembly>
+      </Reference>
+    </References>
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.json" ReplaceParameters="true" ItemType="Message" CustomTool="MsBuild:Compile">Message1.json</ProjectItem>
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.json\$fileinputname$.json.cs" ReplaceParameters="true">Message1.json.cs</ProjectItem>
+  </TemplateContent>
+</VSTemplate>
