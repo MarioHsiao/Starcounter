@@ -47,7 +47,7 @@ namespace Starcounter.Internal.JsonPatch {
                 // SQL command
                 POST( "/__sql/" + Db.Environment.DatabaseName.ToLower(), (HttpRequest r) => {
                     try {
-                        string bodyData = r.GetBodyStringUtf8_Slow();   // Retrice the sql command in the body
+                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrice the sql command in the body
                         string resultJson = ExecuteQuery(bodyData);
                         return resultJson;
                     }
@@ -72,7 +72,7 @@ namespace Starcounter.Internal.JsonPatch {
                     session = Session.Current;
                     rootApp = session.GetRootApp(viewModelId);
 
-                    JsonPatch.EvaluatePatches(rootApp, request.GetBodyByteArray_Slow());
+                    JsonPatch.EvaluatePatches(rootApp, request.GetContentByteArray_Slow());
 
                     // TODO:
                     // Quick and dirty hack to autorefresh dependent properties that might have been 

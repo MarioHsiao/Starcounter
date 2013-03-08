@@ -6,6 +6,7 @@
 #define public
 
 typedef char* const String;
+typedef unsigned int uint;
 
 namespace starcounter
 {
@@ -28,10 +29,75 @@ namespace Starcounter.Internal
         // These items are members of the shared C# class and global in C++.
 
         /// <summary>
+        /// BMX protocol begin offset.
+        /// </summary>
+        public const int BMX_PROTOCOL_BEGIN_OFFSET = 16;
+
+        /// <summary>
         /// Maximum size of BMX header in the beginning of the chunk
         /// after which the gateway data can be placed.
         /// </summary>
         public const int BMX_HEADER_MAX_SIZE_BYTES = 32;
+
+        /// <summary>
+        /// OVERLAPPED_SIZE
+        /// </summary>
+        public const int OVERLAPPED_SIZE = 32;
+
+        /// <summary>
+        /// Offset of gateway data in chunk.
+        /// </summary>
+        public const int GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_SIZE;
+
+        /// <summary>
+        /// Data offset/size constants. 
+        /// </summary>
+        public const int BMX_HANDLER_SIZE = 2;
+
+        /// <summary>
+        /// Request size begin offset.
+        /// </summary>
+        public const int REQUEST_SIZE_BEGIN_OFFSET = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
+
+        /// <summary>
+        /// Gateway session salt offset.
+        /// </summary>
+        public const int SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN_OFFSET;
+
+        /// <summary>
+        /// Gateway session index offset.
+        /// </summary>
+        public const int SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 8;
+
+        /// <summary>
+        /// Apps session index offset.
+        /// </summary>
+        public const int SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 16;
+
+        /// <summary>
+        /// Size of the session structure in bytes.
+        /// </summary>
+        public const int SESSION_STRUCT_SIZE = 32;
+
+        /// <summary>
+        /// User data offset in chunk.
+        /// </summary>
+        public const int USER_DATA_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + SESSION_STRUCT_SIZE;
+
+        /// <summary>
+        /// Max user data offset in chunk.
+        /// </summary>
+        public const int MAX_USER_DATA_BYTES_OFFSET = USER_DATA_OFFSET + 4;
+
+        /// <summary>
+        /// User data written bytes offset.
+        /// </summary>
+        public const int USER_DATA_WRITTEN_BYTES_OFFSET = MAX_USER_DATA_BYTES_OFFSET + 4;
+
+        /// <summary>
+        /// Invalid chunk index.
+        /// </summary>
+        public const uint INVALID_CHUNK_INDEX = 0xFFFFFFFF;
 
         /// <summary>
         /// Offset in bytes for the session.
@@ -72,6 +138,16 @@ namespace Starcounter.Internal
         /// Linked chunk flag.
         /// </summary>
         public const int LINKED_CHUNKS_FLAG = 1;
+
+        /// <summary>
+        /// MAX_PREPARSED_HTTP_REQUEST_HEADERS
+        /// </summary>
+        public const int MAX_PREPARSED_HTTP_REQUEST_HEADERS = 16;
+
+        /// <summary>
+        /// MAX_PREPARSED_HTTP_RESPONSE_HEADERS
+        /// </summary>
+        public const int MAX_PREPARSED_HTTP_RESPONSE_HEADERS = 32;
 
         /// <summary>
         /// Example of string constant.

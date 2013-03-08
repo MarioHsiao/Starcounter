@@ -1,4 +1,5 @@
 ﻿using Starcounter.Templates;
+using System;
 
 namespace Starcounter.Internal.Tests {
     public class PersonMessage : Message {
@@ -15,7 +16,7 @@ namespace Starcounter.Internal.Tests {
             Schema.Add<TArr<Message, TMessage>>("PhoneNumbers", phoneNumber);
         }
 
-        internal PersonMessage() {
+        public PersonMessage() {
             Template = Schema;
         }
     }

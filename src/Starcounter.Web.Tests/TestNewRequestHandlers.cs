@@ -84,6 +84,12 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(1234 == p3);
             Assert.IsTrue(-78 == p4);
 
+            dynamic dj = m; // Using dynamic just to use properties instead of template lookups.
+            Assert.AreEqual("Allan", dj.FirstName);
+            Assert.AreEqual("Ballan", dj.LastName);
+            Assert.AreEqual(19, dj.Age);
+            Assert.AreEqual("123-555-7890", dj.PhoneNumbers[0].Number);
+
             return "UserFunc6!";
         }
 
@@ -93,6 +99,12 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(-3535m == p2);
             Assert.IsTrue(1234 == p3);
             Assert.IsTrue(-78 == p4);
+
+            dynamic dj = m; // Using dynamic just to use properties instead of template lookups.
+            Assert.AreEqual("Allan", dj.FirstName);
+            Assert.AreEqual("Ballan", dj.LastName);
+            Assert.AreEqual(19, dj.Age);
+            Assert.AreEqual("123-555-7890", dj.PhoneNumbers[0].Number);
 
             return "UserFunc7!";
         }
@@ -116,8 +128,8 @@ namespace Starcounter.Internal.Test
             return "UserFunc9!";
         }
 
-        public static String UserFunc10(PersonMessage msg, HttpRequest r) {
-            dynamic dj = msg; // Using dynamic just to use properties instead of template lookups.
+        public static String UserFunc10(PersonMessage m, HttpRequest r) {
+            dynamic dj = m; // Using dynamic just to use properties instead of template lookups.
             Assert.AreEqual("Allan", dj.FirstName);
             Assert.AreEqual("Ballan", dj.LastName);
             Assert.AreEqual(19, dj.Age);
@@ -181,23 +193,27 @@ namespace Starcounter.Internal.Test
                 {
                     fixed (MixedCodeConstants.UserDelegateParamInfo* p2 = paramsInfo)
                     {
-                        Byte[] r = Encoding.ASCII.GetBytes("GET /dashboard/123\r\n\r\n");
-                        Byte[] rc = Encoding.ASCII.GetBytes("GET /dashboard/123\r\nContent-Length:" 
+                        Byte[] requestStrNoContent = Encoding.ASCII.GetBytes("GET /dashboard/123\r\n\r\n");
+                        Byte[] requestStrWithContent = Encoding.ASCII.GetBytes("GET /dashboard/123\r\nContent-Length:" 
                                                             + Encoding.ASCII.GetByteCount(jsonContent) 
                                                             + "\r\n\r\n" 
                                                             + jsonContent);
 
-                        Assert.IsTrue("UserFunc1!" == (String)genDel1(new HttpRequest(r), (IntPtr)p1, (IntPtr)p2));
+                        Assert.IsTrue("UserFunc1!" == (String)genDel1(new HttpRequest(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
                         Assert.IsTrue("UserFunc2!" == (String)genDel2(null, (IntPtr)p1, (IntPtr)p2));
-                        Assert.IsTrue("UserFunc3!" == (String)genDel3(new HttpRequest(r), (IntPtr)p1, (IntPtr)p2));
-                        Assert.IsTrue("UserFunc4!" == (String)genDel4(new HttpRequest(r), (IntPtr)p1, (IntPtr)p2));
+                        Assert.IsTrue("UserFunc3!" == (String)genDel3(new HttpRequest(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
+                        Assert.IsTrue("UserFunc4!" == (String)genDel4(new HttpRequest(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
                         Assert.IsTrue("UserFunc5!" == (String)genDel5(null, (IntPtr)p1, (IntPtr)(p2 + 7)));
-                        Assert.IsTrue("UserFunc6!" == (String)genDel6(null, (IntPtr)p1, (IntPtr)(p2 + 7)));
-                        Assert.IsTrue("UserFunc7!" == (String)genDel7(new HttpRequest(r), (IntPtr)p1, (IntPtr)(p2 + 7)));
-                        Assert.IsTrue("UserFunc8!" == (String)genDel8(new HttpRequest(r), (IntPtr)p1, (IntPtr)(p2 + 7)));
 
-                        Assert.IsTrue("UserFunc9!" == (String)genDel9(new HttpRequest(rc), (IntPtr)p1, (IntPtr)(p2 + 7)));
-                        Assert.IsTrue("UserFunc10!" == (String)genDel10(new HttpRequest(rc), (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        HttpRequest req = new HttpRequest(requestStrWithContent);
+                        req.ArgMessageObjectType = typeof(PersonMessage);
+
+                        Assert.IsTrue("UserFunc6!" == (String)genDel6(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc7!" == (String)genDel7(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc8!" == (String)genDel8(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
+
+                        Assert.IsTrue("UserFunc9!" == (String)genDel9(new HttpRequest(requestStrWithContent), (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc10!" == (String)genDel10(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
                     }
                 }
             }
