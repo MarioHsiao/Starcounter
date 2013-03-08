@@ -178,8 +178,7 @@ catch (starcounter::core::ipc_monitor_exception& e) {
 	return e.error_code();
 }
 catch (...) {
-	std::wcerr << "error: unknown exception" << std::endl;
-	return _E_UNSPECIFIED;
+	return SCERRIPCMONITORUNKNOWNEXCEPTION;
 }
 
 #if 0 /// TODO move this code to the monitor threads

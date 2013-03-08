@@ -1241,6 +1241,15 @@
     <code hex="0088" severity="Error" name="ScErrIPCMonitorDelActiveDbFile">
       <message>IPC monitor can't delete monitor active databases file.</message>
     </code>
+    <code hex="0089" severity="Error" name="ScErrBoostIPCExecption">
+      <message>Boost interprocess exception thrown in client_port.</message>
+    </code>
+    <code hex="008A" severity="Error" name="ScErrClientPortUnknownException">
+      <message>Unknown exception thrown in client_port.</message>
+    </code>
+    <code hex="008B" severity="Error" name="ScErrIPCMonitorUnknownException">
+      <message>Unknown exception thrown in IPC monitor.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
