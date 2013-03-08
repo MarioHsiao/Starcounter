@@ -221,7 +221,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "14. Development", "14. Deve
 		Development\About.txt = Development\About.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSAppsProjectTemplate", "Development\Starcounter.VS.CSAppsProjectTemplate\Starcounter.VS.CSAppsProjectTemplate.csproj", "{0E242B9D-C9FB-4975-B2A5-885DF7232582}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSApplicationProjectTemplate", "Development\Starcounter.VS.CSApplicationItemTemplate\Starcounter.VS.CSApplicationProjectTemplate.csproj", "{0E242B9D-C9FB-4975-B2A5-885DF7232582}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VisualStudio", "Development\Starcounter.VisualStudio\Starcounter.VisualStudio.csproj", "{524A9D92-4E74-413B-85E1-B3E893B4A25A}"
 EndProject
@@ -236,7 +236,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sccoredbh", "Hosting\sccore
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "Chunks\test\test.vcxproj", "{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSExeProjectTemplate", "Development\Starcounter.VS.CSExeProjectTemplate\Starcounter.VS.CSExeProjectTemplate.csproj", "{9EC88A3E-0A53-4982-8548-BF262F2DDDE7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSClassLibraryProjectTemplate", "Development\Starcounter.VS.CSClassLibraryProjectTemplate\Starcounter.VS.CSClassLibraryProjectTemplate.csproj", "{9EC88A3E-0A53-4982-8548-BF262F2DDDE7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependenciesRemote", "BuildSystem\CopyDependenciesRemote.csproj", "{EC69526F-72FB-4E26-AD8D-7CF22B145C93}"
 EndProject
