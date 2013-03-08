@@ -68,7 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppServer.cs" />
-    <Compile Include="DynamicJson.cs" />
     <Compile Include="HttpPatchBuilder.cs" />
     <Compile Include="InternalHandlers.cs" />
     <Compile Include="JsonHelper.cs" />

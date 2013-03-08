@@ -14,15 +14,15 @@ public partial class Master {
     }
     public new MasterTemplate Template { get { return (MasterTemplate)base.Template; } set { base.Template = value; } }
     public new MasterMetadata Metadata { get { return (MasterMetadata)base.Metadata; } }
-    public Puppet Page { get { return GetTypedValue<Puppet>(Template.Page); } set { SetValue(Template.Page, value); } }
-    public String Test { get { return GetValue(Template.Test); } set { SetValue(Template.Test, value); } }
+    public Puppet Page { get { return Get<Puppet>(Template.Page); } set { this.Set(Template.Page, value); } }
+    public String Test { get { return this.Get(Template.Test); } set { this.Set(Template.Test, value); } }
     public class MasterTemplate : TPuppet {
         public MasterTemplate()
             : base() {
             InstanceType = typeof(Master);
             ClassName = "Master";
-            Page = Register<TPuppet>("Page", "Page");
-            Test = Register<TString, string>("Test", "Test", true);
+            Page = Add<TPuppet>("Page");
+            Test = Add<TString>("Test");
             Test.AddHandler( 
                 (Obj app, TValue<string> prop, string value) => { return (new Input.Test() { App = (Master)app, Template = (TString)prop, Value = value } ) ; },
                 (Obj app, Input<string> Input) => ((Master)app).Handle((Input.Test)Input) );

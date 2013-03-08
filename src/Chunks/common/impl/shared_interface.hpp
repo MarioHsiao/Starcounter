@@ -75,7 +75,7 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 	}
 	else {
 		// Invalid segment. The shared memory segment probably don't exist.
-		throw shared_interface_exception(999L); /// TODO: return a suitable error code
+		throw shared_interface_exception(SCERRSHAREDINTERFACEOPENDBSHM);
 	}
 
 	client_work_event() = 0;
@@ -87,9 +87,7 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 		if (common_scheduler_interface().is_scheduler_active(i)) {
 			if (!open_scheduler_work_event(i)) {
 				// Failed to open the event.
-				std::cout << "shared_interface::init(): Failed to open event with error: "
-				<< GetLastError() << "\n"; /// DEBUG
-				return; // throw exception
+				throw shared_interface_exception(SCERROPENSCHEDULERWORKEVENT);
 			}
 		}
 	}
@@ -217,20 +215,20 @@ inline void shared_interface::release_channel(channel_number the_channel_number)
 //------------------------------------------------------------------------------
 // TODO: Rename to acquire_linked_chunks()
 inline bool shared_interface::client_acquire_linked_chunks(chunk_index& head,
-std::size_t size, uint32_t timeout_milliseconds) { /// "A"
+std::size_t size, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->acquire_linked_chunks(chunk_, head, size,
 	client_interface_, timeout_milliseconds);
 }
 
 inline bool shared_interface::client_acquire_linked_chunks_counted(chunk_index&
-head, std::size_t size, uint32_t timeout_milliseconds) { /// "B"
+head, std::size_t size, uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->acquire_linked_chunks_counted(chunk_, head, size,
 	client_interface_, timeout_milliseconds);
 }
 
 // TODO: Rename to release_linked_chunks()
 inline bool shared_interface::client_release_linked_chunks(chunk_index& head,
-uint32_t timeout_milliseconds) { /// "C"
+uint32_t timeout_milliseconds) {
 	return shared_chunk_pool_->release_linked_chunks(chunk_, head,
 	client_interface_, timeout_milliseconds);
 }
@@ -320,7 +318,7 @@ inline void shared_interface::init() {
 	
 	if (!chunk_) {
 		// error: could not find the chunks
-		throw shared_interface_exception(999L); /// TODO: return suitable error code
+		throw shared_interface_exception(SCERRFINDCHUNKS);
 	}
 	
 	// Find the shared_chunk_pool.
@@ -329,7 +327,7 @@ inline void shared_interface::init() {
 	
 	if (!shared_chunk_pool_) {
 		// error: could not find the shared_chunk_pool
-		throw shared_interface_exception(999L); /// TODO: return suitable error code
+		throw shared_interface_exception(SCERRFINDSHAREDCHUNKPOOL);
 	}
 	
 	// Find the common_scheduler_interface.
@@ -339,7 +337,7 @@ inline void shared_interface::init() {
 	
 	if (!common_scheduler_interface_) {
 		// error: could not find the common_scheduler_interface
-		throw shared_interface_exception(999L); /// TODO: return suitable error code
+		throw shared_interface_exception(SCERRFINDCOMMONSCHEDINTERFACE);
 	}
 	
 	// Find the scheduler_interfaces.
@@ -348,7 +346,7 @@ inline void shared_interface::init() {
 	
 	if (!scheduler_interface_) {
 		// Did not find the scheduler_interfaces.
-		throw shared_interface_exception(999L); /// TODO: return suitable error code
+		throw shared_interface_exception(SCERRFINDSCHEDULERINTERFACES);
 	}
 	
 	// Find the common_client_interface.
@@ -358,7 +356,7 @@ inline void shared_interface::init() {
 	
 	if (!common_client_interface_) {
 		// Did not find the common_client_interface.
-		throw shared_interface_exception(999L); /// TODO: return suitable error code
+		throw shared_interface_exception(SCERRFINDCOMMONCLIENTINTERFACE);
 	}
 	
 	// Find the client_interfaces.
@@ -367,7 +365,7 @@ inline void shared_interface::init() {
 	
 	if (!client_interface_) {
 		// Did not find the client_interfaces.
-		throw shared_interface_exception(999L); /// TODO: return suitable error code
+		throw shared_interface_exception(SCERRFINDCLIENTINTERFACES);
 	}
 	
 	// Find the channels.
@@ -376,7 +374,7 @@ inline void shared_interface::init() {
 	
 	if (!channel_) {
 		// error: could not find the channels
-		throw shared_interface_exception(999L); /// TODO: return suitable error code
+		throw shared_interface_exception(SCERRFINDCHANNELS);
 	}
 }
 
@@ -397,24 +395,8 @@ inline HANDLE& shared_interface::open_client_work_event(std::size_t i) {
 	if ((client_work_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, client_interface(i).work_notify_name())) == NULL) {
 		// Failed to open the event.
-		unsigned int err = GetLastError();
-		switch (err) {
-		case 2:
-			std::cout << "shared_interface::open_client_work_event(): "
-			"Failed to open event. The system cannot find the file specified. "
-			"OS error: " << err << "\n"; /// DEBUG
-			break;
-		case 6:
-			std::cout << "shared_interface::open_client_work_event(): "
-			"Failed to open event. The handle is invalid. "
-			"OS error: " << err << "\n"; /// DEBUG
-			break;
-			
-		default:
-			std::cout << "shared_interface::open_client_work_event(): "
-			"Failed to open event. OS error: " << err << "\n"; /// DEBUG
-		}
-		return client_work_event() = 0; // TODO: Should throw an exception.
+		client_work_event() = 0;
+		throw shared_interface_exception(SCERROPENCLIENTWORKEVENT);
 	}
 	return client_work_event();
 }
@@ -436,9 +418,8 @@ inline HANDLE& shared_interface::open_scheduler_work_event(std::size_t i) {
 	if ((scheduler_work_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, scheduler_interface(i).work_notify_name())) == NULL) {
 		// Failed to open the event.
-		std::cout << "shared_interface::open_scheduler_work_event(" << i
-		<< "): Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
-		return scheduler_work_event(i) = 0; // throw exception
+		scheduler_work_event(i) = 0;
+		throw shared_interface_exception(SCERROPENSCHEDULERWORKEVENT);
 	}
 	return scheduler_work_event(i);
 }
@@ -462,9 +443,8 @@ inline HANDLE& shared_interface::open_scheduler_number_pool_not_empty_event(std:
 	if ((scheduler_number_pool_not_empty_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, scheduler_interface(i).channel_number_queue().not_empty_notify_name())) == NULL) {
 		// Failed to open the event.
-		std::cout << "shared_interface::open_scheduler_number_pool_not_empty_event(" << i
-		<< "): Failed to open event. OS error: " << GetLastError() << "\n"; /// DEBUG
-		return scheduler_number_pool_not_empty_event(i) = 0; // throw exception
+		scheduler_number_pool_not_empty_event(i) = 0;
+		throw shared_interface_exception(SCERROPENSCHEDNUMPOOLNOTEMPTYEV);
 	}
 	return scheduler_number_pool_not_empty_event(i);
 }
@@ -487,7 +467,8 @@ inline HANDLE& shared_interface::open_scheduler_number_pool_not_full_event(std::
 	if ((scheduler_number_pool_not_full_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, scheduler_interface(i).channel_number_queue().not_full_notify_name())) == NULL) {
 		// Failed to open the event.
-		return scheduler_number_pool_not_full_event(i) = 0; // throw exception
+		scheduler_number_pool_not_full_event(i) = 0;
+		throw shared_interface_exception(SCERROPENSCHEDNUMPOOLNOTFULLEV);
 	}
 	return scheduler_number_pool_not_full_event(i);
 }

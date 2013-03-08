@@ -41,102 +41,110 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
-        /// The GET Method. Returns a representation of a resource.
-        /// Works for http and web sockets.
+        /// Handles the response once the user delegate is called and has a result.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns>The bytes according to the appropriate protocol</returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public override HttpResponse Handle(HttpRequest request) {
+        /// <param name="request">Incomming HTTP request.</param>
+        /// <param name="x">Result of calling user delegate.</param>
+        /// <returns>HttpResponse instance.</returns>
+        public HttpResponse HandleResponse(HttpRequest request, Object x)
+        {
             HttpResponse response = null;
             Session session = null;
             uint errorCode;
             string responseReasonPhrase;
 
-            try {
-                if (request.HasSession) {
-                    session = (Session)request.AppsSessionInterface;
-                    session.Start(request);
-                }
-
-                object x;
-
-                // Invoking original user delegate with parameters here.
-#if GW_URI_MATCHING_CODEGEN
-                UserHandlerCodegen.UHC.HandlersManager.RunDelegate(request, out x);
-#else
-                RequestHandler.RequestProcessor.Invoke(request, out x);
-#endif
-                if (x != null) {
-                    if (x is Puppet) {
+            try
+            {
+                if (x != null)
+                {
+                    if (x is Puppet)
+                    {
                         var app = (Puppet)x;
-                       
+
                         // TODO:
                         // How do we create new sessions and what is allowed here...
                         // Should the users themselves create the session?
-                        if (session == null) {
+                        if (session == null)
+                        {
                             session = new Session();
                             errorCode = request.GenerateNewSession(session);
                             if (errorCode != 0)
                                 throw new Exception("TODO: proper starcounter exception: " + errorCode);
                             session.Start(request);
                         }
-    
+
                         request.Debug(" (new view model)");
                         session.AttachRootApp(app);
                         request.IsAppView = true;
                         request.ViewModel = app.ToJsonUtf8();
                         request.NeedsScriptInjection = true;
-//                          request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
-//                                                          // cached (and gziped) content, but not a complete cached
-//                                                          // response.
+                        //                          request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
+                        //                                                          // cached (and gziped) content, but not a complete cached
+                        //                                                          // response.
 
                         var view = (string)app.View;
-                        if (view == null) {
+                        if (view == null)
+                        {
                             view = app.Template.ClassName + ".html";
                         }
                         view = "/" + view;
                         request.GzipAdvisable = false;
                         response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
                         app.IsSentExternally = true;
-                    } else if (x is Message) {
+                    }
+                    else if (x is Message)
+                    {
                         var msgxxx = x as Message;
-                        response = new HttpResponse() {
+                        response = new HttpResponse()
+                        {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
                         };
-                    } else if (x is int || x is HttpStatusCode) {
+                    }
+                    else if (x is int || x is HttpStatusCode)
+                    {
                         int statusCode = (int)x;
                         if (!HttpStatusCodeAndReason.TryGetRecommendedHttp11ReasonPhrase(
-                            statusCode, out responseReasonPhrase)) {
+                            statusCode, out responseReasonPhrase))
+                        {
                             // The code was outside the bounds of pre-defined, known codes
                             // in the HTTP/1.1 specification, but still within the valid
                             // range of codes - i.e. it's a so called "extension code". We
                             // give back our default, "reason phrase not available" message.
                             responseReasonPhrase = HttpStatusCodeAndReason.ReasonNotAvailable;
                         }
-                        response = new HttpResponse() { 
+                        response = new HttpResponse()
+                        {
                             Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(statusCode, responseReasonPhrase)
                         };
                     }
-                    else if (x is HttpStatusCodeAndReason) {
+                    else if (x is HttpStatusCodeAndReason)
+                    {
                         var codeAndReason = (HttpStatusCodeAndReason)x;
-                        response = new HttpResponse() {
+                        response = new HttpResponse()
+                        {
                             Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(
-                            codeAndReason.StatusCode, 
+                            codeAndReason.StatusCode,
                             codeAndReason.ReasonPhrase)
                         };
-                    } else if (x is HttpResponse) {
+                    }
+                    else if (x is HttpResponse)
+                    {
                         response = x as HttpResponse;
-                    } else if (x is string) {
+                    }
+                    else if (x is string)
+                    {
                         response = new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
-                    } else {
+                    }
+                    else
+                    {
                         throw new NotImplementedException();
                     }
                 }
                 if (response == null)
                     response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
 
-                if (request.HasNewSession) {
+                if (request.HasNewSession)
+                {
                     // A new session have been created. We need to inject a session-cookie stub to the response.
 
                     // TODO:
@@ -149,14 +157,47 @@ namespace Starcounter.Internal.Web {
                 }
 
                 return response;
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
-            } finally {
-                if (Session.Current != null) {
+            }
+            finally
+            {
+                if (Session.Current != null)
+                {
                     Session.Current.End();
                 }
             }
+        }
+
+        /// <summary>
+        /// The GET Method. Returns a representation of a resource.
+        /// Works for http and web sockets.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns>The bytes according to the appropriate protocol</returns>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public override HttpResponse Handle(HttpRequest request) {
+            Session session = null;
+
+            // Checking if we are in session already.
+            if (request.HasSession) {
+                session = (Session)request.AppsSessionInterface;
+                session.Start(request);
+            }
+
+            object x;
+
+            // Invoking original user delegate with parameters here.
+#if GW_URI_MATCHING_CODEGEN
+            UserHandlerCodegen.UHC.HandlersManager.RunDelegate(request, out x);
+#else
+            RequestHandler.RequestProcessor.Invoke(request, out x);
+#endif
+            // Handling and returning the HTTP response.
+            return HandleResponse(request, x);
         }
 
         /// <summary>
@@ -175,7 +216,7 @@ namespace Starcounter.Internal.Web {
                 request.Debug(" (injecting script)");
                 byte[] script = Encoding.UTF8.GetBytes("<script>window.__elim_req=" + Encoding.UTF8.GetString(request.ViewModel) + "</script>");
 
-                return ScriptInjector.Inject(original, script, ri.HeaderLength, ri.ContentLength, ri.ContentLengthLength, ri.ContentLengthInjectionPoint, ri.ScriptInjectionPoint);
+                return ScriptInjector.Inject(original, script, ri.HeadersLength, ri.ContentLength, ri.ContentLengthLength, ri.ContentLengthInjectionPoint, ri.ScriptInjectionPoint);
             }
 
             return original;

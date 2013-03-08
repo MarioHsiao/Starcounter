@@ -209,17 +209,17 @@ namespace Starcounter.Internal.Web {
                 response = new byte[header.Length + compressed.Length];
                 compressed.CopyTo(response, header.Length);
                 fres.Compressed = response;
-                fres._CompressedBodyOffset = header.Length;
-                fres._CompressedBodyLength = compressed.Length;
+                fres.CompressedContentOffset_ = header.Length;
+                fres.CompressedContentLength_ = compressed.Length;
             }
             else {
                 response = new byte[header.Length + len];
                 payload.CopyTo(response, header.Length);
                 fres.Uncompressed = response;
-                fres._UncompressedBodyOffset = header.Length;
+                fres.UncompressedContentOffset_ = header.Length;
                // fres.
             }
-            fres.HeaderLength = header.Length;
+            fres.HeadersLength = header.Length;
             header.CopyTo(response, 0);
 
             if (shouldBeCached && cached == null) {
