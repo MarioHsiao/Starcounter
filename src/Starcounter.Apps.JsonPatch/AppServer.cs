@@ -12,6 +12,7 @@ using Starcounter.Apps;
 using Starcounter.Internal.REST;
 using Starcounter.Advanced;
 using System.Net;
+using Codeplex.Data;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -99,44 +100,36 @@ namespace Starcounter.Internal.Web {
                         {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
                         };
-                    }
-                    else if (x is int || x is HttpStatusCode)
-                    {
+                    } else if (x is Json) {
+                        var dynJson = (Json)x;
+                        response = new HttpResponse() {
+                            Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
+                        };
+                    } else if (x is int || x is HttpStatusCode) {
                         int statusCode = (int)x;
                         if (!HttpStatusCodeAndReason.TryGetRecommendedHttp11ReasonPhrase(
-                            statusCode, out responseReasonPhrase))
-                        {
+                            statusCode, out responseReasonPhrase)) {
                             // The code was outside the bounds of pre-defined, known codes
                             // in the HTTP/1.1 specification, but still within the valid
                             // range of codes - i.e. it's a so called "extension code". We
                             // give back our default, "reason phrase not available" message.
                             responseReasonPhrase = HttpStatusCodeAndReason.ReasonNotAvailable;
                         }
-                        response = new HttpResponse()
-                        {
+                        response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(statusCode, responseReasonPhrase)
                         };
-                    }
-                    else if (x is HttpStatusCodeAndReason)
-                    {
+                    } else if (x is HttpStatusCodeAndReason) {
                         var codeAndReason = (HttpStatusCodeAndReason)x;
-                        response = new HttpResponse()
-                        {
+                        response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(
                             codeAndReason.StatusCode,
                             codeAndReason.ReasonPhrase)
                         };
-                    }
-                    else if (x is HttpResponse)
-                    {
+                    } else if (x is HttpResponse) {
                         response = x as HttpResponse;
-                    }
-                    else if (x is string)
-                    {
+                    } else if (x is string) {
                         response = new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
-                    }
-                    else
-                    {
+                    } else {
                         throw new NotImplementedException();
                     }
                 }
