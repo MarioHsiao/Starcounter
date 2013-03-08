@@ -35,7 +35,7 @@ namespace Starcounter.Server.PublicModel {
         /// information with a metdata construct (i.e. an instance of
         /// this class) representing the command type.
         /// </summary>
-        public int CommandType {
+        public int CommandToken {
             get;
             set;
         }

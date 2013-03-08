@@ -402,7 +402,7 @@ namespace Starcounter.Server.Commands {
             CommandProcessorAttribute attribute) {
             CommandDescriptor info;
             info = new CommandDescriptor();
-            info.CommandType = CreateToken(commandProcessorType);
+            info.CommandToken = CreateToken(commandProcessorType);
             info.CommandDescription = string.Format("Executes the command {0}.", attribute.CommandType.Name);
             return info;
         }
