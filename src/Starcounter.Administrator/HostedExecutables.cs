@@ -79,6 +79,19 @@ namespace Starcounter.Administrator {
             // up to date, we know nothing else was done and we consider it a 200.
             //   In all other cases, we use 201, indicating it was in fact "created",
             // i.e. started as requested.
+            //
+            // Whichever of these we return, we should include an entity (JSON-based)
+            // that describes the now-running executable, the host proccess it runs
+            // in (PID), the machine, the server, the database name, etc. And the URI
+            // of the executable itself - both in the body and in the Location field.
+            // Also, if the database was created, we should describe that new resource
+            // too (name/uri, size, files, whatever).
+            //
+            // We are awaiting the proper design of upcoming HttpResponse though, as
+            // discussed in this forum thread:
+            // http://www.starcounter.com/forum/showthread.php?2482-Returning-HTTP-responses
+            //
+            // TODO:
 
             if (commandInfo.Progress.Length == 1) {
                 Trace.Assert(
