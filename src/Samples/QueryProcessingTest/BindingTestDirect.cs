@@ -15,6 +15,7 @@ namespace QueryProcessingTest {
         }
 
         public static void DirectBindingTest() {
+            HelpMethods.LogEvent("Starting direct binding test.");
             Starcounter.Binding.Bindings.GetTypeBindingInsensitive("QueryProcessingTest.CamelNameSpace.CommonClass");
             Starcounter.Binding.Bindings.GetTypeBindingInsensitive("QueryProcessingTest.CamelNameSpace.AName.CommonClass");
             Starcounter.Binding.Bindings.GetTypeBindingInsensitive("CommonClass");
@@ -34,6 +35,7 @@ namespace QueryProcessingTest {
             Starcounter.Binding.Bindings.GetTypeBindingInsensitive("LongNameCamelClass");
             Starcounter.Binding.Bindings.GetTypeBindingInsensitive("lowercaseclass");
             Starcounter.Binding.Bindings.GetTypeBindingInsensitive("QueryProcessingTest.CamelNameSpace.AName.LongNameCamelClass");
+            HelpMethods.LogEvent("Finished direct binding test.");
         }
     }
 }

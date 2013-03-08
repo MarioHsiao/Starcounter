@@ -6,6 +6,7 @@ using Starcounter;
 namespace QueryProcessingTest {
     public static class SqlBugsTest {
         public static void QueryTests() {
+            HelpMethods.LogEvent("Test queries with fetch and order by");
             // Test query with FETCH and ORDER BY
             decimal amounts = 0;
             int nrs = 0;
@@ -33,20 +34,25 @@ namespace QueryProcessingTest {
                 nrs++;
             Trace.Assert(nrs == 20);
             TestOffsetkeyWithSorting();
-            // See simple aggregate plan. Try to get aggregate node on top
-            HelpMethods.PrintSlowQueryPlan("select sum(amount) from account");
+            HelpMethods.LogEvent("Finished test query with fetch and sorting");
+            HelpMethods.LogEvent("Test queries with like");
             // Test queries with LIKE ?
-            HelpMethods.PrintQueryPlan("select u from user u where userid like ?");
+            //HelpMethods.PrintQueryPlan("select u from user u where userid like ?");
             nrs = 0;
             foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "kati%"))
                 nrs++;
-            Console.WriteLine(nrs);
+            Trace.Assert(nrs == 157);
             nrs = 0;
             foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "%ti1%"))
                 nrs++;
-            Console.WriteLine(nrs);
-            foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "kati1"))
-                Console.WriteLine(u.UserId);
+            Trace.Assert(nrs == 544);
+            nrs = 0;
+            foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "kati1")) {
+                Trace.Assert(u.UserId == "kati1");
+                nrs++;
+            }
+            Trace.Assert(nrs == 1);
+            HelpMethods.LogEvent("Finished test queries with like");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -54,7 +60,7 @@ namespace QueryProcessingTest {
             Byte[] offsetKey = null;
 
             // Starting some SQL query.
-            HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ?");
+            //HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ?");
             using (var sqlEnum = Db.SQL("SELECT a FROM Account a ORDER BY a.accountid FETCH ?", 5).GetEnumerator()) {
                 for (Int32 i = 0; i < 5; i++) {
                     sqlEnum.MoveNext();
@@ -68,7 +74,7 @@ namespace QueryProcessingTest {
             }
 
             // Now recreating the enumerator state using the offset key.
-            HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?");
+            //HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?");
             using (var sqlEnum = Db.SQL("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?", 10, offsetKey).GetEnumerator()) {
                 for (Int32 i = 0; i < 10; i++) {
                     sqlEnum.MoveNext();
