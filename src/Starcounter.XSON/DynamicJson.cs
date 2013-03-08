@@ -22,7 +22,7 @@ using System.Xml.Linq;
 
 namespace Codeplex.Data
 {
-    public class DynamicJson : DynamicObject
+    public class Json : DynamicObject
     {
         private enum JsonType
         {
@@ -31,13 +31,13 @@ namespace Codeplex.Data
 
         // public static methods
 
-        /// <summary>from JsonSring to DynamicJson</summary>
+        /// <summary>from JsonSring to Json</summary>
         public static dynamic Parse(string json)
         {
             return Parse(json, Encoding.Unicode);
         }
 
-        /// <summary>from JsonSring to DynamicJson</summary>
+        /// <summary>from JsonSring to Json</summary>
         public static dynamic Parse(string json, Encoding encoding)
         {
             using (var reader = JsonReaderWriterFactory.CreateJsonReader(encoding.GetBytes(json), XmlDictionaryReaderQuotas.Max))
@@ -46,7 +46,7 @@ namespace Codeplex.Data
             }
         }
 
-        /// <summary>from JsonSringStream to DynamicJson</summary>
+        /// <summary>from JsonSringStream to Json</summary>
         public static dynamic Parse(Stream stream)
         {
             using (var reader = JsonReaderWriterFactory.CreateJsonReader(stream, XmlDictionaryReaderQuotas.Max))
@@ -55,7 +55,7 @@ namespace Codeplex.Data
             }
         }
 
-        /// <summary>from JsonSringStream to DynamicJson</summary>
+        /// <summary>from JsonSringStream to Json</summary>
         public static dynamic Parse(Stream stream, Encoding encoding)
         {
             using (var reader = JsonReaderWriterFactory.CreateJsonReader(stream, encoding, XmlDictionaryReaderQuotas.Max, _ => { }))
@@ -85,7 +85,7 @@ namespace Codeplex.Data
                     return (string)element;
                 case JsonType.@object:
                 case JsonType.array:
-                    return new DynamicJson(element, type);
+                    return new Json(element, type);
                 case JsonType.@null:
                 default:
                     return null;
@@ -181,13 +181,13 @@ namespace Codeplex.Data
         readonly JsonType jsonType;
 
         /// <summary>create blank JSObject</summary>
-        public DynamicJson()
+        public Json()
         {
             xml = new XElement("root", CreateTypeAttr(JsonType.@object));
             jsonType = JsonType.@object;
         }
 
-        private DynamicJson(XElement element, JsonType type)
+        private Json(XElement element, JsonType type)
         {
             Debug.Assert(type == JsonType.array || type == JsonType.@object);
 
@@ -249,9 +249,9 @@ namespace Codeplex.Data
         private dynamic DeserializeValue(XElement element, Type elementType)
         {
             var value = ToValue(element);
-            if (value is DynamicJson)
+            if (value is Json)
             {
-                value = ((DynamicJson)value).Deserialize(elementType);
+                value = ((Json)value).Deserialize(elementType);
             }
             return Convert.ChangeType(value, elementType);
         }
