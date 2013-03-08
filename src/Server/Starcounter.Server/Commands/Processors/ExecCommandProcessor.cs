@@ -54,7 +54,7 @@ namespace Starcounter.Server.Commands {
             // code is running inside it. We don't want to process the same
             // executable twice.
 
-            BeginTask(Task.CheckExeOutOfDate);
+            BeginTask(Task.CheckRunningExeUpToDate);
             
             databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
             if (!databaseExist) {
@@ -91,7 +91,7 @@ namespace Starcounter.Server.Commands {
                 }
             }
 
-            EndTask(Task.CheckExeOutOfDate);
+            EndTask(Task.CheckRunningExeUpToDate);
 
             // Create the database if it does not exist and if not told otherwise.
             // Add it to our internal model as well as to the public one.
