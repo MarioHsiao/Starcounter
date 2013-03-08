@@ -3,7 +3,9 @@ using System;
 using Starcounter;
 
 namespace $safeprojectname$ {
-    public class Class1 : Entity {
+    
+    [Database]
+    public class Entity1 {
         public string Field1;
     }
 }
