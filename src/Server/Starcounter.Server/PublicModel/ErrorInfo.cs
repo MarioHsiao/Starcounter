@@ -245,5 +245,17 @@ namespace Starcounter.Server.PublicModel {
             numericCode = Error.SCERRINVALIDOPERATION;
             throw ErrorCode.ToException(numericCode, message);
         }
+
+        /// <summary>
+        /// Tries to retrieve the underlying error code for the current
+        /// instance.
+        /// </summary>
+        /// <param name="code">The error code, if the current instance
+        /// was based on such.</param>
+        /// <returns>True if an underlying error code could be retreived;
+        /// false otherwise.</returns>
+        public bool TryGetErrorCode(out uint code) {
+            return uint.TryParse(this.ErrorId, out code);
+        }
     }
 }
