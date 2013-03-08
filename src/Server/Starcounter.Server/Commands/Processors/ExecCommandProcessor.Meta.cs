@@ -21,7 +21,7 @@ namespace Starcounter.Server.Commands {
         
         public static CommandDescriptor MakeDescriptor() {
             return new CommandDescriptor() {
-                CommandType = ProcessorToken,
+                CommandToken = ProcessorToken,
                 CommandDescription = "Executes an executable inside a Starcounter host",
                 Tasks = new TaskInfo[] { 
                     Task.CheckExeOutOfDate.ToPublicModel(), 
