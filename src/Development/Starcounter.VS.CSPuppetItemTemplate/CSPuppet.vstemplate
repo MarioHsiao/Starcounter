@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Starcounter JSON Puppet (tech preview)</Name>
+    <Description>An empty Starcounter JSON puppet</Description>
+    <Icon>Puppet.ico</Icon>
+    <TemplateID>5508b2d4-e30f-4ac8-8aac-8f05db477cc0</TemplateID>
+    <TemplateGroupID>StarcounterApplication</TemplateGroupID>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>Starcounter</ProjectSubType>
+    <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+    <DefaultName>Puppet.cs</DefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>System</Assembly>
+      </Reference>
+    </References>
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.json" ReplaceParameters="true" ItemType="Puppet" CustomTool="MsBuild:Compile">Puppet1.json</ProjectItem>
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.json\$fileinputname$.json.cs" ReplaceParameters="true">Puppet1.json.cs</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

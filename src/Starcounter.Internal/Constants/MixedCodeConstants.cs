@@ -152,7 +152,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Example of string constant.
         /// </summary>
-        public const String ThisIsSomeStringConstant = "Hello!";
+        public const String DefaultPersonalServerNameUpper = "PERSONAL";
 
 #if !__cplusplus
 
