@@ -12,8 +12,8 @@
     <ProjectGuid>{0E242B9D-C9FB-4975-B2A5-885DF7232582}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CSharpAppsLibraryProjectTemplate</RootNamespace>
-    <AssemblyName>Starcounter.VS.CSAppsProjectTemplate</AssemblyName>
+    <RootNamespace>CSharpApplicationLibraryProjectTemplate</RootNamespace>
+    <AssemblyName>Starcounter.VS.CSApplicationProjectTemplate</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
