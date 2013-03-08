@@ -99,6 +99,17 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Sets a value indicating if the server is allowed to automatically
+        /// create a database if a database with the given identity does not
+        /// exist.
+        /// </summary>
+        /// <value>Default is true.</value>
+        public bool CanAutoCreateDb {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets all arguments targeting Starcounter.
         /// </summary>
         internal string[] ArgumentsToStarcounter {
@@ -133,6 +144,7 @@ namespace Starcounter.Server.PublicModel.Commands {
             }
             this.WorkingDirectory = workingDirectory;
             this.Arguments = arguments;
+            this.CanAutoCreateDb = true;
         }
 
         /// <inheritdoc />

@@ -57,7 +57,14 @@ namespace Starcounter.Server.Commands {
             BeginTask(Task.CheckExeOutOfDate);
             
             databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
-            if (databaseExist) {
+            if (!databaseExist) {
+                if (!command.CanAutoCreateDb) {
+                    throw ErrorCode.ToException(
+                        Error.SCERRDATABASENOTFOUND, string.Format("Database: {0}", command.DatabaseName)
+                        );
+                }
+            }
+            else {
                 app = database.Apps.Find(delegate(DatabaseApp candidate) {
                     return candidate.OriginalExecutablePath.Equals(
                         command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
