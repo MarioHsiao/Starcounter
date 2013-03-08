@@ -28,8 +28,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
-        public TPuppet Template {
-            get { return (TPuppet)(NTemplateClass.Template); }
+        public TObj Template {
+            get { return (TObj)(NTemplateClass.Template); }
         }
 
        // public new NAppClass Parent {

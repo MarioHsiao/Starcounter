@@ -600,12 +600,6 @@ class HttpWsProto
 
 public:
 
-    // Getting matched URI index.
-    uint32_t get_matched_uri_index()
-    {
-        return matched_uri_index_;
-    }
-
     // Setting matching URI index.
     void set_matched_uri_index(uint32_t value)
     {
@@ -687,7 +681,7 @@ public:
     }
 };
 
-const int32_t kHttpEchoBodyLength = 8;
+const int32_t kHttpEchoContentLength = 8;
 
 const char* const kHttpEchoResponse =
     "HTTP/1.1 200 OK\r\n"
@@ -745,7 +739,7 @@ const char* const kHttpTooBigUpload =
     "Content-Type: text/html; charset=UTF-8\r\n"
     "Content-Length: 50\r\n"
     "\r\n"
-    "Maximum supported HTTP request body size is 32 Mb!";
+    "Maximum supported HTTP request content size is 32 Mb!";
 
 const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload) + 1;
 

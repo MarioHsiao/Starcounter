@@ -822,6 +822,7 @@ uint32_t Gateway::AssertCorrectState()
     int64_t accept_8bytes = *(int64_t*)"Accept: ";
     int64_t accept_enc_8bytes = *(int64_t*)"Accept-E";
     int64_t cookie_8bytes = *(int64_t*)"Cookie: ";
+    int64_t set_cookie_8bytes = *(int64_t*)"Set-Cook";
     int64_t content_len_8bytes = *(int64_t*)"Content-Length";
     int64_t upgrade_8bytes = *(int64_t*)"Upgrade:";
     int64_t websocket_8bytes = *(int64_t*)"Sec-WebSocket";
@@ -830,6 +831,7 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(ACCEPT_HEADER_VALUE_8BYTES == accept_8bytes);
     GW_ASSERT(ACCEPT_ENCODING_HEADER_VALUE_8BYTES == accept_enc_8bytes);
     GW_ASSERT(COOKIE_HEADER_VALUE_8BYTES == cookie_8bytes);
+    GW_ASSERT(SET_COOKIE_HEADER_VALUE_8BYTES == set_cookie_8bytes);
     GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == content_len_8bytes);
     GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == upgrade_8bytes);
     GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == websocket_8bytes);
@@ -1611,7 +1613,7 @@ const char* Gateway::GetGlobalStatisticsString(int32_t* out_len)
     // Making length a white space.
     *(uint64_t*)(global_statistics_string_ + kHttpStatsHeaderInsertPoint) = 0x2020202020202020;
     
-    // Converting body length to string.
+    // Converting content length to string.
     WriteUIntToString(global_statistics_string_ + kHttpStatsHeaderInsertPoint, n);
 
     LeaveCriticalSection(&cs_statistics_);

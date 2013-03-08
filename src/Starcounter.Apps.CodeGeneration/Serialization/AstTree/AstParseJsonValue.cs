@@ -70,7 +70,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             } else if (template is TBool) {
                 parseFunction = "ParseBoolean";
             } else if (template is TPuppet || template is TObjArr) {
-                parseFunction = "DeserializeApp(" + ((TPuppet)template).ClassName + ")";
+// TODO:
+//                parseFunction = "DeserializeApp(" + ((TPuppet)template).ClassName + ")";
             } else {
                 throw new NotSupportedException("TODO! Add more types here");
             }

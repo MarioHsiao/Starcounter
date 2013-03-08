@@ -65,6 +65,20 @@ namespace Starcounter.Advanced {
         Boolean isInternalRequest = false;
 
         /// <summary>
+        /// Just using HttpRequest as holder for user Message instance type.
+        /// </summary>
+        Type messageObjectType_ = null;
+
+        /// <summary>
+        /// Setting message object type.
+        /// </summary>
+        public Type ArgMessageObjectType
+        {
+            get { return messageObjectType_; }
+            set { messageObjectType_ = value; }
+        }
+
+        /// <summary>
         /// Parses internal HTTP request.
         /// </summary>
         [DllImport("HttpParser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
@@ -268,22 +282,24 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the body raw pointer.
+        /// Gets the content raw pointer.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes) {
-            unsafe { http_request_struct_->GetBodyRaw(out ptr, out sizeBytes); }
+        public void GetContentRaw(out IntPtr ptr, out UInt32 sizeBytes)
+        {
+            unsafe { http_request_struct_->GetContentRaw(out ptr, out sizeBytes); }
         }
 
         /// <summary>
-        /// Gets the body as byte array.
+        /// Gets the content as byte array.
         /// </summary>
-        /// <returns>Body bytes.</returns>
-        public Byte[] GetBodyByteArray_Slow() {
+        /// <returns></returns>
+        public Byte[] GetContentByteArray_Slow()
+        {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
-            unsafe { return http_request_struct_->GetBodyByteArray_Slow(); }
+            unsafe { return http_request_struct_->GetContentByteArray_Slow(); }
         }
 
         /// <summary>
@@ -308,20 +324,21 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the body as UTF8 string.
+        /// Gets the Content as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8_Slow() {
-            unsafe { return http_request_struct_->GetBodyStringUtf8_Slow(); }
+        public String GetContentStringUtf8_Slow() {
+            unsafe { return http_request_struct_->GetContentStringUtf8_Slow(); }
         }
 
         /// <summary>
-        /// Gets the length of the body in bytes.
+        /// Gets the length of the content in bytes.
         /// </summary>
-        /// <value>The length of the body.</value>
-        public UInt32 BodyLength {
+        /// <value>The length of the content.</value>
+        public UInt32 ContentLength
+        {
             get {
-                unsafe { return http_request_struct_->body_len_bytes_; }
+                unsafe { return http_request_struct_->content_len_bytes_; }
             }
         }
 
@@ -593,11 +610,6 @@ namespace Starcounter.Advanced {
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct HttpRequestInternal {
         /// <summary>
-        /// The MA x_ HTT p_ HEADERS
-        /// </summary>
-        public const Int32 MAX_HTTP_HEADERS = 16;
-
-        /// <summary>
         /// Request offset.
         /// </summary>
         public UInt32 request_offset_;
@@ -608,14 +620,14 @@ namespace Starcounter.Advanced {
         public UInt32 request_len_bytes_;
 
         /// <summary>
-        /// Body offset.
+        /// Content offset.
         /// </summary>
-        public UInt32 body_offset_;
+        public UInt32 content_offset_;
 
         /// <summary>
-        /// The body_len_bytes_
+        /// The content_len_bytes_
         /// </summary>
-        public UInt32 body_len_bytes_;
+        public UInt32 content_len_bytes_;
 
         /// <summary>
         /// Resource URI offset.
@@ -670,22 +682,22 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Header offsets.
         /// </summary>
-        public fixed UInt32 header_offsets_[MAX_HTTP_HEADERS];
+        public fixed UInt32 header_offsets_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
 
         /// <summary>
         /// The header_len_bytes_
         /// </summary>
-        public fixed UInt32 header_len_bytes_[MAX_HTTP_HEADERS];
+        public fixed UInt32 header_len_bytes_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
 
         /// <summary>
         /// The header_value_offsets_
         /// </summary>
-        public fixed UInt32 header_value_offsets_[MAX_HTTP_HEADERS];
+        public fixed UInt32 header_value_offsets_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
 
         /// <summary>
         /// The header_value_len_bytes_
         /// </summary>
-        public fixed UInt32 header_value_len_bytes_[MAX_HTTP_HEADERS];
+        public fixed UInt32 header_value_len_bytes_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
 
         /// <summary>
         /// The num_headers_
@@ -728,34 +740,35 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the body raw pointer.
+        /// Gets the content raw pointer.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes) {
-            if (body_len_bytes_ <= 0)
+        public void GetContentRaw(out IntPtr ptr, out UInt32 sizeBytes) {
+            if (content_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
             else
-                ptr = new IntPtr(socket_data_ + body_offset_);
+                ptr = new IntPtr(socket_data_ + content_offset_);
 
-            sizeBytes = body_len_bytes_;
+            sizeBytes = content_len_bytes_;
         }
 
         /// <summary>
-        /// Gets the body as byte array.
+        /// Gets the content as byte array.
         /// </summary>
-        /// <returns>Body bytes.</returns>
-        public Byte[] GetBodyByteArray_Slow() {
-            // Checking if there is a body.
-            if (body_len_bytes_ <= 0)
+        /// <returns>Content bytes.</returns>
+        public Byte[] GetContentByteArray_Slow()
+        {
+            // Checking if there is a content.
+            if (content_len_bytes_ <= 0)
                 return null;
 
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
-            Byte[] body_bytes = new Byte[(Int32)body_len_bytes_];
-            Marshal.Copy((IntPtr)(socket_data_ + body_offset_), body_bytes, 0, (Int32)body_len_bytes_);
+            Byte[] content_bytes = new Byte[(Int32)content_len_bytes_];
+            Marshal.Copy((IntPtr)(socket_data_ + content_offset_), content_bytes, 0, (Int32)content_len_bytes_);
 
-            return body_bytes;
+            return content_bytes;
         }
 
         /// <summary>
@@ -777,15 +790,15 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the body as UTF8 string.
+        /// Gets the content as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8_Slow() {
+        public String GetContentStringUtf8_Slow() {
             // Checking if there is a body.
-            if (body_len_bytes_ <= 0)
+            if (content_len_bytes_ <= 0)
                 return null;
 
-            return new String((SByte*)(socket_data_ + body_offset_), 0, (Int32)body_len_bytes_, Encoding.UTF8);
+            return new String((SByte*)(socket_data_ + content_offset_), 0, (Int32)content_len_bytes_, Encoding.UTF8);
         }
 
         /// <summary>
@@ -1039,8 +1052,8 @@ namespace Starcounter.Advanced {
                    "<h1>GZip accepted: " + is_gzip_accepted_ + "</h1>\r\n" +
                    "<h1>Host: " + GetHeaderValue("Host") + "</h1>\r\n" +
                    "<h1>Session string: " + GetSessionString() + "</h1>\r\n" +
-                   "<h1>BodyLength: " + body_len_bytes_ + "</h1>\r\n" +
-                   "<h1>Body: " + GetBodyStringUtf8_Slow() + "</h1>\r\n"
+                   "<h1>ContentLength: " + content_len_bytes_ + "</h1>\r\n" +
+                   "<h1>Body: " + GetContentStringUtf8_Slow() + "</h1>\r\n"
                    ;
         }
     }

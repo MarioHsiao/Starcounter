@@ -1,3 +1,6 @@
+:: Checking if we are in Level1/src.
+IF NOT EXIST "Level1.sln" GOTO :EOF
+
 :: Killing Starcounter-related processes (including build processes) if any are running.
 CALL "BuildSystem\Scripts\kill_all.bat"
 
@@ -19,3 +22,6 @@ FOR /D /R %%X IN (obj) DO IF EXIST "%%X" RMDIR "%%X" /S /Q
 FOR /D /R %%X IN (bin) DO IF EXIST "%%X" RMDIR "%%X" /S /Q
 FOR /D /R %%X IN (win32) DO IF EXIST "%%X" RMDIR "%%X" /S /Q
 FOR /D /R %%X IN (x64) DO IF EXIST "%%X" RMDIR "%%X" /S /Q
+
+:: Removing bin directory.
+RMDIR "..\bin" /S /Q

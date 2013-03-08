@@ -64,13 +64,13 @@ namespace SQLTest
                         {
                             queryList[i].ActualExecutionPlan1 = sqlEnum.ToString();
                             queryList[i].ActualResult1 = CreateResultString(resultList, queryList[i].ShouldBeReordered);
-                            queryList[i].ActualUseBisonParser1 = sqlEnum.IsBisonPrarserUsed;
+                            queryList[i].ActualUseBisonParser1 = sqlEnum.IsBisonParserUsed;
                         }
                         else
                         {
                             queryList[i].ActualExecutionPlan2 = sqlEnum.ToString();
                             queryList[i].ActualResult2 = CreateResultString(resultList, queryList[i].ShouldBeReordered);
-                            queryList[i].ActualUseBisonParser2 = sqlEnum.IsBisonPrarserUsed;
+                            queryList[i].ActualUseBisonParser2 = sqlEnum.IsBisonParserUsed;
                         }
                     }
                     catch (Exception exception)
