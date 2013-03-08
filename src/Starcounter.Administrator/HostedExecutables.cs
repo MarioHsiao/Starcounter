@@ -26,7 +26,8 @@ namespace Starcounter.Administrator {
 
         static object HandlePOST(HttpRequest request, string name) {
 
-            var execRequest = ExecRequest.FromJson(request);
+            var execRequest = new ExecRequest();
+            execRequest.PopulateFromJson(request.GetContentStringUtf8_Slow());
 
             var cmd = new ExecCommand(engine, execRequest.ExecutablePath, null, null);
             cmd.DatabaseName = name;
