@@ -43,7 +43,7 @@ namespace Starcounter.Administrator {
             // would introduce some changes that affects this later.
 
             var commandInfo = runtime.Execute(cmd);
-            Trace.Assert(commandInfo.CommandType == ExecCommand.DefaultProcessor.ID);
+            Trace.Assert(commandInfo.ProcessorToken == ExecCommand.DefaultProcessor.ID);
             commandInfo = runtime.Wait(commandInfo);
 
             // Done. Check the outcome.

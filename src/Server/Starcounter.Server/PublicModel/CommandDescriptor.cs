@@ -30,12 +30,12 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
-        /// Gets or sets an identity of the type of command represented.
-        /// This type identity can be used to connect executing command
+        /// Gets or sets the processor token of the command represented.
+        /// The processor token can be used to connect executing command
         /// information with a metdata construct (i.e. an instance of
-        /// this class) representing the command type.
+        /// this class) representing the command processor.
         /// </summary>
-        public int CommandToken {
+        public int ProcessorToken {
             get;
             set;
         }

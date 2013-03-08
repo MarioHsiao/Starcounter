@@ -176,7 +176,7 @@ namespace Starcounter.Server.Commands {
 
             info = new CommandInfo();
             info.Id = this.Id;
-            info.CommandType = this.typeIdentity;
+            info.ProcessorToken = this.typeIdentity;
             info.ServerUri = this.Engine.Uri;
             info.Description = this.command.Description;
             info.StartTime = this.startTime;
@@ -404,7 +404,7 @@ namespace Starcounter.Server.Commands {
             CommandProcessorAttribute attribute) {
             CommandDescriptor info;
             info = new CommandDescriptor();
-            info.CommandToken = CreateToken(commandProcessorType);
+            info.ProcessorToken = CreateToken(commandProcessorType);
             info.CommandDescription = string.Format("Executes the command {0}.", attribute.CommandType.Name);
             return info;
         }
