@@ -24,7 +24,7 @@ namespace Starcounter.Server.Commands {
                 ProcessorToken = ProcessorToken,
                 CommandDescription = "Executes an executable inside a Starcounter host",
                 Tasks = new TaskInfo[] { 
-                    Task.CheckExeOutOfDate.ToPublicModel(), 
+                    Task.CheckRunningExeUpToDate.ToPublicModel(), 
                     Task.CreateDatabase.ToPublicModel() 
                 }
             };
@@ -32,7 +32,7 @@ namespace Starcounter.Server.Commands {
 
         internal static class Task {
 
-            internal static readonly CommandTask CheckExeOutOfDate = new CommandTask(
+            internal static readonly CommandTask CheckRunningExeUpToDate = new CommandTask(
                 ExecCommand.DefaultProcessor.Tasks.CheckRunningExeUpToDate,
                 "Checking executable",
                 TaskDuration.ShortIndeterminate,
