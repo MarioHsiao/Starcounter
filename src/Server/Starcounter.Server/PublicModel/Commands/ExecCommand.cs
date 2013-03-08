@@ -20,7 +20,7 @@ namespace Starcounter.Server.PublicModel.Commands {
         string databaseName;
 
         public static class DefaultProcessor {
-            public static int ID {
+            public static int Token {
                 get { return ExecCommandProcessor.ProcessorToken; }
             }
 
