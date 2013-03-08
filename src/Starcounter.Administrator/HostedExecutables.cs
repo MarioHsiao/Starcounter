@@ -4,6 +4,8 @@ using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using StarcounterApps3;
+using System;
+using System.Diagnostics;
 
 namespace Starcounter.Administrator {
     /// <summary>
@@ -23,7 +25,7 @@ namespace Starcounter.Administrator {
         }
 
         static object HandlePOST(HttpRequest request, string name) {
-            
+
             var execRequest = ExecRequest.FromJson(request);
 
             var cmd = new ExecCommand(engine, execRequest.ExecutablePath, null, null);
@@ -32,8 +34,18 @@ namespace Starcounter.Administrator {
             cmd.LogSteps = execRequest.LogSteps;
             cmd.NoDb = execRequest.NoDb;
 
+            // Ask the server runtime to ask the command.
+            // Assert it's executed by the default processor, since we
+            // depend on that to produce accurate responses.
+            // This is somewhat theoretical though, since we are in
+            // charge of both. The assert is more there if someone
+            // would introduce some changes that affects this later.
+
             var commandInfo = runtime.Execute(cmd);
+            Trace.Assert(commandInfo.CommandType == ExecCommand.DefaultProcessor.ID);
             commandInfo = runtime.Wait(commandInfo);
+
+            // Done. Check the outcome.
 
             if (commandInfo.HasError) {
                 ErrorInfo single;
@@ -54,14 +66,31 @@ namespace Starcounter.Administrator {
                 throw single.ToErrorMessage().ToException();
             }
 
-            // For illustration purposes, showing that we can return
-            // Message objects as the content, we simply return the
-            // one we have at hand. This should change, returning an
-            // entity that contains context-relative information about
-            // the resouce (i.e. the now running executable).
+            // If it was successfull, lets look at what was actually accomplished to
+            // return an appropriate response.
+            // If we find a single task that indicates checking if the executable was
+            // up to date, we know nothing else was done and we consider it a 200.
+            //   In all other cases, we use 201, indicating it was in fact "created",
+            // i.e. started as requested.
+
+            if (commandInfo.Progress.Length == 1) {
+                Trace.Assert(
+                    commandInfo.Progress[0].TaskIdentity == 
+                    ExecCommand.DefaultProcessor.Tasks.CheckRunningExeUpToDate
+                );
+
+                // Up to date.
+                // Return a response that includes a reference to the running
+                // executable inside the host.
+                
+                return 200;
+            }
+
+            // It's 201 created. Let's check if we created the database as well,
+            // and if so, report about both in the response.
             // TODO:
 
-            return execRequest;
+            return 201;
         }
     }
 }
