@@ -32,7 +32,7 @@ uint32_t DefaultHttpEchoResponseProcessor(char* buf, uint32_t buf_len, echo_id_t
     GW_ASSERT(buf_len == kHttpEchoResponseLength);
 
     // Obtaining original echo number.
-    *echo_id = hex_string_to_uint64(buf + kHttpEchoResponseInsertPoint, kHttpEchoBodyLength);
+    *echo_id = hex_string_to_uint64(buf + kHttpEchoResponseInsertPoint, kHttpEchoContentLength);
 
     return 0;
 }
