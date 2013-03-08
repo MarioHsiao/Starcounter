@@ -33,6 +33,7 @@ namespace Starcounter.Administrator {
             cmd.EnableWaiting = true;
             cmd.LogSteps = execRequest.LogSteps;
             cmd.NoDb = execRequest.NoDb;
+            cmd.CanAutoCreateDb = execRequest.CanAutoCreateDb;
 
             // Ask the server runtime to ask the command.
             // Assert it's executed by the default processor, since we
@@ -57,6 +58,12 @@ namespace Starcounter.Administrator {
                         // make sure the reason is there and that 
                         // TODO:
                         return 422;
+                    }
+
+                    if (single.GetErrorCode() == Starcounter.Error.SCERRDATABASENOTFOUND) {
+                        // The database was not found, and the request indicated it was not
+                        // allowed to automatically create it.
+                        return 404;
                     }
                 }
 
