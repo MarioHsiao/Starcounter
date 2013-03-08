@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using Starcounter.Internal;
 using Starcounter.Apps.Bootstrap;
+using Starcounter.Server.Commands;
 
 namespace Starcounter.Server.PublicModel.Commands {
 
@@ -17,6 +18,17 @@ namespace Starcounter.Server.PublicModel.Commands {
     /// </summary>
     public sealed class ExecCommand : DatabaseCommand {
         string databaseName;
+
+        public static class DefaultProcessor {
+            public static int ID {
+                get { return ExecCommandProcessor.ProcessorToken; }
+            }
+
+            public static class Tasks {
+                public const int CheckRunningExeUpToDate = 1;
+                public const int CreateDatabase = 2;
+            }
+        }
 
         /// <summary>
         /// Gets the path to the executable file requesting to start.
