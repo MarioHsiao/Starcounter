@@ -75,14 +75,6 @@
 #pragma intrinsic(_InterlockedExchange)
 #pragma intrinsic(_InterlockedExchangeAdd)
 
-namespace {
-
-enum {
-	_E_UNSPECIFIED = 999L
-};
-
-} // namespace
-
 namespace starcounter {
 namespace core {
 
