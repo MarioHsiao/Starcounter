@@ -51,12 +51,12 @@
     <Compile Include="Sample\SampleProgrammaticInstall.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(OutputPath)\ProjectTemplates\CSharp\Starcounter\1033\CSApps.zip">
+    <Content Include="$(OutputPath)\ProjectTemplates\CSharp\Starcounter\1033\CSApplication.zip">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ProjectTemplates\CSharp\Starcounter\1033</VSIXSubPath>
     </Content>
-    <Content Include="$(OutputPath)\ProjectTemplates\CSharp\Starcounter\1033\CSExe.zip">
+    <Content Include="$(OutputPath)\ProjectTemplates\CSharp\Starcounter\1033\CSClassLibrary.zip">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ProjectTemplates\CSharp\Starcounter\1033</VSIXSubPath>

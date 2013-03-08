@@ -62,12 +62,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="AssemblyInfo.cs" />
-    <None Include="Program.cs" />
-    <None Include="ExeProjectTemplate.csproj" />
-    <None Include="Exe.ico" />
+    <None Include="Entity1.cs" />
+    <None Include="ClassLibraryProjectTemplate.csproj" />
+    <None Include="ClassLibrary.ico" />
   </ItemGroup>
   <ItemGroup>
-    <VSTemplate Include="CSExe.vstemplate">
+    <VSTemplate Include="CSClassLibrary.vstemplate">
       <OutputSubPath>Starcounter</OutputSubPath>
     </VSTemplate>
   </ItemGroup>
