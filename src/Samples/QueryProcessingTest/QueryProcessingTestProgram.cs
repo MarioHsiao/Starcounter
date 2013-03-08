@@ -4,20 +4,25 @@ using Starcounter.TestFramework;
 namespace QueryProcessingTest {
     class QueryProcessingTestProgram {
         static void Main(string[] args) {
-            HelpMethods.LogEvent("Query processing tests are started");
-            BindingTestDirect.DirectBindingTest();
-            HelpMethods.LogEvent("Test query preparation performance, first round. Query parser was not yet accessed.");
-            QueryProcessingPerformance.MeasurePrepareQuery();
-            HelpMethods.LogEvent("Test query preparation performance, second round.");
-            QueryProcessingPerformance.MeasurePrepareQuery();
-            TestErrorMessages.RunTestErrorMessages();
-            PopulateData();
-            SqlBugsTest.QueryTests();
-            FetchTest.RunFetchTest();
-            AggregationTest.RunAggregationTest();
-            CodePropertiesTesting.TestCodeProperties();
-            SelectClauseExpressionsTests.TestSelectClauseExpressions();
-            HelpMethods.LogEvent("All tests completed");
+            try {
+                HelpMethods.LogEvent("Query processing tests are started");
+                BindingTestDirect.DirectBindingTest();
+                HelpMethods.LogEvent("Test query preparation performance, first round. Query parser was not yet accessed.");
+                QueryProcessingPerformance.MeasurePrepareQuery();
+                HelpMethods.LogEvent("Test query preparation performance, second round.");
+                QueryProcessingPerformance.MeasurePrepareQuery();
+                TestErrorMessages.RunTestErrorMessages();
+                PopulateData();
+                SqlBugsTest.QueryTests();
+                FetchTest.RunFetchTest();
+                AggregationTest.RunAggregationTest();
+                CodePropertiesTesting.TestCodeProperties();
+                SelectClauseExpressionsTests.TestSelectClauseExpressions();
+                HelpMethods.LogEvent("All tests completed");
+            } catch (Exception e) {
+                HelpMethods.LogEvent(e.ToString());
+                throw e;
+            }
             Environment.Exit(0);
         }
 
