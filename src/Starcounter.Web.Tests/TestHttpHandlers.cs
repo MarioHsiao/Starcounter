@@ -36,18 +36,22 @@ namespace Starcounter.Internal.Test {
 
         public static void RegisterSimpleHandlers() {
             Reset();
-            GET("/", () => {
-               Console.WriteLine("Root called");
-               return "GET /";
+            GET("/ab", () => {
+                return "GET /ab";
             });
-            GET("/{?}", (int x) => {
-                Console.WriteLine("Root int called with x " + x );
-                return "GET /@i";
-            });
-            GET("/{?}/{?}", (string a, int x) => {
-                Console.WriteLine("Root int called with string " + a + " and int " + x);
+            GET("/{?}/{?}", (String s, Int32 i) => {
                 return "GET /@s/@i";
             });
+            /*
+                        GET("/{?}", (int x) => {
+                            Console.WriteLine("Root int called with x " + x );
+                            return "GET /@i";
+                        });
+                        GET("/{?}/{?}", (string a, int x) => {
+                            Console.WriteLine("Root int called with string " + a + " and int " + x);
+                            return "GET /@s/@i";
+                        });
+                         */
         }
 
         public static void Main() {
@@ -345,7 +349,7 @@ namespace Starcounter.Internal.Test {
 
          //   Assert.AreEqual(facit, str);
 
-            Console.WriteLine("Complete codegenerated C/C++ file");
+        //    Console.WriteLine("Complete codegenerated C/C++ file");
             Console.WriteLine(str);
 
 
