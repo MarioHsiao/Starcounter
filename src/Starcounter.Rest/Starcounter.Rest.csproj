@@ -84,6 +84,7 @@
   <ItemGroup>
     <Compile Include="Http\HttpRequestNext.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
+    <Compile Include="RequestHandler\AstTree\AstTreeGenerator.VerificationBytes.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstAtEndVerifier.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstError.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstIfCallSub.cs" />
@@ -102,6 +103,8 @@
     <Compile Include="RequestHandler\AstTree\Nodes\AstTrigger.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstUnsafe.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstValueJump.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstVerificationBytes.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstVerificationBytesOffset.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstVerifier.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstDeserializeMessage.cs" />
     <Compile Include="RequestHandler\NewRequestHandlers.cs" />
