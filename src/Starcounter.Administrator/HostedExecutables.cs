@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Starcounter.Internal.Web;
 using Newtonsoft.Json;
 using System.IO;
+using System.Collections.Specialized;
 
 namespace Starcounter.Administrator {
     /// <summary>
@@ -127,6 +128,7 @@ namespace Starcounter.Administrator {
 
         static HttpResponse CreateResponseFor201(
             CommandInfo command, ExecRequest execRequest, string databaseName) {
+
             // The Location response header field SHOULD be set to an ABSOLUTE
             // Uri, referencing the created resource as described by:
             // http://tools.ietf.org/html/rfc2616#section-14.30
@@ -146,13 +148,25 @@ namespace Starcounter.Administrator {
             runningExeRelativeUri += "/" + Path.GetFileName(execRequest.ExecutablePath);
             
             var location = string.Format("http://{0}:{1}{2}", serverHost, serverPort, runningExeRelativeUri);
+            var createdDatabase = command.GetProgressOf(
+                ExecCommand.DefaultProcessor.Tasks.CreateDatabase) != null;
 
-            throw new NotImplementedException();
-            //string uri = "
-            //var x = new {
-            //    DbUri = command.DatabaseUri
-            //};
-            //var json = JsonConvert.SerializeObject(x);
+            var database = runtime.GetDatabase(command.DatabaseUri);
+            Trace.Assert(database != null);
+
+            var headers = new NameValueCollection(StringComparer.InvariantCultureIgnoreCase);
+            headers.Add("Location", location);
+
+            var x = new {
+                DatabaseUri = command.DatabaseUri,
+                DatabaseHostPID = database.HostProcessId,
+                DatabaseCreated = createdDatabase
+            };
+            var content = JsonConvert.SerializeObject(x);
+
+            return new HttpResponse { Uncompressed = 
+                HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(201, headers, content) 
+            };
         }
     }
 }
