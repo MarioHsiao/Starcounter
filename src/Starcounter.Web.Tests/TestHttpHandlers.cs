@@ -36,22 +36,22 @@ namespace Starcounter.Internal.Test {
 
         public static void RegisterSimpleHandlers() {
             Reset();
+            GET("/{?}", (string p1) => {
+                return "GET /@s";
+            });
             GET("/ab", () => {
                 return "GET /ab";
             });
-            GET("/{?}/{?}", (String s, Int32 i) => {
-                return "GET /@s/@i";
-            });
             /*
-                        GET("/{?}", (int x) => {
-                            Console.WriteLine("Root int called with x " + x );
-                            return "GET /@i";
-                        });
-                        GET("/{?}/{?}", (string a, int x) => {
-                            Console.WriteLine("Root int called with string " + a + " and int " + x);
-                            return "GET /@s/@i";
-                        });
-                         */
+                                    GET("/{?}", (int x) => {
+                                        Console.WriteLine("Root int called with x " + x );
+                                        return "GET /@i";
+                                    });
+                                    GET("/{?}/{?}", (string a, int x) => {
+                                        Console.WriteLine("Root int called with string " + a + " and int " + x);
+                                        return "GET /@s/@i";
+                                    });
+                                     */
         }
 
         public static void Main() {
