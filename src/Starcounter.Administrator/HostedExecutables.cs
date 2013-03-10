@@ -6,6 +6,9 @@ using Starcounter.Server.PublicModel.Commands;
 using StarcounterApps3;
 using System;
 using System.Diagnostics;
+using Starcounter.Internal.Web;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace Starcounter.Administrator {
     /// <summary>
@@ -15,12 +18,20 @@ namespace Starcounter.Administrator {
     internal static class HostedExecutables {
         static ServerEngine engine;
         static IServerRuntime runtime;
+        static string serverHost;
+        static int serverPort;
 
         const string relativeResourceUri = "/databases/{?}/executables";
 
-        internal static void Setup(ServerEngine engine, IServerRuntime runtime) {
+        internal static void Setup(
+            string serverHost,
+            int serverPort,
+            ServerEngine engine, 
+            IServerRuntime runtime) {
             HostedExecutables.engine = engine;
             HostedExecutables.runtime = runtime;
+            HostedExecutables.serverHost = serverHost;
+            HostedExecutables.serverPort = serverPort;
             StarcounterBase.POST<HttpRequest, string>(relativeResourceUri, HandlePOST);
         }
 
@@ -112,6 +123,36 @@ namespace Starcounter.Administrator {
             // TODO:
 
             return 201;
+        }
+
+        static HttpResponse CreateResponseFor201(
+            CommandInfo command, ExecRequest execRequest, string databaseName) {
+            // The Location response header field SHOULD be set to an ABSOLUTE
+            // Uri, referencing the created resource as described by:
+            // http://tools.ietf.org/html/rfc2616#section-14.30
+            //
+            // That is, in this case: http://host:port/path/to/the/executable/
+            // like http://localhost:8181/databases/default/executables/foo.exe.
+            //
+            // From 10.2.2 201 Created:
+            // "The newly created resource can be referenced by the URI(s)
+            // returned in the entity of the response, with the most specific URI
+            // for the resource given by a Location header field. The response
+            // SHOULD include an entity containing a list of resource
+            // characteristics and location(s) from which the user or user agent can
+            // choose the one most appropriate".
+
+            var runningExeRelativeUri = string.Format(HostedExecutables.relativeResourceUri, databaseName);
+            runningExeRelativeUri += "/" + Path.GetFileName(execRequest.ExecutablePath);
+            
+            var location = string.Format("http://{0}:{1}{2}", serverHost, serverPort, runningExeRelativeUri);
+
+            throw new NotImplementedException();
+            //string uri = "
+            //var x = new {
+            //    DbUri = command.DatabaseUri
+            //};
+            //var json = JsonConvert.SerializeObject(x);
         }
     }
 }
