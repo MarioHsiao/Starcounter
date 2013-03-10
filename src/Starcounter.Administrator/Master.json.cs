@@ -57,7 +57,12 @@ namespace StarcounterApps3 {
 
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
-            HostedExecutables.Setup(Master.ServerEngine, Master.ServerInterface);
+            HostedExecutables.Setup(
+                "localhost",
+                adminPort,
+                Master.ServerEngine, 
+                Master.ServerInterface
+            );
 
             RegisterGETS();
         }
