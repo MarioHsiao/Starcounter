@@ -28,7 +28,7 @@ inline bool IsWhiteSpace(char c)
     return (c == ' ') || (c == '\n') || (c == '\t');
 }
 
-inline int32_t MeasureSignedInt(char* puri, int offset, int32_t max_len)
+inline int32_t MeasureSignedInt(char* puri, int32_t offset, int32_t max_len)
 {
     int32_t n = 0;
     switch (puri[offset])
@@ -65,7 +65,7 @@ inline int32_t MeasureSignedInt(char* puri, int offset, int32_t max_len)
     return n;
 }
 
-inline int32_t MeasureSignedDecimal(char* puri, int offset, int32_t max_len)
+inline int32_t MeasureSignedDecimal(char* puri, int32_t offset, int32_t max_len)
 {
     int32_t n = 0;
     switch (puri[offset])
@@ -103,7 +103,7 @@ inline int32_t MeasureSignedDecimal(char* puri, int offset, int32_t max_len)
     return n;
 }
 
-inline int32_t MeasureBoolean(char* puri, int offset, int32_t max_len)
+inline int32_t MeasureBoolean(char* puri, int32_t offset, int32_t max_len)
 {
     // Skipping True.
     if (puri[offset] == 't' || puri[offset] == 'T')
@@ -125,13 +125,13 @@ inline int32_t MeasureBoolean(char* puri, int offset, int32_t max_len)
     return 0;
 }
 
-inline int32_t MeasureDateTime(char* puri, int offset, int32_t max_len)
+inline int32_t MeasureDateTime(char* puri, int32_t offset, int32_t max_len)
 {
     // TODO
     return 0;
 }
 
-inline int32_t MeasureStringUntilWhitespace(char* puri, int offset, int32_t max_len)
+inline int32_t MeasureStringUntilWhitespace(char* puri, int32_t offset, int32_t max_len)
 {
     int32_t n = 0;
     while((n < max_len) && (!IsWhiteSpace(puri[offset + n])))
@@ -140,7 +140,7 @@ inline int32_t MeasureStringUntilWhitespace(char* puri, int offset, int32_t max_
     return n;
 }
 
-inline int32_t MeasureStringUntilSymbol(char* puri, int offset, int32_t max_len, char c)
+inline int32_t MeasureStringUntilSymbol(char* puri, int32_t offset, int32_t max_len, char c)
 {
     int32_t n = 0;
     while((n < max_len) && (puri[offset + n] != c))
@@ -184,11 +184,11 @@ public:
 
         err_code = generate_uri_matcher_(uri_infos, num_uris, uri_matching_code_, &uri_code_size_bytes_);
 
-        std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
+        /*std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
         std::stringstream str_stream;
         str_stream << config_file_stream.rdbuf();
         std::string tmp_str = str_stream.str();
-        strcpy_s(uri_matching_code_, tmp_str.size() + 1, tmp_str.c_str());
+        strcpy_s(uri_matching_code_, tmp_str.size() + 1, tmp_str.c_str());*/
 
         return err_code;
     }
