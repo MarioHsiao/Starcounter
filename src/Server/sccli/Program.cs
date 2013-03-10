@@ -231,8 +231,20 @@ namespace star {
             // we still do resolve the path of the given executable based on
             // the location of the client. It's most likely what the user
             // intended.
+            // On top of that, we check if we can find the file once resolved
+            // and if we can't, we do a try on the given name + the .exe file
+            // extension. If we find such file, we assume the user meant that
+            // to be the file. In any case, we always let the final word be up
+            // to the server.
             executable = args.CommandParameters[0];
             executable = Path.GetFullPath(executable);
+            if (!File.Exists(executable)) {
+                var executableEx = args.CommandParameters[0] + ".exe";
+                executableEx = Path.GetFullPath(executableEx);
+                if (File.Exists(executableEx)) {
+                    executable = executableEx;
+                }
+            }
 
             // Create the request body, based on supplied arguments.
 
