@@ -1,10 +1,49 @@
 ﻿using System;
+using System.Collections.Generic;
+using Starcounter;
 
 namespace QueryProcessingTest {
-    public class OffsetkeyTest {
+    public static class OffsetkeyTest {
+        //delegate SqlResult<dynamic> callQuery(
+        static List<String> queries = new List<String>();
+        //static SqlResult<dynamic> sqlResult;
+
+        public static void Master() {
+            AddQueries();
+#if false
+            foreach query
+                foreach interator
+                    foreach data_update
+                        Transaction1
+                        Transaction2
+                        Transaction3
+#endif
+            // Call the query with fetch
+            // Iterate and get offset key
+            // Modify data
+            // If offset key is not null, query with offset key
+            // Iterate over it
+        }
+
+        static void AddQueries() {
+            IEnumerator<String> q = queries.GetEnumerator();
+            String str = q.Current;
+            string f = "fetch ?";
+            dynamic n = 4;
+            String query = "select u from user u ";
+            IRowEnumerator<dynamic> e = Db.SQL(query + f, n).GetEnumerator();
+            e.MoveNext();
+            byte[] k = e.GetOffsetKey();
+            f = "offsetkey ?";
+            n = k;
+            e = Db.SQL(query + f, n).GetEnumerator();
+            e.MoveNext();
+            //if (e.Current is User)
+            //    Console.WriteLine((e.Current as User).UserId);
+        }
     }
     /*
-     * I. Queries
+     * I. Queries (index, non-index, codegen)
      * I.1. Simple select
      * I.2. With where clause
      * I.3. With arithmetic expression
