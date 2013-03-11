@@ -279,15 +279,15 @@ namespace Starcounter.Client.Tests.Application {
             // Reading bound values.
             Assert.AreEqual("Kalle", msg.FirstName);
             Assert.AreEqual("Kula", msg.LastName);
-            Assert.AreEqual(0, msg.Age); // Since Age shouldn't be bound we should get a zero back and not 21.
-            Assert.IsNull(msg.Misc); // Same as above. Not bound so no value should be retrieved.
-            Assert.AreEqual("123-555-7890", msg.PhoneNumber.Number);
+            Assert.AreEqual(0, msg._Age); // Since Age shouldn't be bound we should get a zero back and not 21.
+            Assert.IsNullOrEmpty(msg.Misc); // Same as above. Not bound so no value should be retrieved.
+            Assert.AreEqual("123-555-7890", msg._PhoneNumber.Number); // Should be bound even if the name start with '_' since we specify a binding when registering the template.
 
             // Setting bound values.
             msg.FirstName = "Allan";
             msg.LastName = "Ballan";
-            msg.Age = 109L;
-            msg.PhoneNumber.Number = "666";
+            msg._Age = 109L;
+            msg._PhoneNumber.Number = "666";
             msg.Misc = "Changed!";
 
             // Check dataobject is changed.
@@ -306,7 +306,7 @@ namespace Starcounter.Client.Tests.Application {
             var misc = personSchema.Add<TString>("Misc");
             misc.Bind = null; // Removing the binding for this specific template.
            
-            var phoneNumber = personSchema.Add<TMessage>("PhoneNumber"); // Bound to PhoneNumber
+            var phoneNumber = personSchema.Add<TMessage>("_PhoneNumber", "Number"); // Bound to Number even though name start with '_'
             phoneNumber.BindChildren = true;
             phoneNumber.Add<TString>("Number"); // Bound to Number
             
