@@ -1525,6 +1525,9 @@ uint32_t Gateway::Init()
     // Registering shared memory monitor interface.
     shm_monitor_int_name_ = setting_sc_server_type_upper_ + "_" + MONITOR_INTERFACE_SUFFIX;
 
+    // TODO: Fix!
+    Sleep(1000);
+
     // Get monitor_interface_ptr for monitor_interface_name.
     shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
 
