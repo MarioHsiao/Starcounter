@@ -35,7 +35,7 @@ class GatewayWorker
     volatile bool worker_suspended_unsafe_;
 
     // Some worker temporary data.
-    char uri_lower_case_[bmx::MAX_URI_STRING_LEN];
+    char uri_lower_case_[MixedCodeConstants::MAX_URI_STRING_LEN];
 
     // Random generator.
     random_generator* rand_gen_;

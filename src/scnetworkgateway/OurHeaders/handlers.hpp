@@ -27,11 +27,18 @@ class HandlersList
     bmx::BMX_SUBPORT_TYPE subport_;
 
     // URI string.
-    char uri_string_[bmx::MAX_URI_STRING_LEN];
-    uint32_t uri_len_chars_;
+    char* original_uri_info_;
+    char* processed_uri_info_;
+
+    uint32_t original_uri_info_len_chars_;
+    uint32_t processed_uri_info_len_chars_;
+
     bmx::HTTP_METHODS http_method_;
     uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
     uint8_t num_params_;
+
+    HandlersList(const HandlersList&);
+    HandlersList& operator=(const HandlersList&);
 
 public:
 
@@ -45,6 +52,9 @@ public:
     explicit HandlersList()
     {
         Unregister();
+
+        original_uri_info_ = NULL;
+        processed_uri_info_ = NULL;
     }
 
     // Getting params.
@@ -90,15 +100,27 @@ public:
     }
 
     // Gets URI.
-    char* get_uri()
+    char* get_original_uri_info()
     {
-        return uri_string_;
+        return original_uri_info_;
+    }
+
+    // Gets URI.
+    char* get_processed_uri_info()
+    {
+        return processed_uri_info_;
     }
 
     // Get URI length.
-    uint32_t get_uri_len_chars()
+    uint32_t get_original_uri_info_len_chars()
     {
-        return uri_len_chars_;
+        return original_uri_info_len_chars_;
+    }
+
+    // Get URI length.
+    uint32_t get_processed_uri_info_len_chars()
+    {
+        return processed_uri_info_len_chars_;
     }
 
     // Get HTTP method.
@@ -150,12 +172,17 @@ public:
         BMX_HANDLER_TYPE handler_info,
         uint16_t port,
         bmx::BMX_SUBPORT_TYPE subport,
-        const char* uri_string,
-        uint32_t uri_len_chars,
+        const char* original_uri_info,
+        uint32_t original_uri_len_chars,
+        const char* processed_uri_info,
+        uint32_t processed_uri_len_chars,
         bmx::HTTP_METHODS http_method,
         uint8_t* param_types,
         int32_t num_params)
     {
+        GW_ASSERT(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
+        GW_ASSERT(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
+
         num_entries_ = 0;
 
         type_ = type;
@@ -165,7 +192,18 @@ public:
         handler_info_ = handler_info;
 
         http_method_ = http_method;
-        uri_len_chars_ = uri_len_chars;
+        original_uri_info_len_chars_ = original_uri_len_chars;
+        processed_uri_info_len_chars_ = processed_uri_len_chars;
+
+        // Deleting previous allocations if any.
+        if (original_uri_info_)
+            delete original_uri_info_;
+        if (processed_uri_info_)
+            delete processed_uri_info_;
+
+        // Allocating space for URIs if needed.
+        original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
+        processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
 
         num_params_ = num_params;
         if (num_params_ > 0)
@@ -187,10 +225,11 @@ public:
             case bmx::HANDLER_TYPE::URI_HANDLER:
             {
                 // Copying the URI string.
-                strncpy_s(uri_string_, bmx::MAX_URI_STRING_LEN, uri_string, uri_len_chars);
+                if (original_uri_len_chars > 0)
+                    strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, original_uri_len_chars);
 
-                // Getting string length in characters.
-                uri_len_chars_ = uri_len_chars;
+                if (processed_uri_len_chars > 0)
+                    strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, processed_uri_len_chars);
 
                 // Copying the HTTP method.
                 http_method_ = http_method;
@@ -360,7 +399,7 @@ public:
     }
 
     // Find URI handler id.
-    BMX_HANDLER_INDEX_TYPE FindUriHandlerIndex(uint16_t port_num, const char* uri_string, uint32_t uri_len_chars)
+    BMX_HANDLER_INDEX_TYPE FindUriHandlerIndex(uint16_t port_num, const char* processed_uri_info, uint32_t uri_len_chars)
     {
         int32_t longest_matched_uri = 0;
 
@@ -371,7 +410,7 @@ public:
                 if (port_num == registered_handlers_[i].get_port())
                 {
                     // Comparing URI as starts with.
-                    if (!strncmp(registered_handlers_[i].get_uri(), uri_string, uri_len_chars))
+                    if (!strncmp(registered_handlers_[i].get_processed_uri_info(), processed_uri_info, uri_len_chars))
                     {
                         return i;
                     }
@@ -416,8 +455,10 @@ public:
     uint32_t RegisterUriHandler(
         GatewayWorker *gw,
         uint16_t port,
-        const char* uri_string,
-        uint32_t uri_str_chars,
+        const char* original_uri_string,
+        uint32_t original_uri_str_len,
+        const char* processed_uri_string,
+        uint32_t processed_uri_str_len,
         bmx::HTTP_METHODS http_method,
         uint8_t* param_types,
         int32_t num_params,

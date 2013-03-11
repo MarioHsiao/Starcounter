@@ -104,9 +104,6 @@ namespace bmx
     // Maximum number of the same handlers in a list.
     const uint32_t MAX_NUMBER_OF_HANDLERS_IN_LIST = 8;
 
-    // Maximum URI string length.
-    const uint32_t MAX_URI_STRING_LEN = 512;
-
     // BMX message types.
     const uint8_t BMX_REGISTER_PORT = 0;
     const uint8_t BMX_REGISTER_PORT_SUBPORT = 1;
@@ -121,7 +118,6 @@ namespace bmx
     const uint8_t BMX_SESSION_DESTROYED = 10;
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
-    const uint8_t BMX_REGISTER_URI_NEW = 253;
 
     // Supported HTTP methods.
     enum HTTP_METHODS
@@ -178,18 +174,28 @@ namespace bmx
         BMX_SUBPORT_TYPE subport_;
 
         // URI string.
-        char uri_string_[bmx::MAX_URI_STRING_LEN];
-        uint32_t uri_len_chars_;
+        char* original_uri_info_;
+        char* processed_uri_info_;
+
+        uint32_t original_uri_info_len_chars_;
+        uint32_t processed_uri_info_len_chars_;
+
         bmx::HTTP_METHODS http_method_;
 
         uint8_t num_params_;
         uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
+
+        HandlersList(const HandlersList&);
+        HandlersList& operator=(const HandlersList&);
 
     public:
 
         // Constructor.
         explicit HandlersList()
         {
+            original_uri_info_ = NULL;
+            processed_uri_info_ = NULL;
+
             Unregister();
         }
 
@@ -230,15 +236,27 @@ namespace bmx
         }
 
         // Gets URI.
-        char* get_uri()
+        char* get_original_uri_info()
         {
-            return uri_string_;
+            return original_uri_info_;
+        }
+
+        // Gets URI.
+        char* get_processed_uri_info()
+        {
+            return processed_uri_info_;
         }
 
         // Get URI length.
-        uint32_t get_uri_len_chars()
+        uint32_t get_original_uri_info_len_chars()
         {
-            return uri_len_chars_;
+            return original_uri_info_len_chars_;
+        }
+
+        // Get URI length.
+        uint32_t get_processed_uri_info_len_chars()
+        {
+            return processed_uri_info_len_chars_;
         }
 
         // Get HTTP method.
@@ -296,12 +314,17 @@ namespace bmx
             BMX_HANDLER_TYPE handler_info,
             uint16_t port,
             BMX_SUBPORT_TYPE subport,
-            char* uri_string,
-            uint32_t uri_len_chars,
+            char* original_uri_info,
+            uint32_t original_uri_len_chars,
+            char* processed_uri_info,
+            uint32_t processed_uri_len_chars,
             bmx::HTTP_METHODS http_method,
             uint8_t* param_types,
             int32_t num_params)
         {
+            assert(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
+            assert(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
+
             num_entries_ = 0;
 
             type_ = type;
@@ -311,7 +334,19 @@ namespace bmx
             handler_info_ = handler_info;
 
             http_method_ = http_method;
-            uri_len_chars_ = uri_len_chars;
+
+            original_uri_info_len_chars_ = original_uri_len_chars;
+            processed_uri_info_len_chars_ = processed_uri_len_chars;
+
+            // Deleting previous allocations if any.
+            if (original_uri_info_)
+                delete original_uri_info_;
+            if (processed_uri_info_)
+                delete processed_uri_info_;
+
+            // Allocating space for new URI infos.
+            original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
+            processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
 
             num_params_ = num_params;
             if (num_params_ > 0)
@@ -333,10 +368,11 @@ namespace bmx
                 case bmx::HANDLER_TYPE::URI_HANDLER:
                 {
                     // Copying the URI string.
-                    strncpy_s(uri_string_, bmx::MAX_URI_STRING_LEN, uri_string, uri_len_chars);
+                    if (original_uri_len_chars > 0)
+                        strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, original_uri_len_chars);
 
-                    // Getting string length in characters.
-                    uri_len_chars_ = uri_len_chars;
+                    if (processed_uri_len_chars > 0)
+                        strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, processed_uri_len_chars);
 
                     // Copying the HTTP method.
                     http_method_ = http_method;
@@ -393,7 +429,7 @@ namespace bmx
         {
             // Checking if message fits the chunk.
             if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + uri_len_chars_ * sizeof(char) + 1)
+                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + original_uri_info_len_chars_ + processed_uri_info_len_chars_ + 1)
             {
                 return 0;
             }
@@ -401,26 +437,8 @@ namespace bmx
             resp_chunk->write(BMX_REGISTER_URI);
             resp_chunk->write(handler_info_);
             resp_chunk->write(port_);
-            resp_chunk->write_string(uri_string_, uri_len_chars_);
-            resp_chunk->write((uint8_t)http_method_);
-
-            return resp_chunk->get_offset();
-        }
-
-        // Writes needed URI handler data into chunk.
-        uint32_t WriteRegisteredUriHandlerNew(response_chunk_part *resp_chunk)
-        {
-            // Checking if message fits the chunk.
-            if ((starcounter::core::chunk_size - resp_chunk->get_offset() - shared_memory_chunk::link_size) <=
-                sizeof(BMX_REGISTER_URI) + sizeof(handler_info_) + sizeof(port_) + uri_len_chars_ * sizeof(char) + 1)
-            {
-                return 0;
-            }
-
-            resp_chunk->write(BMX_REGISTER_URI_NEW);
-            resp_chunk->write(handler_info_);
-            resp_chunk->write(port_);
-            resp_chunk->write_string(uri_string_, uri_len_chars_);
+            resp_chunk->write_string(original_uri_info_, original_uri_info_len_chars_);
+            resp_chunk->write_string(processed_uri_info_, processed_uri_info_len_chars_);
             resp_chunk->write((uint8_t)http_method_);
             resp_chunk->write(num_params_);
             resp_chunk->write_data_only(param_types_, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
@@ -430,7 +448,6 @@ namespace bmx
 
         // Pushes registered URI handler.
         uint32_t PushRegisteredUriHandler(BmxData* bmx_data);
-        uint32_t PushRegisteredUriHandlerNew(BmxData* bmx_data);
 
         // Pushes registered port handler.
         uint32_t PushRegisteredPortHandler(BmxData* bmx_data);
@@ -585,7 +602,8 @@ namespace bmx
         // Registers URI handler.
         uint32_t RegisterUriHandler(
             uint16_t port,
-            char* uri_string,
+            char* original_uri_info,
+            char* processed_uri_info,
             HTTP_METHODS http_method,
             uint8_t* param_types,
             int32_t num_params,
@@ -656,16 +674,8 @@ EXTERN_C uint32_t sc_bmx_register_subport_handler(
 // Register URI handler.
 EXTERN_C uint32_t sc_bmx_register_uri_handler(
     uint16_t port,
-    char* uri_string,
-    uint8_t http_method,
-    GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
-    );
-
-// Register URI handler.
-EXTERN_C uint32_t sc_bmx_register_uri_handler_new(
-    uint16_t port,
-    char* uri_info,
+    char* originalUriInfo,
+    char* processedUriInfo,
     uint8_t http_method,
     uint8_t* param_types,
     uint8_t num_params,
