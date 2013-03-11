@@ -3866,6 +3866,18 @@
                 Error while parsing HTTP method and URI.
             </message>
         </code>
+
+        <code hex="0003" severity="Error" name="ScErrHandlerAlreadyRegistered">
+            <message>
+                This handler has already been registered. Please unregister it first to do a new registration.
+            </message>
+        </code>
+
+        <code hex="0004" severity="Error" name="ScErrHandlerNotFound">
+            <message>
+                This given handler is not found.
+            </message>
+        </code>
         
     </facility>
 

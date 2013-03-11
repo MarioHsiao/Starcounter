@@ -23,6 +23,11 @@ namespace NetworkIoTestApp
         /// </summary>
         public static void InitAppHandlers()
         {
+            GET("/static/{?}/static", (String p1) =>
+            {
+                return String.Format("string {0}", p1);
+            });
+
             GET("/{?}", (Int32 p1) =>
             {
                 return String.Format("int32 {0}", p1);
@@ -53,24 +58,9 @@ namespace NetworkIoTestApp
                 return String.Format("string {0}, string {1}", p1, p2);
             });
 
-            GET("/{?}", (Int32 p1, HttpRequest r) =>
-            {
-                return String.Format(r.Uri + ": int32 {0}", p1);
-            });
-
-            GET("/{?}", (Int32 p1) =>
-            {
-                return String.Format("int32 {0}", p1);
-            });
-
             GET("/{?}/{?}/{?}", (Int32 p1, string p2, Int32 p3) =>
             {
                 return String.Format("int32 {0}, string {1}, int32 {2}", p1, p2, p3);
-            });
-
-            GET("/{?}", (HttpRequest r, string p1) =>
-            {
-                return String.Format(r.Uri + ": string {0}", p1);
             });
 
             GET("/ab", () =>
