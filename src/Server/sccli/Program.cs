@@ -36,10 +36,11 @@ namespace star {
             public const string Server = "server";
             public const string ServerHost = "serverhost";
             public const string Db = "db";
-            public const string Verbosity = "verbosity";
             public const string LogSteps = "logsteps";
             public const string NoDb = "nodb";
             public const string NoAutoCreateDb = "noautocreate";
+            public const string Verbosity = "verbosity";
+            public const string Syntax = "syntax";
         }
 
         static class EnvironmentVariable {
@@ -120,14 +121,6 @@ namespace star {
 
             var syntax = DefineCommandLineSyntax();
 
-            // Make this a (non-documented) option.
-            // TODO:
-
-            var syntaxTests = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_CLI_TEST"));
-            if (syntaxTests) {
-                ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
-            }
-
             // Parse and evaluate the given input
 
             var parser = new Parser(args);
@@ -139,7 +132,10 @@ namespace star {
                 return;
             }
 
+
+            var syntaxTests = appArgs.ContainsFlag(Option.Syntax);
             if (syntaxTests) {
+                ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
                 ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
                 // Exiting, because we were asked to test syntax only.
                 return;
@@ -401,6 +397,7 @@ namespace star {
             if (extended) {
                 Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
                 Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
+                Console.WriteLine(formatting, string.Format("--{0}", Option.Syntax), "Shows the parsing of the command-line, then exits.");
             }
             Console.WriteLine();
             if (extended) {
@@ -458,10 +455,6 @@ namespace star {
                 new string[] { "d" }
                 );
             appSyntax.DefineProperty(
-                Option.Verbosity,
-                "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
-                );
-            appSyntax.DefineProperty(
                 Option.Server,
                 "Sets the name of the server to use."
                 );
@@ -481,6 +474,18 @@ namespace star {
                 Option.NoAutoCreateDb,
                 "Specifies that a database can not be automatically created if it doesn't exist."
                 );
+
+            // Extended, advanced functionality
+
+            appSyntax.DefineProperty(
+                Option.Verbosity,
+                "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
+                );
+            appSyntax.DefineFlag(
+                Option.Syntax,
+                "Instructs star.exe to just parse the command-line and show the result of that."
+                );
+
 
             // NOTE:
             // Although we will refuse to execute any EXEC command without at least one parameter,
