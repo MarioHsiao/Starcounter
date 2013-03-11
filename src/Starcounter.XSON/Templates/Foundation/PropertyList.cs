@@ -210,6 +210,7 @@ namespace Starcounter.Templates {
             newTemplate._Parent = _Parent;
             newTemplate.Index = existing.Index;
             _List[newTemplate.Index] = newTemplate;
+            _Parent.OnPropertyAdded(newTemplate);
         }
 
         /// <summary>
@@ -234,6 +235,7 @@ namespace Starcounter.Templates {
             t._Parent = this._Parent;
             t.Index = this.Count; // Last one in list (added below)
             _List.Add(t);
+            _Parent.OnPropertyAdded(t);
         }
 
         /// <summary>

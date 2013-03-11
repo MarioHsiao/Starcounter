@@ -64,12 +64,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public Template Template { get; set; }
 
         /// <summary>
-        /// Gets or sets a boolean indicating if this property
-        /// is bound to an underlying Entity.
-        /// </summary>
-        public bool Bound { get; set; }
-
-        /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
         /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
