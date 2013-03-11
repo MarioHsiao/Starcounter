@@ -22,10 +22,12 @@ class GatewayWorker;
 class RegisteredUri
 {
     // Registered URI.
-    char uri_[bmx::MAX_URI_STRING_LEN];
+    char* original_uri_info_;
+    uint32_t original_uri_info_len_chars_;
 
-    // Length of URI in characters.
-    uint32_t uri_len_chars_;
+    // Registered URI.
+    char* processed_uri_info_;
+    uint32_t processed_uri_info_len_chars_;
 
     // Number of same characters from previous entry.
     uint32_t num_same_prev_chars_;
@@ -58,9 +60,10 @@ public:
         uint8_t* param_types,
         uint8_t* num_params)
     {
-        GW_ASSERT(1 == handler_lists_.get_num_entries());
+        // TODO: Make the investigation about same URI handlers.
+        //GW_ASSERT(1 == handler_lists_.get_num_entries());
 
-        HandlersList handlers_list = handler_lists_[0].get_handlers_list()[0];
+        HandlersList& handlers_list = handler_lists_[0].get_handlers_list()[0];
 
         GW_ASSERT(1 == handlers_list.get_num_entries());
 
@@ -83,10 +86,10 @@ public:
         uint32_t same_chars = skip_chars;
 
         // Simply comparing strings by characters until they are the same.
-        while(uri_[same_chars] == cur_uri[same_chars])
+        while(processed_uri_info_[same_chars] == cur_uri[same_chars])
         {
             // Checking that we don't exceed string sizes.
-            if ((same_chars >= uri_len_chars_) ||
+            if ((same_chars >= processed_uri_info_len_chars_) ||
                 (same_chars >= cur_uri_chars))
             {
                 break;
@@ -103,11 +106,11 @@ public:
     bool operator<(const RegisteredUri& r)
     {
         // Slash is always on top.
-        if ((uri_len_chars_ == 1) && (uri_[0] == '/'))
+        if ((processed_uri_info_len_chars_ == 1) && (processed_uri_info_[0] == '/'))
             return true;
 
         // Using normal comparison.
-        bool comp_value = (strcmp(uri_, r.uri_) < 0);
+        bool comp_value = (strcmp(processed_uri_info_, r.processed_uri_info_) < 0);
 
         // But checking the length of strings.
             
@@ -115,15 +118,27 @@ public:
     }
 
     // Getting registered URI.
-    char* get_uri()
+    char* get_original_uri_info()
     {
-        return uri_;
+        return original_uri_info_;
     }
 
     // Getting URI length in characters.
-    uint32_t get_uri_len_chars()
+    uint32_t get_original_uri_info_len_chars()
     {
-        return uri_len_chars_;
+        return original_uri_info_len_chars_;
+    }
+
+    // Getting registered URI.
+    char* get_processed_uri_info()
+    {
+        return processed_uri_info_;
+    }
+
+    // Getting URI length in characters.
+    uint32_t get_processed_uri_info_len_chars()
+    {
+        return processed_uri_info_len_chars_;
     }
 
     // Getting number of same characters.
@@ -141,13 +156,16 @@ public:
     // Constructor.
     RegisteredUri()
     {
+        original_uri_info_ = NULL;
+        processed_uri_info_ = NULL;
+
         Reset();
     }
 
     // Checking if handlers list is empty.
     bool IsEmpty()
     {
-        return (handler_lists_.IsEmpty()) || (0 == uri_len_chars_);
+        return (handler_lists_.IsEmpty()) || (0 == processed_uri_info_len_chars_);
     }
 
     // Removes certain entry.
@@ -220,15 +238,28 @@ public:
     }
 
     // Initializing the entry.
-    RegisteredUri(const char* uri, uint32_t uri_len_chars, int32_t db_index, HandlersList* handlers_list)
+    RegisteredUri(
+        const char* original_uri_info,
+        uint32_t original_uri_info_len_chars,
+        const char* processed_uri_info,
+        uint32_t processed_uri_info_len_chars,
+        int32_t db_index,
+        HandlersList* handlers_list)
     {
+        original_uri_info_len_chars_ = original_uri_info_len_chars;
+        processed_uri_info_len_chars_ = processed_uri_info_len_chars;
+
+        // Allocating space for URIs if needed.
+        original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
+        processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
+
         // Creating and pushing new handlers list.
         UniqueHandlerList new_entry(db_index, handlers_list);
         handler_lists_.Add(new_entry);
 
         // Copying the URI.
-        strncpy_s(uri_, bmx::MAX_URI_STRING_LEN, uri, _TRUNCATE);
-        uri_len_chars_ = uri_len_chars;
+        strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, _TRUNCATE);
+        strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, _TRUNCATE);
 
         num_same_prev_chars_ = 0;
     }
@@ -239,8 +270,8 @@ public:
         // Removing all handlers lists.
         handler_lists_.Clear();
 
-        uri_[0] = '\0';
-        uri_len_chars_ = 0;
+        processed_uri_info_len_chars_ = 0;
+        original_uri_info_len_chars_ = 0;
 
         num_same_prev_chars_ = 0;
     }
@@ -252,6 +283,7 @@ public:
 class RegisteredUris
 {
     // Array of all registered URIs.
+    // TODO: Fix resource leak with registered URIs.
     LinearList<RegisteredUri, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_uris_;
 
     // Pointer to generated code verification function.
@@ -302,9 +334,16 @@ public:
         {
             if (!reg_uris_[i].IsEmpty())
             {
-                MixedCodeConstants::RegisteredUriManaged reg_uri; 
-                reg_uri.uri_info_string = reg_uris_[i].get_uri();
-                reg_uri.uri_len_chars = reg_uris_[i].get_uri_len_chars();
+                MixedCodeConstants::RegisteredUriManaged reg_uri;
+
+                // Getting original uri info.
+                reg_uri.original_uri_info_string = reg_uris_[i].get_original_uri_info();
+                reg_uri.original_uri_info_len_chars = reg_uris_[i].get_original_uri_info_len_chars();
+
+                // Getting processed uri info.
+                reg_uri.processed_uri_info_string = reg_uris_[i].get_processed_uri_info();
+                reg_uri.processed_uri_info_len_chars = reg_uris_[i].get_processed_uri_info_len_chars();
+
                 reg_uris_[i].WriteUserParameters(reg_uri.param_types, &reg_uri.num_params);
 
                 // TODO: Resolve this hack with only positive handler ids in generated code.
@@ -343,6 +382,9 @@ public:
     // Sorting all entries.
     void Sort()
     {
+        // TODO: Remove the sorting/matching code completely.
+        return;
+
         // Sorting the URIs.
         reg_uris_.Sort();
 
@@ -353,7 +395,7 @@ public:
         for (int32_t i = 0; i < (reg_uris_.get_num_entries() - 1); i++)
         {
             // Checking if second URI starts with first.
-            uint32_t same_chars = reg_uris_[i].StartsWith(reg_uris_[i + 1].get_uri(), reg_uris_[i + 1].get_uri_len_chars(), 0);
+            uint32_t same_chars = reg_uris_[i].StartsWith(reg_uris_[i + 1].get_processed_uri_info(), reg_uris_[i + 1].get_processed_uri_info_len_chars(), 0);
 
             // Setting number of same previous characters.
             reg_uris_[i + 1].set_num_same_prev_chars(same_chars);
@@ -366,7 +408,7 @@ public:
         GW_PRINT_GLOBAL << "Port " << port << " has following URIs registered: " << GW_ENDL;
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
-            GW_COUT << "    \"" << reg_uris_[i].get_uri() << "\" with handlers lists: " <<
+            GW_COUT << "    \"" << reg_uris_[i].get_processed_uri_info() << "\" with handlers lists: " <<
                 reg_uris_[i].GetHandlersListsNumber() << GW_ENDL;
         }
     }
@@ -395,9 +437,9 @@ public:
     }
 
     // Getting entry by index.
-    RegisteredUri& GetEntryByIndex(int32_t index)
+    RegisteredUri* GetEntryByIndex(int32_t index)
     {
-        return reg_uris_[index];
+        return reg_uris_.GetElemPtr(index);
     }
 
     // Adding new entry.
@@ -520,7 +562,7 @@ public:
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             // Doing exact comparison.
-            if (!strcmp(uri, reg_uris_[i].get_uri()))
+            if (!strcmp(uri, reg_uris_[i].get_processed_uri_info()))
             {
                 return i;
             }
@@ -551,12 +593,12 @@ public:
             if (same_chars > 0)
             {
                 // Checking if we have a longer match.
-                if ((same_chars >= reg_uris_[i].get_uri_len_chars()) && // Checking full registered URI match.
+                if ((same_chars >= reg_uris_[i].get_processed_uri_info_len_chars()) && // Checking full registered URI match.
                     (same_chars >= out_max_matched_chars)) // Checking for longer string match.
                 {
                     // Checking if we have correct URI start with.
                     if ((uri_len_chars > same_chars) &&
-                        (reg_uris_[i].get_uri()[same_chars - 1] != '/'))
+                        (reg_uris_[i].get_processed_uri_info()[same_chars - 1] != '/'))
                     {
                         if (uri[same_chars] != '/')
                             continue;

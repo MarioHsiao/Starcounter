@@ -95,36 +95,6 @@ uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
     return err_code;
 }
 
-// Pushes registered URI handler.
-uint32_t HandlersList::PushRegisteredUriHandlerNew(BmxData* bmx_data)
-{
-    starcounter::core::chunk_index chunk_index;
-    shared_memory_chunk* smc;
-
-    // If have a channel to push on: Lets send the registration immediately.
-    uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
-    if (err_code)
-        return err_code;
-
-    // Filling the chunk.
-    smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
-
-    response_chunk_part *resp_chunk = smc->get_response_chunk();
-    resp_chunk->reset_offset();
-
-    // Writing handler information into chunk.
-    if (!WriteRegisteredUriHandlerNew(resp_chunk))
-        return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
-
-    // Terminating last chunk.
-    smc->terminate_link();
-
-    // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
-
-    return err_code;
-}
-
 // Registers port handler.
 uint32_t BmxData::RegisterPortHandler(
     uint16_t port_num,
@@ -177,6 +147,8 @@ uint32_t BmxData::RegisterPortHandler(
         PORT_HANDLER,
         MakeHandlerInfo(empty_slot, unique_handler_num_),
         port_num,
+        0,
+        NULL,
         0,
         NULL,
         0,
@@ -260,6 +232,8 @@ uint32_t BmxData::RegisterSubPortHandler(
         subport,
         NULL,
         0,
+        NULL,
+        0,
         bmx::HTTP_METHODS::OTHER_METHOD,
         NULL,
         0);
@@ -283,7 +257,8 @@ uint32_t BmxData::RegisterSubPortHandler(
 // Registers URI handler.
 uint32_t BmxData::RegisterUriHandler(
     uint16_t port,
-    char* uri_string,
+    char* original_uri_info,
+    char* processed_uri_info,
     HTTP_METHODS http_method,
     uint8_t* param_types,
     int32_t num_params,
@@ -301,15 +276,16 @@ uint32_t BmxData::RegisterUriHandler(
     //    return SCERRUNSPECIFIED; // SCERRURIMUSTSTARTWITHSLASH
 
     uint32_t err_code = 0;
-    char uri_str_lc[MAX_URI_STRING_LEN];
 
     // Getting the URI string length.
-    uint32_t uri_len_chars = (uint32_t)strlen(uri_string);
-    if (uri_len_chars >= MAX_URI_STRING_LEN)
+    uint32_t original_uri_len_chars = (uint32_t)strlen(original_uri_info);
+    uint32_t processed_uri_len_chars = (uint32_t)strlen(processed_uri_info);
+    if ((original_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN) ||
+        (processed_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN))
         return SCERRUNSPECIFIED; // SCERRURIHANDLERSTRINGLENGTH
 
     // Copying the URI string.
-    strncpy_s(uri_str_lc, MAX_URI_STRING_LEN, uri_string, uri_len_chars);
+    //strncpy_s(uri_str_lc, MAX_URI_STRING_LEN, original_uri_info, original_uri_len_chars);
 
     // Convert string to lower case.
     // TODO: Remove lower casing if not needed.
@@ -332,7 +308,7 @@ uint32_t BmxData::RegisterUriHandler(
             if (port == registered_handlers_[i].get_port())
             {
                 // Checking if URI string is the same.
-                if (!strcmp(uri_str_lc, registered_handlers_[i].get_uri()))
+                if (!strcmp(processed_uri_info, registered_handlers_[i].get_processed_uri_info()))
                 {
                     // Search if handler is already in the list.
                     if (!registered_handlers_[i].HandlerAlreadyExists(uri_handler))
@@ -358,8 +334,10 @@ uint32_t BmxData::RegisterUriHandler(
         MakeHandlerInfo(empty_slot, unique_handler_num_),
         port,
         0,
-        uri_str_lc,
-        uri_len_chars,
+        original_uri_info,
+        original_uri_len_chars,
+        processed_uri_info,
+        processed_uri_len_chars,
         http_method,
         param_types,
         num_params);

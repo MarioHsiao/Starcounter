@@ -1140,6 +1140,8 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         port_number,
                         test_http_echo_requests_[g_gateway.setting_mode()].uri,
                         test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
+                        test_http_echo_requests_[g_gateway.setting_mode()].uri,
+                        test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
                         bmx::HTTP_METHODS::OTHER_METHOD,
                         NULL,
                         0,
@@ -1173,6 +1175,8 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     reverse_proxies_[i].gw_proxy_port_,
                     reverse_proxies_[i].service_uri_.c_str(),
                     reverse_proxies_[i].service_uri_len_,
+                    reverse_proxies_[i].service_uri_.c_str(),
+                    reverse_proxies_[i].service_uri_len_,
                     bmx::HTTP_METHODS::OTHER_METHOD,
                     NULL,
                     0,
@@ -1198,8 +1202,10 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 &gw_workers_[0],
                 gw_handlers_,
                 setting_gw_stats_port_,
-                "/gwstats",
-                1,
+                "GET /gwstats",
+                12,
+                "GET /gwstats ",
+                13,
                 bmx::HTTP_METHODS::OTHER_METHOD,
                 NULL,
                 0,
@@ -2818,8 +2824,10 @@ uint32_t Gateway::AddUriHandler(
     GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
-    const char* uri,
-    uint32_t uri_len_chars,
+    const char* original_uri_info,
+    uint32_t original_uri_info_len_chars,
+    const char* processed_uri_info,
+    uint32_t processed_uri_info_len_chars,
     bmx::HTTP_METHODS http_method,
     uint8_t* param_types,
     int32_t num_params,
@@ -2833,8 +2841,10 @@ uint32_t Gateway::AddUriHandler(
     err_code = handlers_table->RegisterUriHandler(
         gw,
         port,
-        uri,
-        uri_len_chars,
+        original_uri_info,
+        original_uri_info_len_chars,
+        processed_uri_info,
+        processed_uri_info_len_chars,
         http_method,
         param_types,
         num_params,
@@ -2845,22 +2855,27 @@ uint32_t Gateway::AddUriHandler(
     GW_ERR_CHECK(err_code);
 
     // Search for handler index by URI string.
-    BMX_HANDLER_TYPE handler_index = handlers_table->FindUriHandlerIndex(port, uri, uri_len_chars);
+    BMX_HANDLER_TYPE handler_index = handlers_table->FindUriHandlerIndex(
+        port,
+        processed_uri_info,
+        processed_uri_info_len_chars);
 
     // Getting the port structure.
     ServerPort* server_port = g_gateway.FindServerPort(port);
 
     // Registering URI on port.
     RegisteredUris* all_port_uris = server_port->get_registered_uris();
-    int32_t index = all_port_uris->FindRegisteredUri(uri, uri_len_chars);
+    int32_t index = all_port_uris->FindRegisteredUri(processed_uri_info, processed_uri_info_len_chars);
 
     // Checking if there is an entry.
     if (index < 0)
     {
         // Creating totally new URI entry.
         RegisteredUri new_entry(
-            uri,
-            uri_len_chars,
+            original_uri_info,
+            original_uri_info_len_chars,
+            processed_uri_info,
+            processed_uri_info_len_chars,
             db_index,
             handlers_table->get_handler_list(handler_index));
 
@@ -2870,16 +2885,16 @@ uint32_t Gateway::AddUriHandler(
     else
     {
         // Obtaining existing URI entry.
-        RegisteredUri reg_uri = all_port_uris->GetEntryByIndex(index);
+        RegisteredUri* reg_uri = all_port_uris->GetEntryByIndex(index);
 
         // Checking if there is no database for this URI.
-        if (!reg_uri.ContainsDb(db_index))
+        if (!reg_uri->ContainsDb(db_index))
         {
             // Creating new unique handlers list for this database.
             UniqueHandlerList uhl(db_index, handlers_table->get_handler_list(handler_index));
 
             // Adding new handler list for this database to the URI.
-            reg_uri.Add(uhl);
+            reg_uri->Add(uhl);
         }
     }
     GW_ERR_CHECK(err_code);
@@ -2888,7 +2903,7 @@ uint32_t Gateway::AddUriHandler(
     all_port_uris->InvalidateCodegen();
 
     // Printing port information.
-    server_port->Print();
+    //server_port->Print();
 
     return 0;
 }
