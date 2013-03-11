@@ -89,7 +89,7 @@ typedef uint64_t log_handle_type;
 //#define GW_LOOPED_TEST_MODE
 //#define GW_PROFILER_ON
 //#define GW_LIMITED_ECHO_TEST
-//#define GW_URI_MATCHING_CODEGEN
+#define GW_URI_MATCHING_CODEGEN
 
 // Checking that macro definitions are correct.
 #ifdef GW_LOOPED_TEST_MODE
@@ -532,7 +532,7 @@ public:
         return elems_[index];
     }
 
-    T* GetElemRef(uint32_t index)
+    T* GetElemPtr(uint32_t index)
     {
         return elems_ + index;
     }
@@ -546,6 +546,13 @@ public:
     {
         elems_[num_entries_] = new_elem;
         num_entries_++;
+    }
+
+    uint32_t AddEmpty()
+    {
+        num_entries_++;
+
+        return num_entries_;
     }
 
     void Clear()
@@ -1723,8 +1730,10 @@ public:
         GatewayWorker *gw,
         HandlersTable* handlers_table,
         uint16_t port,
-        const char* uri,
-        uint32_t uri_len_chars,
+        const char* original_uri_info,
+        uint32_t original_uri_info_len_chars,
+        const char* processed_uri_info,
+        uint32_t processed_uri_info_len_chars,
         bmx::HTTP_METHODS http_method,
         uint8_t* param_types,
         int32_t num_params,
