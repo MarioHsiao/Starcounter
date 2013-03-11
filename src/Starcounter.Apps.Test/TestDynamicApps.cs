@@ -272,14 +272,15 @@ namespace Starcounter.Client.Tests.Application {
         public static void TestDataBinding() {
             dynamic msg = new Message<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
 
-            var myDataObj = new PersonObject() { FirstName = "Kalle", LastName = "Kula", Age = 21 };
+            var myDataObj = new PersonObject() { FirstName = "Kalle", Surname = "Kula", Age = 21, Misc = "Lorem Ipsum" };
             myDataObj.Number = new PhoneNumberObject() { Number = "123-555-7890" };
             msg.Data = myDataObj;
 
             // Reading bound values.
             Assert.AreEqual("Kalle", msg.FirstName);
             Assert.AreEqual("Kula", msg.LastName);
-            Assert.AreEqual(21, msg.Age);
+            Assert.AreEqual(0, msg.Age); // Since Age shouldn't be bound we should get a zero back and not 21.
+            Assert.IsNull(msg.Misc); // Same as above. Not bound so no value should be retrieved.
             Assert.AreEqual("123-555-7890", msg.PhoneNumber.Number);
 
             // Setting bound values.
@@ -287,22 +288,27 @@ namespace Starcounter.Client.Tests.Application {
             msg.LastName = "Ballan";
             msg.Age = 109L;
             msg.PhoneNumber.Number = "666";
+            msg.Misc = "Changed!";
 
             // Check dataobject is changed.
             Assert.AreEqual("Allan", myDataObj.FirstName);
-            Assert.AreEqual("Ballan", myDataObj.LastName);
-            Assert.AreEqual(109, myDataObj.Age);
+            Assert.AreEqual("Ballan", myDataObj.Surname);
+            Assert.AreEqual(21, myDataObj.Age); // Age is not bound so updating the message should not alter the dataobject.
             Assert.AreEqual("666", myDataObj.Number.Number);
+            Assert.AreEqual("Lorem Ipsum", myDataObj.Misc); // Not bound so updating the message should not alter the dataobject.
         }
 
         private static TMessage CreateSimplePersonTemplateWithDataBinding() {
-            var personSchema = new TMessage();
-            personSchema.Add<TString>("FirstName$", "FirstName");
-            personSchema.Add<TString>("LastName", "LastName");
-            personSchema.Add<TLong>("Age", "Age");
-
-            var phoneNumber = personSchema.Add<TMessage>("PhoneNumber", "Number");
-            phoneNumber.Add<TString>("Number", "Number");
+            var personSchema = new TMessage() { BindChildren = true };
+            personSchema.Add<TString>("FirstName$"); // Bound to FirstName
+            personSchema.Add<TString>("LastName", "Surname"); // Bound to Surname
+            personSchema.Add<TLong>("_Age"); // Will not be bound
+            var misc = personSchema.Add<TString>("Misc");
+            misc.Bind = null; // Removing the binding for this specific template.
+           
+            var phoneNumber = personSchema.Add<TMessage>("PhoneNumber"); // Bound to PhoneNumber
+            phoneNumber.BindChildren = true;
+            phoneNumber.Add<TString>("Number"); // Bound to Number
             
             return personSchema;
         }
@@ -348,6 +354,7 @@ namespace Starcounter.Client.Tests.Application {
         public int Age { get; set; }
 
         public PhoneNumberObject Number { get; set; }
+        public string Misc { get; set; }
     }
 
     internal class PhoneNumberObject : IBindable {
@@ -364,6 +371,6 @@ namespace Starcounter.Client.Tests.Application {
         }
 
         public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string Surname { get; set; }
     }
 }
