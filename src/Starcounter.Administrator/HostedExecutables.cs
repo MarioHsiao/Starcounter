@@ -143,7 +143,7 @@ namespace Starcounter.Administrator {
             // characteristics and location(s) from which the user or user agent can
             // choose the one most appropriate".
 
-            var runningExeRelativeUri = string.Format(HostedExecutables.relativeResourceUri, databaseName);
+            var runningExeRelativeUri = HostedExecutables.relativeResourceUri.Replace("{?}", databaseName);
             runningExeRelativeUri += "/" + Path.GetFileName(execRequest.ExecutablePath);
             
             var location = string.Format("http://{0}:{1}{2}", serverHost, serverPort, runningExeRelativeUri);
