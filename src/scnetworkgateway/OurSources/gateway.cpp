@@ -1525,11 +1525,28 @@ uint32_t Gateway::Init()
     // Registering shared memory monitor interface.
     shm_monitor_int_name_ = setting_sc_server_type_upper_ + "_" + MONITOR_INTERFACE_SUFFIX;
 
-    // TODO: Fix!
-    Sleep(1000);
+    // Waiting until we can open shared memory monitor interface.
+    GW_COUT << "Opening scipcmonitor interface: ";
+    int32_t num_tries = 0;
+    while (true)
+    {
+        try
+        {
+            // Get monitor_interface_ptr for monitor_interface_name.
+            shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
+            break;
+        }
+        catch (const core::monitor_interface_ptr_exception& e)
+        {
+            Sleep(100);
+            GW_COUT << ".";
 
-    // Get monitor_interface_ptr for monitor_interface_name.
-    shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
+            num_tries++;
+            if (num_tries >= 50)
+                return SCERRGWFAILEDTOOPENSHMMONITORINTERFACE;
+        }
+    }
+    GW_COUT << "opened!" << GW_ENDL;
 
     // Indicating that network gateway is ready
     // (should be first line of the output).
