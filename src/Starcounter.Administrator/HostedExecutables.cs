@@ -119,11 +119,10 @@ namespace Starcounter.Administrator {
                 return 200;
             }
 
-            // It's 201 created. Let's check if we created the database as well,
-            // and if so, report about both in the response.
-            // TODO:
+            // It's 201 created. For this, we have a production-like response.
+            // Build and return it.
 
-            return 201;
+            return CreateResponseFor201(commandInfo, execRequest, name);
         }
 
         static HttpResponse CreateResponseFor201(
@@ -156,6 +155,15 @@ namespace Starcounter.Administrator {
 
             var headers = new NameValueCollection(StringComparer.InvariantCultureIgnoreCase);
             headers.Add("Location", location);
+
+            // What about the schema we use here? If we build a client such
+            // as star.exe, we want to share a few things. How do publish the
+            // schema of what we return here and make it accessible to
+            // management clients?
+            //   Maybe start with adding a simple number/version, that the
+            // client do read. If it is compatible, it can try getting all
+            // the info. If not, in just displays it in plain JSON.
+            // TODO:
 
             var x = new {
                 DatabaseUri = command.DatabaseUri,
