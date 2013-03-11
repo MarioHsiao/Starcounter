@@ -56,39 +56,39 @@ namespace IndexQueryTest.InheritedIndex {
         }
 
         internal static void TestInheritedIndexes() {
-            PrintQueryPlan("select p from IndexQueryTest.InheritedIndex.Person p where name = ?"); // indexed
+            //PrintQueryPlan("select p from IndexQueryTest.InheritedIndex.Person p where name = ?"); // indexed
             int nrObjects = 0;
             foreach (Person p in Db.SQL("select p from IndexQueryTest.InheritedIndex.Person p where name = ?", "Student1"))
                 nrObjects ++;
             Trace.Assert(nrObjects == 1);
             Employer company = Db.SQL<Employer>("select e from employer e where address =  ?", "Here").First;
-            PrintQueryPlan("select e from Employee e where company = ?"); // indexed
+            //PrintQueryPlan("select e from Employee e where company = ?"); // indexed
             nrObjects = 0;
             foreach (Employee e in Db.SQL("select e from Employee e where company = ?", company))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalEmployees);
             nrObjects = 0;
-            PrintQueryPlan("select e from teacher e where company = ?"); // use inherited index
+            //PrintQueryPlan("select e from teacher e where company = ?"); // use inherited index
             foreach (Employee e in Db.SQL("select e from teacher e where company = ?", company))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalTeachers);
             nrObjects = 0;
-            PrintQueryPlan("select e from professor e where company = ?"); // indexed
+            //PrintQueryPlan("select e from professor e where company = ?"); // indexed
             foreach (Employee e in Db.SQL("select e from professor e where company = ?", company))
                 nrObjects++;
             Trace.Assert(nrObjects == nrProfessors);
             nrObjects = 0;
-            PrintQueryPlan("select e from teacher e ORDER BY company"); // use inherited index
+            //PrintQueryPlan("select e from teacher e ORDER BY company"); // use inherited index
             foreach (Employee e in Db.SQL("select e from teacher e ORDER BY company"))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalTeachers);
             nrObjects = 0;
-            PrintQueryPlan("select e from teacher e OPTION INDEX (e companyIndx)"); // use inherited index
+            //PrintQueryPlan("select e from teacher e OPTION INDEX (e companyIndx)"); // use inherited index
             foreach (Employee e in Db.SQL("select e from teacher e OPTION INDEX (e companyIndx)"))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalTeachers);
             nrObjects = 0;
-            PrintQueryPlan("select e from employee e OPTION INDEX (e companyIndx)"); // use index
+            //PrintQueryPlan("select e from employee e OPTION INDEX (e companyIndx)"); // use index
             foreach (Employee e in Db.SQL("select e from employee e OPTION INDEX (e companyIndx)"))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalEmployees);
