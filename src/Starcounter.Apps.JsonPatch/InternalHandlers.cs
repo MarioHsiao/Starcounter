@@ -25,10 +25,14 @@ namespace Starcounter.Internal.JsonPatch {
         /// Registers this instance.
         /// </summary>
         public static void Register() {
+
+            // TODO: __vm will conflict with other databases, make per database prefix.
             GET("/__vm/{?}", (int viewModelId) => {
                 Puppet rootApp;
                 Byte[] json;
                 HttpResponse response = null;
+
+                // TODO: Put verification on view model number.
 
                 rootApp = Session.Current.GetRootApp(viewModelId);
                 json = rootApp.ToJsonUtf8();
@@ -37,7 +41,7 @@ namespace Starcounter.Internal.JsonPatch {
                 return response;
             });
 
-            Debug.Assert(Db.Environment != null, "Db.Environment is not initlized");
+            Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
             if (Db.Environment.HasDatabase) {
@@ -47,7 +51,7 @@ namespace Starcounter.Internal.JsonPatch {
                 // SQL command
                 POST( "/__sql/" + Db.Environment.DatabaseName.ToLower(), (HttpRequest r) => {
                     try {
-                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrice the sql command in the body
+                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
                         string resultJson = ExecuteQuery(bodyData);
                         return resultJson;
                     }
@@ -62,6 +66,7 @@ namespace Starcounter.Internal.JsonPatch {
                 });
             }
 
+            // TODO: __vm will conflict with other databases, make per database prefix.
             PATCH("/__vm/{?}", (int viewModelId, HttpRequest request) => {
                 Puppet rootApp;
                 Session session;
@@ -127,7 +132,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             try {
 
-                dynamic resultJson = new DynamicJson();
+                dynamic resultJson = new Json();
 
                 sqle = (Starcounter.SqlEnumerator<object>)Db.SQL(query).GetEnumerator();
 
@@ -239,7 +244,7 @@ namespace Starcounter.Internal.JsonPatch {
             }
             catch (Exception e) {
 
-                dynamic resultJson = new DynamicJson();
+                dynamic resultJson = new Json();
                 resultJson.columns = new object[] { };
                 resultJson.rows = new object[] { };
 

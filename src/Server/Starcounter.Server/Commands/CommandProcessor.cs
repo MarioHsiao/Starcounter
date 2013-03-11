@@ -160,7 +160,9 @@ namespace Starcounter.Server.Commands {
             this.EndTime = DateTime.Now;
             this.Status = CommandStatus.Completed;
 
+            EndAllProgress();
             SignalCompletion();
+
             NotifyStatusChanged();
         }
 
@@ -174,7 +176,7 @@ namespace Starcounter.Server.Commands {
 
             info = new CommandInfo();
             info.Id = this.Id;
-            info.CommandType = this.typeIdentity;
+            info.ProcessorToken = this.typeIdentity;
             info.ServerUri = this.Engine.Uri;
             info.Description = this.command.Description;
             info.StartTime = this.startTime;
@@ -402,7 +404,7 @@ namespace Starcounter.Server.Commands {
             CommandProcessorAttribute attribute) {
             CommandDescriptor info;
             info = new CommandDescriptor();
-            info.CommandType = CreateToken(commandProcessorType);
+            info.ProcessorToken = CreateToken(commandProcessorType);
             info.CommandDescription = string.Format("Executes the command {0}.", attribute.CommandType.Name);
             return info;
         }
@@ -515,8 +517,7 @@ namespace Starcounter.Server.Commands {
             ProgressInfo info;
 
             info = this.progress[task.ID];
-            info.Value = info.Maximum;
-            info.Text = null;
+            EndSingleProgress(info);
 
             NotifyStatusChanged();
         }
@@ -530,12 +531,39 @@ namespace Starcounter.Server.Commands {
 
             foreach (var task in tasks) {
                 if (this.progress.TryGetValue(task.ID, out info)) {
-                    info.Value = info.Maximum;
-                    info.Text = null;
+                    EndSingleProgress(info);
                 }
             }
 
             NotifyStatusChanged();
+        }
+
+        /// <summary>
+        /// Ends a single progress info.
+        /// </summary>
+        /// <param name="info">The progress to end.</param>
+        private void EndSingleProgress(ProgressInfo info) {
+            info.Value = info.Maximum;
+            info.Text = null;
+        }
+
+        /// <summary>
+        /// Assures every task with possibly registered progress is
+        /// marked ended.
+        /// </summary>
+        /// <remarks>
+        /// Used when a processor ends successfully and prior to its
+        /// state/status is published; therefore, don't invoke
+        /// notification of any change here.
+        /// </remarks>
+        private void EndAllProgress() {
+            if (progress != null) {
+                foreach (var p in progress.Values) {
+                    if (!p.IsCompleted) {
+                        EndSingleProgress(p);
+                    }
+                }
+            }
         }
 
 

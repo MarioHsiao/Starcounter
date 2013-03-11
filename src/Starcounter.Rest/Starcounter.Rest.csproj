@@ -43,7 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;QUICKANDDIRTY;NO_GW_URI_MATCHING_CODEGEN</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;QUICKANDDIRTY;GW_URI_MATCHING_CODEGEN</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
@@ -55,7 +55,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE;QUICKANDDIRTY;NO_GW_URI_MATCHING_CODEGEN</DefineConstants>
+    <DefineConstants>TRACE;QUICKANDDIRTY;GW_URI_MATCHING_CODEGEN</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -84,6 +84,7 @@
   <ItemGroup>
     <Compile Include="Http\HttpRequestNext.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
+    <Compile Include="RequestHandler\AstTree\AstTreeGenerator.VerificationBytes.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstAtEndVerifier.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstError.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstIfCallSub.cs" />
@@ -102,12 +103,15 @@
     <Compile Include="RequestHandler\AstTree\Nodes\AstTrigger.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstUnsafe.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstValueJump.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstVerificationBytes.cs" />
+    <Compile Include="RequestHandler\AstTree\Nodes\AstVerificationBytesOffset.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstVerifier.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstDeserializeMessage.cs" />
     <Compile Include="RequestHandler\NewRequestHandlers.cs" />
     <Compile Include="RequestHandler\NewUserHandlers.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="RequestHandler\ParseTree\ParseNode.PrettyPrint.cs" />
+    <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.Sort.cs" />
     <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />
     <Compile Include="RequestHandler\RequestHandler.cs" />
     <Compile Include="Http\HttpRequestWriter.cs" />
@@ -162,7 +166,7 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <!-- <Import Project="../packages/UnmanagedExports.1.2.2.23707/tools/RGiesecke.DllExport.targets" /> -->
+  <Import Project="../packages/UnmanagedExports.1.2.2.23707/tools/RGiesecke.DllExport.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
