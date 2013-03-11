@@ -9,6 +9,7 @@ using Starcounter.Server.PublicModel;
 using StarcounterAppsLogTester;
 using System;
 using System.IO;
+using System.Net;
 
 // http://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.aspx
 
@@ -58,7 +59,7 @@ namespace StarcounterApps3 {
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
             HostedExecutables.Setup(
-                "localhost",
+                Dns.GetHostEntry(String.Empty).HostName,
                 adminPort,
                 Master.ServerEngine, 
                 Master.ServerInterface
