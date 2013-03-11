@@ -42,6 +42,7 @@ namespace star {
             public const string Verbosity = "verbosity";
             public const string Syntax = "syntax";
             public const string NoColor = "nocolor";
+            public const string ShowHttp = "http";
         }
 
         static class EnvironmentVariable {
@@ -331,9 +332,26 @@ namespace star {
             var content = response.Content.ReadAsStringAsync();
             var body = await content;
 
-            var showHttp = false;
+            var showHttp = args.ContainsFlag(Option.ShowHttp);
+
+            if (showHttp) {
+                var request = response.RequestMessage;
+                ConsoleUtil.ToConsoleWithColor(() => {
+                    Console.WriteLine();
+                    Console.WriteLine("HTTP/{0} {1} {2}", request.Version, request.Method, request.RequestUri);
+                    foreach (var item in request.Headers) {
+                        Console.Write("{0}: ", item.Key);
+                        foreach (var item2 in item.Value) {
+                            Console.Write(item2 + " ");
+                        }
+                        Console.WriteLine();
+                    }
+                    Console.WriteLine();
+
+                }, ConsoleColor.DarkGray);
+            }
+
             int statusCode = (int)response.StatusCode;
-            
             if (statusCode == 201) {
                 var responseBody = JsonConvert.DeserializeObject<ExecResponse201>(body);
                 var dbUri = ScUri.FromString(responseBody.DatabaseUri);
@@ -428,6 +446,7 @@ namespace star {
                 Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
                 Console.WriteLine(formatting, string.Format("--{0}", Option.Syntax), "Shows the parsing of the command-line, then exits.");
                 Console.WriteLine(formatting, string.Format("--{0}", Option.NoColor), "Instructs star.exe to turn off colorizing output.");
+                Console.WriteLine(formatting, string.Format("--{0}", Option.ShowHttp), "Displays underlying HTTP messages.");
             }
             Console.WriteLine();
             if (extended) {
@@ -518,6 +537,10 @@ namespace star {
             appSyntax.DefineFlag(
                 Option.NoColor,
                 "Instructs star.exe to turn off colorizing output."
+                );
+            appSyntax.DefineFlag(
+                Option.ShowHttp,
+                "Displays underlying HTTP request/response messages to/from the admin server."
                 );
 
 
