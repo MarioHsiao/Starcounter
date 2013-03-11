@@ -41,6 +41,7 @@ namespace star {
             public const string NoAutoCreateDb = "noautocreate";
             public const string Verbosity = "verbosity";
             public const string Syntax = "syntax";
+            public const string NoColor = "nocolor";
         }
 
         static class EnvironmentVariable {
@@ -132,6 +133,11 @@ namespace star {
                 return;
             }
 
+            // Process global options that has precedence
+
+            if (appArgs.ContainsFlag(Option.NoColor)) {
+                ConsoleUtil.DisableColors = true;
+            }
 
             var syntaxTests = appArgs.ContainsFlag(Option.Syntax);
             if (syntaxTests) {
@@ -140,8 +146,6 @@ namespace star {
                 // Exiting, because we were asked to test syntax only.
                 return;
             }
-
-            // Process global options that has precedence
 
             if (appArgs.ContainsFlag(Option.Help, CommandLineSection.GlobalOptions)) {
                 Usage(syntax);
@@ -398,6 +402,7 @@ namespace star {
                 Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
                 Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
                 Console.WriteLine(formatting, string.Format("--{0}", Option.Syntax), "Shows the parsing of the command-line, then exits.");
+                Console.WriteLine(formatting, string.Format("--{0}", Option.NoColor), "Instructs star.exe to turn off colorizing output.");
             }
             Console.WriteLine();
             if (extended) {
@@ -484,6 +489,10 @@ namespace star {
             appSyntax.DefineFlag(
                 Option.Syntax,
                 "Instructs star.exe to just parse the command-line and show the result of that."
+                );
+            appSyntax.DefineFlag(
+                Option.NoColor,
+                "Instructs star.exe to turn off colorizing output."
                 );
 
 
