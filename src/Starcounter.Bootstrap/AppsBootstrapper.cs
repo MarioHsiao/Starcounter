@@ -79,7 +79,7 @@ namespace Starcounter.Internal {
             // listens to the built in REST API serving view models to REST clients.
             InternalHandlers.Register();
 
-            // TODO: Investigate what's the right way.
+            // TODO: Investigate what's the right way to register static resources handler.
             // Registering default handler.
             StarcounterBase.GET("/{?}", (string res) => {
                 return null;

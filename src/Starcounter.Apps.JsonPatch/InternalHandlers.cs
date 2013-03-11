@@ -25,6 +25,8 @@ namespace Starcounter.Internal.JsonPatch {
         /// Registers this instance.
         /// </summary>
         public static void Register() {
+
+            // TODO: __vm will conflict with other databases, make per database prefix.
             GET("/__vm/{?}", (int viewModelId) => {
                 Puppet rootApp;
                 Byte[] json;
@@ -64,6 +66,7 @@ namespace Starcounter.Internal.JsonPatch {
                 });
             }
 
+            // TODO: __vm will conflict with other databases, make per database prefix.
             PATCH("/__vm/{?}", (int viewModelId, HttpRequest request) => {
                 Puppet rootApp;
                 Session session;
