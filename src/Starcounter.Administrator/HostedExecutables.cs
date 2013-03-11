@@ -10,6 +10,7 @@ using Starcounter.Internal.Web;
 using Newtonsoft.Json;
 using System.IO;
 using System.Collections.Specialized;
+using System.Text;
 
 namespace Starcounter.Administrator {
     /// <summary>
@@ -67,10 +68,7 @@ namespace Starcounter.Administrator {
                 single = null;
                 if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
                     if (single.GetErrorCode() == Starcounter.Error.SCERREXECUTABLENOTFOUND) {
-                        // We want to give back the part we couldn't process and also
-                        // make sure the reason is there and that 
-                        // TODO:
-                        return 422;
+                        return CreateResponseFor422(single, execRequest);
                     }
 
                     if (single.GetErrorCode() == Starcounter.Error.SCERRDATABASENOTFOUND) {
@@ -176,5 +174,17 @@ namespace Starcounter.Administrator {
                 HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(201, headers, content) 
             };
         }
+
+        static HttpResponse CreateResponseFor422(ErrorInfo error, ExecRequest execRequest) {
+            var text = error.ToErrorMessage().ToString();
+            return new HttpResponse { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(
+                422, 
+                null, 
+                text, 
+                Encoding.UTF8, 
+                "text/plain")
+            };
+        }
+
     }
 }
