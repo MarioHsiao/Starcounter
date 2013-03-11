@@ -509,7 +509,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             ServerPort* server_port = g_gateway.get_server_port(sd->get_port_index());
             RegisteredUris* reg_uris = server_port->get_registered_uris();
 
-            return reg_uris->GetEntryByIndex(matched_uri_index_).RunHandlers(gw, sd, is_handled);
+            return reg_uris->GetEntryByIndex(matched_uri_index_)->RunHandlers(gw, sd, is_handled);
         }
 
         // Checking if we are already passed the WebSockets handshake.
@@ -526,7 +526,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             sd->get_accum_buf()->get_accum_len_bytes(),
             &method_and_uri_len,
             &uri_offset,
-            bmx::MAX_URI_STRING_LEN);
+            MixedCodeConstants::MAX_URI_STRING_LEN);
 
         /*
         // TODO: Support alternative lower-case strategy when URI didn't match.
@@ -589,8 +589,12 @@ uint32_t HttpWsProto::HttpUriDispatcher(
             // Entering global lock.
             gw->EnterGlobalLock();
 
-            // Generating and loading URI matcher.
-            err_code = g_gateway.GenerateUriMatcher(port_num);
+            // Checking once again since maybe it was already generated.
+            if (!reg_uris->get_latest_gen_dll_handle())
+            {
+                // Generating and loading URI matcher.
+                err_code = g_gateway.GenerateUriMatcher(port_num);
+            }
 
             // Releasing global lock.
             gw->LeaveGlobalLock();
@@ -646,7 +650,7 @@ DONE_URI_MATCHING:
         sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
-        return reg_uris->GetEntryByIndex(matched_index).RunHandlers(gw, sd, is_handled);
+        return reg_uris->GetEntryByIndex(matched_index)->RunHandlers(gw, sd, is_handled);
     }
     else
     {

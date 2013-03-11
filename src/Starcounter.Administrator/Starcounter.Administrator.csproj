@@ -59,6 +59,7 @@
     <Compile Include="DatabasesApp.json.cs">
       <DependentUpon>DatabasesApp.json</DependentUpon>
     </Compile>
+    <Compile Include="HostedExecutables.cs" />
     <Compile Include="LogApp.json.cs">
       <DependentUpon>LogApp.json</DependentUpon>
     </Compile>
@@ -79,7 +80,7 @@
     <Compile Include="ServerApp.json.cs">
       <DependentUpon>ServerApp.json</DependentUpon>
     </Compile>
-	<Compile Include="ExecRequest.json.cs">
+    <Compile Include="ExecRequest.json.cs">
       <DependentUpon>ExecRequest.json</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -291,7 +292,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Group with including all messages supported -->
-	<Message Include="ExecRequest.json">
+    <Message Include="ExecRequest.json">
       <Generator>MSBuild:Compile</Generator>
     </Message>
   </ItemGroup>

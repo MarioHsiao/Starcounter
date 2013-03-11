@@ -50,23 +50,6 @@ private:
 #define GW_COUT ThreadSafeCout()
 #define GW_ENDL "\n"
 
-/*
-//#define GW_COUT std::cout
-#define GW_COUT (*g_cout)
-
-typedef boost::iostreams::tee_device<std::ostream, std::ofstream> TeeDevice;
-typedef boost::iostreams::stream<TeeDevice> TeeLogStream;
-
-// Logging object.
-extern TeeLogStream *g_cout;
-
-#if defined(UNICODE) || defined(_UNICODE)
-#define tcout std::wcout
-#else
-#define tcout std::cout
-#endif
-*/
-
 //uint64_t ReadDecimal(const char *start);
 uint32_t PrintLastError();
 
@@ -204,6 +187,14 @@ inline void PrintCurrentTimeMs(std::string msg)
     GetSystemTime(&time);
     WORD millis = (time.wSecond * 1000) + time.wMilliseconds;
     std::cout << msg << ": " << millis << std::endl;
+}
+
+// Converts string to its uppercase copy.
+inline std::string StringToUpperCopy(const std::string &src)
+{
+    std::string result;
+    std::transform(src.begin(), src.end(), std::back_inserter(result), std::toupper);
+    return result;
 }
 
 } // namespace network
