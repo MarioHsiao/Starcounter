@@ -74,7 +74,7 @@ namespace Starcounter.Administrator {
                     if (single.GetErrorCode() == Starcounter.Error.SCERRDATABASENOTFOUND) {
                         // The database was not found, and the request indicated it was not
                         // allowed to automatically create it.
-                        return 404;
+                        return CreateResponseFor404(single, execRequest);
                     }
                 }
 
@@ -178,11 +178,23 @@ namespace Starcounter.Administrator {
         static HttpResponse CreateResponseFor422(ErrorInfo error, ExecRequest execRequest) {
             var text = error.ToErrorMessage().ToString();
             return new HttpResponse { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(
-                422, 
+                422,
                 null, 
                 text, 
                 Encoding.UTF8, 
                 "text/plain")
+            };
+        }
+
+        static HttpResponse CreateResponseFor404(ErrorInfo error, ExecRequest execRequest) {
+            var text = error.ToErrorMessage().ToString();
+            return new HttpResponse {
+                Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(
+                    404,
+                    null,
+                    text,
+                    Encoding.UTF8,
+                    "text/plain")
             };
         }
 
