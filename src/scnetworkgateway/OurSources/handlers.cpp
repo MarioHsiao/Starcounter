@@ -70,6 +70,8 @@ uint32_t HandlersTable::RegisterPortHandler(
         0,
         NULL,
         0,
+        NULL,
+        0,
         bmx::HTTP_METHODS::OTHER_METHOD,
         NULL,
         0);
@@ -192,6 +194,8 @@ uint32_t HandlersTable::RegisterSubPortHandler(
         0,
         NULL,
         0,
+        NULL,
+        0,
         bmx::HTTP_METHODS::OTHER_METHOD,
         NULL,
         0);
@@ -254,8 +258,10 @@ PROCESS_SERVER_PORT:
 uint32_t HandlersTable::RegisterUriHandler(
     GatewayWorker *gw,
     uint16_t port_num,
-    const char* uri_string,
-    uint32_t uri_str_chars,
+    const char* original_uri_string,
+    uint32_t original_uri_str_len,
+    const char* processed_uri_string,
+    uint32_t processed_uri_str_len,
     bmx::HTTP_METHODS http_method,
     uint8_t* param_types,
     int32_t num_params,
@@ -286,7 +292,7 @@ uint32_t HandlersTable::RegisterUriHandler(
             if (port_num == registered_handlers_[i].get_port())
             {
                 // Checking the same URI.
-                if (!strcmp(uri_string, registered_handlers_[i].get_uri()))
+                if (!strcmp(processed_uri_string, registered_handlers_[i].get_processed_uri_info()))
                 {
                     // Checking same handler id.
                     if (GetBmxHandlerIndex(handler_info) == registered_handlers_[i].get_handler_index())
@@ -317,8 +323,10 @@ uint32_t HandlersTable::RegisterUriHandler(
         handler_info,
         port_num,
         0,
-        uri_string,
-        uri_str_chars,
+        original_uri_string,
+        original_uri_str_len,
+        processed_uri_string,
+        processed_uri_str_len,
         http_method,
         param_types,
         num_params);

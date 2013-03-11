@@ -38,6 +38,7 @@ namespace star {
             public const string Verbosity = "verbosity";
             public const string LogSteps = "logsteps";
             public const string NoDb = "nodb";
+            public const string NoAutoCreateDb = "noautocreate";
         }
 
         static class EnvironmentVariable {
@@ -286,7 +287,8 @@ namespace star {
                 CommandLineString = string.Empty,
                 ResourceDirectoriesString = string.Empty,
                 NoDb = args.ContainsFlag(Option.NoDb),
-                LogSteps = args.ContainsFlag(Option.LogSteps)
+                LogSteps = args.ContainsFlag(Option.LogSteps),
+                CanAutoCreateDb = !args.ContainsFlag(Option.NoAutoCreateDb)
             };
             return JsonConvert.SerializeObject(request);
         }
@@ -346,6 +348,7 @@ namespace star {
             Console.WriteLine(formatting, string.Format("--{0}", Option.LogSteps), "Enables diagnostic logging.");
             Console.WriteLine(formatting, string.Format("--{0}", Option.NoDb), "Tells the host to load and run the executable");
             Console.WriteLine(formatting, "", "without loading any database into the process.");
+            Console.WriteLine(formatting, string.Format("--{0}", Option.NoAutoCreateDb), "Prevents automatic creation of database.");
             Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
             Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
             Console.WriteLine();
@@ -414,6 +417,10 @@ namespace star {
             appSyntax.DefineFlag(
                 Option.NoDb,
                 "Specifies the code host should run the executable without loading any database data."
+                );
+            appSyntax.DefineFlag(
+                Option.NoAutoCreateDb,
+                "Specifies that a database can not be automatically created if it doesn't exist."
                 );
 
             // NOTE:

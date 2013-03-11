@@ -20,6 +20,13 @@ namespace Starcounter.Server.PublicModel {
     public interface IServerRuntime {
 
         /// <summary>
+        /// Returns the functionality supported by the running
+        /// server, in the form of a set of <see cref="CommandDescriptor"/>
+        /// instances.
+        /// </summary>
+        CommandDescriptor[] Functionality { get; }
+
+        /// <summary>
         /// Executes the given <see cref="ServerCommand"/>.
         /// </summary>
         /// <remarks>

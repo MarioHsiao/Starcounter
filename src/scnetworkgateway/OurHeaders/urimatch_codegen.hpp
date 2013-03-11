@@ -4,150 +4,14 @@
 
 namespace starcounter {
 namespace network {
+
+// Type of compiler to use for URI matching Codegen.
 enum UriMatchCodegenCompilerType
 {
     COMPILER_GCC,
     COMPILER_MSVC,
     COMPILER_CLANG
 };
-
-struct UserParameterInfo
-{
-    uint16_t offset;
-    uint16_t len_bytes;
-    uint8_t data_type;
-};
-
-inline bool IsDigit(char c)
-{
-    return (c >= '0') && (c <= '9');
-}
-
-inline bool IsWhiteSpace(char c)
-{
-    return (c == ' ') || (c == '\n') || (c == '\t');
-}
-
-inline int32_t MeasureSignedInt(char* puri, int offset, int32_t max_len)
-{
-    int32_t n = 0;
-    switch (puri[offset])
-    {
-    case '-':
-    case '+':
-        {
-            if (max_len < 2)
-                return 0;
-
-            if (IsDigit(puri[offset + 1]))
-                n += 2;
-            else
-                return -1;
-
-            break;
-        }
-
-    default:
-        {
-            if (IsDigit(puri[offset]))
-                n++;
-            else
-                return -1;
-
-            break;
-        }
-    }
-
-    // Counting digits.
-    while((n < max_len) && IsDigit(puri[offset + n]))
-        n++;
-
-    return n;
-}
-
-inline int32_t MeasureSignedDecimal(char* puri, int offset, int32_t max_len)
-{
-    int32_t n = 0;
-    switch (puri[offset])
-    {
-    case '-':
-    case '+':
-    case '.':
-        {
-            if (max_len < 2)
-                return 0;
-
-            if (IsDigit(puri[offset + 1]))
-                n += 2;
-            else
-                return -1;
-
-            break;
-        }
-
-    default:
-        {
-            if (IsDigit(puri[offset]))
-                n++;
-            else
-                return -1;
-
-            break;
-        }
-    }
-
-    // Counting digits.
-    while((n < max_len) && (IsDigit(puri[offset + n]) || (puri[offset + n] == '.')))
-        n++;
-
-    return n;
-}
-
-inline int32_t MeasureBoolean(char* puri, int offset, int32_t max_len)
-{
-    // Skipping True.
-    if (puri[offset] == 't' || puri[offset] == 'T')
-    {
-        // TODO: Check for remaining part.
-
-        return 4;
-    }
-    else // Assuming False.
-    {
-        if (max_len < 5)
-            return 0;
-
-        // TODO: Check for remaining part.
-
-        return 5;
-    }
-
-    return 0;
-}
-
-inline int32_t MeasureDateTime(char* puri, int offset, int32_t max_len)
-{
-    // TODO
-    return 0;
-}
-
-inline int32_t MeasureStringUntilWhitespace(char* puri, int offset, int32_t max_len)
-{
-    int32_t n = 0;
-    while((n < max_len) && (!IsWhiteSpace(puri[offset + n])))
-        n++;
-
-    return n;
-}
-
-inline int32_t MeasureStringUntilSymbol(char* puri, int offset, int32_t max_len, char c)
-{
-    int32_t n = 0;
-    while((n < max_len) && (puri[offset + n] != c))
-        n++;
-
-    return n;
-}
 
 class CodegenUriMatcher
 {
@@ -184,11 +48,11 @@ public:
 
         err_code = generate_uri_matcher_(uri_infos, num_uris, uri_matching_code_, &uri_code_size_bytes_);
 
-        std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
+        /*std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
         std::stringstream str_stream;
         str_stream << config_file_stream.rdbuf();
         std::string tmp_str = str_stream.str();
-        strcpy_s(uri_matching_code_, tmp_str.size() + 1, tmp_str.c_str());
+        strcpy_s(uri_matching_code_, tmp_str.size() + 1, tmp_str.c_str());*/
 
         return err_code;
     }

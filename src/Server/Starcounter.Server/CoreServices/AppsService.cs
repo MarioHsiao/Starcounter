@@ -54,7 +54,7 @@ namespace Starcounter.Server {
         /// <param name="args"></param>
         /// <returns></returns>
         internal CommandInfo EnqueueExecAppCommandWithDispatcher(string assemblyPath, string workingDirectory, string[] args) {
-            ExecAppCommand command = new ExecAppCommand(this.engine, assemblyPath, workingDirectory, args);
+            ExecCommand command = new ExecCommand(this.engine, assemblyPath, workingDirectory, args);
             return engine.CurrentPublicModel.Execute(command);
         }
     }

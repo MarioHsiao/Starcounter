@@ -23,5 +23,6 @@
   <Content>
     <VsPackage>Starcounter.VisualStudio.pkgdef</VsPackage>
     <ProjectTemplate>ProjectTemplates</ProjectTemplate>
+    <ItemTemplate>ItemTemplates</ItemTemplate>
   </Content>
 </Vsix>

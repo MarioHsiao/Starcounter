@@ -67,6 +67,7 @@ typedef uint64_t log_handle_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
+//#define GW_OLD_ACTIVE_DATABASES_DISCOVER
 
 // Enable to check for unique socket usage.
 #define GW_SOCKET_ID_CHECK
@@ -88,7 +89,7 @@ typedef uint64_t log_handle_type;
 //#define GW_LOOPED_TEST_MODE
 //#define GW_PROFILER_ON
 //#define GW_LIMITED_ECHO_TEST
-//#define GW_URI_MATCHING_CODEGEN
+#define GW_URI_MATCHING_CODEGEN
 
 // Checking that macro definitions are correct.
 #ifdef GW_LOOPED_TEST_MODE
@@ -531,7 +532,7 @@ public:
         return elems_[index];
     }
 
-    T* GetElemRef(uint32_t index)
+    T* GetElemPtr(uint32_t index)
     {
         return elems_ + index;
     }
@@ -545,6 +546,13 @@ public:
     {
         elems_[num_entries_] = new_elem;
         num_entries_++;
+    }
+
+    uint32_t AddEmpty()
+    {
+        num_entries_++;
+
+        return num_entries_;
     }
 
     void Clear()
@@ -1312,6 +1320,17 @@ class GatewayWorker;
 class Gateway
 {
     ////////////////////////
+    // CONSTANTS
+    ////////////////////////
+
+    // The size of the array to hold the server name and active databases updated event name,
+    // including terminating null. The format is:
+    // "Local\<server_name>_ipc_monitor_active_databases_updated_event"
+    static const std::size_t active_databases_updated_event_name_size
+        = core::server_name_size -1 /* null */ +sizeof("Local\\") -1 /* null */ 
+        +sizeof(ACTIVE_DATABASES_UPDATED_EVENT);
+
+    ////////////////////////
     // SETTINGS
     ////////////////////////
 
@@ -1319,7 +1338,7 @@ class Gateway
     int32_t setting_max_connections_;
 
     // Starcounter server type.
-    std::string setting_sc_server_type_;
+    std::string setting_sc_server_type_upper_;
 
     // Gateway log file name.
     std::wstring setting_server_output_dir_;
@@ -1393,6 +1412,15 @@ class Gateway
 
     // Unique database sequence number.
     uint64_t db_seq_num_;
+
+    // Event to wait for active databases update.
+    HANDLE active_databases_updates_event_;
+
+    // Monitor shared interface.
+    core::monitor_interface_ptr shm_monitor_interface_;
+
+    // Shared memory monitor interface name.
+    std::string shm_monitor_int_name_;
 
     ////////////////////////
     // WORKERS
@@ -1548,6 +1576,16 @@ class Gateway
 
 public:
 
+    // Constant reference to monitor interface.
+    const core::monitor_interface_ptr& the_monitor_interface() const {
+        return shm_monitor_interface_;
+    }
+
+    // Get a reference to the active_databases_updates_event_.
+	HANDLE& active_databases_updates_event() {
+		return active_databases_updates_event_;
+	}
+
     // Pointer to Clang compile and get function pointer.
     GwClangCompileCodeAndGetFuntion ClangCompileAndGetFunc;
 
@@ -1692,8 +1730,10 @@ public:
         GatewayWorker *gw,
         HandlersTable* handlers_table,
         uint16_t port,
-        const char* uri,
-        uint32_t uri_len_chars,
+        const char* original_uri_info,
+        uint32_t original_uri_info_len_chars,
+        const char* processed_uri_info,
+        uint32_t processed_uri_info_len_chars,
         bmx::HTTP_METHODS http_method,
         uint8_t* param_types,
         int32_t num_params,
@@ -2091,6 +2131,9 @@ public:
     // Waking up all workers.
     void WakeUpAllWorkers();
 
+    // Opens active databases events with monitor.
+    uint32_t OpenActiveDatabasesUpdatedEvent();
+
     // Releases global lock.
     void LeaveGlobalLock()
     {
@@ -2169,7 +2212,7 @@ public:
         core::shared_interface* sharedInt_readOnly);
 
     // Checking for database changes.
-    uint32_t CheckDatabaseChanges(std::wstring active_dbs_file_path);
+    uint32_t CheckDatabaseChanges(const std::set<std::string>& active_databases);
 
     // Print statistics.
     uint32_t StatisticsAndMonitoringRoutine();
