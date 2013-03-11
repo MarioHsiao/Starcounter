@@ -33,10 +33,10 @@ namespace Starcounter.Administrator {
             HostedExecutables.runtime = runtime;
             HostedExecutables.serverHost = serverHost;
             HostedExecutables.serverPort = serverPort;
-            StarcounterBase.POST<HttpRequest, string>(relativeResourceUri, HandlePOST);
+            StarcounterBase.POST<string, HttpRequest>(relativeResourceUri, HandlePOST);
         }
 
-        static object HandlePOST(HttpRequest request, string name) {
+        static object HandlePOST(string name, HttpRequest request) {
 
             var execRequest = new ExecRequest();
             execRequest.PopulateFromJson(request.GetContentStringUtf8_Slow());
