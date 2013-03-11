@@ -23,7 +23,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="codeBehindFilename">The code behind filename.</param>
         /// <returns>CodeBehindMetadata.</returns>
         public static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
-            bool autoBindToEntity;
+            bool autoBindToDataObject;
             ClassDeclarationSyntax classDecl;
             List<JsonMapInfo> mapList;
             List<InputBindingInfo> inputList;
@@ -39,7 +39,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             root = tree.GetRoot();
 
             classDecl = FindClassDeclarationFor(className, root);
-            autoBindToEntity = IsBoundToEntity(classDecl, out genericArg);
+            autoBindToDataObject = IsBoundToEntity(classDecl, out genericArg);
             ns = GetNamespaceForClass(className, root);
 
             mapList = new List<JsonMapInfo>();
@@ -48,7 +48,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             inputList = new List<InputBindingInfo>();
             FillListWithHandleInputInfo(root, inputList);
 
-            return new CodeBehindMetadata(ns, genericArg, autoBindToEntity, mapList, inputList);
+            return new CodeBehindMetadata(ns, genericArg, autoBindToDataObject, mapList, inputList);
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="attributeNode">The attribute node.</param>
         /// <returns>JsonMapInfo.</returns>
         private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode) {
-            bool autoBindToEntity;
+            bool autoBindToDataObject;
             ClassDeclarationSyntax classDecl;
             ClassDeclarationSyntax parentClassDecl;
             List<string> parentClassNames = new List<string>();
@@ -235,7 +235,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
             // Find the class the attribute was declared on.
             classDecl = FindClass(attributeNode.Parent);
-            autoBindToEntity = IsBoundToEntity(classDecl, out genericArg);
+            autoBindToDataObject = IsBoundToEntity(classDecl, out genericArg);
             
             // If the class is an inner class we need to get the full name of all classes
             // to be able to connect the generated code in the same structure as the 
@@ -250,7 +250,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                         FindNamespaceForClassDeclaration(classDecl),
                         classDecl.Identifier.ValueText,
                         genericArg,
-                        autoBindToEntity,
+                        autoBindToDataObject,
                         parentClassNames,
                         attributeNode.Name.ToString()
                    );
