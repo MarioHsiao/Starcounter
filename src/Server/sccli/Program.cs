@@ -212,26 +212,68 @@ namespace star {
 
             HttpClient client;
             HttpResponseMessage response;
+            ExecRequest execRequest;
+            string database;
+            string relativeUri;
+
+            execRequest = GatherAndCreateExecRequest(appArgs, out database, out relativeUri);
             
             client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
-            var x = Exec(client, serverName, appArgs);
+            var x = Exec(client, execRequest, serverName, database, relativeUri);
             x.Wait();
             response = x.Result;
 
-            ShowResultAndSetExitCode(response, appArgs).Wait();
+            ShowResultAndSetExitCode(execRequest, response, appArgs).Wait();
         }
 
-        static async Task<HttpResponseMessage> Exec(HttpClient client, string serverName, ApplicationArguments args) {
-            string database;
-            string uri;
-            string executable;
+
+        static async Task<HttpResponseMessage> Exec(
+            HttpClient client,
+            ExecRequest execRequest,
+            string serverName,
+            string database,
+            string uri) {
             string requestBody;
             Task<HttpResponseMessage> request;
+
+            // Create the request body, based on supplied arguments.
+
+            requestBody = CreateRequestBody(execRequest);
+
+            // Post the request.
+
+            request = client.PostAsync(uri, new StringContent(requestBody, Encoding.UTF8, "application/json"));
+
+            // After posting and while waiting for the result to become available,
+            // lets give some feedback.
+
+            ConsoleUtil.ToConsoleWithColor(
+                string.Format("[Starting \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
+                Path.GetFileName(execRequest.ExecutablePath),
+                database,
+                serverName,
+                client.BaseAddress.Host,
+                client.BaseAddress.Port), 
+                ConsoleColor.DarkGray
+                );
+
+            // Await the requested result, then return the result.
+
+            await request;
+            return request.Result;
+        }
+
+        static ExecRequest GatherAndCreateExecRequest(
+            ApplicationArguments args,
+            out string database,
+            out string relativeUri) {
+            ExecRequest request;
+            string executable;
 
             if (!args.TryGetProperty(Option.Db, out database)) {
                 database = Program.DefaultDatabaseName;
             }
-            uri = string.Format("/databases/{0}/executables", database);
+            relativeUri = string.Format("/databases/{0}/executables", database);
 
             // Aware of the client transparency guideline stated previously,
             // we still do resolve the path of the given executable based on
@@ -252,31 +294,16 @@ namespace star {
                 }
             }
 
-            // Create the request body, based on supplied arguments.
+            request = new ExecRequest() {
+                ExecutablePath = executable,
+                CommandLineString = string.Empty,
+                ResourceDirectoriesString = string.Empty,
+                NoDb = args.ContainsFlag(Option.NoDb),
+                LogSteps = args.ContainsFlag(Option.LogSteps),
+                CanAutoCreateDb = !args.ContainsFlag(Option.NoAutoCreateDb)
+            };
 
-            requestBody = CreateRequestBody(executable, args);
-
-            // Post the request.
-
-            request = client.PostAsync(uri, new StringContent(requestBody, Encoding.UTF8, "application/json"));
-
-            // After posting and while waiting for the result to become available,
-            // lets give some feedback.
-
-            ConsoleUtil.ToConsoleWithColor(
-                string.Format("[Executing \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
-                Path.GetFileName(executable),
-                database,
-                serverName,
-                client.BaseAddress.Host, 
-                client.BaseAddress.Port), 
-                ConsoleColor.DarkGray
-                );
-
-            // Await the requested result, then return the result.
-
-            await request;
-            return request.Result;
+            return request;
         }
 
         /// <summary>
@@ -287,39 +314,37 @@ namespace star {
         /// See the ExecRequest class in Administrator for the format being
         /// used.
         /// </remarks>
-        /// <param name="executable">The executable (required)</param>
-        /// <param name="args">Arguments, possibly holding options to be
-        /// part of the request string.</param>
+        /// <param name="request">The exec request POCO object that is
+        /// serialized in the returned string.
+        /// </param>
         /// <returns>A JSON-formatted string representing a request to
         /// execute an executable, compatible with what is expected from
         /// the admin server.</returns>
-        static string CreateRequestBody(string executable, ApplicationArguments args) {
-            // We use a simple but probably slow technique to construct
-            // the body. The upside is that we dont accidentally format
-            // the string inproperly.
-            // Revise and reconsider this when we redesign this and have
-            // it usable from all contexts (like VS and the shell).
-
-            var request = new {
-                ExecutablePath = executable,
-                CommandLineString = string.Empty,
-                ResourceDirectoriesString = string.Empty,
-                NoDb = args.ContainsFlag(Option.NoDb),
-                LogSteps = args.ContainsFlag(Option.LogSteps),
-                CanAutoCreateDb = !args.ContainsFlag(Option.NoAutoCreateDb)
-            };
+        static string CreateRequestBody(ExecRequest request) {
             return JsonConvert.SerializeObject(request);
         }
 
-        static async Task ShowResultAndSetExitCode(HttpResponseMessage response, ApplicationArguments args) {
+        static async Task ShowResultAndSetExitCode(
+            ExecRequest execRequest,
+            HttpResponseMessage response, 
+            ApplicationArguments args) {
             var content = response.Content.ReadAsStringAsync();
             var body = await content;
 
-            var showHttp = true;
+            var showHttp = false;
             int statusCode = (int)response.StatusCode;
             
             if (statusCode == 201) {
-                showHttp = true;
+                var responseBody = JsonConvert.DeserializeObject<ExecResponse201>(body);
+                var dbUri = ScUri.FromString(responseBody.DatabaseUri);
+
+                var output = string.Format(
+                    "Started \"{0}\" in {1}\"{2}\" (Process:{3})",
+                    Path.GetFileName(execRequest.ExecutablePath),
+                    responseBody.DatabaseCreated ? "(new database) " : "",
+                    dbUri.DatabaseName,
+                    responseBody.DatabaseHostPID);
+                ConsoleUtil.ToConsoleWithColor(output, ConsoleColor.Green);
                 Environment.ExitCode = 0;
             }
             else if (statusCode == 422) {
