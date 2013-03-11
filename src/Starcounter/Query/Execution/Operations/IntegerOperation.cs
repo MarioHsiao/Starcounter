@@ -22,8 +22,8 @@ namespace Starcounter.Query.Execution
 internal class IntegerOperation : IIntegerExpression, INumericalOperation
 {
     NumericalOperator numOperator;
-    IIntegerExpression expr1;
-    IIntegerExpression expr2;
+    INumericalExpression expr1;
+    INumericalExpression expr2;
 
     /// <summary>
     /// Constructor.
@@ -31,7 +31,7 @@ internal class IntegerOperation : IIntegerExpression, INumericalOperation
     /// <param name="numOp">The operator of the operation.</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal IntegerOperation(NumericalOperator numOp, IIntegerExpression expr1, IIntegerExpression expr2)
+    internal IntegerOperation(NumericalOperator numOp, INumericalExpression expr1, INumericalExpression expr2)
     : base()
     {
         if (numOp != NumericalOperator.Addition && numOp != NumericalOperator.Subtraction
@@ -57,7 +57,7 @@ internal class IntegerOperation : IIntegerExpression, INumericalOperation
     /// </summary>
     /// <param name="numOp">The operator of the operation.</param>
     /// <param name="expr">The operand of the operation.</param>
-    internal IntegerOperation(NumericalOperator numOp, IIntegerExpression expr)
+    internal IntegerOperation(NumericalOperator numOp, INumericalExpression expr)
     : base()
     {
         if (numOp != NumericalOperator.Minus && numOp != NumericalOperator.Plus)
@@ -268,9 +268,9 @@ internal class IntegerOperation : IIntegerExpression, INumericalOperation
     {
         if (expr2 != null)
         {
-            return new IntegerOperation(numOperator, (IIntegerExpression)expr1.Instantiate(obj), (IIntegerExpression)expr2.Instantiate(obj));
+            return new IntegerOperation(numOperator, (INumericalExpression)expr1.Instantiate(obj), (INumericalExpression)expr2.Instantiate(obj));
         }
-        return new IntegerOperation(numOperator, (IIntegerExpression)expr1.Instantiate(obj));
+        return new IntegerOperation(numOperator, (INumericalExpression)expr1.Instantiate(obj));
     }
 
     public IValueExpression Clone(VariableArray varArray)
@@ -282,9 +282,9 @@ internal class IntegerOperation : IIntegerExpression, INumericalOperation
     {
         if (expr2 != null)
         {
-            return new IntegerOperation(numOperator, expr1.CloneToInteger(varArray), expr2.CloneToInteger(varArray));
+            return new IntegerOperation(numOperator, expr1.CloneToNumerical(varArray), expr2.CloneToNumerical(varArray));
         }
-        return new IntegerOperation(numOperator, expr1.CloneToInteger(varArray));
+        return new IntegerOperation(numOperator, expr1.CloneToNumerical(varArray));
     }
 
     public INumericalExpression CloneToNumerical(VariableArray varArray)

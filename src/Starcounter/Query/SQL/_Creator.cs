@@ -1208,70 +1208,22 @@ namespace Starcounter.Query.Sql
             ComparisonOperator op = CreateComparisonOperator(opTerm);
             IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
             IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
-            if (expr1 is IDecimalExpression && expr2 is IDecimalExpression)
+            if (expr1 is INumericalExpression && expr2 is INumericalExpression)
             {
-                return new ComparisonDecimal(op, expr1 as IDecimalExpression, expr2 as IDecimalExpression);
-            }
-            if (expr1 is IDecimalExpression && expr2 is IIntegerExpression)
-            {
-                return new ComparisonDecimal(op, expr1 as IDecimalExpression, expr2 as IIntegerExpression);
-            }
-            if (expr1 is IDecimalExpression && expr2 is IUIntegerExpression)
-            {
-                return new ComparisonDecimal(op, expr1 as IDecimalExpression, expr2 as IUIntegerExpression);
-            }
-            if (expr1 is IIntegerExpression && expr2 is IDecimalExpression)
-            {
-                return new ComparisonDecimal(op, expr1 as IIntegerExpression, expr2 as IDecimalExpression);
-            }
-            if (expr1 is IIntegerExpression && expr2 is IUIntegerExpression)
-            {
-                return new ComparisonDecimal(op, expr1 as IIntegerExpression, expr2 as IUIntegerExpression);
-            }
-            if (expr1 is IUIntegerExpression && expr2 is IDecimalExpression)
-            {
-                return new ComparisonDecimal(op, expr1 as IUIntegerExpression, expr2 as IDecimalExpression);
-            }
-            if (expr1 is IUIntegerExpression && expr2 is IIntegerExpression)
-            {
-                return new ComparisonDecimal(op, expr1 as IUIntegerExpression, expr2 as IIntegerExpression);
+                return new ComparisonDecimal(op, expr1 as INumericalExpression, expr2 as INumericalExpression);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect types: " + expr1.DbTypeCode + " and " + expr2.DbTypeCode);
         }
 
         private static ComparisonDouble CreateComparisonDouble(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
-                                                               VariableArray varArray)
+                                                       VariableArray varArray)
         {
             ComparisonOperator op = CreateComparisonOperator(opTerm);
             IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
             IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
-            if (expr1 is IDoubleExpression && expr2 is IDoubleExpression)
+            if (expr1 is INumericalExpression && expr2 is INumericalExpression)
             {
                 return new ComparisonDouble(op, expr1 as IDoubleExpression, expr2 as IDoubleExpression);
-            }
-            if (expr1 is IDoubleExpression && expr2 is IDecimalExpression)
-            {
-                return new ComparisonDouble(op, expr1 as IDoubleExpression, expr2 as IDecimalExpression);
-            }
-            if (expr1 is IDoubleExpression && expr2 is IIntegerExpression)
-            {
-                return new ComparisonDouble(op, expr1 as IDoubleExpression, expr2 as IIntegerExpression);
-            }
-            if (expr1 is IDoubleExpression && expr2 is IUIntegerExpression)
-            {
-                return new ComparisonDouble(op, expr1 as IDoubleExpression, expr2 as IUIntegerExpression);
-            }
-            if (expr1 is IDecimalExpression && expr2 is IDoubleExpression)
-            {
-                return new ComparisonDouble(op, expr1 as IDecimalExpression, expr2 as IDoubleExpression);
-            }
-            if (expr1 is IIntegerExpression && expr2 is IDoubleExpression)
-            {
-                return new ComparisonDouble(op, expr1 as IIntegerExpression, expr2 as IDoubleExpression);
-            }
-            if (expr1 is IUIntegerExpression && expr2 is IDoubleExpression)
-            {
-                return new ComparisonDouble(op, expr1 as IUIntegerExpression, expr2 as IDoubleExpression);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect types: " + expr1.DbTypeCode + " and " + expr2.DbTypeCode);
         }
@@ -1282,9 +1234,9 @@ namespace Starcounter.Query.Sql
             ComparisonOperator op = CreateComparisonOperator(opTerm);
             IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
             IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
-            if (expr1 is IIntegerExpression && expr2 is IIntegerExpression)
+            if (expr1 is INumericalExpression && expr2 is INumericalExpression)
             {
-                return new ComparisonInteger(op, expr1 as IIntegerExpression, expr2 as IIntegerExpression);
+                return new ComparisonInteger(op, expr1 as INumericalExpression, expr2 as INumericalExpression);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect types: " + expr1.DbTypeCode + " and " + expr2.DbTypeCode);
         }
@@ -1382,9 +1334,9 @@ namespace Starcounter.Query.Sql
             ComparisonOperator op = CreateComparisonOperator(opTerm);
             IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
             IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
-            if (expr1 is IUIntegerExpression && expr2 is IUIntegerExpression)
+            if (expr1 is INumericalExpression && expr2 is INumericalExpression)
             {
-                return new ComparisonUInteger(op, expr1 as IUIntegerExpression, expr2 as IUIntegerExpression);
+                return new ComparisonUInteger(op, expr1 as INumericalExpression, expr2 as INumericalExpression);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect types: " + expr1.DbTypeCode + " and " + expr2.DbTypeCode);
         }
@@ -1590,17 +1542,9 @@ namespace Starcounter.Query.Sql
             {
                 return new DecimalSetFunction(expr);
             }
-            if (expr is IDecimalExpression)
+            if (expr is INumericalExpression)
             {
-                return new DecimalSetFunction(setFuncType, expr as IDecimalExpression);
-            }
-            if (expr is IIntegerExpression)
-            {
-                return new DecimalSetFunction(setFuncType, expr as IIntegerExpression);
-            }
-            if (expr is IUIntegerExpression)
-            {
-                return new DecimalSetFunction(setFuncType, expr as IUIntegerExpression);
+                return new DecimalSetFunction(setFuncType, expr as INumericalExpression);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of expression: " + expr.DbTypeCode);
         }
@@ -1614,9 +1558,9 @@ namespace Starcounter.Query.Sql
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
             IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
-            if (expr is IDoubleExpression)
+            if (expr is INumericalExpression)
             {
-                return new DoubleSetFunction(setFuncType, expr as IDoubleExpression);
+                return new DoubleSetFunction(setFuncType, expr as INumericalExpression);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of expression: " + expr.DbTypeCode);
         }
@@ -1630,9 +1574,13 @@ namespace Starcounter.Query.Sql
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect quantTerm: " + quantTerm);
             }
             IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
-            if (expr is IIntegerExpression)
+            if (setFuncType == SetFunctionType.COUNT)
             {
-                return new IntegerSetFunction(setFuncType, expr as IIntegerExpression);
+                return new IntegerSetFunction(expr);
+            }
+            if (expr is INumericalExpression)
+            {
+                return new IntegerSetFunction(setFuncType, expr as INumericalExpression);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of expression: " + expr.DbTypeCode);
         }
@@ -3068,6 +3016,10 @@ namespace Starcounter.Query.Sql
         private static IOperation CreateOperation(RowTypeBinding rowTypeBind, Term typeTerm, Term opTerm, Term exprTerm1, Term exprTerm2,
                                                   VariableArray varArray)
         {
+            if (typeTerm.Name == "integer")
+            {
+                return CreateIntegerOperation(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+            }
             if (typeTerm.Name == "decimal")
             {
                 return CreateDecimalOperation(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
@@ -3089,6 +3041,10 @@ namespace Starcounter.Query.Sql
 
         private static IOperation CreateOperation(RowTypeBinding rowTypeBind, Term typeTerm, Term opTerm, Term exprTerm, VariableArray varArray)
         {
+            if (typeTerm.Name == "integer")
+            {
+                return CreateIntegerOperation(rowTypeBind, opTerm, exprTerm, varArray);
+            }
             if (typeTerm.Name == "decimal")
             {
                 return CreateDecimalOperation(rowTypeBind, opTerm, exprTerm, varArray);
@@ -3135,6 +3091,35 @@ namespace Starcounter.Query.Sql
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr.DbTypeCode);
             }
             return new NumericalOperation(op, expr as INumericalExpression);
+        }
+
+        private static IntegerOperation CreateIntegerOperation(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
+                                                               VariableArray varArray)
+        {
+            NumericalOperator op = CreateNumericalOperator(opTerm);
+            IValueExpression expr1 = CreateValueExpression(rowTypeBind, exprTerm1, varArray);
+            IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
+            if (!(expr1 is INumericalExpression))
+            {
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr1.DbTypeCode);
+            }
+            if (!(expr2 is INumericalExpression))
+            {
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr2.DbTypeCode);
+            }
+            return new IntegerOperation(op, expr1 as INumericalExpression, expr2 as INumericalExpression);
+        }
+
+        private static IntegerOperation CreateIntegerOperation(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm,
+                                                               VariableArray varArray)
+        {
+            NumericalOperator op = CreateNumericalOperator(opTerm);
+            IValueExpression expr = CreateValueExpression(rowTypeBind, exprTerm, varArray);
+            if (!(expr is INumericalExpression))
+            {
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect type of operand: " + expr.DbTypeCode);
+            }
+            return new IntegerOperation(op, expr as INumericalExpression);
         }
 
         private static DecimalOperation CreateDecimalOperation(RowTypeBinding rowTypeBind, Term opTerm, Term exprTerm1, Term exprTerm2,
