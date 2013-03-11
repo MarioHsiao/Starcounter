@@ -29,6 +29,7 @@ namespace star {
 
         static class Option {
             public const string Help = "help";
+            public const string HelpEx = "helpextended";
             public const string Version = "version";
             public const string Info = "info";
             public const string Serverport = "serverport";
@@ -148,6 +149,11 @@ namespace star {
 
             if (appArgs.ContainsFlag(Option.Help, CommandLineSection.GlobalOptions)) {
                 Usage(syntax);
+                return;
+            }
+
+            if (appArgs.ContainsFlag(Option.HelpEx, CommandLineSection.GlobalOptions)) {
+                Usage(syntax, true);
                 return;
             }
 
@@ -372,13 +378,14 @@ namespace star {
             Console.WriteLine("Version={0}.{1}", StarcounterEnvironment.GetVersionInfo().Version.Major, StarcounterEnvironment.GetVersionInfo().Version.Minor);
         }
 
-        static void Usage(IApplicationSyntax syntax) {
+        static void Usage(IApplicationSyntax syntax, bool extended = false) {
             string formatting;
             Console.WriteLine("Usage: star [options] executable [parameters]");
             Console.WriteLine();
             Console.WriteLine("Options:");
             formatting = "  {0,-22}{1,25}";
             Console.WriteLine(formatting, string.Format("-h, --{0}", Option.Help), "Shows help about star.exe.");
+            Console.WriteLine(formatting, string.Format("-hx, --{0}", Option.HelpEx), "Shows extended/unofficial help about star.exe.");
             Console.WriteLine(formatting, string.Format("-v, --{0}", Option.Version), "Prints the version of Starcounter.");
             Console.WriteLine(formatting, string.Format("-i, --{0}", Option.Info), "Prints information about the Starcounter installation.");
             Console.WriteLine(formatting, string.Format("-p, --{0} port", Option.Serverport), "The port to use to the admin server.");
@@ -391,12 +398,16 @@ namespace star {
             Console.WriteLine(formatting, string.Format("--{0}", Option.NoDb), "Tells the host to load and run the executable");
             Console.WriteLine(formatting, "", "without loading any database into the process.");
             Console.WriteLine(formatting, string.Format("--{0}", Option.NoAutoCreateDb), "Prevents automatic creation of database.");
-            Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
-            Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
+            if (extended) {
+                Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
+                Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
+            }
             Console.WriteLine();
-            Console.WriteLine("TEMPORARY: Creating a repository.");
-            Console.WriteLine("Run star.exe @@CreateRepo path [servername] to create a repository.");
-            Console.WriteLine();
+            if (extended) {
+                Console.WriteLine("TEMPORARY: Creating a repository.");
+                Console.WriteLine("Run star.exe @@CreateRepo path [servername] to create a repository.");
+                Console.WriteLine();
+            }
             Console.WriteLine("Environment variables:");
             Console.WriteLine("{0}\t{1,8}", EnvironmentVariable.ServerName, "Sets the server to use by default.");
             Console.WriteLine();
@@ -415,6 +426,12 @@ namespace star {
                 "Prints the star.exe help message.",
                 OptionAttributes.Default,
                 new string[] { "h" }
+                );
+            appSyntax.DefineFlag(
+                Option.HelpEx,
+                "Prints the star.exe extended help message.",
+                OptionAttributes.Default,
+                new string[] { "hx" }
                 );
             appSyntax.DefineFlag(
                 Option.Version,
