@@ -30,6 +30,8 @@ namespace Starcounter.Internal.JsonPatch {
                 Byte[] json;
                 HttpResponse response = null;
 
+                // TODO: Put verification on view model number.
+
                 rootApp = Session.Current.GetRootApp(viewModelId);
                 json = rootApp.ToJsonUtf8();
                 response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
@@ -37,7 +39,7 @@ namespace Starcounter.Internal.JsonPatch {
                 return response;
             });
 
-            Debug.Assert(Db.Environment != null, "Db.Environment is not initlized");
+            Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
             if (Db.Environment.HasDatabase) {
@@ -47,7 +49,7 @@ namespace Starcounter.Internal.JsonPatch {
                 // SQL command
                 POST( "/__sql/" + Db.Environment.DatabaseName.ToLower(), (HttpRequest r) => {
                     try {
-                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrice the sql command in the body
+                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
                         string resultJson = ExecuteQuery(bodyData);
                         return resultJson;
                     }

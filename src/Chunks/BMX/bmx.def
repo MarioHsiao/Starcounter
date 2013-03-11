@@ -15,5 +15,4 @@ EXPORTS
     sc_bmx_release_linked_chunks
 	sc_bmx_construct_ping
 	sc_bmx_parse_pong
-    sc_bmx_register_uri_handler_new
 

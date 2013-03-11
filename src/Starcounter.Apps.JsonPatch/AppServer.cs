@@ -185,7 +185,7 @@ namespace Starcounter.Internal.Web {
 
             // Invoking original user delegate with parameters here.
 #if GW_URI_MATCHING_CODEGEN
-            UserHandlerCodegen.UHC.HandlersManager.RunDelegate(request, out x);
+            UserHandlerCodegen.HandlersManager.RunDelegate(request, out x);
 #else
             RequestHandler.RequestProcessor.Invoke(request, out x);
 #endif

@@ -137,30 +137,8 @@ uint32_t sc_bmx_register_subport_handler(
 // Registers raw port handler.
 uint32_t sc_bmx_register_uri_handler(
     uint16_t port,
-    char* uri_string,
-    uint8_t http_method,
-    GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
-    )
-{
-    // Performing operation on a copy.
-    BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-    uint32_t err_code = g_bmx_data_copy->RegisterUriHandler(port, uri_string, (HTTP_METHODS)http_method, NULL, 0, callback, handler_id);
-    LeaveSafeBmxManagement(g_bmx_data_copy);
-
-    if (err_code)
-        return err_code;
-
-    // Pushing registered handler.
-    err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredUriHandler(g_bmx_data);
-
-    return err_code;
-}
-
-// Registers raw port handler.
-uint32_t sc_bmx_register_uri_handler_new(
-    uint16_t port,
-    char* uri_info,
+    char* original_uri_info,
+    char* processed_uri_info,
     uint8_t http_method,
     uint8_t* param_types,
     uint8_t num_params,
@@ -170,14 +148,23 @@ uint32_t sc_bmx_register_uri_handler_new(
 {
     // Performing operation on a copy.
     BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-    uint32_t err_code = g_bmx_data_copy->RegisterUriHandler(port, uri_info, HTTP_METHODS::OTHER_METHOD, param_types, num_params, callback, handler_id);
+    uint32_t err_code = g_bmx_data_copy->RegisterUriHandler(
+        port,
+        original_uri_info,
+        processed_uri_info,
+        HTTP_METHODS::OTHER_METHOD,
+        param_types,
+        num_params,
+        callback,
+        handler_id);
+
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     if (err_code)
         return err_code;
 
     // Pushing registered handler.
-    err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredUriHandlerNew(g_bmx_data);
+    err_code = g_bmx_data->GetRegisteredHandler(*handler_id)->PushRegisteredUriHandler(g_bmx_data);
 
     return err_code;
 }

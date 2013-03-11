@@ -38,10 +38,6 @@ namespace Starcounter.Internal {
 
             // Checking if we are inside the database worker process.
             AppProcess.AssertInDatabaseOrSendStartRequest();
-
-            // Register the handlers required by the Apps system. These work as user code handlers, but
-            // listens to the built in REST api serving view models to REST clients.
-            InternalHandlers.Register();
         }
 
         /// <summary>
@@ -73,21 +69,21 @@ namespace Starcounter.Internal {
             // Setting the response handler.
             Node.SetHandleResponse(appServer.HandleResponse);
 
-#if GW_URI_MATCHING_CODEGEN
             // Giving REST needed delegates.
-            UserHandlerCodegen.UHC.Setup(
+            UserHandlerCodegen.Setup(
                 port,
-                GatewayHandlers.RegisterUriHandlerNew,
+                GatewayHandlers.RegisterUriHandler,
                 OnHttpMessageRoot);
-#else
-            // TODO: 
-            // The registration to the gateway should only be called once per port, not 
-            // once for each registered handler.
-            StarcounterBase._REST.RegistrationListeners.Add((string verbAndUri) => {
-                UInt16 handlerId;
-                GatewayHandlers.RegisterUriHandler((ushort)port, "/", OnHttpMessageRoot, out handlerId);
+            
+            // Register the handlers required by the Apps system. These work as user code handlers, but
+            // listens to the built in REST API serving view models to REST clients.
+            InternalHandlers.Register();
+
+            // TODO: Investigate what's the right way.
+            // Registering default handler.
+            StarcounterBase.GET("/{?}", (string res) => {
+                return null;
             });
-#endif
         }
 
         /// <summary>
