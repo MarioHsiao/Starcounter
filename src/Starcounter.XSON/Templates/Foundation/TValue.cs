@@ -21,7 +21,7 @@ namespace Starcounter {
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
 
         private DataValueBinding<T> dataBinding;
-
+        
         internal DataValueBinding<T> GetBinding(IBindable data) {
             dataBinding = DataBindingFactory.VerifyOrCreateBinding<T>(this, dataBinding, data.GetType(), Bind);
             return dataBinding;
@@ -52,6 +52,9 @@ namespace Starcounter {
     /// Class Property
     /// </summary>
     public abstract class TValue : Template {
+        private bool bound;
+        private string bind;
+
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
         /// </summary>
@@ -63,14 +66,20 @@ namespace Starcounter {
         /// <summary>
         /// Gets or sets the name of the property this template is bound to.
         /// </summary>
-        /// <value>The bind.</value>
-        public string Bind { get; set; }
+        /// <value>The name of the property to bind.</value>
+        public string Bind {
+            get { return bind; }
+            set {
+                bind = value;
+                bound = !string.IsNullOrEmpty(bind);
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether this template is bound.
         /// </summary>
         /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
-        public bool Bound { get { return (Bind != null); } }
+        public bool Bound {  get {  return bound; } }
 
         /// <summary>
         /// 
