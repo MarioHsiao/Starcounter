@@ -305,30 +305,60 @@ namespace star {
             return JsonConvert.SerializeObject(request);
         }
 
-        static async Task ShowResultAndSetExitCode(
-            HttpResponseMessage response, 
-            ApplicationArguments args) {
-            
+        static async Task ShowResultAndSetExitCode(HttpResponseMessage response, ApplicationArguments args) {
             var content = response.Content.ReadAsStringAsync();
-            var color = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
-            Console.ForegroundColor = color;
-            try {
+            var body = await content;
+
+            var showHttp = true;
+            int statusCode = (int)response.StatusCode;
+            
+            if (statusCode == 201) {
+                showHttp = true;
+                Environment.ExitCode = 0;
+            }
+            else if (statusCode == 422) {
+                ConsoleUtil.ToConsoleWithColor(body, ConsoleColor.Red);
                 Console.WriteLine();
-                Console.WriteLine("HTTP/{0} {1} {2}", response.Version, (int)response.StatusCode, response.ReasonPhrase);
-                foreach (var item in response.Headers) {
-                    Console.Write("{0}: ", item.Key);
-                    foreach (var item2 in item.Value) {
-                        Console.Write(item2 + " ");
-                    }
+                Environment.ExitCode = (int)Error.SCERREXECUTABLENOTFOUND;
+
+            } else if (statusCode == 404) {
+                ConsoleUtil.ToConsoleWithColor(body, ConsoleColor.Red);
+                Console.WriteLine();
+                if (args.ContainsFlag(Option.NoAutoCreateDb)) {
+                    Console.WriteLine("To allow automatic creation of the database, remove the --{0} option.", Option.NoAutoCreateDb);
                     Console.WriteLine();
                 }
-                Console.WriteLine();
-                var body = await content;
-                Console.WriteLine(body);
+                Environment.ExitCode = (int)Error.SCERRDATABASENOTFOUND;
 
-            } finally {
-                Console.ResetColor();
-                Environment.ExitCode = response.IsSuccessStatusCode ? 0 : (int)Error.SCERRUNSPECIFIED;
+            } else if (!response.IsSuccessStatusCode) {
+                // Some error we have no custom formatting for. Just dump
+                // out the entire HTTP message.
+                showHttp = true;
+                Environment.ExitCode = (int)Error.SCERRUNSPECIFIED;
+
+            } else {
+                // A successfull response we have custom formatting for. Just
+                // dump out the entire HTTP message;
+                showHttp = true;
+                Environment.ExitCode = 0;
+            }
+
+            if (showHttp) {
+                var color = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
+                ConsoleUtil.ToConsoleWithColor(() => {
+                    Console.WriteLine();
+                    Console.WriteLine("HTTP/{0} {1} {2}", response.Version, (int)response.StatusCode, response.ReasonPhrase);
+                    foreach (var item in response.Headers) {
+                        Console.Write("{0}: ", item.Key);
+                        foreach (var item2 in item.Value) {
+                            Console.Write(item2 + " ");
+                        }
+                        Console.WriteLine();
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine(body);
+
+                }, color);
             }
         }
 
