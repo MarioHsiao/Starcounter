@@ -28,9 +28,24 @@ namespace NetworkIoTestApp
                 return String.Format("string {0}", p1);
             });
 
+            GET("/{?}/{?}", (Int32 p1, Boolean p2) =>
+            {
+                return String.Format("int32 {0}, bool {1}", p1, p2);
+            });
+
+            GET("/{?}/{?}/{?}", (Int32 p1, Boolean p2, Double p3) =>
+            {
+                return String.Format("int32 {0}, bool {1}, double {2}", p1, p2, p3);
+            });
+
             GET("/{?}", (Int32 p1) =>
             {
                 return String.Format("int32 {0}", p1);
+            });
+
+            GET("/{?}/{?}", (Int32 p1, Decimal p2) =>
+            {
+                return String.Format("int32 {0}, decimal {1}", p1, p2);
             });
             
             GET("/{?}/{?}/{?}", (Int32 p1, string p2, string p3) =>
