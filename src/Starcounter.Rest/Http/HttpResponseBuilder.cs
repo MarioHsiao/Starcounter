@@ -73,7 +73,7 @@ namespace Starcounter.Internal.Web {
                if (!HttpStatusCodeAndReason.TryGetRecommendedHttp11ReasonPhrase(code, out reason)) {
                    reason = HttpStatusCodeAndReason.ReasonNotAvailable;
                }
-               msgHeader = HttpStatusCodeAndReason.ToStatusLineFormatNoValidate(code, reason);
+               msgHeader = "HTTP/1.1 " + HttpStatusCodeAndReason.ToStatusLineFormatNoValidate(code, reason);
                msgHeader += CRLF;
 
                if (headers != null) {
