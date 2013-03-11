@@ -757,59 +757,14 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Reading port number.
                 uint16_t port = resp_chunk->read_uint16();
 
-                // Reading URI.
-                char uri[bmx::MAX_URI_STRING_LEN];
-                uint32_t uri_len_chars = resp_chunk->read_uint32();
-                resp_chunk->read_string(uri, uri_len_chars, bmx::MAX_URI_STRING_LEN);
+                // Reading URIs.
+                char original_uri_info[MixedCodeConstants::MAX_URI_STRING_LEN];
+                uint32_t original_uri_info_len_chars = resp_chunk->read_uint32();
+                resp_chunk->read_string(original_uri_info, original_uri_info_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
 
-                // Reading HTTP method.
-                bmx::HTTP_METHODS http_method = (bmx::HTTP_METHODS)resp_chunk->read_uint8();
-
-#ifdef GW_TESTING_MODE
-                if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_HTTP) &&
-                    (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP))
-                {
-                    GW_ASSERT(false);
-                }
-#endif
-
-                GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
-
-                // Registering handler on active database.
-                HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
-
-                // Registering determined URI Apps handler.
-                err_code = g_gateway.AddUriHandler(
-                    gw,
-                    handlers_table,
-                    port,
-                    uri,
-                    uri_len_chars,
-                    http_method,
-                    NULL,
-                    0,
-                    handler_info,
-                    db_index_,
-                    AppsUriProcessData);
-
-                if (err_code)
-                    return err_code;
-
-                break;
-            }
-
-            case bmx::BMX_REGISTER_URI_NEW:
-            {
-                // Reading handler info.
-                BMX_HANDLER_TYPE handler_info = resp_chunk->read_handler_info();
-
-                // Reading port number.
-                uint16_t port = resp_chunk->read_uint16();
-
-                // Reading URI.
-                char uri[bmx::MAX_URI_STRING_LEN];
-                uint32_t uri_len_chars = resp_chunk->read_uint32();
-                resp_chunk->read_string(uri, uri_len_chars, bmx::MAX_URI_STRING_LEN);
+                char processed_uri_info[MixedCodeConstants::MAX_URI_STRING_LEN];
+                uint32_t processed_uri_info_len_chars = resp_chunk->read_uint32();
+                resp_chunk->read_string(processed_uri_info, processed_uri_info_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
 
                 // Reading HTTP method.
                 bmx::HTTP_METHODS http_method = (bmx::HTTP_METHODS)resp_chunk->read_uint8();
@@ -830,7 +785,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 }
 #endif
 
-                GW_PRINT_WORKER << "New URI handler \"" << uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+                GW_PRINT_WORKER << "New URI handler \"" << processed_uri_info << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
                 // Registering handler on active database.
                 HandlersTable* handlers_table = g_gateway.GetDatabase(db_index_)->get_user_handlers();
@@ -840,8 +795,10 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     gw,
                     handlers_table,
                     port,
-                    uri,
-                    uri_len_chars,
+                    original_uri_info,
+                    original_uri_info_len_chars,
+                    processed_uri_info,
+                    processed_uri_info_len_chars,
                     http_method,
                     param_types,
                     num_params,

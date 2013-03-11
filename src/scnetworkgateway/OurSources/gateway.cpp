@@ -224,7 +224,7 @@ Gateway::Gateway()
     setting_inactive_session_timeout_seconds_ = 60 * 20;
 
     // Starcounter server type.
-    setting_sc_server_type_ = "Personal";
+    setting_sc_server_type_upper_ = MixedCodeConstants::DefaultPersonalServerNameUpper;
 
     // All worker structures.
     gw_workers_ = NULL;
@@ -360,13 +360,13 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
     wcstombs(temp, argv[1], 128);
 
     // Copying other fields.
-    setting_sc_server_type_ = temp;
+    setting_sc_server_type_upper_ = temp;
 
     // Converting to upper case.
     std::transform(
-        setting_sc_server_type_.begin(),
-        setting_sc_server_type_.end(),
-        setting_sc_server_type_.begin(),
+        setting_sc_server_type_upper_.begin(),
+        setting_sc_server_type_upper_.end(),
+        setting_sc_server_type_upper_.begin(),
         ::toupper);
 
     setting_config_file_path_ = argv[2];
@@ -970,15 +970,9 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 }
 
 // Checks for new/existing databases and updates corresponding shared memory structures.
-uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
+uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_databases)
 {
-    std::ifstream ad_file(active_dbs_file_path);
-
-    // Just quiting if file can't be opened.
-    if (ad_file.is_open() == false)
-        return 0;
-
-    int32_t server_name_len = setting_sc_server_type_.length();
+    int32_t server_name_len = setting_sc_server_type_upper_.length();
 
     // Enabling database down tracking flag.
     for (int32_t i = 0; i < num_dbs_slots_; i++)
@@ -986,11 +980,17 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
 
     // Reading file line by line.
     uint32_t err_code;
-    std::string current_db_name;
-    while (getline(ad_file, current_db_name))
+    
+    // Running through all databases.
+    for (std::set<std::string>::iterator it = active_databases.begin();
+        it != active_databases.end();
+        ++it)
     {
+        // Getting current database.
+        std::string current_db_name = *it;
+
         // Skipping incorrect database names.
-        if (current_db_name.compare(0, server_name_len, setting_sc_server_type_) != 0)
+        if (current_db_name.compare(0, server_name_len, setting_sc_server_type_upper_) != 0)
             continue;
 
         // Extracting the database name (skipping the server name and underscore).
@@ -1140,6 +1140,8 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                         port_number,
                         test_http_echo_requests_[g_gateway.setting_mode()].uri,
                         test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
+                        test_http_echo_requests_[g_gateway.setting_mode()].uri,
+                        test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
                         bmx::HTTP_METHODS::OTHER_METHOD,
                         NULL,
                         0,
@@ -1173,6 +1175,8 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                     reverse_proxies_[i].gw_proxy_port_,
                     reverse_proxies_[i].service_uri_.c_str(),
                     reverse_proxies_[i].service_uri_len_,
+                    reverse_proxies_[i].service_uri_.c_str(),
+                    reverse_proxies_[i].service_uri_len_,
                     bmx::HTTP_METHODS::OTHER_METHOD,
                     NULL,
                     0,
@@ -1198,8 +1202,10 @@ uint32_t Gateway::CheckDatabaseChanges(std::wstring active_dbs_file_path)
                 &gw_workers_[0],
                 gw_handlers_,
                 setting_gw_stats_port_,
-                "/gwstats",
-                1,
+                "GET /gwstats",
+                12,
+                "GET /gwstats ",
+                13,
                 bmx::HTTP_METHODS::OTHER_METHOD,
                 NULL,
                 0,
@@ -1516,6 +1522,15 @@ uint32_t Gateway::Init()
 
     GW_ASSERT(example_main_func != NULL);
 
+    // Registering shared memory monitor interface.
+    shm_monitor_int_name_ = setting_sc_server_type_upper_ + "_" + MONITOR_INTERFACE_SUFFIX;
+
+    // TODO: Fix!
+    Sleep(1000);
+
+    // Get monitor_interface_ptr for monitor_interface_name.
+    shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
+
     // Indicating that network gateway is ready
     // (should be first line of the output).
     GW_COUT << "Gateway is ready!" << GW_ENDL;
@@ -1539,19 +1554,11 @@ uint32_t Gateway::InitSharedMemory(
     // Construct the database_shared_memory_parameters_name. The format is
     // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
     std::string shm_params_name = (std::string)DATABASE_NAME_PREFIX + "_" +
-        setting_sc_server_type_ + "_" + boost::to_upper_copy(setting_databaseName) + "_0";
+        setting_sc_server_type_upper_ + "_" + StringToUpperCopy(setting_databaseName) + "_0";
 
     // Open the database shared memory parameters file and obtains a pointer to
     // the shared structure.
     database_shared_memory_parameters_ptr db_shm_params(shm_params_name.c_str());
-
-    // Construct the monitor interface name. The format is
-    // <SERVER_NAME>_<MONITOR_INTERFACE_SUFFIX>.
-    std::string mon_int_name = (std::string)db_shm_params->get_server_name() + "_" +
-        MONITOR_INTERFACE_SUFFIX;
-
-    // Get monitor_interface_ptr for monitor_interface_name.
-    monitor_interface_ptr the_monitor_interface(mon_int_name.c_str());
 
     // Send registration request to the monitor and try to acquire an owner_id.
     // Without an owner_id we can not proceed and have to exit.
@@ -1562,7 +1569,7 @@ uint32_t Gateway::InitSharedMemory(
     uint32_t error_code;
 
     // Try to register this client process pid. Wait up to 10000 ms.
-    if ((error_code = the_monitor_interface->register_client_process(pid,
+    if ((error_code = shm_monitor_interface_->register_client_process(pid,
         the_owner_id, 10000/*ms*/)) != 0)
     {
         // Failed to register this client process pid.
@@ -1579,15 +1586,17 @@ uint32_t Gateway::InitSharedMemory(
     }
 
     // Name of the database shared memory segment.
+    char seq_num_str[16];
+    itoa(db_shm_params->get_sequence_number(), seq_num_str, 10);
     std::string shm_seg_name = std::string(DATABASE_NAME_PREFIX) + "_" +
-        setting_sc_server_type_ + "_" +
-        boost::to_upper_copy(setting_databaseName) + "_" +
-        boost::lexical_cast<std::string>(db_shm_params->get_sequence_number());
+        setting_sc_server_type_upper_ + "_" +
+        StringToUpperCopy(setting_databaseName) + "_" +
+        std::string(seq_num_str);
 
     // Construct a shared_interface.
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
-        shared_int[i].init(shm_seg_name.c_str(), mon_int_name.c_str(), pid, the_owner_id);
+        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), pid, the_owner_id);
     }
 
     return 0;
@@ -1820,10 +1829,91 @@ void Gateway::WakeUpAllWorkers()
     }
 }
 
+// Opens active databases events with monitor.
+uint32_t Gateway::OpenActiveDatabasesUpdatedEvent()
+{
+    // Number of characters in the multi-byte string after being converted.
+    std::size_t length;
+
+    // Construct the active_databases_updated_event_name.
+    char active_databases_updated_event_name[active_databases_updated_event_name_size];
+
+    // Format: "Local\<server_name>_ipc_monitor_cleanup_event".
+    // Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
+    if ((length = _snprintf_s(active_databases_updated_event_name, _countof
+        (active_databases_updated_event_name), active_databases_updated_event_name_size
+        -1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, setting_sc_server_type_upper_.c_str())) < 0) {
+            return SCERRFORMATACTIVEDBUPDATEDEVNAME;
+    }
+    active_databases_updated_event_name[length] = '\0';
+
+    wchar_t w_active_databases_updated_event_name[active_databases_updated_event_name_size];
+
+    /// TODO: Fix insecure
+    if ((length = mbstowcs(w_active_databases_updated_event_name,
+        active_databases_updated_event_name, core::segment_name_size)) < 0) {
+            // Failed to convert active_databases_updated_event_name to multi-byte string.
+            return SCERRCONVERTACTIVEDBUPDATEDEVMBS;
+    }
+    w_active_databases_updated_event_name[length] = L'\0';
+
+    // Open the active_databases_updated_event_name.
+    if ((active_databases_updates_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
+        FALSE, w_active_databases_updated_event_name)) == NULL) {
+            // Failed to open the active_databases_updated_event.
+            return SCERROPENACTIVEDBUPDATEDEV;
+    }
+
+    return 0;
+}
+
 // Entry point for monitoring databases thread.
 uint32_t __stdcall MonitorDatabases(LPVOID params)
 {
     uint32_t err_code = 0;
+    std::set<std::string> active_databases_set;
+
+#ifndef GW_OLD_ACTIVE_DATABASES_DISCOVER 
+
+    // Opening active databases event with monitor.
+    err_code = g_gateway.OpenActiveDatabasesUpdatedEvent();
+    if (err_code)
+        return err_code;
+
+    GW_COUT << "Waiting for active database update events..." << GW_ENDL;
+
+    while (true)
+    {
+        // Waiting for shared monitor notification.
+        switch (::WaitForSingleObject(g_gateway.active_databases_updates_event(), INFINITE))
+        {
+            case WAIT_OBJECT_0:
+            {
+                // The IPC monitor updated the active databases set.
+                g_gateway.the_monitor_interface()->active_database_set()
+                    .copy(active_databases_set, g_gateway.active_databases_updates_event());
+
+                // Checking for any database changes in active databases file.
+                err_code = g_gateway.CheckDatabaseChanges(active_databases_set);
+                if (err_code)
+                    return err_code;
+
+                break;
+            }
+
+            case WAIT_TIMEOUT:
+            {
+                break;
+            }
+                
+            case WAIT_FAILED:
+            {
+                break;
+            }
+        }
+    }
+
+#else
 
     // Creating path to IPC monitor directory active databases.
     std::wstring active_databases_dir = g_gateway.get_setting_server_output_dir() + L"\\"+ W_DEFAULT_MONITOR_DIR_NAME + L"\\" + W_DEFAULT_MONITOR_ACTIVE_DATABASES_FILE_NAME + L"\\";
@@ -1868,8 +1958,19 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
         {
             case WAIT_OBJECT_0:
             {
+                std::ifstream ad_file(active_databases_file_path);
+
+                // Just quiting if file can't be opened.
+                if (ad_file.is_open() == false)
+                    break;
+
+                // Populating the active databases set.
+                std::string current_db_name;
+                while (getline(ad_file, current_db_name))
+                    active_databases_set.insert(current_db_name);
+
                 // Checking for any database changes in active databases file.
-                err_code = g_gateway.CheckDatabaseChanges(active_databases_file_path);
+                err_code = g_gateway.CheckDatabaseChanges(active_databases_set);
 
                 if (err_code)
                 {
@@ -1899,6 +2000,8 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
             }
         }
     }
+
+#endif
 
     return 0;
 }
@@ -2724,8 +2827,10 @@ uint32_t Gateway::AddUriHandler(
     GatewayWorker* gw,
     HandlersTable* handlers_table,
     uint16_t port,
-    const char* uri,
-    uint32_t uri_len_chars,
+    const char* original_uri_info,
+    uint32_t original_uri_info_len_chars,
+    const char* processed_uri_info,
+    uint32_t processed_uri_info_len_chars,
     bmx::HTTP_METHODS http_method,
     uint8_t* param_types,
     int32_t num_params,
@@ -2739,8 +2844,10 @@ uint32_t Gateway::AddUriHandler(
     err_code = handlers_table->RegisterUriHandler(
         gw,
         port,
-        uri,
-        uri_len_chars,
+        original_uri_info,
+        original_uri_info_len_chars,
+        processed_uri_info,
+        processed_uri_info_len_chars,
         http_method,
         param_types,
         num_params,
@@ -2751,22 +2858,27 @@ uint32_t Gateway::AddUriHandler(
     GW_ERR_CHECK(err_code);
 
     // Search for handler index by URI string.
-    BMX_HANDLER_TYPE handler_index = handlers_table->FindUriHandlerIndex(port, uri, uri_len_chars);
+    BMX_HANDLER_TYPE handler_index = handlers_table->FindUriHandlerIndex(
+        port,
+        processed_uri_info,
+        processed_uri_info_len_chars);
 
     // Getting the port structure.
     ServerPort* server_port = g_gateway.FindServerPort(port);
 
     // Registering URI on port.
     RegisteredUris* all_port_uris = server_port->get_registered_uris();
-    int32_t index = all_port_uris->FindRegisteredUri(uri, uri_len_chars);
+    int32_t index = all_port_uris->FindRegisteredUri(processed_uri_info, processed_uri_info_len_chars);
 
     // Checking if there is an entry.
     if (index < 0)
     {
         // Creating totally new URI entry.
         RegisteredUri new_entry(
-            uri,
-            uri_len_chars,
+            original_uri_info,
+            original_uri_info_len_chars,
+            processed_uri_info,
+            processed_uri_info_len_chars,
             db_index,
             handlers_table->get_handler_list(handler_index));
 
@@ -2776,16 +2888,16 @@ uint32_t Gateway::AddUriHandler(
     else
     {
         // Obtaining existing URI entry.
-        RegisteredUri reg_uri = all_port_uris->GetEntryByIndex(index);
+        RegisteredUri* reg_uri = all_port_uris->GetEntryByIndex(index);
 
         // Checking if there is no database for this URI.
-        if (!reg_uri.ContainsDb(db_index))
+        if (!reg_uri->ContainsDb(db_index))
         {
             // Creating new unique handlers list for this database.
             UniqueHandlerList uhl(db_index, handlers_table->get_handler_list(handler_index));
 
             // Adding new handler list for this database to the URI.
-            reg_uri.Add(uhl);
+            reg_uri->Add(uhl);
         }
     }
     GW_ERR_CHECK(err_code);
@@ -2794,7 +2906,7 @@ uint32_t Gateway::AddUriHandler(
     all_port_uris->InvalidateCodegen();
 
     // Printing port information.
-    server_port->Print();
+    //server_port->Print();
 
     return 0;
 }
@@ -2847,12 +2959,12 @@ uint32_t Gateway::OpenStarcounterLog()
 
 	host_name_size = 0;
 //	make_sc_server_uri(setting_sc_server_type_.c_str(), 0, &host_name_size);
-	make_sc_process_uri(setting_sc_server_type_.c_str(), GW_PROCESS_NAME, 0, &host_name_size);
+	make_sc_process_uri(setting_sc_server_type_upper_.c_str(), GW_PROCESS_NAME, 0, &host_name_size);
 	host_name = (wchar_t *)malloc(host_name_size * sizeof(wchar_t));
 	if (host_name)
 	{
 //		make_sc_server_uri(setting_sc_server_type_.c_str(), host_name, &host_name_size);
-		make_sc_process_uri(setting_sc_server_type_.c_str(), GW_PROCESS_NAME, host_name, &host_name_size);
+		make_sc_process_uri(setting_sc_server_type_upper_.c_str(), GW_PROCESS_NAME, host_name, &host_name_size);
 
 		err_code = sccorelog_init(0);
 		if (err_code) goto err;

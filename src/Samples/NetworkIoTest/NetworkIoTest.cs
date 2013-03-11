@@ -23,52 +23,85 @@ namespace NetworkIoTestApp
         /// </summary>
         public static void InitAppHandlers()
         {
-            /*GET("/{?}/{?}", (string str1, string str2) =>
+            GET("/{?}", (Int32 p1) =>
             {
-                return "str_concat=" + str1 + str2;
+                return String.Format("int32 {0}", p1);
+            });
+            
+            GET("/{?}/{?}/{?}", (Int32 p1, string p2, string p3) =>
+            {
+                return String.Format("int32 {0}, string {1}, string {2}", p1, p2, p3);
+            });
+
+            GET("/{?}/{?}/{?}", (string p1, string p2, string p3) =>
+            {
+                return String.Format("string {0}, string {1}, string {2}", p1, p2, p3);
+            });
+             
+            GET("/{?}/{?}/{?}", (string p1, Int32 p2, string p3) =>
+            {
+                return String.Format("string {0}, int32 {1}, string {2}", p1, p2, p3);
+            });
+
+            GET("/{?}/{?}", (Int64 p1, string p2) =>
+            {
+                return String.Format("int64 {0}, string {1}", p1, p2);
+            });
+
+            GET("/{?}/{?}", (string p1, string p2) =>
+            {
+                return String.Format("string {0}, string {1}", p1, p2);
+            });
+
+            GET("/{?}", (Int32 p1, HttpRequest r) =>
+            {
+                return String.Format(r.Uri + ": int32 {0}", p1);
+            });
+
+            GET("/{?}", (Int32 p1) =>
+            {
+                return String.Format("int32 {0}", p1);
+            });
+
+            GET("/{?}/{?}/{?}", (Int32 p1, string p2, Int32 p3) =>
+            {
+                return String.Format("int32 {0}, string {1}, int32 {2}", p1, p2, p3);
+            });
+
+            GET("/{?}", (HttpRequest r, string p1) =>
+            {
+                return String.Format(r.Uri + ": string {0}", p1);
+            });
+
+            GET("/ab", () =>
+            {
+                return "ab";
+            });
+
+            GET("/{?}/{?}/{?}", (string p1, string p2, Int32 p3) =>
+            {
+                return String.Format("string {0}, string {1}, int32 {2}", p1, p2, p3);
+            });
+            
+            GET("/{?}/{?}", (String p1, Int32 p2) =>
+            {
+                return String.Format("string {0}, int32 {1}", p1, p2);
+            });
+
+            GET("/", () =>
+            {
+                return "root";
+            });
+
+            GET("/s{?}", (String p1) =>
+            {
+                return "s" + p1;
             });
 
             GET("/{?}/static/{?}", (string str1, string str2) =>
             {
                 return "str_concat_with_static=" + str1 + "static" + str2;
             });
-            */
-
-            /*UserHandlerCodegen.GET_NEW("/ab", () =>
-            {
-                return "ab";
-            });*/
-
-            NewUserHandlers.GET_NEW("/", () =>
-            {
-                return "root";
-            });
-
-            NewUserHandlers.GET_NEW("/{?}", (Int32 i) =>
-            {
-                return "integer: " + i;
-            });
-
-            NewUserHandlers.GET_NEW("/{?}/{?}", (HttpRequest r, String s, Int32 i) =>
-            {
-                return "string: " + s + " integer: " + i + " uri: " + r.Uri;
-            });
-
-            /*GET("/{?}", (string anyString) =>
-            {
-                return "root";
-            });
-
-            GET("/{?}", (string str) =>
-            {
-                return "str_parameter=" + str;
-            });
-
-            GET("/{?}/{?}", (string str1, int int1) =>
-            {
-                return "str_int=" + str1 + int1;
-            });
-            */
         }
     }
 
@@ -170,47 +203,43 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_STANDARD_BROWSER:
                 {
                     handler_uri = "GET /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpGetRoot, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpGetRoot, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "POST /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpPostRoot, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpPostRoot, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-                    handler_uri = "/";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpRoot, out handler_id);
-                    Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
-
-                    handler_uri = "/users" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpUsers, out handler_id);
+                    handler_uri = "GET /users" + db_postfix;
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpUsers, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "OPTIONS /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpOptions, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpOptions, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-                    handler_uri = "/session" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpSession, out handler_id);
+                    handler_uri = "GET /session" + db_postfix;
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpSession, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "POST /upload";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpUpload, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpUpload, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-                    handler_uri = "/internal-http-request";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnInternalHttpRequest, out handler_id);
+                    handler_uri = "GET /internal-http-request";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnInternalHttpRequest, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "GET /download";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpDownload, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpDownload, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
-                    handler_uri = "/killsession" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpKillSession, out handler_id);
+                    handler_uri = "GET /killsession" + db_postfix;
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpKillSession, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "GET /image" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpGetImage, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpGetImage, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -219,7 +248,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_GATEWAY_SMC_HTTP:
                 {
                     handler_uri = "/smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpEcho, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpEcho, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -228,7 +257,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
                 {
                     handler_uri = "/smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnHttpEcho, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpEcho, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
                     
                     break;
@@ -280,11 +309,11 @@ namespace NetworkIoTestApp
                     AppsBootstrapper.Bootstrap();
 
                     handler_uri = "/";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnRestClient, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnRestClient, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "/testrest";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, OnTestRest, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -785,7 +814,7 @@ namespace NetworkIoTestApp
         {
             someNode.GET("/testrest", httpRequest, (HttpResponse resp) => {
                 if (resp["Content-Type"] == "text/html; charset=UTF-8") {
-                    dynamic jsonData = DynamicJson.Parse(resp.GetContentStringUtf8_Slow());
+                    dynamic jsonData = Json.Parse(resp.GetContentStringUtf8_Slow());
                     string htmlFileName = jsonData.FirstName;
                     return htmlFileName;
                 } else {

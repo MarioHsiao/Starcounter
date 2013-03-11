@@ -325,7 +325,8 @@ namespace CheckBuildSystem
                 "Starcounter.SqlParser.Tests.csproj", "Starcounter.Web.Tests.csproj",
                 "DynamoIoc.csproj", "HtmlAgilityPack VS2008.csproj", "HtmlAgilityPack.Tests.csproj",
                 "Newtonsoft.Json.csproj", "ServerLogTail.csproj", "LoadAndLatency.csproj",
-                "SqlCacheTrasher.csproj", "PolePosition.csproj"
+                "SqlCacheTrasher.csproj", "PolePosition.csproj", "ApplicationProjectTemplate.csproj",
+                "ClassLibraryProjectTemplate.csproj"
                 },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."

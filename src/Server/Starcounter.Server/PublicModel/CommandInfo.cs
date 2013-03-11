@@ -29,12 +29,12 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
-        /// Gets or sets a value indicating the identity of the type of
-        /// this command. This identity can be used to query static metadata
+        /// Gets or sets a value indicating the token of the processor of
+        /// this command. This token can be used to query static metadata
         /// about the command, enabling service clients to build a rich
         /// user interface.
         /// </summary>
-        public int CommandType {
+        public int ProcessorToken {
             get;
             set;
         }
