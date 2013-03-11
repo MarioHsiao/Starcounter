@@ -180,9 +180,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             var acn = new NAppClass(this)
             {
                 Parent = root,
-                IsPartial = true,
-                AutoBindPropertiesToEntity = metadata.AutoBindToEntity,
-                GenericTypeArgument = metadata.GenericArgument
+                IsPartial = true
             };
 
             var tcn = new NTAppClass( this )
@@ -190,7 +188,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 Parent = acn,
                 NValueClass = acn,
                 Template = at,
-                _Inherits = DefaultObjTemplate.GetType().Name // "TPuppet,TMessage"
+                _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TMessage",
+                AutoBindProperties = metadata.AutoBindToDataObject
             };
             var mcn = new NObjMetadata( this )
             {
@@ -256,8 +255,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             TObj[] classesInOrder;
             JsonMapInfo mapInfo;
             NAppClass nAppClass;
-            NTemplateClass nTemplateclass;
-
+            
             classesInOrder = new TObj[metadata.JsonPropertyMapList.Count];
             rootTemplate = root.AppClassClassNode.Template;
 
@@ -282,45 +280,16 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 nAppClass = ValueClasses[appTemplate] as NAppClass;
                 nAppClass.IsPartial = true;
                 nAppClass._Inherits = null;
-                nAppClass.AutoBindPropertiesToEntity = mapInfo.AutoBindToEntity;
 
-                if (mapInfo.AutoBindToEntity) {
-                    nAppClass.GenericTypeArgument = mapInfo.GenericArgument;
-                    BindAutoBoundProperties(nAppClass.Children);
-                    nTemplateclass = TemplateClasses[appTemplate];
-                    BindAutoBoundProperties(nTemplateclass.Children);
+                if (mapInfo.AutoBindToDataObject) {
+                    var ntAppClass = TemplateClasses[appTemplate] as NTAppClass;
+                    ntAppClass.AutoBindProperties = true;
                 }
 
                 classesInOrder[i] = appTemplate;
             }
 
             ReorderCodebehindClasses(classesInOrder, metadata.JsonPropertyMapList, root);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="children"></param>
-        private void BindAutoBoundProperties(List<NBase> children) {
-            NProperty property;
-
-            foreach (NBase child in children) {
-                if (child is NConstructor) {
-                    BindAutoBoundProperties(child.Children);
-                    continue;
-                }
-
-                property = child as NProperty;
-                if (property != null) {
-                    if ((property.MemberName == null) 
-                        || (property.MemberName[0] == '_')
-                        || (property.Template is TTrigger)) {
-                        continue;
-                    }
-
-                    property.Bound = true;
-                }
-            }
         }
 
         /// <summary>
@@ -617,16 +586,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                       NTAppClass templParent,
                                       NClass metaParent)
         {
-            // TODO: 
-            // How do we set notbound on an autobound property?
-            bool bound = false;
-
-            TValue tv = at as TValue;
-            if ((tv != null) && !(tv is TTrigger))
-            {
-                bound = (tv.Bound || (appClassParent.AutoBindPropertiesToEntity));
-            }
-
             var valueClass = FindValueClass(at);
             var type = FindTemplateClass(at);
 
@@ -634,30 +593,25 @@ namespace Starcounter.Internal.Application.CodeGeneration
             {
                 Parent = appClassParent,
                 Template = at,
-                Type = valueClass,
-                Bound = bound
+                Type = valueClass
             };
             new NProperty( this )
             {
                 Parent = templParent,
                 Template = at,
-                Type = type,
-                Bound = bound
+                Type = type
             };
             new NProperty( this )
             {
                 Parent = templParent.Constructor,
                 Template = at,
-                Type = FindTemplateClass(at),
-                Bound = bound
-
+                Type = FindTemplateClass(at)
             };
             new NProperty(this)
             {
                 Parent = metaParent,
                 Template = at,
-                Type = FindMetaClass(at),
-                Bound = bound
+                Type = FindMetaClass(at)
             };
         }
 
@@ -675,33 +629,25 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                         NClass metaParent, 
                                         Template template)
         {
-            // TODO: 
-            // How do we set notbound on an autobound property?
-            bool bound = (alt.Bound || (appClassParent.AutoBindPropertiesToEntity));
-            
             var amn = new NProperty( this )
             {
                 Parent = appClassParent,
-                Template = alt,
-                Bound = bound
+                Template = alt
             };
             var tmn = new NProperty( this )
             {
                 Parent = appClassParent.NTemplateClass,
-                Template = alt,
-                Bound = bound
+                Template = alt
             };
             var cstmn = new NProperty( this )
             {
                 Parent = ((NTAppClass)appClassParent.NTemplateClass).Constructor,
-                Template = alt,
-                Bound = bound
+                Template = alt
             };
             var mmn = new NProperty( this )
             {
                 Parent = appClassParent.NTemplateClass.NMetadataClass,
-                Template = alt,
-                Bound = bound
+                Template = alt
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
             var vlist = new NArrXXXClass(this, "Arr", ValueClasses[alt.App], null,alt);
