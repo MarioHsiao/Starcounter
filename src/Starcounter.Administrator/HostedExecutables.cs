@@ -13,6 +13,24 @@ using System.Collections.Specialized;
 using System.Text;
 
 namespace Starcounter.Administrator {
+
+    /// <summary>
+    /// Outlines the response entity body data of a successfull
+    /// exect request returning in a "201 Created".
+    /// </summary>
+    /// <remarks>
+    /// This class is only temporary and will eventually be
+    /// replaced once we have decided how to use and promote
+    /// this kind of schema/metadata in our public REST APIs.
+    /// See forum discussion at:
+    /// http://www.starcounter.com/forum/showthread.php?2492-Sharing-of-REST-JSON-data-and-schemata
+    /// </remarks>
+    internal sealed class ExecResponse201 {
+        public string DatabaseUri { get; set; }
+        public int DatabaseHostPID { get; set; }
+        public bool DatabaseCreated { get; set; }
+    }
+
     /// <summary>
     /// Abstracts the admin server resource /databases/{name}/executables
     /// and implements it's REST interface.
@@ -163,7 +181,7 @@ namespace Starcounter.Administrator {
             // the info. If not, in just displays it in plain JSON.
             // TODO:
 
-            var x = new {
+            var x = new ExecResponse201() {
                 DatabaseUri = command.DatabaseUri,
                 DatabaseHostPID = database.HostProcessId,
                 DatabaseCreated = createdDatabase
