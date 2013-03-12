@@ -149,10 +149,13 @@ namespace Starcounter.Internal
         /// </summary>
         public const int MAX_PREPARSED_HTTP_RESPONSE_HEADERS = 32;
 
+        // Maximum URI string length.
+        public const int MAX_URI_STRING_LEN = 512;
+
         /// <summary>
         /// Example of string constant.
         /// </summary>
-        public const String ThisIsSomeStringConstant = "Hello!";
+        public const String DefaultPersonalServerNameUpper = "PERSONAL";
 
 #if !__cplusplus
 
@@ -161,8 +164,10 @@ namespace Starcounter.Internal
         [StructLayout(LayoutKind.Sequential)]
         public unsafe struct RegisteredUriManaged
         {
-            public unsafe IntPtr uri_info_string;
-            public UInt32 uri_len_chars;
+            public unsafe IntPtr original_uri_info_string;
+            public UInt32 original_uri_info_len_chars;
+            public unsafe IntPtr processed_uri_info_string;
+            public UInt32 processed_uri_info_len_chars;
             public Int32 handler_index;
             public fixed Byte param_types[MixedCodeConstants.MAX_URI_CALLBACK_PARAMS];
             public Byte num_params;
@@ -189,8 +194,10 @@ namespace Starcounter.Internal
 
     struct RegisteredUriManaged
     {
-        char* uri_info_string;
-        uint32_t uri_len_chars;
+        char* original_uri_info_string;
+        uint32_t original_uri_info_len_chars;
+        char* processed_uri_info_string;
+        uint32_t processed_uri_info_len_chars;
         int32_t handler_id;
         uint8_t param_types[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
         uint8_t num_params;

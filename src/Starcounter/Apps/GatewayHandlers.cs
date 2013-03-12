@@ -89,7 +89,7 @@ namespace Starcounter
         /// <summary>
         /// The uri_handlers_
         /// </summary>
-        private static UserHandlerCodegen.UriCallbackDelegate[] uri_handlers_;
+        private static HandlersManagement.UriCallbackDelegate[] uri_handlers_;
 
         /// <summary>
         /// The port_outer_handler_
@@ -111,7 +111,7 @@ namespace Starcounter
 		{
             port_handlers_ = new PortCallback[MAX_HANDLERS];
             subport_handlers_ = new SubportCallback[MAX_HANDLERS];
-            uri_handlers_ = new UserHandlerCodegen.UriCallbackDelegate[MAX_HANDLERS];
+            uri_handlers_ = new HandlersManagement.UriCallbackDelegate[MAX_HANDLERS];
 
             port_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(PortOuterHandler);
             subport_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(SubportOuterHandler);
@@ -225,7 +225,7 @@ namespace Starcounter
             //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
             // Fetching the callback.
-            UserHandlerCodegen.UriCallbackDelegate user_callback = uri_handlers_[task_info->handler_id];
+            HandlersManagement.UriCallbackDelegate user_callback = uri_handlers_[task_info->handler_id];
             if (user_callback == null)
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // SCERRHANDLERNOTFOUND
 
@@ -289,7 +289,6 @@ namespace Starcounter
             return 0;
         }
 
-        // Registers port handler.
         /// <summary>
         /// Registers the port handler.
         /// </summary>
@@ -315,6 +314,17 @@ namespace Starcounter
             }
 		}
 
+        public static void UnregisterPort(UInt16 port)
+		{
+            // Ensuring correct multi-threading handlers creation.
+            lock (port_handlers_)
+            {
+                UInt32 errorCode = bmx.sc_bmx_unregister_port(port);
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode);
+            }
+		}
+
         // Registers subport handler.
         /// <summary>
         /// Registers the subport handler.
@@ -332,7 +342,7 @@ namespace Starcounter
             UInt16 handler_id;
 
             // Ensuring correct multi-threading handlers creation.
-            lock (port_handlers_)
+            lock (subport_handlers_)
             {
                 UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, subport, subport_outer_handler_, &handler_id);
                 if (errorCode != 0)
@@ -343,36 +353,16 @@ namespace Starcounter
             }
         }
 
-        // Registers URI handler.
-        /// <summary>
-        /// Registers the URI handler.
-        /// </summary>
-        /// <param name="port">The port.</param>
-        /// <param name="uri_string">The uri_string.</param>
-        /// <param name="uriCallback">The URI callback.</param>
-        /// <param name="handlerId">The handler id.</param>
-        public static void RegisterUriHandler(
+        public static void UnregisterSubport(
             UInt16 port,
-            String uri_string,
-            //HTTP_METHODS http_method,
-            UserHandlerCodegen.UriCallbackDelegate uriCallback,
-            out UInt16 handlerId)
+            UInt32 subport)
         {
-            UInt16 handler_id;
-
-            // Checking for root URI special case.
-            //if (String.IsNullOrEmpty(uri_string))
-            //    uri_string = "/";
-
             // Ensuring correct multi-threading handlers creation.
-            lock (port_handlers_)
+            lock (subport_handlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_register_uri_handler(port, uri_string, (Byte)/*http_method*/HTTP_METHODS.OTHER_METHOD, uri_outer_handler_, &handler_id);
+                UInt32 errorCode = bmx.sc_bmx_unregister_subport(port, subport);
                 if (errorCode != 0)
                     throw ErrorCode.ToException(errorCode);
-
-                uri_handlers_[handler_id] = uriCallback;
-                handlerId = handler_id;
             }
         }
 
@@ -383,11 +373,12 @@ namespace Starcounter
         /// <param name="uri_string">The uri_string.</param>
         /// <param name="uriCallback">The URI callback.</param>
         /// <param name="handlerId">The handler id.</param>
-        public static void RegisterUriHandlerNew(
+        public static void RegisterUriHandler(
             UInt16 port,
-            String uriInfo,
+            String originalUriInfo,
+            String processedUriInfo,
             Byte[] paramTypes,
-            UserHandlerCodegen.UriCallbackDelegate uriCallback,
+            HandlersManagement.UriCallbackDelegate uriCallback,
             out UInt16 handlerId)
         {
             UInt16 handler_id;
@@ -396,15 +387,16 @@ namespace Starcounter
                 numParams = (Byte)paramTypes.Length;
 
             // Ensuring correct multi-threading handlers creation.
-            lock (port_handlers_)
+            lock (uri_handlers_)
             {
                 unsafe
                 {
                     fixed (Byte* pp = paramTypes)
                     {
-                        UInt32 errorCode = bmx.sc_bmx_register_uri_handler_new(
+                        UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
                             port,
-                            uriInfo,
+                            originalUriInfo,
+                            processedUriInfo,
                             (Byte)/*http_method*/HTTP_METHODS.OTHER_METHOD,
                             pp,
                             numParams,
@@ -418,6 +410,19 @@ namespace Starcounter
 
                 uri_handlers_[handler_id] = uriCallback;
                 handlerId = handler_id;
+            }
+        }
+
+        public static void UnregisterUriHandler(
+            UInt16 port,
+            String originalUriInfo)
+        {
+            // Ensuring correct multi-threading handlers creation.
+            lock (uri_handlers_)
+            {
+                UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode);
             }
         }
 	}

@@ -9,21 +9,33 @@ namespace star {
 
     internal static class ConsoleUtil {
 
+        internal static bool DisableColors = false;
+
         internal static void ToConsoleWithColor(string text, ConsoleColor color) {
-            try {
-                Console.ForegroundColor = color;
+            if (DisableColors) {
                 Console.WriteLine(text);
-            } finally {
-                Console.ResetColor();
+            }
+            else {
+                try {
+                    Console.ForegroundColor = color;
+                    Console.WriteLine(text);
+                } finally {
+                    Console.ResetColor();
+                }
             }
         }
 
         internal static void ToConsoleWithColor(Action action, ConsoleColor color) {
-            try {
-                Console.ForegroundColor = color;
+            if (DisableColors) {
                 action();
-            } finally {
-                Console.ResetColor();
+            }
+            else {
+                try {
+                    Console.ForegroundColor = color;
+                    action();
+                } finally {
+                    Console.ResetColor();
+                }
             }
         }
     }

@@ -118,6 +118,7 @@ internal class DecimalSetFunction : SetFunction, ISetFunction
                     }
                 }
                 break;
+
             case SetFunctionType.MIN:
                 numValue = numExpr.EvaluateToDecimal(obj);
                 if (numValue != null)
@@ -132,6 +133,7 @@ internal class DecimalSetFunction : SetFunction, ISetFunction
                     }
                 }
                 break;
+
             case SetFunctionType.SUM:
             case SetFunctionType.AVG:
                 numValue = numExpr.EvaluateToDecimal(obj);
@@ -141,12 +143,14 @@ internal class DecimalSetFunction : SetFunction, ISetFunction
                     count++;
                 }
                 break;
+
             case SetFunctionType.COUNT:
                 if (!valueExpr.EvaluatesToNull(obj))
                 {
                     count++;
                 }
                 break;
+
             default:
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect setFuncType: " + setFuncType);
         }

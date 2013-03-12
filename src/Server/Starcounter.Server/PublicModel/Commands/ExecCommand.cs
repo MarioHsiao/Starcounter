@@ -9,19 +9,34 @@ using System.IO;
 using System.Linq;
 using Starcounter.Internal;
 using Starcounter.Apps.Bootstrap;
+using Starcounter.Server.Commands;
 
 namespace Starcounter.Server.PublicModel.Commands {
 
     /// <summary>
     /// A command representing the request to start an executable.
     /// </summary>
-    public sealed class ExecAppCommand : DatabaseCommand {
+    public sealed class ExecCommand : DatabaseCommand {
         string databaseName;
 
+        public static class DefaultProcessor {
+            public static int Token {
+                get { return ExecCommandProcessor.ProcessorToken; }
+            }
+
+            public static class Tasks {
+                public const int CheckRunningExeUpToDate = 1;
+                public const int CreateDatabase = 2;
+                public const int StartDataAndHostProcesses = 3;
+                public const int WeaveOrPrepareForNoDb = 4;
+                public const int PingOrLoad = 5;
+            }
+        }
+
         /// <summary>
-        /// Gets the path to the assembly file requesting to start.
+        /// Gets the path to the executable file requesting to start.
         /// </summary>
-        public readonly string AssemblyPath;
+        public readonly string ExecutablePath;
 
         /// <summary>
         /// Gets the path to the directory the requesting executable
@@ -87,6 +102,17 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Sets a value indicating if the server is allowed to automatically
+        /// create a database if a database with the given identity does not
+        /// exist.
+        /// </summary>
+        /// <value>Default is true.</value>
+        public bool CanAutoCreateDb {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets all arguments targeting Starcounter.
         /// </summary>
         internal string[] ArgumentsToStarcounter {
@@ -103,24 +129,25 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
-        /// Initializes an instance of <see cref="ExecAppCommand"/>.
+        /// Initializes an instance of <see cref="ExecCommand"/>.
         /// </summary>
         /// <param name="engine">The <see cref="ServerEngine"/> where this command
         /// are to execute.</param>
         /// <param name="assemblyPath">Path to the assembly requesting to start.</param>
         /// <param name="workingDirectory">Working directory the executable has requested to run in.</param>
         /// <param name="arguments">Arguments as passed to the requesting executable.</param>
-        public ExecAppCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
+        public ExecCommand(ServerEngine engine, string assemblyPath, string workingDirectory, string[] arguments)
             : base(engine, null, "Starting {0}", Path.GetFileName(assemblyPath)) {
             if (string.IsNullOrEmpty(assemblyPath)) {
                 throw new ArgumentNullException("assemblyPath");
             }
-            this.AssemblyPath = assemblyPath;
+            this.ExecutablePath = assemblyPath;
             if (string.IsNullOrEmpty(workingDirectory)) {
-                workingDirectory = Path.GetDirectoryName(this.AssemblyPath);
+                workingDirectory = Path.GetDirectoryName(this.ExecutablePath);
             }
             this.WorkingDirectory = workingDirectory;
             this.Arguments = arguments;
+            this.CanAutoCreateDb = true;
         }
 
         /// <inheritdoc />

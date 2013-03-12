@@ -29,8 +29,10 @@ void CodegenUriMatcher::Init()
     MixedCodeConstants::RegisteredUriManaged uri_info_test;
     uri_info_test.handler_id = 1;
     uri_info_test.num_params = 0;
-    uri_info_test.uri_info_string = uri_test;
-    uri_info_test.uri_len_chars = 4;
+    uri_info_test.original_uri_info_string = uri_test;
+    uri_info_test.original_uri_info_len_chars = 5;
+    uri_info_test.processed_uri_info_string = uri_test;
+    uri_info_test.processed_uri_info_len_chars = 5;
     uint32_t test_num_codegen_bytes;
     generate_uri_matcher_(&uri_info_test, 1, uri_matching_code_, &test_num_codegen_bytes);
 }
@@ -85,9 +87,10 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             }
 
             // Saving code to file.
-            //std::ofstream out_cpp_file = std::ofstream(out_cpp_path, std::ios::out | std::ios::binary);
-            //out_cpp_file.write(uri_matching_code_, uri_code_size_bytes_);
-            //out_cpp_file.close();
+            std::ofstream out_cpp_file = std::ofstream(out_cpp_path, std::ios::out | std::ios::binary);
+            GW_ASSERT(out_cpp_file.is_open());
+            out_cpp_file.write(uri_matching_code_, uri_code_size_bytes_);
+            out_cpp_file.close();
 
             // Creating needed security attributes for compiler output file.
             SECURITY_ATTRIBUTES sa;

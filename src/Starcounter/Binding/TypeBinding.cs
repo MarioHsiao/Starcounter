@@ -116,7 +116,7 @@ namespace Starcounter.Binding
         /// News the uninitialized inst.
         /// </summary>
         /// <returns>Entity.</returns>
-        protected abstract Entity NewUninitializedInst();
+        protected abstract IObjectView NewUninitializedInst();
 
         /// <summary>
         /// News the instance uninit.
@@ -125,7 +125,7 @@ namespace Starcounter.Binding
 #if ERIK_TEST
         public Entity NewInstanceUninit()
 #else
-        internal Entity NewInstanceUninit()
+        internal IObjectView NewInstanceUninit()
 #endif
         {
             return NewUninitializedInst();
@@ -137,9 +137,9 @@ namespace Starcounter.Binding
         /// <param name="addr">The addr.</param>
         /// <param name="oid">The oid.</param>
         /// <returns>Entity.</returns>
-        internal Entity NewInstance(ulong addr, ulong oid)
+        internal IObjectView NewInstance(ulong addr, ulong oid)
         {
-            Entity obj = NewUninitializedInst();
+            IObjectView obj = NewUninitializedInst();
             obj.Attach(addr, oid, this);
             return obj;
         }

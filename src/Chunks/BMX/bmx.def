@@ -6,8 +6,11 @@ EXPORTS
 	sc_wait_for_bmx_ready
 	sc_handle_incoming_chunks
 	sc_bmx_register_port_handler
+    sc_bmx_unregister_port
 	sc_bmx_register_subport_handler
+    sc_bmx_unregister_subport
 	sc_bmx_register_uri_handler
+    sc_bmx_unregister_uri
 	sc_bmx_unregister_handler
 	sc_bmx_read_from_chunk
     sc_bmx_plain_copy_and_release_chunks
@@ -15,5 +18,4 @@ EXPORTS
     sc_bmx_release_linked_chunks
 	sc_bmx_construct_ping
 	sc_bmx_parse_pong
-    sc_bmx_register_uri_handler_new
 

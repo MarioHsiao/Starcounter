@@ -160,7 +160,9 @@ namespace Starcounter.Server.Commands {
             this.EndTime = DateTime.Now;
             this.Status = CommandStatus.Completed;
 
+            EndAllProgress();
             SignalCompletion();
+
             NotifyStatusChanged();
         }
 
@@ -174,7 +176,7 @@ namespace Starcounter.Server.Commands {
 
             info = new CommandInfo();
             info.Id = this.Id;
-            info.CommandType = this.typeIdentity;
+            info.ProcessorToken = this.typeIdentity;
             info.ServerUri = this.Engine.Uri;
             info.Description = this.command.Description;
             info.StartTime = this.startTime;
@@ -402,7 +404,7 @@ namespace Starcounter.Server.Commands {
             CommandProcessorAttribute attribute) {
             CommandDescriptor info;
             info = new CommandDescriptor();
-            info.CommandType = CreateToken(commandProcessorType);
+            info.ProcessorToken = CreateToken(commandProcessorType);
             info.CommandDescription = string.Format("Executes the command {0}.", attribute.CommandType.Name);
             return info;
         }
@@ -428,6 +430,46 @@ namespace Starcounter.Server.Commands {
             this.progress.Add(task.ID, progressInfo);
 
             NotifyStatusChanged();
+        }
+
+        /// <summary>
+        /// Executes <paramref name="action"/> in between a begin and
+        /// end of the <see cref="CommandTask"/> <paramref name="task"/>.
+        /// </summary>
+        /// <remarks>
+        /// If an exception is raised from the given action, this method
+        /// does invoke the end method for the task.
+        /// </remarks>
+        /// <param name="task">The <see cref="CommandTask"/> that is
+        /// progressing while the given action executes.</param>
+        /// <param name="action">The code to execute.</param>
+        protected void WithinTask(CommandTask task, Action<CommandTask> action) {
+            BeginTask(task);
+            action(task);
+            EndTask(task);
+        }
+
+        /// <summary>
+        /// Executes <paramref name="action"/> in between a begin and
+        /// end of the <see cref="CommandTask"/> <paramref name="task"/>,
+        /// based on a given condition.
+        /// </summary>
+        /// <remarks>
+        /// If an exception is raised from the given action, this method
+        /// does invoke the end method for the task.
+        /// </remarks>
+        /// <param name="condition">If <see langrod cref="true"/>, the
+        /// action is executed; otherwise, this method instantly return.
+        /// </param>
+        /// <param name="task">The <see cref="CommandTask"/> that is
+        /// progressing while the given action executes.</param>
+        /// <param name="action">The code to execute.</param>
+        protected void WithinTaskIf(bool condition, CommandTask task, Action<CommandTask> action) {
+            if (condition) {
+                BeginTask(task);
+                action(task);
+                EndTask(task);
+            }
         }
 
         /// <summary>
@@ -515,8 +557,7 @@ namespace Starcounter.Server.Commands {
             ProgressInfo info;
 
             info = this.progress[task.ID];
-            info.Value = info.Maximum;
-            info.Text = null;
+            EndSingleProgress(info);
 
             NotifyStatusChanged();
         }
@@ -530,12 +571,39 @@ namespace Starcounter.Server.Commands {
 
             foreach (var task in tasks) {
                 if (this.progress.TryGetValue(task.ID, out info)) {
-                    info.Value = info.Maximum;
-                    info.Text = null;
+                    EndSingleProgress(info);
                 }
             }
 
             NotifyStatusChanged();
+        }
+
+        /// <summary>
+        /// Ends a single progress info.
+        /// </summary>
+        /// <param name="info">The progress to end.</param>
+        private void EndSingleProgress(ProgressInfo info) {
+            info.Value = info.Maximum;
+            info.Text = null;
+        }
+
+        /// <summary>
+        /// Assures every task with possibly registered progress is
+        /// marked ended.
+        /// </summary>
+        /// <remarks>
+        /// Used when a processor ends successfully and prior to its
+        /// state/status is published; therefore, don't invoke
+        /// notification of any change here.
+        /// </remarks>
+        private void EndAllProgress() {
+            if (progress != null) {
+                foreach (var p in progress.Values) {
+                    if (!p.IsCompleted) {
+                        EndSingleProgress(p);
+                    }
+                }
+            }
         }
 
 

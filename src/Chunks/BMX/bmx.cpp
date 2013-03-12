@@ -95,36 +95,6 @@ uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
     return err_code;
 }
 
-// Pushes registered URI handler.
-uint32_t HandlersList::PushRegisteredUriHandlerNew(BmxData* bmx_data)
-{
-    starcounter::core::chunk_index chunk_index;
-    shared_memory_chunk* smc;
-
-    // If have a channel to push on: Lets send the registration immediately.
-    uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
-    if (err_code)
-        return err_code;
-
-    // Filling the chunk.
-    smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
-
-    response_chunk_part *resp_chunk = smc->get_response_chunk();
-    resp_chunk->reset_offset();
-
-    // Writing handler information into chunk.
-    if (!WriteRegisteredUriHandlerNew(resp_chunk))
-        return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
-
-    // Terminating last chunk.
-    smc->terminate_link();
-
-    // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
-
-    return err_code;
-}
-
 // Registers port handler.
 uint32_t BmxData::RegisterPortHandler(
     uint16_t port_num,
@@ -155,6 +125,9 @@ uint32_t BmxData::RegisterPortHandler(
             // Checking if port is the same.
             if (port_num == registered_handlers_[i].get_port())
             {
+                // Disallowing handler duplicates.
+                return SCERRHANDLERALREADYREGISTERED;
+
                 // Search if handler is already in the list.
                 if (!registered_handlers_[i].HandlerAlreadyExists(port_handler))
                 {
@@ -177,6 +150,8 @@ uint32_t BmxData::RegisterPortHandler(
         PORT_HANDLER,
         MakeHandlerInfo(empty_slot, unique_handler_num_),
         port_num,
+        0,
+        NULL,
         0,
         NULL,
         0,
@@ -234,6 +209,9 @@ uint32_t BmxData::RegisterSubPortHandler(
                 // Checking that sub-port is correct.
                 if (subport == registered_handlers_[i].get_subport())
                 {
+                    // Disallowing handler duplicates.
+                    return SCERRHANDLERALREADYREGISTERED;
+
                     // Search if handler is already in the list.
                     if (!registered_handlers_[i].HandlerAlreadyExists(subport_handler))
                     {
@@ -260,6 +238,8 @@ uint32_t BmxData::RegisterSubPortHandler(
         subport,
         NULL,
         0,
+        NULL,
+        0,
         bmx::HTTP_METHODS::OTHER_METHOD,
         NULL,
         0);
@@ -283,7 +263,8 @@ uint32_t BmxData::RegisterSubPortHandler(
 // Registers URI handler.
 uint32_t BmxData::RegisterUriHandler(
     uint16_t port,
-    char* uri_string,
+    char* original_uri_info,
+    char* processed_uri_info,
     HTTP_METHODS http_method,
     uint8_t* param_types,
     int32_t num_params,
@@ -301,15 +282,16 @@ uint32_t BmxData::RegisterUriHandler(
     //    return SCERRUNSPECIFIED; // SCERRURIMUSTSTARTWITHSLASH
 
     uint32_t err_code = 0;
-    char uri_str_lc[MAX_URI_STRING_LEN];
 
     // Getting the URI string length.
-    uint32_t uri_len_chars = (uint32_t)strlen(uri_string);
-    if (uri_len_chars >= MAX_URI_STRING_LEN)
+    uint32_t original_uri_len_chars = (uint32_t)strlen(original_uri_info);
+    uint32_t processed_uri_len_chars = (uint32_t)strlen(processed_uri_info);
+    if ((original_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN) ||
+        (processed_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN))
         return SCERRUNSPECIFIED; // SCERRURIHANDLERSTRINGLENGTH
 
     // Copying the URI string.
-    strncpy_s(uri_str_lc, MAX_URI_STRING_LEN, uri_string, uri_len_chars);
+    //strncpy_s(uri_str_lc, MAX_URI_STRING_LEN, original_uri_info, original_uri_len_chars);
 
     // Convert string to lower case.
     // TODO: Remove lower casing if not needed.
@@ -332,8 +314,11 @@ uint32_t BmxData::RegisterUriHandler(
             if (port == registered_handlers_[i].get_port())
             {
                 // Checking if URI string is the same.
-                if (!strcmp(uri_str_lc, registered_handlers_[i].get_uri()))
+                if (!strcmp(processed_uri_info, registered_handlers_[i].get_processed_uri_info()))
                 {
+                    // Disallowing handler duplicates.
+                    return SCERRHANDLERALREADYREGISTERED;
+
                     // Search if handler is already in the list.
                     if (!registered_handlers_[i].HandlerAlreadyExists(uri_handler))
                     {
@@ -358,8 +343,10 @@ uint32_t BmxData::RegisterUriHandler(
         MakeHandlerInfo(empty_slot, unique_handler_num_),
         port,
         0,
-        uri_str_lc,
-        uri_len_chars,
+        original_uri_info,
+        original_uri_len_chars,
+        processed_uri_info,
+        processed_uri_len_chars,
         http_method,
         param_types,
         num_params);
@@ -417,7 +404,106 @@ uint32_t BmxData::UnregisterHandler(
     }
 
     // If not removed.
-    return SCERRUNSPECIFIED; // SCERRHANDLERNOTFOUND 
+    return SCERRHANDLERNOTFOUND;
+}
+
+// Finds certain handler.
+bool BmxData::IsHandlerExist(
+    BMX_HANDLER_INDEX_TYPE handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (handler_index == registered_handlers_[i].get_handler_index())
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+// Finds certain handler.
+uint32_t BmxData::FindUriHandler(
+    uint16_t port_num,
+    char* processed_uri_info,
+    BMX_HANDLER_INDEX_TYPE* handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (URI_HANDLER == registered_handlers_[i].get_type())
+            {
+                if (port_num == registered_handlers_[i].get_port())
+                {
+                    if (!strcmp(processed_uri_info, registered_handlers_[i].get_original_uri_info()))
+                    {
+                        *handler_index = i;
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+
+    return SCERRHANDLERNOTFOUND;
+}
+
+// Finds certain handler.
+uint32_t BmxData::FindPortHandler(
+    uint16_t port_num,
+    BMX_HANDLER_INDEX_TYPE* handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (PORT_HANDLER == registered_handlers_[i].get_type())
+            {
+                if (port_num == registered_handlers_[i].get_port())
+                {
+                    *handler_index = i;
+                    return 0;
+                }
+            }
+        }
+    }
+
+    return SCERRHANDLERNOTFOUND; 
+}
+
+// Finds certain handler.
+uint32_t BmxData::FindSubportHandler(
+    uint16_t port_num,
+    BMX_SUBPORT_TYPE subport_num,
+    BMX_HANDLER_INDEX_TYPE* handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (SUBPORT_HANDLER == registered_handlers_[i].get_type())
+            {
+                if (port_num == registered_handlers_[i].get_port())
+                {
+                    if (subport_num == registered_handlers_[i].get_subport())
+                    {
+                        *handler_index = i;
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+
+    return SCERRHANDLERNOTFOUND; 
 }
 
 // Unregisters certain handler.

@@ -175,17 +175,17 @@ namespace Starcounter.Internal.Test
                 prevOffset = (UInt16)(curOffset + 1);
             }
 
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel1 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, HttpRequest, String, Object>(UserHttpDelegateTests.UserFunc1));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel2 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel3 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, HttpRequest, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel4 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, HttpRequest, Object>(UserHttpDelegateTests.UserFunc4));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel5 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel6 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, PersonMessage, Object>(UserHttpDelegateTests.UserFunc6));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel7 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Int64, Decimal, Int32, Int32, HttpRequest, Object>(UserHttpDelegateTests.UserFunc7));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel8 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Object, Int64, Decimal, Int32, Int32, HttpRequest, Object>(UserHttpDelegateTests.UserFunc8));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel1 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, HttpRequest, String, Object>(UserHttpDelegateTests.UserFunc1));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel2 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel3 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, HttpRequest, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel4 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, HttpRequest, Object>(UserHttpDelegateTests.UserFunc4));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel5 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel6 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, PersonMessage, Object>(UserHttpDelegateTests.UserFunc6));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel7 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Int64, Decimal, Int32, Int32, HttpRequest, Object>(UserHttpDelegateTests.UserFunc7));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel8 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Object, Int64, Decimal, Int32, Int32, HttpRequest, Object>(UserHttpDelegateTests.UserFunc8));
 
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel9 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<Object, HttpRequest, Object>(UserHttpDelegateTests.UserFunc9));
-            Func<HttpRequest, IntPtr, IntPtr, Object> genDel10 = NewUserHandlers.UHC.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, HttpRequest, Object>(UserHttpDelegateTests.UserFunc10));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel9 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Object, HttpRequest, Object>(UserHttpDelegateTests.UserFunc9));
+            Func<HttpRequest, IntPtr, IntPtr, Object> genDel10 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, HttpRequest, Object>(UserHttpDelegateTests.UserFunc10));
 
             unsafe
             {

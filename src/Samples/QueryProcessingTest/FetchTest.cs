@@ -6,6 +6,7 @@ using Starcounter;
 namespace QueryProcessingTest {
     public static class FetchTest {
         public static void RunFetchTest() {
+            HelpMethods.LogEvent("Test queries with fetch");
             // Do fetch without offset
             FetchAccounts(4);
             // Do fetch with offset
@@ -25,7 +26,7 @@ namespace QueryProcessingTest {
             FetchSortedAccounts(100, 100m, 10, 34);
             FetchSortedAccounts(100, 0m, 10, 33);
             int rows = 0;
-            HelpMethods.PrintQueryPlan("select a from account a where amount > ? fetch ? offset ?");
+            //HelpMethods.PrintQueryPlan("select a from account a where amount > ? fetch ? offset ?");
             Db.Transaction(delegate {
                 foreach (Account a in Db.SQL<Account>("select a from account a where amount > ? fetch ? offset ?", 100m, 10, 50)) {
                     Trace.Assert(a.Amount == 200);
@@ -33,6 +34,7 @@ namespace QueryProcessingTest {
                 }
             });
             Trace.Assert(rows == 10);
+            HelpMethods.LogEvent("Finished testing queries with fetch");
         }
 
         internal static void FetchAccounts(int fetchnr) {
@@ -93,7 +95,7 @@ namespace QueryProcessingTest {
         }
 
         internal static void FetchSortedAccounts(int maxaccounts, decimal expamount, int fetchnr, int fetchoff) {
-            HelpMethods.PrintQueryPlan("select a from account a where accountid < ? order by amount asc fetch ? offset ?");
+            //HelpMethods.PrintQueryPlan("select a from account a where accountid < ? order by amount asc fetch ? offset ?");
             Db.Transaction(delegate {
                 foreach (Account a in Db.SQL<Account>("select a from account a where accountid < ? order by amount asc fetch ? offset ?", 
                     maxaccounts, fetchnr, fetchoff)) {
