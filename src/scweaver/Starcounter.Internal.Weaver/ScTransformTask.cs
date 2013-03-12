@@ -1321,16 +1321,6 @@ namespace Starcounter.Internal.Weaver {
                 return;
             }
 
-            // We don't enhance constructors if there is a weaver directive.
-            if ((databaseClass.WeaverDirectives
-                    & (Int32)WeaverDirectives.ExcludeConstructorTransformation) != 0) {
-                ScTransformTrace.Instance.WriteLine(
-                            "Don't enhance constructors of {{{0}}} because of weaver directives.",
-                            typeDef
-                );
-                return;
-            }
-
             // Ensure that the base type has been processed.
             parentType = typeDef.BaseType;
             parentTypeDef = parentType as TypeDefDeclaration;

@@ -78,10 +78,6 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private ModuleDeclaration _module;
         /// <summary>
-        /// The _weaver directives
-        /// </summary>
-        private WeaverDirectives _weaverDirectives;
-        /// <summary>
         /// The _weaving helper
         /// </summary>
         private WeavingHelper _weavingHelper;
@@ -392,53 +388,6 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Inspects the given module and returns a set of weaver directives that
-        /// describes how the module should be analysed and weaved.
-        /// </summary>
-        /// <param name="module">The module to inspect.</param>
-        /// <returns>Directives for the module.</returns>
-        public static WeaverDirectives GetWeaverDirectives(ModuleDeclaration module) {
-            BindingOptions bindOpts;
-            CustomAttributeDeclaration knownAssemblyAttribute;
-            IType knownAssemblyAttributeType;
-            KnownAssemblyAttribute kaa;
-            SerializedValue value;
-            String proof;
-            Type type;
-            WeaverDirectives weaverDirectives;
-
-            bindOpts = BindingOptions.OnlyExisting | BindingOptions.DontThrowException;
-            type = typeof(KnownAssemblyAttribute);
-            knownAssemblyAttributeType = (IType)module.FindType(type, bindOpts);
-
-            weaverDirectives = WeaverDirectives.None;
-
-            if (knownAssemblyAttributeType == null) {
-                return weaverDirectives;
-            }
-
-            knownAssemblyAttribute = module.AssemblyManifest.CustomAttributes.GetOneByType(knownAssemblyAttributeType);
-            if (knownAssemblyAttribute == null) {
-                return weaverDirectives;
-            }
-
-            value = knownAssemblyAttribute.ConstructorArguments[0].Value;
-            weaverDirectives |= (WeaverDirectives)(Int32)value.Value;
-
-            proof = (String)knownAssemblyAttribute.ConstructorArguments[1].Value.Value;
-            kaa = new KnownAssemblyAttribute(weaverDirectives, proof);
-            if (!kaa.CheckProof(module.AssemblyManifest.GetFullName())) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Fatal, "SCATV04",
-                                               new Object[] { module.AssemblyManifest.GetFullName() });
-#pragma warning restore 618
-                return WeaverDirectives.None;
-            }
-
-            return weaverDirectives;
-        }
-
-        /// <summary>
         /// Principal entry point of the task. Invoked by PostSharp.
         /// </summary>
         /// <returns><b>true</b> in case of success, otherwise <b>false</b>.</returns>
@@ -459,17 +408,6 @@ namespace Starcounter.Internal.Weaver {
 
             this.TransformationKind = GetTransformationKind();
 
-            // Establish the weaver directives. First check the ones possibly decorated
-            // on the assembly, then consider the kind of transformation.
-            _weaverDirectives = GetWeaverDirectives(_module);
-            if (!WeaverUtilities.IsFromUserCode(this.TransformationKind)) {
-                // Any transformation not originating from user code, we don't
-                // need to execute validation on.
-
-                _weaverDirectives |=
-                    WeaverDirectives.AllowForbiddenDeclarations | WeaverDirectives.ExcludeConstraintValidation;
-            }
-
             _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
 
 #pragma warning disable 618
@@ -481,8 +419,7 @@ namespace Starcounter.Internal.Weaver {
 
             // Create a DatabaseAssembly for the current module and add it to the schema.
             _databaseAssembly = new DatabaseAssembly(_module.AssemblyManifest.Name, _module.AssemblyManifest.GetFullName()) {
-                IsTransformed = ((_weaverDirectives &
-                                  WeaverDirectives.ExcludeAnyTransformation) == 0),
+                IsTransformed = true,
                 HasDebuggingSymbols = _module.HasDebugInfo
             };
             DatabaseSchema.Assemblies.Add(_databaseAssembly);
@@ -495,20 +432,15 @@ namespace Starcounter.Internal.Weaver {
                                                                voidTypeSign,
                                                                new IntrinsicTypeSignature[0],
                                                                0);
-
-            // Ensure that the code does not reference forbidden constructs.
-
-            if ((_weaverDirectives & (WeaverDirectives.ExcludeConstraintValidation
-                                            | WeaverDirectives.AllowForbiddenDeclarations)) == 0) {
-                if (_module.AssemblyManifest.GetPublicKey() != null) {
+            
+            if (_module.AssemblyManifest.GetPublicKey() != null) {
 #pragma warning disable 618
                     ScMessageSource.Instance.Write(
-                                        SeverityType.Error,
-                                        "SCATV05",
-                                        new Object[] { _module.AssemblyManifest.GetFullName() }
-                                    );
+                        SeverityType.Error,
+                        "SCATV05",
+                        new Object[] { _module.AssemblyManifest.GetFullName() }
+                        );
 #pragma warning restore 618
-                }
             }
 
             // Find the reference to Starcounter
@@ -572,50 +504,48 @@ namespace Starcounter.Internal.Weaver {
                 ProcessSynonymousToAttributes();
 
                 // Now that the schema is complete, validate it.
+                    
+                // Inspect all instructions for the constraint PFV21 (related to passing 
+                // fields by reference). We should do it before constructors are inspected 
+                // so that we can read instruction from the original stream (performance).
+                InspectLoadFieldAddress();
 
-                if ((_weaverDirectives & WeaverDirectives.ExcludeConstraintValidation) == 0) {
-                    // Inspect all instructions for the constraint PFV21 (related to passing 
-                    // fields by reference). We should do it before constructors are inspected 
-                    // so that we can read instruction from the original stream (performance).
-                    InspectLoadFieldAddress();
-
-                    // Now process constructors.
-                    foreach (KeyValuePair<TypeDefDeclaration, DatabaseClass> pair
-                                                            in _dbClassesInCurrentModule) {
-                        InspectConstructors(pair.Value, pair.Key);
-                    }
-
-                    // Validate the database classes.
-                    foreach (DatabaseClass dbc in _dbClassesInCurrentModule.Values) {
-                        ScAnalysisTrace.Instance.WriteLine("Validating the database class {0}.",
-                                                           dbc.Name);
-
-                        databaseSocietyClass = dbc as DatabaseSocietyClass;
-                        databaseKindClass = dbc as DatabaseKindClass;
-                        databaseExtensionClass = dbc as DatabaseExtensionClass;
-                        databaseEntityClass = dbc as DatabaseEntityClass;
-                        ValidateDatabaseClass(dbc);
-
-                        if (databaseSocietyClass != null) {
-                            ValidateDatabaseSocietyClass(databaseSocietyClass);
-                        }
-
-                        if (databaseKindClass != null) {
-                            ValidateDatabaseKindClass(databaseKindClass);
-                        }
-
-                        if (databaseEntityClass != null) {
-                            ValidateEntityClass(databaseEntityClass);
-                        }
-
-                        // Validate attributes of this class.
-                        foreach (DatabaseAttribute databaseAttribute in dbc.Attributes) {
-                            ValidateDatabaseAttribute(databaseAttribute);
-                        }
-                    }
-
-                    ValidateCustomAttributeUsage();
+                // Now process constructors.
+                foreach (KeyValuePair<TypeDefDeclaration, DatabaseClass> pair
+                                                        in _dbClassesInCurrentModule) {
+                    InspectConstructors(pair.Value, pair.Key);
                 }
+
+                // Validate the database classes.
+                foreach (DatabaseClass dbc in _dbClassesInCurrentModule.Values) {
+                    ScAnalysisTrace.Instance.WriteLine("Validating the database class {0}.",
+                                                        dbc.Name);
+
+                    databaseSocietyClass = dbc as DatabaseSocietyClass;
+                    databaseKindClass = dbc as DatabaseKindClass;
+                    databaseExtensionClass = dbc as DatabaseExtensionClass;
+                    databaseEntityClass = dbc as DatabaseEntityClass;
+                    ValidateDatabaseClass(dbc);
+
+                    if (databaseSocietyClass != null) {
+                        ValidateDatabaseSocietyClass(databaseSocietyClass);
+                    }
+
+                    if (databaseKindClass != null) {
+                        ValidateDatabaseKindClass(databaseKindClass);
+                    }
+
+                    if (databaseEntityClass != null) {
+                        ValidateEntityClass(databaseEntityClass);
+                    }
+
+                    // Validate attributes of this class.
+                    foreach (DatabaseAttribute databaseAttribute in dbc.Attributes) {
+                        ValidateDatabaseAttribute(databaseAttribute);
+                    }
+                }
+
+                ValidateCustomAttributeUsage();
 
                 // If there was some error, return at this point.
                 if (Messenger.Current.ErrorCount > 0) {
@@ -1250,23 +1180,7 @@ namespace Starcounter.Internal.Weaver {
                 this._discoverDatabaseClassCache.Add(typeDef, databaseClass);
                 return databaseClass;
             }
-            #region Check directives for this class
-            // Not in the cache and not in an external assembly. We can continue.
-            WeaverDirectives typeWeaverDirectives;
-            List<object> knownTypeAttribute = new List<object>();
-            typeDef.CustomAttributes.ConstructRuntimeObjects(
-                (IType)this._module.Cache.GetType(typeof(KnownTypeAttribute)), knownTypeAttribute);
-            if (knownTypeAttribute.Count > 0) {
-                typeWeaverDirectives = ((KnownTypeAttribute)knownTypeAttribute[0]).WeaverDirectives;
-            } else {
-                typeWeaverDirectives = WeaverDirectives.None;
-            }
-            if ((typeWeaverDirectives & WeaverDirectives.ExcludeSchemaDiscovery) != 0) {
-                ScAnalysisTrace.Instance.WriteLine(
-                    "DiscoverDatabaseClass: {0} has the ExcludeSchemaDiscovery directive.", typeDef);
-                return null;
-            }
-            #endregion
+            
             #region Verify if its a database class of some kind
             if (!typeDef.IsAssignableTo(this._dbObjectType)) {
                 //  ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is not a DbObject.", type);
@@ -1307,7 +1221,6 @@ namespace Starcounter.Internal.Weaver {
 
             #endregion
             // Do things that are common to all database classes.
-            databaseClass.WeaverDirectives = (int)typeWeaverDirectives;
             databaseClass.SetTypeDefinition(typeDef);
             // Check we don't have a class with the same name.
             DatabaseClass existingDatabaseClass =

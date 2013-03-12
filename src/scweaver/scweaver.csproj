@@ -105,8 +105,6 @@
     <Compile Include="Starcounter.Internal.Weaver\IMethodLevelAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\InsteadOfFieldAccessAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\InterceptThread.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\KnownAssemblyAttribute.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\KnownTypeAttribute.cs" />
     <Compile Include="Starcounter.Internal.Weaver\LucentClassInitializerMethodAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\PostSharpExtensions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ReimplementWeavedLucentAccessorAdvice.cs" />
