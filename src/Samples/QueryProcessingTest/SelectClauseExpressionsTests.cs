@@ -5,6 +5,7 @@ using Starcounter;
 namespace QueryProcessingTest {
     public static class SelectClauseExpressionsTests {
         public static void TestSelectClauseExpressions() {
+            HelpMethods.LogEvent("Test expressions in select clause");
             int nrs = 0;
             // Arithmetic in select without variables
             Db.Transaction(delegate {
@@ -74,6 +75,7 @@ namespace QueryProcessingTest {
             });
             Trace.Assert(nrs == 6);
 #endif
+            HelpMethods.LogEvent("Finished testingexpressions in select clause");
         }
     }
 }

@@ -289,7 +289,6 @@ namespace Starcounter
             return 0;
         }
 
-        // Registers port handler.
         /// <summary>
         /// Registers the port handler.
         /// </summary>
@@ -315,6 +314,17 @@ namespace Starcounter
             }
 		}
 
+        public static void UnregisterPort(UInt16 port)
+		{
+            // Ensuring correct multi-threading handlers creation.
+            lock (port_handlers_)
+            {
+                UInt32 errorCode = bmx.sc_bmx_unregister_port(port);
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode);
+            }
+		}
+
         // Registers subport handler.
         /// <summary>
         /// Registers the subport handler.
@@ -332,7 +342,7 @@ namespace Starcounter
             UInt16 handler_id;
 
             // Ensuring correct multi-threading handlers creation.
-            lock (port_handlers_)
+            lock (subport_handlers_)
             {
                 UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, subport, subport_outer_handler_, &handler_id);
                 if (errorCode != 0)
@@ -340,6 +350,19 @@ namespace Starcounter
 
                 subport_handlers_[handler_id] = subportCallback;
                 handlerId = handler_id;
+            }
+        }
+
+        public static void UnregisterSubport(
+            UInt16 port,
+            UInt32 subport)
+        {
+            // Ensuring correct multi-threading handlers creation.
+            lock (subport_handlers_)
+            {
+                UInt32 errorCode = bmx.sc_bmx_unregister_subport(port, subport);
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode);
             }
         }
 
@@ -364,7 +387,7 @@ namespace Starcounter
                 numParams = (Byte)paramTypes.Length;
 
             // Ensuring correct multi-threading handlers creation.
-            lock (port_handlers_)
+            lock (uri_handlers_)
             {
                 unsafe
                 {
@@ -387,6 +410,19 @@ namespace Starcounter
 
                 uri_handlers_[handler_id] = uriCallback;
                 handlerId = handler_id;
+            }
+        }
+
+        public static void UnregisterUriHandler(
+            UInt16 port,
+            String originalUriInfo)
+        {
+            // Ensuring correct multi-threading handlers creation.
+            lock (uri_handlers_)
+            {
+                UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
+                if (errorCode != 0)
+                    throw ErrorCode.ToException(errorCode);
             }
         }
 	}

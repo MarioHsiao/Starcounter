@@ -23,8 +23,8 @@ namespace Starcounter.Query.Execution
 internal class ComparisonUInteger : CodeGenFilterNode, IComparison
 {
     ComparisonOperator compOperator;
-    IUIntegerExpression expr1;
-    IUIntegerExpression expr2;
+    INumericalExpression expr1;
+    INumericalExpression expr2;
 
     /// <summary>
     /// Constructor.
@@ -32,7 +32,7 @@ internal class ComparisonUInteger : CodeGenFilterNode, IComparison
     /// <param name="compOp">The comparison operator of the operation.</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal ComparisonUInteger(ComparisonOperator compOp, IUIntegerExpression expr1, IUIntegerExpression expr2)
+    internal ComparisonUInteger(ComparisonOperator compOp, INumericalExpression expr1, INumericalExpression expr2)
     {
         if (compOp == ComparisonOperator.LIKEdynamic || compOp == ComparisonOperator.LIKEstatic)
         {
@@ -201,7 +201,7 @@ internal class ComparisonUInteger : CodeGenFilterNode, IComparison
     /// <returns>A more instantiated expression.</returns>
     public ILogicalExpression Instantiate(Row obj)
     {
-        return new ComparisonUInteger(compOperator, (IUIntegerExpression) expr1.Instantiate(obj), (IUIntegerExpression) expr2.Instantiate(obj));
+        return new ComparisonUInteger(compOperator, (INumericalExpression)expr1.Instantiate(obj), (INumericalExpression)expr2.Instantiate(obj));
     }
 
     /// <summary>
@@ -243,7 +243,7 @@ internal class ComparisonUInteger : CodeGenFilterNode, IComparison
 
     public ILogicalExpression Clone(VariableArray varArray)
     {
-        return new ComparisonUInteger(compOperator, expr1.CloneToUInteger(varArray), expr2.CloneToUInteger(varArray));
+        return new ComparisonUInteger(compOperator, expr1.CloneToNumerical(varArray), expr2.CloneToNumerical(varArray));
     }
 
     public override void InstantiateExtentSet(ExtentSet extentSet)

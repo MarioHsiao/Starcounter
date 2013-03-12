@@ -54,5 +54,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// The constructor
         /// </summary>
         public NConstructor Constructor;
+
+        /// <summary>
+        /// If set to true all properties in this appclass will be automatically 
+        /// bound, if not specified otherwise on the property, to the underlying dataobject in the app.
+        /// </summary>
+        public bool AutoBindProperties { get; set; }
     }
 }

@@ -585,6 +585,17 @@ namespace bmx
         // Unregisters certain handler.
         uint32_t UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* is_empty_handler);
         uint32_t UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, GENERIC_HANDLER_CALLBACK user_handler, bool* is_empty_handler);
+        uint32_t FindUriHandler(
+            uint16_t port_num,
+            char* processed_uri_info,
+            BMX_HANDLER_INDEX_TYPE* handler_index);
+        uint32_t FindPortHandler(
+            uint16_t port_num,
+            BMX_HANDLER_INDEX_TYPE* handler_index);
+        uint32_t FindSubportHandler(
+            uint16_t port_num,
+            BMX_SUBPORT_TYPE subport_num,
+            BMX_HANDLER_INDEX_TYPE* handler_index);
 
         // Registers port handler.
         uint32_t RegisterPortHandler(
@@ -598,6 +609,9 @@ namespace bmx
             BMX_SUBPORT_TYPE subport,
             GENERIC_HANDLER_CALLBACK subport_handler,
             BMX_HANDLER_TYPE* handler_id);
+
+        // Finds certain handler.
+        bool IsHandlerExist(BMX_HANDLER_INDEX_TYPE handler_index);
 
         // Registers URI handler.
         uint32_t RegisterUriHandler(
