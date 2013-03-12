@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace Starcounter.Server.PublicModel {
@@ -163,6 +164,21 @@ namespace Starcounter.Server.PublicModel {
             get {
                 return this.Progress != null && this.Progress.Length > 0;
             }
+        }
+
+        /// <summary>
+        /// Returns the progress of a task identified by the given
+        /// task identity, or null if there was no progress info found
+        /// for that task.
+        /// </summary>
+        /// <param name="task">Identity of the task.</param>
+        /// <returns>The progress info of the given task, or null if
+        /// no such progress was found.</returns>
+        public ProgressInfo GetProgressOf(int task) {
+            var p = this.Progress;
+            return p == null ? null : p.FirstOrDefault<ProgressInfo>((candidate) => {
+                return candidate.TaskIdentity == task;
+            });
         }
 
         /// <summary>
