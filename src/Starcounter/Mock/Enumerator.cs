@@ -18,10 +18,9 @@ namespace Starcounter
     /// <summary>
     /// Class Enumerator
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public sealed class Enumerator<T> : Object, IEnumerator<T> where T : Entity
+    public sealed class Enumerator : Object, IEnumerator<IObjectView>
     {
-        private T _current = null;
+        private IObjectView _current = null;
 
         private UInt64 _handle = 0;
         /// <summary>
@@ -93,7 +92,7 @@ namespace Starcounter
         /// <exception cref="System.ObjectDisposedException">null</exception>
         /// <exception cref="System.InvalidOperationException">The enumerator is positioned before the first element of the collection or after the last element.</exception>
         /// <returns>The element in the collection at the current position of the enumerator.</returns>
-        public T Current
+        public IObjectView Current
         {
             get
             {
@@ -115,7 +114,7 @@ namespace Starcounter
         /// Gets the current raw.
         /// </summary>
         /// <value>The current raw.</value>
-        public T CurrentRaw
+        public IObjectView CurrentRaw
         {
             get
             {
@@ -187,14 +186,14 @@ namespace Starcounter
         public Boolean MoveNext()
         {
             TypeBinding typeBinding = null;
-            T current;
+            IObjectView current;
             UInt16 previousCCI;
             UInt32 ir;
             ObjectRef currentRef;
             UInt16 currentCCI;
             UInt64 dummy;
             Boolean br;
-            current = default(T);
+            current = null;
             previousCCI = UInt16.MaxValue;
 
         next:
@@ -219,7 +218,7 @@ namespace Starcounter
                 goto attach;
 
             typeBinding = Bindings.GetTypeBinding(currentCCI);
-            current = (typeBinding.NewInstanceUninit() as T);
+            current = typeBinding.NewInstanceUninit();
             if (current == null)
             {
                 // A proxy couldn't be created or casted to the correct type so

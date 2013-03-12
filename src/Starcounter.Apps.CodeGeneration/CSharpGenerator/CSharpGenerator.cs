@@ -270,19 +270,6 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +
                 "();");
-            /*            var sb = new StringBuilder();
-
-                        sb.Append("    public ");
-                        sb.Append(a.ClassName);
-                        sb.Append("( Entity data ) {");
-                        a.Prefix.Add(sb.ToString());
-                        sb = new StringBuilder();
-                        sb.Append("        Data = data;");
-                        a.Prefix.Add(sb.ToString());
-                        sb = new StringBuilder();
-                        sb.Append("    }");
-                        a.Prefix.Add(sb.ToString());
-                        */
 
             a.Prefix.Add("    public " 
                          + a.ClassName 
@@ -399,13 +386,17 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// <param name="cst">The CST.</param>
         private void WriteTAppConstructor(NConstructor cst) {
             NTAppClass a = (NTAppClass)cst.Parent;
-
+            
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);
             sb.Append("()");
             a.Prefix.Add(sb.ToString());
             a.Prefix.Add("        : base() {");
+
+            if (a.AutoBindProperties)
+                a.Prefix.Add("        BindChildren = true;");
+
             sb = new StringBuilder();
             sb.Append("        InstanceType = typeof(");
             sb.Append(a.NValueClass.FullClassName);
@@ -432,14 +423,17 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(">(\"");
                     sb.Append(mn.Template.Name);
                     sb.Append('"');
-
+                    
                     TValue tv = mn.Template as TValue;
                     if (tv != null && tv.Bound) {
-                        sb.Append(", Bind = \"");
-                        sb.Append(tv.Bind);
-                        sb.Append('"');
+                        // No need to add binding again if the object template is set to automatically 
+                        // bind all children and no specific name of the binding is specified.
+                        if ((tv.PropertyName != tv.Bind) || !a.AutoBindProperties) {
+                            sb.Append(", Bind = \"");
+                            sb.Append(tv.Bind);
+                            sb.Append('"');
+                        }
                     }
-
                     sb.Append(");");
                     a.Prefix.Add(sb.ToString());
 

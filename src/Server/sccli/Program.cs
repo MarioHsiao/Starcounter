@@ -1,23 +1,18 @@
 ﻿
+using Newtonsoft.Json;
 using Starcounter;
-using Starcounter.ABCIPC;
-using Starcounter.ABCIPC.Internal;
-using Starcounter.Internal;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Starcounter.Internal;
 using Starcounter.Server.Setup;
-using Starcounter.Server.PublicModel;
-using Starcounter.Server.PublicModel.Commands;
+using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net.Sockets;
-using Newtonsoft.Json;
 
 namespace star {
 
@@ -29,16 +24,21 @@ namespace star {
 
         static class Option {
             public const string Help = "help";
+            public const string HelpEx = "helpextended";
             public const string Version = "version";
             public const string Info = "info";
             public const string Serverport = "serverport";
             public const string Server = "server";
             public const string ServerHost = "serverhost";
             public const string Db = "db";
-            public const string Verbosity = "verbosity";
             public const string LogSteps = "logsteps";
             public const string NoDb = "nodb";
             public const string NoAutoCreateDb = "noautocreate";
+            public const string Verbosity = "verbosity";
+            public const string Syntax = "syntax";
+            public const string NoColor = "nocolor";
+            public const string ShowHttp = "http";
+            public const string AttatchCodeHostDebugger = "debug";
         }
 
         static class EnvironmentVariable {
@@ -119,14 +119,6 @@ namespace star {
 
             var syntax = DefineCommandLineSyntax();
 
-            // Make this a (non-documented) option.
-            // TODO:
-
-            var syntaxTests = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STAR_CLI_TEST"));
-            if (syntaxTests) {
-                ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
-            }
-
             // Parse and evaluate the given input
 
             var parser = new Parser(args);
@@ -138,16 +130,27 @@ namespace star {
                 return;
             }
 
+            // Process global options that has precedence
+
+            if (appArgs.ContainsFlag(Option.NoColor)) {
+                ConsoleUtil.DisableColors = true;
+            }
+
+            var syntaxTests = appArgs.ContainsFlag(Option.Syntax);
             if (syntaxTests) {
+                ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
                 ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
                 // Exiting, because we were asked to test syntax only.
                 return;
             }
 
-            // Process global options that has precedence
-
             if (appArgs.ContainsFlag(Option.Help, CommandLineSection.GlobalOptions)) {
                 Usage(syntax);
+                return;
+            }
+
+            if (appArgs.ContainsFlag(Option.HelpEx, CommandLineSection.GlobalOptions)) {
+                Usage(syntax, true);
                 return;
             }
 
@@ -206,37 +209,55 @@ namespace star {
 
             HttpClient client;
             HttpResponseMessage response;
-            
-            client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
-            var x = Exec(client, serverName, appArgs);
-            x.Wait();
-            response = x.Result;
+            ExecRequest execRequest;
+            string database;
+            string relativeUri;
 
-            ShowResultAndSetExitCode(response, appArgs).Wait();
+            execRequest = GatherAndCreateExecRequest(appArgs, out database, out relativeUri);
+
+            client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
+            try {
+                var x = Exec(client, execRequest, serverName, database, relativeUri);
+                x.Wait();
+                response = x.Result;
+            }
+            catch (SocketException se) {
+                ShowSocketErrorAndSetExitCode(se, client.BaseAddress, serverName);
+                return;
+            } catch (AggregateException ae) {
+                var cause = ae.GetBaseException();
+                while (!(cause is SocketException)) {
+                    if (cause.InnerException != null) {
+                        cause = cause.InnerException;
+                        continue;
+                    }
+                    throw;
+                }
+
+                // We got a socket level exception. Check if it's one we
+                // can provide some better information for and/or map to
+                // any of our well-known error codes.
+
+                ShowSocketErrorAndSetExitCode((SocketException)cause, client.BaseAddress, serverName);
+                return;
+            }
+
+            ShowResultAndSetExitCode(execRequest, response, appArgs).Wait();
         }
 
-        static async Task<HttpResponseMessage> Exec(HttpClient client, string serverName, ApplicationArguments args) {
-            string database;
-            string uri;
-            string executable;
+
+        static async Task<HttpResponseMessage> Exec(
+            HttpClient client,
+            ExecRequest execRequest,
+            string serverName,
+            string database,
+            string uri) {
             string requestBody;
             Task<HttpResponseMessage> request;
 
-            if (!args.TryGetProperty(Option.Db, out database)) {
-                database = Program.DefaultDatabaseName;
-            }
-            uri = string.Format("/databases/{0}/executables", database);
-
-            // Aware of the client transparency guideline stated previously,
-            // we still do resolve the path of the given executable based on
-            // the location of the client. It's most likely what the user
-            // intended.
-            executable = args.CommandParameters[0];
-            executable = Path.GetFullPath(executable);
-
             // Create the request body, based on supplied arguments.
 
-            requestBody = CreateRequestBody(executable, args);
+            requestBody = CreateRequestBody(execRequest);
 
             // Post the request.
 
@@ -246,11 +267,11 @@ namespace star {
             // lets give some feedback.
 
             ConsoleUtil.ToConsoleWithColor(
-                string.Format("[Executing \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
-                Path.GetFileName(executable),
+                string.Format("[Starting \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
+                Path.GetFileName(execRequest.ExecutablePath),
                 database,
                 serverName,
-                client.BaseAddress.Host, 
+                client.BaseAddress.Host,
                 client.BaseAddress.Port), 
                 ConsoleColor.DarkGray
                 );
@@ -261,6 +282,69 @@ namespace star {
             return request.Result;
         }
 
+        static ExecRequest GatherAndCreateExecRequest(
+            ApplicationArguments args,
+            out string database,
+            out string relativeUri) {
+            ExecRequest request;
+            string executable;
+
+            if (!args.TryGetProperty(Option.Db, out database)) {
+                database = Program.DefaultDatabaseName;
+            }
+            relativeUri = string.Format("/databases/{0}/executables", database);
+
+            // Aware of the client transparency guideline stated previously,
+            // we still do resolve the path of the given executable based on
+            // the location of the client. It's most likely what the user
+            // intended.
+            // On top of that, we check if we can find the file once resolved
+            // and if we can't, we do a try on the given name + the .exe file
+            // extension. If we find such file, we assume the user meant that
+            // to be the file. In any case, we always let the final word be up
+            // to the server.
+            executable = args.CommandParameters[0];
+            executable = Path.GetFullPath(executable);
+            if (!File.Exists(executable)) {
+                var executableEx = args.CommandParameters[0] + ".exe";
+                executableEx = Path.GetFullPath(executableEx);
+                if (File.Exists(executableEx)) {
+                    executable = executableEx;
+                }
+            }
+
+            request = new ExecRequest() {
+                ExecutablePath = executable,
+                CommandLineString = string.Empty,
+                ResourceDirectoriesString = string.Empty,
+                NoDb = args.ContainsFlag(Option.NoDb),
+                LogSteps = args.ContainsFlag(Option.LogSteps),
+                CanAutoCreateDb = !args.ContainsFlag(Option.NoAutoCreateDb)
+            };
+
+            // Check if we have any arguments we ultimately must pass on
+            // to a user code entrypoint.
+
+            if (args.CommandParameters != null) {
+                int userArgsCount = args.CommandParameters.Count;
+
+                // Check if we have more arguments than one. Remember that we
+                // reserve the first argument as the name/path of the executable
+                // and that we are really hiding a general "Exec exe [others]"
+                // scenario.
+
+                if (userArgsCount > 1) {
+                    userArgsCount--;
+                    var userArgs = new string[userArgsCount];
+                    args.CommandParameters.CopyTo(1, userArgs, 0, userArgsCount);
+                    var binaryArgs = KeyValueBinary.FromArray(userArgs);
+                    request.CommandLineString = binaryArgs.Value;
+                }
+            }
+
+            return request;
+        }
+
         /// <summary>
         /// Creates the request body expected by the admin server when
         /// recieving requests to execute/host an executable.
@@ -269,54 +353,136 @@ namespace star {
         /// See the ExecRequest class in Administrator for the format being
         /// used.
         /// </remarks>
-        /// <param name="executable">The executable (required)</param>
-        /// <param name="args">Arguments, possibly holding options to be
-        /// part of the request string.</param>
+        /// <param name="request">The exec request POCO object that is
+        /// serialized in the returned string.
+        /// </param>
         /// <returns>A JSON-formatted string representing a request to
         /// execute an executable, compatible with what is expected from
         /// the admin server.</returns>
-        static string CreateRequestBody(string executable, ApplicationArguments args) {
-            // We use a simple but probably slow technique to construct
-            // the body. The upside is that we dont accidentally format
-            // the string inproperly.
-            // Revise and reconsider this when we redesign this and have
-            // it usable from all contexts (like VS and the shell).
-
-            var request = new {
-                ExecutablePath = executable,
-                CommandLineString = string.Empty,
-                ResourceDirectoriesString = string.Empty,
-                NoDb = args.ContainsFlag(Option.NoDb),
-                LogSteps = args.ContainsFlag(Option.LogSteps),
-                CanAutoCreateDb = !args.ContainsFlag(Option.NoAutoCreateDb)
-            };
+        static string CreateRequestBody(ExecRequest request) {
             return JsonConvert.SerializeObject(request);
         }
 
         static async Task ShowResultAndSetExitCode(
+            ExecRequest execRequest,
             HttpResponseMessage response, 
             ApplicationArguments args) {
-            
             var content = response.Content.ReadAsStringAsync();
-            var color = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
-            Console.ForegroundColor = color;
-            try {
-                Console.WriteLine();
-                Console.WriteLine("HTTP/{0} {1} {2}", response.Version, (int)response.StatusCode, response.ReasonPhrase);
-                foreach (var item in response.Headers) {
-                    Console.Write("{0}: ", item.Key);
-                    foreach (var item2 in item.Value) {
-                        Console.Write(item2 + " ");
+            var body = await content;
+
+            var showHttp = args.ContainsFlag(Option.ShowHttp);
+
+            if (showHttp) {
+                var request = response.RequestMessage;
+                ConsoleUtil.ToConsoleWithColor(() => {
+                    Console.WriteLine();
+                    Console.WriteLine("HTTP/{0} {1} {2}", request.Version, request.Method, request.RequestUri);
+                    foreach (var item in request.Headers) {
+                        Console.Write("{0}: ", item.Key);
+                        foreach (var item2 in item.Value) {
+                            Console.Write(item2 + " ");
+                        }
+                        Console.WriteLine();
                     }
                     Console.WriteLine();
+
+                }, ConsoleColor.DarkGray);
+            }
+
+            int statusCode = (int)response.StatusCode;
+            if (statusCode == 201) {
+                var responseBody = JsonConvert.DeserializeObject<ExecResponse201>(body);
+                var dbUri = ScUri.FromString(responseBody.DatabaseUri);
+
+                var output = string.Format(
+                    "Started \"{0}\" in {1}\"{2}\" (Process:{3})",
+                    Path.GetFileName(execRequest.ExecutablePath),
+                    responseBody.DatabaseCreated ? "(new database) " : "",
+                    dbUri.DatabaseName,
+                    responseBody.DatabaseHostPID);
+                ConsoleUtil.ToConsoleWithColor(output, ConsoleColor.Green);
+                if (args.ContainsFlag(Option.AttatchCodeHostDebugger)) {
+                    Process.Start("vsjitdebugger.exe", "-p " + responseBody.DatabaseHostPID);
+                    Console.ReadLine();
                 }
+                Environment.ExitCode = 0;
+            }
+            else if (statusCode == 422) {
+                ConsoleUtil.ToConsoleWithColor(body, ConsoleColor.Red);
                 Console.WriteLine();
-                var body = await content;
-                Console.WriteLine(body);
+                Environment.ExitCode = (int)Error.SCERREXECUTABLENOTFOUND;
+
+            } else if (statusCode == 404) {
+                ConsoleUtil.ToConsoleWithColor(body, ConsoleColor.Red);
+                Console.WriteLine();
+                if (args.ContainsFlag(Option.NoAutoCreateDb)) {
+                    Console.WriteLine("To allow automatic creation of the database, remove the --{0} option.", Option.NoAutoCreateDb);
+                    Console.WriteLine();
+                }
+                Environment.ExitCode = (int)Error.SCERRDATABASENOTFOUND;
+
+            } else if (!response.IsSuccessStatusCode) {
+                // Some error we have no custom formatting for. Just dump
+                // out the entire HTTP message.
+                showHttp = true;
+                Environment.ExitCode = (int)Error.SCERRUNSPECIFIED;
+
+            } else {
+                // A successfull response we have custom formatting for. Just
+                // dump out the entire HTTP message;
+                showHttp = true;
+                Environment.ExitCode = 0;
+            }
+
+            if (showHttp) {
+                var color = response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red;
+                ConsoleUtil.ToConsoleWithColor(() => {
+                    Console.WriteLine();
+                    Console.WriteLine("HTTP/{0} {1} {2}", response.Version, (int)response.StatusCode, response.ReasonPhrase);
+                    foreach (var item in response.Headers) {
+                        Console.Write("{0}: ", item.Key);
+                        foreach (var item2 in item.Value) {
+                            Console.Write(item2 + " ");
+                        }
+                        Console.WriteLine();
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine(body);
+
+                }, color);
+            }
+        }
+
+        static void ShowSocketErrorAndSetExitCode(SocketException ex, Uri serverUri, string serverName) {
+            
+            // Map the socket level error code to a correspoding Starcounter
+            // error code. Try to be as specific as possible.
+
+            uint scErrorCode;
+            switch(ex.SocketErrorCode) {
+                case SocketError.ConnectionRefused:
+                    scErrorCode = Error.SCERRSERVERNOTRUNNING;
+                    break;
+                default:
+                    scErrorCode = Error.SCERRSERVERNOTAVAILABLE;
+                    break;     
+            }
+
+            try {
+                var serverInfo = string.Format("\"{0}\" at {1}:{2}", serverName, serverUri.Host, serverUri.Port);
+                var socketError = string.Format("{0}/{1}: {2}", ex.SocketErrorCode, ex.ErrorCode, ex.Message);
+
+                ConsoleUtil.ToConsoleWithColor(
+                    ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)),
+                    ConsoleColor.Red);
+                Console.WriteLine();
+                ConsoleUtil.ToConsoleWithColor(
+                    string.Format("(Socket error: {0})", socketError), ConsoleColor.DarkGray);
 
             } finally {
-                Console.ResetColor();
-                Environment.ExitCode = response.IsSuccessStatusCode ? 0 : (int)Error.SCERRUNSPECIFIED;
+                // If any unexpected problem when constructing the error information
+                // or writing them to the console, at least always set the error code.
+                Environment.ExitCode = (int)scErrorCode;
             }
         }
 
@@ -330,13 +496,14 @@ namespace star {
             Console.WriteLine("Version={0}.{1}", StarcounterEnvironment.GetVersionInfo().Version.Major, StarcounterEnvironment.GetVersionInfo().Version.Minor);
         }
 
-        static void Usage(IApplicationSyntax syntax) {
+        static void Usage(IApplicationSyntax syntax, bool extended = false) {
             string formatting;
             Console.WriteLine("Usage: star [options] executable [parameters]");
             Console.WriteLine();
             Console.WriteLine("Options:");
             formatting = "  {0,-22}{1,25}";
             Console.WriteLine(formatting, string.Format("-h, --{0}", Option.Help), "Shows help about star.exe.");
+            Console.WriteLine(formatting, string.Format("-hx, --{0}", Option.HelpEx), "Shows extended/unofficial help about star.exe.");
             Console.WriteLine(formatting, string.Format("-v, --{0}", Option.Version), "Prints the version of Starcounter.");
             Console.WriteLine(formatting, string.Format("-i, --{0}", Option.Info), "Prints information about the Starcounter installation.");
             Console.WriteLine(formatting, string.Format("-p, --{0} port", Option.Serverport), "The port to use to the admin server.");
@@ -349,12 +516,20 @@ namespace star {
             Console.WriteLine(formatting, string.Format("--{0}", Option.NoDb), "Tells the host to load and run the executable");
             Console.WriteLine(formatting, "", "without loading any database into the process.");
             Console.WriteLine(formatting, string.Format("--{0}", Option.NoAutoCreateDb), "Prevents automatic creation of database.");
-            Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
-            Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
+            if (extended) {
+                Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
+                Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
+                Console.WriteLine(formatting, string.Format("--{0}", Option.Syntax), "Shows the parsing of the command-line, then exits.");
+                Console.WriteLine(formatting, string.Format("--{0}", Option.NoColor), "Instructs star.exe to turn off colorizing output.");
+                Console.WriteLine(formatting, string.Format("--{0}", Option.ShowHttp), "Displays underlying HTTP messages.");
+                Console.WriteLine(formatting, string.Format("--{0}", Option.AttatchCodeHostDebugger), "Attaches a debugger to the code host process.");
+            }
             Console.WriteLine();
-            Console.WriteLine("TEMPORARY: Creating a repository.");
-            Console.WriteLine("Run star.exe @@CreateRepo path [servername] to create a repository.");
-            Console.WriteLine();
+            if (extended) {
+                Console.WriteLine("TEMPORARY: Creating a repository.");
+                Console.WriteLine("Run star.exe @@CreateRepo path [servername] to create a repository.");
+                Console.WriteLine();
+            }
             Console.WriteLine("Environment variables:");
             Console.WriteLine("{0}\t{1,8}", EnvironmentVariable.ServerName, "Sets the server to use by default.");
             Console.WriteLine();
@@ -373,6 +548,12 @@ namespace star {
                 "Prints the star.exe help message.",
                 OptionAttributes.Default,
                 new string[] { "h" }
+                );
+            appSyntax.DefineFlag(
+                Option.HelpEx,
+                "Prints the star.exe extended help message.",
+                OptionAttributes.Default,
+                new string[] { "hx" }
                 );
             appSyntax.DefineFlag(
                 Option.Version,
@@ -399,10 +580,6 @@ namespace star {
                 new string[] { "d" }
                 );
             appSyntax.DefineProperty(
-                Option.Verbosity,
-                "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
-                );
-            appSyntax.DefineProperty(
                 Option.Server,
                 "Sets the name of the server to use."
                 );
@@ -422,6 +599,30 @@ namespace star {
                 Option.NoAutoCreateDb,
                 "Specifies that a database can not be automatically created if it doesn't exist."
                 );
+
+            // Extended, advanced functionality
+
+            appSyntax.DefineProperty(
+                Option.Verbosity,
+                "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
+                );
+            appSyntax.DefineFlag(
+                Option.Syntax,
+                "Instructs star.exe to just parse the command-line and show the result of that."
+                );
+            appSyntax.DefineFlag(
+                Option.NoColor,
+                "Instructs star.exe to turn off colorizing output."
+                );
+            appSyntax.DefineFlag(
+                Option.ShowHttp,
+                "Displays underlying HTTP request/response messages to/from the admin server."
+                );
+            appSyntax.DefineFlag(
+                Option.AttatchCodeHostDebugger,
+                "Attaches a debugger to the code host process after it has started."
+                );
+
 
             // NOTE:
             // Although we will refuse to execute any EXEC command without at least one parameter,

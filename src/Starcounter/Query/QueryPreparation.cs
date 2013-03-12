@@ -15,7 +15,6 @@ namespace Starcounter.Query {
         /// <param name="query">Input query string to prepare</param>
         /// <returns>The result enumerated with the execution plan.</returns>
         internal static IExecutionEnumerator PrepareQuery(String query) {
-            Scheduler vproc = Scheduler.GetInstance();
 #if HELLOTEST
             Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest newAnalyzer = null;
 #else
@@ -27,16 +26,16 @@ namespace Starcounter.Query {
             // Call to Bison parser and type checker
             // Call to Prolog parser and type checker
 #if !BISON_ONLY
+            // Call Prolog and get answer
             se.sics.prologbeans.QueryAnswer answer = null;
             try {
-                answer = PrologManager.CallProlog(vproc, query);
+                answer = PrologManager.CallProlog(query);
             } catch (SqlException e) {
                 prologException = e;
             }
+            // Transfer answer terms into pre-optimized structures
             if (prologException == null)
                 optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
-            // Call Prolog and get answer
-            // Transfer answer terms into pre-optimized structures
 #endif
 #if !PROLOG_ONLY
             try {

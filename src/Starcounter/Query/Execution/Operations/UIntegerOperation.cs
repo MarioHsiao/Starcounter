@@ -23,8 +23,8 @@ namespace Starcounter.Query.Execution
 internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
 {
     NumericalOperator numOperator;
-    IUIntegerExpression expr1;
-    IUIntegerExpression expr2;
+    INumericalExpression expr1;
+    INumericalExpression expr2;
 
     /// <summary>
     /// Constructor.
@@ -32,7 +32,7 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
     /// <param name="numOp">The operator of the operation.</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal UIntegerOperation(NumericalOperator numOp, IUIntegerExpression expr1, IUIntegerExpression expr2)
+    internal UIntegerOperation(NumericalOperator numOp, INumericalExpression expr1, INumericalExpression expr2)
     : base()
     {
         if (numOp != NumericalOperator.Addition && numOp != NumericalOperator.Subtraction
@@ -58,7 +58,7 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
     /// </summary>
     /// <param name="numOp">The operator of the operation.</param>
     /// <param name="expr">The operand of the operation.</param>
-    internal UIntegerOperation(NumericalOperator numOp, IUIntegerExpression expr)
+    internal UIntegerOperation(NumericalOperator numOp, INumericalExpression expr)
     : base()
     {
         if (numOp != NumericalOperator.Plus)
@@ -263,9 +263,9 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
     {
         if (expr2 != null)
         {
-            return new UIntegerOperation(numOperator, (IUIntegerExpression)expr1.Instantiate(obj), (IUIntegerExpression)expr2.Instantiate(obj));
+            return new UIntegerOperation(numOperator, (INumericalExpression)expr1.Instantiate(obj), (INumericalExpression)expr2.Instantiate(obj));
         }
-        return new UIntegerOperation(numOperator, (IUIntegerExpression)expr1.Instantiate(obj));
+        return new UIntegerOperation(numOperator, (INumericalExpression)expr1.Instantiate(obj));
     }
 
     public IValueExpression Clone(VariableArray varArray)
@@ -277,9 +277,9 @@ internal class UIntegerOperation : IUIntegerExpression, INumericalOperation
     {
         if (expr2 != null)
         {
-            return new UIntegerOperation(numOperator, expr1.CloneToUInteger(varArray), expr2.CloneToUInteger(varArray));
+            return new UIntegerOperation(numOperator, expr1.CloneToNumerical(varArray), expr2.CloneToNumerical(varArray));
         }
-        return new UIntegerOperation(numOperator, expr1.CloneToUInteger(varArray));
+        return new UIntegerOperation(numOperator, expr1.CloneToNumerical(varArray));
     }
 
     public INumericalExpression CloneToNumerical(VariableArray varArray)

@@ -165,6 +165,7 @@ typedef uint64_t log_handle_type;
 #define SCERRGWTESTFAILED 12405
 #define SCERRGWTESTFINISHED 12406
 #define SCERRGWHTTPCOOKIEISMISSING 12407
+#define SCERRGWFAILEDTOOPENSHMMONITORINTERFACE 12408
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;

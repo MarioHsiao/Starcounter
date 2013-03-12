@@ -4,7 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
-using System.Collections.Specialized;
+using System.Collections.Generic;
 
 namespace Starcounter.CommandLine
 {
@@ -17,17 +17,17 @@ namespace Starcounter.CommandLine
         /// Gets the global options.
         /// </summary>
         /// <value>The global options.</value>
-        StringDictionary GlobalOptions { get; }
+        Dictionary<string, string> GlobalOptions { get; }
         /// <summary>
         /// Gets the command options.
         /// </summary>
         /// <value>The command options.</value>
-        StringDictionary CommandOptions { get; }
+        Dictionary<string, string> CommandOptions { get; }
         /// <summary>
         /// Gets the command parameters.
         /// </summary>
         /// <value>The command parameters.</value>
-        StringCollection CommandParameters { get; }
+        List<string> CommandParameters { get; }
         /// <summary>
         /// Gets the command.
         /// </summary>

@@ -124,16 +124,15 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="rangeFlags"></param>
         /// <param name="firstKey"></param>
         /// <param name="lastKey"></param>
         /// <param name="cachedEnum"></param>
-        public void GetEnumeratorCached_NoCodeGenFilter<T>(
+        public void GetEnumeratorCached_NoCodeGenFilter(
             UInt32 rangeFlags,
             Byte[] firstKey,
             Byte[] lastKey,
-            Enumerator<T> cachedEnum) where T : Entity
+            Enumerator cachedEnum)
         {
             int retry = 0;
 
@@ -213,15 +212,14 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="keyData"></param>
         /// <param name="extentNumber"></param>
         /// <param name="cachedEnum"></param>
         /// <returns></returns>
-        public unsafe Boolean RecreateEnumerator_NoCodeGenFilter<T>(
+        public unsafe Boolean RecreateEnumerator_NoCodeGenFilter(
             Byte* keyData,
             Int32 extentNumber,
-            Enumerator<T> cachedEnum) where T : Entity
+            Enumerator cachedEnum)
         {
             int retry = 0;
 
@@ -278,16 +276,15 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="rangeFlags"></param>
         /// <param name="firstKey"></param>
         /// <param name="secondKey"></param>
         /// <param name="cachedEnum"></param>
-        public void GetEnumeratorCached_CodeGenFilter<T>(
+        public void GetEnumeratorCached_CodeGenFilter(
             UInt32 rangeFlags,
             Byte[] firstKey,
             Byte[] secondKey,
-            Enumerator<T> cachedEnum) where T : Entity
+            Enumerator cachedEnum)
         {
             int retry = 0;
 
@@ -334,15 +331,14 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="keyData"></param>
         /// <param name="extentNumber"></param>
         /// <param name="cachedEnum"></param>
         /// <returns></returns>
-        public unsafe Boolean RecreateEnumerator_CodeGenFilter<T>(
+        public unsafe Boolean RecreateEnumerator_CodeGenFilter(
             Byte* keyData,
             Int32 extentNumber,
-            Enumerator<T> cachedEnum) where T : Entity
+            Enumerator cachedEnum)
         {
             int retry = 0;
 

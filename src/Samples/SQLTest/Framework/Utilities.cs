@@ -375,7 +375,7 @@ namespace SQLTest
             return type + ":" + value + "; ";
         }
 
-        internal static Entity GetObject(String strObjectId)
+        internal static IObjectView GetObject(String strObjectId)
         {
             UInt64 uintObjectId = UInt64.Parse(strObjectId);
             return DbHelper.FromID(uintObjectId);

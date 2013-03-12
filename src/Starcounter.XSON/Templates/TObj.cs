@@ -15,6 +15,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract class TObj : TContainer {
         private DataValueBinding<IBindable> dataBinding;
+        private bool bindChildren;
 
         /// <summary>
         /// The _ class name
@@ -146,6 +147,44 @@ namespace Starcounter.Templates {
         /// <value></value>
         public override IEnumerable<Template> Children {
             get { return (IEnumerable<Template>)Properties; }
+        }
+
+        /// <summary>
+        /// If set to true all children will be automatically bound to the dataobject, 
+        /// otherwise the children needs to set binding themselves.
+        /// </summary>
+        /// <remarks>
+        /// If set to true and a child which should not be bound is added the name of the
+        /// child should start with a '_' (underscore).
+        /// </remarks>
+        public bool BindChildren {
+            get { return bindChildren; }
+            set {
+                if (Properties.Count > 0) {
+                    throw new InvalidOperationException("Cannot change this property after children have been added.");
+                }
+                bindChildren = value;
+            }
+        }
+
+        /// <summary>
+        /// Callback when a child is added to this object properties.
+        /// </summary>
+        /// <param name="property"></param>
+        internal void OnPropertyAdded(Template property) {
+            TValue value;
+            string propertyName;
+
+            if (BindChildren) {
+                value = property as TValue;
+                if (value != null && !value.Bound) {
+                    propertyName = value.PropertyName;
+                    if (!string.IsNullOrEmpty(propertyName)
+                        && !(propertyName[0] == '_')) {
+                        value.Bind = propertyName;
+                    }
+                }
+            }
         }
 
         /// <summary>

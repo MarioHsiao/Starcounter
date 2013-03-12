@@ -7,9 +7,7 @@ namespace QueryProcessingTest {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
                 BindingTestDirect.DirectBindingTest();
-                HelpMethods.LogEvent("Test query preparation performance, first round. Query parser was not yet accessed.");
-                QueryProcessingPerformance.MeasurePrepareQuery();
-                HelpMethods.LogEvent("Test query preparation performance, second round.");
+                HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();
                 TestErrorMessages.RunTestErrorMessages();
                 PopulateData();

@@ -108,7 +108,7 @@ namespace Starcounter.Binding
             methodBuilder = typeBuilder.DefineMethod(
                                 "NewUninitializedInst",
                                 (MethodAttributes.HideBySig | MethodAttributes.Final | MethodAttributes.NewSlot | MethodAttributes.Family | MethodAttributes.Virtual),
-                                typeof(Entity),
+                                typeof(IObjectView),
                                 null
                             );
             typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
