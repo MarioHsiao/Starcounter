@@ -1,23 +1,18 @@
 ﻿
+using Newtonsoft.Json;
 using Starcounter;
-using Starcounter.ABCIPC;
-using Starcounter.ABCIPC.Internal;
-using Starcounter.Internal;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Starcounter.Internal;
 using Starcounter.Server.Setup;
-using Starcounter.Server.PublicModel;
-using Starcounter.Server.PublicModel.Commands;
+using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net.Sockets;
-using Newtonsoft.Json;
 
 namespace star {
 
@@ -43,6 +38,7 @@ namespace star {
             public const string Syntax = "syntax";
             public const string NoColor = "nocolor";
             public const string ShowHttp = "http";
+            public const string AttatchCodeHostDebugger = "debug";
         }
 
         static class EnvironmentVariable {
@@ -405,6 +401,10 @@ namespace star {
                     dbUri.DatabaseName,
                     responseBody.DatabaseHostPID);
                 ConsoleUtil.ToConsoleWithColor(output, ConsoleColor.Green);
+                if (args.ContainsFlag(Option.AttatchCodeHostDebugger)) {
+                    Process.Start("vsjitdebugger.exe", "-p " + responseBody.DatabaseHostPID);
+                    Console.ReadLine();
+                }
                 Environment.ExitCode = 0;
             }
             else if (statusCode == 422) {
@@ -522,6 +522,7 @@ namespace star {
                 Console.WriteLine(formatting, string.Format("--{0}", Option.Syntax), "Shows the parsing of the command-line, then exits.");
                 Console.WriteLine(formatting, string.Format("--{0}", Option.NoColor), "Instructs star.exe to turn off colorizing output.");
                 Console.WriteLine(formatting, string.Format("--{0}", Option.ShowHttp), "Displays underlying HTTP messages.");
+                Console.WriteLine(formatting, string.Format("--{0}", Option.AttatchCodeHostDebugger), "Attaches a debugger to the code host process.");
             }
             Console.WriteLine();
             if (extended) {
@@ -616,6 +617,10 @@ namespace star {
             appSyntax.DefineFlag(
                 Option.ShowHttp,
                 "Displays underlying HTTP request/response messages to/from the admin server."
+                );
+            appSyntax.DefineFlag(
+                Option.AttatchCodeHostDebugger,
+                "Attaches a debugger to the code host process after it has started."
                 );
 
 
