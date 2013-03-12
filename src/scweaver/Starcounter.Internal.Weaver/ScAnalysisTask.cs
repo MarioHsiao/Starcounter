@@ -58,20 +58,6 @@ namespace Starcounter.Internal.Weaver {
         private readonly Dictionary<DatabaseAttribute, string> _synonymousToAttributes = new Dictionary<DatabaseAttribute, string>();
 
         /// <summary>
-        /// The _forbidden assemblies
-        /// </summary>
-        private readonly String[] _forbiddenAssemblies = new[] {
-            "starcounter.configuration",
-            "starcounter.framework",
-            "starcounter.management.agent",
-            "starcounter.management.client",
-            "starcounter.management.console",
-            "starcounter.management.contracts",
-            "starcounter.management.server",
-            "starcounter.management.win32"
-        };
-
-        /// <summary>
         /// The _SC app assembly ref
         /// </summary>
         private AssemblyRefDeclaration _scAppAssemblyRef;
@@ -523,7 +509,6 @@ namespace Starcounter.Internal.Weaver {
                                     );
 #pragma warning restore 618
                 }
-                ValidateForbiddenReferences();
             }
 
             // Find the reference to Starcounter
@@ -651,32 +636,6 @@ namespace Starcounter.Internal.Weaver {
 
             return true;
         }
-
-        #region Validate references to declarations decorated with [HideFromApplications]
-
-        /// <summary>
-        /// Validates that user code does not reference declarations decorated with
-        /// the [HideFromApplications] custom attribute.
-        /// </summary>
-        private void ValidateForbiddenReferences() {
-            String name;
-            StringComparison strComp = StringComparison.InvariantCultureIgnoreCase;
-
-            ScAnalysisTrace.Instance.WriteLine("Validating forbidden references.");
-
-            // Validate assembly references.
-            foreach (AssemblyRefDeclaration assemblyRef in _module.AssemblyRefs) {
-                name = assemblyRef.Name;
-                if (Array.Exists(_forbiddenAssemblies, s => String.Equals(name, s, strComp))) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error, "SCATV01",
-                                                   new Object[] { name });
-#pragma warning restore 618
-                }
-            }
-        }
-
-        #endregion
 
         #region Validate custom attribute usage
 
