@@ -51,10 +51,6 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private readonly InstructionWriter _writer;
         /// <summary>
-        /// The _static constructors
-        /// </summary>
-        private readonly List<MethodDefDeclaration> _staticConstructors;
-        /// <summary>
         /// The _field advices
         /// </summary>
         private readonly List<InsteadOfFieldAccessAdvice> _fieldAdvices;
@@ -142,7 +138,6 @@ namespace Starcounter.Internal.Weaver {
         public ScTransformTask() {
             _fieldAccessors = new Dictionary<String, MethodPair>();
             _writer = new InstructionWriter();
-            _staticConstructors = new List<MethodDefDeclaration>();
             _fieldAdvices = new List<InsteadOfFieldAccessAdvice>();
             _methodAdvices = new List<IMethodLevelAdvice>();
             _weavedLucentAccessorAdvices = new List<ReimplementWeavedLucentAccessorAdvice>();
@@ -233,7 +228,6 @@ namespace Starcounter.Internal.Weaver {
             IMethod getMethod;
             IMethod setMethod;
 //            MethodDefDeclaration constructor;
-            MethodDefDeclaration staticConstructor;
             ScAnalysisTask analysisTask;
             TypeDefDeclaration typeDef;
             TypeRefDeclaration typeRef;
@@ -340,12 +334,6 @@ namespace Starcounter.Internal.Weaver {
                         field = typeDef.Fields.GetByName(dba.Name);
                         GenerateFieldAccessors(dba, field);
                     }
-                }
-
-                // Index static constructors.
-                staticConstructor = typeDef.Methods.GetOneByName(".cctor");
-                if (staticConstructor != null) {
-                    _staticConstructors.Add(staticConstructor);
                 }
 
                 // Transformations specific to entity classes.
@@ -985,8 +973,7 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="codeWeaver">The code weaver to which we should provide advices.</param>
         public void ProvideAdvices(PostSharp.Sdk.CodeWeaver.Weaver codeWeaver) {
             Singleton<MetadataDeclaration> metaSingleton;
-            StaticConstructorAdvice staticConstructorAdvice;
-
+            
             foreach (InsteadOfFieldAccessAdvice advice in _fieldAdvices) {
                 metaSingleton = new Singleton<MetadataDeclaration>((MetadataDeclaration)advice.Field);
                 codeWeaver.AddMethodLevelAdvice(advice,
@@ -1011,16 +998,6 @@ namespace Starcounter.Internal.Weaver {
                         JoinPointKinds.InsteadOfGetField | JoinPointKinds.InsteadOfCall,
                         null);
                 }
-            }
-
-            staticConstructorAdvice = new StaticConstructorAdvice(_module);
-            foreach (MethodDefDeclaration staticConstructor in _staticConstructors) {
-
-                codeWeaver.AddMethodLevelAdvice(staticConstructorAdvice,
-                                                new Singleton<MethodDefDeclaration>(staticConstructor),
-                                                JoinPointKinds.BeforeMethodBody
-                                                    | JoinPointKinds.AfterMethodBodyAlways,
-                                                null);
             }
 
             foreach (IMethodLevelAdvice advice in _methodAdvices) {
