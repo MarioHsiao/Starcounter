@@ -218,11 +218,30 @@ namespace star {
             string relativeUri;
 
             execRequest = GatherAndCreateExecRequest(appArgs, out database, out relativeUri);
-            
+
             client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
-            var x = Exec(client, execRequest, serverName, database, relativeUri);
-            x.Wait();
-            response = x.Result;
+
+            try {
+                var x = Exec(client, execRequest, serverName, database, relativeUri);
+                x.Wait();
+                response = x.Result;
+            } catch (AggregateException ae) {
+                var cause = ae.GetBaseException();
+                while (!(cause is SocketException)) {
+                    if (cause.InnerException != null) {
+                        cause = cause.InnerException;
+                        continue;
+                    }
+                    throw;
+                }
+
+                // We got a socket level exception. Check if it's one we
+                // can provide some better information for and/or map to
+                // any of our well-known error codes.
+
+                ShowSocketErrorAndSetExitCode((SocketException)cause, client.BaseAddress, serverName);
+                return;
+            }
 
             ShowResultAndSetExitCode(execRequest, response, appArgs).Wait();
         }
@@ -303,6 +322,16 @@ namespace star {
                 LogSteps = args.ContainsFlag(Option.LogSteps),
                 CanAutoCreateDb = !args.ContainsFlag(Option.NoAutoCreateDb)
             };
+
+            if (args.CommandParameters != null) {
+                int userArgsCount = args.CommandParameters.Count;
+                if (userArgsCount > 0) {
+                    var userArgs = new string[userArgsCount];
+                    args.CommandParameters.CopyTo(userArgs, 0);
+                    var binaryArgs = KeyValueBinary.FromArray(userArgs);
+                    request.CommandLineString = binaryArgs.Value;
+                }
+            }
 
             return request;
         }
@@ -409,6 +438,25 @@ namespace star {
 
                 }, color);
             }
+        }
+
+        static void ShowSocketErrorAndSetExitCode(SocketException ex, Uri serverUri, string serverName) {
+            Console.WriteLine(ex);
+            Environment.ExitCode = (int)Error.SCERRUNSPECIFIED;
+            //// ScErrServerNotRunning for example.
+            //// We should include in the error what socket error we got
+            //// and include server, serverhost, serverport.
+            //// TODO:
+
+            //SocketException se = (SocketException)cause;
+            //if (se.SocketErrorCode == SocketError.ConnectionRefused) {
+            //    // Hint about that the server might not be on the given host/port!
+            //    // TODO:
+            //}
+
+            //Console.WriteLine("{0} {1} {2} {3}", se.ErrorCode, se.NativeErrorCode, se.SocketErrorCode, se.Message);
+            //return;
+
         }
 
         static void ShowVersionInfo() {
