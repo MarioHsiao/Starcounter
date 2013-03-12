@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System;
 
 namespace Starcounter.VisualStudio.Projects {
     
@@ -28,6 +29,13 @@ namespace Starcounter.VisualStudio.Projects {
             : base(package) {
                 appsEvents = new AppsEvents();
                 appsEvents.AddEventListeners(package);
+        }
+
+        protected override Guid GetGuidProperty(uint itemId, int propId) {
+            if (propId == (int)__VSHPROPID2.VSHPROPID_AddItemTemplatesGuid) {
+                return typeof(AppExeProjectFactory).GUID;
+            }
+            return base.GetGuidProperty(itemId, propId);
         }
 
         protected override StarcounterProjectConfiguration CreateProjectConfiguration(IVsCfg pBaseProjectCfg, IVsProjectFlavorCfg inner) {
