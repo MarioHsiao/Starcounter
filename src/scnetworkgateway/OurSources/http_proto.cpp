@@ -11,6 +11,16 @@
 namespace starcounter {
 namespace network {
 
+// Destructor.
+RegisteredUris::~RegisteredUris()
+{
+    if (clang_engine_)
+    {
+        g_gateway.ClangDestroyEngineFunc(clang_engine_);
+        clang_engine_ = NULL;
+    }
+}
+
 // Running all registered handlers.
 uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
 {
@@ -576,7 +586,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         // Getting the corresponding port number.
         ServerPort* server_port = g_gateway.get_server_port(sd->get_port_index());
         uint16_t port_num = server_port->get_port_number();
-        RegisteredUris* reg_uris = server_port->get_registered_uris();
+        RegisteredUris* port_uris = server_port->get_registered_uris();
 
         // Determining which matched handler to pick.
         int32_t matched_index = INVALID_URI_INDEX;
@@ -584,16 +594,16 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 #ifdef GW_URI_MATCHING_CODEGEN
 
         // Checking if URI matching code is generated.
-        if (!reg_uris->get_latest_gen_dll_handle())
+        if (!port_uris->get_latest_match_uri_func())
         {
             // Entering global lock.
             gw->EnterGlobalLock();
 
             // Checking once again since maybe it was already generated.
-            if (!reg_uris->get_latest_gen_dll_handle())
+            if (!port_uris->get_latest_match_uri_func())
             {
                 // Generating and loading URI matcher.
-                err_code = g_gateway.GenerateUriMatcher(port_num);
+                err_code = g_gateway.GenerateUriMatcher(port_uris);
             }
 
             // Releasing global lock.
@@ -604,19 +614,19 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         }
 
         // Getting the matched uri index.
-        matched_index = reg_uris->RunCodegenUriMatcher(method_and_uri, method_and_uri_len, sd->get_accept_data());
+        matched_index = port_uris->RunCodegenUriMatcher(method_and_uri, method_and_uri_len, sd->get_accept_data());
         goto DONE_URI_MATCHING;
 
 #endif
 
         // Searching matching method and URI.
         int32_t max_matched_chars_method_and_uri;
-        int32_t matched_index_method_and_uri = reg_uris->SearchMatchingUriHandler(method_and_uri, method_and_uri_len, max_matched_chars_method_and_uri);
+        int32_t matched_index_method_and_uri = port_uris->SearchMatchingUriHandler(method_and_uri, method_and_uri_len, max_matched_chars_method_and_uri);
         max_matched_chars_method_and_uri -= uri_offset;
 
         // Searching on URIs only now.
         int32_t max_matched_chars_just_uri;
-        int32_t matched_index_just_uri = reg_uris->SearchMatchingUriHandler(method_and_uri + uri_offset, method_and_uri_len - uri_offset, max_matched_chars_just_uri);
+        int32_t matched_index_just_uri = port_uris->SearchMatchingUriHandler(method_and_uri + uri_offset, method_and_uri_len - uri_offset, max_matched_chars_just_uri);
 
         // Checking if succeeded.
         if (matched_index_method_and_uri >= 0)
@@ -650,7 +660,7 @@ DONE_URI_MATCHING:
         sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
-        return reg_uris->GetEntryByIndex(matched_index)->RunHandlers(gw, sd, is_handled);
+        return port_uris->GetEntryByIndex(matched_index)->RunHandlers(gw, sd, is_handled);
     }
     else
     {

@@ -212,6 +212,7 @@ namespace Starcounter.Internal
     typedef int32_t (*MatchUriType) (char* uri_info, uint32_t uri_info_len, UserDelegateParamInfo** params);
 
     typedef uint32_t (*GenerateNativeUriMatcherType) (
+        const char* const root_function_name,
         RegisteredUriManaged* uri_infos,
         uint32_t num_uris,
         char* gen_code_str,
