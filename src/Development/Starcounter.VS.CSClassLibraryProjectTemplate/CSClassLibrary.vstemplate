@@ -8,7 +8,7 @@
     <ProjectSubType>Starcounter</ProjectSubType>
     <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
     <SortOrder>1000</SortOrder>
-    <TemplateID>80C343B8-8858-4FE1-BA8A-BA635C961931</TemplateID>
+    <TemplateID>StarcounterClassLibrary</TemplateID>
     <CreateNewFolder>true</CreateNewFolder>
     <DefaultName>StarcounterClassLibrary</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>

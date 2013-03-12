@@ -436,14 +436,14 @@ internal abstract class ExecutionEnumerator
         //Application.Profiler.Start("Cycled MoveNext", 5);
         while ((slotsNum > 0) && (thisEnum.MoveNext()))
         {
-            Entity dbObject = thisEnum.Current as Entity;
+            IObjectView dbObject = thisEnum.Current;
 
             // Checking if object is not null.
             if (dbObject != null)
             {
                 slotsBuf[0] = dbObject.ThisRef.ETI;
                 slotsBuf[1] = dbObject.ThisRef.ObjectID;
-                slotsBuf[2] = dbObject.TypeBinding.TableId;
+                slotsBuf[2] = ((TypeBinding)dbObject.TypeBinding).TableId;
             }
             else
             {

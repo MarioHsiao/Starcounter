@@ -104,7 +104,7 @@ internal class ObjectComparer : ISingleComparer
                 {
                     return 1;
                 }
-                if ((value1 as Entity).ThisRef.ObjectID > (value2 as Entity).ThisRef.ObjectID)
+                if (value1.ThisRef.ObjectID > value2.ThisRef.ObjectID)
                 {
                     return -1;
                 }
