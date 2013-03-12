@@ -433,6 +433,46 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
+        /// Executes <paramref name="action"/> in between a begin and
+        /// end of the <see cref="CommandTask"/> <paramref name="task"/>.
+        /// </summary>
+        /// <remarks>
+        /// If an exception is raised from the given action, this method
+        /// does invoke the end method for the task.
+        /// </remarks>
+        /// <param name="task">The <see cref="CommandTask"/> that is
+        /// progressing while the given action executes.</param>
+        /// <param name="action">The code to execute.</param>
+        protected void WithinTask(CommandTask task, Action<CommandTask> action) {
+            BeginTask(task);
+            action(task);
+            EndTask(task);
+        }
+
+        /// <summary>
+        /// Executes <paramref name="action"/> in between a begin and
+        /// end of the <see cref="CommandTask"/> <paramref name="task"/>,
+        /// based on a given condition.
+        /// </summary>
+        /// <remarks>
+        /// If an exception is raised from the given action, this method
+        /// does invoke the end method for the task.
+        /// </remarks>
+        /// <param name="condition">If <see langrod cref="true"/>, the
+        /// action is executed; otherwise, this method instantly return.
+        /// </param>
+        /// <param name="task">The <see cref="CommandTask"/> that is
+        /// progressing while the given action executes.</param>
+        /// <param name="action">The code to execute.</param>
+        protected void WithinTaskIf(bool condition, CommandTask task, Action<CommandTask> action) {
+            if (condition) {
+                BeginTask(task);
+                action(task);
+                EndTask(task);
+            }
+        }
+
+        /// <summary>
         /// Progresses a task by value.
         /// </summary>
         /// <param name="task">The <see cref="CommandTask"/> to progress.

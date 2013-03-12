@@ -125,6 +125,9 @@ uint32_t BmxData::RegisterPortHandler(
             // Checking if port is the same.
             if (port_num == registered_handlers_[i].get_port())
             {
+                // Disallowing handler duplicates.
+                return SCERRHANDLERALREADYREGISTERED;
+
                 // Search if handler is already in the list.
                 if (!registered_handlers_[i].HandlerAlreadyExists(port_handler))
                 {
@@ -206,6 +209,9 @@ uint32_t BmxData::RegisterSubPortHandler(
                 // Checking that sub-port is correct.
                 if (subport == registered_handlers_[i].get_subport())
                 {
+                    // Disallowing handler duplicates.
+                    return SCERRHANDLERALREADYREGISTERED;
+
                     // Search if handler is already in the list.
                     if (!registered_handlers_[i].HandlerAlreadyExists(subport_handler))
                     {
@@ -310,6 +316,9 @@ uint32_t BmxData::RegisterUriHandler(
                 // Checking if URI string is the same.
                 if (!strcmp(processed_uri_info, registered_handlers_[i].get_processed_uri_info()))
                 {
+                    // Disallowing handler duplicates.
+                    return SCERRHANDLERALREADYREGISTERED;
+
                     // Search if handler is already in the list.
                     if (!registered_handlers_[i].HandlerAlreadyExists(uri_handler))
                     {
@@ -395,7 +404,106 @@ uint32_t BmxData::UnregisterHandler(
     }
 
     // If not removed.
-    return SCERRUNSPECIFIED; // SCERRHANDLERNOTFOUND 
+    return SCERRHANDLERNOTFOUND;
+}
+
+// Finds certain handler.
+bool BmxData::IsHandlerExist(
+    BMX_HANDLER_INDEX_TYPE handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (handler_index == registered_handlers_[i].get_handler_index())
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+// Finds certain handler.
+uint32_t BmxData::FindUriHandler(
+    uint16_t port_num,
+    char* processed_uri_info,
+    BMX_HANDLER_INDEX_TYPE* handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (URI_HANDLER == registered_handlers_[i].get_type())
+            {
+                if (port_num == registered_handlers_[i].get_port())
+                {
+                    if (!strcmp(processed_uri_info, registered_handlers_[i].get_original_uri_info()))
+                    {
+                        *handler_index = i;
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+
+    return SCERRHANDLERNOTFOUND;
+}
+
+// Finds certain handler.
+uint32_t BmxData::FindPortHandler(
+    uint16_t port_num,
+    BMX_HANDLER_INDEX_TYPE* handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (PORT_HANDLER == registered_handlers_[i].get_type())
+            {
+                if (port_num == registered_handlers_[i].get_port())
+                {
+                    *handler_index = i;
+                    return 0;
+                }
+            }
+        }
+    }
+
+    return SCERRHANDLERNOTFOUND; 
+}
+
+// Finds certain handler.
+uint32_t BmxData::FindSubportHandler(
+    uint16_t port_num,
+    BMX_SUBPORT_TYPE subport_num,
+    BMX_HANDLER_INDEX_TYPE* handler_index)
+{
+    // Checking all registered handlers.
+    for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
+    {
+        if (!registered_handlers_[i].IsEmpty())
+        {
+            if (SUBPORT_HANDLER == registered_handlers_[i].get_type())
+            {
+                if (port_num == registered_handlers_[i].get_port())
+                {
+                    if (subport_num == registered_handlers_[i].get_subport())
+                    {
+                        *handler_index = i;
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+
+    return SCERRHANDLERNOTFOUND; 
 }
 
 // Unregisters certain handler.

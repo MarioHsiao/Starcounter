@@ -80,7 +80,8 @@ namespace Starcounter
             return !obj1.Equals(obj2);
         }
 
-        internal ObjectRef ThisRef;
+        private ObjectRef thisRef;
+        public ObjectRef ThisRef { get { return thisRef; } set { thisRef = value; } }
         private TypeBinding typeBinding_;
 
         /// <summary>
@@ -236,18 +237,18 @@ namespace Starcounter
 #if ERIK_TEST
         public void Attach(ObjectRef objectRef, TypeBinding typeBinding)
 #else
-        internal void Attach(ObjectRef objectRef, TypeBinding typeBinding)
+        public void Attach(ObjectRef objectRef, TypeBinding typeBinding)
 #endif
         {
-            ThisRef.ETI = objectRef.ETI;
-            ThisRef.ObjectID = objectRef.ObjectID;
+            thisRef.ETI = objectRef.ETI;
+            thisRef.ObjectID = objectRef.ObjectID;
             typeBinding_ = typeBinding;
         }
 
-        internal void Attach(ulong addr, ulong oid, TypeBinding typeBinding)
+        public void Attach(ulong addr, ulong oid, TypeBinding typeBinding)
         {
-            ThisRef.ETI = addr;
-            ThisRef.ObjectID = oid;
+            thisRef.ETI = addr;
+            thisRef.ObjectID = oid;
             typeBinding_ = typeBinding;
         }
 

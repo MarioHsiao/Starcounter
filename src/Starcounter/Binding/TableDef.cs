@@ -8,6 +8,7 @@ using Starcounter.Query.Execution;
 using Starcounter.Internal;
 using System;
 using System.Text;
+using System.Diagnostics;
 
 namespace Starcounter.Binding
 {
@@ -158,6 +159,28 @@ namespace Starcounter.Binding
                 }
             }
             return b;
+        }
+
+        /// <summary>
+        /// Returns the position of the first indexable column.
+        /// </summary>
+        /// <returns>
+        /// The position of the first column that can be indexed or -1 
+        /// if none is found.
+        /// </returns>
+        public short GetFirstIndexableColumnIndex() {
+            for (short i = 0; i < ColumnDefs.Length; i++) {
+                switch (ColumnDefs[i].Type){
+                    case DbTypeCode.Binary:
+                    case DbTypeCode.LargeBinary:
+                    case DbTypeCode.Double:
+                    case DbTypeCode.Single:
+                        continue;
+                    default:
+                        return i;
+                }
+            }
+            return -1;
         }
 
         /// <summary>

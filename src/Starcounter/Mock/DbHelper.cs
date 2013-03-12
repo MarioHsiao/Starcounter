@@ -50,7 +50,7 @@ namespace Starcounter
         /// </summary>
         /// <param name="oid">The oid.</param>
         /// <returns>Entity.</returns>
-        public static Entity FromID(ulong oid)
+        public static IObjectView FromID(ulong oid)
         {
             Boolean br;
             UInt16 codeClassIdx;

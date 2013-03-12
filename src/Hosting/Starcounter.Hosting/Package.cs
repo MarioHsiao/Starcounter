@@ -187,12 +187,15 @@ namespace Starcounter.Hosting {
                 hasIndex = storedTableDef.HasIndex();
             });
             if (!hasIndex) {
-                unsafe {
-                    short* column_indexes = stackalloc short[2];
-                    column_indexes[0] = 0;
-                    column_indexes[1] = -1;
-                    var r = sccoredb.sccoredb_create_index(storedTableDef.TableId, "auto", 0, column_indexes, 0);
-                    if (r != 0) throw ErrorCode.ToException(r);
+                short columnIndex = storedTableDef.GetFirstIndexableColumnIndex();
+                if (columnIndex != -1) {
+                    unsafe {
+                        short* column_indexes = stackalloc short[2];
+                        column_indexes[0] = columnIndex;
+                        column_indexes[1] = -1;
+                        var r = sccoredb.sccoredb_create_index(storedTableDef.TableId, "auto", 0, column_indexes, 0);
+                        if (r != 0) throw ErrorCode.ToException(r);
+                    }
                 }
             }
 #endif
