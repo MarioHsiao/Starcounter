@@ -176,7 +176,7 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
     {
         stringBuilder.Append(tabs, "ObjectVariable(");
         if (value != null)
-            stringBuilder.Append((value as Entity).ThisRef.ObjectID.ToString());
+            stringBuilder.Append(value.ThisRef.ObjectID.ToString());
         else
             stringBuilder.Append(Starcounter.Db.NullString);
         stringBuilder.AppendLine(")");

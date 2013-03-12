@@ -61,26 +61,26 @@ internal class ObjectSetFunction : SetFunction, ISetFunction
         switch (setFuncType)
         {
             case SetFunctionType.MAX:
-                if (value != null && value is Entity)
+                if (value != null)
                 {
                     if (result == null)
                     {
                         result = value;
                     }
-                    else if ((value as Entity).ThisRef.ObjectID > (result as Entity).ThisRef.ObjectID)
+                    else if (value.ThisRef.ObjectID > result.ThisRef.ObjectID)
                     {
                         result = value;
                     }
                 }
                 break;
             case SetFunctionType.MIN:
-                if (value != null && value is Entity)
+                if (value != null)
                 {
                     if (result == null)
                     {
                         result = value;
                     }
-                    else if ((value as Entity).ThisRef.ObjectID < (result as Entity).ThisRef.ObjectID)
+                    else if (value.ThisRef.ObjectID < result.ThisRef.ObjectID)
                     {
                         result = value;
                     }
