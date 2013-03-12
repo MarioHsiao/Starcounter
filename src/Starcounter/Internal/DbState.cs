@@ -407,7 +407,7 @@ namespace Starcounter.Internal
         /// <param name="obj">The obj.</param>
         /// <param name="index">The index.</param>
         /// <returns>Entity.</returns>
-        public static Entity ReadObject(Entity obj, Int32 index)
+        public static IObjectView ReadObject(Entity obj, Int32 index)
         {
             ObjectRef thisRef;
             UInt16 flags;
@@ -1433,7 +1433,7 @@ namespace Starcounter.Internal
         /// <param name="thisRef">The this ref.</param>
         /// <param name="index">The index.</param>
         /// <returns>Entity.</returns>
-        internal static Entity ReadObject(ObjectRef thisRef, Int32 index)
+        internal static IObjectView ReadObject(ObjectRef thisRef, Int32 index)
         {
             UInt16 flags;
             ObjectRef value;

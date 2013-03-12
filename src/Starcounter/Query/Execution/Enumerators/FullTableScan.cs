@@ -31,7 +31,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
        enumeratorCreated = false, // True after execution enumerator is created.
        dataStreamChanged = false; // True if data stream has changed.
 
-    Enumerator<Entity> enumerator = null; // Handle to execution enumerator.
+    Enumerator enumerator = null; // Handle to execution enumerator.
     Row contextObject = null; // This object comes from the outer loop in joins.
 
     CodeGenFilterPrivate privateFilter = null; // Filter code generator instance.
@@ -88,7 +88,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         iterHelper = IteratorHelper.GetIndex(indexHandle); // Caching index handle.
 
         // Creating empty enumerator at caching time (without any managed post privateFilter).
-        enumerator = new Enumerator<Entity>(0, 0);
+        enumerator = new Enumerator(0, 0);
 
         // Checking if private filter has already been created for us.
         if (privateFilter == null)
@@ -383,7 +383,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         triedEnumeratorRecreation = true;
 
         // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter<Entity>(rk, extentNumber, enumerator))
+        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator))
         {
             // Indicating that enumerator has been created.
             enumeratorCreated = true;
@@ -467,7 +467,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // Creating native iterator.
         if (descending)
         {
-            iterHelper.GetEnumeratorCached_CodeGenFilter<Entity>(
+            iterHelper.GetEnumeratorCached_CodeGenFilter(
                 sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY | sccoredb.SC_ITERATOR_SORTED_DESCENDING,
                 secondKeyBuffer,
                 firstKeyBuffer,
@@ -475,7 +475,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
         else
         {
-            iterHelper.GetEnumeratorCached_CodeGenFilter<Entity>(
+            iterHelper.GetEnumeratorCached_CodeGenFilter(
                 sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY,
                 firstKeyBuffer,
                 secondKeyBuffer,
@@ -523,7 +523,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             if (enableRecreateObjectCheck)
             {
                 // Fetching new object information.
-                Entity dbObject = enumerator.Current;
+                IObjectView dbObject = enumerator.Current;
 
                 // Checking if its the same object.
                 if ((keyOID != dbObject.ThisRef.ObjectID) && (keyETI != dbObject.ThisRef.ETI))
@@ -635,7 +635,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             }
             else
             {
-                Entity dbObject = enumerator.CurrentRaw;
+                IObjectView dbObject = enumerator.CurrentRaw;
                 if (dbObject != null)
                 {
                     // Getting current position of the object in iterator.
