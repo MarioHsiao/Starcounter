@@ -241,13 +241,7 @@ namespace Starcounter.Internal.Weaver {
                 // No reference to Starcounter. We don't need to transform anything.
                 // Lets skip the rest of the code.
 
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(
-                    SeverityType.Info,
-                    "SCINF03",
-                    new Object[] { _module.Name }
-                    );
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Info, "SCINF03", new Object[] { _module.Name });
                 return true;
             }
 
@@ -255,13 +249,11 @@ namespace Starcounter.Internal.Weaver {
             // meaning we need not to transform at all.
 
             if (analysisTask.TransformationKind == WeaverTransformationKind.None) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(
+                ScMessageSource.Write(
                     SeverityType.Info,
                     "SCINF04",
                     new Object[] { _module.Name }
                     );
-#pragma warning restore 618
 
                 // Disable all upcoming tasks in this project, since we don't
                 // need to do anything with this assembly
@@ -303,12 +295,7 @@ namespace Starcounter.Internal.Weaver {
             // We will weave it. Make sure we redirect it first and then mark it
             // as weaved for IPC if it's such a context we are weaving for.
 
-#pragma warning disable 618
-            ScMessageSource.Instance.Write(
-                SeverityType.ImportantInfo, "SCINF02",
-                new Object[] { _module.Name }
-                );
-#pragma warning restore 618
+            ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF02", new Object[] { _module.Name });
 
             // Initialize extra for user code weavers.
 
