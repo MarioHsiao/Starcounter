@@ -529,10 +529,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		LogVerboseMessage(L"Network gateway started");
 	}
 
-	// TODO: Wait until ipcmonitor/gateway is ready.
-	// TODO: Remove the Sleep().
-	Sleep(2000);
-
 #ifdef WITH_DATABASE
 
 	if(logsteps != 0 ) { 
