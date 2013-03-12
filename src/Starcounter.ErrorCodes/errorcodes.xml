@@ -3499,7 +3499,13 @@
       <message>A database with the specified name was not found.</message>
     </code>
     <code hex="0003" severity="Error" name="ScErrServerNotRunning">
-      <message>The server was not running.</message>
+      <!--
+      This error is used when a management client, such as star.exe,
+      can not communicate properly with the admin server and decide
+      it is because the admin server process is not running.
+      -->
+      <!--See also: ScErrServerNotAvailable-->
+      <message>The administrator server is not running.</message>
     </code>
     <code hex="0004" severity="Error" name="ScErrCantStartDatabase">
       <message>Attempting to start the database failed.</message>
@@ -3602,6 +3608,22 @@
       -->
       <message>
         The executable file cound not be found.
+      </message>
+    </code>
+    <code hex="0014" severity="Error" name="ScErrServerNotAvailable">
+      <!--
+      This error is used when a management client, such as star.exe,
+      can not communicate properly with the admin server and the exact
+      reason why doesn't map one to one to any other, more specific
+      Starcounter error (such as ScErrServerNotRunning).
+        When constructing and logging/showing an error message based
+      on this code, make sure to supply more low-level, detailed info
+      such as socket level error codes, etc, to make support for this
+      easier.
+      -->
+      <!--See also: ScErrServerNotRunning-->
+      <message>
+        Unable to communicate with the administrator server.
       </message>
     </code>
   </facility>
