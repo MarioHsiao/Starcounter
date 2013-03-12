@@ -14,7 +14,8 @@ using Starcounter.Query.SQL;
 namespace QueryProcessingTest {
     public static class QueryProcessingPerformance {
         public static void MeasurePrepareQuery() {
-            int nrIterations = 100;
+            int nrIterations = 1000;
+            int nrPrologIterations = 100;
             String query = "select a from Account a, User u where a.Client = u and u.FirstName = ? fetch ? offset ?";
             Stopwatch timer = new Stopwatch();
             timer.Start();
@@ -25,10 +26,10 @@ namespace QueryProcessingTest {
                     throw e;
             }
             timer.Stop();
-            Console.WriteLine("First call to prepare query took " + timer.ElapsedMilliseconds * 1000 / nrIterations + " mcs.");
+            Console.WriteLine("First call to prepare query took " + timer.ElapsedMilliseconds + " ms.");
             timer.Reset();
             timer.Start();
-            for (int i = 0; i < nrIterations; i++)
+            for (int i = 0; i < nrPrologIterations; i++)
                 try {
                     Starcounter.Query.QueryPreparation.PrepareQuery(query);
                 } catch (Exception e) { 
@@ -36,29 +37,29 @@ namespace QueryProcessingTest {
                         throw e;
                 }
             timer.Stop();
-            Console.WriteLine("Preparing query took " + timer.ElapsedMilliseconds * 1000 / nrIterations + " mcs.");
+            Console.WriteLine("Preparing query took " + timer.ElapsedMilliseconds * 1000 / nrPrologIterations + " mcs.");
 
             timer.Reset();
             se.sics.prologbeans.QueryAnswer answer = null;
             timer.Start();
-            for (int i = 0; i <nrIterations; i++)
+            for (int i = 0; i < nrPrologIterations; i++)
                 answer = PrologManager.CallProlog(query);
             timer.Stop();
-            Console.WriteLine("Call Prolog (parse and type check) took " + timer.ElapsedMilliseconds * 1000 / nrIterations + " mcs.");
+            Console.WriteLine("Call Prolog (parse and type check) took " + timer.ElapsedMilliseconds * 1000 / nrPrologIterations + " mcs.");
             timer.Reset();
             OptimizerInput optArgsProlog = null;
             timer.Start();
             for (int i = 0; i < nrIterations; i++)
                 optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
             timer.Stop();
-            Console.WriteLine("Map Prolog answer to optimizer input took " + timer.ElapsedMilliseconds * 1000 / nrIterations + " mcs.");
+            Console.WriteLine(String.Format("Map Prolog answer to optimizer input took {0:N2} mcs.", (decimal)timer.ElapsedMilliseconds * 1000 / nrIterations));
             timer.Reset();
             IExecutionEnumerator prologParsedQueryPlan = null;
             timer.Start();
             for (int i = 0; i < nrIterations; i++)
                 prologParsedQueryPlan = Optimizer.Optimize(optArgsProlog);
             timer.Stop();
-            Console.WriteLine("Optimizing the query tree took " + timer.ElapsedMilliseconds * 1000 / nrIterations + " mcs.");
+            Console.WriteLine(String.Format("Optimizing the query tree took {0:N2} mcs.", (decimal)timer.ElapsedMilliseconds * 1000 / nrIterations));
 
             timer.Reset();
             ParserTreeWalker treeWalker = null;
@@ -68,7 +69,7 @@ namespace QueryProcessingTest {
                 treeWalker.ParseQuery(query);
             }
             timer.Stop();
-            Console.WriteLine("Parsing query in Bison took " + timer.ElapsedMilliseconds * 1000 / nrIterations + " mcs.");
+            Console.WriteLine(String.Format("Parsing query in Bison took {0:N2} mcs.", (decimal)timer.ElapsedMilliseconds * 1000 / nrIterations));
         }
     }
 }
