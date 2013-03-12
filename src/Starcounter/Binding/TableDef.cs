@@ -169,9 +169,6 @@ namespace Starcounter.Binding
         /// if none is found.
         /// </returns>
         public short GetFirstIndexableColumnIndex() {
-            if (!Debugger.IsAttached)
-                Debugger.Launch();
-
             for (short i = 0; i < ColumnDefs.Length; i++) {
                 switch (ColumnDefs[i].Type){
                     case DbTypeCode.Binary:
