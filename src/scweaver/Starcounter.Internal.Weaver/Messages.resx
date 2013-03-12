@@ -126,9 +126,12 @@
   <data name="SCATV03" xml:space="preserve">
     <value>Cannot set the field {0}.{1} because its database implementation is read-only.</value>
   </data>
+  <!--
+  Deprecated.
   <data name="SCATV04" xml:space="preserve">
     <value>The assembly "{0}" is decorated with the [KnownAssembly] custom attribute, but has an incorrect proof.</value>
   </data>
+  -->
   <data name="SCATV05" xml:space="preserve">
     <value>You cannot deploy a strongly-named assembly ({0}) in Starcounter. You should deploy it in GAC instead.</value>
   </data>
