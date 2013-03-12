@@ -116,6 +116,12 @@ namespace Starcounter
         /// </summary>
         Nullable<UInt64> GetUInt64(Int32 index);
 
+        #region Temporary extension methods from Entity
+        void Attach(ObjectRef objectRef, TypeBinding typeBinding);
+        void Attach(ulong addr, ulong oid, TypeBinding typeBinding);
+        ObjectRef ThisRef {get;set;}
+        #endregion
+
 #if DEBUG
         /// <summary>
         /// Comparing this and given objects and asserting that they are equal.
