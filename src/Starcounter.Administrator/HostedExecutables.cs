@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Collections.Specialized;
 using System.Text;
+using Starcounter.Internal;
 
 namespace Starcounter.Administrator {
 
@@ -60,12 +61,18 @@ namespace Starcounter.Administrator {
             var execRequest = new ExecRequest();
             execRequest.PopulateFromJson(request.GetContentStringUtf8_Slow());
 
-            var cmd = new ExecCommand(engine, execRequest.ExecutablePath, null, null);
+            string[] userArgs = null;
+            if (!string.IsNullOrEmpty(execRequest.CommandLineString)) {
+                userArgs = KeyValueBinary.ToArray(execRequest.CommandLineString);
+            }
+
+            var cmd = new ExecCommand(engine, execRequest.ExecutablePath, null, userArgs);
             cmd.DatabaseName = name;
             cmd.EnableWaiting = true;
             cmd.LogSteps = execRequest.LogSteps;
             cmd.NoDb = execRequest.NoDb;
             cmd.CanAutoCreateDb = execRequest.CanAutoCreateDb;
+            
 
             // Ask the server runtime to ask the command.
             // Assert it's executed by the default processor, since we
