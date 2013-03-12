@@ -326,11 +326,21 @@ namespace star {
                 CanAutoCreateDb = !args.ContainsFlag(Option.NoAutoCreateDb)
             };
 
+            // Check if we have any arguments we ultimately must pass on
+            // to a user code entrypoint.
+
             if (args.CommandParameters != null) {
                 int userArgsCount = args.CommandParameters.Count;
-                if (userArgsCount > 0) {
+
+                // Check if we have more arguments than one. Remember that we
+                // reserve the first argument as the name/path of the executable
+                // and that we are really hiding a general "Exec exe [others]"
+                // scenario.
+
+                if (userArgsCount > 1) {
+                    userArgsCount--;
                     var userArgs = new string[userArgsCount];
-                    args.CommandParameters.CopyTo(userArgs, 0);
+                    args.CommandParameters.CopyTo(1, userArgs, 0, userArgsCount);
                     var binaryArgs = KeyValueBinary.FromArray(userArgs);
                     request.CommandLineString = binaryArgs.Value;
                 }
