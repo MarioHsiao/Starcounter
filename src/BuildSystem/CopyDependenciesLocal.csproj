@@ -32,6 +32,8 @@
         ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.pdb;
         ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.lib
     </ScerrresDll32>
+    
+    <LocalPrologSQLParser>..\Starcounter\Query\prologbeans\scsqlparser.exe</LocalPrologSQLParser>
   </PropertyGroup>
   <PropertyGroup>
     <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
@@ -57,7 +59,8 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalGatewayTestFiles)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll)" DestinationFolder="$(OutputPath)" />
-	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll32)" DestinationFolder="$(OutputPath32)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(ScerrresDll32)" DestinationFolder="$(OutputPath32)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalPrologSQLParser)" DestinationFolder="$(OutputPath32)" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" DependsOnTargets="CopyLocalFiles" />
