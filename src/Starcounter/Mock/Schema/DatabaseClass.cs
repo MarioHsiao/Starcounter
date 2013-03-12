@@ -99,15 +99,6 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
     }
 
     /// <summary>
-    /// Gets or sets an eventual precedent name for this class.
-    /// </summary>
-    public string PrecedentName
-    {
-        get;
-        set;
-    }
-
-    /// <summary>
     /// Gets the collection of database attributes defined in the current class.
     /// </summary>
     public DatabaseAttributeCollection Attributes
