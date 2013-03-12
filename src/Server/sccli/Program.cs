@@ -220,11 +220,14 @@ namespace star {
             execRequest = GatherAndCreateExecRequest(appArgs, out database, out relativeUri);
 
             client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
-
             try {
                 var x = Exec(client, execRequest, serverName, database, relativeUri);
                 x.Wait();
                 response = x.Result;
+            }
+            catch (SocketException se) {
+                ShowSocketErrorAndSetExitCode(se, client.BaseAddress, serverName);
+                return;
             } catch (AggregateException ae) {
                 var cause = ae.GetBaseException();
                 while (!(cause is SocketException)) {
@@ -441,22 +444,36 @@ namespace star {
         }
 
         static void ShowSocketErrorAndSetExitCode(SocketException ex, Uri serverUri, string serverName) {
-            Console.WriteLine(ex);
-            Environment.ExitCode = (int)Error.SCERRUNSPECIFIED;
-            //// ScErrServerNotRunning for example.
-            //// We should include in the error what socket error we got
-            //// and include server, serverhost, serverport.
-            //// TODO:
+            
+            // Map the socket level error code to a correspoding Starcounter
+            // error code. Try to be as specific as possible.
 
-            //SocketException se = (SocketException)cause;
-            //if (se.SocketErrorCode == SocketError.ConnectionRefused) {
-            //    // Hint about that the server might not be on the given host/port!
-            //    // TODO:
-            //}
+            uint scErrorCode;
+            switch(ex.SocketErrorCode) {
+                case SocketError.ConnectionRefused:
+                    scErrorCode = Error.SCERRSERVERNOTRUNNING;
+                    break;
+                default:
+                    scErrorCode = Error.SCERRSERVERNOTAVAILABLE;
+                    break;     
+            }
 
-            //Console.WriteLine("{0} {1} {2} {3}", se.ErrorCode, se.NativeErrorCode, se.SocketErrorCode, se.Message);
-            //return;
+            try {
+                var serverInfo = string.Format("\"{0}\" at {1}:{2}", serverName, serverUri.Host, serverUri.Port);
+                var socketError = string.Format("{0}/{1}: {2}", ex.SocketErrorCode, ex.ErrorCode, ex.Message);
 
+                ConsoleUtil.ToConsoleWithColor(
+                    ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)),
+                    ConsoleColor.Red);
+                Console.WriteLine();
+                ConsoleUtil.ToConsoleWithColor(
+                    string.Format("(Socket error: {0})", socketError), ConsoleColor.DarkGray);
+
+            } finally {
+                // If any unexpected problem when constructing the error information
+                // or writing them to the console, at least always set the error code.
+                Environment.ExitCode = (int)scErrorCode;
+            }
         }
 
         static void ShowVersionInfo() {
