@@ -410,12 +410,7 @@ namespace Starcounter.Internal.Weaver {
 
             _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
 
-#pragma warning disable 618
-            ScMessageSource.Instance.Write(
-                SeverityType.ImportantInfo,
-                "SCINF01",
-                new Object[] { _module.Name });
-#pragma warning restore 618
+            ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF01", new Object[] { _module.Name });
 
             // Create a DatabaseAssembly for the current module and add it to the schema.
             _databaseAssembly = new DatabaseAssembly(_module.AssemblyManifest.Name, _module.AssemblyManifest.GetFullName()) {
@@ -427,20 +422,15 @@ namespace Starcounter.Internal.Weaver {
             // Prepare cached stuff.
             _weavingHelper = new WeavingHelper(_module);
             voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
-            _defaultConstructorSignature = new MethodSignature(_module,
-                                                               CallingConvention.Default,
-                                                               voidTypeSign,
-                                                               new IntrinsicTypeSignature[0],
-                                                               0);
+            _defaultConstructorSignature = new MethodSignature(
+                _module,
+                CallingConvention.Default,
+                voidTypeSign,
+                new IntrinsicTypeSignature[0],
+                0);
             
             if (_module.AssemblyManifest.GetPublicKey() != null) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(
-                        SeverityType.Error,
-                        "SCATV05",
-                        new Object[] { _module.AssemblyManifest.GetFullName() }
-                        );
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCATV05", new Object[] { _module.AssemblyManifest.GetFullName() });
             }
 
             // Find the reference to Starcounter
@@ -453,13 +443,9 @@ namespace Starcounter.Internal.Weaver {
                 // it would be better to configure this assembly not to be analyzed by
                 // the weaver, to improve startup time.
 
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(
-                    SeverityType.ImportantInfo,
-                    "SCATV06",
+                ScMessageSource.Write(SeverityType.ImportantInfo, "SCATV06",
                     new Object[] { _module.AssemblyManifest.GetFullName() }
                     );
-#pragma warning restore 618
             } else {
                 // The module/assembly we are told to process references Starcounter,
                 // either directly or indirectly. Prepare to run analyzis.
@@ -595,17 +581,14 @@ namespace Starcounter.Internal.Weaver {
                 if (databaseClass.Name != _rootSocietyObjectTypeName &&
                     databaseClass.KindClass != null) {
                     parent = (DatabaseSocietyClass)databaseClass.BaseClass;
-                    if (parent != null
-                            && databaseClass.KindClass.BaseClass != parent.InheritedKindClass) {
-#pragma warning disable 618
-                        ScMessageSource.Instance.Write(SeverityType.Error,
-                                                       "SCKCV04",
-                                                       new object[] {
-														databaseClass.Name,
-														parent.InheritedKindClass.Name
-												   }
-                                                    );
-#pragma warning restore 618
+                    if (parent != null && databaseClass.KindClass.BaseClass != parent.InheritedKindClass) {
+                        ScMessageSource.Write(
+                            SeverityType.Error,
+                            "SCKCV04",
+                            new object[] {
+                                databaseClass.Name,
+                                parent.InheritedKindClass.Name
+                            });
                     }
                 }
 
@@ -615,11 +598,7 @@ namespace Starcounter.Internal.Weaver {
                          && (databaseClass.KindClass == null
                                 || nestedType != databaseClass.KindClass.GetTypeDefinition())
                        ) {
-#pragma warning disable 618
-                        ScMessageSource.Instance.Write(SeverityType.Error,
-                                                       "SCKCV06",
-                                                       new object[] { nestedType.Name });
-#pragma warning restore 618
+                        ScMessageSource.Write(SeverityType.Error, "SCKCV06", new object[] { nestedType.Name });
                     }
                 }
             }
@@ -636,32 +615,25 @@ namespace Starcounter.Internal.Weaver {
 
             // A kind class must be named ‘Kind’.
             if (!databaseClass.Name.EndsWith("+Kind")) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCKCV02",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCKCV02", new Object[] { databaseClass.Name });
             }
 
             // A kind class must have a default constructor (unless it is abstract).
-            if (!typeDef.IsAbstract
-                    && typeDef.Methods.GetMethod(".ctor",
-                                                 _defaultConstructorSignature,
-                                                 bindOpts) == null) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCKCV05",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+            if (!typeDef.IsAbstract && typeDef.Methods.GetMethod(".ctor", _defaultConstructorSignature, bindOpts) == null) {
+                ScMessageSource.Write(
+                    SeverityType.Error,
+                    "SCKCV05",
+                    new Object[] { databaseClass.Name }
+                    );
             }
 
             // A kind class cannot be sealed.
             if (typeDef.IsSealed) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCKCV08",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(
+                    SeverityType.Error,
+                    "SCKCV08",
+                    new Object[] { databaseClass.Name }
+                    );
             }
 
             // A kind class should have at least protected visibility.
@@ -669,11 +641,7 @@ namespace Starcounter.Internal.Weaver {
             if (visibility != TypeAttributes.NestedFamily
                   && visibility != TypeAttributes.NestedFamORAssem
                   && visibility != TypeAttributes.NestedPublic) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCKCV09",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCKCV09", new Object[] { databaseClass.Name });
             }
         }
 
@@ -692,32 +660,20 @@ namespace Starcounter.Internal.Weaver {
                 if (constructorDef.Parameters.Count == 0) {
                     defaultConstructor = constructorDef;
                 } else if (!forbiddenConstructorErrorEmitted) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error,
-                                                   "SCECV01",
-                                                   new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                    ScMessageSource.Write(SeverityType.Error, "SCECV01", new Object[] { databaseClass.Name });
                     forbiddenConstructorErrorEmitted = true;
                 }
             }
 
             if (defaultConstructor == null) {
                 if (!forbiddenConstructorErrorEmitted) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error,
-                                                   "SCECV01",
-                                                   new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                    ScMessageSource.Write(SeverityType.Error, "SCECV01", new Object[] { databaseClass.Name });
                 }
             }
 
             // An extension class should be sealed.
             if (!typeDef.IsSealed) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCECV04",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCECV04", new Object[] { databaseClass.Name });
             }
         }
 
@@ -745,11 +701,7 @@ namespace Starcounter.Internal.Weaver {
 
             // A database class cannot have generic parameters.
             if (typeDef.IsGenericDefinition) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCDCV01",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCDCV01", new Object[] { databaseClass.Name });
             }
 
             // A database class cannot have a destructor.
@@ -758,11 +710,7 @@ namespace Starcounter.Internal.Weaver {
                                                                 _defaultConstructorSignature,
                                                                 bindOpts);
             if (finalizeMethod != null) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCDCV02",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCDCV02", new Object[] { databaseClass.Name });
             }
         }
 
@@ -904,23 +852,11 @@ namespace Starcounter.Internal.Weaver {
                     databaseClass = null;
                 }
 
-                if (databaseClass == null
-                        || (databaseAttribute = databaseClass.Attributes[field.Name]) == null
-                        || !databaseAttribute.IsPersistent) {
-
-                            ErrorCode.ToMessage(Error.SCERRUNSPECIFIED);
-                    
+                if (databaseClass == null || (databaseAttribute = databaseClass.Attributes[field.Name]) == null || !databaseAttribute.IsPersistent) {
                     ScMessageSource.WriteError(
                                 MessageLocation.Of(synonymToEnumerator.Current.TargetElement),
                                 Error.SCERRUNSPECIFIED,
-                                "Hej");
-#pragma warning disable 618
-                    //ScMessageSource.Instance.Write(
-                    //    SeverityType.Error,
-                    //    "SCPFV16",
-                    //    new Object[] { synonymToEnumerator.Current.TargetElement.ToString() }
-                    //    );
-#pragma warning restore 618
+                                "Illegal element for the SynonymousTo attribute");
                 }
             }
         }
@@ -1186,10 +1122,7 @@ namespace Starcounter.Internal.Weaver {
                 //  ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is not a DbObject.", type);
                 // Emit an error if the type is nested in a society object and is named 'Kind'.
                 if (typeDef.DeclaringType != null && typeDef.Name == "Kind" && IsSocietyObject(typeDef.DeclaringType)) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error,
-                                                   "SCKCV06", new object[] { typeDef });
-#pragma warning restore 618
+                    ScMessageSource.Write(SeverityType.Error, "SCKCV06", new object[] { typeDef });
                 }
                 return null;
             }
@@ -1232,12 +1165,9 @@ namespace Starcounter.Internal.Weaver {
                         ReflectionNameOptions.UseAssemblyName);
                 StringBuilder newClassName = new StringBuilder();
                 typeDef.WriteReflectionName(newClassName, ReflectionNameOptions.UseAssemblyName);
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCDCV07",
-                                               new object[] { typeDef.GetReflectionName(), newClassName, existingClassName }
-                                              );
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCDCV07",
+                    new object[] { typeDef.GetReflectionName(), newClassName, existingClassName }
+                    );
                 return null;
             }
 
@@ -1262,9 +1192,7 @@ namespace Starcounter.Internal.Weaver {
                     // The parent class is not a society object.
                     // This is an error.
 
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error, "SCKCV03", new object[] { typeDef });
-#pragma warning restore 618
+                    ScMessageSource.Write(SeverityType.Error, "SCKCV03", new object[] { typeDef });
                     return null;
                 } else {
                     parentClass.KindClass = databaseClass as DatabaseKindClass;
@@ -1353,11 +1281,7 @@ namespace Starcounter.Internal.Weaver {
             if (databaseClass.BaseClass != null &&
             databaseClass.BaseClass.FindAttributeInAncestors(field.Name) != null) {
                 // SCDCV06
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                "SCDCV06",
-                new object[] { field.DeclaringType, field.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCDCV06", new object[] { field.DeclaringType, field.Name });
             }
             DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, field.Name);
             databaseClass.Attributes.Add(databaseAttribute);
@@ -1494,14 +1418,10 @@ namespace Starcounter.Internal.Weaver {
                 DatabaseAttribute targetAttribute = databaseAttribute.SynonymousTo;
                 while (targetAttribute.SynonymousTo != null) {
                     if (chain.Contains(targetAttribute)) {
-#pragma warning disable 618
-                        ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV22",
-                                                       new object[]
-                    {
-                        databaseAttribute.DeclaringClass.Name,
-                        databaseAttribute.Name
-                    });
-#pragma warning restore 618
+                        ScMessageSource.Write(SeverityType.Error, "SCPFV22", new object[] {
+                            databaseAttribute.DeclaringClass.Name,
+                            databaseAttribute.Name
+                        });
                         break;
                     }
                     chain.Add(targetAttribute);
@@ -1705,18 +1625,9 @@ namespace Starcounter.Internal.Weaver {
                                     } else {
                                         // The field {0}.{1} is initialized outside the constructor but has a complex value.
                                         // Only literal intrinsic values are allowed.
-#pragma warning disable 618
-                                        ScMessageSource.Instance.Write(SeverityType.Error,
-                                                                       "SCPFV02", new object[]
-                                    {
-                                        databaseAttribute
-                                        .
-                                        DeclaringClass
-                                        .Name,
-                                        databaseAttribute
-                                        .Name
-                                    });
-#pragma warning restore 618
+                                        ScMessageSource.Write(SeverityType.Error, "SCPFV02", new object[] { 
+                                            databaseAttribute.DeclaringClass.Name, databaseAttribute.Name
+                                        });
                                     }
                                 }
                             }
@@ -1861,11 +1772,11 @@ namespace Starcounter.Internal.Weaver {
                         // We understand that.
                         break;
                     default:
-#pragma warning disable 618
                         // This is too complex for our analysis.
-                        ScMessageSource.Instance.Write(SeverityType.Error, "SCDCV04",
-                                                       new object[] { methodDef.DeclaringType.Name });
-#pragma warning restore 618
+                        ScMessageSource.Write(
+                            SeverityType.Error, 
+                            "SCDCV04",
+                            new object[] { methodDef.DeclaringType.Name });
                         return;
                 }
 #pragma warning disable 618
@@ -1957,10 +1868,10 @@ namespace Starcounter.Internal.Weaver {
                     constructorEmpty = false;
                 }
                 if (!constructorEmpty) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error,
-                                                   "SCECV03", new object[] { databaseClass.Name });
-#pragma warning restore 618
+                    ScMessageSource.Write(
+                        SeverityType.Error,
+                        "SCECV03", 
+                        new object[] { databaseClass.Name });
                 }
             }
         }
@@ -2041,10 +1952,9 @@ namespace Starcounter.Internal.Weaver {
                         }
                         fields.Append(s);
                     }
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV21",
-                                                   new object[] { methodDef.ToString(), fields.ToString() });
-#pragma warning restore 618
+                    ScMessageSource.Write(
+                        SeverityType.Error, "SCPFV21", new object[] { methodDef.ToString(), fields.ToString() 
+                        });
                 }
             }
         }
