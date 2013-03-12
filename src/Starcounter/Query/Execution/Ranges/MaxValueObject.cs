@@ -133,6 +133,9 @@ internal sealed class MaxValueObject : IObjectView
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
         }
     }
+    public void Delete() {
+        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface method is temporary");
+    }
     #endregion
 
 #if DEBUG

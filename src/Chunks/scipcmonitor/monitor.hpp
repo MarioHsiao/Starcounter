@@ -60,6 +60,7 @@
 //#include "event.hpp"
 #include "bounded_message_buffer.hpp"
 #include "process_info.hpp"
+#include "../common/log.hpp"
 #include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
 
@@ -390,6 +391,8 @@ private:
 	
 	bounded_buffer<std::string> active_segments_update_;
 	
+	starcounter::log log_;
+
 	//--------------------------------------------------------------------------
 	// Threads (also in database_process_group and client_process_group)
 	

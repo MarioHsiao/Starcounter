@@ -898,6 +898,9 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
         }
     }
+    public void Delete() {
+        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface method is temporary");
+    }
     #endregion
 
 #if DEBUG

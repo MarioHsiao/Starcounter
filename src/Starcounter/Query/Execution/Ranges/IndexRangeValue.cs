@@ -144,7 +144,7 @@ internal class IndexRangeValue
         keyValueFormat = KeyValueFormat.Fixed;
         if (value != null)
         {
-            keyValue = ConvertToKeyValueFixedLength(BitConverter.GetBytes((value as Entity).ThisRef.ObjectID));
+            keyValue = ConvertToKeyValueFixedLength(BitConverter.GetBytes(value.ThisRef.ObjectID));
         }
         else
         {

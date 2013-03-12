@@ -120,6 +120,8 @@ namespace Starcounter
         void Attach(ObjectRef objectRef, TypeBinding typeBinding);
         void Attach(ulong addr, ulong oid, TypeBinding typeBinding);
         ObjectRef ThisRef {get;set;}
+
+        void Delete();
         #endregion
 
 #if DEBUG
