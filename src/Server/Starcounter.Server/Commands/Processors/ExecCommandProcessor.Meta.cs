@@ -45,6 +45,27 @@ namespace Starcounter.Server.Commands {
                 TaskDuration.NormalIndeterminate,
                 "Creates a database if one with the given name is not found and automatic creation is not disabled."
                 );
+
+            internal static readonly CommandTask StartDataAndHostProcesses = new CommandTask(
+                ExecCommand.DefaultProcessor.Tasks.StartDataAndHostProcesses,
+                "Preparing database engine",
+                TaskDuration.NormalIndeterminate,
+                "Assures neccessary processes such as scdata and sccode is up and ready."
+                );
+
+            internal static readonly CommandTask WeaveOrPrepareForNoDb = new CommandTask(
+                ExecCommand.DefaultProcessor.Tasks.WeaveOrPrepareForNoDb,
+                "Preparing user executables and files",
+                TaskDuration.NormalIndeterminate,
+                "Prepares the user code to be hosted in the code host, weaving and/or copying it."
+                );
+
+            internal static readonly CommandTask PingOrLoad = new CommandTask(
+                ExecCommand.DefaultProcessor.Tasks.PingOrLoad,
+                "Setting up code host process",
+                TaskDuration.NormalIndeterminate,
+                "Communications with the code host, by pinging it (in case of preparation) or loading user code."
+                );
         }
     }
 }
