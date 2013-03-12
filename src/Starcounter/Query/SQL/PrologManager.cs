@@ -935,11 +935,12 @@ namespace Starcounter.Query.Sql
         }
 
         [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
-        internal static QueryAnswer CallProlog(Scheduler scheduler, String query)
+        internal static QueryAnswer CallProlog(String query)
         {
             // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block. 
+            Scheduler scheduler = Scheduler.GetInstance();
 
             if (query == null)
             {

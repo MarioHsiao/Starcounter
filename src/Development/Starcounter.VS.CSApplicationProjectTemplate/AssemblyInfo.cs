@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Starcounter")]
 [assembly: AssemblyProduct("$safeprojectname$")]
-[assembly: AssemblyCopyright("Copyright © Starcounter 2012")]
+[assembly: AssemblyCopyright("Copyright © Starcounter 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("97346845-94BB-4D8E-AC10-2B62CA324867")]
+[assembly: Guid("526edd06-b4f0-469f-a4d4-e95b3c94f5ac")]
 
 // Version information for an assembly consists of the following four values:
 //

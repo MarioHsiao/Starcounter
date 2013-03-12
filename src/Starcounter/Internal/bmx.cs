@@ -185,6 +185,11 @@ namespace Starcounter.Internal
             UInt16* handler_id
         );
 
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_unregister_port(
+            UInt16 port
+        );
+
         /// <summary>
         /// Sc_bmx_register_subport_handlers the specified port.
         /// </summary>
@@ -201,22 +206,10 @@ namespace Starcounter.Internal
             UInt16* handler_id
         );
 
-        /// <summary>
-        /// Sc_bmx_register_uri_handlers the specified port.
-        /// </summary>
-        /// <param name="port">The port.</param>
-        /// <param name="url">The URL.</param>
-        /// <param name="http_verb">The http_verb.</param>
-        /// <param name="callback">The callback.</param>
-        /// <param name="handler_id">The handler_id.</param>
-        /// <returns>UInt32.</returns>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_register_uri_handler(
+        public unsafe extern static UInt32 sc_bmx_unregister_subport(
             UInt16 port,
-            String url,
-            Byte http_verb,
-            BMX_HANDLER_CALLBACK callback,
-            UInt16* handler_id
+            UInt32 subport
         );
 
         /// <summary>
@@ -229,14 +222,21 @@ namespace Starcounter.Internal
         /// <param name="handler_id">The handler_id.</param>
         /// <returns>UInt32.</returns>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_register_uri_handler_new(
+        public unsafe extern static UInt32 sc_bmx_register_uri_handler(
             UInt16 port,
-            String uri_info,
+            String originalUriInfo,
+            String processedUriInfo,
             Byte http_verb,
             Byte* param_types,
             Byte num_params,
             BMX_HANDLER_CALLBACK callback,
             UInt16* handler_id
+        );
+
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_unregister_uri(
+            UInt16 port,
+            String originalUriInfo
         );
     }
 }

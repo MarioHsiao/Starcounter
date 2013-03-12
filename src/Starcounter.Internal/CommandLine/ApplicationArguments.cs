@@ -8,7 +8,6 @@ using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 
 namespace Starcounter.CommandLine
@@ -21,11 +20,11 @@ namespace Starcounter.CommandLine
         /// <summary>
         /// The global options
         /// </summary>
-        readonly StringDictionary GlobalOptions;
+        readonly Dictionary<string, string> GlobalOptions;
         /// <summary>
         /// The command options
         /// </summary>
-        readonly StringDictionary CommandOptions;
+        readonly Dictionary<string, string> CommandOptions;
         /// <summary>
         /// The option index
         /// </summary>
@@ -36,7 +35,7 @@ namespace Starcounter.CommandLine
         /// <summary>
         /// The command parameters
         /// </summary>
-        public readonly StringCollection CommandParameters;
+        public readonly List<string> CommandParameters;
 
         /// <summary>
         /// Gets the command.
@@ -261,7 +260,7 @@ namespace Starcounter.CommandLine
         /// Gets the global options.
         /// </summary>
         /// <value>The global options.</value>
-        StringDictionary IApplicationInput.GlobalOptions
+        Dictionary<string, string> IApplicationInput.GlobalOptions
         {
             get { return this.GlobalOptions; }
         }
@@ -270,7 +269,7 @@ namespace Starcounter.CommandLine
         /// Gets the command options.
         /// </summary>
         /// <value>The command options.</value>
-        StringDictionary IApplicationInput.CommandOptions
+        Dictionary<string, string> IApplicationInput.CommandOptions
         {
             get { return this.CommandOptions; }
         }
@@ -279,7 +278,7 @@ namespace Starcounter.CommandLine
         /// Gets the command parameters.
         /// </summary>
         /// <value>The command parameters.</value>
-        StringCollection IApplicationInput.CommandParameters
+        List<string> IApplicationInput.CommandParameters
         {
             get { return this.CommandParameters; }
         }
@@ -427,9 +426,9 @@ namespace Starcounter.CommandLine
         /// </summary>
         internal ApplicationArguments()
         {
-            this.GlobalOptions = new StringDictionary();
-            this.CommandOptions = new StringDictionary();
-            this.CommandParameters = new StringCollection();
+            this.GlobalOptions = new Dictionary<string, string>();
+            this.CommandOptions = new Dictionary<string, string>();
+            this.CommandParameters = new List<string>();
         }
 
         /// <summary>
@@ -627,7 +626,7 @@ namespace Starcounter.CommandLine
         /// <param name="value">The value.</param>
         void AddOptionToDictionary(string key, string value)
         {
-            StringDictionary dictionary;
+            Dictionary<string, string> dictionary;
 
             dictionary = this.HasCommmand
                 ? CommandOptions
@@ -655,7 +654,7 @@ namespace Starcounter.CommandLine
 
             resolvedOptions = new Dictionary<string, GivenOption>();
 
-            foreach (StringDictionary dictionary in new object[] { this.GlobalOptions, this.CommandOptions })
+            foreach (var dictionary in new Dictionary<string, string>[] { this.GlobalOptions, this.CommandOptions })
             {
                 currentSection = object.ReferenceEquals(dictionary, this.GlobalOptions)
                     ? CommandLineSection.GlobalOptions

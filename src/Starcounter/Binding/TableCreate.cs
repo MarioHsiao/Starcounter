@@ -64,12 +64,16 @@ namespace Starcounter.Binding
             });
 
 #if true
-            unsafe {
-                short* column_indexes = stackalloc short[2];
-                column_indexes[0] = 0;
-                column_indexes[1] = -1;
-                var r = Starcounter.Internal.sccoredb.sccoredb_create_index(newTableDef.TableId, "auto", 0, column_indexes, 0);
-                if (r != 0) throw ErrorCode.ToException(r);
+            short columnIndex = newTableDef.GetFirstIndexableColumnIndex();
+            if (columnIndex != -1) {
+                unsafe {
+                    short* column_indexes = stackalloc short[2];
+                    column_indexes[0] = columnIndex;
+                    column_indexes[1] = -1;
+                    var r = Starcounter.Internal.sccoredb.sccoredb_create_index(newTableDef.TableId, "auto", 0, column_indexes, 0);
+                    if (r != 0)
+                        throw ErrorCode.ToException(r);
+                }
             }
 #endif
 

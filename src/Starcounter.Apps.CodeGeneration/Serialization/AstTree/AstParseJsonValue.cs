@@ -32,7 +32,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// </summary>
         internal override void GenerateCsCodeForNode() {
             string appClassName;
-            string valueName = " val" + ParseNode.HandlerIndex;;
+            string valueName = " val" + ParseNode.HandlerIndex;
             Template template = Template;
 
             if (template is TObjArr) {

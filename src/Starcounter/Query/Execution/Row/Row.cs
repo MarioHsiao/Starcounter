@@ -883,6 +883,23 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
         return new RowMetaObject(parameter, this);
     }
 
+    #region Temporary extension methods from Entity
+    public void Attach(ObjectRef objectRef, TypeBinding typeBinding) {
+        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
+    }
+    public void Attach(ulong addr, ulong oid, TypeBinding typeBinding) {
+        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
+    }
+    public ObjectRef ThisRef {
+        get {
+            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
+        }
+        set {
+            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
+        }
+    }
+    #endregion
+
 #if DEBUG
     private bool AssertEqualsVisited = false;
     /// <summary>

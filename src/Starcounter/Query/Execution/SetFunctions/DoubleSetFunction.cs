@@ -16,12 +16,12 @@ namespace Starcounter.Query.Execution
 {
 internal class DoubleSetFunction : SetFunction, ISetFunction
 {
-    IDoubleExpression expression;
+    INumericalExpression numExpr;
     Nullable<Double> result;
     Double sum;
     Decimal count;
 
-    internal DoubleSetFunction(SetFunctionType setFunc, IDoubleExpression expr)
+    internal DoubleSetFunction(SetFunctionType setFunc, INumericalExpression expr)
     {
         if (setFunc != SetFunctionType.MAX && setFunc != SetFunctionType.MIN
             && setFunc != SetFunctionType.SUM && setFunc != SetFunctionType.AVG)
@@ -33,7 +33,7 @@ internal class DoubleSetFunction : SetFunction, ISetFunction
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr.");
         }
         setFuncType = setFunc;
-        expression = expr;
+        numExpr = expr;
         result = null;
         sum = 0;
         count = 0;
@@ -82,7 +82,7 @@ internal class DoubleSetFunction : SetFunction, ISetFunction
 
     public void UpdateResult(IObjectView obj)
     {
-        Nullable<Double> value = expression.EvaluateToDouble(obj);
+        Nullable<Double> value = numExpr.EvaluateToDouble(obj);
         switch (setFuncType)
         {
             case SetFunctionType.MAX:
@@ -133,14 +133,14 @@ internal class DoubleSetFunction : SetFunction, ISetFunction
 
     public ISetFunction Clone(VariableArray varArray)
     {
-        return new DoubleSetFunction(setFuncType, expression.CloneToDouble(varArray));
+        return new DoubleSetFunction(setFuncType, numExpr.CloneToNumerical(varArray));
     }
 
     public void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
     {
         stringBuilder.AppendLine(tabs, "DoubleSetFunction(");
         stringBuilder.AppendLine(tabs, setFuncType.ToString());
-        expression.BuildString(stringBuilder, tabs + 1);
+        numExpr.BuildString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 
@@ -149,7 +149,7 @@ internal class DoubleSetFunction : SetFunction, ISetFunction
     /// </summary>
     public void GenerateCompilableCode(CodeGenStringGenerator stringGen)
     {
-        expression.GenerateCompilableCode(stringGen);
+        numExpr.GenerateCompilableCode(stringGen);
     }
 
 #if DEBUG
@@ -183,11 +183,11 @@ internal class DoubleSetFunction : SetFunction, ISetFunction
         // Check references. This should be checked if there is cyclic reference.
         AssertEqualsVisited = true;
         bool areEquals = true;
-        if (this.expression == null) {
-            Debug.Assert(other.expression == null);
-            areEquals = other.expression == null;
+        if (this.numExpr == null) {
+            Debug.Assert(other.numExpr == null);
+            areEquals = other.numExpr == null;
         } else
-            areEquals = this.expression.AssertEquals(other.expression);
+            areEquals = this.numExpr.AssertEquals(other.numExpr);
         AssertEqualsVisited = false;
         return areEquals;
     }

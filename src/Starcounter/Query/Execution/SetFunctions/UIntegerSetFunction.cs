@@ -16,10 +16,10 @@ namespace Starcounter.Query.Execution
 {
 internal class UIntegerSetFunction : SetFunction, ISetFunction
 {
-    IUIntegerExpression expression;
+    INumericalExpression numExpr;
     Nullable<UInt64> result;
 
-    internal UIntegerSetFunction(SetFunctionType setFunc, IUIntegerExpression expr)
+    internal UIntegerSetFunction(SetFunctionType setFunc, INumericalExpression expr)
     {
         if (setFunc != SetFunctionType.MAX && setFunc != SetFunctionType.MIN)
         {
@@ -30,7 +30,7 @@ internal class UIntegerSetFunction : SetFunction, ISetFunction
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr.");
         }
         setFuncType = setFunc;
-        expression = expr;
+        numExpr = expr;
         result = null;
     }
 
@@ -57,7 +57,7 @@ internal class UIntegerSetFunction : SetFunction, ISetFunction
 
     public void UpdateResult(IObjectView obj)
     {
-        Nullable<UInt64> value = expression.EvaluateToUInteger(obj);
+        Nullable<UInt64> value = numExpr.EvaluateToUInteger(obj);
         switch (setFuncType)
         {
             case SetFunctionType.MAX:
@@ -98,14 +98,14 @@ internal class UIntegerSetFunction : SetFunction, ISetFunction
 
     public ISetFunction Clone(VariableArray varArray)
     {
-        return new UIntegerSetFunction(setFuncType, expression.CloneToUInteger(varArray));
+        return new UIntegerSetFunction(setFuncType, numExpr.CloneToNumerical(varArray));
     }
 
     public void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
     {
         stringBuilder.AppendLine(tabs, "UIntegerSetFunction(");
         stringBuilder.AppendLine(tabs, setFuncType.ToString());
-        expression.BuildString(stringBuilder, tabs + 1);
+        numExpr.BuildString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
 
@@ -114,7 +114,7 @@ internal class UIntegerSetFunction : SetFunction, ISetFunction
     /// </summary>
     public void GenerateCompilableCode(CodeGenStringGenerator stringGen)
     {
-        expression.GenerateCompilableCode(stringGen);
+        numExpr.GenerateCompilableCode(stringGen);
     }
 
 #if DEBUG
@@ -142,11 +142,11 @@ internal class UIntegerSetFunction : SetFunction, ISetFunction
         // Check references. This should be checked if there is cyclic reference.
         AssertEqualsVisited = true;
         bool areEquals = true;
-        if (this.expression == null) {
-            Debug.Assert(other.expression == null);
-            areEquals = other.expression == null;
+        if (this.numExpr == null) {
+            Debug.Assert(other.numExpr == null);
+            areEquals = other.numExpr == null;
         } else
-            areEquals = this.expression.AssertEquals(other.expression);
+            areEquals = this.numExpr.AssertEquals(other.numExpr);
         AssertEqualsVisited = false;
         return areEquals;
     }

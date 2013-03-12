@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using Starcounter;
 using Starcounter.Binding;
+using Starcounter.TestFramework;
 
 namespace IndexQueryTest
 {
@@ -40,6 +42,31 @@ namespace IndexQueryTest
         #endregion
 
         #region Printing
+        static int CountAllObjects()
+        {
+            int nrPrintedObjs = 0;
+            String line = "";
+            Db.Transaction(delegate
+            {
+                foreach (accounttest.User u in Db.SQL("select u from User u"))
+                {
+                    line = "User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId;
+                    nrPrintedObjs++;
+                }
+            });
+            Trace.Assert(nrPrintedObjs == 2);
+            Db.Transaction(delegate
+            {
+                foreach (accounttest.account a in Db.SQL("select a from Account a"))
+                {
+                    line = "Account " + a.AccountId + " with amount " + a.Amount + " of user " + a.Client.UserId;
+                    nrPrintedObjs++;
+                }
+            });
+            Trace.Assert(nrPrintedObjs == 2 + 5);
+            return nrPrintedObjs;
+        }
+        
         static int PrintAllObjects()
         {
             int nrPrintedObjs = 0;
@@ -62,6 +89,21 @@ namespace IndexQueryTest
             return nrPrintedObjs;
         }
 
+        static int CountUserByLastName(String LastName)
+        {
+            int nrPrintedObjs = 0;
+            Db.Transaction(delegate
+            {
+                foreach (accounttest.User u in Db.SQL("select u from User u where LastName = ?", LastName))
+                {
+                    String line = "User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId;
+                    nrPrintedObjs++;
+                }
+            });
+            Trace.Assert(nrPrintedObjs == 1);
+            return nrPrintedObjs;
+        }
+        
         static int PrintUserByLastName(String LastName)
         {
             int nrPrintedObjs = 0;
@@ -76,6 +118,17 @@ namespace IndexQueryTest
             return nrPrintedObjs;
         }
 
+        static int CountUsersOrderByLastName() {
+            int nrPrintedObjs = 0;
+            Db.Transaction(delegate {
+                foreach (accounttest.User u in Db.SQL("select u from User u order by LastName")) {
+                    Trace.Assert("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId != "User  with ID ");
+                    nrPrintedObjs++;
+                }
+            });
+            Trace.Assert(nrPrintedObjs == 2);
+            return nrPrintedObjs;
+        }
         static int PrintUsersOrderByLastName()
         {
             int nrPrintedObjs = 0;
@@ -91,5 +144,13 @@ namespace IndexQueryTest
         }
         #endregion
 #endif
+    }
+
+    public static class HelpMethods {
+        internal static TestLogger logger = new TestLogger("IndexQueryTest", false);
+
+        internal static void LogEvent(String eventString) {
+            logger.Log(eventString);
+        }
     }
 }
