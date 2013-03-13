@@ -74,6 +74,7 @@
     <Compile Include="CommandLine\Syntax\SyntaxDefinition.cs" />
     <Compile Include="Constants\Constants.cs" />
     <Compile Include="Constants\MixedCodeConstants.cs" />
+    <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HttpSessions.cs" />
     <Compile Include="HttpStructs.cs" />
