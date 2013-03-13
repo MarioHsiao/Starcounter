@@ -56,7 +56,6 @@ namespace QueryProcessingTest {
      * II. Iterations and offset key fetching
      * II.1. Fetch inside and iterate to the end
      * II.2. Fetch inside and iterate to the middle
-     * II.3. Fetch inside and don't iterate
      * II.4. Fetch to the last
      * II.5. Fetch outside
      * 
