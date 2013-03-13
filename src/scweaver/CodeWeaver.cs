@@ -673,7 +673,6 @@ namespace Weaver {
                 XmlConvert.ToString(File.GetLastWriteTime(file),
                 XmlDateTimeSerializationMode.RoundtripKind);
             parameters.ProcessDependenciesFirst = !this.WeaveBootstrapperCode;
-            parameters.Properties["ScWeaverDirectives"] = "0";
             parameters.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(file);
             parameters.Properties["AssemblyExtension"] = Path.GetExtension(file);
             parameters.Properties["ResolvedReferences"] = "";
