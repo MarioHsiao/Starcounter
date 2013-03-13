@@ -423,7 +423,7 @@ void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening
 
     // Allocating needed tables.
     port_handlers_ = new PortHandlers();
-    registered_uris_ = new RegisteredUris();
+    registered_uris_ = new RegisteredUris(port_number);
     registered_subports_ = new RegisteredSubports();
 
     listening_sock_ = listening_sock;
@@ -522,19 +522,19 @@ void ServerPort::Erase()
 
     if (port_handlers_)
     {
-        delete [] port_handlers_;
+        delete port_handlers_;
         port_handlers_ = NULL;
     }
 
     if (registered_uris_)
     {
-        delete [] registered_uris_;
+        delete registered_uris_;
         registered_uris_ = NULL;
     }
 
     if (registered_subports_)
     {
-        delete [] registered_subports_;
+        delete registered_subports_;
         registered_subports_ = NULL;
     }
 
@@ -1498,54 +1498,49 @@ uint32_t Gateway::Init()
 #endif
 
     // Loading Clang for URI matching.
-    HMODULE clang = LoadLibrary(L"GatewayClang.dll");
-    GW_ASSERT(clang != NULL);
+    HMODULE clang_dll = LoadLibrary(L"GatewayClang.dll");
+    GW_ASSERT(clang_dll != NULL);
 
     typedef void (*GwClangInit)();
-    GwClangInit clang_init = (GwClangInit) GetProcAddress(clang, "GwClangInit");
+    GwClangInit clang_init = (GwClangInit) GetProcAddress(clang_dll, "GwClangInit");
     GW_ASSERT(clang_init != NULL);
     clang_init();
 
     ClangCompileAndGetFunc = (GwClangCompileCodeAndGetFuntion) GetProcAddress(
-        clang,
+        clang_dll,
         "GwClangCompileCodeAndGetFuntion");
 
     GW_ASSERT(ClangCompileAndGetFunc != NULL);
 
+    ClangDestroyEngineFunc = (ClangDestroyEngineType) GetProcAddress(
+        clang_dll,
+        "GwClangDestroyEngine");
+
+    GW_ASSERT(ClangDestroyEngineFunc != NULL);
+
     // Running a test compilation.
     typedef int (*example_main_func_type) ();
     example_main_func_type example_main_func;
+    void* clang_engine = NULL;
+    void** clang_engine_addr = &clang_engine;
     example_main_func = (example_main_func_type) g_gateway.ClangCompileAndGetFunc(
+        clang_engine_addr,
         "int main() { return 124; }",
         "main",
         false);
 
     GW_ASSERT(example_main_func != NULL);
 
+    g_gateway.ClangDestroyEngineFunc(clang_engine);
+
     // Registering shared memory monitor interface.
     shm_monitor_int_name_ = setting_sc_server_type_upper_ + "_" + MONITOR_INTERFACE_SUFFIX;
 
     // Waiting until we can open shared memory monitor interface.
     GW_COUT << "Opening scipcmonitor interface: ";
-    int32_t num_tries = 0;
-    while (true)
-    {
-        try
-        {
-            // Get monitor_interface_ptr for monitor_interface_name.
-            shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
-            break;
-        }
-        catch (const core::monitor_interface_ptr_exception& e)
-        {
-            Sleep(100);
-            GW_COUT << ".";
 
-            num_tries++;
-            if (num_tries >= 50)
-                return SCERRGWFAILEDTOOPENSHMMONITORINTERFACE;
-        }
-    }
+    // Get monitor_interface_ptr for monitor_interface_name.
+    shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
     GW_COUT << "opened!" << GW_ENDL;
 
     // Indicating that network gateway is ready
@@ -2799,20 +2794,21 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 #endif
 
 // Generate the code using managed generator.
-uint32_t Gateway::GenerateUriMatcher(uint16_t port)
+uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
 {
-    // Getting the port structure.
-    ServerPort* server_port = FindServerPort(port);
-    GW_ASSERT(NULL != server_port);
-
-    // Registering URI on port.
-    RegisteredUris* all_port_uris = server_port->get_registered_uris();
-
     // Getting registered URIs.
-    std::vector<MixedCodeConstants::RegisteredUriManaged> uris_managed = all_port_uris->GetRegisteredUriManaged();
+    std::vector<MixedCodeConstants::RegisteredUriManaged> uris_managed = port_uris->GetRegisteredUriManaged();
+
+    // Creating root URI matching function name.
+    char root_function_name[32];
+    sprintf(root_function_name, "MatchUriForPort%d", port_uris->get_port_number());
 
     // Calling managed function.
-    uint32_t err_code = codegen_uri_matcher_->GenerateUriMatcher(&uris_managed.front(), uris_managed.size());
+    uint32_t err_code = codegen_uri_matcher_->GenerateUriMatcher(
+        root_function_name,
+        &uris_managed.front(),
+        uris_managed.size());
+
     if (err_code)
         return err_code;
 
@@ -2820,12 +2816,18 @@ uint32_t Gateway::GenerateUriMatcher(uint16_t port)
     HMODULE gen_dll_handle;
 
     // Unloading existing matcher DLL if any.
-    all_port_uris->UnloadLatestUriMatcherDllIfAny();
+    port_uris->UnloadLatestUriMatcherDllIfAny();
+
+    // Constructing dll name;
+    std::wostringstream dll_name;
+    dll_name << L"codegen_uri_matcher_" << port_uris->get_port_number();
 
     // Building URI matcher from generated code and loading the library.
     err_code = codegen_uri_matcher_->CompileIfNeededAndLoadDll(
         UriMatchCodegenCompilerType::COMPILER_CLANG,
-        L"codegen_uri_matcher",
+        dll_name.str(),
+        root_function_name,
+        port_uris->get_clang_engine_addr(),
         &match_uri_func,
         &gen_dll_handle);
 
@@ -2833,8 +2835,8 @@ uint32_t Gateway::GenerateUriMatcher(uint16_t port)
         return err_code;
 
     // Setting the entry point for new URI matcher.
-    all_port_uris->set_latest_match_uri_func(match_uri_func);
-    all_port_uris->set_latest_gen_dll_handle(gen_dll_handle);
+    port_uris->set_latest_match_uri_func(match_uri_func);
+    port_uris->set_latest_gen_dll_handle(gen_dll_handle);
 
     return 0;
 }
@@ -2920,7 +2922,7 @@ uint32_t Gateway::AddUriHandler(
     GW_ERR_CHECK(err_code);
 
     // Invalidating URI matching codegen.
-    all_port_uris->InvalidateCodegen();
+    all_port_uris->InvalidateUriMatcherFunction();
 
     // Printing port information.
     //server_port->Print();

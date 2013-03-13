@@ -70,6 +70,11 @@ namespace StarcounterApps3 {
 
         static void RegisterGETS() {
 
+            // Registering default handler for ALL static resources on the server.
+            GET("/{?}", (string res) => {
+                return null;
+            });
+
             GET("/return/{?}", (int code) => {
                 return code;
             });

@@ -360,7 +360,7 @@ public:
 	 */
 	monitor_interface_ptr(const char* monitor_interface_name = 0);
 	
-	void init(const char* monitor_interface_name);
+	void init(const char* monitor_interface_name, const uint32_t timeout_ms = 5000);
 
 	monitor_interface_ptr(monitor_interface* ptr);
 	

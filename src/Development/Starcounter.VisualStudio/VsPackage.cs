@@ -38,6 +38,8 @@ namespace Starcounter.VisualStudio {
         null,
         ".\\NullPath",
         LanguageVsTemplate = "CSharp",
+        TemplateGroupIDsVsTemplate = "StarcounterApplication",
+        ShowOnlySpecifiedTemplatesVsTemplate = false,
         NewProjectRequireNewFolderVsTemplate = true)
     ]
 

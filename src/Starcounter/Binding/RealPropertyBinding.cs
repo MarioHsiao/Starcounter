@@ -100,7 +100,7 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="obj">The obj.</param>
         /// <returns>Entity.</returns>
-        protected override sealed Entity DoGetObject(object obj)
+        protected override sealed IObjectView DoGetObject(object obj)
         {
             throw ExceptionForInvalidType();
         }

@@ -4,8 +4,9 @@
     <Name>Starcounter JSON Puppet (tech preview)</Name>
     <Description>An empty Starcounter JSON puppet</Description>
     <Icon>Puppet.ico</Icon>
-    <TemplateID>5508b2d4-e30f-4ac8-8aac-8f05db477cc0</TemplateID>
+    <TemplateID>StarcounterPuppet</TemplateID>
     <TemplateGroupID>StarcounterApplication</TemplateGroupID>
+    <ShowByDefault>False</ShowByDefault>
     <ProjectType>CSharp</ProjectType>
     <ProjectSubType>Starcounter</ProjectSubType>
     <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
