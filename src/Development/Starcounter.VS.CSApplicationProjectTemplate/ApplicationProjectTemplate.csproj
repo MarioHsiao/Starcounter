@@ -64,28 +64,12 @@
       <HintPath>$(StarcounterBin)\Starcounter.Apps.Interfaces.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Starcounter.Apps.JsonPatch">
-      <HintPath>$(StarcounterBin)\Starcounter.Apps.JsonPatch.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Starcounter.Bootstrap.dll">
-      <HintPath>$(StarcounterBin)\Starcounter.Bootstrap.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Starcounter.BitsAndBytes.Native">
-      <HintPath>$(StarcounterBin)\Starcounter.BitsAndBytes.Native.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Starcounter.HyperMedia">
       <HintPath>$(StarcounterBin)\Starcounter.HyperMedia.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Starcounter.REST">
       <HintPath>$(StarcounterBin)\Starcounter.REST.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="HttpStructs">
-      <HintPath>$(StarcounterBin)\HttpStructs.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

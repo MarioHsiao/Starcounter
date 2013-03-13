@@ -123,7 +123,7 @@ namespace Starcounter.Binding
         /// </summary>
         /// <returns>Entity.</returns>
 #if ERIK_TEST
-        public Entity NewInstanceUninit()
+        public IObjectView NewInstanceUninit()
 #else
         internal IObjectView NewInstanceUninit()
 #endif

@@ -292,7 +292,18 @@ class RegisteredUris
     // Handle to the latest generated library.
     HMODULE latest_gen_dll_handle_;
 
+    // Established Clang engine for this port.
+    void* clang_engine_;
+
+    // Port to which this URI matcher belongs.
+    uint16_t port_number_;
+
 public:
+
+    uint16_t get_port_number()
+    {
+        return port_number_;
+    }
 
     // Setting latest uri matching function pointer.
     void set_latest_match_uri_func(MixedCodeConstants::MatchUriType latest_match_uri_func)
@@ -300,16 +311,20 @@ public:
         latest_match_uri_func_ = latest_match_uri_func;
     }
 
+    MixedCodeConstants::MatchUriType get_latest_match_uri_func()
+    {
+        return latest_match_uri_func_;
+    }
+
+    void** get_clang_engine_addr()
+    {
+        return &clang_engine_;
+    }
+
     // Setting latest uri matching dll handle.
     void set_latest_gen_dll_handle(HMODULE latest_gen_dll_handle)
     {
         latest_gen_dll_handle_ = latest_gen_dll_handle;
-    }
-
-    // Getting latest DLL handle.
-    HMODULE get_latest_gen_dll_handle()
-    {
-        return latest_gen_dll_handle_;
     }
 
     // Checks if generated dll is loaded and unloads it.
@@ -357,16 +372,21 @@ public:
     }
 
     // Constructor.
-    RegisteredUris()
+    RegisteredUris(uint16_t port_number)
     {
-        InvalidateCodegen();
+        latest_gen_dll_handle_ = NULL;
+        clang_engine_ = NULL;
+        latest_match_uri_func_ = NULL;
+        port_number_ = port_number;
     }
 
+    // Destructor.
+    ~RegisteredUris();
+
     // Invalidates code generation.
-    void InvalidateCodegen()
+    void InvalidateUriMatcherFunction()
     {
         latest_match_uri_func_ = NULL;
-        latest_gen_dll_handle_ = NULL;
     }
 
     // Runs the generated URI matcher and gets handler information as a result.

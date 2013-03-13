@@ -34,16 +34,21 @@ void CodegenUriMatcher::Init()
     uri_info_test.processed_uri_info_string = uri_test;
     uri_info_test.processed_uri_info_len_chars = 5;
     uint32_t test_num_codegen_bytes;
-    generate_uri_matcher_(&uri_info_test, 1, uri_matching_code_, &test_num_codegen_bytes);
+    generate_uri_matcher_("MatchUriRoot123", &uri_info_test, 1, uri_matching_code_, &test_num_codegen_bytes);
 }
 
 // Compile given code into native dll.
 uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
     UriMatchCodegenCompilerType comp_type,
-    std::wstring gen_file_name,    
+    const std::wstring& gen_file_name,    
+    const char* const root_function_name,
+    void** clang_engine_addr,
     MixedCodeConstants::MatchUriType* out_match_uri_func,
     HMODULE* out_codegen_dll_handle)
 {
+    *out_codegen_dll_handle = NULL;
+    *out_match_uri_func = NULL;
+
     switch(comp_type)
     {
         case COMPILER_MSVC:
@@ -168,7 +173,10 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             *out_codegen_dll_handle = LoadLibrary(out_dll_path.c_str());
             GW_ASSERT(*out_codegen_dll_handle != NULL);
 
-            *out_match_uri_func = (MixedCodeConstants::MatchUriType) GetProcAddress(*out_codegen_dll_handle, "MatchUriRoot");
+            *out_match_uri_func = (MixedCodeConstants::MatchUriType) GetProcAddress(
+                *out_codegen_dll_handle,
+                root_function_name);
+
             GW_ASSERT(*out_match_uri_func != NULL);
 
             break;
@@ -177,8 +185,9 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
         case COMPILER_CLANG:
         {
             *out_match_uri_func = (MixedCodeConstants::MatchUriType) g_gateway.ClangCompileAndGetFunc(
+                clang_engine_addr,
                 uri_matching_code_,
-                "MatchUriRoot",
+                root_function_name,
                 false);
 
             GW_ASSERT(*out_match_uri_func != NULL);
