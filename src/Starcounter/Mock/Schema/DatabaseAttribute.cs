@@ -25,7 +25,6 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
 {
     private DatabaseAttributeKind attributeKind;
     private readonly string name;
-    private string precedentName;
     private ushort index;
     private bool isInitOnly;
     private IDatabaseAttributeType attributeType;
@@ -70,21 +69,6 @@ public partial class DatabaseAttribute : DatabaseSchemaElement
         get
         {
             return name;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets an eventual precedent name for this attribute.
-    /// </summary>
-    public string PrecedentName
-    {
-        get
-        {
-            return precedentName;
-        }
-        set
-        {
-            precedentName = value;
         }
     }
 
