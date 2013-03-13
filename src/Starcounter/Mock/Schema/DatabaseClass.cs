@@ -22,8 +22,7 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
     private readonly string name;
     private readonly DatabaseAttributeCollection attributes = new DatabaseAttributeCollection();
     private DatabaseClassRef baseClass;
-    private int weaverDirectives;
-	private Boolean internalMetadataClass;
+    private Boolean internalMetadataClass;
 	
     /// <summary>
     /// Initializes a new <see cref="DatabaseClass"/>.
@@ -100,15 +99,6 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
     }
 
     /// <summary>
-    /// Gets or sets an eventual precedent name for this class.
-    /// </summary>
-    public string PrecedentName
-    {
-        get;
-        set;
-    }
-
-    /// <summary>
     /// Gets the collection of database attributes defined in the current class.
     /// </summary>
     public DatabaseAttributeCollection Attributes
@@ -167,36 +157,6 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
 
     internal virtual void OnSchemaComplete()
     {
-    }
-
-    /// <summary>
-    /// Determines whether the current class is a "known type".
-    /// </summary>
-    /// <remarks>
-    /// A <i>known type</i> is a database class defined, and therefore known, by the server.
-    /// They are a part of the database schema but should not be validated neither transformed.
-    /// </remarks>
-    public bool IsKnownType
-    {
-        get
-        {
-            return this.weaverDirectives != 0;
-        }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public int WeaverDirectives
-    {
-        get
-        {
-            return weaverDirectives;
-        }
-        set
-        {
-            weaverDirectives = value;
-        }
     }
 
     /// <summary>
