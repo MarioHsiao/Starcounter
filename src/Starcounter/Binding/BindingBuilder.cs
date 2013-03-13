@@ -434,7 +434,7 @@ namespace Starcounter.Binding
         /// <summary>
         /// The object property binding return type
         /// </summary>
-        private static Type objectPropertyBindingReturnType = typeof(Entity);
+        private static Type objectPropertyBindingReturnType = typeof(IObjectView);
 
         /// <summary>
         /// Creates the object property binding.
