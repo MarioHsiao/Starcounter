@@ -23,6 +23,13 @@ namespace NetworkIoTestApp
         /// </summary>
         public static void InitAppHandlers()
         {
+            String localString = "This is local string!";
+
+            GET(85, "/local", () =>
+            {
+                return localString;
+            });
+
             GET("/static/{?}/static", (String p1) =>
             {
                 return String.Format("string {0}", p1);
