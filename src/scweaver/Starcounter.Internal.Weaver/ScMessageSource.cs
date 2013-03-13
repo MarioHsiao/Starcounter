@@ -55,6 +55,19 @@ namespace Starcounter.Internal.Weaver {
             );
 
         /// <summary>
+        /// Legacy support for how we previously wrote errors (using
+        /// Instance.Write).
+        /// </summary>
+        /// <param name="severity">The severity</param>
+        /// <param name="id">An error id</param>
+        /// <param name="parameters">Parameters</param>
+        public static void Write(SeverityType severity, string id, object[] parameters) {
+#pragma warning disable 618
+            Instance.Write(severity, id, parameters);
+#pragma warning restore 618
+        }
+
+        /// <summary>
         /// Utility method that writes a weaver error message based on a
         /// well-known Starcounter error code, using the new message source.
         /// </summary>
