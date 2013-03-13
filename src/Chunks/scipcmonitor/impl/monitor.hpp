@@ -61,6 +61,10 @@ owner_id_(ipc_monitor_owner_id) {
 		length = std::wcstombs(temp_buf, argv[2], maximum_path_and_file_name_length -1);
 		temp_buf[length++] = SLASH;
 		temp_buf[length++] = '\0';
+		database_output_dir_name_ = std::wstring(argv[2]);
+
+		// Open the log.
+		log().open(server_name_.c_str(), "scipcmonitor", database_output_dir_name_.c_str());
 
 		monitor_dir_path_ = std::wstring(argv[2]) +W_DEFAULT_MONITOR_DIR_NAME +W_SLASH;
 		active_databases_file_path_ = std::wstring(argv[2]) +W_SLASH +W_DEFAULT_MONITOR_DIR_NAME +W_SLASH;
@@ -68,6 +72,7 @@ owner_id_(ipc_monitor_owner_id) {
 		// Trying to create monitor directory.
 		if ((!CreateDirectory(active_databases_file_path_.c_str(), NULL))
 		&& (ERROR_ALREADY_EXISTS != GetLastError())) {
+			log().error(SCERRCANTCREATEIPCMONITORDIR);
 			throw ipc_monitor_exception(SCERRCANTCREATEIPCMONITORDIR);
 		}
 
@@ -78,12 +83,14 @@ owner_id_(ipc_monitor_owner_id) {
 		// Trying to create active databases directory.
 		if ((!CreateDirectory(w_active_databases_dir_path.c_str(), NULL))
 		&& (ERROR_ALREADY_EXISTS != GetLastError())) {
+			log().error(SCERRIPCMONITORCREATEACTIVEDBDIR);
 			throw ipc_monitor_exception(SCERRIPCMONITORCREATEACTIVEDBDIR);
 		}
 	}
 	else {
 		// The first argument (name of the server that started this monitor),
 		// must be provided.
+		log().error(SCERRIPCMONITORREQUIREDARGUMENTS);
 		throw ipc_monitor_exception(SCERRIPCMONITORREQUIREDARGUMENTS);
 	}
 	
@@ -96,6 +103,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if (GetFileAttributes(active_databases_file_path_.c_str())
 	!= INVALID_FILE_ATTRIBUTES) {
 		if (!DeleteFile(active_databases_file_path_.c_str())) {
+			log().error(SCERRIPCMONITORDELACTIVEDBFILE);
 			throw ipc_monitor_exception(SCERRIPCMONITORDELACTIVEDBFILE);
 		}
 	}
@@ -127,6 +135,7 @@ owner_id_(ipc_monitor_owner_id) {
 	(ipc_monitor_cleanup_event_name), ipc_monitor_cleanup_event_name_size
 	-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name_.c_str()))
 	< 0) {
+		log().error(SCERRFORMATIPCMONITORCLEANUPEV);
 		throw ipc_monitor_exception(SCERRFORMATIPCMONITORCLEANUPEV);
 	}
 	ipc_monitor_cleanup_event_name[length] = '\0';
@@ -137,6 +146,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((length = mbstowcs(w_ipc_monitor_cleanup_event_name,
 	ipc_monitor_cleanup_event_name, segment_name_size)) < 0) {
 		// Failed to convert ipc_monitor_cleanup_event_name to multi-byte string.
+		log().error(SCERRCONVERTIPCMONCLEANUPEVMBS);
 		throw ipc_monitor_exception(SCERRCONVERTIPCMONCLEANUPEVMBS);
 	}
 	w_ipc_monitor_cleanup_event_name[length] = L'\0';
@@ -146,6 +156,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((ipc_monitor_cleanup_event_ = ::CreateEvent(NULL, TRUE, FALSE,
 	w_ipc_monitor_cleanup_event_name)) == NULL) {
 		// Failed to create event.
+		log().error(SCERRCREATEIPCMONITORCLEANUPEV);
 		throw ipc_monitor_exception(SCERRCREATEIPCMONITORCLEANUPEV);
 	}
 
@@ -159,6 +170,7 @@ owner_id_(ipc_monitor_owner_id) {
 	(active_databases_updated_event_name), active_databases_updated_event_name_size
 	-1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str()))
 	< 0) {
+		log().error(SCERRIPCMFORMATACTIVEDBUPDATEDEV);
 		throw ipc_monitor_exception(SCERRIPCMFORMATACTIVEDBUPDATEDEV);
 	}
 	active_databases_updated_event_name[length] = '\0';
@@ -169,6 +181,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((length = mbstowcs(w_active_databases_updated_event_name,
 	active_databases_updated_event_name, segment_name_size)) < 0) {
 		// Failed to convert active_databases_updated_event_name to multi-byte string.
+		log().error(SCERRIPCMCONVACTIVEDBUPDATEDEVMB);
 		throw ipc_monitor_exception(SCERRIPCMCONVACTIVEDBUPDATEDEVMB);
 	}
 	w_active_databases_updated_event_name[length] = L'\0';
@@ -179,6 +192,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((active_databases_updated_event = ::CreateEvent(NULL, TRUE, FALSE,
 	w_active_databases_updated_event_name)) == NULL) {
 		// Failed to create event.
+		log().error(SCERRCREATEACTIVEDBUPDATEDEV);
 		throw ipc_monitor_exception(SCERRCREATEACTIVEDBUPDATEDEV);
 	}
 
@@ -215,6 +229,7 @@ owner_id_(ipc_monitor_owner_id) {
 	.c_str(), sizeof(monitor_interface), is_system);
 	
 	if (!monitor_interface_.is_valid()) {
+		log().error(SCERRINVALIDIPCMONINTERFACSHMOBJ);
 		throw ipc_monitor_exception(SCERRINVALIDIPCMONINTERFACSHMOBJ);
 	}
 	
@@ -222,6 +237,7 @@ owner_id_(ipc_monitor_owner_id) {
 	monitor_interface_region_.init(monitor_interface_);
 	
 	if (!monitor_interface_region_.is_valid()) {
+		log().error(SCERRINVALIDIPCMONINTERFACMAPREG);
 		throw ipc_monitor_exception(SCERRINVALIDIPCMONINTERFACMAPREG);
 	}
 	
@@ -264,6 +280,7 @@ owner_id_(ipc_monitor_owner_id) {
 		&access_token) == 0) {
 			err = GetLastError();
 			CloseHandle(access_token);
+			log().error(SCERRIPCMONITOROPENPROCESSTOKEN);
 			throw ipc_monitor_exception(SCERRIPCMONITOROPENPROCESSTOKEN);
 		}
 		
@@ -272,6 +289,7 @@ owner_id_(ipc_monitor_owner_id) {
 		if (LookupPrivilegeValue(NULL, L"SeDebugPrivilege", &luid) == 0) {
 			err = GetLastError();
 			CloseHandle(access_token);
+			log().error(SCERRIPCMONLOOKUPPRIVILEGEVALUE);
 			throw ipc_monitor_exception(SCERRIPCMONLOOKUPPRIVILEGEVALUE);
 		}
 		
@@ -285,11 +303,13 @@ owner_id_(ipc_monitor_owner_id) {
 		sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES) NULL, (PDWORD) NULL)) {
 			err = GetLastError();
 			CloseHandle(access_token);
+			log().error(SCERRIPCMONADJUSTTOKENPRIVILEGES);
 			throw ipc_monitor_exception(SCERRIPCMONADJUSTTOKENPRIVILEGES);
 		}
 		
 		if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
 			CloseHandle(access_token);
+			log().error(SCERRIPCMONSETSEDEBUGPRIVILEGE);
 			throw ipc_monitor_exception(SCERRIPCMONSETSEDEBUGPRIVILEGE);
 		}
 		CloseHandle(access_token);
@@ -1431,6 +1451,14 @@ void monitor::print_rate_with_precision(double rate) {
 	}
 }
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+
+inline starcounter::log& monitor::log() {
+	return log_;
+}
+
+inline const starcounter::log& monitor::log() const {
+	return log_;
+}
 
 /// NOTE: Originally was ment to be able to show multiple databases at once,
 /// which it can but then statistics are messed up completely. Only test with

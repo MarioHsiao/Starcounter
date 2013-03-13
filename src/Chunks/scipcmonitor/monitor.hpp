@@ -295,6 +295,12 @@ public:
 	void print_rate_with_precision(double rate);
 #endif // (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	
+	/// Get reference to the log.
+	starcounter::log& log();
+
+	/// Get const reference to the log.
+	const starcounter::log& log() const;
+
 private:
 	// Controlling the console a bit makes it easier to read.
 	void gotoxy(int16_t x, int16_t y);
@@ -379,6 +385,9 @@ private:
 	
 	// The name of the server that started this monitor.
 	std::string server_name_;
+	
+	// Name of the database output dir (L".db.output".)
+	std::wstring database_output_dir_name_;
 	
 	// Path to the dir where the files related to the IPC monitor can be stored.
 	std::wstring monitor_dir_path_;

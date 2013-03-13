@@ -101,6 +101,7 @@
 #include "../common/pid_type.hpp"
 #include "../common/owner_id.hpp"
 #include "../common/config_param.hpp"
+#include "../common/log.hpp"
 #include "event.hpp"
 #include "monitor.hpp"
 #include "process_info.hpp"
@@ -134,7 +135,7 @@
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	using namespace starcounter::core;
-	
+
 	// Start the monitor application.
 	boost::scoped_ptr<monitor> app(new monitor(argc, argv));
 	app->run();
@@ -174,7 +175,10 @@ try {
 	<< "Exit." << std::endl; /// debug
 	#endif
 }
-catch (starcounter::core::ipc_monitor_exception& e) {
+catch (const starcounter::core::ipc_monitor_exception& e) {
+	return e.error_code();
+}
+catch (const starcounter::log_exception& e) {
 	return e.error_code();
 }
 catch (...) {
