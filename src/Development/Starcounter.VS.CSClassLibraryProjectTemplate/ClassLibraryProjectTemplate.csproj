@@ -44,6 +44,30 @@
       <HintPath>$(StarcounterBin)\Starcounter.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Starcounter.XSON">
+      <HintPath>$(StarcounterBin)\Starcounter.XSON.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Internal">
+      <HintPath>$(StarcounterBin)\Starcounter.Internal.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Apps">
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Apps.Interfaces">
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.Interfaces.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.HyperMedia">
+      <HintPath>$(StarcounterBin)\Starcounter.HyperMedia.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.REST">
+      <HintPath>$(StarcounterBin)\Starcounter.REST.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entity1.cs" />
