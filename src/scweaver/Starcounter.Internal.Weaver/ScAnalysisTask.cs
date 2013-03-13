@@ -423,7 +423,8 @@ namespace Starcounter.Internal.Weaver {
             String name;
             TypeDefDeclaration typeDef;
 
-            ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF01", new Object[] { _module.Name });
+            ScMessageSource.Write(
+                SeverityType.ImportantInfo, "SCINF01", new Object[] { _module.Name });
 
             // Create a DatabaseAssembly for the current module and add it to the schema.
 
@@ -1039,31 +1040,18 @@ namespace Starcounter.Internal.Weaver {
             //   Now, lets do some further lookups.
 
             if (databaseClass is DatabaseExtensionClass) {
-                DatabaseExtensionClass databaseExtensionClass = databaseClass as DatabaseExtensionClass;
-                // Relate the extension to its extented type.
-                DatabaseEntityClass extendedEntityClass =
-                (DatabaseEntityClass)DiscoverDatabaseClass(extendedType);
+                var databaseExtensionClass = databaseClass as DatabaseExtensionClass;
+                var extendedEntityClass = (DatabaseEntityClass)DiscoverDatabaseClass(extendedType);
                 databaseExtensionClass.Extends = extendedEntityClass;
-            } else if (databaseClass is DatabaseEntityClass) {
-                // Check that all entity classes are public. If they are not,
-                // refuse them.
-                //
-                // This is just a prototype. Add a proper error message for this
-                // case and document it.
-                //
-                // TODO:
 
+            } else if (databaseClass is DatabaseEntityClass) {
                 if (!typeDef.IsPublic()) {
                     ScMessageSource.WriteError(
-                        MessageLocation.Of(typeDef),
-                        Error.SCERRENTITYCLASSNOTPUBLIC,
-                        string.Format("Class: {0}", typeDef)
-                    );
+                        MessageLocation.Of(typeDef), Error.SCERRENTITYCLASSNOTPUBLIC, string.Format("Class: {0}", typeDef));
                     return null;
                 }
             }
 
-            // Make sure the base is discovered allready.
             databaseClass.BaseClass = DiscoverDatabaseClass(typeDef.BaseType);
 
             // If it is a regular type, process the fields.
