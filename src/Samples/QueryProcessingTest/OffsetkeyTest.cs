@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Starcounter;
 
 namespace QueryProcessingTest {
     public static class OffsetkeyTest {
-        //delegate SqlResult<dynamic> callQuery(
-        static List<String> queries = new List<String>();
+        delegate SqlResult<dynamic> CallQuery(String addition, dynamic arg);
+        static List<CallQuery> queries = new List<CallQuery>();
         //static SqlResult<dynamic> sqlResult;
 
         public static void Master() {
             AddQueries();
+            ErrorCases();
+            SimpleTestsAllQueries();
 #if false
             foreach query
                 foreach interator
@@ -26,20 +29,56 @@ namespace QueryProcessingTest {
         }
 
         static void AddQueries() {
-            IEnumerator<String> q = queries.GetEnumerator();
-            String str = q.Current;
+            queries.Add((addition, arg) => Db.SQL("select u from user u"+addition, arg));
+            queries.Add((addition, arg) => Db.SQL("select u from user u where userid < ?" + addition, 5, arg));
+        }
+
+        static void ErrorCases() {
             string f = "fetch ?";
             dynamic n = 4;
             String query = "select u from user u ";
             IRowEnumerator<dynamic> e = Db.SQL(query + f, n).GetEnumerator();
-            e.MoveNext();
             byte[] k = e.GetOffsetKey();
+            Trace.Assert(k == null);
+            e.Dispose();
+            e = Db.SQL(query + f, n).GetEnumerator();
+            while (e.MoveNext())
+                Trace.Assert(e.Current is User);
+            k = e.GetOffsetKey();
+            Trace.Assert(k == null);
+            e.Dispose();
+            f = "fetch ?";
+            n = 4;
+            e = Db.SQL(query + f, n).GetEnumerator();
+            e.MoveNext();
+            k = e.GetOffsetKey();
+            e.Dispose();
             f = "offsetkey ?";
             n = k;
             e = Db.SQL(query + f, n).GetEnumerator();
             e.MoveNext();
-            //if (e.Current is User)
-            //    Console.WriteLine((e.Current as User).UserId);
+            if (e.Current is User)
+                Console.WriteLine((e.Current as User).UserId);
+        }
+
+        static void SimpleTestsAllQueries() {
+            string f = "fetch ?";
+            dynamic n = 4;
+            foreach (CallQuery q in queries)
+                Db.Transaction(delegate {
+                    using (IRowEnumerator<dynamic> e = q(f, n).GetEnumerator()) {
+                        e.MoveNext();
+                        Trace.Assert(e.Current is User);
+                        Trace.Assert((e.Current as User).UserIdNr == 0);
+                        n = e.GetOffsetKey();
+                    }
+                    f = "offsetkey ?";
+                    using (IRowEnumerator<dynamic> e = queries[1](f, n).GetEnumerator()) {
+                        e.MoveNext();
+                        Trace.Assert(e.Current is User);
+                        Trace.Assert((e.Current as User).UserIdNr == 4);
+                    }
+                });
         }
     }
     /*
