@@ -143,7 +143,7 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="obj">The obj.</param>
         /// <returns>Entity.</returns>
-        protected abstract Entity DoGetObject(object obj);
+        protected abstract IObjectView DoGetObject(object obj);
 
         /// <summary>
         /// Gets the value of an integer attribute as a 8-bits signed integer.
@@ -282,7 +282,7 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="obj">The obj.</param>
         /// <returns>Entity.</returns>
-        internal Entity GetObject(object obj)
+        internal IObjectView GetObject(object obj)
         {
             return DoGetObject(obj);
         }

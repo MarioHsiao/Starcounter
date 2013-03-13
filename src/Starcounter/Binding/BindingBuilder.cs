@@ -156,7 +156,7 @@ namespace Starcounter.Binding
         /// <summary>
         /// The entity type
         /// </summary>
-        private static Type entityType = typeof(Entity);
+        private static Type entityType = typeof(IObjectView);
 
         /// <summary>
         /// Sets the type binding flags.
