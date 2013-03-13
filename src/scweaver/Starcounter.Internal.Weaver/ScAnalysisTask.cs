@@ -31,11 +31,6 @@ namespace Starcounter.Internal.Weaver {
     /// </summary>
     public class ScAnalysisTask : Task {
         /// <summary>
-        /// The _root society object type name
-        /// </summary>
-        private const String _rootSocietyObjectTypeName = "Concepts.Ring1.Something";
-
-        /// <summary>
         /// The _schema
         /// </summary>
         private static readonly DatabaseSchema _schema = new DatabaseSchema();
@@ -423,9 +418,7 @@ namespace Starcounter.Internal.Weaver {
         public override Boolean Execute() {
             DatabaseClass databaseClass;
             DatabaseExtensionClass databaseExtensionClass;
-            DatabaseKindClass databaseKindClass;
             DatabaseEntityClass databaseEntityClass;
-            DatabaseSocietyClass databaseSocietyClass;
             IEnumerator<MetadataDeclaration> typeDefEnumerator;
             String name;
             TypeDefDeclaration typeDef;
@@ -514,23 +507,9 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseClass dbc in _dbClassesInCurrentModule.Values) {
                     ScAnalysisTrace.Instance.WriteLine("Validating the database class {0}.", dbc.Name);
 
-                    databaseSocietyClass = dbc as DatabaseSocietyClass;
-                    databaseKindClass = dbc as DatabaseKindClass;
                     databaseExtensionClass = dbc as DatabaseExtensionClass;
                     databaseEntityClass = dbc as DatabaseEntityClass;
                     ValidateDatabaseClass(dbc);
-
-                    if (databaseSocietyClass != null) {
-                        ValidateDatabaseSocietyClass(databaseSocietyClass);
-                    }
-
-                    if (databaseKindClass != null) {
-                        ValidateDatabaseKindClass(databaseKindClass);
-                    }
-
-                    if (databaseEntityClass != null) {
-                        ValidateEntityClass(databaseEntityClass);
-                    }
 
                     // Validate attributes of this class.
                     foreach (DatabaseAttribute databaseAttribute in dbc.Attributes) {
@@ -577,81 +556,6 @@ namespace Starcounter.Internal.Weaver {
         #region Validate database classes and database attributes
 
         /// <summary>
-        /// Validates a society class (which may be also a kind class).
-        /// </summary>
-        /// <param name="databaseClass">The society class.</param>
-        private static void ValidateDatabaseSocietyClass(DatabaseSocietyClass databaseClass) {
-            DatabaseSocietyClass parent;
-
-            if (!(databaseClass is DatabaseKindClass)) {
-                if (databaseClass.Name != _rootSocietyObjectTypeName &&
-                    databaseClass.KindClass != null) {
-                    parent = (DatabaseSocietyClass)databaseClass.BaseClass;
-                    if (parent != null && databaseClass.KindClass.BaseClass != parent.InheritedKindClass) {
-                        ScMessageSource.Write(
-                            SeverityType.Error,
-                            "SCKCV04",
-                            new object[] {
-                                databaseClass.Name,
-                                parent.InheritedKindClass.Name
-                            });
-                    }
-                }
-
-                // If a class is nested in a society object is named Kind, it should be a kind class.
-                foreach (TypeDefDeclaration nestedType in databaseClass.GetTypeDefinition().Types) {
-                    if (nestedType.Name == "Kind"
-                         && (databaseClass.KindClass == null
-                                || nestedType != databaseClass.KindClass.GetTypeDefinition())
-                       ) {
-                        ScMessageSource.Write(SeverityType.Error, "SCKCV06", new object[] { nestedType.Name });
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Validates a kind class.
-        /// </summary>
-        /// <param name="databaseClass">The kind class.</param>
-        private void ValidateDatabaseKindClass(DatabaseKindClass databaseClass) {
-            BindingOptions bindOpts = BindingOptions.OnlyExisting
-                                        | BindingOptions.DontThrowException;
-            TypeDefDeclaration typeDef = databaseClass.GetTypeDefinition();
-
-            // A kind class must be named ‘Kind’.
-            if (!databaseClass.Name.EndsWith("+Kind")) {
-                ScMessageSource.Write(SeverityType.Error, "SCKCV02", new Object[] { databaseClass.Name });
-            }
-
-            // A kind class must have a default constructor (unless it is abstract).
-            if (!typeDef.IsAbstract && typeDef.Methods.GetMethod(".ctor", _defaultConstructorSignature, bindOpts) == null) {
-                ScMessageSource.Write(
-                    SeverityType.Error,
-                    "SCKCV05",
-                    new Object[] { databaseClass.Name }
-                    );
-            }
-
-            // A kind class cannot be sealed.
-            if (typeDef.IsSealed) {
-                ScMessageSource.Write(
-                    SeverityType.Error,
-                    "SCKCV08",
-                    new Object[] { databaseClass.Name }
-                    );
-            }
-
-            // A kind class should have at least protected visibility.
-            TypeAttributes visibility = typeDef.Attributes & TypeAttributes.VisibilityMask;
-            if (visibility != TypeAttributes.NestedFamily
-                  && visibility != TypeAttributes.NestedFamORAssem
-                  && visibility != TypeAttributes.NestedPublic) {
-                ScMessageSource.Write(SeverityType.Error, "SCKCV09", new Object[] { databaseClass.Name });
-            }
-        }
-
-        /// <summary>
         /// Validates an extension class.
         /// </summary>
         /// <param name="databaseClass">An extension class.</param>
@@ -684,19 +588,11 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Validates a entity class (which may be also a society class).
-        /// </summary>
-        /// <param name="databaseClass">An entity class.</param>
-        private static void ValidateEntityClass(DatabaseEntityClass databaseClass) {
-        }
-
-        /// <summary>
         /// Validates a database class (which may be an entity class or an extension class).
         /// </summary>
         /// <param name="databaseClass">The database class.</param>
         private void ValidateDatabaseClass(DatabaseClass databaseClass) {
-            BindingOptions bindOpts = BindingOptions.DontThrowException
-                                            | BindingOptions.OnlyExisting;
+            BindingOptions bindOpts = BindingOptions.DontThrowException | BindingOptions.OnlyExisting;
             String assFail;
             TypeDefDeclaration typeDef = databaseClass.GetTypeDefinition();
 
@@ -894,24 +790,6 @@ namespace Starcounter.Internal.Weaver {
             return false;
         }
 
-        /// <summary>
-        /// Determines whether a <see cref="Type" /> is a society object / society class.
-        /// </summary>
-        /// <param name="type">A <see cref="Type" />.</param>
-        /// <returns><b>true</b> if <paramref name="type" /> is a society object, otherwise <b>false</b>.</returns>
-        private static bool IsSocietyObject(IType type) {
-            return Inherits(type, _rootSocietyObjectTypeName);
-        }
-
-        /// <summary>
-        /// Determines whether a <see cref="Type" /> is a kind class.
-        /// </summary>
-        /// <param name="type">A <see cref="Type" />.</param>
-        /// <returns><b>true</b> if <paramref name="type" /> is a kind class, otherwise <b>false</b>.</returns>
-        private static bool IsSocietyObjectKind(IType type) {
-            return Inherits(type, _rootSocietyObjectTypeName + "+Kind");
-        }
-
         #endregion
 
         #region Parse attribute types
@@ -1096,7 +974,6 @@ namespace Starcounter.Internal.Weaver {
         /// <remarks>This method may be safely called many times with the same argument.</remarks>
         private DatabaseClass DiscoverDatabaseClass(ITypeSignature type) {
             DatabaseClass databaseClass;
-            DatabaseKindClass databaseKindClass;
             TypeDefDeclaration extendedType = null;
             
             if (this._discoverDatabaseClassCache.TryGetValue(type, out databaseClass)) {
@@ -1126,47 +1003,20 @@ namespace Starcounter.Internal.Weaver {
                 return databaseClass;
             }
             
-            #region Verify if its a database class of some kind
             if (!typeDef.IsAssignableTo(this._dbObjectType)) {
-                //  ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is not a DbObject.", type);
-                // Emit an error if the type is nested in a society object and is named 'Kind'.
-                if (typeDef.DeclaringType != null && typeDef.Name == "Kind" && IsSocietyObject(typeDef.DeclaringType)) {
-                    ScMessageSource.Write(SeverityType.Error, "SCKCV06", new object[] { typeDef });
-                }
                 return null;
             }
-            #endregion
             
             ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
-            #region Detect and instantiate the proper kind of database class.
-            #region Kind Classes
-            if (IsSocietyObjectKind(typeDef)) {
-                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a kind class.", typeDef);
-                databaseKindClass = new DatabaseKindClass(this._databaseAssembly, typeDef.GetReflectionName());
-                databaseClass = databaseKindClass;
-            }
-            #endregion
-            #region Society Object
- else if (IsSocietyObject(typeDef)) {
-                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a society object.", typeDef);
-                DatabaseSocietyClass databaseSocietyClass =
-                    new DatabaseSocietyClass(this._databaseAssembly, typeDef.GetReflectionName());
-                databaseClass = databaseSocietyClass;
-            }
-            #endregion
-            #region Entity
-            else if (typeDef.IsAssignableTo(this._entityType)) {
+            
+            if (typeDef.IsAssignableTo(this._entityType)) {
                 ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a regular entity object.", typeDef);
                 databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
             }
-            #endregion
 
-            #endregion
-            // Do things that are common to all database classes.
             databaseClass.SetTypeDefinition(typeDef);
-            // Check we don't have a class with the same name.
+            
             DatabaseClass existingDatabaseClass = this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());
-
             if (existingDatabaseClass != null) {
                 StringBuilder existingClassName = new StringBuilder();
                 existingDatabaseClass.GetTypeDefinition().WriteReflectionName(existingClassName,
@@ -1188,25 +1038,7 @@ namespace Starcounter.Internal.Weaver {
             // else it will fail when the recursive calls are unwinded again.
             //   Now, lets do some further lookups.
 
-            databaseKindClass = databaseClass as DatabaseKindClass;
-            if (databaseKindClass != null) {
-                // If the current class is a kind class, relate it to its corresponding society object.
-                DatabaseSocietyClass parentClass =
-                typeDef.DeclaringType == null
-                ? null
-                : DiscoverDatabaseClass(typeDef.DeclaringType)
-                as DatabaseSocietyClass;
-                if (parentClass == null) {
-                    // The parent class is not a society object.
-                    // This is an error.
-
-                    ScMessageSource.Write(SeverityType.Error, "SCKCV03", new object[] { typeDef });
-                    return null;
-                } else {
-                    parentClass.KindClass = databaseClass as DatabaseKindClass;
-                    databaseKindClass.KindOf = parentClass;
-                }
-            } else if (databaseClass is DatabaseExtensionClass) {
+            if (databaseClass is DatabaseExtensionClass) {
                 DatabaseExtensionClass databaseExtensionClass = databaseClass as DatabaseExtensionClass;
                 // Relate the extension to its extented type.
                 DatabaseEntityClass extendedEntityClass =
