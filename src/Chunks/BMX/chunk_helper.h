@@ -118,38 +118,6 @@ public:
 	int32_t peek_int32() { return peek<int32_t>(); }
 	uint32_t peek_uint32() { return peek<uint32_t>(); }
 
-	double read_compressed_double()
-	{
-		uint8_t* p = chunk_ + offset_;
-		int32_t data_size = _DoubleSize2_Bytes(p);
-		offset_ += data_size;
-		return _DoubleRead2(p);
-	}
-
-	float read_compressed_float()
-	{
-		uint8_t* p = chunk_ + offset_;
-		int32_t data_size = _SingleSize2_Bytes(p);
-		offset_ += data_size;
-		return _SingleRead2(p);
-	}
-
-	uint64_t read_compressed_unsigned_int()
-	{
-		uint8_t* p = chunk_ + offset_;
-		int32_t size = Mdb_UInt4To64Size_Bytes(p);
-		offset_ += size;
-		return Mdb_UInt4To64Read(p);
-	}
-
-	int64_t read_compressed_signed_int()
-	{
-		uint8_t* p = chunk_ + offset_;
-		int32_t size = Mdb_Int4To64Size_Bytes(p);
-		offset_ += size;
-		return Mdb_Int4To64Read(p);
-	}
-
 	void write(int8_t value) { write<int8_t>(value); }
 	void write(uint8_t value) { write<uint8_t>(value); }
 	void write(int16_t value) { write<int16_t>(value); }
@@ -198,22 +166,6 @@ public:
 
         return 0;
     }
-
-	void write_compressed_unsigned_int(uint64_t value)
-	{
-		uint8_t* p = chunk_ + offset_;
-		int32_t size = Mdb_UInt64Size_UInt4To64(value);
-		Mdb_UInt4To64Write_Balanced(p, value);
-		offset_ += size;
-	}
-
-	void write_compressed_signed_int(int64_t value)
-	{
-		uint8_t* p = chunk_ + offset_;
-		int32_t size = Mdb_Int64Size_Int4To64(value);
-		Mdb_Int4To64Write_Balanced(p, value);
-		offset_ += size;
-	}
 
 	uint32_t write_data_and_size(uint8_t* data, uint32_t data_size)
 	{

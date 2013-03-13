@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectTypeGuids>{C86118D7-451E-4933-BFEE-A1EFDB162FD7};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProjectGuid>$guid1$</ProjectGuid>
-    <OutputType>Dll</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>$safeprojectname$</RootNamespace>
     <AssemblyName>$safeprojectname$</AssemblyName>
@@ -44,12 +44,37 @@
       <HintPath>$(StarcounterBin)\Starcounter.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Starcounter.XSON">
+      <HintPath>$(StarcounterBin)\Starcounter.XSON.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Internal">
+      <HintPath>$(StarcounterBin)\Starcounter.Internal.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Apps">
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Apps.Interfaces">
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.Interfaces.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.HyperMedia">
+      <HintPath>$(StarcounterBin)\Starcounter.HyperMedia.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.REST">
+      <HintPath>$(StarcounterBin)\Starcounter.REST.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entity1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(StarcounterBin)\Starcounter.MsBuild.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

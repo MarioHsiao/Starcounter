@@ -40,13 +40,21 @@ public:
     void Init();
 
     // Generate the code using managed generator.
-    uint32_t GenerateUriMatcher(MixedCodeConstants::RegisteredUriManaged* uri_infos, uint32_t num_uris)
+    uint32_t GenerateUriMatcher(
+        const char* const root_function_name,
+        MixedCodeConstants::RegisteredUriManaged* uri_infos,
+        uint32_t num_uris)
     {
         uri_code_size_bytes_ = MAX_URI_MATCHING_CODE_BYTES;
 
         uint32_t err_code = 0;
 
-        err_code = generate_uri_matcher_(uri_infos, num_uris, uri_matching_code_, &uri_code_size_bytes_);
+        err_code = generate_uri_matcher_(
+            root_function_name, 
+            uri_infos,
+            num_uris,
+            uri_matching_code_,
+            &uri_code_size_bytes_);
 
         /*std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
         std::stringstream str_stream;
@@ -60,7 +68,9 @@ public:
     // Compile given code into native dll.
     uint32_t CompileIfNeededAndLoadDll(
         UriMatchCodegenCompilerType comp_type,
-        std::wstring gen_file_name,    
+        const std::wstring& gen_file_name,
+        const char* const root_function_name,
+        void** clang_engine,
         MixedCodeConstants::MatchUriType* out_match_uri_func,
         HMODULE* out_codegen_dll_handle);
 
