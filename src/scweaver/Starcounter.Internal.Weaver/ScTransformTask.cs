@@ -220,14 +220,11 @@ namespace Starcounter.Internal.Weaver {
         public override bool Execute() {
             DatabaseAttribute databaseAttribute;
             DatabaseClass databaseClass;
-//            DatabaseExtensionClass databaseExtensionClass;
             DatabaseEntityClass databaseEntityClass;
-            DatabaseSocietyClass databaseSocietyClass;
             FieldDefDeclaration field;
             IEnumerator<MetadataDeclaration> typeEnumerator;
             IMethod getMethod;
             IMethod setMethod;
-//            MethodDefDeclaration constructor;
             ScAnalysisTask analysisTask;
             TypeDefDeclaration typeDef;
             TypeRefDeclaration typeRef;
@@ -326,12 +323,7 @@ namespace Starcounter.Internal.Weaver {
                 // Transformations specific to entity classes.
                 databaseEntityClass = dbc as DatabaseEntityClass;
                 if (databaseEntityClass != null) {
-                    databaseSocietyClass = databaseEntityClass as DatabaseSocietyClass;
-                    if (databaseSocietyClass == null) {
-                        AddTypeReferenceFields(typeDef);
-                    } else {
-                        AddKindReferenceField(typeDef, databaseSocietyClass);
-                    }
+                    AddTypeReferenceFields(typeDef);
                 }
             }
 
@@ -897,22 +889,6 @@ namespace Starcounter.Internal.Weaver {
         private static Boolean IsAnonymousType(TypeDefDeclaration typeDef) {
             return typeDef.Name.StartsWith("<>f__AnonymousType")
                     || typeDef.Name.StartsWith("VB$AnonymousType");
-        }
-
-        /// <summary>
-        /// Adds a kind reference field to a society object.
-        /// </summary>
-        /// <param name="declaringTypeDef"><see cref="TypeDefDeclaration" /> of the society object.</param>
-        /// <param name="databaseSocietyClass">The society object.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        private void AddKindReferenceField(
-            TypeDefDeclaration declaringTypeDef,
-            DatabaseSocietyClass databaseSocietyClass) {
-            // The SO binding layer must be moved out of the database. It
-            // is currently not supported. To see the old implementation,
-            // consult the perforce history.
-
-            throw new NotImplementedException();
         }
 
         /// <summary>
