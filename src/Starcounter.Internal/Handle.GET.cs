@@ -1,5 +1,6 @@
 ﻿
 
+using Starcounter.Internal;
 using System;
 
 namespace Starcounter {
@@ -30,7 +31,7 @@ namespace Starcounter {
         /// <param name="uriTemplate">The uri template to register.</param>
         /// <param name="code">The code to execute when a request is received.</param>
         public static void GET(string uriTemplate, Func<object> code) {
-            _REST.RegisterHandler("GET " + uriTemplate, code);
+            _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "GET " + uriTemplate, code);
         }
 
         /// <summary>
@@ -54,8 +55,8 @@ namespace Starcounter {
         /// <param name="uriTemplate">The uri template to register.</param>
         /// <param name="code">The code to execute when a request is received.</param>
         /// <param name="port">The port number to listen to.</param>
-        public static void GET(int port, string uri, Func<object> handler) {
-            _REST.RegisterHandler("GET " + uri, handler, port);
+        public static void GET(ushort port, string uri, Func<object> handler) {
+            _REST.RegisterHandler(port, "GET " + uri, handler);
         }
 
 
@@ -96,7 +97,7 @@ namespace Starcounter {
         /// <param name="uriTemplate">The uri template to register.</param>
         /// <param name="code">The code to execute when a request is received.</param>
         public static void GET<T>(string uri, Func<T, object> handler) {
-            _REST.RegisterHandler<T>("GET " + uri, handler);
+            _REST.RegisterHandler<T>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "GET " + uri, handler);
         }
 
 
@@ -120,8 +121,8 @@ namespace Starcounter {
         /// <param name="uriTemplate">The uri template to register.</param>
         /// <param name="code">The code to execute when a request is received.</param>
         /// <param name="port">The port number to listen to.</param>
-        public static void GET<T>(int port, string uri, Func<T, object> handler) {
-            _REST.RegisterHandler<T>("GET " + uri, handler, port);
+        public static void GET<T>(ushort port, string uri, Func<T, object> handler) {
+            _REST.RegisterHandler<T>(port, "GET " + uri, handler);
         }
 
 
@@ -133,7 +134,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void GET<T1, T2>(string uri, Func<T1, T2, object> handler) {
-            _REST.RegisterHandler<T1, T2>("GET " + uri, handler);
+            _REST.RegisterHandler<T1, T2>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,"GET " + uri, handler);
         }
 
 
@@ -145,8 +146,8 @@ namespace Starcounter {
         /// <param name="port"></param>
         /// <param name="uri"></param>
         /// <param name="handler"></param>
-        public static void GET<T1, T2>(int port, string uri, Func<T1, T2, object> handler) {
-            _REST.RegisterHandler<T1, T2>("GET " + uri, handler, port);
+        public static void GET<T1, T2>(ushort port, string uri, Func<T1, T2, object> handler) {
+            _REST.RegisterHandler<T1, T2>(port, "GET " + uri, handler);
         }
 
         /// <summary>
@@ -158,7 +159,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register</param>
         /// <param name="handler">The handler.</param>
         public static void GET<T1, T2, T3>(string uri, Func<T1, T2, T3, object> handler) {
-            _REST.RegisterHandler<T1, T2, T3>("GET " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "GET " + uri, handler);
         }
 
         /// <summary>
@@ -170,8 +171,8 @@ namespace Starcounter {
         /// <param name="port"></param>
         /// <param name="uri"></param>
         /// <param name="handler"></param>
-        public static void GET<T1, T2, T3>(int port, string uri, Func<T1, T2, T3, object> handler) {
-            _REST.RegisterHandler<T1, T2, T3>("GET " + uri, handler);
+        public static void GET<T1, T2, T3>(ushort port, string uri, Func<T1, T2, T3, object> handler) {
+            _REST.RegisterHandler<T1, T2, T3>(port,"GET " + uri, handler);
         }
 
 
@@ -185,7 +186,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void GET<T1, T2, T3, T4>(string uri, Func<T1, T2, T3, T4, object> handler) {
-            _REST.RegisterHandler<T1, T2, T3, T4>("GET " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "GET " + uri, handler);
         }
 
         /// <summary>
@@ -198,8 +199,8 @@ namespace Starcounter {
         /// <param name="port"></param>
         /// <param name="uri"></param>
         /// <param name="handler"></param>
-        public static void GET<T1, T2, T3, T4>(int port, string uri, Func<T1, T2, T3, T4, object> handler) {
-            _REST.RegisterHandler<T1, T2, T3, T4>("GET " + uri, handler, port);
+        public static void GET<T1, T2, T3, T4>(ushort port, string uri, Func<T1, T2, T3, T4, object> handler) {
+            _REST.RegisterHandler<T1, T2, T3, T4>(port, "GET " + uri, handler);
         }
 
         /// <summary>
@@ -213,7 +214,7 @@ namespace Starcounter {
         /// <param name="uri">The uri to register.</param>
         /// <param name="handler">The handler.</param>
         public static void GET<T1, T2, T3, T4, T5>(string uri, Func<T1, T2, T3, T4, T5, object> handler) {
-            _REST.RegisterHandler<T1, T2, T3, T4, T5>("GET " + uri, handler);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "GET " + uri, handler);
         }
 
         /// <summary>
@@ -227,8 +228,8 @@ namespace Starcounter {
         /// <param name="port"></param>
         /// <param name="uri"></param>
         /// <param name="handler"></param>
-        public static void GET<T1, T2, T3, T4, T5>(int port, string uri, Func<T1, T2, T3, T4, T5, object> handler) {
-            _REST.RegisterHandler<T1, T2, T3, T4, T5>("GET " + uri, handler, port);
+        public static void GET<T1, T2, T3, T4, T5>(ushort port, string uri, Func<T1, T2, T3, T4, T5, object> handler) {
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, "GET " + uri, handler);
         }
 
     }
