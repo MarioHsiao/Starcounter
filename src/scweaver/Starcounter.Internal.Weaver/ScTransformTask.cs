@@ -51,10 +51,6 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private readonly InstructionWriter _writer;
         /// <summary>
-        /// The _static constructors
-        /// </summary>
-        private readonly List<MethodDefDeclaration> _staticConstructors;
-        /// <summary>
         /// The _field advices
         /// </summary>
         private readonly List<InsteadOfFieldAccessAdvice> _fieldAdvices;
@@ -142,7 +138,6 @@ namespace Starcounter.Internal.Weaver {
         public ScTransformTask() {
             _fieldAccessors = new Dictionary<String, MethodPair>();
             _writer = new InstructionWriter();
-            _staticConstructors = new List<MethodDefDeclaration>();
             _fieldAdvices = new List<InsteadOfFieldAccessAdvice>();
             _methodAdvices = new List<IMethodLevelAdvice>();
             _weavedLucentAccessorAdvices = new List<ReimplementWeavedLucentAccessorAdvice>();
@@ -167,12 +162,11 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="field">Field for which accessors are requested.</param>
         /// <param name="getMethod">Get accessor.</param>
         /// <param name="setMethod">Set accessor.</param>
-        private void GetAccessors(IField field,
-                                  out IMethod getMethod,
-                                  out IMethod setMethod) {
+        private void GetAccessors(IField field, out IMethod getMethod, out IMethod setMethod) {
             MethodPair pair;
             MethodSignature signature;
-            String fieldName = GetFieldName(field);
+
+            var fieldName = GetFieldName(field);
             if (!_fieldAccessors.TryGetValue(fieldName, out pair)) {
                 // We did not find the field accessors. This maybe because the
                 // entity type is in another assembly and this assembly was
@@ -225,15 +219,11 @@ namespace Starcounter.Internal.Weaver {
         public override bool Execute() {
             DatabaseAttribute databaseAttribute;
             DatabaseClass databaseClass;
-//            DatabaseExtensionClass databaseExtensionClass;
             DatabaseEntityClass databaseEntityClass;
-            DatabaseSocietyClass databaseSocietyClass;
             FieldDefDeclaration field;
             IEnumerator<MetadataDeclaration> typeEnumerator;
             IMethod getMethod;
             IMethod setMethod;
-//            MethodDefDeclaration constructor;
-            MethodDefDeclaration staticConstructor;
             ScAnalysisTask analysisTask;
             TypeDefDeclaration typeDef;
             TypeRefDeclaration typeRef;
@@ -247,13 +237,7 @@ namespace Starcounter.Internal.Weaver {
                 // No reference to Starcounter. We don't need to transform anything.
                 // Lets skip the rest of the code.
 
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(
-                    SeverityType.Info,
-                    "SCINF03",
-                    new Object[] { _module.Name }
-                    );
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Info, "SCINF03", new Object[] { _module.Name });
                 return true;
             }
 
@@ -261,13 +245,11 @@ namespace Starcounter.Internal.Weaver {
             // meaning we need not to transform at all.
 
             if (analysisTask.TransformationKind == WeaverTransformationKind.None) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(
+                ScMessageSource.Write(
                     SeverityType.Info,
                     "SCINF04",
                     new Object[] { _module.Name }
                     );
-#pragma warning restore 618
 
                 // Disable all upcoming tasks in this project, since we don't
                 // need to do anything with this assembly
@@ -309,12 +291,7 @@ namespace Starcounter.Internal.Weaver {
             // We will weave it. Make sure we redirect it first and then mark it
             // as weaved for IPC if it's such a context we are weaving for.
 
-#pragma warning disable 618
-            ScMessageSource.Instance.Write(
-                SeverityType.ImportantInfo, "SCINF02",
-                new Object[] { _module.Name }
-                );
-#pragma warning restore 618
+            ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF02", new Object[] { _module.Name });
 
             // Initialize extra for user code weavers.
 
@@ -342,21 +319,10 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
 
-                // Index static constructors.
-                staticConstructor = typeDef.Methods.GetOneByName(".cctor");
-                if (staticConstructor != null) {
-                    _staticConstructors.Add(staticConstructor);
-                }
-
                 // Transformations specific to entity classes.
                 databaseEntityClass = dbc as DatabaseEntityClass;
                 if (databaseEntityClass != null) {
-                    databaseSocietyClass = databaseEntityClass as DatabaseSocietyClass;
-                    if (databaseSocietyClass == null) {
-                        AddTypeReferenceFields(typeDef);
-                    } else {
-                        AddKindReferenceField(typeDef, databaseSocietyClass);
-                    }
+                    AddTypeReferenceFields(typeDef);
                 }
             }
 
@@ -925,22 +891,6 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Adds a kind reference field to a society object.
-        /// </summary>
-        /// <param name="declaringTypeDef"><see cref="TypeDefDeclaration" /> of the society object.</param>
-        /// <param name="databaseSocietyClass">The society object.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        private void AddKindReferenceField(
-            TypeDefDeclaration declaringTypeDef,
-            DatabaseSocietyClass databaseSocietyClass) {
-            // The SO binding layer must be moved out of the database. It
-            // is currently not supported. To see the old implementation,
-            // consult the perforce history.
-
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// Decorates the assembly level implementation type with the neccessary
         /// infrastructure reference fields for the given type.
         /// </summary>
@@ -985,8 +935,7 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="codeWeaver">The code weaver to which we should provide advices.</param>
         public void ProvideAdvices(PostSharp.Sdk.CodeWeaver.Weaver codeWeaver) {
             Singleton<MetadataDeclaration> metaSingleton;
-            StaticConstructorAdvice staticConstructorAdvice;
-
+            
             foreach (InsteadOfFieldAccessAdvice advice in _fieldAdvices) {
                 metaSingleton = new Singleton<MetadataDeclaration>((MetadataDeclaration)advice.Field);
                 codeWeaver.AddMethodLevelAdvice(advice,
@@ -1011,16 +960,6 @@ namespace Starcounter.Internal.Weaver {
                         JoinPointKinds.InsteadOfGetField | JoinPointKinds.InsteadOfCall,
                         null);
                 }
-            }
-
-            staticConstructorAdvice = new StaticConstructorAdvice(_module);
-            foreach (MethodDefDeclaration staticConstructor in _staticConstructors) {
-
-                codeWeaver.AddMethodLevelAdvice(staticConstructorAdvice,
-                                                new Singleton<MethodDefDeclaration>(staticConstructor),
-                                                JoinPointKinds.BeforeMethodBody
-                                                    | JoinPointKinds.AfterMethodBodyAlways,
-                                                null);
             }
 
             foreach (IMethodLevelAdvice advice in _methodAdvices) {
@@ -1341,16 +1280,6 @@ namespace Starcounter.Internal.Weaver {
 
             // Skip if the type has already been processed.
             if (typeDef.GetTag(_constructorEnhancedTagGuid) != null) {
-                return;
-            }
-
-            // We don't enhance constructors if there is a weaver directive.
-            if ((databaseClass.WeaverDirectives
-                    & (Int32)WeaverDirectives.ExcludeConstructorTransformation) != 0) {
-                ScTransformTrace.Instance.WriteLine(
-                            "Don't enhance constructors of {{{0}}} because of weaver directives.",
-                            typeDef
-                );
                 return;
             }
 
