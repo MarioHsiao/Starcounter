@@ -39,9 +39,6 @@ namespace Starcounter.Internal.Weaver
                 case "SCATV03":
                     errorCode = Error.SCERRILLEGALATTRIBUTEASSIGN;
                     break;
-                case "SCATV04":
-                    errorCode = Error.SCERRUNTRUSTEDKNOWNTYPE;
-                    break;
                 case "SCDCV01":
                     errorCode = Error.SCERRDBCLASSCANTBEGENERIC;
                     break;

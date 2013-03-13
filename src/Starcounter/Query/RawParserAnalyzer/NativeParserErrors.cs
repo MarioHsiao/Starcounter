@@ -43,9 +43,11 @@ namespace Starcounter.Query.RawParserAnalyzer {
                     message = "Unexpected token.";
                 if (message == "syntax error" && token == null)
                     message = "Unexpected end of query.";
-                message += " The error near or at position " + position + ".";
+                message += " The error near or at position " + position;
                 if (token != null)
-                    message += " The error token: " + token;
+                    message += ", near or at token: " + token;
+                else
+                    message += ".";
                 return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, position, token, Query));
             }
         }
