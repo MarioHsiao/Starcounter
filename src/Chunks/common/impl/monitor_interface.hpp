@@ -675,11 +675,21 @@ inline monitor_interface_ptr::monitor_interface_ptr(const char* monitor_interfac
 	}
 }
 
-inline void monitor_interface_ptr::init(const char* monitor_interface_name) {
+inline void monitor_interface_ptr::init(const char* monitor_interface_name, const uint32_t timeout_ms) {
+    uint64_t end_time = ::GetTickCount64() + timeout_ms;
+
 	// Try to open the monitor interface shared memory object.
 	shared_memory_object_.init_open(monitor_interface_name);
 		
-	if (!shared_memory_object_.is_valid()) {
+	while (!shared_memory_object_.is_valid()) {
+
+        // Checking if given time has passed.
+        if (::GetTickCount64() < end_time) {
+            Sleep(1);
+            shared_memory_object_.init_open(monitor_interface_name);
+            continue;
+        }
+
 		// Failed to open monitor interface.
 		throw monitor_interface_ptr_exception(SCERROPENMONITORINTERFACE);
 	}
@@ -688,7 +698,15 @@ inline void monitor_interface_ptr::init(const char* monitor_interface_name) {
 	// in this process.
 	mapped_region_.init(shared_memory_object_);
 		
-	if (!mapped_region_.is_valid()) {
+	while (!mapped_region_.is_valid()) {
+
+        // Checking if given time has passed.
+        if (::GetTickCount64() < end_time) {
+            Sleep(1);
+            mapped_region_.init(shared_memory_object_);
+            continue;
+        }
+
 		// Failed to map monitor interface in shared memory.
 		throw monitor_interface_ptr_exception
 		(SCERRMAPMONITORINTERFACEINSHM);

@@ -1312,9 +1312,14 @@ public:
 };
 
 typedef void* (*GwClangCompileCodeAndGetFuntion)(
+    void** clang_engine,
     const char* code_str,
     const char* func_name,
     bool accumulate_old_modules);
+
+typedef void (*ClangDestroyEngineType) (
+    void* clang_engine
+    );
 
 class CodegenUriMatcher;
 class GatewayWorker;
@@ -1590,8 +1595,11 @@ public:
     // Pointer to Clang compile and get function pointer.
     GwClangCompileCodeAndGetFuntion ClangCompileAndGetFunc;
 
+    // Destroys existing Clang engine.
+    ClangDestroyEngineType ClangDestroyEngineFunc;
+
     // Generate the code using managed generator.
-    uint32_t GenerateUriMatcher(uint16_t port);
+    uint32_t GenerateUriMatcher(RegisteredUris* port_uris);
 
     // Codegen URI matcher.
     CodegenUriMatcher* get_codegen_uri_matcher()
