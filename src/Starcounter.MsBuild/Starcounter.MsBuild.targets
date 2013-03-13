@@ -34,8 +34,11 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="AfterBuild">
+  <Target Name="BootstrapWeaving" Condition="$(OutputType) == 'Exe' Or $(OutputType) == 'WinExe'">
     <Exec Command="&quot;$(StarcounterBin)\scweaver.exe&quot; WeaveBootstrapper &quot;$(TargetPath)&quot;"/>
+  </Target>
+
+  <Target Name="AfterBuild" DependsOnTargets="BootstrapWeaving">
   </Target>
 </Project>
 
