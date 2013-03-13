@@ -34,7 +34,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="BootstrapWeaving" Condition="$(OutputType) == 'Exe' And $(OutputType) == 'WinExe'">
+  <Target Name="BootstrapWeaving" Condition="$(OutputType) == 'Exe' Or $(OutputType) == 'WinExe'">
     <Exec Command="&quot;$(StarcounterBin)\scweaver.exe&quot; WeaveBootstrapper &quot;$(TargetPath)&quot;"/>
   </Target>
 
