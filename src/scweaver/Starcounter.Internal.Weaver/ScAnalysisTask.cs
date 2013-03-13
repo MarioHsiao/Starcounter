@@ -387,6 +387,35 @@ namespace Starcounter.Internal.Weaver {
             return WeaverTransformationKind.UserCodeToDatabase;
         }
 
+        protected override void Initialize() {
+            _module = Project.Module;
+            _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
+            _weavingHelper = new WeavingHelper(_module);
+            _defaultConstructorSignature = new MethodSignature(
+                _module, 
+                CallingConvention.Default,
+                _module.Cache.GetIntrinsic(IntrinsicType.Void),
+                new IntrinsicTypeSignature[0],
+                0);
+            this.TransformationKind = GetTransformationKind();
+        }
+
+        /// <summary>
+        /// Initializes the task state after it has been established that
+        /// the module/assembly being process in fact has a direct or indirect
+        /// reference to Starcounter (and hence must be analyzed).
+        /// </summary>
+        /// <remarks>
+        /// Consult <seealso cref="Initialize"/> for initialization we do
+        /// even before we check if a reference to Starcounter exist.
+        /// </remarks>
+        void InitializeModuleThatReferenceStarcounter() {
+            _entityType = FindStarcounterType(typeof(Entity));
+            _dbObjectType = FindStarcounterType(typeof(Entity));
+            _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
+            _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+        }
+
         /// <summary>
         /// Principal entry point of the task. Invoked by PostSharp.
         /// </summary>
@@ -398,37 +427,22 @@ namespace Starcounter.Internal.Weaver {
             DatabaseEntityClass databaseEntityClass;
             DatabaseSocietyClass databaseSocietyClass;
             IEnumerator<MetadataDeclaration> typeDefEnumerator;
-            IntrinsicTypeSignature voidTypeSign;
             String name;
             TypeDefDeclaration typeDef;
-
-            // Initializes the current instance.
-
-            _module = Project.Module;
-
-            this.TransformationKind = GetTransformationKind();
-
-            _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
 
             ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF01", new Object[] { _module.Name });
 
             // Create a DatabaseAssembly for the current module and add it to the schema.
+
             _databaseAssembly = new DatabaseAssembly(_module.AssemblyManifest.Name, _module.AssemblyManifest.GetFullName()) {
                 IsTransformed = true,
                 HasDebuggingSymbols = _module.HasDebugInfo
             };
             DatabaseSchema.Assemblies.Add(_databaseAssembly);
 
-            // Prepare cached stuff.
-            _weavingHelper = new WeavingHelper(_module);
-            voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
-            _defaultConstructorSignature = new MethodSignature(
-                _module,
-                CallingConvention.Default,
-                voidTypeSign,
-                new IntrinsicTypeSignature[0],
-                0);
-            
+            // Check if the assembly indicates it's strongly named.
+            // We currently can't transform such assemblies.
+
             if (_module.AssemblyManifest.GetPublicKey() != null) {
                 ScMessageSource.Write(SeverityType.Error, "SCATV05", new Object[] { _module.AssemblyManifest.GetFullName() });
             }
@@ -448,12 +462,9 @@ namespace Starcounter.Internal.Weaver {
                     );
             } else {
                 // The module/assembly we are told to process references Starcounter,
-                // either directly or indirectly. Prepare to run analyzis.
+                // either directly or indirectly.
 
-                _entityType = FindStarcounterType(typeof(Entity));
-                _dbObjectType = FindStarcounterType(typeof(Entity));
-                _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
-                _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+                InitializeModuleThatReferenceStarcounter();
 
                 // Set up dependencies for this assembly.
                 // First assure we add dependencies recursively, starting from the
@@ -475,9 +486,7 @@ namespace Starcounter.Internal.Weaver {
                 while (typeDefEnumerator.MoveNext()) {
                     typeDef = (TypeDefDeclaration)typeDefEnumerator.Current;
                     if (typeDef.Name != "<Module>") {
-                        databaseClass = DiscoverDatabaseClass(
-                                            (TypeDefDeclaration)typeDefEnumerator.Current
-                                        );
+                        databaseClass = DiscoverDatabaseClass((TypeDefDeclaration)typeDefEnumerator.Current);
                         if (databaseClass != null) {
                             _dbClassesInCurrentModule.Add(typeDef, databaseClass);
                         }
@@ -496,16 +505,14 @@ namespace Starcounter.Internal.Weaver {
                 // so that we can read instruction from the original stream (performance).
                 InspectLoadFieldAddress();
 
-                // Now process constructors.
-                foreach (KeyValuePair<TypeDefDeclaration, DatabaseClass> pair
-                                                        in _dbClassesInCurrentModule) {
+                // Process constructors.
+                foreach (KeyValuePair<TypeDefDeclaration, DatabaseClass> pair in _dbClassesInCurrentModule) {
                     InspectConstructors(pair.Value, pair.Key);
                 }
 
                 // Validate the database classes.
                 foreach (DatabaseClass dbc in _dbClassesInCurrentModule.Values) {
-                    ScAnalysisTrace.Instance.WriteLine("Validating the database class {0}.",
-                                                        dbc.Name);
+                    ScAnalysisTrace.Instance.WriteLine("Validating the database class {0}.", dbc.Name);
 
                     databaseSocietyClass = dbc as DatabaseSocietyClass;
                     databaseKindClass = dbc as DatabaseKindClass;
@@ -532,14 +539,13 @@ namespace Starcounter.Internal.Weaver {
                 }
 
                 ValidateCustomAttributeUsage();
+                ConvertIndirectSynonymsToDirectSynonyms();
 
                 // If there was some error, return at this point.
                 if (Messenger.Current.ErrorCount > 0) {
                     return false;
                 }
             }
-
-            ConvertIndirectSynonymsToDirectSynonyms();
 
             // Save the assembly to a file.
 
@@ -1089,20 +1095,22 @@ namespace Starcounter.Internal.Weaver {
         /// otherwise <b>false</b>.</returns>
         /// <remarks>This method may be safely called many times with the same argument.</remarks>
         private DatabaseClass DiscoverDatabaseClass(ITypeSignature type) {
-            // First of all look in the cache of the current module.
             DatabaseClass databaseClass;
             DatabaseKindClass databaseKindClass;
             TypeDefDeclaration extendedType = null;
+            
             if (this._discoverDatabaseClassCache.TryGetValue(type, out databaseClass)) {
                 ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} already processed.", type);
                 return databaseClass;
             }
+
             // Get the type definition.
             TypeDefDeclaration typeDef = type.GetTypeDefinition(BindingOptions.DontThrowException);
             if (typeDef == null) {
                 this._discoverDatabaseClassCache.Add(type, null);
                 return null;
             }
+
             // Look for the type definition in the cache.
             if (typeDef != type) {
                 if (this._discoverDatabaseClassCache.TryGetValue(typeDef, out databaseClass)) {
@@ -1110,6 +1118,7 @@ namespace Starcounter.Internal.Weaver {
                     return databaseClass;
                 }
             }
+            
             // If the type is defined in another module, return it.
             if (typeDef.Module != this._module) {
                 databaseClass = DatabaseSchema.FindDatabaseClass(typeDef.GetReflectionName());
@@ -1127,6 +1136,7 @@ namespace Starcounter.Internal.Weaver {
                 return null;
             }
             #endregion
+            
             ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
             #region Detect and instantiate the proper kind of database class.
             #region Kind Classes
@@ -1145,9 +1155,8 @@ namespace Starcounter.Internal.Weaver {
             }
             #endregion
             #region Entity
- else if (typeDef.IsAssignableTo(this._entityType)) {
-                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a regular entity object.",
-                                                   typeDef);
+            else if (typeDef.IsAssignableTo(this._entityType)) {
+                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a regular entity object.", typeDef);
                 databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
             }
             #endregion
@@ -1156,8 +1165,7 @@ namespace Starcounter.Internal.Weaver {
             // Do things that are common to all database classes.
             databaseClass.SetTypeDefinition(typeDef);
             // Check we don't have a class with the same name.
-            DatabaseClass existingDatabaseClass =
-                this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());
+            DatabaseClass existingDatabaseClass = this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());
 
             if (existingDatabaseClass != null) {
                 StringBuilder existingClassName = new StringBuilder();
@@ -1275,15 +1283,19 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the field belong.</param>
         /// <param name="field">Field to be inspected.</param>
         private void DiscoverDatabaseField(DatabaseClass databaseClass, FieldDefDeclaration field) {
-            ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseField: processing field {0}.{1} of type {2}.",
-            databaseClass.Name, field.Name, field.FieldType);
+            ScAnalysisTrace.Instance.WriteLine(
+                "DiscoverDatabaseField: processing field {0}.{1} of type {2}.",
+                databaseClass.Name, 
+                field.Name, 
+                field.FieldType
+                );
+
             // A field in a database class cannot be of the same name as a field in any parent class.
-            if (databaseClass.BaseClass != null &&
-            databaseClass.BaseClass.FindAttributeInAncestors(field.Name) != null) {
-                // SCDCV06
+            if (databaseClass.BaseClass != null && databaseClass.BaseClass.FindAttributeInAncestors(field.Name) != null) {
                 ScMessageSource.Write(SeverityType.Error, "SCDCV06", new object[] { field.DeclaringType, field.Name });
             }
-            DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, field.Name);
+
+            var databaseAttribute = new DatabaseAttribute(databaseClass, field.Name);
             databaseClass.Attributes.Add(databaseAttribute);
             databaseAttribute.SetFieldDefinition(field);
             databaseAttribute.IsInitOnly = (field.Attributes & FieldAttributes.InitOnly) != 0;
