@@ -50,7 +50,7 @@ namespace Starcounter.Internal.Web {
         public HttpResponse HandleResponse(HttpRequest request, Object x)
         {
             HttpResponse response = null;
-            Session session = null;
+            Session session;
             uint errorCode;
             string responseReasonPhrase;
 
@@ -65,12 +65,13 @@ namespace Starcounter.Internal.Web {
                         // TODO:
                         // How do we create new sessions and what is allowed here...
                         // Should the users themselves create the session?
+                        session = Session.Current;
                         if (session == null)
                         {
                             session = new Session();
                             errorCode = request.GenerateNewSession(session);
                             if (errorCode != 0)
-                                throw new Exception("TODO: proper starcounter exception: " + errorCode);
+                                ErrorCode.ToException(errorCode);
                             session.Start(request);
                         }
 
@@ -136,8 +137,7 @@ namespace Starcounter.Internal.Web {
                 if (response == null)
                     response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
 
-                if (request.HasNewSession)
-                {
+                if (request.HasNewSession) {
                     // A new session have been created. We need to inject a session-cookie stub to the response.
 
                     // TODO:
@@ -151,17 +151,9 @@ namespace Starcounter.Internal.Web {
 
                 return response;
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
-            }
-            finally
-            {
-                if (Session.Current != null)
-                {
-                    Session.Current.End();
-                }
             }
         }
 
@@ -173,6 +165,7 @@ namespace Starcounter.Internal.Web {
         /// <returns>The bytes according to the appropriate protocol</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         public override HttpResponse Handle(HttpRequest request) {
+            object x;
             Session session = null;
 
             // Checking if we are in session already.
@@ -181,16 +174,22 @@ namespace Starcounter.Internal.Web {
                 session.Start(request);
             }
 
-            object x;
-
-            // Invoking original user delegate with parameters here.
+            try {
+                // Invoking original user delegate with parameters here.
 #if GW_URI_MATCHING_CODEGEN
-            UserHandlerCodegen.HandlersManager.RunDelegate(request, out x);
+                UserHandlerCodegen.HandlersManager.RunDelegate(request, out x);
 #else
             RequestHandler.RequestProcessor.Invoke(request, out x);
 #endif
-            // Handling and returning the HTTP response.
-            return HandleResponse(request, x);
+                // Handling and returning the HTTP response.
+                return HandleResponse(request, x);
+            } finally {
+                session = Session.Current;
+                if (session != null) {
+                    session.End();
+                    session = null;
+                }
+            }
         }
 
         /// <summary>

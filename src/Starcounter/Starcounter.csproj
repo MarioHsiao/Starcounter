@@ -358,12 +358,10 @@
     <Compile Include="Mock\Schema\DatabaseEnumValue.cs" />
     <Compile Include="Mock\Schema\DatabaseExtensionClass.cs" />
     <Compile Include="Mock\Schema\DatabaseIndex.cs" />
-    <Compile Include="Mock\Schema\DatabaseKindClass.cs" />
     <Compile Include="Mock\Schema\DatabasePrimitive.cs" />
     <Compile Include="Mock\Schema\DatabasePrimitiveType.cs" />
     <Compile Include="Mock\Schema\DatabaseSchema.cs" />
     <Compile Include="Mock\Schema\DatabaseSchemaElement.cs" />
-    <Compile Include="Mock\Schema\DatabaseSocietyClass.cs" />
     <Compile Include="Mock\Schema\DatabaseUnsupportedType.cs" />
     <Compile Include="Mock\Schema\IDatabasePropertyType.cs" />
     <Compile Include="DbSession.cs" />

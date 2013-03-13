@@ -31,11 +31,6 @@ namespace Starcounter.Internal.Weaver {
     /// </summary>
     public class ScAnalysisTask : Task {
         /// <summary>
-        /// The _root society object type name
-        /// </summary>
-        private const String _rootSocietyObjectTypeName = "Concepts.Ring1.Something";
-
-        /// <summary>
         /// The _schema
         /// </summary>
         private static readonly DatabaseSchema _schema = new DatabaseSchema();
@@ -58,20 +53,6 @@ namespace Starcounter.Internal.Weaver {
         private readonly Dictionary<DatabaseAttribute, string> _synonymousToAttributes = new Dictionary<DatabaseAttribute, string>();
 
         /// <summary>
-        /// The _forbidden assemblies
-        /// </summary>
-        private readonly String[] _forbiddenAssemblies = new[] {
-            "starcounter.configuration",
-            "starcounter.framework",
-            "starcounter.management.agent",
-            "starcounter.management.client",
-            "starcounter.management.console",
-            "starcounter.management.contracts",
-            "starcounter.management.server",
-            "starcounter.management.win32"
-        };
-
-        /// <summary>
         /// The _SC app assembly ref
         /// </summary>
         private AssemblyRefDeclaration _scAppAssemblyRef;
@@ -91,10 +72,6 @@ namespace Starcounter.Internal.Weaver {
         /// The _module
         /// </summary>
         private ModuleDeclaration _module;
-        /// <summary>
-        /// The _weaver directives
-        /// </summary>
-        private WeaverDirectives _weaverDirectives;
         /// <summary>
         /// The _weaving helper
         /// </summary>
@@ -405,51 +382,33 @@ namespace Starcounter.Internal.Weaver {
             return WeaverTransformationKind.UserCodeToDatabase;
         }
 
+        protected override void Initialize() {
+            _module = Project.Module;
+            _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
+            _weavingHelper = new WeavingHelper(_module);
+            _defaultConstructorSignature = new MethodSignature(
+                _module, 
+                CallingConvention.Default,
+                _module.Cache.GetIntrinsic(IntrinsicType.Void),
+                new IntrinsicTypeSignature[0],
+                0);
+            this.TransformationKind = GetTransformationKind();
+        }
+
         /// <summary>
-        /// Inspects the given module and returns a set of weaver directives that
-        /// describes how the module should be analysed and weaved.
+        /// Initializes the task state after it has been established that
+        /// the module/assembly being process in fact has a direct or indirect
+        /// reference to Starcounter (and hence must be analyzed).
         /// </summary>
-        /// <param name="module">The module to inspect.</param>
-        /// <returns>Directives for the module.</returns>
-        public static WeaverDirectives GetWeaverDirectives(ModuleDeclaration module) {
-            BindingOptions bindOpts;
-            CustomAttributeDeclaration knownAssemblyAttribute;
-            IType knownAssemblyAttributeType;
-            KnownAssemblyAttribute kaa;
-            SerializedValue value;
-            String proof;
-            Type type;
-            WeaverDirectives weaverDirectives;
-
-            bindOpts = BindingOptions.OnlyExisting | BindingOptions.DontThrowException;
-            type = typeof(KnownAssemblyAttribute);
-            knownAssemblyAttributeType = (IType)module.FindType(type, bindOpts);
-
-            weaverDirectives = WeaverDirectives.None;
-
-            if (knownAssemblyAttributeType == null) {
-                return weaverDirectives;
-            }
-
-            knownAssemblyAttribute = module.AssemblyManifest.CustomAttributes.GetOneByType(knownAssemblyAttributeType);
-            if (knownAssemblyAttribute == null) {
-                return weaverDirectives;
-            }
-
-            value = knownAssemblyAttribute.ConstructorArguments[0].Value;
-            weaverDirectives |= (WeaverDirectives)(Int32)value.Value;
-
-            proof = (String)knownAssemblyAttribute.ConstructorArguments[1].Value.Value;
-            kaa = new KnownAssemblyAttribute(weaverDirectives, proof);
-            if (!kaa.CheckProof(module.AssemblyManifest.GetFullName())) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Fatal, "SCATV04",
-                                               new Object[] { module.AssemblyManifest.GetFullName() });
-#pragma warning restore 618
-                return WeaverDirectives.None;
-            }
-
-            return weaverDirectives;
+        /// <remarks>
+        /// Consult <seealso cref="Initialize"/> for initialization we do
+        /// even before we check if a reference to Starcounter exist.
+        /// </remarks>
+        void InitializeModuleThatReferenceStarcounter() {
+            _entityType = FindStarcounterType(typeof(Entity));
+            _dbObjectType = FindStarcounterType(typeof(Entity));
+            _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
+            _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
         }
 
         /// <summary>
@@ -459,71 +418,27 @@ namespace Starcounter.Internal.Weaver {
         public override Boolean Execute() {
             DatabaseClass databaseClass;
             DatabaseExtensionClass databaseExtensionClass;
-            DatabaseKindClass databaseKindClass;
             DatabaseEntityClass databaseEntityClass;
-            DatabaseSocietyClass databaseSocietyClass;
             IEnumerator<MetadataDeclaration> typeDefEnumerator;
-            IntrinsicTypeSignature voidTypeSign;
             String name;
             TypeDefDeclaration typeDef;
 
-            // Initializes the current instance.
-
-            _module = Project.Module;
-
-            this.TransformationKind = GetTransformationKind();
-
-            // Establish the weaver directives. First check the ones possibly decorated
-            // on the assembly, then consider the kind of transformation.
-            _weaverDirectives = GetWeaverDirectives(_module);
-            if (!WeaverUtilities.IsFromUserCode(this.TransformationKind)) {
-                // Any transformation not originating from user code, we don't
-                // need to execute validation on.
-
-                _weaverDirectives |=
-                    WeaverDirectives.AllowForbiddenDeclarations | WeaverDirectives.ExcludeConstraintValidation;
-            }
-
-            _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
-
-#pragma warning disable 618
-            ScMessageSource.Instance.Write(
-                SeverityType.ImportantInfo,
-                "SCINF01",
-                new Object[] { _module.Name });
-#pragma warning restore 618
+            ScMessageSource.Write(
+                SeverityType.ImportantInfo, "SCINF01", new Object[] { _module.Name });
 
             // Create a DatabaseAssembly for the current module and add it to the schema.
+
             _databaseAssembly = new DatabaseAssembly(_module.AssemblyManifest.Name, _module.AssemblyManifest.GetFullName()) {
-                IsTransformed = ((_weaverDirectives &
-                                  WeaverDirectives.ExcludeAnyTransformation) == 0),
+                IsTransformed = true,
                 HasDebuggingSymbols = _module.HasDebugInfo
             };
             DatabaseSchema.Assemblies.Add(_databaseAssembly);
 
-            // Prepare cached stuff.
-            _weavingHelper = new WeavingHelper(_module);
-            voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
-            _defaultConstructorSignature = new MethodSignature(_module,
-                                                               CallingConvention.Default,
-                                                               voidTypeSign,
-                                                               new IntrinsicTypeSignature[0],
-                                                               0);
+            // Check if the assembly indicates it's strongly named.
+            // We currently can't transform such assemblies.
 
-            // Ensure that the code does not reference forbidden constructs.
-
-            if ((_weaverDirectives & (WeaverDirectives.ExcludeConstraintValidation
-                                            | WeaverDirectives.AllowForbiddenDeclarations)) == 0) {
-                if (_module.AssemblyManifest.GetPublicKey() != null) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(
-                                        SeverityType.Error,
-                                        "SCATV05",
-                                        new Object[] { _module.AssemblyManifest.GetFullName() }
-                                    );
-#pragma warning restore 618
-                }
-                ValidateForbiddenReferences();
+            if (_module.AssemblyManifest.GetPublicKey() != null) {
+                ScMessageSource.Write(SeverityType.Error, "SCATV05", new Object[] { _module.AssemblyManifest.GetFullName() });
             }
 
             // Find the reference to Starcounter
@@ -536,21 +451,14 @@ namespace Starcounter.Internal.Weaver {
                 // it would be better to configure this assembly not to be analyzed by
                 // the weaver, to improve startup time.
 
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(
-                    SeverityType.ImportantInfo,
-                    "SCATV06",
+                ScMessageSource.Write(SeverityType.ImportantInfo, "SCATV06",
                     new Object[] { _module.AssemblyManifest.GetFullName() }
                     );
-#pragma warning restore 618
             } else {
                 // The module/assembly we are told to process references Starcounter,
-                // either directly or indirectly. Prepare to run analyzis.
+                // either directly or indirectly.
 
-                _entityType = FindStarcounterType(typeof(Entity));
-                _dbObjectType = FindStarcounterType(typeof(Entity));
-                _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
-                _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+                InitializeModuleThatReferenceStarcounter();
 
                 // Set up dependencies for this assembly.
                 // First assure we add dependencies recursively, starting from the
@@ -572,9 +480,7 @@ namespace Starcounter.Internal.Weaver {
                 while (typeDefEnumerator.MoveNext()) {
                     typeDef = (TypeDefDeclaration)typeDefEnumerator.Current;
                     if (typeDef.Name != "<Module>") {
-                        databaseClass = DiscoverDatabaseClass(
-                                            (TypeDefDeclaration)typeDefEnumerator.Current
-                                        );
+                        databaseClass = DiscoverDatabaseClass((TypeDefDeclaration)typeDefEnumerator.Current);
                         if (databaseClass != null) {
                             _dbClassesInCurrentModule.Add(typeDef, databaseClass);
                         }
@@ -587,58 +493,39 @@ namespace Starcounter.Internal.Weaver {
                 ProcessSynonymousToAttributes();
 
                 // Now that the schema is complete, validate it.
+                    
+                // Inspect all instructions for the constraint PFV21 (related to passing 
+                // fields by reference). We should do it before constructors are inspected 
+                // so that we can read instruction from the original stream (performance).
+                InspectLoadFieldAddress();
 
-                if ((_weaverDirectives & WeaverDirectives.ExcludeConstraintValidation) == 0) {
-                    // Inspect all instructions for the constraint PFV21 (related to passing 
-                    // fields by reference). We should do it before constructors are inspected 
-                    // so that we can read instruction from the original stream (performance).
-                    InspectLoadFieldAddress();
-
-                    // Now process constructors.
-                    foreach (KeyValuePair<TypeDefDeclaration, DatabaseClass> pair
-                                                            in _dbClassesInCurrentModule) {
-                        InspectConstructors(pair.Value, pair.Key);
-                    }
-
-                    // Validate the database classes.
-                    foreach (DatabaseClass dbc in _dbClassesInCurrentModule.Values) {
-                        ScAnalysisTrace.Instance.WriteLine("Validating the database class {0}.",
-                                                           dbc.Name);
-
-                        databaseSocietyClass = dbc as DatabaseSocietyClass;
-                        databaseKindClass = dbc as DatabaseKindClass;
-                        databaseExtensionClass = dbc as DatabaseExtensionClass;
-                        databaseEntityClass = dbc as DatabaseEntityClass;
-                        ValidateDatabaseClass(dbc);
-
-                        if (databaseSocietyClass != null) {
-                            ValidateDatabaseSocietyClass(databaseSocietyClass);
-                        }
-
-                        if (databaseKindClass != null) {
-                            ValidateDatabaseKindClass(databaseKindClass);
-                        }
-
-                        if (databaseEntityClass != null) {
-                            ValidateEntityClass(databaseEntityClass);
-                        }
-
-                        // Validate attributes of this class.
-                        foreach (DatabaseAttribute databaseAttribute in dbc.Attributes) {
-                            ValidateDatabaseAttribute(databaseAttribute);
-                        }
-                    }
-
-                    ValidateCustomAttributeUsage();
+                // Process constructors.
+                foreach (KeyValuePair<TypeDefDeclaration, DatabaseClass> pair in _dbClassesInCurrentModule) {
+                    InspectConstructors(pair.Value, pair.Key);
                 }
+
+                // Validate the database classes.
+                foreach (DatabaseClass dbc in _dbClassesInCurrentModule.Values) {
+                    ScAnalysisTrace.Instance.WriteLine("Validating the database class {0}.", dbc.Name);
+
+                    databaseExtensionClass = dbc as DatabaseExtensionClass;
+                    databaseEntityClass = dbc as DatabaseEntityClass;
+                    ValidateDatabaseClass(dbc);
+
+                    // Validate attributes of this class.
+                    foreach (DatabaseAttribute databaseAttribute in dbc.Attributes) {
+                        ValidateDatabaseAttribute(databaseAttribute);
+                    }
+                }
+
+                ValidateCustomAttributeUsage();
+                ConvertIndirectSynonymsToDirectSynonyms();
 
                 // If there was some error, return at this point.
                 if (Messenger.Current.ErrorCount > 0) {
                     return false;
                 }
             }
-
-            ConvertIndirectSynonymsToDirectSynonyms();
 
             // Save the assembly to a file.
 
@@ -652,34 +539,6 @@ namespace Starcounter.Internal.Weaver {
             return true;
         }
 
-        #region Validate references to declarations decorated with [HideFromApplications]
-
-        /// <summary>
-        /// Validates that user code does not reference declarations decorated with
-        /// the [HideFromApplications] custom attribute.
-        /// </summary>
-        private void ValidateForbiddenReferences() {
-            String name;
-            StringComparison strComp = StringComparison.InvariantCultureIgnoreCase;
-
-            ScAnalysisTrace.Instance.WriteLine("Validating forbidden references.");
-
-            // Validate assembly references.
-            foreach (AssemblyRefDeclaration assemblyRef in _module.AssemblyRefs) {
-                name = assemblyRef.Name;
-                if (Array.Exists(_forbiddenAssemblies, s => String.Equals(name, s, strComp))) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error, "SCATV01",
-                                                   new Object[] { name });
-#pragma warning restore 618
-                }
-            }
-        }
-
-        #endregion
-
-        #region Validate custom attribute usage
-
         /// <summary>
         /// Gets the name of the type reflection.
         /// </summary>
@@ -691,102 +550,7 @@ namespace Starcounter.Internal.Weaver {
             return builder.ToString();
         }
 
-        #endregion
-
         #region Validate database classes and database attributes
-
-        /// <summary>
-        /// Validates a society class (which may be also a kind class).
-        /// </summary>
-        /// <param name="databaseClass">The society class.</param>
-        private static void ValidateDatabaseSocietyClass(DatabaseSocietyClass databaseClass) {
-            DatabaseSocietyClass parent;
-
-            if (!(databaseClass is DatabaseKindClass)) {
-                if (databaseClass.Name != _rootSocietyObjectTypeName &&
-                    databaseClass.KindClass != null) {
-                    parent = (DatabaseSocietyClass)databaseClass.BaseClass;
-                    if (parent != null
-                            && databaseClass.KindClass.BaseClass != parent.InheritedKindClass) {
-#pragma warning disable 618
-                        ScMessageSource.Instance.Write(SeverityType.Error,
-                                                       "SCKCV04",
-                                                       new object[] {
-														databaseClass.Name,
-														parent.InheritedKindClass.Name
-												   }
-                                                    );
-#pragma warning restore 618
-                    }
-                }
-
-                // If a class is nested in a society object is named Kind, it should be a kind class.
-                foreach (TypeDefDeclaration nestedType in databaseClass.GetTypeDefinition().Types) {
-                    if (nestedType.Name == "Kind"
-                         && (databaseClass.KindClass == null
-                                || nestedType != databaseClass.KindClass.GetTypeDefinition())
-                       ) {
-#pragma warning disable 618
-                        ScMessageSource.Instance.Write(SeverityType.Error,
-                                                       "SCKCV06",
-                                                       new object[] { nestedType.Name });
-#pragma warning restore 618
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Validates a kind class.
-        /// </summary>
-        /// <param name="databaseClass">The kind class.</param>
-        private void ValidateDatabaseKindClass(DatabaseKindClass databaseClass) {
-            BindingOptions bindOpts = BindingOptions.OnlyExisting
-                                        | BindingOptions.DontThrowException;
-            TypeDefDeclaration typeDef = databaseClass.GetTypeDefinition();
-
-            // A kind class must be named ‘Kind’.
-            if (!databaseClass.Name.EndsWith("+Kind")) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCKCV02",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
-            }
-
-            // A kind class must have a default constructor (unless it is abstract).
-            if (!typeDef.IsAbstract
-                    && typeDef.Methods.GetMethod(".ctor",
-                                                 _defaultConstructorSignature,
-                                                 bindOpts) == null) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCKCV05",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
-            }
-
-            // A kind class cannot be sealed.
-            if (typeDef.IsSealed) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCKCV08",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
-            }
-
-            // A kind class should have at least protected visibility.
-            TypeAttributes visibility = typeDef.Attributes & TypeAttributes.VisibilityMask;
-            if (visibility != TypeAttributes.NestedFamily
-                  && visibility != TypeAttributes.NestedFamORAssem
-                  && visibility != TypeAttributes.NestedPublic) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCKCV09",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
-            }
-        }
 
         /// <summary>
         /// Validates an extension class.
@@ -803,40 +567,21 @@ namespace Starcounter.Internal.Weaver {
                 if (constructorDef.Parameters.Count == 0) {
                     defaultConstructor = constructorDef;
                 } else if (!forbiddenConstructorErrorEmitted) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error,
-                                                   "SCECV01",
-                                                   new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                    ScMessageSource.Write(SeverityType.Error, "SCECV01", new Object[] { databaseClass.Name });
                     forbiddenConstructorErrorEmitted = true;
                 }
             }
 
             if (defaultConstructor == null) {
                 if (!forbiddenConstructorErrorEmitted) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error,
-                                                   "SCECV01",
-                                                   new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                    ScMessageSource.Write(SeverityType.Error, "SCECV01", new Object[] { databaseClass.Name });
                 }
             }
 
             // An extension class should be sealed.
             if (!typeDef.IsSealed) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCECV04",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCECV04", new Object[] { databaseClass.Name });
             }
-        }
-
-        /// <summary>
-        /// Validates a entity class (which may be also a society class).
-        /// </summary>
-        /// <param name="databaseClass">An entity class.</param>
-        private static void ValidateEntityClass(DatabaseEntityClass databaseClass) {
         }
 
         /// <summary>
@@ -844,8 +589,7 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="databaseClass">The database class.</param>
         private void ValidateDatabaseClass(DatabaseClass databaseClass) {
-            BindingOptions bindOpts = BindingOptions.DontThrowException
-                                            | BindingOptions.OnlyExisting;
+            BindingOptions bindOpts = BindingOptions.DontThrowException | BindingOptions.OnlyExisting;
             String assFail;
             TypeDefDeclaration typeDef = databaseClass.GetTypeDefinition();
 
@@ -856,11 +600,7 @@ namespace Starcounter.Internal.Weaver {
 
             // A database class cannot have generic parameters.
             if (typeDef.IsGenericDefinition) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCDCV01",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCDCV01", new Object[] { databaseClass.Name });
             }
 
             // A database class cannot have a destructor.
@@ -869,11 +609,7 @@ namespace Starcounter.Internal.Weaver {
                                                                 _defaultConstructorSignature,
                                                                 bindOpts);
             if (finalizeMethod != null) {
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCDCV02",
-                                               new Object[] { databaseClass.Name });
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCDCV02", new Object[] { databaseClass.Name });
             }
         }
 
@@ -1015,23 +751,11 @@ namespace Starcounter.Internal.Weaver {
                     databaseClass = null;
                 }
 
-                if (databaseClass == null
-                        || (databaseAttribute = databaseClass.Attributes[field.Name]) == null
-                        || !databaseAttribute.IsPersistent) {
-
-                            ErrorCode.ToMessage(Error.SCERRUNSPECIFIED);
-                    
+                if (databaseClass == null || (databaseAttribute = databaseClass.Attributes[field.Name]) == null || !databaseAttribute.IsPersistent) {
                     ScMessageSource.WriteError(
                                 MessageLocation.Of(synonymToEnumerator.Current.TargetElement),
                                 Error.SCERRUNSPECIFIED,
-                                "Hej");
-#pragma warning disable 618
-                    //ScMessageSource.Instance.Write(
-                    //    SeverityType.Error,
-                    //    "SCPFV16",
-                    //    new Object[] { synonymToEnumerator.Current.TargetElement.ToString() }
-                    //    );
-#pragma warning restore 618
+                                "Illegal element for the SynonymousTo attribute");
                 }
             }
         }
@@ -1061,24 +785,6 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
             return false;
-        }
-
-        /// <summary>
-        /// Determines whether a <see cref="Type" /> is a society object / society class.
-        /// </summary>
-        /// <param name="type">A <see cref="Type" />.</param>
-        /// <returns><b>true</b> if <paramref name="type" /> is a society object, otherwise <b>false</b>.</returns>
-        private static bool IsSocietyObject(IType type) {
-            return Inherits(type, _rootSocietyObjectTypeName);
-        }
-
-        /// <summary>
-        /// Determines whether a <see cref="Type" /> is a kind class.
-        /// </summary>
-        /// <param name="type">A <see cref="Type" />.</param>
-        /// <returns><b>true</b> if <paramref name="type" /> is a kind class, otherwise <b>false</b>.</returns>
-        private static bool IsSocietyObjectKind(IType type) {
-            return Inherits(type, _rootSocietyObjectTypeName + "+Kind");
         }
 
         #endregion
@@ -1264,20 +970,21 @@ namespace Starcounter.Internal.Weaver {
         /// otherwise <b>false</b>.</returns>
         /// <remarks>This method may be safely called many times with the same argument.</remarks>
         private DatabaseClass DiscoverDatabaseClass(ITypeSignature type) {
-            // First of all look in the cache of the current module.
             DatabaseClass databaseClass;
-            DatabaseKindClass databaseKindClass;
             TypeDefDeclaration extendedType = null;
+            
             if (this._discoverDatabaseClassCache.TryGetValue(type, out databaseClass)) {
                 ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} already processed.", type);
                 return databaseClass;
             }
+
             // Get the type definition.
             TypeDefDeclaration typeDef = type.GetTypeDefinition(BindingOptions.DontThrowException);
             if (typeDef == null) {
                 this._discoverDatabaseClassCache.Add(type, null);
                 return null;
             }
+
             // Look for the type definition in the cache.
             if (typeDef != type) {
                 if (this._discoverDatabaseClassCache.TryGetValue(typeDef, out databaseClass)) {
@@ -1285,87 +992,37 @@ namespace Starcounter.Internal.Weaver {
                     return databaseClass;
                 }
             }
+            
             // If the type is defined in another module, return it.
             if (typeDef.Module != this._module) {
                 databaseClass = DatabaseSchema.FindDatabaseClass(typeDef.GetReflectionName());
                 this._discoverDatabaseClassCache.Add(typeDef, databaseClass);
                 return databaseClass;
             }
-            #region Check directives for this class
-            // Not in the cache and not in an external assembly. We can continue.
-            WeaverDirectives typeWeaverDirectives;
-            List<object> knownTypeAttribute = new List<object>();
-            typeDef.CustomAttributes.ConstructRuntimeObjects(
-                (IType)this._module.Cache.GetType(typeof(KnownTypeAttribute)), knownTypeAttribute);
-            if (knownTypeAttribute.Count > 0) {
-                typeWeaverDirectives = ((KnownTypeAttribute)knownTypeAttribute[0]).WeaverDirectives;
-            } else {
-                typeWeaverDirectives = WeaverDirectives.None;
-            }
-            if ((typeWeaverDirectives & WeaverDirectives.ExcludeSchemaDiscovery) != 0) {
-                ScAnalysisTrace.Instance.WriteLine(
-                    "DiscoverDatabaseClass: {0} has the ExcludeSchemaDiscovery directive.", typeDef);
-                return null;
-            }
-            #endregion
-            #region Verify if its a database class of some kind
+            
             if (!typeDef.IsAssignableTo(this._dbObjectType)) {
-                //  ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is not a DbObject.", type);
-                // Emit an error if the type is nested in a society object and is named 'Kind'.
-                if (typeDef.DeclaringType != null && typeDef.Name == "Kind" && IsSocietyObject(typeDef.DeclaringType)) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error,
-                                                   "SCKCV06", new object[] { typeDef });
-#pragma warning restore 618
-                }
                 return null;
             }
-            #endregion
+            
             ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
-            #region Detect and instantiate the proper kind of database class.
-            #region Kind Classes
-            if (IsSocietyObjectKind(typeDef)) {
-                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a kind class.", typeDef);
-                databaseKindClass = new DatabaseKindClass(this._databaseAssembly, typeDef.GetReflectionName());
-                databaseClass = databaseKindClass;
-            }
-            #endregion
-            #region Society Object
- else if (IsSocietyObject(typeDef)) {
-                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a society object.", typeDef);
-                DatabaseSocietyClass databaseSocietyClass =
-                    new DatabaseSocietyClass(this._databaseAssembly, typeDef.GetReflectionName());
-                databaseClass = databaseSocietyClass;
-            }
-            #endregion
-            #region Entity
- else if (typeDef.IsAssignableTo(this._entityType)) {
-                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a regular entity object.",
-                                                   typeDef);
+            
+            if (typeDef.IsAssignableTo(this._entityType)) {
+                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a regular entity object.", typeDef);
                 databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
             }
-            #endregion
 
-            #endregion
-            // Do things that are common to all database classes.
-            databaseClass.WeaverDirectives = (int)typeWeaverDirectives;
             databaseClass.SetTypeDefinition(typeDef);
-            // Check we don't have a class with the same name.
-            DatabaseClass existingDatabaseClass =
-                this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());
-
+            
+            DatabaseClass existingDatabaseClass = this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());
             if (existingDatabaseClass != null) {
                 StringBuilder existingClassName = new StringBuilder();
                 existingDatabaseClass.GetTypeDefinition().WriteReflectionName(existingClassName,
                         ReflectionNameOptions.UseAssemblyName);
                 StringBuilder newClassName = new StringBuilder();
                 typeDef.WriteReflectionName(newClassName, ReflectionNameOptions.UseAssemblyName);
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                                               "SCDCV07",
-                                               new object[] { typeDef.GetReflectionName(), newClassName, existingClassName }
-                                              );
-#pragma warning restore 618
+                ScMessageSource.Write(SeverityType.Error, "SCDCV07",
+                    new object[] { typeDef.GetReflectionName(), newClassName, existingClassName }
+                    );
                 return null;
             }
 
@@ -1378,52 +1035,19 @@ namespace Starcounter.Internal.Weaver {
             // else it will fail when the recursive calls are unwinded again.
             //   Now, lets do some further lookups.
 
-            databaseKindClass = databaseClass as DatabaseKindClass;
-            if (databaseKindClass != null) {
-                // If the current class is a kind class, relate it to its corresponding society object.
-                DatabaseSocietyClass parentClass =
-                typeDef.DeclaringType == null
-                ? null
-                : DiscoverDatabaseClass(typeDef.DeclaringType)
-                as DatabaseSocietyClass;
-                if (parentClass == null) {
-                    // The parent class is not a society object.
-                    // This is an error.
-
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error, "SCKCV03", new object[] { typeDef });
-#pragma warning restore 618
-                    return null;
-                } else {
-                    parentClass.KindClass = databaseClass as DatabaseKindClass;
-                    databaseKindClass.KindOf = parentClass;
-                }
-            } else if (databaseClass is DatabaseExtensionClass) {
-                DatabaseExtensionClass databaseExtensionClass = databaseClass as DatabaseExtensionClass;
-                // Relate the extension to its extented type.
-                DatabaseEntityClass extendedEntityClass =
-                (DatabaseEntityClass)DiscoverDatabaseClass(extendedType);
+            if (databaseClass is DatabaseExtensionClass) {
+                var databaseExtensionClass = databaseClass as DatabaseExtensionClass;
+                var extendedEntityClass = (DatabaseEntityClass)DiscoverDatabaseClass(extendedType);
                 databaseExtensionClass.Extends = extendedEntityClass;
-            } else if (databaseClass is DatabaseEntityClass) {
-                // Check that all entity classes are public. If they are not,
-                // refuse them.
-                //
-                // This is just a prototype. Add a proper error message for this
-                // case and document it.
-                //
-                // TODO:
 
+            } else if (databaseClass is DatabaseEntityClass) {
                 if (!typeDef.IsPublic()) {
                     ScMessageSource.WriteError(
-                        MessageLocation.Of(typeDef),
-                        Error.SCERRENTITYCLASSNOTPUBLIC,
-                        string.Format("Class: {0}", typeDef)
-                    );
+                        MessageLocation.Of(typeDef), Error.SCERRENTITYCLASSNOTPUBLIC, string.Format("Class: {0}", typeDef));
                     return null;
                 }
             }
 
-            // Make sure the base is discovered allready.
             databaseClass.BaseClass = DiscoverDatabaseClass(typeDef.BaseType);
 
             // If it is a regular type, process the fields.
@@ -1475,19 +1099,19 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the field belong.</param>
         /// <param name="field">Field to be inspected.</param>
         private void DiscoverDatabaseField(DatabaseClass databaseClass, FieldDefDeclaration field) {
-            ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseField: processing field {0}.{1} of type {2}.",
-            databaseClass.Name, field.Name, field.FieldType);
+            ScAnalysisTrace.Instance.WriteLine(
+                "DiscoverDatabaseField: processing field {0}.{1} of type {2}.",
+                databaseClass.Name, 
+                field.Name, 
+                field.FieldType
+                );
+
             // A field in a database class cannot be of the same name as a field in any parent class.
-            if (databaseClass.BaseClass != null &&
-            databaseClass.BaseClass.FindAttributeInAncestors(field.Name) != null) {
-                // SCDCV06
-#pragma warning disable 618
-                ScMessageSource.Instance.Write(SeverityType.Error,
-                "SCDCV06",
-                new object[] { field.DeclaringType, field.Name });
-#pragma warning restore 618
+            if (databaseClass.BaseClass != null && databaseClass.BaseClass.FindAttributeInAncestors(field.Name) != null) {
+                ScMessageSource.Write(SeverityType.Error, "SCDCV06", new object[] { field.DeclaringType, field.Name });
             }
-            DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, field.Name);
+
+            var databaseAttribute = new DatabaseAttribute(databaseClass, field.Name);
             databaseClass.Attributes.Add(databaseAttribute);
             databaseAttribute.SetFieldDefinition(field);
             databaseAttribute.IsInitOnly = (field.Attributes & FieldAttributes.InitOnly) != 0;
@@ -1544,39 +1168,6 @@ namespace Starcounter.Internal.Weaver {
             databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
         }
 
-        //private void ProcessRelatesToAttributes()
-        //{
-        //    foreach (KeyValuePair<DatabaseAttribute, RelatesToAttribute> pair in relatesToAttributes)
-        //    {
-        //        DatabaseAttribute databaseAttribute = pair.Key;
-        //        RelatesToAttribute relatesToAttribute = pair.Value;
-        //        ScAnalysisTrace.Instance.WriteLine("ProcessRelatesToAttributes: processing [RelatesTo] for {0}.{1}.",
-        //        databaseAttribute.DeclaringClass.Name, databaseAttribute.Name);
-        //        DatabaseEnumerableType databaseEnumerableType = (DatabaseEnumerableType) databaseAttribute.AttributeType;
-        //        databaseEnumerableType.RelaxTypeCheck = relatesToAttribute.RelaxTypeCheck;
-        //        DatabaseAttribute parentReferenceAttribute =
-        //        databaseEnumerableType.ItemType.FindAttributeInAncestors(relatesToAttribute.FieldName);
-        //        if (parentReferenceAttribute == null)
-        //        {
-        //            // The field {0}.{1} is marked to relate to the field {2},
-        //            // but this field does not exist in the type {3}.
-        //            ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV15",
-        //            new object[]
-        //            {
-        //                databaseAttribute.DeclaringClass.Name,
-        //                databaseAttribute.Name,
-        //                relatesToAttribute.FieldName,
-        //                databaseEnumerableType.ItemType.Name
-        //            });
-        //        }
-        //        else
-        //        {
-        //            // All seems correct.
-        //            databaseAttribute.EnumerableRelatesTo = parentReferenceAttribute;
-        //        }
-        //    }
-        //}
-
         /// <summary>
         /// Go through all detected and recorded synonym declarations and materialize
         /// the target, by fetching the attribute using the target name.
@@ -1622,14 +1213,10 @@ namespace Starcounter.Internal.Weaver {
                 DatabaseAttribute targetAttribute = databaseAttribute.SynonymousTo;
                 while (targetAttribute.SynonymousTo != null) {
                     if (chain.Contains(targetAttribute)) {
-#pragma warning disable 618
-                        ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV22",
-                                                       new object[]
-                    {
-                        databaseAttribute.DeclaringClass.Name,
-                        databaseAttribute.Name
-                    });
-#pragma warning restore 618
+                        ScMessageSource.Write(SeverityType.Error, "SCPFV22", new object[] {
+                            databaseAttribute.DeclaringClass.Name,
+                            databaseAttribute.Name
+                        });
                         break;
                     }
                     chain.Add(targetAttribute);
@@ -1645,9 +1232,7 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the property belong.</param>
         /// <param name="property">Property to be inspected.</param>
-        private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property)
-            // ReSharper restore SuggestBaseTypeForParameter
-        {
+        private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
             DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, property.Name);
             databaseClass.Attributes.Add(databaseAttribute);
             databaseAttribute.SetPropertyDefinition(property);
@@ -1786,10 +1371,8 @@ namespace Starcounter.Internal.Weaver {
             }
              */
             // Read instructions sequentially and build a simple stack of instructions.
-            // ReSharper disable ConvertToConstant
             object thisPointerStackContent = "this";
             object tooComplexStackContent = "too complex";
-            // ReSharper restore ConvertToConstant
             Stack<object> stack = new Stack<object>(methodDef.MethodBody.MaxStack);
             InstructionReader reader = methodDef.MethodBody.CreateInstructionReader(false);
             reader.EnterInstructionSequence(firstSequence);
@@ -1833,18 +1416,9 @@ namespace Starcounter.Internal.Weaver {
                                     } else {
                                         // The field {0}.{1} is initialized outside the constructor but has a complex value.
                                         // Only literal intrinsic values are allowed.
-#pragma warning disable 618
-                                        ScMessageSource.Instance.Write(SeverityType.Error,
-                                                                       "SCPFV02", new object[]
-                                    {
-                                        databaseAttribute
-                                        .
-                                        DeclaringClass
-                                        .Name,
-                                        databaseAttribute
-                                        .Name
-                                    });
-#pragma warning restore 618
+                                        ScMessageSource.Write(SeverityType.Error, "SCPFV02", new object[] { 
+                                            databaseAttribute.DeclaringClass.Name, databaseAttribute.Name
+                                        });
                                     }
                                 }
                             }
@@ -1989,11 +1563,11 @@ namespace Starcounter.Internal.Weaver {
                         // We understand that.
                         break;
                     default:
-#pragma warning disable 618
                         // This is too complex for our analysis.
-                        ScMessageSource.Instance.Write(SeverityType.Error, "SCDCV04",
-                                                       new object[] { methodDef.DeclaringType.Name });
-#pragma warning restore 618
+                        ScMessageSource.Write(
+                            SeverityType.Error, 
+                            "SCDCV04",
+                            new object[] { methodDef.DeclaringType.Name });
                         return;
                 }
 #pragma warning disable 618
@@ -2085,10 +1659,10 @@ namespace Starcounter.Internal.Weaver {
                     constructorEmpty = false;
                 }
                 if (!constructorEmpty) {
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error,
-                                                   "SCECV03", new object[] { databaseClass.Name });
-#pragma warning restore 618
+                    ScMessageSource.Write(
+                        SeverityType.Error,
+                        "SCECV03", 
+                        new object[] { databaseClass.Name });
                 }
             }
         }
@@ -2169,10 +1743,9 @@ namespace Starcounter.Internal.Weaver {
                         }
                         fields.Append(s);
                     }
-#pragma warning disable 618
-                    ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV21",
-                                                   new object[] { methodDef.ToString(), fields.ToString() });
-#pragma warning restore 618
+                    ScMessageSource.Write(
+                        SeverityType.Error, "SCPFV21", new object[] { methodDef.ToString(), fields.ToString() 
+                        });
                 }
             }
         }

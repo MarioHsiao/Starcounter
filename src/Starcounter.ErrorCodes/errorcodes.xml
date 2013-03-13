@@ -1673,6 +1673,8 @@
         allow explicit assignment. Examples includes reference lists and sequence number fields. (Maps to ATV03)
       </remarks>
     </code>
+    <!--
+    Deprecated.
     <code hex="002D" severity="Error" name="ScErrUntrustedKnownType">
       <message>An unrecognized type used the KnownType attribute.</message>
       <remarks>
@@ -1680,6 +1682,7 @@
         wasnt a proof that Starcounter recognized. (Maps to ATV04)
       </remarks>
     </code>
+    -->
     <code hex="002E" severity="Error" name="ScErrDbClassCantBeGeneric">
       <message>A database class was declared as a generic, which is not allowed.</message>
       <remarks>Maps to DCV01.</remarks>
