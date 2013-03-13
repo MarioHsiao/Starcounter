@@ -326,7 +326,7 @@ namespace CheckBuildSystem
                 "DynamoIoc.csproj", "HtmlAgilityPack VS2008.csproj", "HtmlAgilityPack.Tests.csproj",
                 "Newtonsoft.Json.csproj", "ServerLogTail.csproj", "LoadAndLatency.csproj",
                 "SqlCacheTrasher.csproj", "PolePosition.csproj", "ApplicationProjectTemplate.csproj",
-                "ClassLibraryProjectTemplate.csproj"
+                "ClassLibraryProjectTemplate.csproj", "scweaver.Test.csproj"
                 },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."
