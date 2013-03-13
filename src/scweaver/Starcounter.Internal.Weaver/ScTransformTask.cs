@@ -162,12 +162,11 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="field">Field for which accessors are requested.</param>
         /// <param name="getMethod">Get accessor.</param>
         /// <param name="setMethod">Set accessor.</param>
-        private void GetAccessors(IField field,
-                                  out IMethod getMethod,
-                                  out IMethod setMethod) {
+        private void GetAccessors(IField field, out IMethod getMethod, out IMethod setMethod) {
             MethodPair pair;
             MethodSignature signature;
-            String fieldName = GetFieldName(field);
+
+            var fieldName = GetFieldName(field);
             if (!_fieldAccessors.TryGetValue(fieldName, out pair)) {
                 // We did not find the field accessors. This maybe because the
                 // entity type is in another assembly and this assembly was

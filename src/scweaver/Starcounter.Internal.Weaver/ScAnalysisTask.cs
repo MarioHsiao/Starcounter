@@ -539,8 +539,6 @@ namespace Starcounter.Internal.Weaver {
             return true;
         }
 
-        #region Validate custom attribute usage
-
         /// <summary>
         /// Gets the name of the type reflection.
         /// </summary>
@@ -551,8 +549,6 @@ namespace Starcounter.Internal.Weaver {
             type.WriteReflectionName(builder, ReflectionNameOptions.None);
             return builder.ToString();
         }
-
-        #endregion
 
         #region Validate database classes and database attributes
 
@@ -1172,39 +1168,6 @@ namespace Starcounter.Internal.Weaver {
             databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
         }
 
-        //private void ProcessRelatesToAttributes()
-        //{
-        //    foreach (KeyValuePair<DatabaseAttribute, RelatesToAttribute> pair in relatesToAttributes)
-        //    {
-        //        DatabaseAttribute databaseAttribute = pair.Key;
-        //        RelatesToAttribute relatesToAttribute = pair.Value;
-        //        ScAnalysisTrace.Instance.WriteLine("ProcessRelatesToAttributes: processing [RelatesTo] for {0}.{1}.",
-        //        databaseAttribute.DeclaringClass.Name, databaseAttribute.Name);
-        //        DatabaseEnumerableType databaseEnumerableType = (DatabaseEnumerableType) databaseAttribute.AttributeType;
-        //        databaseEnumerableType.RelaxTypeCheck = relatesToAttribute.RelaxTypeCheck;
-        //        DatabaseAttribute parentReferenceAttribute =
-        //        databaseEnumerableType.ItemType.FindAttributeInAncestors(relatesToAttribute.FieldName);
-        //        if (parentReferenceAttribute == null)
-        //        {
-        //            // The field {0}.{1} is marked to relate to the field {2},
-        //            // but this field does not exist in the type {3}.
-        //            ScMessageSource.Instance.Write(SeverityType.Error, "SCPFV15",
-        //            new object[]
-        //            {
-        //                databaseAttribute.DeclaringClass.Name,
-        //                databaseAttribute.Name,
-        //                relatesToAttribute.FieldName,
-        //                databaseEnumerableType.ItemType.Name
-        //            });
-        //        }
-        //        else
-        //        {
-        //            // All seems correct.
-        //            databaseAttribute.EnumerableRelatesTo = parentReferenceAttribute;
-        //        }
-        //    }
-        //}
-
         /// <summary>
         /// Go through all detected and recorded synonym declarations and materialize
         /// the target, by fetching the attribute using the target name.
@@ -1269,9 +1232,7 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the property belong.</param>
         /// <param name="property">Property to be inspected.</param>
-        private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property)
-            // ReSharper restore SuggestBaseTypeForParameter
-        {
+        private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
             DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, property.Name);
             databaseClass.Attributes.Add(databaseAttribute);
             databaseAttribute.SetPropertyDefinition(property);
@@ -1410,10 +1371,8 @@ namespace Starcounter.Internal.Weaver {
             }
              */
             // Read instructions sequentially and build a simple stack of instructions.
-            // ReSharper disable ConvertToConstant
             object thisPointerStackContent = "this";
             object tooComplexStackContent = "too complex";
-            // ReSharper restore ConvertToConstant
             Stack<object> stack = new Stack<object>(methodDef.MethodBody.MaxStack);
             InstructionReader reader = methodDef.MethodBody.CreateInstructionReader(false);
             reader.EnterInstructionSequence(firstSequence);
