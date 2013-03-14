@@ -348,6 +348,33 @@ namespace Starcounter.Internal.Web
         return responseBytes;
     }
 
+    /// <summary>
+    /// Creates a 201 Created response with a serialized JSON payload, assuming 
+    /// the charset used is the default for the application/json media type (i.e. UTF8).
+    /// A location header (as per specification) is also added.
+    /// </summary>
+    /// <param name="content">The serialized JSON entity body.</param>
+    /// <param name="location"></param>
+    /// <returns>
+    /// An uncompressed representation of a response message, with headers properly 
+    /// specifying the metadata of the enclosed content.
+    /// </returns>
+    public static byte[] FromJsonUTF8ContentWithLocation(byte[] contentBytes, string location)
+    {
+        var headers = "HTTP/1.1 201 Created" + CRLF + "Server: SC" + CRLF + "Connection: close" + CRLF;
+        headers += "Content-Length: " + contentBytes.Length + CRLF
+                 + "Content-Type: application/json;charset=UTF-8" + CRLF
+                 + "Location: " + location + CRLFCRLF;
+
+        var headersBytes = Encoding.ASCII.GetBytes(headers);
+        var responseBytes = new byte[headersBytes.Length + contentBytes.Length];
+
+        System.Buffer.BlockCopy(headersBytes, 0, responseBytes, 0, headersBytes.Length);
+        System.Buffer.BlockCopy(contentBytes, 0, responseBytes, headersBytes.Length, contentBytes.Length);
+
+        return responseBytes;
+    }
+
     // TODO!
     /*
     public static byte[] JsonFromBytes(byte[] contentBytes, SessionID sid) {
