@@ -77,28 +77,32 @@ namespace Starcounter.Internal.Web {
 
                         request.Debug(" (new view model)");
                         session.AttachRootApp(app);
-                        request.IsAppView = true;
-                        request.ViewModel = app.ToJsonUtf8();
-                        request.NeedsScriptInjection = true;
+//                        request.IsAppView = true;
+//                        request.ViewModel = app.ToJsonUtf8();
+//                        request.NeedsScriptInjection = true;
                         //                          request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
                         //                                                          // cached (and gziped) content, but not a complete cached
                         //                                                          // response.
 
-                        var view = (string)app.View;
-                        if (view == null)
-                        {
-                            view = app.Template.ClassName + ".html";
-                        }
-                        view = "/" + view;
-                        request.GzipAdvisable = false;
-                        response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
+//                        var view = (string)app.View;
+                        //if (view == null)
+                        //{
+                        //    view = app.Template.ClassName + ".html";
+                        //}
+                        //view = "/" + view;
+                        //request.GzipAdvisable = false;
+                        //response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
                         app.IsSentExternally = true;
+
+                        // TODO: 
+                        // Location
+                        response = new HttpResponse() {
+                            Uncompressed = HttpResponseBuilder.FromJsonUTF8ContentWithLocation(app.ToJsonUtf8(), app.__Location)
+                        };
                     }
-                    else if (x is Message)
-                    {
+                    else if (x is Message) {
                         var msgxxx = x as Message;
-                        response = new HttpResponse()
-                        {
+                        response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
                         };
                     } else if (x is Json) {
