@@ -171,7 +171,8 @@ namespace Starcounter.Internal.Web {
             // Checking if we are in session already.
             if (request.HasSession) {
                 session = (Session)request.AppsSessionInterface;
-                session.Start(request);
+                if (session != null)
+                    session.Start(request);
             }
 
             try {

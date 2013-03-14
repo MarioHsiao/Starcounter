@@ -1173,10 +1173,10 @@ namespace Starcounter.Advanced
         /// <returns>A <see cref="T:System.String" /> containing a fully qualified type name.</returns>
         public override String ToString()
         {
-            return "<h1>Host: " + GetHeaderValue("Host") + "</h1>\r\n" +
-                   "<h1>Session string: " + GetSessionString() + "</h1>\r\n" +
-                   "<h1>ContentLength: " + content_len_bytes_ + "</h1>\r\n" +
-                   "<h1>Content: " + GetContentStringUtf8_Slow() + "</h1>\r\n"
+            return "<h1>Host: " + GetHeaderValue("Host") + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
+                   "<h1>Session string: " + GetSessionString() + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
+                   "<h1>ContentLength: " + content_len_bytes_ + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
+                   "<h1>Content: " + GetContentStringUtf8_Slow() + "</h1>" + StarcounterConstants.NetworkConstants.CRLF
                    ;
         }
     }

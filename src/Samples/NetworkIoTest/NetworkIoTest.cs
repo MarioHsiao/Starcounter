@@ -310,7 +310,10 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_APPS_URIS:
                 {
-                    AppsBootstrapper.Bootstrap();
+                    AppsBootstrapper.Bootstrap(
+                        StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
+                        "c:\\pics");
+
                     AppsClass.InitAppHandlers();
 
                     break;
@@ -824,7 +827,7 @@ namespace NetworkIoTestApp
 
         private static Boolean OnRestClient(HttpRequest httpRequest)
         {
-            someNode.GET("/testrest", httpRequest, (HttpResponse resp) => {
+            someNode.GET("/testrest", null, httpRequest, (HttpResponse resp) => {
                 if (resp["Content-Type"] == "text/html; charset=UTF-8") {
                     dynamic jsonData = Json.Parse(resp.GetContentStringUtf8_Slow());
                     string htmlFileName = jsonData.FirstName;

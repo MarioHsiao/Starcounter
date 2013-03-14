@@ -19,7 +19,7 @@ namespace Starcounter.Internal.Web {
  //      public static uint OkResponseContentLengthInsertionPoint;
 
 //       static HttpRequestWriter() {
-//          var str = "HTTP/1.0\r\nContent-Length:9999999999";
+//          var str = "HTTP/1.0\r\nContent-Length: 9999999999";
    //       OkResponseHeader = Encoding.UTF8.GetBytes(str);
 //          OkResponseContentLengthInsertionPoint = 32;
 //       }

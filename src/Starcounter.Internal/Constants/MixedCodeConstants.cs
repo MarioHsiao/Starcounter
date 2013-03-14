@@ -157,6 +157,11 @@ namespace Starcounter.Internal
         /// </summary>
         public const String DefaultPersonalServerNameUpper = "PERSONAL";
 
+        /// <summary>
+        /// Name of Administrator application.
+        /// </summary>
+        public const String AdministratorAppName = "Administrator";
+
 #if !__cplusplus
 
         // C# code

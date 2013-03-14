@@ -2,6 +2,7 @@
 using Starcounter;
 using Starcounter.ABCIPC.Internal;
 using Starcounter.Administrator;
+using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Internal.REST;
 using Starcounter.Server;
@@ -73,6 +74,27 @@ namespace StarcounterApps3 {
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {
                 return null;
+            });
+
+            POST("/addstaticcontentdir", (HttpRequest req) => {
+
+                // Getting POST contents.
+                String content = req.GetContentStringUtf8_Slow();
+
+                // Splitting contents.
+                String[] settings = content.Split(
+                    new String[] { StarcounterConstants.NetworkConstants.CRLF },
+                    StringSplitOptions.RemoveEmptyEntries);
+
+                // Registering static handler on given port.
+                GET(UInt16.Parse(settings[0]), "/{?}", (string res) => {
+                    return null;
+                });
+
+                // Adding static files serving directory.
+                AppsBootstrapper.AddFileServingDirectory(settings[1]);
+
+                return "Success!";
             });
 
             GET("/return/{?}", (int code) => {
