@@ -11,7 +11,8 @@ function ngAppFactory() {
 
     var defaultConfig = {
       getRequestUrl: function (scope) {
-        return '/__vm/' + scope['View-Model'];
+//        return '/__administrator/' + scope['View-Model'];
+          return scope['__Location'];
       }
     }
     var config = {};
@@ -55,8 +56,9 @@ function ngAppFactory() {
         function parseViewModelId(scope) {
           var meta = document.getElementsByTagName('meta');
           for (var i = 0, ilen = meta.length; i < ilen; i++) {
-            if (angular.element(meta[i]).attr('name') == 'View-Model') {
-              scope['View-Model'] = angular.element(meta[i]).attr('content');
+//            if (angular.element(meta[i]).attr('name') == 'View-Model') {
+              if (angular.element(meta[i]).attr('name') == '__Location') {
+                  scope['__Location'] = angular.element(meta[i]).attr('content');
               //break;
             }
           }
@@ -93,7 +95,7 @@ function ngAppFactory() {
           var tree = appContext.getScopeTree(scope);
           var watched = [];
           for (var i in tree.locals) {
-            if (i == "View-Model") {
+            if (i == "__Location") {
               continue;
             }
             if (tree.locals.hasOwnProperty(i)) {
