@@ -68,6 +68,11 @@ namespace Starcounter.Internal
         public class NetworkPorts
         {
             /// <summary>
+            /// Default value for the port that is not specified by user.
+            /// </summary>
+            public const UInt16 DefaultUnspecifiedPort = 0;
+
+            /// <summary>
             /// Default user port for Personal server.
             /// </summary>
             public const UInt16 DefaultPersonalServerUserHttpPort = 8080;
