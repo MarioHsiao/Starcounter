@@ -42,7 +42,7 @@ namespace StarcounterAppsLogTester {
 
 
                 //string URI = string.Format("http://localhost:{0}/sql", 8282);
-                string URI = string.Format("http://localhost:{0}/__sql/{1}", this.Port, this.DatabaseName);
+                string URI = string.Format("http://localhost:{0}/__{1}/sql", this.Port, this.DatabaseName);
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URI);
                 request.Method = "POST";
