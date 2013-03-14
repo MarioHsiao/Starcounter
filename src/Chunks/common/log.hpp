@@ -23,7 +23,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <cwchar>
 //---
 #include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
 #include "../../Starcounter.ErrorCodes/scerrres/format.h"
@@ -55,8 +55,8 @@
 ////wchar_t **pdatabase_scheduler_count);
 //---
 
-extern "C" int32_t make_sc_process_uri(const char* server_name,
-const char* process_name, wchar_t* buffer, size_t* pbuffer_size);
+//extern "C" int32_t make_sc_process_uri(const char* server_name,
+//const char* process_name, wchar_t* buffer, size_t* pbuffer_size);
 
 ////extern "C" int32_t make_sc_server_uri(const char* server_name,
 ////wchar_t* buffer, size_t* pbuffer_size);
@@ -82,6 +82,16 @@ private:
 /// Class log.
 class log {
 public:
+	enum type {
+		entry_debug = SC_ENTRY_DEBUG,
+		entry_success_audit = SC_ENTRY_SUCCESS_AUDIT,
+		entry_failure_audit = SC_ENTRY_FAILURE_AUDIT,
+		entry_notice = SC_ENTRY_NOTICE,
+		entry_warning = SC_ENTRY_WARNING,
+		entry_error = SC_ENTRY_ERROR,
+		entry_critical = SC_ENTRY_CRITICAL
+	};
+
 	/// Default constructor. It will not open the log.
 	log();
 	
@@ -110,22 +120,129 @@ public:
 	void open(const char* server_name, const char* process_name,
 	const wchar_t* server_log_dir);
 	
-	/// Closes Starcounter log.
+	/// Closes this Starcounter log.
 	void close();
 	
-	/// Write critical into log.
-	void critical(const wchar_t* message);
+	/// Put debug into log.
+	/**
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void debug(uint32_t error_code);
+
+	/// Put debug into log.
+	/**
+	 * @param message The message to be logged.
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void debug(const wchar_t* message, uint32_t error_code = 0);
 	
-	/// Write error into log.
-	void error(const wchar_t* message);
+	/// Put success audit into log.
+	/**
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void success_audit(uint32_t error_code);
+
+	/// Put success audit into log.
+	/**
+	 * @param message The message to be logged.
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void success_audit(const wchar_t* message, uint32_t error_code = 0);
+
+	/// Put failure audit into log.
+	/**
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void failure_audit(uint32_t error_code);
+
+	/// Put failure audit into log.
+	/**
+	 * @param message The message to be logged.
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void failure_audit(const wchar_t* message, uint32_t error_code = 0);
+
+	/// Put notice into log.
+	/**
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void notice(uint32_t error_code);
+
+	/// Put notice into log.
+	/**
+	 * @param message The message to be logged.
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void notice(const wchar_t* message, uint32_t error_code = 0);
+
+	/// Put warning into log.
+	/**
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void warning(uint32_t error_code);
+
+	/// Put warning into log.
+	/**
+	 * @param message The message to be logged.
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void warning(const wchar_t* message, uint32_t error_code = 0);
+
+	/// Put error into log.
+	/**
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void error(uint32_t error_code);
+
+	/// Put error into log.
+	/**
+	 * @param message The message to be logged.
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void error(const wchar_t* message, uint32_t error_code = 0);
 	
-	/// Write debug into log.
-	void debug(const wchar_t* message);
-	
-	/// Write verbose message.
-	void verbose(const wchar_t* message);
+	/// Put critical into log.
+	/**
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void critical(uint32_t error_code);
+
+	/// Put critical into log.
+	/**
+	 * @param message The message to be logged.
+	 * @param error_code The error code (optional), as defined in:
+	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+	 */
+	void critical(const wchar_t* message, uint32_t error_code = 0);
 	
 private:
+	/// process_uri() composes the process URI to:
+	/// sc://<computer_name>/<server_name>/<process_name>
+	/// in lower case. For example:
+	/// sc://andreas/personal/scipcmonitor
+	/**
+	 * @param server_name The server name. For example "PERSONAL" or "SYSTEM".
+	 * @param process_name The process name. For example "scipcmonitor".
+	 * @buffer The buffer shall contain enough space for the process URI.
+	 * @size The number of characters in the process URI.
+	 * @return 0 on success, or return value from ::GetLastError() on failure.
+	 */
+	int32_t process_uri(const char* server_name, const char* process_name,
+	wchar_t* buffer, std::size_t* size);
+
 	// Objects of type log are not copyable.
 	log(const log&);
 	const log& operator=(const log&);

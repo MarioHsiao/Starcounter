@@ -22,8 +22,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>..\..\bin\Debug\Starcounter.Internal.XML</DocumentationFile>
+    <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -74,6 +74,7 @@
     <Compile Include="CommandLine\Syntax\SyntaxDefinition.cs" />
     <Compile Include="Constants\Constants.cs" />
     <Compile Include="Constants\MixedCodeConstants.cs" />
+    <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HttpSessions.cs" />
     <Compile Include="HttpStructs.cs" />
