@@ -54,7 +54,7 @@ namespace Weaver {
             var ilWriter = generatedAppsInitializer.Body.GetILProcessor();
             generatedAppsInitializer.Body.MaxStackSize = 8;
             ilWriter.Emit(OpCodes.Nop);
-            ilWriter.Emit(OpCodes.Ldc_I4_M1);
+            ilWriter.Emit(OpCodes.Ldc_I4_0);
             ilWriter.Emit(OpCodes.Ldarg_0);
             ilWriter.Emit(OpCodes.Call, appsInitializerMethRef);
             ilWriter.Emit(OpCodes.Nop);
