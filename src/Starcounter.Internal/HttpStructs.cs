@@ -316,12 +316,12 @@ namespace HttpStructs
         /// <summary>
         /// SessionIdHeaderStubString_.
         /// </summary>
-        public const String SessionIdHeaderPlusEndLineStubString = SessionIdName + ": " + SessionIdStub + "\r\n";
+        public const String SessionIdHeaderPlusEndLineStubString = SessionIdName + ": " + SessionIdStub + StarcounterConstants.NetworkConstants.CRLF;
 
         /// <summary>
         /// SessionIdCookieStubString_
         /// </summary>
-        public const String SessionIdCookiePlusEndlineStubString = "Set-Cookie: " + SessionIdName + "=" + SessionIdStub + "\r\n";
+        public const String SessionIdCookiePlusEndlineStubString = "Set-Cookie: " + SessionIdName + "=" + SessionIdStub + StarcounterConstants.NetworkConstants.CRLF;
 
         /// <summary>
         /// SessionIdHeaderPlusEndlineStubBytes_.

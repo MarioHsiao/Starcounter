@@ -1557,6 +1557,9 @@ uint32_t GatewayWorker::CloneChunkForNewDatabase(SocketDataChunkRef old_sd, int3
     // Attaching to new database.
     (*new_sd)->AttachToDatabase(new_db_index);
 
+    // Changing new chunk index.
+    (*new_sd)->set_chunk_index(new_chunk_index);
+
     // Returning old chunk to its pool.
     // TODO: Or disconnect?
     old_sd->set_socket_diag_active_conn_flag(false);

@@ -130,9 +130,15 @@ namespace HttpStructs
         }
 
         // Gets certain Apps session.
-        public IAppsSession GetAppsSessionInterface(UInt64 apps_session_index)
+        public IAppsSession GetAppsSessionInterface(UInt64 apps_session_index, UInt64 apps_session_salt)
         {
-            return apps_sessions_[apps_session_index].apps_session_int_;
+            AppsSessionInternal s = apps_sessions_[apps_session_index];
+
+            // Checking for the correct session salt.
+            if (apps_session_salt == s.apps_session_salt_)
+                return apps_sessions_[apps_session_index].apps_session_int_;
+
+            return null;
         }
     }
 
@@ -248,9 +254,12 @@ namespace HttpStructs
         /// <param name="scheduler_id"></param>
         /// <param name="apps_session_index"></param>
         /// <returns></returns>
-        internal IAppsSession GetAppsSessionInterface(UInt32 scheduler_id, UInt64 apps_session_index)
+        internal IAppsSession GetAppsSessionInterface(
+            UInt32 scheduler_id,
+            UInt64 apps_session_index,
+            UInt64 apps_session_salt)
         {
-            return scheduler_sessions_[scheduler_id].GetAppsSessionInterface(apps_session_index);
+            return scheduler_sessions_[scheduler_id].GetAppsSessionInterface(apps_session_index, apps_session_salt);
         }
     }
 

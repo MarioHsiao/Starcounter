@@ -17,6 +17,22 @@ namespace Starcounter.Internal
         public const string DefaultDatabaseName = "Default";
 
         /// <summary>
+        /// Network related constants.
+        /// </summary>
+        public static class NetworkConstants
+        {
+            /// <summary>
+            /// End of line for HTTP.
+            /// </summary>
+            public const string CRLF = "\r\n";
+
+            /// <summary>
+            /// Double end of line for HTTP.
+            /// </summary>
+            public const string CRLFCRLF = CRLF + CRLF;
+        }
+
+        /// <summary>
         /// Defines the program names.
         /// </summary>
         public static class ProgramNames
