@@ -130,6 +130,7 @@
     <Compile Include="Mock\ThreadHelper.cs" />
     <Compile Include="Mock\TypeRepository.cs" />
     <Compile Include="ObjectDoesntExistException.cs" />
+    <Compile Include="IProtoInterface.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterCache.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterInstrCodes.cs" />
     <Compile Include="Query\Execution\CodeGeneration\CodeGenFilterNode.cs" />
