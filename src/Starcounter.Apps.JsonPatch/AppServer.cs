@@ -187,6 +187,9 @@ namespace Starcounter.Internal.Web {
 #endif
                 // Handling and returning the HTTP response.
                 return HandleResponse(request, x);
+            } catch (Exception ex) {
+                byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
+                return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             } finally {
                 session = Session.Current;
                 if (session != null) {
