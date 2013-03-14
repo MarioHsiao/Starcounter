@@ -104,7 +104,7 @@ namespace Starcounter {
 
         /// <summary>
         /// </summary>
-        /// <typeparam name="T1">The type of the parameter.</typeparam>
+        /// <typeparam name="T">The type of the parameter.</typeparam>
         /// <param name="uriTemplate">The uri template to register.</param>
         /// <param name="code">The code to execute when a request is received.</param>
         /// <param name="port">The port number to listen to.</param>
