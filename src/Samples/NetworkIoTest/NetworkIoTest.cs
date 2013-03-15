@@ -23,6 +23,13 @@ namespace NetworkIoTestApp
         /// </summary>
         public static void InitAppHandlers()
         {
+            String localString = "This is local string!";
+
+            GET(85, "/local", () =>
+            {
+                return localString;
+            });
+
             GET("/static/{?}/static", (String p1) =>
             {
                 return String.Format("string {0}", p1);
@@ -303,7 +310,10 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_APPS_URIS:
                 {
-                    AppsBootstrapper.Bootstrap();
+                    AppsBootstrapper.Bootstrap(
+                        StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
+                        "c:\\pics");
+
                     AppsClass.InitAppHandlers();
 
                     break;
@@ -817,7 +827,7 @@ namespace NetworkIoTestApp
 
         private static Boolean OnRestClient(HttpRequest httpRequest)
         {
-            someNode.GET("/testrest", httpRequest, (HttpResponse resp) => {
+            someNode.GET("/testrest", null, httpRequest, (HttpResponse resp) => {
                 if (resp["Content-Type"] == "text/html; charset=UTF-8") {
                     dynamic jsonData = Json.Parse(resp.GetContentStringUtf8_Slow());
                     string htmlFileName = jsonData.FirstName;

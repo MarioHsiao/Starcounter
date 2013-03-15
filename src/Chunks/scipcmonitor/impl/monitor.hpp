@@ -61,6 +61,10 @@ owner_id_(ipc_monitor_owner_id) {
 		length = std::wcstombs(temp_buf, argv[2], maximum_path_and_file_name_length -1);
 		temp_buf[length++] = SLASH;
 		temp_buf[length++] = '\0';
+		database_output_dir_name_ = std::wstring(argv[2]);
+
+		// Open the log.
+		log().open(server_name_.c_str(), "scipcmonitor", database_output_dir_name_.c_str());
 
 		monitor_dir_path_ = std::wstring(argv[2]) +W_DEFAULT_MONITOR_DIR_NAME +W_SLASH;
 		active_databases_file_path_ = std::wstring(argv[2]) +W_SLASH +W_DEFAULT_MONITOR_DIR_NAME +W_SLASH;
@@ -68,6 +72,7 @@ owner_id_(ipc_monitor_owner_id) {
 		// Trying to create monitor directory.
 		if ((!CreateDirectory(active_databases_file_path_.c_str(), NULL))
 		&& (ERROR_ALREADY_EXISTS != GetLastError())) {
+			log().error(SCERRCANTCREATEIPCMONITORDIR);
 			throw ipc_monitor_exception(SCERRCANTCREATEIPCMONITORDIR);
 		}
 
@@ -78,12 +83,14 @@ owner_id_(ipc_monitor_owner_id) {
 		// Trying to create active databases directory.
 		if ((!CreateDirectory(w_active_databases_dir_path.c_str(), NULL))
 		&& (ERROR_ALREADY_EXISTS != GetLastError())) {
+			log().error(SCERRIPCMONITORCREATEACTIVEDBDIR);
 			throw ipc_monitor_exception(SCERRIPCMONITORCREATEACTIVEDBDIR);
 		}
 	}
 	else {
 		// The first argument (name of the server that started this monitor),
 		// must be provided.
+		log().error(SCERRIPCMONITORREQUIREDARGUMENTS);
 		throw ipc_monitor_exception(SCERRIPCMONITORREQUIREDARGUMENTS);
 	}
 	
@@ -96,6 +103,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if (GetFileAttributes(active_databases_file_path_.c_str())
 	!= INVALID_FILE_ATTRIBUTES) {
 		if (!DeleteFile(active_databases_file_path_.c_str())) {
+			log().error(SCERRIPCMONITORDELACTIVEDBFILE);
 			throw ipc_monitor_exception(SCERRIPCMONITORDELACTIVEDBFILE);
 		}
 	}
@@ -127,6 +135,7 @@ owner_id_(ipc_monitor_owner_id) {
 	(ipc_monitor_cleanup_event_name), ipc_monitor_cleanup_event_name_size
 	-1 /* null */, "Local\\%s_ipc_monitor_cleanup_event", server_name_.c_str()))
 	< 0) {
+		log().error(SCERRFORMATIPCMONITORCLEANUPEV);
 		throw ipc_monitor_exception(SCERRFORMATIPCMONITORCLEANUPEV);
 	}
 	ipc_monitor_cleanup_event_name[length] = '\0';
@@ -137,6 +146,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((length = mbstowcs(w_ipc_monitor_cleanup_event_name,
 	ipc_monitor_cleanup_event_name, segment_name_size)) < 0) {
 		// Failed to convert ipc_monitor_cleanup_event_name to multi-byte string.
+		log().error(SCERRCONVERTIPCMONCLEANUPEVMBS);
 		throw ipc_monitor_exception(SCERRCONVERTIPCMONCLEANUPEVMBS);
 	}
 	w_ipc_monitor_cleanup_event_name[length] = L'\0';
@@ -146,6 +156,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((ipc_monitor_cleanup_event_ = ::CreateEvent(NULL, TRUE, FALSE,
 	w_ipc_monitor_cleanup_event_name)) == NULL) {
 		// Failed to create event.
+		log().error(SCERRCREATEIPCMONITORCLEANUPEV);
 		throw ipc_monitor_exception(SCERRCREATEIPCMONITORCLEANUPEV);
 	}
 
@@ -159,6 +170,7 @@ owner_id_(ipc_monitor_owner_id) {
 	(active_databases_updated_event_name), active_databases_updated_event_name_size
 	-1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str()))
 	< 0) {
+		log().error(SCERRIPCMFORMATACTIVEDBUPDATEDEV);
 		throw ipc_monitor_exception(SCERRIPCMFORMATACTIVEDBUPDATEDEV);
 	}
 	active_databases_updated_event_name[length] = '\0';
@@ -169,6 +181,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((length = mbstowcs(w_active_databases_updated_event_name,
 	active_databases_updated_event_name, segment_name_size)) < 0) {
 		// Failed to convert active_databases_updated_event_name to multi-byte string.
+		log().error(SCERRIPCMCONVACTIVEDBUPDATEDEVMB);
 		throw ipc_monitor_exception(SCERRIPCMCONVACTIVEDBUPDATEDEVMB);
 	}
 	w_active_databases_updated_event_name[length] = L'\0';
@@ -179,6 +192,7 @@ owner_id_(ipc_monitor_owner_id) {
 	if ((active_databases_updated_event = ::CreateEvent(NULL, TRUE, FALSE,
 	w_active_databases_updated_event_name)) == NULL) {
 		// Failed to create event.
+		log().error(SCERRCREATEACTIVEDBUPDATEDEV);
 		throw ipc_monitor_exception(SCERRCREATEACTIVEDBUPDATEDEV);
 	}
 
@@ -215,6 +229,7 @@ owner_id_(ipc_monitor_owner_id) {
 	.c_str(), sizeof(monitor_interface), is_system);
 	
 	if (!monitor_interface_.is_valid()) {
+		log().error(SCERRINVALIDIPCMONINTERFACSHMOBJ);
 		throw ipc_monitor_exception(SCERRINVALIDIPCMONINTERFACSHMOBJ);
 	}
 	
@@ -222,6 +237,7 @@ owner_id_(ipc_monitor_owner_id) {
 	monitor_interface_region_.init(monitor_interface_);
 	
 	if (!monitor_interface_region_.is_valid()) {
+		log().error(SCERRINVALIDIPCMONINTERFACMAPREG);
 		throw ipc_monitor_exception(SCERRINVALIDIPCMONINTERFACMAPREG);
 	}
 	
@@ -264,6 +280,7 @@ owner_id_(ipc_monitor_owner_id) {
 		&access_token) == 0) {
 			err = GetLastError();
 			CloseHandle(access_token);
+			log().error(SCERRIPCMONITOROPENPROCESSTOKEN);
 			throw ipc_monitor_exception(SCERRIPCMONITOROPENPROCESSTOKEN);
 		}
 		
@@ -272,6 +289,7 @@ owner_id_(ipc_monitor_owner_id) {
 		if (LookupPrivilegeValue(NULL, L"SeDebugPrivilege", &luid) == 0) {
 			err = GetLastError();
 			CloseHandle(access_token);
+			log().error(SCERRIPCMONLOOKUPPRIVILEGEVALUE);
 			throw ipc_monitor_exception(SCERRIPCMONLOOKUPPRIVILEGEVALUE);
 		}
 		
@@ -285,11 +303,13 @@ owner_id_(ipc_monitor_owner_id) {
 		sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES) NULL, (PDWORD) NULL)) {
 			err = GetLastError();
 			CloseHandle(access_token);
+			log().error(SCERRIPCMONADJUSTTOKENPRIVILEGES);
 			throw ipc_monitor_exception(SCERRIPCMONADJUSTTOKENPRIVILEGES);
 		}
 		
 		if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
 			CloseHandle(access_token);
+			log().error(SCERRIPCMONSETSEDEBUGPRIVILEGE);
 			throw ipc_monitor_exception(SCERRIPCMONSETSEDEBUGPRIVILEGE);
 		}
 		CloseHandle(access_token);
@@ -461,6 +481,7 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 									(process_register_it_2->second
 									.get_segment_name()))) {
 										// Failed to erase the database name.
+										log().error(SCERRIPCMONITORERASEDATABASENAME);
 									}
 									
 									// Remove from the process_register.
@@ -479,6 +500,7 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 									(process_register_it_2->second
 									.get_segment_name()))) {
 										// Failed to erase the database name.
+										log().error(SCERRIPCMONITORERASEDATABASENAME);
 									}
 									
 									// Remove from the process_register.
@@ -493,14 +515,18 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 							}
 						}
 						catch (boost::interprocess::interprocess_exception&) {
+							log().error(SCERRBOOSTINTERPROCESSEXCEPTION);
 						}
 						catch (...) {
+							log().error(SCERRTRYOPENSEGMENTUNKNOWNEXCEPT);
 						}
 						break;
 					case monitor_interface::client_process: /// It can't be!
+						log().error(SCERRGOTCLIENTPROCESSTYPENOTDB);
 						break;
 					default: /// Impossible!
 						// Unknown proess type exit. Cosmic X-ray corrupted RAM?
+						log().error(SCERRGOTUNKNOWNPROCESSTYPENOTDB);
 						break;
 					}
 					// Found the exit_event, stop searching.
@@ -533,7 +559,7 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 								!= process_register_.end(); ++pos) {
 									if (pos->second.get_pid()
 									== the_monitor_interface_->get_pid()) {
-										/// TODO: pid exists...not handled yet!
+										/// TODO: Log this? pid exists...not handled yet!
 										/// Is this a problem? The key is
 										/// owner_id, not pid.
 									}
@@ -541,9 +567,10 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 								
 								// The pid does not exist in the event register.
 								// Register the process.
-								if ((the_event = OpenProcess(SYNCHRONIZE, FALSE,
+								if ((the_event = ::OpenProcess(SYNCHRONIZE, FALSE,
 								the_monitor_interface_->get_pid())) == NULL) {
 									// OpenProcess() failed.
+									log().error(SCERROPENPROCESSFAILEDREGDBPROC);
 									break;
 								}
 								
@@ -576,6 +603,7 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 								(the_monitor_interface_->get_segment_name()))) {
 									// Failed to insert database name into
 									// active_databases_.
+									log().error(SCERRIPCMONINSERTDBNAMEACTIVEDBR);
 								}
 								
 								the_monitor_interface_
@@ -617,6 +645,7 @@ void monitor::wait_for_database_process_event(std::size_t group) {
 										(segment_name_to_database_name
 										(pos->second.get_segment_name()))) {
 											// Failed to erase database name.
+											log().error(SCERRIPCMONITORERASEDATABASENAME);
 										}
 										
 										// Remove from the process_register_.
@@ -748,13 +777,14 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								->insert_segment_name(process_register_it_2->second.get_segment_name().c_str());
 
 								// TODO: Error handling.
-								//if (cleanup_task_index == -1) {
-								//	std::cout << "Could not insert segment name. Bug!" << std::endl;
-								//}
+								if (cleanup_task_index == -1) {
+									// Could not insert segment name.
+									log().error(SCERRIPCMONITORINSERTSEGMENTNAME);
+								}
 
 								shared_interface shared(process_register_it_2
 								->second.get_segment_name(), std::string(),
-								pid_type(pid_type::no_pid)); /// (1)
+								pid_type(pid_type::no_pid));
 								
 								// If failed to open the segment, a
 								// shared_interface_exception is thrown.
@@ -791,7 +821,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 										.number_of_active_schedulers(); ++si) {
 											if (shared.scheduler_interface(si).channel_number()
 											.if_locked_with_id_recover_and_unlock
-											(owner_id_of_terminated_process.get()) == true) { /// (2)
+											(owner_id_of_terminated_process.get()) == true) {
 												//std::cout << "Unlocked scheduler_interface(" << si
 												//<< ") with owner_id_of_terminated_process = "
 												//< owner_id_of_terminated_process.get() << std::endl;
@@ -804,7 +834,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 										
 										if (client_interface_ptr) {
 											//common_client_interface_ptr->increment_client_interfaces_to_clean_up();
-											shared.common_client_interface().increment_client_interfaces_to_clean_up(); /// (3)
+											shared.common_client_interface().increment_client_interfaces_to_clean_up();
 											client_interface_ptr->database_cleanup_index() = cleanup_task_index;
 											////std::cout << "monitor::wait_for_client_process_event(): " << client_interface_ptr << "->database_cleanup_index() = " << cleanup_task_index << std::endl;
 											// I think it is important that the increment above is done before
@@ -816,16 +846,16 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 											// indirectly marking all resources (chunks
 											// and channels) that the client process
 											// owned, for clean up.
-											client_interface_ptr->get_owner_id().mark_for_clean_up(); /// (4)
+											client_interface_ptr->get_owner_id().mark_for_clean_up();
 										}
 
 										// For each of the channels the client
-										// owned, notify the scheduler. TODO: Log this event.
-										
+										// owned, notify the scheduler.
+
 										// For each mask word, bitscan to find the channels owned by the terminated client.
 										for (uint32_t ch_index = 0; ch_index < resource_map::channels_mask_size; ++ch_index) {
 											for (resource_map::mask_type mask = client_interface_ptr->get_resource_map()
-											.get_owned_channels_mask(ch_index); mask; mask &= mask -1) { /// (5)
+											.get_owned_channels_mask(ch_index); mask; mask &= mask -1) {
 												uint32_t ch = bit_scan_forward(mask);
 												ch += ch_index << resource_map::shift_bits_in_mask_type;
 												channel_type& the_channel = shared.channel(ch);
@@ -847,7 +877,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 												// Mark channel to be released.
 												// After this the channel cannot
 												// be accessed by the monitor.
-												the_channel.set_to_be_released(); /// (6)
+												the_channel.set_to_be_released();
 												++channels_to_recover;
 												
 												// The scheduler may be waiting. Notify the scheduler that probes this channel.
@@ -858,6 +888,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 													}
 													else {
 														// Failed to notify the scheduler on this channel.
+														log().error(SCERRIPCMONFAILEDNOTIFYSCHEDULER);
 													}
 												}
 												else {
@@ -872,10 +903,13 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 						catch (shared_interface_exception&) {
 							// Failed to open the database shared memory segment and
 							// is unable to notify the clients.
+							log().error(SCERROPENDBSHMSEGTONOTIFYCLIENTS);
 						}
 						catch (boost::interprocess::interprocess_exception&) {
+							log().error(SCERRBOOSTINTERPROCESSEXCEPTION);
 						}
 						catch (...) {
+							log().error(SCERRIPCMONOPENDBSHMSEGUNKNOWNEX);
 						}
 						
 						// Remove from the process_register here?
@@ -893,6 +927,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 					
 					default: /// Impossible!
 						// Unknown proess type exit. Cosmic X-ray corrupted RAM?
+						log().error(SCERRIPCMONUNKNOWNPROESSTYPEEXIT);
 						break;
 					} /// Getting iterator to process register.
 					break;
@@ -924,7 +959,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								!= process_register_.end(); ++pos) {
 									if (pos->second.get_pid()
 									== the_monitor_interface_->get_pid()) {
-										/// TODO: pid exists...not handled yet!
+										/// TODO: Log this? pid exists...not handled yet!
 										/// Is this a problem? The key is
 										/// owner_id, not pid.
 									}
@@ -935,6 +970,7 @@ void monitor::wait_for_client_process_event(std::size_t group) {
 								if ((the_event = OpenProcess(SYNCHRONIZE, FALSE,
 								the_monitor_interface_->get_pid())) == NULL) {
 									// OpenProcess() failed.
+									log().error(SCERROPENPROCESSFAILEDREGCLIPROC);
 									break;
 								}
 								
@@ -1064,7 +1100,7 @@ void monitor::registrar() {
 					< events_per_group) {
 						/// TODO: use thread_primitives.hpp
 						// Queue an user apc to that thread.
-						QueueUserAPC(apc_function,
+						::QueueUserAPC(apc_function,
 						client_process_group_[i].thread_handle_,
 						reinterpret_cast<boost::detail::win32::ulong_ptr>
 						(this));
@@ -1108,11 +1144,13 @@ void monitor::registrar() {
 						else {
 							// The owner_id matches but not the pid. Something
 							// is wrong, so the process_info is not removed.
+							log().error(SCERRTHEOWNERIDMATCHBUTNOTTHEPID);
 						}
 					}
 					else {
 						// The pid matches but not the owner_id. Something is wrong,
 						// so the process_info is not removed.
+						log().error(SCERRTHEPIDMATCHBUTNOTTHEOWNERID);
 					}
 					
 					the_monitor_interface_->set_out_data_available_state(true);
@@ -1130,16 +1168,12 @@ void monitor::registrar() {
 void monitor::cleanup() {
 	/// TODO: Shutdown mechanism.
 	while (true) {
-		////std::cout << "monitor::cleanup(): WaitForSingleObject..." << std::endl;
 		switch (::WaitForSingleObject(ipc_monitor_cleanup_event_, INFINITE)) {
 		case WAIT_OBJECT_0:
 			// A database is done with recovering the channels and have notified
 			// the IPC monitor to recover resources (chunks and client_interface.)
 			// It will do so until there is nothing more to cleanup.
 			while (the_monitor_interface_->get_cleanup_flag() != 0) {
-				////std::cout << "monitor::cleanup(): Have some cleanup to do. Cleanup mask: "
-				////<< the_monitor_interface_->get_cleanup_flag() << std::endl;
-
 				const char* segment_name_to_be_opened;
 				segment_name_to_be_opened = the_monitor_interface_
 				->get_a_segment_name(ipc_monitor_cleanup_event_);
@@ -1217,8 +1251,8 @@ void monitor::cleanup() {
 						}
 					}
 					catch (shared_interface_exception&) {
-						////std::cout << "monitor::cleanup(): shared_interface_exception - failed to open the database shared memory segment "
-						////<< segment_name_to_be_opened << std::endl;
+						// The IPC monitor cleanup failed. Could not open the IPC database shared memory segment.
+						log().error(SCERRCLEANUPTOOPENTHEDBIPCSHMSEG);
 					}
 				}
 				else {
@@ -1229,11 +1263,11 @@ void monitor::cleanup() {
 			break;
 		case WAIT_TIMEOUT:
 			// The IPC monitor was not notified. A timeout occurred.
-			////std::cout << "monitor::cleanup(): Timeout." << std::endl;
+			// This can't happen because the wait is infinite.
 			break;
 		case WAIT_FAILED:
 			// The IPC monitor was not notified. An error occurred.
-			////std::cout << "monitor::cleanup(): Wait failed." << std::endl;
+			log().error(SCERRIPCMONITORCLEANUPWAITFAILED);
 			break;
 		}
 	}
@@ -1431,6 +1465,14 @@ void monitor::print_rate_with_precision(double rate) {
 	}
 }
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+
+inline starcounter::log& monitor::log() {
+	return log_;
+}
+
+inline const starcounter::log& monitor::log() const {
+	return log_;
+}
 
 /// NOTE: Originally was ment to be able to show multiple databases at once,
 /// which it can but then statistics are messed up completely. Only test with

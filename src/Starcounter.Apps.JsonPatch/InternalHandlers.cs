@@ -25,15 +25,17 @@ namespace Starcounter.Internal.JsonPatch {
         /// Registers this instance.
         /// </summary>
         public static void Register() {
+            string dbName = Db.Environment.DatabaseName.ToLower();
 
-            // TODO: __vm will conflict with other databases, make per database prefix.
-            GET("/__vm/{?}", (int viewModelId) => {
+            Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
+            Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
+
+            GET("/__" + dbName + "/{?}", (int viewModelId) => {
                 Puppet rootApp;
                 Byte[] json;
                 HttpResponse response = null;
 
                 // TODO: Put verification on view model number.
-
                 rootApp = Session.Current.GetRootApp(viewModelId);
                 json = rootApp.ToJsonUtf8();
                 response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
@@ -41,33 +43,7 @@ namespace Starcounter.Internal.JsonPatch {
                 return response;
             });
 
-            Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
-            Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
-
-            if (Db.Environment.HasDatabase) {
-
-                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-
-                // SQL command
-                POST( "/__sql/" + Db.Environment.DatabaseName.ToLower(), (HttpRequest r) => {
-                    try {
-                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
-                        string resultJson = ExecuteQuery(bodyData);
-                        return resultJson;
-                    }
-                    catch (Starcounter.SqlException sqle) {
-                        return sqle.Message;
-                    }
-                    catch (Exception e) {
-                        return e.ToString();
-                    }
-
-
-                });
-            }
-
-            // TODO: __vm will conflict with other databases, make per database prefix.
-            PATCH("/__vm/{?}", (int viewModelId, HttpRequest request) => {
+            PATCH("/__" + dbName + "/{?}", (int viewModelId, HttpRequest request) => {
                 Puppet rootApp;
                 Session session;
                 HttpResponse response = null;
@@ -85,15 +61,28 @@ namespace Starcounter.Internal.JsonPatch {
                     RefreshAllValues(rootApp, session.changeLog);
 
                     response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(session.changeLog);
-                }
-                catch (NotSupportedException nex) {
+                } catch (NotSupportedException nex) {
                     response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     response.Uncompressed = HttpPatchBuilder.Create400Response(ex.Message);
                 }
                 return response;
             });
+
+            if (Db.Environment.HasDatabase) {
+                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
+                POST("/__" + dbName + "/sql", (HttpRequest r) => {
+                    try {
+                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+                        string resultJson = ExecuteQuery(bodyData);
+                        return resultJson;
+                    } catch (Starcounter.SqlException sqle) {
+                        return sqle.Message;
+                    } catch (Exception e) {
+                        return e.ToString();
+                    }
+                });
+            }
         }
 
         private static void RefreshAllValues(Puppet app, ChangeLog log) {
@@ -143,8 +132,7 @@ namespace Starcounter.Internal.JsonPatch {
                     props = new IPropertyBinding[1];
                     propertyBinding = new SingleProjectionBinding() { TypeCode = (DbTypeCode)sqle.ProjectionTypeCode };
                     resultJson.columns[0] = new { title = propertyBinding.Name, value = propertyBinding.Name, type = propertyBinding.TypeCode.ToString() };
-                }
-                else {
+                } else {
                     resultBinding = sqle.TypeBinding;
                     props = new IPropertyBinding[resultBinding.PropertyCount];
                     for (int i = 0; i < resultBinding.PropertyCount; i++) {
@@ -225,8 +213,7 @@ namespace Starcounter.Internal.JsonPatch {
                             }
                             resultJson.rows[index][prop.Name] = value;
                         }
-                    }
-                    else {
+                    } else {
                         // RODO:
                         //  this.QueryResult.Result.Add(new SqlRowApp(sqle.Current, props));
                     }
@@ -241,8 +228,7 @@ namespace Starcounter.Internal.JsonPatch {
 
                 return resultJson.ToString();
 
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
 
                 dynamic resultJson = new Json();
                 resultJson.columns = new object[] { };
@@ -253,8 +239,7 @@ namespace Starcounter.Internal.JsonPatch {
                 //resultJson.error["HelpLink"] = e.HelpLink;
                 return resultJson.ToString();
 
-            }
-            finally {
+            } finally {
                 if (sqle != null)
                     sqle.Dispose();
             }

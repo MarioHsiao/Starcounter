@@ -137,7 +137,9 @@ namespace Starcounter.Internal.Web {
 
             len = payload.Length;
 
-            string str = "HTTP/1.1 " + code + "\r\nServer:SC\r\nConnection:keep-alive\r\n";
+            string str = "HTTP/1.1 " + code + StarcounterConstants.NetworkConstants.CRLF +
+                "Server: SC" + StarcounterConstants.NetworkConstants.CRLF +
+                "Connection: keep-alive" + StarcounterConstants.NetworkConstants.CRLF;
             
             // string[] parts = fileName.Split('.');
             // string ext = parts[parts.Length-1];
@@ -175,25 +177,25 @@ namespace Starcounter.Internal.Web {
             }
 
 
-            str += "Content-Type:" + mimeType + "\r\n";
+            str += "Content-Type: " + mimeType + StarcounterConstants.NetworkConstants.CRLF;
 
 
             //            if (!bigCookie)
-            //                str += "Set-Cookie:sid=" + req.SessionID.ToString() + "\r\n";
+            //                str += "Set-Cookie: sid=" + req.SessionID.ToString() + StarcounterConstants.NetworkConstants.CRLF;
 
             if (didCompress)
-                str += "Content-Encoding:gzip\r\n";
+                str += "Content-Encoding: gzip" + StarcounterConstants.NetworkConstants.CRLF;
 
             if (req.IsAppView)
-                str += "Cache-control:private,max-age=0\r\n"; // Dont cache
+                str += "Cache-control: private,max-age=0" + StarcounterConstants.NetworkConstants.CRLF; // Dont cache
             else
-                str += "Cache-control:public,max-age=31536000\r\n"; // 1 year cache
+                str += "Cache-control: public,max-age=31536000" + StarcounterConstants.NetworkConstants.CRLF; // 1 year cache
 
-            // Cache-Control:public,max-age=31536000
-            // Age:0
+            // Cache-Control: public,max-age=31536000
+            // Age: 0
 
             string lenStr = len.ToString();
-            str += "Content-Length:" + lenStr + "\r\n\r\n";
+            str += "Content-Length: " + lenStr + StarcounterConstants.NetworkConstants.CRLFCRLF;
             fres.ContentLength = len;
             fres.ContentLengthLength = lenStr.Length; // TODO! Should really measure bytes. In UTF-8 bytes and characters for numeric characters is one and the same.
 

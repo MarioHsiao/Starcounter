@@ -19,6 +19,11 @@ namespace Starcounter
     public class Node
     {
         /// <summary>
+        /// Represents this Starcounter node.
+        /// </summary>
+        public static Node ThisStarcounterNode = null;
+
+        /// <summary>
         /// Host name of this node e.g.: www.starcounter.com, 192.168.0.1
         /// </summary>
         String hostName_;
@@ -52,72 +57,64 @@ namespace Starcounter
             portNumber_ = portNumber;
         }
 
-        public void GET(String uri, HttpRequest req, Func<HttpResponse, Object> func)
+        public void GET(String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
         {
-            HttpResponse resp;
-            DoRESTRequest(uri, "GET", null, req, out resp);
-            if (resp == null) // TODO: Determine what to do in this situation.
-                return;
-
-            Object o = func.Invoke(resp);
-            HttpResponse respOnResp = HandleResponse_(req, o);
-            req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
+            DoRESTRequestAndDelegate("GET", uri, content, req, func);
         }
 
         public void GET(String uri, HttpRequest httpRequest, out HttpResponse httpResponse)
         {
-            DoRESTRequest(uri, "GET", null, httpRequest, out httpResponse);
+            DoRESTRequestAndGetResponse(uri, "GET", null, httpRequest, out httpResponse);
         }
 
-        public void POST(String uri, HttpRequest req, Func<HttpResponse, Object> func)
+        public void POST(String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
         {
-            HttpResponse resp;
-            DoRESTRequest(uri, "POST", null, req, out resp);
-            if (resp == null) // TODO: Determine what to do in this situation.
-                return;
-
-            Object o = func.Invoke(resp);
-            HttpResponse respOnResp = HandleResponse_(req, o);
-            req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
+            DoRESTRequestAndDelegate("POST", uri, content, req, func);
         }
 
-        public void POST(String uri, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
+        public void POST(String uri, String content, HttpRequest req, out HttpResponse httpResponse)
         {
-            DoRESTRequest(uri, "POST", content, httpRequest, out httpResponse);
+            DoRESTRequestAndGetResponse(uri, "POST", content, req, out httpResponse);
         }
 
-        public void PUT(String uri, HttpRequest req, Func<HttpResponse, Object> func)
+        public void PUT(String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
         {
-            HttpResponse resp;
-            DoRESTRequest(uri, "PUT", null, req, out resp);
-            if (resp == null) // TODO: Determine what to do in this situation.
-                return;
-
-            Object o = func.Invoke(resp);
-            HttpResponse respOnResp = HandleResponse_(req, o);
-            req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
+            DoRESTRequestAndDelegate("PUT", uri, content, req, func);
         }
 
         public void PUT(String uri, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
         {
-            DoRESTRequest(uri, "PUT", content, httpRequest, out httpResponse);
+            DoRESTRequestAndGetResponse(uri, "PUT", content, httpRequest, out httpResponse);
         }
 
-        public void DELETE(String uri, HttpRequest req, Func<HttpResponse, Object> func)
+        public void DELETE(String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
         {
-            HttpResponse resp;
-            DoRESTRequest(uri, "DELETE", null, req, out resp);
-            if (resp == null) // TODO: Determine what to do in this situation.
-                return;
-
-            Object o = func.Invoke(resp);
-            HttpResponse respOnResp = HandleResponse_(req, o);
-            req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
+            DoRESTRequestAndDelegate("DELETE", uri, content, req, func);
         }
 
         public void DELETE(String uri, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
         {
-            DoRESTRequest(uri, "DELETE", content, httpRequest, out httpResponse);
+            DoRESTRequestAndGetResponse(uri, "DELETE", content, httpRequest, out httpResponse);
+        }
+
+        void DoRESTRequestAndDelegate(String method, String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
+        {
+            HttpResponse resp;
+            
+            // Sending HTTP request and getting response back.
+            DoRESTRequestAndGetResponse(uri, method, content, req, out resp);
+            if (resp == null) // TODO: Determine what to do in this situation.
+                return;
+
+            // Invoking user delegate.
+            Object o = func.Invoke(resp);
+
+            // Checking if we have HTTP request.
+            if (req != null)
+            {
+                HttpResponse respOnResp = HandleResponse_(req, o);
+                req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
+            }
         }
 
         /// <summary>
@@ -128,19 +125,26 @@ namespace Starcounter
         /// <param name="content"></param>
         /// <param name="httpRequest"></param>
         /// <param name="httpResponse"></param>
-        void DoRESTRequest(String uri, String method, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
+        void DoRESTRequestAndGetResponse(String uri, String method, String content, HttpRequest req, out HttpResponse resp)
         {
-            httpResponse = null;
+            // No response initially.
+            resp = null;
 
             // Constructing request headers.
-            String headers = method + " " + uri + " HTTP/1.1\r\nHost: " + hostName_ + "\r\n\r\n";
+            String headers = method + " " + uri + " HTTP/1.1" + StarcounterConstants.NetworkConstants.CRLF +
+                "Host: " + hostName_ + StarcounterConstants.NetworkConstants.CRLF;
 
-            Byte[] requestBytes;
+            if (content != null)
+                headers += "Content-Length: " + content.Length;
+
+            headers += StarcounterConstants.NetworkConstants.CRLFCRLF;
 
             // Converting headers to ASCII bytes.
             Byte[] headersBytes = Encoding.ASCII.GetBytes(headers);
 
-            // Adding body if needed.
+            Byte[] requestBytes;
+
+            // Adding content if needed.
             if (content != null)
             {
                 // Converting body to UTF8 bytes.
@@ -160,9 +164,8 @@ namespace Starcounter
             TcpClient client = new TcpClient(hostName_, portNumber_);
             MemoryStream ms = new MemoryStream();
 
-            NetworkStream stream = client.GetStream();
-
             // Sending the request.
+            NetworkStream stream = client.GetStream();
             stream.Write(requestBytes, 0, requestBytes.Length);
 
             // Temporary accumulating buffer.
@@ -172,24 +175,25 @@ namespace Starcounter
             // Looping until we get everything.
             while (true)
             {
+                // Reading the response into predefined buffer.
                 recievedBytes = stream.Read(tempBuf, 0, tempBuf.Length);
                 if (recievedBytes <= 0)
                     break;
 
-                if (httpResponse == null)
+                if (resp == null)
                 {
                     try
                     {
                         // Trying to parse the response.
-                        httpResponse = new HttpResponse(tempBuf, recievedBytes, httpRequest);
+                        resp = new HttpResponse(tempBuf, recievedBytes, req);
 
                         // Getting the headers and content length then.
-                        headersLen = (Int32)httpResponse.GetHeadersLength();
-                        contentLen = (Int32)httpResponse.ContentLength;
+                        headersLen = (Int32)resp.GetHeadersLength();
+                        contentLen = (Int32)resp.ContentLength;
                     }
                     catch (Exception exc)
                     {
-                        httpResponse = null;
+                        resp = null;
 
                         // Checking that we are in a good state.
                         UInt32 errCode;
@@ -212,7 +216,7 @@ namespace Starcounter
                 totallyReceivedBytes += recievedBytes;
 
                 // Checking if we have received everything.
-                if ((httpResponse != null) &&
+                if ((resp != null) &&
                     (contentLen > 0) &&
                     (totallyReceivedBytes >= (headersLen + contentLen + 4)) &&
                     (stream.DataAvailable == false))
@@ -230,23 +234,16 @@ namespace Starcounter
             client.Close();
 
             // Setting full response buffer.
-            httpResponse.SetResponseBytes(ms, totallyReceivedBytes);
+            if (resp != null)
+            {
+                // Setting the response buffer.
+                resp.SetResponseBytes(ms, totallyReceivedBytes);
 
-            // Checking if content length was not determined yet.
-            if (contentLen <= 0)
-                httpResponse.ContentLength = totallyReceivedBytes - 4 - headersLen;
+                // Checking if content length was not determined yet.
+                if (contentLen <= 0)
+                    resp.ContentLength = totallyReceivedBytes - 4 - headersLen;
+            }
         }
-
-        /*public async void GETHttpClient(String uri, HttpRequest httpRequest)
-        {
-            HttpClient client = new HttpClient();
-
-            HttpResponseMessage response = await client.GetAsync("http://" + hostName_ + ":" + portNumber_);
-            response.EnsureSuccessStatusCode();
-
-            HttpResponseHeaders responseHeaders = response.Headers;
-            Byte[] responseContent = await response.Content.ReadAsByteArrayAsync();
-        }*/
     }
 
 }

@@ -520,21 +520,35 @@ push_request_message_with_spin: /// The notify flag could be true...
 					if (this_client_interface.wait_for_work(client_work_event(),
 					timeout)) {
 						// The scheduler or monitor notified the client.
-						///this_client_interface.set_notify_flag(false);
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+						this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						goto push_request_message_with_spin;
 					}
 					else {
 						// Timeout.
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+						this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						return SCERRCTIMEOUTPUSHREQUESTMESSAGE;
 					}
 					break;
 				case common_client_interface_type
 				::database_terminated_gracefully:
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+					this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRDBTERMINATEDGRACEFULLY;
 				case common_client_interface_type
 				::database_terminated_unexpectedly:
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+					this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRDBTERMINATEDUNEXPECTEDLY;
 				default: // Unknown server state.
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+					this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRUNKNOWNDBSTATE;
 				}
 			}
@@ -568,21 +582,35 @@ pop_response_message_with_spin: /// The notify flag could be true
 					if (this_client_interface.wait_for_work(client_work_event(),
 					timeout)) {
 						// The scheduler or monitor notified the client.
-						///this_client_interface.set_notify_flag(false); /// was commented
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+						this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						goto pop_response_message_with_spin;
 					}
 					else {
 						// Timeout.
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+						this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 						return SCERRCTIMEOUTPOPRESPONSEMESSAGE;
 					}
 					break;
 				case common_client_interface_type
 				::database_terminated_gracefully:
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+					this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRDBTERMINATEDGRACEFULLY;
 				case common_client_interface_type
 				::database_terminated_unexpectedly:
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+					this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRDBTERMINATEDUNEXPECTEDLY;
 				default: // Unknown database state.
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+					this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 					return SCERRUNKNOWNDBSTATE;
 				}
 			}
@@ -592,6 +620,9 @@ pop_response_message_with_spin: /// The notify flag could be true
 		}
 	}
 	else {
+		client_interface_type& this_client_interface
+		= client_interface(client_number_);
+
 		// The database state is not normal. Check the state of the database.
 		switch (common_client_interface().database_state()) {
 		case common_client_interface_type::normal:
@@ -601,11 +632,20 @@ pop_response_message_with_spin: /// The notify flag could be true
 			goto push_request_message_with_spin;
 		case common_client_interface_type
 		::database_terminated_gracefully:
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+			this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			return SCERRDBTERMINATEDGRACEFULLY;
 		case common_client_interface_type
 		::database_terminated_unexpectedly:
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+			this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			return SCERRDBTERMINATEDUNEXPECTEDLY;
 		default: // Unknown database state.
+#if defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
+			this_client_interface.set_notify_flag(false);
+#endif // defined (IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS)
 			return SCERRUNKNOWNDBSTATE;
 		}
 	}

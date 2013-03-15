@@ -105,7 +105,7 @@ public:
 		 * @return The current system tick count.
 		 */
 		value_type tick_count() const {
-			return GetTickCount64();
+			return ::GetTickCount64();
 		}
 
 		milliseconds& add_tick_count() {

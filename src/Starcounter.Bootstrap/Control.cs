@@ -143,11 +143,11 @@ namespace StarcounterInternal.Bootstrap
             // Initializing REST.
             RequestHandler.InitREST(configuration.TempDirectory);
 
-            // Initilize the Db environment (database name)
+            // Initialize the Db environment (database name)
             Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
             // Initializing AppsBootstrapper.
-            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);
+            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort, configuration.Name);
 
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();
