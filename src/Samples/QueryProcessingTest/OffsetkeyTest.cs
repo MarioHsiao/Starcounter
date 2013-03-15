@@ -10,6 +10,7 @@ namespace QueryProcessingTest {
         //static SqlResult<dynamic> sqlResult;
 
         public static void Master() {
+            HelpMethods.LogEvent("Test offset key");
             AddQueries();
             ErrorCases();
             SimpleTestsAllQueries();
@@ -26,14 +27,16 @@ namespace QueryProcessingTest {
             // Modify data
             // If offset key is not null, query with offset key
             // Iterate over it
+            HelpMethods.LogEvent("Finished testing offset key");
         }
 
         static void AddQueries() {
-            queries.Add((addition, arg) => Db.SQL("select u from user u"+addition, arg));
-            queries.Add((addition, arg) => Db.SQL("select u from user u where userid < ?" + addition, 5, arg));
+            queries.Add((addition, arg) => Db.SQL("select u from user u " + addition, arg));
+            queries.Add((addition, arg) => Db.SQL("select u from user u where useridnr < ? " + addition, 5, arg));
         }
 
         static void ErrorCases() {
+            // Test getting offset key outside enumerator
             string f = "fetch ?";
             dynamic n = 4;
             String query = "select u from user u ";
@@ -47,6 +50,7 @@ namespace QueryProcessingTest {
             k = e.GetOffsetKey();
             Trace.Assert(k == null);
             e.Dispose();
+            // Test correct example
             f = "fetch ?";
             n = 4;
             e = Db.SQL(query + f, n).GetEnumerator();
@@ -57,26 +61,83 @@ namespace QueryProcessingTest {
             n = k;
             e = Db.SQL(query + f, n).GetEnumerator();
             e.MoveNext();
-            if (e.Current is User)
-                Console.WriteLine((e.Current as User).UserId);
+            Trace.Assert(e.Current is User);
+            Trace.Assert((e.Current as User).UserIdNr == 0);
+            e.Dispose();
+            // Test offsetkey on the query with the offset key from another query
+            Boolean isException = false;
+            e = Db.SQL("select u from user u fetch ?", 4).GetEnumerator();
+            e.MoveNext();
+            Trace.Assert(e.Current is User);
+            k = e.GetOffsetKey();
+            e.Dispose();
+            try {
+                e = Db.SQL("select u from user u where useridnr < ? offsetkey ?", 5, k).GetEnumerator();
+                e.MoveNext();
+                Trace.Assert(e.Current is User);
+            } catch (InvalidOperationException) {
+                isException = true;
+            } finally {
+                e.Dispose();
+            }
+            Trace.Assert(isException);
+
+            isException = false;
+            e = Db.SQL("select u from user u where useridnr < ? fetch ?", 5, 4).GetEnumerator();
+            e.MoveNext();
+            Trace.Assert(e.Current is User);
+            k = e.GetOffsetKey();
+            e.Dispose();
+            try {
+                e = Db.SQL("select u from user u offsetkey ?", k).GetEnumerator();
+                e.MoveNext();
+                Trace.Assert(e.Current is User);
+            } catch (InvalidOperationException) {
+                isException = true;
+            } finally {
+                e.Dispose();
+            };
+            Trace.Assert(isException);
+
+            isException = false;
+            e = Db.SQL("select u from user u fetch ?", 4).GetEnumerator();
+            while (e.MoveNext())
+                Trace.Assert(e.Current is User);
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            try {
+                e = Db.SQL("select u from user u where useridnr < ? offsetkey ?", 3, k).GetEnumerator();
+                e.MoveNext();
+            } catch (InvalidOperationException) {
+                isException = true;
+            } finally {
+                e.Dispose();
+            }
+            Trace.Assert(isException);
         }
 
         static void SimpleTestsAllQueries() {
             string f = "fetch ?";
-            dynamic n = 4;
+            string o = "offsetkey ?";
+            int n = 4;
+            byte[] k = null;
             foreach (CallQuery q in queries)
                 Db.Transaction(delegate {
+                    int userIdNr = 0;
                     using (IRowEnumerator<dynamic> e = q(f, n).GetEnumerator()) {
                         e.MoveNext();
                         Trace.Assert(e.Current is User);
                         Trace.Assert((e.Current as User).UserIdNr == 0);
-                        n = e.GetOffsetKey();
-                    }
-                    f = "offsetkey ?";
-                    using (IRowEnumerator<dynamic> e = queries[1](f, n).GetEnumerator()) {
                         e.MoveNext();
                         Trace.Assert(e.Current is User);
-                        Trace.Assert((e.Current as User).UserIdNr == 4);
+                        userIdNr = (e.Current as User).UserIdNr;
+                        k = e.GetOffsetKey();
+                    }
+                    using (IRowEnumerator<dynamic> e = q(o, k).GetEnumerator()) {
+                        e.MoveNext();
+                        Trace.Assert(e.Current is User);
+                        Trace.Assert((e.Current as User).UserIdNr == userIdNr);
                     }
                 });
         }
