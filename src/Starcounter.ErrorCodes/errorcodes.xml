@@ -3012,6 +3012,9 @@
         exceptions and/or logs to find more information.
       </message>
     </code>
+    <code hex="00F2" severity="Error" name="ScErrBackingDbIndexTypeNotFound">
+      <message>The database class index backing type was not found in the given assembly.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
