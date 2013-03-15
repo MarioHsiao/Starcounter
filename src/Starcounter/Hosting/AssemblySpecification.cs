@@ -13,10 +13,13 @@ namespace Starcounter.Hosting {
     /// here</a>.
     /// </summary>
     public sealed class AssemblySpecification {
+        Type specificationType;
+
         /// <summary>
         /// Allow instantiation only from factory method.
         /// </summary>
-        private AssemblySpecification() {
+        private AssemblySpecification(Type specType) {
+            this.specificationType = specType;
         }
 
         /// <summary>
@@ -38,7 +41,24 @@ namespace Starcounter.Hosting {
         /// the exception, along with any inner exceptions, will describe
         /// more precisely the problem.</exception>
         public static AssemblySpecification LoadFrom(Assembly assembly) {
-            throw new NotImplementedException();
+            if (assembly == null)
+                throw new ArgumentNullException("assembly");
+
+            string specName = AssemblySpecification.Name;
+            string msg;
+            try {
+                var specType = assembly.GetType(AssemblySpecification.Name);
+                if (specType == null) {
+                    msg = string.Format("Specification \"{0}\" not found in assembly \"{1}.",
+                        specName, assembly.FullName
+                        );
+                    throw ErrorCode.ToException(Error.SCERRASSEMBLYSPECNOTFOUND, msg);
+                }
+                return new AssemblySpecification(specType);
+            } catch (Exception e) {
+                msg = string.Format("Specification \"{0}\", Assembly = \"{1}\"", specName, assembly.FullName);
+                throw ErrorCode.ToException(Error.SCERRBACKINGRETREIVALFAILED, e, msg);
+            }
         }
     }
 }
