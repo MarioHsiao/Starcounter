@@ -338,7 +338,8 @@ namespace Starcounter
         public unsafe Boolean RecreateEnumerator_CodeGenFilter(
             Byte* keyData,
             Int32 extentNumber,
-            Enumerator cachedEnum)
+            Enumerator cachedEnum,
+            UInt64 filterHandle)
         {
             int retry = 0;
 
@@ -356,7 +357,7 @@ namespace Starcounter
 
             Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
             UInt32 flags = *((UInt32*)staticData);
-            UInt64 filterHandle = *((UInt64*)(staticData + 4));
+            //UInt64 filterHandle = *((UInt64*)(staticData + 4));
             Byte* varStream = staticData + 12;
             Byte* lastKey = *((UInt32*)varStream) + varStream;
 
