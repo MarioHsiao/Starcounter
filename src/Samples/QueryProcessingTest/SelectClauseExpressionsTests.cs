@@ -75,7 +75,7 @@ namespace QueryProcessingTest {
             });
             Trace.Assert(nrs == 6);
 #endif
-            HelpMethods.LogEvent("Finished testingexpressions in select clause");
+            HelpMethods.LogEvent("Finished testing expressions in select clause");
         }
     }
 }
