@@ -1,10 +1,149 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Starcounter;
 
 namespace QueryProcessingTest {
-    public class OffsetkeyTest {
+    public static class OffsetkeyTest {
+        delegate SqlResult<dynamic> CallQuery(String addition, dynamic arg);
+        static List<CallQuery> queries = new List<CallQuery>();
+        //static SqlResult<dynamic> sqlResult;
+
+        public static void Master() {
+            HelpMethods.LogEvent("Test offset key");
+            AddQueries();
+            ErrorCases();
+            SimpleTestsAllQueries();
+#if false
+            foreach query
+                foreach interator
+                    foreach data_update
+                        Transaction1
+                        Transaction2
+                        Transaction3
+#endif
+            // Call the query with fetch
+            // Iterate and get offset key
+            // Modify data
+            // If offset key is not null, query with offset key
+            // Iterate over it
+            HelpMethods.LogEvent("Finished testing offset key");
+        }
+
+        static void AddQueries() {
+            queries.Add((addition, arg) => Db.SQL("select u from user u " + addition, arg));
+            queries.Add((addition, arg) => Db.SQL("select u from user u where useridnr < ? " + addition, 5, arg));
+        }
+
+        static void ErrorCases() {
+            // Test getting offset key outside enumerator
+            string f = "fetch ?";
+            dynamic n = 4;
+            String query = "select u from user u ";
+            IRowEnumerator<dynamic> e = Db.SQL(query + f, n).GetEnumerator();
+            byte[] k = e.GetOffsetKey();
+            Trace.Assert(k == null);
+            e.Dispose();
+            e = Db.SQL(query + f, n).GetEnumerator();
+            while (e.MoveNext())
+                Trace.Assert(e.Current is User);
+            k = e.GetOffsetKey();
+            Trace.Assert(k == null);
+            e.Dispose();
+            // Test correct example
+            f = "fetch ?";
+            n = 4;
+            e = Db.SQL(query + f, n).GetEnumerator();
+            e.MoveNext();
+            k = e.GetOffsetKey();
+            e.Dispose();
+            f = "offsetkey ?";
+            n = k;
+            e = Db.SQL(query + f, n).GetEnumerator();
+            e.MoveNext();
+            Trace.Assert(e.Current is User);
+            Trace.Assert((e.Current as User).UserIdNr == 0);
+            e.Dispose();
+            // Test offsetkey on the query with the offset key from another query
+            Boolean isException = false;
+            e = Db.SQL("select u from user u fetch ?", 4).GetEnumerator();
+            e.MoveNext();
+            Trace.Assert(e.Current is User);
+            k = e.GetOffsetKey();
+            e.Dispose();
+            try {
+                e = Db.SQL("select u from user u where useridnr < ? offsetkey ?", 5, k).GetEnumerator();
+                e.MoveNext();
+                Trace.Assert(e.Current is User);
+            } catch (InvalidOperationException) {
+                isException = true;
+            } finally {
+                e.Dispose();
+            }
+            Trace.Assert(isException);
+
+            isException = false;
+            e = Db.SQL("select u from user u where useridnr < ? fetch ?", 5, 4).GetEnumerator();
+            e.MoveNext();
+            Trace.Assert(e.Current is User);
+            k = e.GetOffsetKey();
+            e.Dispose();
+            try {
+                e = Db.SQL("select u from user u offsetkey ?", k).GetEnumerator();
+                e.MoveNext();
+                Trace.Assert(e.Current is User);
+            } catch (InvalidOperationException) {
+                isException = true;
+            } finally {
+                e.Dispose();
+            };
+            Trace.Assert(isException);
+
+            isException = false;
+            e = Db.SQL("select u from user u fetch ?", 4).GetEnumerator();
+            while (e.MoveNext())
+                Trace.Assert(e.Current is User);
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            try {
+                e = Db.SQL("select u from user u where useridnr < ? offsetkey ?", 3, k).GetEnumerator();
+                e.MoveNext();
+            } catch (InvalidOperationException) {
+                isException = true;
+            } finally {
+                e.Dispose();
+            }
+            Trace.Assert(isException);
+        }
+
+        static void SimpleTestsAllQueries() {
+            string f = "fetch ?";
+            string o = "offsetkey ?";
+            int n = 4;
+            byte[] k = null;
+            foreach (CallQuery q in queries)
+                Db.Transaction(delegate {
+                    int userIdNr = 0;
+                    using (IRowEnumerator<dynamic> e = q(f, n).GetEnumerator()) {
+                        e.MoveNext();
+                        Trace.Assert(e.Current is User);
+                        Trace.Assert((e.Current as User).UserIdNr == 0);
+                        e.MoveNext();
+                        Trace.Assert(e.Current is User);
+                        userIdNr = (e.Current as User).UserIdNr;
+                        k = e.GetOffsetKey();
+                    }
+                    using (IRowEnumerator<dynamic> e = q(o, k).GetEnumerator()) {
+                        e.MoveNext();
+                        Trace.Assert(e.Current is User);
+                        Trace.Assert((e.Current as User).UserIdNr == userIdNr);
+                    }
+                });
+        }
     }
     /*
-     * I. Queries
+     * I. Queries (index, non-index, codegen)
      * I.1. Simple select
      * I.2. With where clause
      * I.3. With arithmetic expression
@@ -17,7 +156,6 @@ namespace QueryProcessingTest {
      * II. Iterations and offset key fetching
      * II.1. Fetch inside and iterate to the end
      * II.2. Fetch inside and iterate to the middle
-     * II.3. Fetch inside and don't iterate
      * II.4. Fetch to the last
      * II.5. Fetch outside
      * 
