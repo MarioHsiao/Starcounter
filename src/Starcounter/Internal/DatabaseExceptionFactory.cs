@@ -72,6 +72,7 @@ namespace Starcounter.Internal {
                         break;
                     case Error.SCERRASSEMBLYSPECNOTFOUND:
                     case Error.SCERRBACKINGRETREIVALFAILED:
+                    case Error.SCERRBACKINGDBINDEXTYPENOTFOUND:
                         exception = new BackingException(errorCode, message, innerException);
                         break;
                     default:
