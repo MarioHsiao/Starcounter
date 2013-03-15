@@ -21,6 +21,10 @@ QueryString:[The query string (in one single line).]
 VariableValues:[Values for the variables in the query string in the form [type1]:[value1]; [type2]:[value2];]
 CompositeResultObjects:[The value True if the objects in the result set are of type CompositeObject, otherwise the value False.]
 IncludesLiteral:[The value True if the query includes one or more literals, otherwise the value False.]
+DataManipulation:[The value True, if the query is a data manipulation statement (INSERT, UPDATE or DELETE), otherwise the value False.]
+SingleObjectProjection:[The value True if the projection (select-list) only includes one element, otherwise the value False.]
+SingleObjectPathProjection:[The value True if the projection (select-list) only includes one element and that element is a path expression, otherwise the value False.]
+IncludesObjectValue:[The value True, if the query includes an object literal or an object variable, otherwise the value False.]
 ShouldBeReordered:[The value False if the query has an "order by" clause, otherwise the value True.]
 UseBisonParser:[The value True if the query should be optimized on the parsed tree produced by bison-based parser, otherwise the value False.]
 ExpectedExceptionMessage: 
@@ -30,6 +34,11 @@ ExpectedResult:
 [An empty line.]
 
 The command <NEXT> creates a new test query and can not be omitted.
+The attribute SingleObjectProjection is used to determine what output should be written in the result.
+Since the client technology LucentObject only supports queries with SingleObjectProjection (of type Object) 
+that are not SingleObjectPathProjection and that does not IncludesObjectValue (include any Object value), 
+we also need to specify whether a query is SingleObjectPathProjection or not, and whether it IncludesObjectValue or not.
+
 If an attribute is omitted it will be given a default value. The default values are as follows:
 
 Description:[An empty string.]
@@ -37,6 +46,10 @@ QueryString:[An empty string.]
 VariableValues:[An empty string.]
 CompositeResultObjects:True
 IncludesLiteral:False
+DataManipulation:False
+SingleObjectProjection:True
+SingleObjectPathProjection:False
+IncludesObjectValue:False
 ShouldBeReordered:True
 UseBisonParser:False
 ExpectedExceptionMessage:[An empty string.]
