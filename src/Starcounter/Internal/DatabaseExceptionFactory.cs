@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using Starcounter.Hosting;
 
 namespace Starcounter.Internal {
 
@@ -68,6 +69,10 @@ namespace Starcounter.Internal {
                         // an invalid operation exception, but this might be target for
                         // revision.
                         exception = new InvalidOperationException(message, innerException);
+                        break;
+                    case Error.SCERRASSEMBLYSPECNOTFOUND:
+                    case Error.SCERRBACKINGRETREIVALFAILED:
+                        exception = new BackingException(errorCode, message, innerException);
                         break;
                     default:
                         exception = new DbException(errorCode, message, innerException);
