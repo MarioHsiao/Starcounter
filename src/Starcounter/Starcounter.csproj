@@ -94,6 +94,7 @@
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
+    <Compile Include="Hosting\BackingException.cs" />
     <Compile Include="Hosting\DatabaseAttribute.cs" />
     <Compile Include="Internal\bmx.cs" />
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
