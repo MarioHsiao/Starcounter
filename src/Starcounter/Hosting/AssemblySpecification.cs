@@ -8,6 +8,16 @@ using System.Reflection;
 using System.Diagnostics;
 
 namespace Starcounter.Hosting {
+    internal static class __Assert {
+        internal static void OrThrow(bool condition, uint errorCode, string message) {
+#if TRACE
+            if (!condition) {
+                throw ErrorCode.ToException(errorCode, message);
+            }
+#endif
+        }
+    }
+
     /// <summary>
     /// Represents the interface to a assembly specification, as it is
     /// defined <a href="http://www.starcounter.com/internal/wiki/W3">
@@ -16,7 +26,7 @@ namespace Starcounter.Hosting {
     public sealed class AssemblySpecification {
         Type specificationType;
         Type databaseClassIndexType;
-        Type[] databaseClasses;
+        Dictionary<Type, Type> databaseTypeToSpecType;
 
         /// <summary>
         /// Allow instantiation only from factory method.
@@ -24,7 +34,7 @@ namespace Starcounter.Hosting {
         private AssemblySpecification(Type specType, Type dbClassIndexType) {
             this.specificationType = specType;
             databaseClassIndexType = dbClassIndexType;
-            databaseClasses = null;
+            databaseTypeToSpecType = null;
         }
 
         /// <summary>
@@ -91,14 +101,63 @@ namespace Starcounter.Hosting {
         }
 
         /// <summary>
-        /// Gets the database type specifications in the database class
+        /// Gets the database types in the database class index.
+        /// </summary>
+        /// <returns>An array that contains all the types indexed by
+        /// the database class index.
+        /// </returns>
+        public Type[] GetDatabaseClasses() {
+            if (databaseTypeToSpecType == null) {
+                CacheDatabaseClassIndex();
+            }
+            
+            return databaseTypeToSpecType.Keys.ToArray();
+        }
+
+        /// <summary>
+        /// Gets all type specification types in the database class
         /// index.
         /// </summary>
         /// <returns>An array that contains all the types indexed by
         /// the database class index. Each returned type is a type
         /// specification.
         /// </returns>
-        public Type[] GetDatabaseClasses() {
+        public Type[] GetDatabaseTypeSpecifications() {
+            if (databaseTypeToSpecType == null) {
+                CacheDatabaseClassIndex();
+            }
+
+            return databaseTypeToSpecType.Values.ToArray();
+        }
+
+        /// <summary>
+        /// Gets a <see cref="TypeSpecification"/> instance, providing
+        /// access to the recorded metadata of the given database type.
+        /// </summary>
+        /// <param name="databaseClassType">The database type whose
+        /// database specific metadata to provide access to.</param>
+        /// <returns>A <see cref="TypeSpecification"/> that can be used
+        /// to consume database specific metadata about the given type.
+        /// </returns>
+        /// <example>
+        /// var spec = GetSpecificationOf(typeof(Person));
+        /// </example>
+        public TypeSpecification GetSpecificationOf(Type databaseClassType) {
+            Type specType;
+
+            if (databaseClassType == null) {
+                throw new ArgumentNullException("databaseClassType");
+            }
+
+            if (databaseTypeToSpecType == null) {
+                CacheDatabaseClassIndex();
+            }
+
+            specType = databaseTypeToSpecType[databaseClassType];
+            return new TypeSpecification(specType);
+        }
+
+        void CacheDatabaseClassIndex() {
             // The current implementation uses fields in the database index
             // class to index whatever database types is identified in the
             // assembly of the particular database class index. Hence, we just
@@ -106,34 +165,42 @@ namespace Starcounter.Hosting {
             // type.
 
             lock (this) {
-                if (databaseClasses == null) {
-                    var types = new List<Type>();
-                    try {
-                        var fields = databaseClassIndexType.GetFields();
-                        foreach (var field in fields) {
-                            // Let's not use any error code for this, just assert it,
-                            // at least as long as we haven't ruled out that we might
-                            // want to stuff other metadata into the database class
-                            // index.
-                            Trace.Assert(field.FieldType == typeof(Type),
-                                "Fields in the database index should be declared with the System.Type field type."
-                                );
-                            types.Add(field.FieldType);
-                        }
-                    } catch (Exception e) {
-                        var msg = "Failed getting types from database class index. Specification \"{0}\", Database Class Index \"{1}\" Assembly = \"{2}\"";
-                        msg = string.Format(
-                            msg,
-                            specificationType.Name,
-                            databaseClassIndexType.Name,
-                            databaseClassIndexType.Assembly.FullName
+                var types = new List<Type>();
+                try {
+                    var fields = databaseClassIndexType.GetFields();
+                    foreach (var field in fields) {
+                        // Let's not use any error code for this, just assert it,
+                        // at least as long as we haven't ruled out that we might
+                        // want to stuff other metadata into the database class
+                        // index.
+                        __Assert.OrThrow(
+                            field.FieldType == typeof(Type),
+                            Error.SCERRBACKINGRETREIVALFAILED,
+                            "Fields in the database index should be declared with the System.Type field type."
                             );
-                        throw ErrorCode.ToException(Error.SCERRBACKINGRETREIVALFAILED, e, msg);
-                    }
+                        __Assert.OrThrow(
+                            field.FieldType.Name.Equals(TypeSpecification.Name),
+                            Error.SCERRBACKINGRETREIVALFAILED,
+                            string.Format("Fields in the database index must have a System.Type field type, named {0}", TypeSpecification.Name)
+                            );
 
-                    databaseClasses = types.ToArray();
+                        types.Add(field.FieldType);
+                    }
+                } catch (Exception e) {
+                    var msg = "Failed getting types from database class index. Specification \"{0}\", Database Class Index \"{1}\" Assembly = \"{2}\"";
+                    msg = string.Format(
+                        msg,
+                        specificationType.Name,
+                        databaseClassIndexType.Name,
+                        databaseClassIndexType.Assembly.FullName
+                        );
+                    throw ErrorCode.ToException(Error.SCERRBACKINGRETREIVALFAILED, e, msg);
                 }
-                return databaseClasses;
+
+                databaseTypeToSpecType = new Dictionary<Type, Type>(types.Count);
+                foreach (var spec in types) {
+                    databaseTypeToSpecType.Add(spec.DeclaringType, spec);
+                }
             }
         }
     }
