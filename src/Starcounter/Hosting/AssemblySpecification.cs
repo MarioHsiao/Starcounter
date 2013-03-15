@@ -165,7 +165,7 @@ namespace Starcounter.Hosting {
             // type.
 
             lock (this) {
-                var types = new List<Type>();
+                var matchingFields = new List<FieldInfo>();
                 try {
                     var fields = databaseClassIndexType.GetFields();
                     foreach (var field in fields) {
@@ -178,13 +178,19 @@ namespace Starcounter.Hosting {
                             Error.SCERRBACKINGRETREIVALFAILED,
                             "Fields in the database index should be declared with the System.Type field type."
                             );
+                        var referencedSpecification = field.GetValue(null) as Type;
                         __Assert.OrThrow(
-                            field.FieldType.Name.Equals(TypeSpecification.Name),
+                            referencedSpecification != null,
                             Error.SCERRBACKINGRETREIVALFAILED,
-                            string.Format("Fields in the database index must have a System.Type field type, named {0}", TypeSpecification.Name)
+                            string.Format("Fields in the database class index must be assigned, field {0} is not.", field.Name)
+                            );
+                        __Assert.OrThrow(
+                            referencedSpecification.Name.EndsWith(TypeSpecification.Name),
+                            Error.SCERRBACKINGRETREIVALFAILED,
+                            string.Format("Fields must reference a type named *.{0}", TypeSpecification.Name)
                             );
 
-                        types.Add(field.FieldType);
+                        matchingFields.Add(field);
                     }
                 } catch (Exception e) {
                     var msg = "Failed getting types from database class index. Specification \"{0}\", Database Class Index \"{1}\" Assembly = \"{2}\"";
@@ -197,9 +203,10 @@ namespace Starcounter.Hosting {
                     throw ErrorCode.ToException(Error.SCERRBACKINGRETREIVALFAILED, e, msg);
                 }
 
-                databaseTypeToSpecType = new Dictionary<Type, Type>(types.Count);
-                foreach (var spec in types) {
-                    databaseTypeToSpecType.Add(spec.DeclaringType, spec);
+                databaseTypeToSpecType = new Dictionary<Type, Type>(matchingFields.Count);
+                foreach (var spec in matchingFields) {
+                    var specificationType = spec.GetValue(null) as Type;
+                    databaseTypeToSpecType.Add(specificationType.DeclaringType, specificationType);
                 }
             }
         }
