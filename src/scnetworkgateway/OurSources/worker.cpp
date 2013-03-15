@@ -27,6 +27,8 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     // Getting global IOCP.
     //worker_iocp_ = g_gateway.get_iocp();
 
+    worker_suspended_unsafe_ = false;
+
     worker_stats_bytes_received_ = 0;
     worker_stats_bytes_sent_ = 0;
     worker_stats_sent_num_ = 0;

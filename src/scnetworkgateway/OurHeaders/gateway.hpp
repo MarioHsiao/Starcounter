@@ -2261,9 +2261,10 @@ public:
 
     // Write critical into log.
     void LogWriteCritical(const wchar_t* msg);
-
-    // Write error into log.
     void LogWriteError(const wchar_t* msg);
+    void LogWriteWarning(const wchar_t* msg);
+    void LogWriteNotice(const wchar_t* msg);
+    void LogWriteGeneral(const wchar_t* msg, uint32_t log_type);
 
     // Deletes existing session.
     uint32_t KillSession(session_index_type session_index, bool* was_killed)

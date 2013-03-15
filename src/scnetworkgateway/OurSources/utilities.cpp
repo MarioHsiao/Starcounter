@@ -60,8 +60,11 @@ uint32_t PrintLastError()
     char err_display_buf_char[max_err_msg_len];
     wcstombs(err_display_buf_char, err_display_buf, max_err_msg_len);
 
-    // Printing error to log.
+    // Printing error to console/log.
     GW_COUT << err_display_buf_char << GW_ENDL;
+
+    // Printing error to server log.
+    GW_LOG_ERROR << err_display_buf_char << GW_WENDL;
 
     // Free message resources.
     LocalFree(err_buf);
