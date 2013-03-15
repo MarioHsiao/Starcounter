@@ -383,7 +383,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         triedEnumeratorRecreation = true;
 
         // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator))
+        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle))
         {
             // Indicating that enumerator has been created.
             enumeratorCreated = true;
