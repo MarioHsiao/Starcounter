@@ -76,7 +76,13 @@ namespace Starcounter.Hosting {
 
                 return new AssemblySpecification(specType, dbIndexType);
 
+            } catch (BackingException) {
+                throw;
+
             } catch (Exception e) {
+                if (ErrorCode.IsFromErrorCode(e))
+                    throw;
+
                 msg = string.Format("Specification \"{0}\", Assembly = \"{1}\"", specName, assembly.FullName);
                 throw ErrorCode.ToException(Error.SCERRBACKINGRETREIVALFAILED, e, msg);
             }
