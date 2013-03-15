@@ -64,7 +64,7 @@ namespace Starcounter.Hosting {
                     throw ErrorCode.ToException(Error.SCERRASSEMBLYSPECNOTFOUND, msg);
                 }
 
-                var dbIndexType = specType.GetNestedType(indexName);
+                var dbIndexType = specType.GetNestedType(indexName, BindingFlags.NonPublic);
                 if (dbIndexType == null) {
                     msg = string.Format("Index type \"{0}\" not found in assembly specification \"{1}\" of assembly \"{2}.",
                         indexName,
@@ -105,7 +105,15 @@ namespace Starcounter.Hosting {
             try {
                 var fields = databaseClassIndexType.GetFields();
                 foreach (var field in fields) {
-                    Trace.Assert(field.FieldType == typeof(Type));
+                    // Let's not use any error code for this, just assert it,
+                    // at least as long as we haven't ruled out that we might
+                    // want to stuff other metadata into the database class
+                    // index.
+                    Trace.Assert(
+                        field.FieldType == typeof(Type), 
+                        "Fields in the database index should be declared with the System.Type field type."
+                        );
+
                     types.Add(field.FieldType);
                 }
             } catch (Exception e) {
