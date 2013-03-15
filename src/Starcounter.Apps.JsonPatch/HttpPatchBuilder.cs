@@ -48,16 +48,16 @@ namespace Starcounter.Internal.JsonPatch
         {
             String headerStr;
 
-            headerStr = "HTTP/1.1 200 OK\r\nContent-Type: application/json-patch\r\nContent-Length: ";
+            headerStr = "HTTP/1.1 200 OK" + StarcounterConstants.NetworkConstants.CRLF + "Content-Type: application/json-patch" + StarcounterConstants.NetworkConstants.CRLF + "Content-Length: ";
             OK200_WITH_JSON_PATCH = Encoding.UTF8.GetBytes(headerStr);
 
-            headerStr = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\nContent-Length: ";
+            headerStr = "HTTP/1.1 400 Bad Request" + StarcounterConstants.NetworkConstants.CRLF + "Content-Type: text/plain" + StarcounterConstants.NetworkConstants.CRLF + "Content-Length: ";
             ERROR400_WITH_CONTENT = Encoding.UTF8.GetBytes(headerStr);
 
-            headerStr = "HTTP/1.1 415 Unsupported Media Type\r\nContent-Type: text/plain\r\nContent-Length: ";
+            headerStr = "HTTP/1.1 415 Unsupported Media Type" + StarcounterConstants.NetworkConstants.CRLF + "Content-Type: text/plain" + StarcounterConstants.NetworkConstants.CRLF + "Content-Length: ";
             ERROR415_WITH_CONTENT = Encoding.UTF8.GetBytes(headerStr);
 
-            headerStr = "\r\n\r\n";
+            headerStr = StarcounterConstants.NetworkConstants.CRLFCRLF;
             HTTP_HEADER_TERMINATOR = Encoding.UTF8.GetBytes(headerStr);
         }
 

@@ -307,7 +307,7 @@ namespace Starcounter
             {
                 UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, port_outer_handler_, &handler_id);
                 if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode);
+                    throw ErrorCode.ToException(errorCode, "Port number: " + port);
 
                 port_handlers_[handler_id] = portCallback;
                 handlerId = handler_id;
@@ -321,7 +321,7 @@ namespace Starcounter
             {
                 UInt32 errorCode = bmx.sc_bmx_unregister_port(port);
                 if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode);
+                    throw ErrorCode.ToException(errorCode, "Port number: " + port);
             }
 		}
 
@@ -346,7 +346,7 @@ namespace Starcounter
             {
                 UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, subport, subport_outer_handler_, &handler_id);
                 if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode);
+                    throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
 
                 subport_handlers_[handler_id] = subportCallback;
                 handlerId = handler_id;
@@ -362,7 +362,7 @@ namespace Starcounter
             {
                 UInt32 errorCode = bmx.sc_bmx_unregister_subport(port, subport);
                 if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode);
+                    throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
             }
         }
 
@@ -404,7 +404,7 @@ namespace Starcounter
                             &handler_id);
 
                         if (errorCode != 0)
-                            throw ErrorCode.ToException(errorCode);
+                            throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
                     }
                 }
 
@@ -422,7 +422,7 @@ namespace Starcounter
             {
                 UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
                 if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode);
+                    throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
             }
         }
 	}

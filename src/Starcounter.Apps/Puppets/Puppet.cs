@@ -84,10 +84,17 @@ namespace Starcounter {
         public string View { get; set; }
 
 
+        private int vmId;
         /// <summary>
         /// Returns the id of this app or -1 if not used.
         /// </summary>
-        internal int ViewModelId { get; set; }
+        internal int ViewModelId {
+            get { return vmId; }
+            set {
+                vmId = value;
+                __Location = "/__" + Db.Environment.DatabaseName.ToLower() + '/' + vmId;
+            }
+        }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="Puppet" />.
@@ -106,6 +113,10 @@ namespace Starcounter {
             ChangeLog.UpdateValue(this, property);
         }
 
+        // TODO:
+        // Remove
+        internal string __Location { get; private set; }
+
         /// <summary>
         /// 
         /// </summary>
@@ -119,8 +130,13 @@ namespace Starcounter {
             if (ViewModelId != -1) {
                 if (addComma)
                     sb.Append(',');
-                sb.Append("\"View-Model\":");
-                sb.Append(ViewModelId);
+
+                sb.Append("\"__Location\":\"");
+                sb.Append(__Location);
+                sb.Append('"');
+               
+                //sb.Append("\"View-Model\":");
+                //sb.Append(ViewModelId);
                 t++;
                 addComma = true;
             }

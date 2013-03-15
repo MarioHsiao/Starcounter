@@ -366,6 +366,57 @@
     <code hex="0031" severity="Error" name="ScErrOpenActiveDbUpdatedEv">
       <message>Failed to open the active databases updated event.</message>
     </code>
+    <code hex="0032" severity="Error" name="ScErrIPCMonitorEraseDatabaseName">
+      <message>The IPC monitor failed to erase a database name.</message>
+    </code>
+    <code hex="0033" severity="Error" name="ScErrBoostInterprocessException">
+      <message>The IPC monitor trying to open segment boost::interprocess::interprocess_exception caught.</message>
+    </code>
+    <code hex="0034" severity="Error" name="ScErrTryOpenSegmentUnknownExcept">
+      <message>The IPC monitor trying to open segment unknown exception caught.</message>
+    </code>
+    <code hex="0035" severity="Error" name="ScErrGotClientProcessTypeNotDb">
+      <message>The IPC monitor expected database process but got client process type.</message>
+    </code>
+    <code hex="0036" severity="Error" name="ScErrGotUnknownProcessTypeNotDb">
+      <message>The IPC monitor expected database process but got unknown process type.</message>
+    </code>
+    <code hex="0037" severity="Error" name="ScErrOpenProcessFailedRegDbProc">
+      <message>The IPC monitor is trying to register a database process but OpenProcess() failed.</message>
+    </code>
+    <code hex="0038" severity="Error" name="ScErrIPCMonInsertDbNameActiveDbR">
+      <message>The IPC monitor failed to insert database name into active databases register.</message>
+    </code>
+    <code hex="0039" severity="Error" name="ScErrIPCMonitorInsertSegmentName">
+      <message>The IPC monitor failed to insert segment name into the monitor interface.</message>
+    </code>
+    <code hex="003A" severity="Error" name="ScErrIPCMonFailedNotifyScheduler">
+      <message>The IPC monitor failed to notify the scheduler on the given channel.</message>
+    </code>
+    <code hex="003B" severity="Error" name="ScErrOpenDbShmSegToNotifyClients">
+      <message>The IPC monitor failed to open the database shared memory segment and is unable to notify the clients.</message>
+    </code>
+    <code hex="003C" severity="Error" name="ScErrIPCMonOpenDbShmSegUnknownEx">
+      <message>The IPC monitor caught an unknown exception while trying to open database IPC shared memory segments.</message>
+    </code>
+    <code hex="003D" severity="Error" name="ScErrIPCMonUnknownProessTypeExit">
+      <message>The IPC monitor got an unknown proess type exit.</message>
+    </code>
+    <code hex="003E" severity="Error" name="ScErrOpenProcessFailedRegCliProc">
+      <message>The IPC monitor is trying to register a client process but OpenProcess() failed.</message>
+    </code>
+    <code hex="003F" severity="Error" name="ScErrTheOwnerIDMatchButNotThePID">
+      <message>The IPC monitor unregistration failed. The owner ID matches but not the PID.</message>
+    </code>
+    <code hex="0040" severity="Error" name="ScErrThePIDMatchButNotTheOwnerID">
+      <message>The IPC monitor unregistration failed. The PID matches but not the owner ID.</message>
+    </code>
+    <code hex="0041" severity="Error" name="ScErrCleanupToOpenTheDBIPCShmSeg">
+      <message>The IPC monitor cleanup failed. Could not open the IPC database shared memory segment.</message>
+    </code>
+    <code hex="0042" severity="Error" name="ScErrIPCMonitorCleanupWaitFailed">
+      <message>The IPC monitor was not notified. Wait failed.</message>
+    </code>
   </facility>
 
   <!--

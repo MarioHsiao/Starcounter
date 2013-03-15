@@ -49,11 +49,35 @@ std::string GetOperTypeString(SocketOperType typeOfOper)
 }
 
 // Writing to log once object is destroyed.
+ThreadSafeWCout::~ThreadSafeWCout()
+{
+    switch (t_)
+    {
+        case GW_LOGGING_ERROR_TYPE:
+            g_gateway.LogWriteError(ss_.str().c_str());
+            break;
+
+        case GW_LOGGING_WARNING_TYPE:
+            g_gateway.LogWriteWarning(ss_.str().c_str());
+            break;
+
+        case GW_LOGGING_NOTICE_TYPE:
+            g_gateway.LogWriteNotice(ss_.str().c_str());
+            break;
+
+        case GW_LOGGING_CRITICAL_TYPE:
+            g_gateway.LogWriteCritical(ss_.str().c_str());
+            break;
+    }
+    
+}
+
+// Writing to log once object is destroyed.
 ThreadSafeCout::~ThreadSafeCout()
 {
 #ifdef GW_LOGGING_ON
 
-    std::string str = ss.str();
+    std::string str = ss_.str();
     g_gateway.get_gw_log_writer()->WriteToLog(str.c_str(), str.length());
 
 #endif
@@ -887,8 +911,9 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     // Binding socket to certain interface and port.
     if (bind(sock, (SOCKADDR*) &binding_addr, sizeof(binding_addr)))
     {
-        GW_COUT << "Failed to bind server port " << port_num << GW_ENDL;
-        return PrintLastError();
+        uint32_t last_error = PrintLastError();
+        GW_LOG_ERROR << L"Failed to bind server port: " << port_num << L". Please check that port is not occupied by any software." << GW_WENDL;
+        return last_error;
     }
 
     // Listening to connections.
@@ -2286,7 +2311,12 @@ uint32_t Gateway::GatewayMonitor()
         {
             if (!WaitForSingleObject(worker_thread_handles_[i], 0))
             {
+                // Stating explicitly that this worker is dead.
+                gw_workers_[i].set_worker_suspended(true);
+
+                // Printing diagnostics.
                 GW_COUT << "Worker " << i << " is dead." << GW_ENDL;
+
                 return SCERRGWWORKERISDEAD;
             }
         }
@@ -3012,22 +3042,29 @@ void Gateway::CloseStarcounterLog()
     GW_ASSERT(0 == err_code);
 }
 
-// Write critical into log.
 void Gateway::LogWriteCritical(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
-
-    GW_ASSERT(0 == err_code);
-
-    err_code = sccorelog_flush_to_logs(sc_log_handle_);
-
-    GW_ASSERT(0 == err_code);
+    LogWriteGeneral(msg, SC_ENTRY_CRITICAL);
 }
 
-// Write error into log.
 void Gateway::LogWriteError(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_ERROR, 0, msg);
+    LogWriteGeneral(msg, SC_ENTRY_ERROR);
+}
+
+void Gateway::LogWriteWarning(const wchar_t* msg)
+{
+    LogWriteGeneral(msg, SC_ENTRY_WARNING);
+}
+
+void Gateway::LogWriteNotice(const wchar_t* msg)
+{
+    LogWriteGeneral(msg, SC_ENTRY_NOTICE);
+}
+
+void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
+{
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, log_type, 0, msg);
 
     GW_ASSERT(0 == err_code);
 

@@ -27,6 +27,8 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     // Getting global IOCP.
     //worker_iocp_ = g_gateway.get_iocp();
 
+    worker_suspended_unsafe_ = false;
+
     worker_stats_bytes_received_ = 0;
     worker_stats_bytes_sent_ = 0;
     worker_stats_sent_num_ = 0;
@@ -1556,6 +1558,9 @@ uint32_t GatewayWorker::CloneChunkForNewDatabase(SocketDataChunkRef old_sd, int3
 
     // Attaching to new database.
     (*new_sd)->AttachToDatabase(new_db_index);
+
+    // Changing new chunk index.
+    (*new_sd)->set_chunk_index(new_chunk_index);
 
     // Returning old chunk to its pool.
     // TODO: Or disconnect?

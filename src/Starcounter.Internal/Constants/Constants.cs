@@ -17,6 +17,22 @@ namespace Starcounter.Internal
         public const string DefaultDatabaseName = "Default";
 
         /// <summary>
+        /// Network related constants.
+        /// </summary>
+        public static class NetworkConstants
+        {
+            /// <summary>
+            /// End of line for HTTP.
+            /// </summary>
+            public const string CRLF = "\r\n";
+
+            /// <summary>
+            /// Double end of line for HTTP.
+            /// </summary>
+            public const string CRLFCRLF = CRLF + CRLF;
+        }
+
+        /// <summary>
         /// Defines the program names.
         /// </summary>
         public static class ProgramNames
@@ -67,6 +83,11 @@ namespace Starcounter.Internal
         /// </summary>
         public class NetworkPorts
         {
+            /// <summary>
+            /// Default value for the port that is not specified by user.
+            /// </summary>
+            public const UInt16 DefaultUnspecifiedPort = 0;
+
             /// <summary>
             /// Default user port for Personal server.
             /// </summary>
