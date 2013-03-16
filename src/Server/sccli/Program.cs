@@ -125,7 +125,7 @@ namespace star {
             try {
                 appArgs = parser.Parse(syntax);
             } catch (InvalidCommandLineException e) {
-                ConsoleUtil.ToConsoleWithColor(e.ToString(), ConsoleColor.Red);
+                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
                 Environment.ExitCode = (int)e.ErrorCode;
                 return;
             }
