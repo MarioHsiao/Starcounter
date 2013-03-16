@@ -30,7 +30,7 @@ namespace star {
             public const string Serverport = "serverport";
             public const string Server = "server";
             public const string ServerHost = "serverhost";
-            public const string Db = "db";
+            public const string Db = "database";
             public const string LogSteps = "logsteps";
             public const string NoDb = "nodb";
             public const string NoAutoCreateDb = "noautocreate";
