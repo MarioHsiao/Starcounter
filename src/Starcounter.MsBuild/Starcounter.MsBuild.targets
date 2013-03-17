@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <AvailableItemName Include="Puppet"/>
-    <AvailableItemName Include="Typed Json"/>
+    <AvailableItemName Include="Typed_JSON"/>
   </ItemGroup>
      
   <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
@@ -23,14 +23,14 @@
 
  <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
 
-  <Target Name="GenerateTypedJsonCode" Inputs="@(TypedJson)" Outputs="@(TypedJson->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToTypedJsonCsMsBuildTask
-       InputFiles="@(TypedJson)"
-       OutputFiles="@(TypedJson->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="typedJsonFiles" /> 
-    </JsonToTypedJsonCsMsBuildTask>
+  <Target Name="GenerateTyped_JSONCode" Inputs="@(Typed_JSON)" Outputs="@(Typed_JSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToTyped_JSONCsMsBuildTask
+       InputFiles="@(Typed_JSON)"
+       OutputFiles="@(Typed_JSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="Typed_JSONFiles" /> 
+    </JsonToTyped_JSONCsMsBuildTask>
 	<ItemGroup>
-      <Compile Include="@(typedJsonFiles)" />
+      <Compile Include="@(Typed_JSONFiles)" />
     </ItemGroup>
   </Target>
 
