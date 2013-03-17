@@ -24,11 +24,11 @@
  <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
 
   <Target Name="GenerateTyped_JSONCode" Inputs="@(Typed_JSON)" Outputs="@(Typed_JSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToTyped_JSONCsMsBuildTask
+    <JsonToTypedJsonCsMsBuildTask
        InputFiles="@(Typed_JSON)"
        OutputFiles="@(Typed_JSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
        <Output TaskParameter="OutputFiles" ItemName="Typed_JSONFiles" /> 
-    </JsonToTyped_JSONCsMsBuildTask>
+    </JsonToTypedJsonCsMsBuildTask>
 	<ItemGroup>
       <Compile Include="@(Typed_JSONFiles)" />
     </ItemGroup>
