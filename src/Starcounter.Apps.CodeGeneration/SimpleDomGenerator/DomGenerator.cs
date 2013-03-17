@@ -226,7 +226,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 Parent = acn,
                 IsStatic = true,
                 _Inherits = null,
-                _ClassName = "Json"
+                _ClassName = "json"
             };
             GenerateJsonAttributes(acn, json);
 
@@ -376,7 +376,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
             appTemplate = rootTemplate;
             mapParts = jsonMapName.Split('.');
 
-            // We skip the two first parts since the first one will always be "Json" 
+            // We skip the two first parts since the first one will always be "json" 
             // and the second the rootTemplate.
             for (Int32 i = 1; i < mapParts.Length; i++)
             {
