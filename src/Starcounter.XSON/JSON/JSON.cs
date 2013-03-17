@@ -31,7 +31,7 @@ namespace Starcounter {
     /// in a request.
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class Message<T> : Obj<T> where T : IBindable {
+    public class Json<T> : Obj<T> where T : IBindable {
 
         /// <summary>
         /// As messages are not kept at the server, it does not make sense to interact with
@@ -51,8 +51,8 @@ namespace Starcounter {
         /// <param name="property">The property.</param>
         /// <returns>Action.</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Message Get(TMessage property) {
-            return Get<Message>(property);
+        public Json Get(TJson property) {
+            return Get<Json>(property);
         }
 
         /// <summary>
@@ -61,15 +61,15 @@ namespace Starcounter {
         /// <param name="property">The property.</param>
         /// <param name="value">The value.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Set(TMessage property, Message value) {
+        public void Set(TJson property, Json value) {
             Set((TObj)property, value);
         }
     }
 
     /// <summary>
-    /// <see cref="Message"/>
+    /// <see cref="Json"/>
     /// </summary>
-    public class Message : Message<NullData> {
+    public class Json : Json<NullData> {
     }
 
     /// <summary>

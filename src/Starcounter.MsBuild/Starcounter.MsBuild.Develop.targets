@@ -1,10 +1,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);GeneratePuppetCode;GenerateMessageCode</CoreCompileDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GeneratePuppetCode;GenerateTypedJsonCode</CoreCompileDependsOn>
   </PropertyGroup>
   <ItemGroup>
     <AvailableItemName Include="Puppet"/>
-    <AvailableItemName Include="Message"/>
+    <AvailableItemName Include="Typed Json"/>
   </ItemGroup>
      
   <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
@@ -22,16 +22,16 @@
     </ItemGroup>
   </Target>
 
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToMessageCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
+ <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
 
-  <Target Name="GenerateMessageCode" Inputs="@(Message)" Outputs="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToMessageCsMsBuildTaskNoLocking
-       InputFiles="@(Message)"
-       OutputFiles="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="messageFiles" /> 
-    </JsonToMessageCsMsBuildTaskNoLocking>
+  <Target Name="GenerateTypedJsonCode" Inputs="@(TypedJson)" Outputs="@(TypedJson->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToTypedJsonCsMsBuildTaskNoLocking
+       InputFiles="@(TypedJson)"
+       OutputFiles="@(TypedJson->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="typedJsonFiles" /> 
+    </JsonToTypedJsonCsMsBuildTaskNoLocking>
 	<ItemGroup>
-      <Compile Include="@(messageFiles)" />
+      <Compile Include="@(typedJsonFiles)" />
     </ItemGroup>
   </Target>
   
