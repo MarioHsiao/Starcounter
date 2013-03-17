@@ -188,7 +188,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 Parent = acn,
                 NValueClass = acn,
                 Template = at,
-                _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TMessage",
+                _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TJson",
                 AutoBindProperties = metadata.AutoBindToDataObject
             };
             var mcn = new NObjMetadata( this )
@@ -526,14 +526,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 acn = racn = new NAppClass(this)
                 {
                     Parent = appClassParent,
-                    _Inherits = DefaultObjTemplate.InstanceType.Name // "Puppet", "Message"
+                    _Inherits = DefaultObjTemplate.InstanceType.Name // "Puppet", "Json"
                 };
                 tcn = new NTAppClass(this)
                 {
                     Parent = racn,
                     Template = at,
                     NValueClass = racn,
-                    _Inherits = DefaultObjTemplate.GetType().Name // "TPuppet", "TMessage"
+                    _Inherits = DefaultObjTemplate.GetType().Name // "TPuppet", "TJson"
                 };
                 mcn = new NObjMetadata(this)
                 {

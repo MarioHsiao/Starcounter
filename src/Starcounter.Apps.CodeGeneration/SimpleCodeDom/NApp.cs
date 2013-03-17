@@ -67,7 +67,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 if (Template.ClassName != null)
                     return Template.ClassName;
                 else if (!IsCustomGeneratedClass) {
-                    return this.Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Message"
+                    return this.Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Json"
                 } else if (Template.Parent is TObjArr) {
                     var alt = (TObjArr)Template.Parent;
                     return AppifyName(alt.PropertyName); // +"App";
@@ -108,7 +108,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
         /// <summary>
         /// Returns false if there are no children defined. This indicates that the property
-        /// that uses this node as a type should instead use the default Obj class (Message,Puppet) inside
+        /// that uses this node as a type should instead use the default Obj class (Json,Puppet) inside
         /// the Starcounter library. This is done by the NApp node pretending to be the App class
         /// node to make DOM generation easier (this cheating is intentional).
         /// </summary>

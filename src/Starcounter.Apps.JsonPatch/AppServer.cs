@@ -100,8 +100,8 @@ namespace Starcounter.Internal.Web {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8ContentWithLocation(app.ToJsonUtf8(), app.__Location)
                         };
                     }
-                    else if (x is Message) {
-                        var msgxxx = x as Message;
+                    else if (x is Json) {
+                        var msgxxx = x as Json;
                         response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
                         };
