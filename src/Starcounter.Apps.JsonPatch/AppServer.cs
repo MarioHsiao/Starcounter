@@ -105,8 +105,8 @@ namespace Starcounter.Internal.Web {
                         response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
                         };
-                    } else if (x is Json) {
-                        var dynJson = (Json)x;
+                    } else if (x is DynamicJson) {
+                        var dynJson = (DynamicJson)x;
                         response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
                         };
