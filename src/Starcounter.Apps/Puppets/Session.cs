@@ -25,7 +25,7 @@ namespace Starcounter.Apps {
         private Puppet[] rootApps;
         private VMID nextVMId;
         private bool isInUse;
-        internal ChangeLog changeLog;
+        internal PuppetChangeLog ChangeLog;
 
         /// <summary>
         /// Returns the current active session.
@@ -37,7 +37,7 @@ namespace Starcounter.Apps {
         /// Initializes a new instance of the <see cref="Session" /> class.
         /// </summary>
         internal Session() {
-            changeLog = new ChangeLog();
+            ChangeLog = new PuppetChangeLog();
             rootApps = new Puppet[16]; // TODO: Configurable.
 
             nextVMId.Index = 0;
@@ -69,9 +69,12 @@ namespace Starcounter.Apps {
             VMID vmId = id;
 
             if (vmId.Index < 0 || vmId.Index >= rootApps.Length)
-                throw new ArgumentOutOfRangeException("vmID");
+                throw new ArgumentOutOfRangeException("id");
 
             rootApp = rootApps[vmId.Index];
+            if (rootApp == null) 
+                return null;
+
             existingId = rootApp.ViewModelId;
 
             if (vmId.Count != existingId.Count)
@@ -87,28 +90,31 @@ namespace Starcounter.Apps {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="request"></param>
-        internal void Start(HttpRequest request) {
+        /// <param name="session"></param>
+        internal static void Start(Session session) {
             Debug.Assert(current == null);
-            Session.current = this;
+            Session.current = session;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        internal void End() {
-            this.changeLog.Clear();
-            Session.current = null;
+        internal static void End() {
+            var s = Current;
+            if (s != null) {
+                s.ChangeLog.Clear();
+                Session.current = null;
+            }
         }
 
         /// <summary>
-        /// Executes the specified request.
+        /// Executes the specified action inside the Session
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="action">The action.</param>
-        internal void Execute(HttpRequest request, Action action) {
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        internal static void Execute(Session session, Action action) {
             try {
-                Start(request);
+                Session.Start(session);
                 action();
             } finally {
                 End();
@@ -145,7 +151,7 @@ namespace Starcounter.Apps {
                 DisposeAppRecursively(rootApps[i]);
             }
             rootApps = null;
-            changeLog = null;
+            ChangeLog = null;
         }
 
         private void DisposeAppRecursively(Obj obj) {
