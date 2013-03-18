@@ -160,7 +160,7 @@ static void processCASbits(int cas_bits, YYLTYPE location, const char *constrTyp
 %name-prefix="base_yy"
 %locations
 //%debug
-%verbose
+//%verbose
 
 %parse-param {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
@@ -648,7 +648,11 @@ stmt :
 			| VariableShowStmt
 			| ViewStmt
 			| /*EMPTY*/
-				{ $$ = NULL; }
+				{ 
+					errprint("\nERROR INCORRECT SYNTAX: query string cannot be empty");
+					ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, 0, NULL, ScErrMessage("Query string must contain a valid statement."));
+					$$ = NULL; 
+				}
 		;
 
 /*****************************************************************************

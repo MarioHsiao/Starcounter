@@ -5,13 +5,13 @@ namespace $safeprojectname$ {
         static void Main() {
             Db.Transaction( () => {
                 var albert = new Person() { FirstName="Albert", LastName="Einstein" };
-                new Quote() { Person=albert, Quote="Make things as simple as possible, but not simpler" };
+                new Quote() { Person=albert, Text="Make things as simple as possible, but not simpler" };
             });
  
             Handle.GET("/hello/{?}", (string firstName) => {
                 Quote q = Db.SQL("SELECT Q FROM Quote Q WHERE Person.FirstName=?", firstName ).First;
                 return "<!DOCTYPE html><title>My first app</title>" + q.Person.FirstName + " " + 
-                        q.Person.LastName + " says: " + q.Quote;
+                        q.Person.LastName + " says: " + q.Text;
             });
         }
     }
@@ -25,6 +25,6 @@ namespace $safeprojectname$ {
     [Database]
     public class Quote {
         public Person Person;
-        public string Quote;
+        public string Text;
     }
 }

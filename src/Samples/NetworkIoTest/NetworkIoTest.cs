@@ -828,7 +828,7 @@ namespace NetworkIoTestApp
         {
             someNode.GET("/testrest", null, httpRequest, (HttpResponse resp) => {
                 if (resp["Content-Type"] == "text/html; charset=UTF-8") {
-                    dynamic jsonData = Json.Parse(resp.GetContentStringUtf8_Slow());
+                    dynamic jsonData = DynamicJson.Parse(resp.GetContentStringUtf8_Slow());
                     string htmlFileName = jsonData.FirstName;
                     return htmlFileName;
                 } else {

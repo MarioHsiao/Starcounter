@@ -359,7 +359,7 @@ namespace Starcounter.Internal.Web
     /// An uncompressed representation of a response message, with headers properly 
     /// specifying the metadata of the enclosed content.
     /// </returns>
-    public static byte[] FromJsonUTF8ContentWithLocation(byte[] contentBytes, string location)
+    public static byte[] Create201Response(byte[] contentBytes, string location)
     {
         var headers = "HTTP/1.1 201 Created" + CRLF + "Server: SC" + CRLF + "Connection: close" + CRLF;
         headers += "Content-Length: " + contentBytes.Length + CRLF

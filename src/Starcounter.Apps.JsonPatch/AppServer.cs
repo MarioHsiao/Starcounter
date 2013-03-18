@@ -5,7 +5,6 @@
 // ***********************************************************************
 
 using System;
-using System.Diagnostics;
 using System.Text;
 using HttpStructs;
 using Starcounter.Apps;
@@ -13,6 +12,7 @@ using Starcounter.Internal.REST;
 using Starcounter.Advanced;
 using System.Net;
 using Codeplex.Data;
+using Starcounter.Internal.JsonPatch;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -31,7 +31,7 @@ namespace Starcounter.Internal.Web {
         /// If the URI does not point to a App view model or a user implemented
         /// handler, this is where the request will go.
         /// </summary>
-        public StaticWebServer StaticFileServer;
+        private StaticWebServer StaticFileServer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpAppServer" /> class.
@@ -47,66 +47,47 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">Incomming HTTP request.</param>
         /// <param name="x">Result of calling user delegate.</param>
         /// <returns>HttpResponse instance.</returns>
-        public HttpResponse HandleResponse(HttpRequest request, Object x)
-        {
-            HttpResponse response = null;
-            Session session;
+        public HttpResponse HandleResponse(HttpRequest request, Object x) {
             uint errorCode;
+            HttpResponse response = null;
             string responseReasonPhrase;
+            Session session = null;
 
-            try
-            {
-                if (x != null)
-                {
-                    if (x is Puppet)
-                    {
-                        var app = (Puppet)x;
+            try {
+                if (x != null) {
+                    if (x is Puppet) {
+                        // A Puppet as a response could either be a new Puppet in which case we
+                        // send a 201 Created response with the Puppet as Json-content, or if it
+                        // is already created (and cached in the session-state) we send JsonPatch.
+                        var puppet = (Puppet)x;
+                        if (puppet.IsSentExternally) {
+                            response = new HttpResponse() {
+                                Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current.ChangeLog)
+                            };
+                        } else {
+                            session = Session.Current;
+                            if (session == null) {
+                                session = new Session();
+                                errorCode = request.GenerateNewSession(session);
+                                if (errorCode != 0)
+                                    throw ErrorCode.ToException(errorCode);
+                                Session.Start(session);
+                            }
 
-                        // TODO:
-                        // How do we create new sessions and what is allowed here...
-                        // Should the users themselves create the session?
-                        session = Session.Current;
-                        if (session == null)
-                        {
-                            session = new Session();
-                            errorCode = request.GenerateNewSession(session);
-                            if (errorCode != 0)
-                                ErrorCode.ToException(errorCode);
-                            session.Start(request);
+                            request.Debug(" (new view model)");
+                            session.AttachRootApp(puppet);
+                            puppet.IsSentExternally = true;
+                            response = new HttpResponse() {
+                                Uncompressed = HttpResponseBuilder.Create201Response(puppet.ToJsonUtf8(), puppet.__Location)
+                            };
                         }
-
-                        request.Debug(" (new view model)");
-                        session.AttachRootApp(app);
-//                        request.IsAppView = true;
-//                        request.ViewModel = app.ToJsonUtf8();
-//                        request.NeedsScriptInjection = true;
-                        //                          request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
-                        //                                                          // cached (and gziped) content, but not a complete cached
-                        //                                                          // response.
-
-//                        var view = (string)app.View;
-                        //if (view == null)
-                        //{
-                        //    view = app.Template.ClassName + ".html";
-                        //}
-                        //view = "/" + view;
-                        //request.GzipAdvisable = false;
-                        //response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
-                        app.IsSentExternally = true;
-
-                        // TODO: 
-                        // Location
-                        response = new HttpResponse() {
-                            Uncompressed = HttpResponseBuilder.FromJsonUTF8ContentWithLocation(app.ToJsonUtf8(), app.__Location)
-                        };
-                    }
-                    else if (x is Message) {
-                        var msgxxx = x as Message;
+                    } else if (x is Json) {
+                        var msgxxx = x as Json;
                         response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
                         };
-                    } else if (x is Json) {
-                        var dynJson = (Json)x;
+                    } else if (x is DynamicJson) {
+                        var dynJson = (DynamicJson)x;
                         response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
                         };
@@ -138,6 +119,7 @@ namespace Starcounter.Internal.Web {
                         throw new NotImplementedException();
                     }
                 }
+
                 if (response == null)
                     response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
 
@@ -154,8 +136,7 @@ namespace Starcounter.Internal.Web {
                 }
 
                 return response;
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             }
@@ -170,16 +151,12 @@ namespace Starcounter.Internal.Web {
         /// <exception cref="System.NotImplementedException"></exception>
         public override HttpResponse Handle(HttpRequest request) {
             object x;
-            Session session = null;
-
-            // Checking if we are in session already.
-            if (request.HasSession) {
-                session = (Session)request.AppsSessionInterface;
-                if (session != null)
-                    session.Start(request);
-            }
 
             try {
+                // Checking if we are in session already.
+                if (request.HasSession) {
+                    Session.Start((Session)request.AppsSessionInterface);
+                }
                 // Invoking original user delegate with parameters here.
 #if GW_URI_MATCHING_CODEGEN
                 UserHandlerCodegen.HandlersManager.RunDelegate(request, out x);
@@ -192,11 +169,7 @@ namespace Starcounter.Internal.Web {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             } finally {
-                session = Session.Current;
-                if (session != null) {
-                    session.End();
-                    session = null;
-                }
+                Session.End();
             }
         }
 
@@ -227,24 +200,22 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="ex">The ex.</param>
         /// <returns>String.</returns>
-		private String GetExceptionString(Exception ex)
-		{
-			Exception inner;
-			StringBuilder sb = new StringBuilder();
+        private String GetExceptionString(Exception ex) {
+            Exception inner;
+            StringBuilder sb = new StringBuilder();
 
-			sb.AppendLine(ex.Message);
-			sb.AppendLine(ex.StackTrace);
+            sb.AppendLine(ex.Message);
+            sb.AppendLine(ex.StackTrace);
 
-			inner = ex.InnerException;
-			while (inner != null)
-			{
-				sb.Append("-->");
-				sb.AppendLine(inner.Message);
-				sb.AppendLine(inner.StackTrace);
-				inner = inner.InnerException;
-			}
-			return sb.ToString();
-		}
+            inner = ex.InnerException;
+            while (inner != null) {
+                sb.Append("-->");
+                sb.AppendLine(inner.Message);
+                sb.AppendLine(inner.StackTrace);
+                inner = inner.InnerException;
+            }
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Sent from the Node when the user runs a module (an .EXE).
@@ -262,7 +233,7 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <returns>System.Int32.</returns>
         public override int Housekeep() {
-           return StaticFileServer.Housekeep();
+            return StaticFileServer.Housekeep();
         }
     }
 

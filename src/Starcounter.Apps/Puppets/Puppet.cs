@@ -110,7 +110,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property that changed</param>
         protected override void HasChanged(TValue property) {
-            ChangeLog.UpdateValue(this, property);
+            PuppetChangeLog.UpdateValue(this, property);
         }
 
         // TODO:
@@ -203,7 +203,7 @@ namespace Starcounter {
         /// <param name="property">The array property of this Puppet</param>
         /// <param name="elementIndex">The added element index</param>
         public override void HasAddedElement(TObjArr property, int elementIndex) {
-            ChangeLog.AddItemInList(this, (TObjArr)property, elementIndex);
+            PuppetChangeLog.AddItemInList(this, (TObjArr)property, elementIndex);
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="elementIndex"></param>
         public override void HasRemovedElement(TObjArr property, int elementIndex) {
-            ChangeLog.RemoveItemInList(this, property, elementIndex );
+            PuppetChangeLog.RemoveItemInList(this, property, elementIndex );
         }
 
 

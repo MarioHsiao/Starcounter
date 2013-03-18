@@ -16,7 +16,7 @@ namespace Starcounter.Templates {
     /// By creating a tree of TObj, TValue and TArr objects (and their derived classes), you
     /// create a schema to which each instance object (Obj) belongs.
     /// </remarks>
-    public class TMessage : TObj {
+    public class TJson : TObj {
 
         /// <summary>
         /// Creates a new Message using the schema defined by this template
@@ -25,12 +25,12 @@ namespace Starcounter.Templates {
         /// <returns>The new message</returns>
         public override object CreateInstance(Container parent) {
             if (_AppType != null) {
-                var msg = (Message)Activator.CreateInstance(_AppType);
+                var msg = (Json)Activator.CreateInstance(_AppType);
                 msg.Template = this;
                 msg.Parent = parent;
                 return msg;
             }
-            return new Message() { Template = this, Parent = parent };
+            return new Json() { Template = this, Parent = parent };
         }
 
 
@@ -41,7 +41,7 @@ namespace Starcounter.Templates {
         public override Type InstanceType {
             get {
                 if (_AppType == null) {
-                    return typeof(Message);
+                    return typeof(Json);
                 }
                 return _AppType;
             }
