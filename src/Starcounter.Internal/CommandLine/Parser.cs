@@ -261,11 +261,16 @@ namespace Starcounter.CommandLine
             } else if (delimiterIndex == (value.Length - 1)) {
                 // The delimiter was the last character, like:
                 // --foo=
-                // We allow such syntax to be used to set properties
-                // to an empty string, i.e. string.Empty.
+                // We don't allow this.
 
-                optionName = value.Substring(0, value.Length - 1);
-                optionValue = string.Empty;
+                optionName = null;
+                optionValue = null;
+                RaiseSyntaxErrorException(
+                    Error.SCERRBADCOMMANDLINEFORMAT, 
+                    argumentIndex,
+                    "Option with no value: {0}",
+                    value
+                    );
 
             } else {
                 // It's a key/value pair, i.e. "key=value". We just

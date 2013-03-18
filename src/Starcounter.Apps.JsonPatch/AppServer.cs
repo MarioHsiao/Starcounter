@@ -100,13 +100,13 @@ namespace Starcounter.Internal.Web {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8ContentWithLocation(app.ToJsonUtf8(), app.__Location)
                         };
                     }
-                    else if (x is Message) {
-                        var msgxxx = x as Message;
+                    else if (x is Json) {
+                        var msgxxx = x as Json;
                         response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
                         };
-                    } else if (x is Json) {
-                        var dynJson = (Json)x;
+                    } else if (x is DynamicJson) {
+                        var dynJson = (DynamicJson)x;
                         response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
                         };

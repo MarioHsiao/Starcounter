@@ -12,7 +12,7 @@ namespace StarcounterApps3 {
     /// to be given in addition to the actual request (for example,
     /// in the form of a database URI when making a REST call).
     /// </remarks>
-    partial class ExecRequest : Message {
+    partial class ExecRequest : Json {
     }
 }
 

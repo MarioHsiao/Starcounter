@@ -2,18 +2,18 @@
 using System;
 
 namespace Starcounter.Internal.Tests {
-    public class PersonMessage : Message {
-        private static TMessage Schema;
+    public class PersonMessage : Json {
+        private static TJson Schema;
 
         static PersonMessage() {
-            Schema = new TMessage() { ClassName = "PersonMessage", InstanceType = typeof(PersonMessage) };
+            Schema = new TJson() { ClassName = "PersonMessage", InstanceType = typeof(PersonMessage) };
             Schema.Add<TString>("FirstName");
             Schema.Add<TString>("LastName");
             Schema.Add<TLong>("Age");
 
-            var phoneNumber = new TMessage();
+            var phoneNumber = new TJson();
             phoneNumber.Add<TString>("Number");
-            Schema.Add<TArr<Message, TMessage>>("PhoneNumbers", phoneNumber);
+            Schema.Add<TArr<Json,TJson>>("PhoneNumbers", phoneNumber);
         }
 
         public PersonMessage() {
