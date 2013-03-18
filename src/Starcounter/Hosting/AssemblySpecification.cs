@@ -109,7 +109,7 @@ namespace Starcounter.Hosting {
             string indexName = AssemblySpecification.DatabaseClassIndexName;
             string msg;
             try {
-                var specType = assembly.GetType(AssemblySpecification.Name);
+                var specType = assembly.GetType(AssemblySpecification.Name, false);
                 if (specType == null) {
                     msg = string.Format("Specification \"{0}\" not found in assembly \"{1}.",
                         specName, assembly.FullName
