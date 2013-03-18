@@ -23,7 +23,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="query">Query to process</param>
         /// <param name="consumer">Interface object to be called during tree walk</param>
         internal unsafe void ParseQueryAndWalkTree(string query, IParserTreeAnalyzer consumer) {
-            OnEmptyQueryError(query);
+            //OnEmptyQueryError(query);
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             // Call parser
