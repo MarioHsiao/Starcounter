@@ -50,7 +50,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="query">The query to parse.</param>
         /// <returns></returns>
         internal unsafe void ParseQuery(string query) {
-            OnEmptyQueryError(query);
+            //OnEmptyQueryError(query);
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             int scerrorcode = 0;
@@ -75,7 +75,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
         /// <param name="errorExpected">If error expected or not</param>
         /// <returns>Error code.</returns>
         internal unsafe int ParseQuery(string query, bool errorExpected) {
-            OnEmptyQueryError(query);
+            //OnEmptyQueryError(query);
             IsOpenParserThread = true; // Important to avoid destroying global variables in unmanaged parser.
             Query = query;
             int scerrorcode = 0;

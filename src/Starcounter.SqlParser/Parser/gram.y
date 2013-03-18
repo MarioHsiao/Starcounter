@@ -648,7 +648,11 @@ stmt :
 			| VariableShowStmt
 			| ViewStmt
 			| /*EMPTY*/
-				{ $$ = NULL; }
+				{ 
+					errprint("\nERROR INCORRECT SYNTAX: query string cannot be empty");
+					ThrowExceptionReport(SCERRSQLINCORRECTSYNTAX, 0, NULL, ScErrMessage("Query string must contain a valid statement."));
+					$$ = NULL; 
+				}
 		;
 
 /*****************************************************************************
