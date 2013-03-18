@@ -66,7 +66,7 @@ namespace Starcounter.Internal.JsonPatch
         /// </summary>
         /// <param name="changeLog">A log of the current changes</param>
         /// <returns>The httpresponse as a bytearray</returns>
-        internal static byte[] CreateHttpPatchResponse(ChangeLog changeLog) {
+        internal static byte[] CreateHttpPatchResponse(PuppetChangeLog changeLog) {
             List<Byte> content = new List<Byte>(100);
             CreateContentFromChangeLog(changeLog, content);
             return CreateResponse(OK200_WITH_JSON_PATCH, content.ToArray());
@@ -134,7 +134,7 @@ namespace Starcounter.Internal.JsonPatch
         /// <param name="changeLog">The change log.</param>
         /// <param name="buffer">The buffer.</param>
         /// <returns>Int32.</returns>
-        private static Int32 CreateContentFromChangeLog(ChangeLog changeLog, List<Byte> buffer)
+        private static Int32 CreateContentFromChangeLog(PuppetChangeLog changeLog, List<Byte> buffer)
         {
             // TODO: 
             // Change so that we can send in a buffer into the function that created 
