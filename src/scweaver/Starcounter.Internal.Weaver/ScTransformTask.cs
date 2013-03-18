@@ -26,6 +26,7 @@ using Starcounter.LucentObjects;
 using IMember = PostSharp.Sdk.CodeModel.IMember;
 using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 using Starcounter.Internal.Weaver.IObjectViewImpl;
+using Starcounter.Internal.Weaver.BackingInfrastructure;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
@@ -306,6 +307,8 @@ namespace Starcounter.Internal.Weaver {
                 _module.AssemblyManifest.CustomAttributes.Add(new CustomAttributeDeclaration(weavedAssemblyAttributeCtor));
             }
 
+            var assemblySpecification = new AssemblySpecificationEmit(_module);
+
             // Process database classes defined in the current assembly.
 
             foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
@@ -323,6 +326,7 @@ namespace Starcounter.Internal.Weaver {
                 // Transformations specific to entity classes.
                 databaseEntityClass = dbc as DatabaseEntityClass;
                 if (databaseEntityClass != null) {
+                    assemblySpecification.IncludeDatabaseClass(typeDef);
                     AddTypeReferenceFields(typeDef);
 
                     // Temporary code, allow us to implement the IObjectView interface
