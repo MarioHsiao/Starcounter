@@ -25,7 +25,7 @@ namespace NetworkIoTestApp
         {
             String localString = "This is local string!";
 
-            GET(85, "/local", () =>
+            GET(80, "/local", () =>
             {
                 return localString;
             });
@@ -311,8 +311,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_APPS_URIS:
                 {
                     AppsBootstrapper.Bootstrap(
-                        StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
-                        "c:\\pics");
+                        StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "c:\\pics");
 
                     AppsClass.InitAppHandlers();
 

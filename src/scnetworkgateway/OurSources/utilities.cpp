@@ -32,7 +32,7 @@ namespace network {
 }*/
 
 // Print error code.
-uint32_t PrintLastError()
+uint32_t PrintLastError(bool report_to_log)
 {
     const int32_t max_err_msg_len = 512;
 
@@ -64,7 +64,8 @@ uint32_t PrintLastError()
     GW_COUT << err_display_buf_char << GW_ENDL;
 
     // Printing error to server log.
-    GW_LOG_ERROR << err_display_buf_char << GW_WENDL;
+    if (report_to_log)
+        GW_LOG_ERROR << err_display_buf_char << GW_WENDL;
 
     // Free message resources.
     LocalFree(err_buf);

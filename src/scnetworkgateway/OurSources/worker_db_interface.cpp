@@ -711,9 +711,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     db_index_,
                     AppsPortProcessData);
 
-                if (err_code)
-                    return err_code;
-
                 break;
             }
             
@@ -742,9 +739,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     handler_info,
                     db_index_,
                     AppsSubportProcessData);
-
-                if (err_code)
-                    return err_code;
 
                 break;
             }
@@ -806,9 +800,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     db_index_,
                     AppsUriProcessData);
 
-                if (err_code)
-                    return err_code;
-
                 break;
             }
 
@@ -865,6 +856,20 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
             default:
             {
                 return SCERRGWWRONGBMXCHUNKTYPE;
+            }
+        }
+
+        // Checking for error code after registrations.
+        if (err_code)
+        {
+            switch (err_code)
+            {
+            case SCERRGWFAILEDTOBINDPORT:
+                // Ignore.
+                break;
+
+            default:
+                return err_code;
             }
         }
 

@@ -882,15 +882,20 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
 
     // Getting IOCP handle.
     HANDLE iocp = NULL;
-    if (!gw) iocp = g_gateway.get_iocp();
-    else iocp = gw->get_worker_iocp();
+    if (!gw)
+        iocp = g_gateway.get_iocp();
+    else
+        iocp = gw->get_worker_iocp();
 
     // Attaching socket to IOCP.
     HANDLE temp = CreateIoCompletionPort((HANDLE) sock, iocp, 0, setting_num_workers_);
     if (temp != iocp)
     {
+        PrintLastError(true);
+        closesocket(sock);
+
         GW_COUT << "Wrong IOCP returned when adding reference." << GW_ENDL;
-        return PrintLastError();
+        return SCERRGWFAILEDTOATTACHSOCKETTOIOCP;
     }
 
     // Skipping completion port if operation is already successful.
@@ -911,16 +916,21 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     // Binding socket to certain interface and port.
     if (bind(sock, (SOCKADDR*) &binding_addr, sizeof(binding_addr)))
     {
-        uint32_t last_error = PrintLastError();
+        PrintLastError(true);
+        closesocket(sock);
+       
         GW_LOG_ERROR << L"Failed to bind server port: " << port_num << L". Please check that port is not occupied by any software." << GW_WENDL;
-        return last_error;
+        return SCERRGWFAILEDTOBINDPORT;
     }
 
     // Listening to connections.
     if (listen(sock, SOMAXCONN))
     {
+        PrintLastError(true);
+        closesocket(sock);
+
         GW_COUT << "Error listening on server socket." << GW_ENDL;
-        return PrintLastError();
+        return SCERRGWFAILEDTOLISTENONSOCKET;
     }
 
     return 0;
@@ -3144,10 +3154,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     err_code = g_gateway.ProcessArgumentsAndInitLog(argc, argv);
     if (err_code)
         return err_code;
-
-    //int32_t xxx = 0;
-    //int32_t yyy = 123 / xxx;
-    //GW_ASSERT(123 == 1);
 
     // Setting I/O as low priority.
     SetPriorityClass(GetCurrentProcess(), PROCESS_MODE_BACKGROUND_BEGIN);

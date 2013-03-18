@@ -5,6 +5,7 @@ using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
+using System.Diagnostics;
 using System.IO;
 namespace Starcounter.Internal {
 
@@ -16,20 +17,30 @@ namespace Starcounter.Internal {
     /// considered for a future version. This includes Apps, SQL and other modules.
     /// </remarks>
     public static class AppsBootstrapper {
+
         private static HttpAppServer appServer;
         // private static StaticWebServer fileServer;
-        private static UInt16 defaultUserHttpPort_ = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
-        private static Boolean isAdministratorApp = false;
 
         /// <summary>
         /// Initializes AppsBootstrapper.
         /// </summary>
         /// <param name="defaultPort"></param>
-        public static void InitAppsBootstrapper(UInt16 defaultUserHttpPort, String dbName)
+        public static void InitAppsBootstrapper(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort, String dbName)
         {
-            defaultUserHttpPort_ = defaultUserHttpPort;
-            isAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
-            Node.ThisStarcounterNode = new Node("127.0.0.1", 8181);
+            // Setting some configuration settings.
+            NewConfig.Default.UserHttpPort = defaultUserHttpPort;
+            NewConfig.Default.SystemHttpPort = defaultSystemHttpPort;
+
+            NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
+            Node.ThisStarcounterNode = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
+
+            // Setting the response handler.
+            Node.SetHandleResponse(appServer.HandleResponse);
+
+            // Giving REST needed delegates.
+            UserHandlerCodegen.Setup(
+                GatewayHandlers.RegisterUriHandler,
+                OnHttpMessageRoot);
         }
         
         /// <summary>
@@ -65,7 +76,10 @@ namespace Starcounter.Internal {
         {
             // Checking for the port.
             if (port == StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
-                port = defaultUserHttpPort_;
+                port = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+
+            // Setting default user port.
+            NewConfig.Default.UserHttpPort = port;
 
             if (resourceResolvePath != null)
             {
@@ -80,7 +94,7 @@ namespace Starcounter.Internal {
                 //string staticContentDirBase64 = System.Convert.ToBase64String(staticContentDirBytes);
 
                 // Checking if this is not administrator.
-                if (!isAdministratorApp)
+                if (!NewConfig.IsAdministratorApp)
                 {
                     // Putting port and full path to resources directory.
                     String content = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
@@ -97,19 +111,6 @@ namespace Starcounter.Internal {
                     });
                 }
             }
-
-            // Setting the response handler.
-            Node.SetHandleResponse(appServer.HandleResponse);
-
-            // Giving REST needed delegates.
-            UserHandlerCodegen.Setup(
-                port,
-                GatewayHandlers.RegisterUriHandler,
-                OnHttpMessageRoot);
-            
-            // Register the handlers required by the Apps system. These work as user code handlers, but
-            // listens to the built in REST API serving view models to REST clients.
-            InternalHandlers.Register();
         }
 
         /// <summary>

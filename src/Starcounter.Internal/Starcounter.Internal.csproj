@@ -95,6 +95,7 @@
     <Compile Include="ISqlResult.cs" />
     <Compile Include="KeyValueBinary.cs" />
     <Compile Include="Media.cs" />
+    <Compile Include="NewConfig.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="sccorelog.cs" />

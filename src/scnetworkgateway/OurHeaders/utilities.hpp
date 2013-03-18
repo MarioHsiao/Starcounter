@@ -91,7 +91,7 @@ private:
 #define GW_WENDL L"\n"
 
 //uint64_t ReadDecimal(const char *start);
-uint32_t PrintLastError();
+uint32_t PrintLastError(bool report_to_log = false);
 
 // Invalid value of converted number from hexadecimal string.
 const uint64_t INVALID_CONVERTED_NUMBER = 0xFFFFFFFFFFFFFFFF;
