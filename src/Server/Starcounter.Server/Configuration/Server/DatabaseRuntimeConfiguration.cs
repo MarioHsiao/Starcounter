@@ -92,9 +92,9 @@ namespace Starcounter.Configuration {
         private UInt16 _SQLProcessPort;
 
         /// <summary>
-        /// Gets the default Apps TCP port.
+        /// Gets the default user HTTP port.
         /// </summary>
-        /// <value>The default Apps TCP port.</value>
+        /// <value>The default user HTTP port.</value>
         public UInt16 DefaultUserHttpPort
         {
             get

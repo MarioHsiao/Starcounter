@@ -86,10 +86,25 @@ namespace StarcounterApps3 {
                     new String[] { StarcounterConstants.NetworkConstants.CRLF },
                     StringSplitOptions.RemoveEmptyEntries);
 
-                // Registering static handler on given port.
-                GET(UInt16.Parse(settings[0]), "/{?}", (string res) => {
-                    return null;
-                });
+                try
+                {
+                    // Registering static handler on given port.
+                    GET(UInt16.Parse(settings[0]), "/{?}", (string res) => {
+                        return null;
+                    });
+                }
+                catch (Exception exc)
+                {
+                    UInt32 errCode;
+
+                    // Checking if this handler is already registered.
+                    if (ErrorCode.TryGetCode(exc, out errCode))
+                    {
+                        if (Starcounter.Error.SCERRHANDLERALREADYREGISTERED == errCode)
+                            return "Success!";
+                    }
+                    throw exc;
+                }
 
                 // Adding static files serving directory.
                 AppsBootstrapper.AddFileServingDirectory(settings[1]);

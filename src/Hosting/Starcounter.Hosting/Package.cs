@@ -20,6 +20,24 @@ namespace Starcounter.Hosting {
     /// Class Package
     /// </summary>
     public class Package {
+        /// <summary>
+        /// Initializes internal HTTP handlers.
+        /// </summary>
+        static Action InitInternalHttpHandlers_;
+
+        /// <summary>
+        /// Indicates if package was already initialized for all executables.
+        /// </summary>
+        static Boolean packageInitialized_ = false;
+
+        /// <summary>
+        /// Initializes package with global settings.
+        /// </summary>
+        /// <param name="initInternalHttpHandlers">Initializes internal HTTP handlers.</param>
+        public static void InitPackage(Action initInternalHttpHandlers)
+        {
+            InitInternalHttpHandlers_ = initInternalHttpHandlers;
+        }
 
         /// <summary>
         /// Processes the specified h package.
@@ -96,6 +114,15 @@ namespace Starcounter.Hosting {
                 UpdateDatabaseSchemaAndRegisterTypes();
 
                 CallInfrastructureInitializerIfPresent();
+
+                // Initializing package for all executables.
+                if (!packageInitialized_)
+                {
+                    // Registering internal HTTP handlers.
+                    InitInternalHttpHandlers_();
+
+                    packageInitialized_ = true;
+                }
 
                 ExecuteEntryPoint();
             } finally {

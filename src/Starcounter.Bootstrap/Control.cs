@@ -20,6 +20,7 @@ using StarcounterInternal.Hosting;
 using HttpStructs;
 using System.Text.RegularExpressions;
 using System.IO;
+using Starcounter.Internal.JsonPatch;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -73,7 +74,7 @@ namespace StarcounterInternal.Bootstrap
 
         /// <summary>
         /// The <see cref="Server"/> used as the interface to support local
-        /// requests such as the hosting/exeuting of executables and to handle
+        /// requests such as the hosting/executing of executables and to handle
         /// our servers management demands.
         /// </summary>
         /// <see cref="Control.ConfigureHost"/>
@@ -147,7 +148,16 @@ namespace StarcounterInternal.Bootstrap
             Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
             // Initializing AppsBootstrapper.
-            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort, configuration.Name);
+            AppsBootstrapper.InitAppsBootstrapper(
+                configuration.DefaultUserHttpPort,
+                configuration.DefaultSystemHttpPort,
+                configuration.Name);
+
+            // Initializing package loader.
+            Package.InitPackage(() => InternalHandlers.Register(
+                configuration.DefaultUserHttpPort,
+                configuration.DefaultSystemHttpPort)
+            );
 
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();

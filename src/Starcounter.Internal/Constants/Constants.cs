@@ -190,6 +190,11 @@ namespace Starcounter.Internal
             public const string DefaultUserHttpPort = "DefaultUserHttpPort";
 
             /// <summary>
+            /// Default HTTP port for system code.
+            /// </summary>
+            public const string DefaultSystemHttpPort = "DefaultSystemHttpPort";
+
+            /// <summary>
             /// Specifies the number of schedulers.
             /// </summary>
             public const string SchedulerCount = "SchedulerCount";

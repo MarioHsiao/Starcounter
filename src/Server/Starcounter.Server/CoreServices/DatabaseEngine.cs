@@ -322,6 +322,7 @@ namespace Starcounter.Server {
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.CompilerPath + "=\"{0}\"", this.MinGWCompilerPath);
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);
+            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
             
             if (startWithNoDb) {
                 args.Append(" --FLAG:" + StarcounterConstants.BootstrapOptionNames.NoDb);

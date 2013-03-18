@@ -1384,7 +1384,8 @@ uint32_t GatewayWorker::WorkerRoutine()
         // Scanning all channels.
         found_something = false;
         err_code = ScanChannels(&found_something);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
 
         // Checking if something was found.
         if (found_something)
