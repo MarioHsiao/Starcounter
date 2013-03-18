@@ -3,35 +3,19 @@
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GeneratePuppetCode;GenerateTypedJsonCode</CoreCompileDependsOn>
   </PropertyGroup>
   <ItemGroup>
-    <AvailableItemName Include="Puppet"/>
-    <AvailableItemName Include="Typed_JSON"/>
+    <AvailableItemName Include="TypedJSON"/>
   </ItemGroup>
-     
-  <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToPuppetCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
-
-
-  <Target Name="GeneratePuppetCode" Inputs="@(Puppet)" Outputs="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToPuppetCsMsBuildTaskNoLocking
-       InputFiles="@(Puppet)"
-       OutputFiles="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="puppetFiles" /> 
-    </JsonToPuppetCsMsBuildTaskNoLocking>
-	<ItemGroup>
-      <Compile Include="@(puppetFiles)" />
-    </ItemGroup>
-  </Target>
-
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
-
-  <Target Name="GenerateTypedJsonCode" Inputs="@(Typed_JSON)" Outputs="@(Typed_JSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+  
+  <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
+  
+  <Target Name="GenerateTypedJsonCode" Inputs="@(TypedJSON)" Outputs="@(TypedJSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
     <JsonToTypedJsonCsMsBuildTaskNoLocking
-       InputFiles="@(Typed_JSON)"
-       OutputFiles="@(Typed_JSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="Typed_JSONFiles" /> 
+       InputFiles="@(TypedJSON)"
+       OutputFiles="@(TypedJSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="TypedJSONFiles" /> 
     </JsonToTypedJsonCsMsBuildTaskNoLocking>
 	<ItemGroup>
-      <Compile Include="@(Typed_JSONFiles)" />
+      <Compile Include="@(TypedJSONFiles)" />
     </ItemGroup>
   </Target>
   

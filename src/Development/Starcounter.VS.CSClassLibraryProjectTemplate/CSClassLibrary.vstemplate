@@ -2,7 +2,7 @@
 <VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
   <TemplateData>
     <Name>Starcounter Class Library</Name>
-    <Description>A project for creating a C# class library containing database entities.</Description>
+    <Description>A project for creating a C# class library containing database entities and typed json objects.</Description>
     <Icon>ClassLibrary.ico</Icon>
     <ProjectType>CSharp</ProjectType>
     <ProjectSubType>Starcounter</ProjectSubType>
