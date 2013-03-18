@@ -292,9 +292,9 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Group with including all messages supported -->
-    <Message Include="ExecRequest.json">
+    <Typed_JSON Include="ExecRequest.json">
       <Generator>MSBuild:Compile</Generator>
-    </Message>
+    </Typed_JSON>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

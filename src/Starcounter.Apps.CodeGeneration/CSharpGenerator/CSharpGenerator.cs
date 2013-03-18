@@ -31,7 +31,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         public int Indentation { get; set; }
 
         /// <summary>
-        /// The code generator can be used to generate Messages and Puppets. My storing the generarator
+        /// The code generator can be used to generate typed JSON. My storing the generarator
         /// we can obtain the wanted default obj template, i.e.
         /// which template to use as the default template for new objects.
         /// </summary>
@@ -320,7 +320,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append(";");
             m.Prefix.Add(sb.ToString());
 
-            var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Message"
+            var objClassName = Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Json"
         }
 
         /// <summary>
@@ -536,9 +536,9 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             string tobjClassName = Generator.DefaultObjTemplate.GetType().Name;
 
             sb.Append('(');
-            sb.Append( objClassName ); // "Puppet", "Message"
+            sb.Append( objClassName ); // "Puppet", "Json"
             sb.Append(" obj, ");
-            sb.Append(tobjClassName); // "TPuppet", "TMessage"
+            sb.Append(tobjClassName); // "TPuppet", "TJson"
             sb.Append(" template) : base(obj, template) { }");
             a.Prefix.Add(sb.ToString());
             sb = new StringBuilder();

@@ -25,7 +25,7 @@ public partial class TestMessage {
     public Decimal ADecimal { get { return Get(Template.ADecimal); } set { Set(Template.ADecimal, value); } }
     public Double ADouble { get { return Get(Template.ADouble); } set { Set(Template.ADouble, value); } }
     public String UserLink { get { return Get(Template.UserLink); } set { Set(Template.UserLink, value); } }
-    public class ChildApp : Message {
+    public class ChildApp : Json {
         public static TChildApp DefaultTemplate = new TChildApp();
         public ChildApp() { Template = DefaultTemplate; }
         public ChildApp(TChildApp template) { Template = template; }
@@ -35,7 +35,7 @@ public partial class TestMessage {
         public String ChildName { get { return Get(Template.ChildName); } set { Set(Template.ChildName, value); } }
         public TestMessage.ChildApp.ASubAppApp ASubApp { get { return Get<TestMessage.ChildApp.ASubAppApp>(Template.ASubApp); } set { Set(Template.ASubApp, value); } }
         public TestMessage.ChildApp.ASubApp2App ASubApp2 { get { return Get<TestMessage.ChildApp.ASubApp2App>(Template.ASubApp2); } set { Set(Template.ASubApp2, value); } }
-        public class ASubAppApp : Message {
+        public class ASubAppApp : Json {
             public static TASubAppApp DefaultTemplate = new TASubAppApp();
             public ASubAppApp() { Template = DefaultTemplate; }
             public ASubAppApp(TASubAppApp template) { Template = template; }
@@ -43,7 +43,7 @@ public partial class TestMessage {
             public new ASubAppAppMetadata Metadata { get { return (ASubAppAppMetadata)base.Metadata; } }
             public new ChildApp Parent { get { return (ChildApp)base.Parent; } set { base.Parent = value; } }
             public bool IsInnerApp { get { return Get(Template.IsInnerApp); } set { Set(Template.IsInnerApp, value); } }
-            public class TASubAppApp : TMessage {
+            public class TASubAppApp : TJson {
                 public TASubAppApp()
                     : base() {
                     InstanceType = typeof(TestMessage.ChildApp.ASubAppApp);
@@ -54,14 +54,14 @@ public partial class TestMessage {
                 public TBool IsInnerApp;
             }
             public class ASubAppAppMetadata : ObjMetadata {
-                public ASubAppAppMetadata(Message obj, TMessage template) : base(obj, template) { }
+                public ASubAppAppMetadata(Json obj, TJson template) : base(obj, template) { }
                 public new TestMessage.ChildApp.ASubAppApp App { get { return (TestMessage.ChildApp.ASubAppApp)base.App; } }
                 public new TestMessage.ChildApp.ASubAppApp.TASubAppApp Template { get { return (TestMessage.ChildApp.ASubAppApp.TASubAppApp)base.Template; } }
                 public BoolMetadata IsInnerApp { get { return __p_IsInnerApp ?? (__p_IsInnerApp = new BoolMetadata(App, App.Template.IsInnerApp)); } }
                 private BoolMetadata __p_IsInnerApp;
             }
         }
-        public class ASubApp2App : Message {
+        public class ASubApp2App : Json {
             public static TASubApp2App DefaultTemplate = new TASubApp2App();
             public ASubApp2App() { Template = DefaultTemplate; }
             public ASubApp2App(TASubApp2App template) { Template = template; }
@@ -70,7 +70,7 @@ public partial class TestMessage {
             public new ChildApp Parent { get { return (ChildApp)base.Parent; } set { base.Parent = value; } }
             public bool IsInnerApp { get { return Get(Template.IsInnerApp); } set { Set(Template.IsInnerApp, value); } }
             public Arr<TestMessage.ChildApp.ASubApp2App.ASubListApp> ASubList { get { return Get<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList); } set { Set<TestMessage.ChildApp.ASubApp2App.ASubListApp>(Template.ASubList, value); } }
-            public class ASubListApp : Message {
+            public class ASubListApp : Json {
                 public static TASubListApp DefaultTemplate = new TASubListApp();
                 public ASubListApp() { Template = DefaultTemplate; }
                 public ASubListApp(TASubListApp template) { Template = template; }
@@ -78,7 +78,7 @@ public partial class TestMessage {
                 public new ASubListAppMetadata Metadata { get { return (ASubListAppMetadata)base.Metadata; } }
                 public new Arr<TestMessage.ChildApp.ASubApp2App.ASubListApp> Parent { get { return (Arr<TestMessage.ChildApp.ASubApp2App.ASubListApp>)base.Parent; } set { base.Parent = value; } }
                 public String Huh { get { return Get(Template.Huh); } set { Set(Template.Huh, value); } }
-                public class TASubListApp : TMessage {
+                public class TASubListApp : TJson {
                     public TASubListApp()
                         : base() {
                         InstanceType = typeof(TestMessage.ChildApp.ASubApp2App.ASubListApp);
@@ -89,14 +89,14 @@ public partial class TestMessage {
                     public TString Huh;
                 }
                 public class ASubListAppMetadata : ObjMetadata {
-                    public ASubListAppMetadata(Message obj, TMessage template) : base(obj, template) { }
+                    public ASubListAppMetadata(Json obj, TJson template) : base(obj, template) { }
                     public new TestMessage.ChildApp.ASubApp2App.ASubListApp App { get { return (TestMessage.ChildApp.ASubApp2App.ASubListApp)base.App; } }
                     public new TestMessage.ChildApp.ASubApp2App.ASubListApp.TASubListApp Template { get { return (TestMessage.ChildApp.ASubApp2App.ASubListApp.TASubListApp)base.Template; } }
                     public StringMetadata Huh { get { return __p_Huh ?? (__p_Huh = new StringMetadata(App, App.Template.Huh)); } }
                     private StringMetadata __p_Huh;
                 }
             }
-            public class TASubApp2App : TMessage {
+            public class TASubApp2App : TJson {
                 public TASubApp2App()
                     : base() {
                     InstanceType = typeof(TestMessage.ChildApp.ASubApp2App);
@@ -110,7 +110,7 @@ public partial class TestMessage {
                 public TArr<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.TASubListApp> ASubList;
             }
             public class ASubApp2AppMetadata : ObjMetadata {
-                public ASubApp2AppMetadata(Message obj, TMessage template) : base(obj, template) { }
+                public ASubApp2AppMetadata(Json obj, TJson template) : base(obj, template) { }
                 public new TestMessage.ChildApp.ASubApp2App App { get { return (TestMessage.ChildApp.ASubApp2App)base.App; } }
                 public new TestMessage.ChildApp.ASubApp2App.TASubApp2App Template { get { return (TestMessage.ChildApp.ASubApp2App.TASubApp2App)base.Template; } }
                 public BoolMetadata IsInnerApp { get { return __p_IsInnerApp ?? (__p_IsInnerApp = new BoolMetadata(App, App.Template.IsInnerApp)); } }
@@ -119,7 +119,7 @@ public partial class TestMessage {
                 private ArrMetadata<TestMessage.ChildApp.ASubApp2App.ASubListApp, TestMessage.ChildApp.ASubApp2App.ASubListApp.TASubListApp> __p_ASubList;
             }
         }
-        public class TChildApp : TMessage {
+        public class TChildApp : TJson {
             public TChildApp()
                 : base() {
                 InstanceType = typeof(TestMessage.ChildApp);
@@ -134,7 +134,7 @@ public partial class TestMessage {
             public TestMessage.ChildApp.ASubApp2App.TASubApp2App ASubApp2;
         }
         public class ChildAppMetadata : ObjMetadata {
-            public ChildAppMetadata(Message obj, TMessage template) : base(obj, template) { }
+            public ChildAppMetadata(Json obj, TJson template) : base(obj, template) { }
             public new TestMessage.ChildApp App { get { return (TestMessage.ChildApp)base.App; } }
             public new TestMessage.ChildApp.TChildApp Template { get { return (TestMessage.ChildApp.TChildApp)base.Template; } }
             public StringMetadata ChildName { get { return __p_ChildName ?? (__p_ChildName = new StringMetadata(App, App.Template.ChildName)); } }
@@ -145,7 +145,7 @@ public partial class TestMessage {
             private TestMessage.ChildApp.ASubApp2App.ASubApp2AppMetadata __p_ASubApp2;
         }
     }
-    public class AListApp : Message {
+    public class AListApp : Json {
         public static TAListApp DefaultTemplate = new TAListApp();
         public AListApp() { Template = DefaultTemplate; }
         public AListApp(TAListApp template) { Template = template; }
@@ -154,7 +154,7 @@ public partial class TestMessage {
         public new Arr<TestMessage.AListApp> Parent { get { return (Arr<TestMessage.AListApp>)base.Parent; } set { base.Parent = value; } }
         public String AValue { get { return Get(Template.AValue); } set { Set(Template.AValue, value); } }
         public long ANumber { get { return Get(Template.ANumber); } set { Set(Template.ANumber, value); } }
-        public class TAListApp : TMessage {
+        public class TAListApp : TJson {
             public TAListApp()
                 : base() {
                 InstanceType = typeof(TestMessage.AListApp);
@@ -167,7 +167,7 @@ public partial class TestMessage {
             public TLong ANumber;
         }
         public class AListAppMetadata : ObjMetadata {
-            public AListAppMetadata(Message obj, TMessage template) : base(obj, template) { }
+            public AListAppMetadata(Json obj, TJson template) : base(obj, template) { }
             public new TestMessage.AListApp App { get { return (TestMessage.AListApp)base.App; } }
             public new TestMessage.AListApp.TAListApp Template { get { return (TestMessage.AListApp.TAListApp)base.Template; } }
             public StringMetadata AValue { get { return __p_AValue ?? (__p_AValue = new StringMetadata(App, App.Template.AValue)); } }
@@ -176,7 +176,7 @@ public partial class TestMessage {
             private LongMetadata __p_ANumber;
         }
     }
-    public class TTestMessage : TMessage {
+    public class TTestMessage : TJson {
         public TTestMessage()
             : base() {
             InstanceType = typeof(TestMessage);
@@ -203,7 +203,7 @@ public partial class TestMessage {
         public TString UserLink;
     }
     public class TestMessageMetadata : ObjMetadata {
-        public TestMessageMetadata(Message obj, TMessage template) : base(obj, template) { }
+        public TestMessageMetadata(Json obj, TJson template) : base(obj, template) { }
         public new TestMessage App { get { return (TestMessage)base.App; } }
         public new TestMessage.TTestMessage Template { get { return (TestMessage.TTestMessage)base.Template; } }
         public LongMetadata UserId { get { return __p_UserId ?? (__p_UserId = new LongMetadata(App, App.Template.UserId)); } }
@@ -223,7 +223,7 @@ public partial class TestMessage {
         public StringMetadata UserLink { get { return __p_UserLink ?? (__p_UserLink = new StringMetadata(App, App.Template.UserLink)); } }
         private StringMetadata __p_UserLink;
     }
-    public static class Json {
+    public static class json {
         public class Child : TemplateAttribute {
             public class ASubApp : TemplateAttribute {
             }
