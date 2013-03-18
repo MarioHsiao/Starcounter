@@ -308,6 +308,7 @@ namespace Starcounter.Internal.Weaver {
             }
 
             var assemblySpecification = new AssemblySpecificationEmit(_module);
+            var typeSpecification = new TypeSpecificationEmit(_module);
 
             // Process database classes defined in the current assembly.
 
@@ -315,25 +316,27 @@ namespace Starcounter.Internal.Weaver {
                 ScTransformTrace.Instance.WriteLine("Transforming {0}.", dbc);
                 typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
 
+                // Transformations specific to entity classes.
+                databaseEntityClass = dbc as DatabaseEntityClass;
+                if (databaseEntityClass != null) {
+                    assemblySpecification.IncludeDatabaseClass(typeDef);
+                    typeSpecification.EmitForType(typeDef);
+
+                    AddTypeReferenceFields(typeDef);
+
+                    // Temporary code, allow us to implement the IObjectView interface
+                    // on types with a given naming convention, for testing.
+                    var typeDef2 = (TypeDefDeclaration)_module.FindType(dbc.Name + "_NEW", BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                    if (typeDef2 != null) {
+                        ImplementIObjectView(typeDef2);
+                    }
+                }
+
                 // Generate field accessors and add corresponding advices
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
                         GenerateFieldAccessors(dba, field);
-                    }
-                }
-
-                // Transformations specific to entity classes.
-                databaseEntityClass = dbc as DatabaseEntityClass;
-                if (databaseEntityClass != null) {
-                    assemblySpecification.IncludeDatabaseClass(typeDef);
-                    AddTypeReferenceFields(typeDef);
-
-                    // Temporary code, allow us to implement the IObjectView interface
-                    // on types with a given naming convention, for testing.
-                    var typeDef2 = (TypeDefDeclaration) _module.FindType(dbc.Name + "_NEW", BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
-                    if (typeDef2 != null) {
-                        ImplementIObjectView(typeDef2);
                     }
                 }
             }
