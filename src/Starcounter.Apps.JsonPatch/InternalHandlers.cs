@@ -23,13 +23,13 @@ namespace Starcounter.Internal.JsonPatch {
         /// <summary>
         /// Registers this instance.
         /// </summary>
-        public static void Register() {
+        public static void Register(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort) {
             string dbName = Db.Environment.DatabaseName.ToLower();
 
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
-            GET("/__" + dbName + "/{?}", (int viewModelId) => {
+            GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId) => {
                 Puppet p = Session.Current.GetRootApp(viewModelId);
 
                 if (p == null) {
@@ -41,7 +41,7 @@ namespace Starcounter.Internal.JsonPatch {
                 };
             });
 
-            PATCH("/__" + dbName + "/{?}", (int viewModelId, HttpRequest request) => {
+            PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId, HttpRequest request) => {
                 Puppet rootApp;
                 Session session;
 
@@ -64,7 +64,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                POST("/__" + dbName + "/sql", (HttpRequest r) => {
+                POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (HttpRequest r) => {
                     try {
                         string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
                         string resultJson = ExecuteQuery(bodyData);
