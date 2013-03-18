@@ -100,7 +100,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                 // Releasing global lock.
                 gw->LeaveGlobalLock();
 
-                GW_ERR_CHECK(err_code);
+                if (err_code)
+                    return err_code;
 
                 continue;
             }
@@ -635,7 +636,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
     if (0 == response_size)
         return SCERRGWBMXCHUNKWRONGFORMAT;
 
-    uint32_t err_code;
+    uint32_t err_code = 0;
     uint32_t offset = 0;
 
     resp_chunk->reset_offset();
@@ -654,7 +655,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 resp_chunk->skip(8);
 
                 err_code = sc_bmx_parse_pong(smc, &ping_data);
-                GW_ERR_CHECK(err_code);
+                if (err_code)
+                    return err_code;
 
                 GW_PRINT_WORKER << "Pong with data: " << ping_data << GW_ENDL;
 
@@ -673,7 +675,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
                     // Requesting all registered handlers.
                     err_code = RequestRegisteredHandlers();
-
                     if (err_code)
                         return err_code;
                 }
@@ -772,11 +773,12 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
 
 #ifdef GW_TESTING_MODE
-                if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_HTTP) &&
-                    (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP))
-                {
-                    GW_ASSERT(false);
-                }
+
+                HttpTestInformation* http_test_info = g_gateway.GetHttpTestInformation();
+
+                // Comparing URI with current test URI.
+                if (!http_test_info || strcmp(original_uri_info, http_test_info->method_and_uri_info))
+                    break;
 #endif
 
                 GW_PRINT_WORKER << "New URI handler \"" << processed_uri_info << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
