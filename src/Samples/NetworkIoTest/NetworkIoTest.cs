@@ -259,8 +259,8 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_GATEWAY_SMC_HTTP:
                 {
-                    handler_uri = "/smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpEcho, out handler_id);
+                    handler_uri = "POST /smc-http-echo";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -268,8 +268,8 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
                 {
-                    handler_uri = "/smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpEcho, out handler_id);
+                    handler_uri = "POST /smc-http-echo";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
                     
                     break;

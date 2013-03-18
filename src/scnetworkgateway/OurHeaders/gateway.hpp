@@ -330,10 +330,10 @@ inline GatewayTestingMode GetGatewayTestingMode(std::string modeString)
     return GatewayTestingMode::MODE_GATEWAY_UNKNOWN;
 }
 
-struct TestHttpEchoRequest
+struct HttpTestInformation
 {
-    const char* const uri;
-    int32_t uri_len;
+    const char* const method_and_uri_info;
+    int32_t method_and_uri_info_len;
 
     const char* const http_request_str;
     int32_t http_request_len;
@@ -1519,7 +1519,7 @@ class Gateway
     int64_t num_ops_measures_;
 
     // Predefined HTTP requests for tests.
-    TestHttpEchoRequest* test_http_echo_requests_;
+    HttpTestInformation* http_tests_information_;
 
 #ifdef GW_LOOPED_TEST_MODE
 
@@ -1885,24 +1885,27 @@ public:
 
     void InitTestHttpEchoRequests();
 
-    TestHttpEchoRequest GetTestHttpEchoRequest()
+    HttpTestInformation* GetHttpTestInformation()
     {
-        return test_http_echo_requests_[setting_mode_];
+        if (setting_mode_ < kNumTestHttpEchoRequests)
+            return http_tests_information_ + setting_mode_;
+
+        return NULL;
     }
 
     // Generates test HTTP request.
     uint32_t GenerateHttpRequest(char* buf, echo_id_type echo_id)
     {
         // Getting current test HTTP request type.
-        TestHttpEchoRequest r = GetTestHttpEchoRequest();
+        HttpTestInformation* test_info = GetHttpTestInformation();
 
         // Copying HTTP response.
-        memcpy(buf, r.http_request_str, r.http_request_len);
+        memcpy(buf, test_info->http_request_str, test_info->http_request_len);
 
         // Inserting number into HTTP ping request.
-        uint64_to_hex_string(echo_id, buf + r.http_request_insert_point, 8, false);
+        uint64_to_hex_string(echo_id, buf + test_info->http_request_insert_point, 8, false);
 
-        return r.http_request_len;
+        return test_info->http_request_len;
     }
 
 #ifdef GW_LOOPED_TEST_MODE

@@ -1173,10 +1173,10 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         &gw_workers_[0],
                         gw_handlers_,
                         port_number,
-                        test_http_echo_requests_[g_gateway.setting_mode()].uri,
-                        test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
-                        test_http_echo_requests_[g_gateway.setting_mode()].uri,
-                        test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
+                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
+                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info_len,
+                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
+                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info_len,
                         bmx::HTTP_METHODS::OTHER_METHOD,
                         NULL,
                         0,
@@ -2056,25 +2056,43 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
 // Entry point for gateway worker.
 uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
 {
+    uint32_t err_code = 0;
+
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
 
-    return MonitorDatabases(params);
+    // Starting routine.
+    err_code = MonitorDatabases(params);
 
     // Catching all unhandled exceptions in this thread.
     GW_SC_END_FUNC
+
+    wchar_t temp[256];
+    wsprintf(temp, L"Databases monitoring thread exited with error code: %d", err_code);
+    g_gateway.LogWriteError(temp);
+
+    return err_code;
 }
 
 // Entry point for gateway worker.
 uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
 {
+    uint32_t err_code = 0;
+
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
 
-    return ((GatewayWorker *)params)->WorkerRoutine();
+    // Starting routine.
+    err_code = ((GatewayWorker *)params)->WorkerRoutine();
 
     // Catching all unhandled exceptions in this thread.
     GW_SC_END_FUNC
+
+    wchar_t temp[256];
+    wsprintf(temp, L"Gateway worker thread exited with error code: %d", err_code);
+    g_gateway.LogWriteError(temp);
+
+    return err_code;
 }
 
 // Entry point for channels events monitor.
@@ -2271,13 +2289,22 @@ uint32_t __stdcall GatewayLoggingRoutine(LPVOID params)
 // Entry point for all threads monitor routine.
 uint32_t __stdcall GatewayMonitorRoutine(LPVOID params)
 {
+    uint32_t err_code = 0;
+
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
 
-    return g_gateway.GatewayMonitor();
+    // Starting routine.
+    err_code = g_gateway.GatewayMonitor();
 
     // Catching all unhandled exceptions in this thread.
     GW_SC_END_FUNC
+
+    wchar_t temp[256];
+    wsprintf(temp, L"Gateway monitoring thread exited with error code: %d", err_code);
+    g_gateway.LogWriteError(temp);
+
+    return err_code;
 }
 
 // Cleaning up all global resources.
@@ -3085,10 +3112,10 @@ void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
 
 #ifdef GW_TESTING_MODE
 
-TestHttpEchoRequest g_test_http_echo_requests[kNumTestHttpEchoRequests] =
+HttpTestInformation g_test_http_echo_requests[kNumTestHttpEchoRequests] =
 {
     {
-        "/gw-http-echo", 0,
+        "POST /gw-http-echo", 0,
 
         "POST /gw-http-echo HTTP/1.1\r\n"
         "Content-Type: text/html\r\n"
@@ -3098,7 +3125,7 @@ TestHttpEchoRequest g_test_http_echo_requests[kNumTestHttpEchoRequests] =
     },
 
     {
-        "/smc-http-echo", 0,
+        "POST /smc-http-echo", 0,
 
         "POST /smc-http-echo HTTP/1.1\r\n"
         "Content-Type: text/html\r\n"
@@ -3107,7 +3134,7 @@ TestHttpEchoRequest g_test_http_echo_requests[kNumTestHttpEchoRequests] =
         "@@@@@@@@", 0, 0
     },
     {
-        "/apps-http-echo", 0,
+        "POST /apps-http-echo", 0,
 
         "POST /apps-http-echo HTTP/1.1\r\n"
         "Content-Type: text/html\r\n"
@@ -3119,13 +3146,13 @@ TestHttpEchoRequest g_test_http_echo_requests[kNumTestHttpEchoRequests] =
 
 void Gateway::InitTestHttpEchoRequests()
 {
-    test_http_echo_requests_ = g_test_http_echo_requests;
+    http_tests_information_ = g_test_http_echo_requests;
 
     for (int32_t i = 0; i < kNumTestHttpEchoRequests; i++)
     {
-        test_http_echo_requests_[i].uri_len = strlen(test_http_echo_requests_[i].uri);
-        test_http_echo_requests_[i].http_request_len = strlen(test_http_echo_requests_[i].http_request_str);
-        test_http_echo_requests_[i].http_request_insert_point = strstr(test_http_echo_requests_[i].http_request_str, "@") - test_http_echo_requests_[i].http_request_str;
+        http_tests_information_[i].method_and_uri_info_len = strlen(http_tests_information_[i].method_and_uri_info);
+        http_tests_information_[i].http_request_len = strlen(http_tests_information_[i].http_request_str);
+        http_tests_information_[i].http_request_insert_point = strstr(http_tests_information_[i].http_request_str, "@") - http_tests_information_[i].http_request_str;
     }
 }
 
@@ -3161,7 +3188,13 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     // Stating the network gateway.
     err_code = g_gateway.StartGateway();
     if (err_code)
+    {
+        wchar_t temp[256];
+        wsprintf(temp, L"Gateway exited with error code: %d", err_code);
+        g_gateway.LogWriteError(temp);
+
         return err_code;
+    }
 
     // Cleaning up resources.
     err_code = g_gateway.GlobalCleanup();
