@@ -30,13 +30,13 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
         void EmitSpecification() {
             assemblyTypeDefinition = new TypeDefDeclaration {
                 Name = AssemblySpecification.Name,
-                Attributes = TypeAttributes.Class | TypeAttributes.NestedAssembly | TypeAttributes.Sealed
+                Attributes = TypeAttributes.Class | TypeAttributes.NotPublic | TypeAttributes.Abstract | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed
             };
             module.Types.Add(assemblyTypeDefinition);
 
             databaseClassIndexTypeDefinition = new TypeDefDeclaration {
                 Name = AssemblySpecification.DatabaseClassIndexName,
-                Attributes = TypeAttributes.Class | TypeAttributes.NestedAssembly | TypeAttributes.Sealed
+                Attributes = TypeAttributes.Class | TypeAttributes.NestedAssembly | TypeAttributes.Sealed | TypeAttributes.Abstract | TypeAttributes.BeforeFieldInit
             };
             assemblyTypeDefinition.Types.Add(databaseClassIndexTypeDefinition);
         }
