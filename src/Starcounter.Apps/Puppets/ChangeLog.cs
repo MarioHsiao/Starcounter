@@ -15,7 +15,7 @@ namespace Starcounter {
     /// Class keeping track of all outgoing changes to the json-tree. In the end
     /// of each patch-request, all changes will be converted to jsonpatches.
     /// </summary>
-    internal class ChangeLog : IEnumerable<Change> {
+    internal class PuppetChangeLog : IEnumerable<Change> {
         /// <summary>
         /// 
         /// </summary>
@@ -24,18 +24,23 @@ namespace Starcounter {
         /// <summary>
         /// Initializes a new instance of the <see cref="Log" /> class.
         /// </summary>
-        internal ChangeLog() {
+        internal PuppetChangeLog() {
             _changes = new List<Change>();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private static ChangeLog Log {
+        internal Puppet RootPuppet { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static PuppetChangeLog Log {
             get {
                 Session session = Session.Current;
                 if (session != null)
-                    return session.changeLog;
+                    return session.ChangeLog;
                 return null;
             }
         }
@@ -46,7 +51,7 @@ namespace Starcounter {
         /// <param name="obj">The Obj.</param>
         /// <param name="property">The property.</param>
         internal static void UpdateValue<T>(Puppet<T> obj, TValue property) where T : IBindable {
-            ChangeLog log = Log;
+            PuppetChangeLog log = Log;
             if (log != null && obj.IsSentExternally) {
                 if (!log._changes.Exists((match) => { return match.IsChangeOf(obj, property); })) {
                     log._changes.Add(Change.Update(obj, property));
@@ -60,7 +65,7 @@ namespace Starcounter {
         /// <param name="obj">The Obj.</param>
         /// <param name="valueTemplate">The value template.</param>
         internal static void UpdateValue<T>(Puppet<T> obj, Template valueTemplate) where T : IBindable {
-            ChangeLog log = Log;
+            PuppetChangeLog log = Log;
             if (log != null && obj.IsSentExternally) {
                 if (!log._changes.Exists((match) => { return match.IsChangeOf(obj, (Template)valueTemplate); })) {
                     log._changes.Add(Change.Update(obj, valueTemplate));
@@ -75,7 +80,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
         internal static void AddItemInList<T>(Obj<T> obj, TObjArr list, Int32 index) where T : IBindable {
-            ChangeLog log = Log;
+            PuppetChangeLog log = Log;
             if (log != null)
                 log._changes.Add(Change.Add(obj, list, index));
         }
@@ -87,7 +92,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
         internal static void RemoveItemInList<T>(Obj<T> obj, TObjArr list, Int32 index) where T : IBindable  {
-            ChangeLog log = Log;
+            PuppetChangeLog log = Log;
             if (log != null && ((Puppet<T>)obj).IsSentExternally)
                 log._changes.Add(Change.Remove(obj, list, index));
         }
