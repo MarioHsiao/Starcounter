@@ -106,6 +106,9 @@
     <Compile Include="Starcounter.Internal.Weaver\IMethodLevelAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\InsteadOfFieldAccessAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\InterceptThread.cs" />
+    <Compile Include="Starcounter.Internal.Weaver\IObjectViewImpl\ImplementsIObjectView.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Starcounter.Internal.Weaver\LucentClassInitializerMethodAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\PostSharpExtensions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ReimplementWeavedLucentAccessorAdvice.cs" />
@@ -158,9 +161,7 @@
       <LogicalName>Sc.Postsharp.license</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Starcounter.Internal.Weaver\IObjectViewImpl\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
