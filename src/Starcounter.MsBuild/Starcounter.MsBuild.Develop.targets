@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);GeneratePuppetCode;GenerateTypedJsonCode</CoreCompileDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateTypedJsonCode</CoreCompileDependsOn>
   </PropertyGroup>
   <ItemGroup>
     <AvailableItemName Include="TypedJSON"/>
