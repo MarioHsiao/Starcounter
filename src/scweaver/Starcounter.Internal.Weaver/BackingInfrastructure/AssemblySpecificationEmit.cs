@@ -21,6 +21,22 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
         ModuleDeclaration module;
         TypeDefDeclaration assemblyTypeDefinition;
         TypeDefDeclaration databaseClassIndexTypeDefinition;
+        static TypeAttributes specificationTypeAttributes;
+        static TypeAttributes databaseClassIndexTypeAttributes;
+        static AssemblySpecificationEmit() {
+            specificationTypeAttributes =
+                TypeAttributes.Class |
+                TypeAttributes.NotPublic |
+                TypeAttributes.Abstract |
+                TypeAttributes.BeforeFieldInit |
+                TypeAttributes.Sealed;
+            databaseClassIndexTypeAttributes =
+                TypeAttributes.Class |
+                TypeAttributes.NestedAssembly |
+                TypeAttributes.Sealed |
+                TypeAttributes.Abstract |
+                TypeAttributes.BeforeFieldInit;
+        }
 
         public AssemblySpecificationEmit(ModuleDeclaration module) {
             this.module = module;
@@ -30,13 +46,13 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
         void EmitSpecification() {
             assemblyTypeDefinition = new TypeDefDeclaration {
                 Name = AssemblySpecification.Name,
-                Attributes = TypeAttributes.Class | TypeAttributes.NotPublic | TypeAttributes.Abstract | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed
+                Attributes = specificationTypeAttributes
             };
             module.Types.Add(assemblyTypeDefinition);
 
             databaseClassIndexTypeDefinition = new TypeDefDeclaration {
                 Name = AssemblySpecification.DatabaseClassIndexName,
-                Attributes = TypeAttributes.Class | TypeAttributes.NestedAssembly | TypeAttributes.Sealed | TypeAttributes.Abstract | TypeAttributes.BeforeFieldInit
+                Attributes = databaseClassIndexTypeAttributes
             };
             assemblyTypeDefinition.Types.Add(databaseClassIndexTypeDefinition);
         }
