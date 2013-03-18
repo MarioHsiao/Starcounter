@@ -97,6 +97,7 @@
     <Compile Include="Starcounter.Internal.Weaver\AnonymousTypeAdapter.cs" />
     <Compile Include="Starcounter.Internal.Weaver\AnonymousTypePropertyAttribute.cs" />
     <Compile Include="Starcounter.Internal.Weaver\AssemblyWeavedForIPCAttribute.cs" />
+    <Compile Include="Starcounter.Internal.Weaver\AttachedInstructionWriter.cs" />
     <Compile Include="Starcounter.Internal.Weaver\CastHelper.cs" />
     <Compile Include="Starcounter.Internal.Weaver\DbStateMethodProvider.cs" />
     <Compile Include="Starcounter.Internal.Weaver\EntityConstructorCallAdvice.cs" />
@@ -156,6 +157,9 @@
     <EmbeddedResource Include="Starcounter.Internal.Weaver\Postsharp.license">
       <LogicalName>Sc.Postsharp.license</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Starcounter.Internal.Weaver\IObjectViewImpl\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
