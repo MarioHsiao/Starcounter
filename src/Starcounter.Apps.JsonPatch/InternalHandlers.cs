@@ -9,12 +9,11 @@ using Starcounter.Apps;
 using Starcounter.Internal.Web;
 using Starcounter.Templates;
 using Starcounter.Advanced;
-using Newtonsoft.Json;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using Starcounter.Binding;
 using Codeplex.Data;
-using System.Threading;
+using Starcounter.Internal.REST;
+using System.Net;
 
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
@@ -31,42 +30,36 @@ namespace Starcounter.Internal.JsonPatch {
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
             GET("/__" + dbName + "/{?}", (int viewModelId) => {
-                Puppet rootApp;
-                Byte[] json;
-                HttpResponse response = null;
+                Puppet p = Session.Current.GetRootApp(viewModelId);
 
-                // TODO: Put verification on view model number.
-                rootApp = Session.Current.GetRootApp(viewModelId);
-                json = rootApp.ToJsonUtf8();
-                response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
+                if (p == null) {
+                    return HttpStatusCode.NotFound;
+                }
 
-                return response;
+                return new HttpResponse() {
+                    Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(p.ToJsonUtf8())
+                };
             });
 
             PATCH("/__" + dbName + "/{?}", (int viewModelId, HttpRequest request) => {
                 Puppet rootApp;
                 Session session;
-                HttpResponse response = null;
 
-                response = new HttpResponse();
                 try {
                     session = Session.Current;
                     rootApp = session.GetRootApp(viewModelId);
-
                     JsonPatch.EvaluatePatches(rootApp, request.GetContentByteArray_Slow());
 
                     // TODO:
                     // Quick and dirty hack to autorefresh dependent properties that might have been 
                     // updated. This implementation should be removed after the demo.
-                    RefreshAllValues(rootApp, session.changeLog);
-
-                    response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(session.changeLog);
+                    RefreshAllValues(rootApp, session.ChangeLog);
+                    return rootApp;
                 } catch (NotSupportedException nex) {
-                    response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
+                    return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
                 } catch (Exception ex) {
-                    response.Uncompressed = HttpPatchBuilder.Create400Response(ex.Message);
+                    return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
                 }
-                return response;
             });
 
             if (Db.Environment.HasDatabase) {
@@ -85,7 +78,7 @@ namespace Starcounter.Internal.JsonPatch {
             }
         }
 
-        private static void RefreshAllValues(Puppet app, ChangeLog log) {
+        private static void RefreshAllValues(Puppet app, PuppetChangeLog log) {
             foreach (Template template in app.Template.Children) {
                 TValue tv = template as TValue;
                 if (tv != null && !tv.Bound)
@@ -107,7 +100,7 @@ namespace Starcounter.Internal.JsonPatch {
                 if (template is TTrigger)
                     continue;
 
-                ChangeLog.UpdateValue(app, (TValue)template);
+                PuppetChangeLog.UpdateValue(app, (TValue)template);
             }
         }
 

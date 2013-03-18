@@ -112,7 +112,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             patchBlob += "]";
 
             Session session = new Session();
-            session.Execute(null, () =>
+            Session.Execute(session, () =>
             {
                 Puppet rootApp = CreateSampleApp().App;
                 Session.Current.AttachRootApp(rootApp);
@@ -128,7 +128,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         {
             Session session = new Session();
 
-            session.Execute(null, () => {
+            Session.Execute(session, () => {
 
                 AppAndTemplate aat = CreateSampleApp();
                 dynamic app = aat.App;
@@ -267,7 +267,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             Int32 repeat = 1;
 
             Session session = new Session();
-            session.Execute(null, () => {
+            Session.Execute(session, () => {
                 AppAndTemplate aat = CreateSampleApp();
 
                 appt = (TPuppet)aat.Template;
@@ -284,15 +284,15 @@ namespace Starcounter.Internal.JsonPatch.Test
 
                 start = DateTime.Now;
                 for (Int32 i = 0; i < repeat; i++) {
-                    ChangeLog.UpdateValue(app, lastName);
+                    PuppetChangeLog.UpdateValue(app, lastName);
                     //                ChangeLog.RemoveItemInList(app, items, 0);
-                    ChangeLog.AddItemInList(app, items, app.Items.Count - 1);
+                    PuppetChangeLog.AddItemInList(app, items, app.Items.Count - 1);
 
                     //ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
-                    ChangeLog.UpdateValue(app, lastName);
+                    PuppetChangeLog.UpdateValue(app, lastName);
 
-                    response = HttpPatchBuilder.CreateHttpPatchResponse(session.changeLog);
-                    session.changeLog.Clear();
+                    response = HttpPatchBuilder.CreateHttpPatchResponse(session.ChangeLog);
+                    session.ChangeLog.Clear();
                 }
                 stop = DateTime.Now;
 
