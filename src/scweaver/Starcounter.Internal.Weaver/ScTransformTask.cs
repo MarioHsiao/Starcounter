@@ -323,6 +323,13 @@ namespace Starcounter.Internal.Weaver {
                 databaseEntityClass = dbc as DatabaseEntityClass;
                 if (databaseEntityClass != null) {
                     AddTypeReferenceFields(typeDef);
+
+                    // Temporary code, allow us to implement the IObjectView interface
+                    // on types with a given naming convention, for testing.
+                    var typeDef2 = (TypeDefDeclaration) _module.FindType(dbc.Name + "_NEW", BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                    if (typeDef2 != null) {
+                        ImplementIObjectView(typeDef2);
+                    }
                 }
             }
 
@@ -490,6 +497,7 @@ namespace Starcounter.Internal.Weaver {
             _ushortType = _module.Cache.GetIntrinsic(IntrinsicType.UInt16);
 
             _objectViewType = _module.FindType(typeof(IObjectView), BindingOptions.Default);
+            
             _objectConstructor = _module.FindMethod(typeof(Object).GetConstructor(Type.EmptyTypes),
                                                     BindingOptions.Default);
 
@@ -888,6 +896,49 @@ namespace Starcounter.Internal.Weaver {
         private static Boolean IsAnonymousType(TypeDefDeclaration typeDef) {
             return typeDef.Name.StartsWith("<>f__AnonymousType")
                     || typeDef.Name.StartsWith("VB$AnonymousType");
+        }
+
+        private void ImplementIObjectView(TypeDefDeclaration typeDef) {
+            var typeNET = typeof(IObjectView);
+            ITypeSignature typeSignature = _module.FindType(typeNET, BindingOptions.Default);
+
+            typeDef.InterfaceImplementations.Add(typeSignature);
+
+            var notImplementedCtor = _module.FindMethod(
+                typeof(NotImplementedException).GetConstructor(Type.EmptyTypes),
+                BindingOptions.Default
+                );
+
+            ScMessageSource.Write(
+                SeverityType.Info, string.Format("Implementing IObjectView for {0}", typeDef.Name), new Object[] {});
+
+            // Simplest possible emission for now: just add a stub for every interface
+            // method and throw a NotImplementedException. The code will still not load,
+            // since signatures are not considered, but we can view the result in tools
+            // like .NET Reflector and we have the principles of interface emission
+            // figured out.
+
+            foreach (var interfaceMethod in typeNET.GetMethods()) {
+                IMethod methodRef = _module.FindMethod(interfaceMethod, BindingOptions.Default);
+                var impl = new MethodDefDeclaration() {
+                    Name = typeNET.Name + "." + interfaceMethod.Name,
+                    Attributes = MethodAttributes.Virtual | MethodAttributes.Private | MethodAttributes.ReuseSlot,
+                    CallingConvention = CallingConvention.HasThis,
+                };
+                typeDef.Methods.Add(impl);
+                impl.InterfaceImplementations.Add(methodRef);
+
+                var rootBlock = impl.MethodBody.CreateInstructionBlock();
+                impl.MethodBody.RootInstructionBlock = rootBlock;
+                var instructions = impl.MethodBody.CreateInstructionSequence();
+                rootBlock.AddInstructionSequence(instructions, NodePosition.After, null);
+
+                _writer.AttachInstructionSequence(instructions);
+                _writer.EmitInstruction(OpCodeNumber.Nop);
+                _writer.EmitInstructionMethod(OpCodeNumber.Newobj, notImplementedCtor);
+                _writer.EmitInstruction(OpCodeNumber.Throw);
+                _writer.DetachInstructionSequence();
+            }
         }
 
         /// <summary>
