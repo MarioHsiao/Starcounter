@@ -46,6 +46,47 @@ namespace Starcounter.Hosting {
         /// Provides the name of the database class index type.
         /// </summary>
         public const string DatabaseClassIndexName = "__databaseClasses";
+
+        /// <summary>
+        /// Converts the (full) name of a .NET type to the form used in
+        /// the database class index when referencing it.
+        /// </summary>
+        /// <remarks>
+        /// Even though .NET support naming fields with dots and plus signs,
+        /// the C# language does not and we have the ambition to allow any
+        /// assembly specification to be manually crafted in C# (primarily
+        /// for the sake of testing).
+        /// </remarks>
+        /// <seealso cref="ClassIndexNameToTypeName"/>
+        /// <param name="reflectedName">The full name of the .NET type.</param>
+        /// <returns>The name as used in the class index.</returns>
+        public static string TypeNameToClassIndexName(string reflectedName) {
+            if (reflectedName == null)
+                throw new ArgumentNullException("reflectedName");
+
+            return reflectedName.Replace(".", "_").Replace("+", "__");
+        }
+
+        /// <summary>
+        /// Converts a name of a database class from the form used in the
+        /// database class index to it's .NET equivalent.
+        /// </summary>
+        /// <remarks>
+        /// Even though .NET support naming fields with dots and plus signs,
+        /// the C# language does not and we have the ambition to allow any
+        /// assembly specification to be manually crafted in C# (primarily
+        /// for the sake of testing).
+        /// </remarks>
+        /// <seealso cref="TypeNameToClassIndexName"/>
+        /// <param name="classIndexName">The name as used in the class index.
+        /// </param>
+        /// <returns>The full name of the .NET type.</returns>
+        public static string ClassIndexNameToTypeName(string classIndexName) {
+            if (classIndexName == null)
+                throw new ArgumentNullException("classIndexName");
+
+            return classIndexName.Replace("__", "+").Replace("_", ".");
+        }
         
         /// <summary>
         /// Loads the assembly specification from a given assembly.
@@ -164,8 +205,9 @@ namespace Starcounter.Hosting {
             // get all fields (and assert they are typed with a Type field
             // type.
 
+            var assembly = specificationType.Assembly;
             lock (this) {
-                var matchingFields = new List<FieldInfo>();
+                var specificationsFound = new List<Type>();
                 try {
                     var fields = databaseClassIndexType.GetFields();
                     foreach (var field in fields) {
@@ -178,19 +220,30 @@ namespace Starcounter.Hosting {
                             Error.SCERRBACKINGRETREIVALFAILED,
                             "Fields in the database index should be declared with the System.Type field type."
                             );
-                        var referencedSpecification = field.GetValue(null) as Type;
+                        // Why would we need the reference assigned when we know
+                        // that we can get the type from the same assembly just be
+                        // doing assembly.GetType(fieldName);
+                        // TODO:
+
+                        // By converting using the name of the reference (after some
+                        // formatting), we should be able to get the database type
+                        // itself.
+
+                        var databaseTypeName = ClassIndexNameToTypeName(field.Name);
+                        var databaseType = assembly.GetType(databaseTypeName, false);
                         __Assert.OrThrow(
-                            referencedSpecification != null,
+                            databaseType != null,
                             Error.SCERRBACKINGRETREIVALFAILED,
-                            string.Format("Fields in the database class index must be assigned, field {0} is not.", field.Name)
+                            string.Format("Unable to resolve database type {0}, referenced in class index using {1}", databaseTypeName, field.Name)
                             );
+                        var typeSpecType = databaseType.GetNestedType(TypeSpecification.Name);
                         __Assert.OrThrow(
-                            referencedSpecification.Name.EndsWith(TypeSpecification.Name),
+                            typeSpecType != null,
                             Error.SCERRBACKINGRETREIVALFAILED,
-                            string.Format("Fields must reference a type named *.{0}", TypeSpecification.Name)
+                            string.Format("Unable to find nested type specification of database type {0}, using {1}", databaseType, TypeSpecification.Name)
                             );
 
-                        matchingFields.Add(field);
+                        specificationsFound.Add(typeSpecType);
                     }
                 } catch (Exception e) {
                     var msg = "Failed getting types from database class index. Specification \"{0}\", Database Class Index \"{1}\" Assembly = \"{2}\"";
@@ -203,10 +256,9 @@ namespace Starcounter.Hosting {
                     throw ErrorCode.ToException(Error.SCERRBACKINGRETREIVALFAILED, e, msg);
                 }
 
-                databaseTypeToSpecType = new Dictionary<Type, Type>(matchingFields.Count);
-                foreach (var spec in matchingFields) {
-                    var specificationType = spec.GetValue(null) as Type;
-                    databaseTypeToSpecType.Add(specificationType.DeclaringType, specificationType);
+                databaseTypeToSpecType = new Dictionary<Type, Type>(specificationsFound.Count);
+                foreach (var spec in specificationsFound) {
+                    databaseTypeToSpecType.Add(spec.DeclaringType, spec);
                 }
             }
         }
