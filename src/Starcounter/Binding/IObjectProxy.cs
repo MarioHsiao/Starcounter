@@ -14,9 +14,12 @@ namespace Starcounter.Binding {
     /// </summary>
     public interface IObjectProxy : IObjectView {
         /// <summary>
-        /// Gets or sets the underlying "this handle".
+        /// Gets the underlying "this handle".
         /// </summary>
-        ObjectRef ThisHandle { get; set; }
+        /// <remarks>
+        /// To assign the handle, use <see cref="Bind"/>.
+        /// </remarks>
+        ObjectRef ThisHandle { get; }
 
         /// <summary>
         /// Binds the underlying object to the given address, object id
