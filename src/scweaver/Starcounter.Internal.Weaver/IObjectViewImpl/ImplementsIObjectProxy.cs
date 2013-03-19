@@ -39,6 +39,9 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         InstructionWriter writer;
         IMethod notImplementedCtor;
         static MethodAttributes methodAttributes;
+        FieldDefDeclaration thisHandleField;
+        FieldDefDeclaration thisIdentityField;
+        FieldDefDeclaration thisBindingField;
         static ImplementsIObjectProxy() {
             methodAttributes =
                 MethodAttributes.Virtual |
@@ -55,15 +58,21 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             viewTypeSignature = module.FindType(viewNETType, BindingOptions.Default);
             proxyNETType = typeof(IObjectProxy);
             proxyTypeSignature = module.FindType(proxyNETType, BindingOptions.Default);
+            
             targets = new Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>>();
             targets.Add("AssertEquals", AssertEquals);
             targets.Add("GetBoolean", GetBoolean);
             targets.Add("GetUInt32", GetUInt32);
             targets.Add("Bind", Bind);
             targets.Add("get_ThisHandle", GetThisHandle);
+            targets.Add("get_Identity", GetThisIdentity);
         }
 
         public void ImplementOn(TypeDefDeclaration typeDef) {
+            thisHandleField = typeDef.Fields.GetByName(TypeSpecification.ThisHandleName);
+            thisIdentityField = typeDef.Fields.GetByName(TypeSpecification.ThisIdName);
+            thisBindingField = typeDef.Fields.GetByName(TypeSpecification.ThisBindingName);
+
             typeDef.InterfaceImplementations.Add(viewTypeSignature);
             typeDef.InterfaceImplementations.Add(proxyTypeSignature);
 
@@ -84,9 +93,6 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             foreach (var interfaceMethod in proxyNETType.GetMethods()) {
                 IMethod methodRef = module.FindMethod(interfaceMethod, BindingOptions.Default);
 
-                // Add these:
-                // ObjectRef get_ThisHandle();
-                // void Bind(ulong addr, ulong oid, TypeBinding typeBinding)
                 var impl = new MethodDefDeclaration() {
                     Name = proxyNETType.Name + "." + interfaceMethod.Name,
                     Attributes = methodAttributes,
@@ -121,25 +127,54 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             impl.Parameters.Add(parameter);
             parameter = new ParameterDeclaration(2, "typeBinding", module.FindType(typeof(TypeBinding), BindingOptions.Default));
             impl.Parameters.Add(parameter);
-            
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                var w = attached.Writer;
+
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstruction(OpCodeNumber.Ldarg_1);
+                w.EmitInstructionField(OpCodeNumber.Stfld, thisHandleField);
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstruction(OpCodeNumber.Ldarg_2);
+                w.EmitInstructionField(OpCodeNumber.Stfld, thisIdentityField);
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstruction(OpCodeNumber.Ldarg_3);
+                w.EmitInstructionField(OpCodeNumber.Stfld, thisBindingField);
+                w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
 
         void GetThisHandle(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            // Signature: ObjectRef IObjectProxy.get_ThisHandle()
+            // Signature: ulong IObjectProxy.get_ThisHandle()
             impl.Attributes |= MethodAttributes.SpecialName;
             impl.ReturnParameter = new ParameterDeclaration {
                 Attributes = ParameterAttributes.Retval,
-                ParameterType = module.FindType(typeof(ObjectRef), BindingOptions.Default)
+                ParameterType = module.Cache.GetIntrinsic(IntrinsicType.UInt64)
             };
 
             using (var attached = new AttachedInstructionWriter(writer, impl)) {
                 var w = attached.Writer;
                 impl.MethodBody.MaxStack = 8;
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
-                w.EmitInstructionField(OpCodeNumber.Ldfld, typeDef.Fields.GetByName(TypeSpecification.ThisHandleName));
+                w.EmitInstructionField(OpCodeNumber.Ldfld, thisHandleField);
+                w.EmitInstruction(OpCodeNumber.Ret);
+            }
+        }
+
+        void GetThisIdentity(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            // Signature: ulong IObjectProxy.get_Identity()
+            impl.Attributes |= MethodAttributes.SpecialName;
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.Cache.GetIntrinsic(IntrinsicType.UInt64)
+            };
+
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                var w = attached.Writer;
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionField(OpCodeNumber.Ldfld, thisIdentityField);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
