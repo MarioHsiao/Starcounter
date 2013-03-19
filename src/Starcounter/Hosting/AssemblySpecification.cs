@@ -148,11 +148,7 @@ namespace Starcounter.Hosting {
         /// the database class index.
         /// </returns>
         public Type[] GetDatabaseClasses() {
-            if (databaseTypeToSpecType == null) {
-                CacheDatabaseClassIndex();
-            }
-            
-            return databaseTypeToSpecType.Keys.ToArray();
+            return GetCache().Keys.ToArray();
         }
 
         /// <summary>
@@ -164,11 +160,7 @@ namespace Starcounter.Hosting {
         /// specification.
         /// </returns>
         public Type[] GetDatabaseTypeSpecifications() {
-            if (databaseTypeToSpecType == null) {
-                CacheDatabaseClassIndex();
-            }
-
-            return databaseTypeToSpecType.Values.ToArray();
+            return GetCache().Values.ToArray();
         }
 
         /// <summary>
@@ -190,12 +182,47 @@ namespace Starcounter.Hosting {
                 throw new ArgumentNullException("databaseClassType");
             }
 
+            specType = GetCache()[databaseClassType];
+            return new TypeSpecification(specType);
+        }
+
+        /// <summary>
+        /// Gets a <see cref="TypeSpecification"/> instance from the given
+        /// type.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Lookup is perfomed via the (cached) database class index, meaning
+        /// that even if the given type represents a valid type specification,
+        /// an exception can still be raised if it's not indexed.
+        /// </para>
+        /// </remarks>
+        /// <param name="typeSpecificationType"></param>
+        /// <returns></returns>
+        public TypeSpecification GetSpecification(Type typeSpecificationType) {
+            if (typeSpecificationType == null) {
+                throw new ArgumentNullException("typeSpecificationType");
+            }
+
+            // We could go straight to the TypeSpecification constructor,
+            // but since we are wrapping an access layer on an assembly
+            // specification, we should go via the cache to make sure we
+            // have it indexed.
+
+            foreach (var item in GetCache()) {
+                if (item.Value == typeSpecificationType) {
+                    return new TypeSpecification(typeSpecificationType);
+                }
+            }
+
+            throw ErrorCode.ToException(Error.SCERRTYPESPECILLEGALCONSTRUCT);
+        }
+
+        Dictionary<Type, Type> GetCache() {
             if (databaseTypeToSpecType == null) {
                 CacheDatabaseClassIndex();
             }
-
-            specType = databaseTypeToSpecType[databaseClassType];
-            return new TypeSpecification(specType);
+            return databaseTypeToSpecType;
         }
 
         void CacheDatabaseClassIndex() {
