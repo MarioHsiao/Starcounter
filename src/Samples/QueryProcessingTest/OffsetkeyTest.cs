@@ -33,6 +33,10 @@ namespace QueryProcessingTest {
         static void AddQueries() {
             queries.Add((addition, arg) => Db.SQL("select u from user u " + addition, arg));
             queries.Add((addition, arg) => Db.SQL("select u from user u where useridnr < ? " + addition, 5, arg));
+            queries.Add((addition, arg) => Db.SQL("select Client from Account " + addition, arg));
+            queries.Add((addition, arg) => Db.SQL("select Client from Account where accountid < ? " + addition, 5, arg));
+            queries.Add((addition, arg) => Db.SQL("select u from User u, Account a where useridnr < ? and u = Client and amount = ? " + addition, 5, 0, arg));
+            queries.Add((addition, arg) => Db.SQL("select u1 from User u1 join user u2 on u1 <> u2 and u1.useridnr = u2.useridnr + ? " + addition, 1, arg));
         }
 
         static void ErrorCases() {
@@ -82,6 +86,7 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(isException);
 
+#if false
             isException = false;
             e = Db.SQL("select u from user u where useridnr < ? fetch ?", 5, 4).GetEnumerator();
             e.MoveNext();
@@ -115,26 +120,26 @@ namespace QueryProcessingTest {
                 e.Dispose();
             }
             Trace.Assert(isException);
+#endif
         }
 
         static void SimpleTestsAllQueries() {
-            string f = "fetch ?";
-            string o = "offsetkey ?";
             int n = 4;
             byte[] k = null;
             foreach (CallQuery q in queries)
                 Db.Transaction(delegate {
                     int userIdNr = 0;
-                    using (IRowEnumerator<dynamic> e = q(f, n).GetEnumerator()) {
+                    using (IRowEnumerator<dynamic> e = q("fetch ?", n).GetEnumerator()) {
                         e.MoveNext();
                         Trace.Assert(e.Current is User);
-                        Trace.Assert((e.Current as User).UserIdNr == 0);
+                        //Trace.Assert((e.Current as User).UserIdNr == 0);
                         e.MoveNext();
                         Trace.Assert(e.Current is User);
                         userIdNr = (e.Current as User).UserIdNr;
                         k = e.GetOffsetKey();
                     }
-                    using (IRowEnumerator<dynamic> e = q(o, k).GetEnumerator()) {
+                    Trace.Assert(k != null);
+                    using (IRowEnumerator<dynamic> e = q("offsetkey ?", k).GetEnumerator()) {
                         e.MoveNext();
                         Trace.Assert(e.Current is User);
                         Trace.Assert((e.Current as User).UserIdNr == userIdNr);
