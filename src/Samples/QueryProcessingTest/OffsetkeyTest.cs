@@ -159,6 +159,10 @@ namespace QueryProcessingTest {
             DoOffsetkey(query, key, new int[] {GetAccountId(3-1), GetAccountId(4-1), GetAccountId(5-1)}); // offsetkey does not move forward
             InsertAccount(GetAccountId(1), client);
             // Insert inside
+            key = DoFetch(query);
+            InsertAccount(GetAccountId(1)+1, client);
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(5 - 1) }); // offsetkey does not move forward
+            Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1) + 1).First.Delete();
             // Drop data
             DropAfterTest();
         }
