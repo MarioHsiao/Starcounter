@@ -42,9 +42,39 @@ namespace Starcounter.Internal.Weaver {
                 BindingOptions bind = BindingOptions.Default;
                 var viewType = typeof(DbState.View);
                 GetBoolean = module.FindMethod(viewType.GetMethod("GetBoolean"), bind);
+                GetBinary = module.FindMethod(viewType.GetMethod("GetBinary"), bind);
+                GetByte = module.FindMethod(viewType.GetMethod("GetByte"), bind);
+                GetDateTime = module.FindMethod(viewType.GetMethod("GetDateTime"), bind);
+                GetDecimal = module.FindMethod(viewType.GetMethod("GetDecimal"), bind);
+                GetDouble = module.FindMethod(viewType.GetMethod("GetDouble"), bind);
+                GetInt16 = module.FindMethod(viewType.GetMethod("GetInt16"), bind);
+                GetInt32 = module.FindMethod(viewType.GetMethod("GetInt32"), bind);
+                GetInt64 = module.FindMethod(viewType.GetMethod("GetInt64"), bind);
+                GetObject = module.FindMethod(viewType.GetMethod("GetObject"), bind);
+                GetSByte = module.FindMethod(viewType.GetMethod("GetSByte"), bind);
+                GetSingle = module.FindMethod(viewType.GetMethod("GetSingle"), bind);
+                GetString = module.FindMethod(viewType.GetMethod("GetString"), bind);
+                GetUInt16 = module.FindMethod(viewType.GetMethod("GetUInt16"), bind);
+                GetUInt32 = module.FindMethod(viewType.GetMethod("GetUInt32"), bind);
+                GetUInt64 = module.FindMethod(viewType.GetMethod("GetUInt64"), bind);
             }
 
             public IMethod GetBoolean { get; private set; }
+            public IMethod GetBinary { get; private set; }
+            public IMethod GetByte{ get; private set; }
+            public IMethod GetDateTime { get; private set; }
+            public IMethod GetDecimal { get; private set; }
+            public IMethod GetDouble { get; private set; }
+            public IMethod GetInt16 { get; private set; }
+            public IMethod GetInt32 { get; private set; }
+            public IMethod GetInt64 { get; private set; }
+            public IMethod GetObject { get; private set; }
+            public IMethod GetSByte { get; private set; }
+            public IMethod GetSingle { get; private set; }
+            public IMethod GetString { get; private set; }
+            public IMethod GetUInt16 { get; private set; }
+            public IMethod GetUInt32 { get; private set; }
+            public IMethod GetUInt64 { get; private set; }
         }
 
         /// <summary>
