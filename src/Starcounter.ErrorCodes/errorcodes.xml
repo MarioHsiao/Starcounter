@@ -3015,6 +3015,12 @@
     <code hex="00F2" severity="Error" name="ScErrBackingDbIndexTypeNotFound">
       <message>The database class index backing type was not found in the given assembly.</message>
     </code>
+    <code hex="00F3" severity="Error" name="ScErrNotATypeSpecificationType">
+      <message>The given .NET type was not considered a valid type specification type.</message>
+    </code>
+    <code hex="00F4" severity="Error" name="ScErrTypeSpecIllegalConstruct">
+      <message>A type specification construct was missing or had an illegal signature.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
