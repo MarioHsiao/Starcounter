@@ -61,7 +61,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             var name = AssemblySpecification.TypeNameToClassIndexName(databaseClassTypeDef.Name);
             var typeReference = new FieldDefDeclaration {
                 Name = name,
-                Attributes = (FieldAttributes.Assembly | FieldAttributes.Static),
+                Attributes = (FieldAttributes.Public | FieldAttributes.Static),
                 FieldType = module.Cache.GetType(typeof(Type))
             };
 
