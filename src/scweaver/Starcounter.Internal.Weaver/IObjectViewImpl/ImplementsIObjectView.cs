@@ -10,6 +10,7 @@ using System.Diagnostics;
 using PostSharp.Sdk.Collections;
 using Starcounter.Internal.Weaver;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
+using Starcounter.Binding;
 
 namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
@@ -30,8 +31,10 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
     internal sealed class ImplementsIObjectView {
         Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>> targets;
         ModuleDeclaration module;
-        Type interfaceNETType;
-        ITypeSignature interfaceTypeSignature;
+        Type viewNETType;
+        ITypeSignature viewTypeSignature;
+        Type proxyNETType;
+        ITypeSignature proxyTypeSignature;
         InstructionWriter writer;
         IMethod notImplementedCtor;
         static MethodAttributes methodAttributes;
@@ -47,8 +50,10 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         internal ImplementsIObjectView(ModuleDeclaration module, InstructionWriter writer) {
             this.module = module;
             this.writer = writer;
-            interfaceNETType = typeof(IObjectView);
-            interfaceTypeSignature = module.FindType(interfaceNETType, BindingOptions.Default);
+            viewNETType = typeof(IObjectView);
+            viewTypeSignature = module.FindType(viewNETType, BindingOptions.Default);
+            proxyNETType = typeof(IObjectProxy);
+            proxyTypeSignature = module.FindType(proxyNETType, BindingOptions.Default);
             targets = new Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>>();
             targets.Add("AssertEquals", AssertEquals);
             targets.Add("GetBoolean", GetBoolean);
@@ -56,13 +61,33 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         }
 
         public void ImplementOn(TypeDefDeclaration typeDef) {
-            typeDef.InterfaceImplementations.Add(interfaceTypeSignature);
-            
-            foreach (var interfaceMethod in interfaceNETType.GetMethods()) {
+            typeDef.InterfaceImplementations.Add(proxyTypeSignature);
+            // Do we need to add IObjectView too? TODO:
+            // typeDef.InterfaceImplementations.Add(viewTypeSignature);
+
+            foreach (var interfaceMethod in viewNETType.GetMethods()) {
                 IMethod methodRef = module.FindMethod(interfaceMethod, BindingOptions.Default);
 
                 var impl = new MethodDefDeclaration() {
-                    Name = interfaceNETType.Name + "." + interfaceMethod.Name,
+                    Name = viewNETType.Name + "." + interfaceMethod.Name,
+                    Attributes = methodAttributes,
+                    CallingConvention = CallingConvention.HasThis,
+                };
+                typeDef.Methods.Add(impl);
+                impl.InterfaceImplementations.Add(methodRef);
+
+                ImplementInterfaceMethod(interfaceMethod, typeDef, methodRef, impl);
+            }
+
+            foreach (var interfaceMethod in proxyNETType.GetMethods()) {
+                IMethod methodRef = module.FindMethod(interfaceMethod, BindingOptions.Default);
+
+                // Add these:
+                // ObjectRef get_ThisHandle();
+                // set_ThisHandle(ObjectRef handle);
+                // void Bind(ulong addr, ulong oid, TypeBinding typeBinding)
+                var impl = new MethodDefDeclaration() {
+                    Name = proxyNETType.Name + "." + interfaceMethod.Name,
                     Attributes = methodAttributes,
                     CallingConvention = CallingConvention.HasThis,
                 };
@@ -92,7 +117,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 Attributes = ParameterAttributes.Retval,
                 ParameterType = module.Cache.GetIntrinsic(IntrinsicType.Boolean)
             };
-            var otherParameter = new ParameterDeclaration(0, "other", interfaceTypeSignature);
+            var otherParameter = new ParameterDeclaration(0, "other", viewTypeSignature);
             impl.Parameters.Add(otherParameter);
 
             using (var w = new AttachedInstructionWriter(writer, impl)) {
