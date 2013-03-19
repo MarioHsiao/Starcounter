@@ -11,6 +11,7 @@ using PostSharp.Sdk.Collections;
 using Starcounter.Internal.Weaver;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
 using Starcounter.Binding;
+using Starcounter.Hosting;
 
 namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
@@ -133,8 +134,12 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 ParameterType = module.FindType(typeof(ObjectRef), BindingOptions.Default)
             };
 
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                var w = attached.Writer;
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionField(OpCodeNumber.Ldfld, typeDef.Fields.GetByName(TypeSpecification.ThisHandleName));
+                w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
 
