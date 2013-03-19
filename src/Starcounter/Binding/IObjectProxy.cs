@@ -19,7 +19,15 @@ namespace Starcounter.Binding {
         /// <remarks>
         /// To assign the handle, use <see cref="Bind"/>.
         /// </remarks>
-        ObjectRef ThisHandle { get; }
+        ulong ThisHandle { get; }
+
+        /// <summary>
+        /// Gets the identity of the underlying object.
+        /// </summary>
+        /// <remarks>
+        /// To assign the identity, use <see cref="Bind"/>.
+        /// </remarks>
+        ulong Identity { get; }
 
         /// <summary>
         /// Binds the underlying object to the given address, object id
