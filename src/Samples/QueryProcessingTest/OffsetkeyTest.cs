@@ -150,13 +150,15 @@ namespace QueryProcessingTest {
 
         static void TestDataModification() {
             // Populate data
-            PopulateForTest();
+            User client = PopulateForTest();
             // Do set of tests
             String query = "select a from account a where accountid > ?";
             // Drop inside
             var key = DoFetch(query);
             Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1)).First.Delete();
             DoOffsetkey(query, key, new int[] {GetAccountId(3-1), GetAccountId(4-1), GetAccountId(5-1)}); // offsetkey does not move forward
+            InsertAccount(GetAccountId(1), client);
+            // Insert inside
             // Drop data
             DropAfterTest();
         }
@@ -185,7 +187,7 @@ namespace QueryProcessingTest {
             Trace.Assert(nrs == expectedResult.Length);
         }
 
-        static void PopulateForTest() {
+        static User PopulateForTest() {
             Trace.Assert(Db.SQL<Account>("select a from account a order by accountid desc").First.AccountId == AccountIdLast);
             Trace.Assert(Db.SlowSQL<long>("select count(u) from user u").First == 10000);
             User client = new User {
@@ -195,9 +197,9 @@ namespace QueryProcessingTest {
                 LastName = "User",
                 UserId = DataPopulation.FakeUserId(10005)
             };
-            for (int i = 0; i < 6; i++) {
-                new Account { AccountId = GetAccountId(i), Amount = 100.0m - i * 10, Client = client, Updated = DateTime.Now };
-            }
+            for (int i = 0; i < 6; i++)
+                InsertAccount(GetAccountId(i), client);
+            return client;
         }
 
         static void DropAfterTest() {
@@ -218,6 +220,10 @@ namespace QueryProcessingTest {
             return 10000 * 3 + (i + 1) * 3;
         }
         static int AccountIdLast = 10000 * 3 - 1;
+
+        static Account InsertAccount(int accountId, User client) {
+            return new Account { AccountId = accountId, Amount = 100.0m - (accountId - AccountIdLast) * 3, Client = client, Updated = DateTime.Now };
+        }
     }
     /*
      * I. Queries (index, non-index, codegen)
