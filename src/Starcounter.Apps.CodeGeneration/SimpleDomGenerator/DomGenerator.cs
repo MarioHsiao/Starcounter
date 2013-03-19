@@ -183,6 +183,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 IsPartial = true
             };
 
+            if (metadata == CodeBehindMetadata.Empty) { // No codebehind. Need to set inheritance and remove partial flag.
+                acn.IsPartial = false;
+                acn._Inherits = DefaultObjTemplate.InstanceType.Name;
+            }
+
             var tcn = new NTAppClass( this )
             {
                 Parent = acn,
@@ -221,25 +226,27 @@ namespace Starcounter.Internal.Application.CodeGeneration
             MoveNestedClassToBottom(root);
 
 //                Container = acn,
-            var json = new NJsonAttributeClass(this)
-            {
-                Parent = acn,
-                IsStatic = true,
-                _Inherits = null,
-                _ClassName = "json"
-            };
-            GenerateJsonAttributes(acn, json);
 
-            var input = new NOtherClass(this)
-            {
-                Parent = acn,
-                _ClassName = "Input",
-                IsStatic = true
-            };
-            GeneratePrimitiveValueEvents(input, acn, "Input");
+            if (metadata != CodeBehindMetadata.Empty) {
+                var json = new NJsonAttributeClass(this) {
+                    Parent = acn,
+                    IsStatic = true,
+                    _Inherits = null,
+                    _ClassName = "json"
+                };
+                GenerateJsonAttributes(acn, json);
 
-            ConnectCodeBehindClasses(root, metadata);
-            GenerateInputBindings((NTAppClass)acn.NTemplateClass, metadata);
+                var input = new NOtherClass(this) {
+                    Parent = acn,
+                    _ClassName = "Input",
+                    IsStatic = true
+                };
+                GeneratePrimitiveValueEvents(input, acn, "Input");
+
+                ConnectCodeBehindClasses(root, metadata);
+                GenerateInputBindings((NTAppClass)acn.NTemplateClass, metadata);
+            }
+
             return root;
         }
 
