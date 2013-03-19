@@ -256,10 +256,17 @@ namespace LoadAndLatency
             logger.Log(eventString);
         }
 
+        public enum LALSpecificTest
+        {
+            STANDARD_TEST,
+            PARALLEL_READ_ONLY_TEST,
+            PARALLEL_UPDATES_TEST
+        }
+
         /// <summary>
         /// Main entry point for all LoadAndLatency tests.
         /// </summary>
-        public void EntryPoint(Object state)
+        public void EntryPoint(LALSpecificTest specificTestType)
         {
             //System.Diagnostics.Debugger.Break();
 
@@ -287,25 +294,53 @@ namespace LoadAndLatency
             InitRandomData(numOfJobsTotal);
             LogEvent("---------------------------------------------------------------");
 
+            // Preparing database to run tests.
+            SQLSelectPrepare();
+
             // Checking if we need to run parallel test only.
             if (parallelTestOnly)
             {
-                LogEvent("--- Only parallel test selected to be run...");
-
-                // Preparing database to run tests.
-                SQLSelectPrepare();
+                LogEvent("--- Only parallel read-only test selected to be run...");
 
                 // Doing read transactions performance with multiple workers.
                 SQLSelectMulti(false, NumOfWorkers);
 
                 // Indicating successful finish of the work.
-                logger.Log("LoadAndLatency parallel test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+                logger.Log("LoadAndLatency parallel read-only test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
 
                 return;
             }
+            // Checking type of a test.
+            else if (specificTestType == LALSpecificTest.PARALLEL_UPDATES_TEST)
+            {
+                LogEvent("--- Only parallel updates test selected to be run...");
 
-            // Preparing database to run tests.
-            SQLSelectPrepare();
+                // Doing update transactions performance.
+                SQLSelectSingle(true);
+
+                // Running simple multi-workers scalability test.
+                for (Int32 i = MinNightlyWorkers; i <= NumOfWorkers; i++)
+                {
+                    SQLSimpleMultiTest(i, TotalNumOfObjectsInDB, 1);
+                }
+
+                // Running more complex multi-workers scalability test with updates.
+                for (Int32 i = MinNightlyWorkers; i <= NumOfWorkers; i++)
+                {
+                    SQLSelectMulti(true, i);
+                }
+
+                // Running simple multi-workers scalability test.
+                for (Int32 i = MinNightlyWorkers; i <= NumOfWorkers; i++)
+                {
+                    SQLSimpleMultiTest(i, TotalNumOfObjectsInDB / 100, 100);
+                }
+
+                // Indicating successful finish of the work.
+                logger.Log("LoadAndLatency parallel updates test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+
+                return;
+            }
 
             // Testing that recreation/offset key works.
             SQLTestOffsetKeySimple();

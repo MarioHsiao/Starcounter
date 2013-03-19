@@ -106,7 +106,7 @@ namespace LoadAndLatencyStartup
             Console.WriteLine("Running LaL with " + lal.NumOfWorkers + " workers and " + lal.TransactionsNumber + " transactions multiplier.");
 
             // Starting the test.
-            lal.EntryPoint(null);
+            lal.EntryPoint(LoadAndLatencyCore.LALSpecificTest.PARALLEL_UPDATES_TEST);
 
             // Exiting test successfully.
             Environment.Exit(0);
