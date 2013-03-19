@@ -1,4 +1,5 @@
-﻿using Starcounter.Logging;
+﻿using Starcounter.Binding;
+using Starcounter.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,8 +53,26 @@ namespace Starcounter.Hosting {
             }
         }
 
-        void IBackingHost.InitializeTypeSpecification(Type typeSpec) {
-            throw new NotImplementedException();
+        void IBackingHost.InitializeTypeSpecification(Type typeSpecType) {
+            TypeSpecification typeSpecification;
+            Type databaseType;
+            TypeBinding binding;
+
+            typeSpecification = new TypeSpecification(typeSpecType, true);
+            databaseType = typeSpecType.DeclaringType;
+            binding = Bindings.GetTypeBinding(databaseType.FullName);
+
+            typeSpecification.TableHandle = binding.TableId;
+            typeSpecification.TypeBinding = binding;
+
+            var columns = binding.TypeDef.TableDef.ColumnDefs;
+            for (int ci = 0; ci < columns.Length; ci++) {
+                var column = columns[ci];
+
+                if (!column.IsInherited) {
+                    typeSpecification.SetColumnIndex(column.Name, ci);   
+                }
+            }
         }
     }
 }
