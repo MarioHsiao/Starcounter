@@ -2,6 +2,6 @@
 using Starcounter;
 
 namespace StarcounterApps3 {
-    partial class ServerApp : Puppet {
+    partial class ServerApp : Json {
     }
 }

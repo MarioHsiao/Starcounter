@@ -16,7 +16,7 @@ using System.Net;
 
 namespace StarcounterApps3 {
 
-    partial class Master : Puppet {
+    partial class Master : Json {
 
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;
@@ -132,7 +132,7 @@ namespace StarcounterApps3 {
             });
 
             GET("/", () => {
-                return new Master() { View = "index.html" };
+                return new Master() { /*View = "index.html"*/ };
             });
 
             // Accept "", text/html, OR application/json. Otherwise, 406.
@@ -141,7 +141,7 @@ namespace StarcounterApps3 {
                 ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
 
                 ServerApp serverApp = new ServerApp();
-                serverApp.View = "server.html";
+//                serverApp.View = "server.html";
                 serverApp.DatabaseDirectory = serverInfo.Configuration.DatabaseDirectory;
                 serverApp.LogDirectory = serverInfo.Configuration.LogDirectory;
                 serverApp.TempDirectory = serverInfo.Configuration.TempDirectory;
@@ -156,7 +156,7 @@ namespace StarcounterApps3 {
 
                 DatabasesApp databaseList = new DatabasesApp();
 
-                databaseList.View = "databases.html";
+//                databaseList.View = "databases.html";
                 foreach (var database in databases) {
                     DatabaseApp databaseApp = new DatabaseApp();
                     databaseApp.SetDatabaseInfo(database);
@@ -174,7 +174,7 @@ namespace StarcounterApps3 {
                 DatabaseInfo database = Master.ServerInterface.GetDatabase(uri);
 
                 DatabaseApp databaseApp = new DatabaseApp();
-                databaseApp.View = "database.html";
+//                databaseApp.View = "database.html";
 
                 databaseApp.SetDatabaseInfo(database);
 
@@ -184,7 +184,7 @@ namespace StarcounterApps3 {
 
             GET("/apps", () => {
                 AppsApp appsApp = new AppsApp();
-                appsApp.View = "apps.html";
+//                appsApp.View = "apps.html";
 
                 appsApp.Setup();
 
@@ -195,7 +195,7 @@ namespace StarcounterApps3 {
             GET("/query", () => {
 
                 SqlApp sqlApp = new SqlApp();
-                sqlApp.View = "sql.html";
+//                sqlApp.View = "sql.html";
                 sqlApp.DatabaseName = "default";
                 sqlApp.Query = "SELECT m FROM systable m";
                 sqlApp.Port = 8181;
@@ -207,7 +207,7 @@ namespace StarcounterApps3 {
 
             GET("/log", () => {
                 LogApp logApp = new LogApp() { FilterNotice = true, FilterWarning = true, FilterError = true };
-                logApp.View = "log.html";
+//                logApp.View = "log.html";
                 logApp.RefreshLogEntriesList();
                 return logApp;
             });
