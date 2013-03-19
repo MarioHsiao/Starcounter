@@ -310,7 +310,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlCacheTrasher", "Samples\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolePosition", "Samples\PolePosition\PolePosition.csproj", "{D4B13F57-763D-4742-BE17-01E93ECF7FC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSMessageItemTemplate", "Development\Starcounter.VS.CSMessageItemTemplate\Starcounter.VS.CSMessageItemTemplate.csproj", "{009D8737-B1E7-4EEA-B76A-DF237E0ECF88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.VS.CSTypedJsonItemTemplate", "Development\Starcounter.VS.CSMessageItemTemplate\Starcounter.VS.CSTypedJsonItemTemplate.csproj", "{009D8737-B1E7-4EEA-B76A-DF237E0ECF88}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scweaver.Test", "scweaver.Test\scweaver.Test.csproj", "{309EBD0A-3494-4999-BA61-1C9007477963}"
 EndProject

@@ -19,7 +19,7 @@
         <Assembly>System</Assembly>
       </Reference>
     </References>
-    <ProjectItem SubType="" TargetFileName="$fileinputname$.json" ReplaceParameters="true" ItemType="TypedJSON" CustomTool="MsBuild:Compile">Message1.json</ProjectItem>
-    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.json\$fileinputname$.json.cs" ReplaceParameters="true">Message1.json.cs</ProjectItem>
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.json" ReplaceParameters="true" ItemType="TypedJSON" CustomTool="MsBuild:Compile">Message.json</ProjectItem>
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.json\$fileinputname$.json.cs" ReplaceParameters="true">Message.json.cs</ProjectItem>
   </TemplateContent>
 </VSTemplate>
