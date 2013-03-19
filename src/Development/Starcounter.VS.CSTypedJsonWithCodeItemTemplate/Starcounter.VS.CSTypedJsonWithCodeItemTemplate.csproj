@@ -10,7 +10,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ProjectGuid>{009D8737-B1E7-4EEA-B76A-DF237E0ECF88}</ProjectGuid>
+    <ProjectGuid>{90A9A27F-C719-4D80-BF77-AC3639C03AA5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Starcounter.VS.CSTypedJsonItemTemplate</RootNamespace>
@@ -37,7 +37,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Debug\Starcounter.VS.CSTypedJsonItemTemplate.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Starcounter.VS.CSTypedJsonWithCodeItemTemplate.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -47,7 +47,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Release\Starcounter.VS.CSTypedItemTemplate.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Starcounter.VS.CSTypedWithCodeItemTemplate.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility">
@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Message.json.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -66,7 +67,7 @@
     <None Include="Message.json" />
   </ItemGroup>
   <ItemGroup>
-    <VSTemplate Include="CSTypedJson.vstemplate">
+    <VSTemplate Include="CSTypedJsonWithCode.vstemplate">
       <OutputSubPath>Starcounter</OutputSubPath>
       <SubType>Designer</SubType>
     </VSTemplate>
