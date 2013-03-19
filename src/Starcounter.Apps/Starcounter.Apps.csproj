@@ -77,8 +77,6 @@
     <Compile Include="Puppets\Puppet.cs" />
     <Compile Include="Puppets\Puppet.Input.cs" />
     <Compile Include="Puppets\TApp.cs" />
-    <Compile Include="Puppets\TriggerMetadata.cs" />
-    <Compile Include="Puppets\TTrigger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -75,6 +75,7 @@
     <Compile Include="Templates\TObj.cs" />
     <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\TString.cs" />
+    <Compile Include="Templates\TTrigger.cs" />
     <Compile Include="ValueMetaData\ArrMetadata.cs" />
     <Compile Include="ValueMetaData\BoolMetadata.cs" />
     <Compile Include="ValueMetaData\DecimalMetadata.cs" />
@@ -82,9 +83,9 @@
     <Compile Include="ValueMetaData\Foundation\ObjMetadataBase.cs" />
     <Compile Include="ValueMetaData\Foundation\ValueMetadata.cs" />
     <Compile Include="ValueMetaData\LongMetadata.cs" />
-    <Compile Include="ValueMetaData\ObjectMetadata.cs" />
     <Compile Include="ValueMetaData\ObjMetadata.cs" />
     <Compile Include="ValueMetaData\StringMetadata.cs" />
+    <Compile Include="ValueMetaData\TriggerMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
