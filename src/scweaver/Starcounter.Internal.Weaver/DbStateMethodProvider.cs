@@ -36,6 +36,17 @@ namespace Starcounter.Internal.Weaver {
             public ITypeSignature CastType;
         }
 
+        internal sealed class ViewAccessors {
+            
+            public ViewAccessors(ModuleDeclaration module) {
+                BindingOptions bind = BindingOptions.Default;
+                var viewType = typeof(DbState.View);
+                GetBoolean = module.FindMethod(viewType.GetMethod("GetBoolean"), bind);
+            }
+
+            public IMethod GetBoolean { get; private set; }
+        }
+
         /// <summary>
         /// The read operation
         /// </summary>
@@ -61,6 +72,11 @@ namespace Starcounter.Internal.Weaver {
         /// The code generated db state type
         /// </summary>
         private readonly Type codeGeneratedDbStateType;
+        /// <summary>
+        /// Gets the set of (cached) view access methods we bind to when
+        /// implementing the IObjectView data-retreival methods.
+        /// </summary>
+        public ViewAccessors ViewAccessMethods { get; private set; }
 
         /// <summary>
         /// Initializes a new <see cref="DbStateMethodProvider" />.
@@ -72,6 +88,7 @@ namespace Starcounter.Internal.Weaver {
 
             this.module = module;
             this.codeGeneratedDbStateType = null;
+            this.ViewAccessMethods = new ViewAccessors(module);
         }
 
         #region Helper methods

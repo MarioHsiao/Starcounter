@@ -909,7 +909,7 @@ namespace Starcounter.Internal.Weaver {
 
         private void ImplementIObjectProxy(TypeDefDeclaration typeDef) {
             ScMessageSource.Write(SeverityType.Info, string.Format("Implementing IObjectProxy/IObjectView for {0}", typeDef.Name), new Object[] {});
-            new ImplementsIObjectProxy(_module, _writer).ImplementOn(typeDef);
+            new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods).ImplementOn(typeDef);
         }
 
         /// <summary>

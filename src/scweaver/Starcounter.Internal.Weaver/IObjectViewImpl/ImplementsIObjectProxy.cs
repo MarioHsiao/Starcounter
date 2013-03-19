@@ -42,6 +42,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         FieldDefDeclaration thisHandleField;
         FieldDefDeclaration thisIdentityField;
         FieldDefDeclaration thisBindingField;
+        DbStateMethodProvider.ViewAccessors viewAccessLayer;
+
         static ImplementsIObjectProxy() {
             methodAttributes =
                 MethodAttributes.Virtual |
@@ -51,13 +53,14 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 MethodAttributes.NewSlot;
         }
 
-        internal ImplementsIObjectProxy(ModuleDeclaration module, InstructionWriter writer) {
+        internal ImplementsIObjectProxy(ModuleDeclaration module, InstructionWriter writer, DbStateMethodProvider.ViewAccessors viewGetMethods) {
             this.module = module;
             this.writer = writer;
             viewNETType = typeof(IObjectView);
             viewTypeSignature = module.FindType(viewNETType, BindingOptions.Default);
             proxyNETType = typeof(IObjectProxy);
             proxyTypeSignature = module.FindType(proxyNETType, BindingOptions.Default);
+            viewAccessLayer = viewGetMethods;
             
             targets = new Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>>();
             targets.Add("AssertEquals", AssertEquals);
@@ -215,7 +218,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 w.EmitInstructionField(OpCodeNumber.Ldfld, thisBindingField);
                 w.EmitInstruction(OpCodeNumber.Ldarg_1);
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
-                w.EmitInstructionMethod(OpCodeNumber.Call, module.FindMethod(typeof(DbState.View).GetMethod("GetBoolean"), BindingOptions.Default));
+                w.EmitInstructionMethod(OpCodeNumber.Call, viewAccessLayer.GetBoolean);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
