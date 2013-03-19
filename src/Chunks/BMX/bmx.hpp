@@ -542,7 +542,7 @@ namespace bmx
         BMX_HANDLER_UNIQUE_NUM_TYPE unique_handler_num_;
 
         // Indicates that push is now possible.
-        bool push_ready_;
+        volatile bool push_ready_;
 
     public:
 
