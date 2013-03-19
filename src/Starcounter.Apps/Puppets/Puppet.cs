@@ -51,8 +51,9 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public Puppet() : base() {
-                   ViewModelId = -1;
+        public Puppet()
+            : base() {
+            ViewModelId = -1;
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace Starcounter {
             get { return vmId; }
             set {
                 vmId = value;
-                __Location = "/__" + Db.Environment.DatabaseName.ToLower() + '/' + vmId;
+                //                Location = "/__" + Db.Environment.DatabaseName.ToLower() + '/' + vmId;
             }
         }
 
@@ -110,12 +111,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property that changed</param>
         protected override void HasChanged(TValue property) {
-            PuppetChangeLog.UpdateValue(this, property);
+            //JsonChangeLog.UpdateValue(this, property);
         }
-
-        // TODO:
-        // Remove
-        internal string __Location { get; private set; }
 
         /// <summary>
         /// 
@@ -127,19 +124,19 @@ namespace Starcounter {
 
             int t = 0;
 
-            if (ViewModelId != -1) {
-                if (addComma)
-                    sb.Append(',');
+            //if (ViewModelId != -1) {
+            //    if (addComma)
+            //        sb.Append(',');
 
-                sb.Append("\"__Location\":\"");
-                sb.Append(__Location);
-                sb.Append('"');
-               
-                //sb.Append("\"View-Model\":");
-                //sb.Append(ViewModelId);
-                t++;
-                addComma = true;
-            }
+            //    sb.Append("\"__Location\":\"");
+            //    sb.Append(Location);
+            //    sb.Append('"');
+
+            //    //sb.Append("\"View-Model\":");
+            //    //sb.Append(ViewModelId);
+            //    t++;
+            //    addComma = true;
+            //}
 
             if (Media.Content != null) {
                 if (addComma)
@@ -155,8 +152,7 @@ namespace Starcounter {
                 //                }
                 t++;
                 addComma = true;
-            }
-            else {
+            } else {
                 //                var view = View ?? templ.PropertyName;
 
                 if (View != null) {
@@ -203,7 +199,7 @@ namespace Starcounter {
         /// <param name="property">The array property of this Puppet</param>
         /// <param name="elementIndex">The added element index</param>
         public override void HasAddedElement(TObjArr property, int elementIndex) {
-            PuppetChangeLog.AddItemInList(this, (TObjArr)property, elementIndex);
+            //JsonChangeLog.AddItemInList(this, (TObjArr)property, elementIndex);
         }
 
         /// <summary>
@@ -212,14 +208,11 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="elementIndex"></param>
         public override void HasRemovedElement(TObjArr property, int elementIndex) {
-            PuppetChangeLog.RemoveItemInList(this, property, elementIndex );
+            //JsonChangeLog.RemoveItemInList(this, property, elementIndex );
         }
 
 
-        /// <summary>
-        /// Returns true if this puppet have been sent to the client.
-        /// </summary>
-        public Boolean IsSentExternally { get; internal set; }
+
 
         /// <summary>
         /// Commits this instance.
