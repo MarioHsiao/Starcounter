@@ -61,6 +61,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         }
 
         public void ImplementOn(TypeDefDeclaration typeDef) {
+            typeDef.InterfaceImplementations.Add(viewTypeSignature);
             typeDef.InterfaceImplementations.Add(proxyTypeSignature);
 
             foreach (var interfaceMethod in viewNETType.GetMethods()) {
