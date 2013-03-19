@@ -236,7 +236,7 @@ namespace Starcounter.Hosting {
                             Error.SCERRBACKINGRETREIVALFAILED,
                             string.Format("Unable to resolve database type {0}, referenced in class index using {1}", databaseTypeName, field.Name)
                             );
-                        var typeSpecType = databaseType.GetNestedType(TypeSpecification.Name);
+                        var typeSpecType = databaseType.GetNestedType(TypeSpecification.Name, BindingFlags.NonPublic);
                         __Assert.OrThrow(
                             typeSpecType != null,
                             Error.SCERRBACKINGRETREIVALFAILED,
