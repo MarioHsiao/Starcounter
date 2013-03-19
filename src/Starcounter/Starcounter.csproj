@@ -96,6 +96,7 @@
     <Compile Include="Hosting\AssemblySpecification.cs" />
     <Compile Include="Hosting\BackingException.cs" />
     <Compile Include="Hosting\DatabaseAttribute.cs" />
+    <Compile Include="Hosting\IBackingHost.cs" />
     <Compile Include="Hosting\TypeSpecification.cs" />
     <Compile Include="Internal\bmx.cs" />
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
