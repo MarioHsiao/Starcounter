@@ -8,6 +8,7 @@ using Starcounter.Advanced;
 using System;
 using System.ComponentModel;
 using Starcounter.Templates;
+using System.Diagnostics;
 
 
 namespace Starcounter {
@@ -41,8 +42,25 @@ namespace Starcounter {
         /// <param name="template">The property having changed</param>
         /// <param name="value">The new value of the property</param>
         public override void ProcessInput<V>(TValue<V> template, V value) {
-            // TODO! SCERR????
-            throw new Exception("You should not send input to a Message object. Use Puppets instead.");
+            Input<V> input = null;
+
+            if (template.CustomInputEventCreator != null)
+                input = template.CustomInputEventCreator.Invoke(this, template, value);
+
+            if (input != null) {
+                foreach (var h in template.CustomInputHandlers) {
+                    h.Invoke(this, input);
+                }
+                if (!input.Cancelled) {
+                    Debug.WriteLine("Setting value after custom handler: " + input.Value);
+                    this.Set<V>((TValue<V>)template, input.Value);
+                } else {
+                    Debug.WriteLine("Handler cancelled: " + value);
+                }
+            } else {
+                Debug.WriteLine("Setting value after no handler: " + value);
+                this.Set<V>((TValue<V>)template, value);
+            }
         }
 
         /// <summary>
