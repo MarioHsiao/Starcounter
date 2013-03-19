@@ -139,6 +139,12 @@ namespace StarcounterInternal.Bootstrap
             {
                 bmx.sc_init_bmx_manager(HttpStructs.GlobalSessions.g_destroy_apps_session_callback);
                 OnBmxManagerInitialized();
+
+                // Initializing package loader.
+                Package.InitPackage(() => InternalHandlers.Register(
+                    configuration.DefaultUserHttpPort,
+                    configuration.DefaultSystemHttpPort)
+                );
             }
 
             // Initializing REST.
@@ -152,12 +158,6 @@ namespace StarcounterInternal.Bootstrap
                 configuration.DefaultUserHttpPort,
                 configuration.DefaultSystemHttpPort,
                 configuration.Name);
-
-            // Initializing package loader.
-            Package.InitPackage(() => InternalHandlers.Register(
-                configuration.DefaultUserHttpPort,
-                configuration.DefaultSystemHttpPort)
-            );
 
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();

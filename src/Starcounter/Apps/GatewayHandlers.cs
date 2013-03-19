@@ -10,6 +10,7 @@ using System.Text;
 using HttpStructs;
 using Starcounter.Internal;
 using Starcounter.Advanced;
+using System.Diagnostics;
 
 namespace Starcounter
 {
@@ -300,7 +301,7 @@ namespace Starcounter
 			PortCallback portCallback,
             out UInt16 handlerId)
 		{
-            UInt16 handler_id;
+            UInt64 handler_id;
 
             // Ensuring correct multi-threading handlers creation.
             lock (port_handlers_)
@@ -310,7 +311,9 @@ namespace Starcounter
                     throw ErrorCode.ToException(errorCode, "Port number: " + port);
 
                 port_handlers_[handler_id] = portCallback;
-                handlerId = handler_id;
+
+                // TODO
+                handlerId = (UInt16)handler_id;
             }
 		}
 
@@ -339,7 +342,7 @@ namespace Starcounter
             SubportCallback subportCallback,
             out UInt16 handlerId)
         {
-            UInt16 handler_id;
+            UInt64 handler_id;
 
             // Ensuring correct multi-threading handlers creation.
             lock (subport_handlers_)
@@ -349,7 +352,9 @@ namespace Starcounter
                     throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
 
                 subport_handlers_[handler_id] = subportCallback;
-                handlerId = handler_id;
+
+                // TODO
+                handlerId = (UInt16)handler_id;
             }
         }
 
@@ -381,7 +386,7 @@ namespace Starcounter
             HandlersManagement.UriCallbackDelegate uriCallback,
             out UInt16 handlerId)
         {
-            UInt16 handler_id;
+            UInt64 handler_id;
             Byte numParams = 0;
             if (null != paramTypes)
                 numParams = (Byte)paramTypes.Length;
@@ -409,7 +414,9 @@ namespace Starcounter
                 }
 
                 uri_handlers_[handler_id] = uriCallback;
-                handlerId = handler_id;
+
+                // TODO
+                handlerId = (UInt16)handler_id;
             }
         }
 
