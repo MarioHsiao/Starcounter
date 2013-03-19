@@ -868,12 +868,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
         {
             Int32 parentCount = 0;
             TContainer candidate = binding.PropertyAppClass.Template;
-            TPuppet appTemplate;
+            TObj appTemplate;
             NAppClass declaringAppClass = null;
 
             while (candidate != null)
             {
-                appTemplate = candidate as TPuppet;
+                appTemplate = candidate as TObj;
                 if (appTemplate != null)
                 {
                     if (info.DeclaringClassName.Equals(appTemplate.ClassName))

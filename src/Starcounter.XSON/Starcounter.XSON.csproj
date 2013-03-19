@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arr.cs" />
+    <Compile Include="ChangeLog.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="DataBindingFactory.cs" />
     <Compile Include="DynamicJson.cs" />
