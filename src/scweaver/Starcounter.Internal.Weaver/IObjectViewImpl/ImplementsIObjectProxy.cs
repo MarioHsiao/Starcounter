@@ -59,6 +59,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             targets.Add("GetBoolean", GetBoolean);
             targets.Add("GetUInt32", GetUInt32);
             targets.Add("Bind", Bind);
+            targets.Add("get_ThisHandle", GetThisHandle);
         }
 
         public void ImplementOn(TypeDefDeclaration typeDef) {
@@ -120,6 +121,18 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             parameter = new ParameterDeclaration(2, "typeBinding", module.FindType(typeof(TypeBinding), BindingOptions.Default));
             impl.Parameters.Add(parameter);
             
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+
+        void GetThisHandle(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            // Signature: ObjectRef IObjectProxy.get_ThisHandle()
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.FindType(typeof(ObjectRef), BindingOptions.Default)
+            };
+
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
