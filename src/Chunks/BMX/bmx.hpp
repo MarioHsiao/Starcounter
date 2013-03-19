@@ -661,41 +661,11 @@ namespace bmx
 }  // namespace bmx
 }; // namespace starcounter
 
-// Initializes bmx manager.
-EXTERN_C uint32_t sc_init_bmx_manager();
-
 // Waits for BMX manager to be ready.
 EXTERN_C void sc_wait_for_bmx_ready();
 
 // Handles all incoming chunks.
 EXTERN_C uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
-
-// Register port handler.
-EXTERN_C uint32_t sc_bmx_register_port_handler(
-    uint16_t port, 
-    GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
-    );
-
-// Register sub-port handler.
-EXTERN_C uint32_t sc_bmx_register_subport_handler(
-    uint16_t port,
-    starcounter::bmx::BMX_SUBPORT_TYPE subport,
-    GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
-    );
-
-// Register URI handler.
-EXTERN_C uint32_t sc_bmx_register_uri_handler(
-    uint16_t port,
-    char* originalUriInfo,
-    char* processedUriInfo,
-    uint8_t http_method,
-    uint8_t* param_types,
-    uint8_t num_params,
-    GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
-    );
 
 // Construct BMX Ping message.
 EXTERN_C uint32_t sc_bmx_construct_ping(

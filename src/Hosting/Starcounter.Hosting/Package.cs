@@ -23,7 +23,7 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Initializes internal HTTP handlers.
         /// </summary>
-        static Action InitInternalHttpHandlers_;
+        static Action InitInternalHttpHandlers_ = null;
 
         /// <summary>
         /// Indicates if package was already initialized for all executables.
@@ -116,11 +116,12 @@ namespace Starcounter.Hosting {
                 CallInfrastructureInitializerIfPresent();
 
                 // Initializing package for all executables.
-                if (!packageInitialized_)
+                if ((InitInternalHttpHandlers_ != null) && (!packageInitialized_))
                 {
                     // Registering internal HTTP handlers.
                     InitInternalHttpHandlers_();
 
+                    // Indicating that package is now initialized.
                     packageInitialized_ = true;
                 }
 
