@@ -83,8 +83,8 @@ namespace Starcounter.Hosting {
         /// code, when it's certain that the construct is correct.</param>
         internal TypeSpecification(Type typeSpecType, bool omitVerifyType = false) {
             typeSpecificationType = typeSpecType;
-            tableHandle = typeSpecType.GetField(TypeSpecification.TableHandleName);
-            typeBinding = typeSpecType.GetField(TypeSpecification.TypeBindingName);
+            tableHandle = typeSpecType.GetField(TypeSpecification.TableHandleName, BindingFlags.NonPublic | BindingFlags.Static);
+            typeBinding = typeSpecType.GetField(TypeSpecification.TypeBindingName, BindingFlags.NonPublic | BindingFlags.Static);
             Validate(omitVerifyType);
         }
 
