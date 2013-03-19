@@ -153,16 +153,22 @@ namespace QueryProcessingTest {
             User client = PopulateForTest();
             // Do set of tests
             String query = "select a from account a where accountid > ?";
-            // Drop inside
+            // Drop inside fetched
             var key = DoFetch(query);
             Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1)).First.Delete();
             DoOffsetkey(query, key, new int[] {GetAccountId(3-1), GetAccountId(4-1), GetAccountId(5-1)}); // offsetkey does not move forward
             InsertAccount(GetAccountId(1), client);
-            // Insert inside
+            // Insert inside fetched
             key = DoFetch(query);
             InsertAccount(GetAccountId(1)+1, client);
             DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(5 - 1) }); // offsetkey does not move forward
             Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1) + 1).First.Delete();
+            // Insert after offsetkey
+            key = DoFetch(query);
+            InsertAccount(GetAccountId(2) + 1, client);
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(2) + 1, GetAccountId(4 - 1), GetAccountId(5 - 1) });
+            Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3) + 1).First.Delete();
+            // Delete after offsetkey
             // Drop data
             DropAfterTest();
         }
