@@ -208,8 +208,15 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             var indexParameter = new ParameterDeclaration(0, "index", module.Cache.GetIntrinsic(IntrinsicType.Int32));
             impl.Parameters.Add(indexParameter);
 
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                var w = attached.Writer;
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionField(OpCodeNumber.Ldfld, thisBindingField);
+                w.EmitInstruction(OpCodeNumber.Ldarg_1);
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionMethod(OpCodeNumber.Call, module.FindMethod(typeof(DbState.View).GetMethod("GetBoolean"), BindingOptions.Default));
+                w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
 
