@@ -336,6 +336,7 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
+                        typeSpecification.IncludeField(typeDef, field);
                         GenerateFieldAccessors(dba, field);
                     }
                 }
