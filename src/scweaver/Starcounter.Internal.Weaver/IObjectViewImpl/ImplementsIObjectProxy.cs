@@ -129,6 +129,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
         void GetThisHandle(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             // Signature: ObjectRef IObjectProxy.get_ThisHandle()
+            impl.Attributes |= MethodAttributes.SpecialName;
             impl.ReturnParameter = new ParameterDeclaration {
                 Attributes = ParameterAttributes.Retval,
                 ParameterType = module.FindType(typeof(ObjectRef), BindingOptions.Default)
