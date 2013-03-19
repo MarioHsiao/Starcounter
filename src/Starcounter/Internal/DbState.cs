@@ -18,6 +18,82 @@ namespace Starcounter.Internal
     /// </summary>
     public static class DbState
     {
+        /// <summary>
+        /// Defines a set of read-only methods used by the weaver to emit
+        /// calls from weave-time implementations of <see cref="IObjectView"/>
+        /// that must call into Starcounter.
+        /// </summary>
+        /// <remarks>
+        /// This alternative allows us to keep the visibility of TypeBinding
+        /// and PropertyBinding intact. If we find it makes for slower calls
+        /// we have to adapt the call layer using IObjectView.
+        /// </remarks>
+        public static class View {
+
+            public static bool? GetBoolean(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetBoolean(proxy);
+            }
+
+            public static Binary? GetBinary(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetBinary(proxy);
+            }
+
+            public static byte? GetByte(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetByte(proxy);
+            }
+
+            public static DateTime? GetDateTime(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetDateTime(proxy);
+            }
+
+            public static decimal? GetDecimal(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetDecimal(proxy);
+            }
+
+            public static double? GetDouble(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetDouble(proxy);
+            }
+
+            public static short? GetInt16(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetInt16(proxy);
+            }
+
+            public static int? GetInt32(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetInt32(proxy);
+            }
+
+            public static long? GetInt64(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetInt64(proxy);
+            }
+
+            public static IObjectView GetObject(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetObject(proxy);
+            }
+
+            public static sbyte? GetSByte(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetSByte(proxy);
+            }
+
+            public static float? GetSingle(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetSingle(proxy);
+            }
+
+            public static string GetString(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetString(proxy);
+            }
+
+            public static ushort? GetUInt16(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetUInt16(proxy);
+            }
+
+            public static uint? GetUInt32(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetUInt32(proxy);
+            }
+
+            public static ulong? GetUInt64(TypeBinding binding, int index, object proxy) {
+                return binding.GetPropertyBinding(index).GetUInt64(proxy);
+            }
+        }
 
         /// <summary>
         /// Inserts a new object/record of the specified type. The given proxy is
