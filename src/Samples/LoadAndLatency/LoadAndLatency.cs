@@ -106,6 +106,16 @@ namespace LoadAndLatency
             SIMPLE_OBJECT_DELETE_WITH_QUERY
         }
 
+        public enum LALSpecificTestType
+        {
+            LAL_STANDARD_TEST,
+            LAL_PARALLEL_READ_ONLY_TEST,
+            LAL_PARALLEL_UPDATES_TEST
+        }
+
+        // Specific LAL test type if any.
+        public LALSpecificTestType SpecificTestType = LALSpecificTestType.LAL_STANDARD_TEST;
+
         // Number of different query types.
         readonly Int32 NumOfQueryTypes = 0;
 
@@ -126,9 +136,6 @@ namespace LoadAndLatency
 
         // Some of nanoseconds per object per operation.
         Double g_nsPerObjectUnsafe = 0;
-
-        // Indicates if only parallel test should run.
-        Boolean parallelTestOnly = false;
 
         // Used for logging test messages.
         TestLogger logger = null;
@@ -196,7 +203,7 @@ namespace LoadAndLatency
         /// <summary>
         /// Constructor.
         /// </summary>
-        public LoadAndLatencyCore(Boolean startedOnClient, Boolean onlyParallelTest)
+        public LoadAndLatencyCore(Boolean startedOnClient)
         {
             // Determine performance timer frequency.
             UInt64 freqTempVar = 0;
@@ -220,7 +227,6 @@ namespace LoadAndLatency
                 NumObjectsPerTransaction = Int32.Parse(objPerTransVar);
 
             // Initializing data.
-            parallelTestOnly = onlyParallelTest;
             TotalNumOfObjectsInDB = TransactionsNumber * NumObjectsPerTransaction;
             NumOfQueryTypes = QueryStrings.Length;
 
@@ -256,17 +262,10 @@ namespace LoadAndLatency
             logger.Log(eventString);
         }
 
-        public enum LALSpecificTest
-        {
-            STANDARD_TEST,
-            PARALLEL_READ_ONLY_TEST,
-            PARALLEL_UPDATES_TEST
-        }
-
         /// <summary>
         /// Main entry point for all LoadAndLatency tests.
         /// </summary>
-        public void EntryPoint(LALSpecificTest specificTestType)
+        public UInt32 EntryPoint()
         {
             //System.Diagnostics.Debugger.Break();
 
@@ -276,7 +275,7 @@ namespace LoadAndLatency
                 // Creating file indicating finish of the work.
                 logger.Log("LoadAndLatency in-process test is skipped!", TestLogger.LogMsgType.MSG_SUCCESS);
 
-                return;
+                return 0;
             }
 
             LogEvent("--- Starting LoadAndLatency Test...");
@@ -298,7 +297,7 @@ namespace LoadAndLatency
             SQLSelectPrepare();
 
             // Checking if we need to run parallel test only.
-            if (parallelTestOnly)
+            if (SpecificTestType == LALSpecificTestType.LAL_PARALLEL_READ_ONLY_TEST)
             {
                 LogEvent("--- Only parallel read-only test selected to be run...");
 
@@ -308,10 +307,10 @@ namespace LoadAndLatency
                 // Indicating successful finish of the work.
                 logger.Log("LoadAndLatency parallel read-only test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
 
-                return;
+                return 0;
             }
             // Checking type of a test.
-            else if (specificTestType == LALSpecificTest.PARALLEL_UPDATES_TEST)
+            else if (SpecificTestType == LALSpecificTestType.LAL_PARALLEL_UPDATES_TEST)
             {
                 LogEvent("--- Only parallel updates test selected to be run...");
 
@@ -339,7 +338,7 @@ namespace LoadAndLatency
                 // Indicating successful finish of the work.
                 logger.Log("LoadAndLatency parallel updates test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
 
-                return;
+                return 0;
             }
 
             // Testing that recreation/offset key works.
@@ -409,6 +408,8 @@ namespace LoadAndLatency
 
             // Indicating successful finish of the work.
             logger.Log("LoadAndLatency successfully finished!", TestLogger.LogMsgType.MSG_SUCCESS);
+
+            return 0;
         }
 
         /// <summary>

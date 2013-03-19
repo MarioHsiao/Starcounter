@@ -14,41 +14,39 @@ namespace LoadAndLatencyStartup
         /// <summary>
         /// Processes command line arguments.
         /// </summary>
-        static void ProcessParams(String[] args, ref Int32 numWorkers, ref Int32 numTransactions, ref Boolean parallelTestOnly)
+        static bool ProcessParams(
+            String[] args,
+            ref Int32 numberOfWorkers,
+            ref Int32 numberOfTransactions,
+            ref LoadAndLatencyCore.LALSpecificTestType specificTestType)
         {
-            if (args.Length > 0)
+            foreach (String s in args)
             {
-                // Checking for help argument.
-                if (String.Compare(args[0], "?") == 0)
+                if (s.StartsWith("SpecificTestType", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Console.WriteLine("LoadAndLatency.exe [NumberOfWorkers NumberOfTransactions [ParallelTestOnly] [pause]]");
-                    Console.WriteLine("NumberOfWorkers: [1; 32]");
-                    Console.WriteLine("NumberOfTransactions: [10; 10000]");
-                    Console.WriteLine("ParallelTestOnly: s");
-                    Console.WriteLine("Pause: waits for key press to continue execution.");
-                    Environment.Exit(1);
+                    specificTestType = (LoadAndLatencyCore.LALSpecificTestType)Int32.Parse(s.Substring(17));
                 }
-
-                // Getting number of workers.
-                numWorkers = Int32.Parse(args[0]);
-
-                // Fetching number of transactions.
-                numTransactions = Int32.Parse(args[1]);
-
-                // Checking if only parallel test.
-                if (args.Length > 2)
+                else if (s.StartsWith("NumberOfWorkers", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (args[2] == "s")
-                        parallelTestOnly = true;
+                    numberOfWorkers = Int32.Parse(s.Substring(16));
                 }
-
-                // Checking if test should pause.
-                if (String.Compare(args[args.Length - 1], "pause", StringComparison.InvariantCultureIgnoreCase) == 0)
+                else if (s.StartsWith("NumberOfTransactions", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    numberOfTransactions = Int32.Parse(s.Substring(21));
+                }
+                else if (s.StartsWith("pause", StringComparison.InvariantCultureIgnoreCase))
                 {
                     Console.WriteLine("Press enter to continue...");
                     Console.ReadLine();
                 }
+                else if (s.StartsWith("?", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Console.WriteLine("LoadAndLatency.exe [SpecificTestType=0..2] [NumberOfWorkers=1..32] [NumberOfTransactions=10..10000] [pause]");
+                    return false;
+                }
             }
+
+            return true;
         }
 
         // Creating needed indexes for the test.
@@ -75,18 +73,24 @@ namespace LoadAndLatencyStartup
         static Int32 Main(string[] args)
         {
             Int32 numWorkers = 0, numTransactions = 0;
-            Boolean parallelTestOnly = false;
-            ProcessParams(args, ref numWorkers, ref numTransactions, ref parallelTestOnly);
+            LoadAndLatencyCore.LALSpecificTestType specificTestType = LoadAndLatencyCore.LALSpecificTestType.LAL_STANDARD_TEST;
+
+            if (!ProcessParams(args, ref numWorkers, ref numTransactions, ref specificTestType))
+                return 0;
 
             // Creating indexes.
             CreateIndexes();
 
             // Since Main is started then we are on client.
-            LoadAndLatencyCore lal = new LoadAndLatencyCore(false, parallelTestOnly);
+            LoadAndLatencyCore lal = new LoadAndLatencyCore(false);
 
             // Modifying number of transactions.
             if (numTransactions > 0)
                 lal.ChangeNumberOfTransactions(numTransactions);
+
+            // Setting specific type of test, if any.
+            if (specificTestType != LoadAndLatencyCore.LALSpecificTestType.LAL_STANDARD_TEST)
+                lal.SpecificTestType = specificTestType;
 
             // Setting number of logical processors.
             lal.NumOfLogProc = Environment.ProcessorCount;
@@ -106,7 +110,7 @@ namespace LoadAndLatencyStartup
             Console.WriteLine("Running LaL with " + lal.NumOfWorkers + " workers and " + lal.TransactionsNumber + " transactions multiplier.");
 
             // Starting the test.
-            lal.EntryPoint(LoadAndLatencyCore.LALSpecificTest.PARALLEL_UPDATES_TEST);
+            lal.EntryPoint();
 
             // Exiting test successfully.
             Environment.Exit(0);
