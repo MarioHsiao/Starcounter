@@ -1,6 +1,6 @@
 
 :: Checking if test should be run.
-IF NOT "%SC_RUN_POLEPOSITION_TEST%"=="True" GOTO :EOF
+IF "%SC_RUN_POLEPOSITION_TEST%"=="False" GOTO :EOF
 
 :: Some predefined constants.
 SET DB_DIR=.db

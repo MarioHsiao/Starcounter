@@ -1,13 +1,13 @@
 
 :: Checking if test should be run.
-IF NOT "%SC_RUN_LOADANDLATENCY_TEST%"=="True" GOTO :EOF
+IF "%SC_RUN_LOADANDLATENCY_TEST%"=="False" GOTO :EOF
 
 :: Some predefined constants.
 SET DB_DIR=.db
 SET DB_OUT_DIR=.db.output
 SET DB_NAME=LOADANDLATENCY
 SET TEST_NAME=LoadAndLatency
-::SET TEST_ARGS=--UserArguments="param12345"
+SET TEST_ARGS=--UserArguments="SpecificTestType=2"
 
 :: Killing all processes.
 CMD /C "kill_all.bat" 2>NUL
