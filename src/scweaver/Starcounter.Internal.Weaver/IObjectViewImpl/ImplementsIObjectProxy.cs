@@ -15,20 +15,20 @@ using Starcounter.Binding;
 namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
     /// <summary>
-    /// Provides the interface to all <see cref="IObjectView"/> emitters. Each
+    /// Provides the interface to all <see cref="IObjectProxy"/> emitters. Each
     /// method in the given interface shall have a corresponding emitter assigned
     /// in this class.
     /// </summary>
     /// <remarks>
-    /// To extend the <see cref="IObjectView"/> interface with a new method, do
-    /// this:
-    /// 1) Add the method to IObjectView.
-    /// 2) Implement a an method in this class that emits the code that should be
+    /// To extend the <see cref="IObjectProxy"/>/<see cref="IObjectView"/> interfaces
+    /// with a new method, do this:
+    /// 1) Add the method to the interface
+    /// 2) Implement a method in this class that emits the code that should be
     /// written by the weaver.
     /// 3) Map your emitting method to the interface method as seen in the constructor
-    /// of this class (i.e. make sure it ends up in the targets directory.
+    /// of this class (i.e. make sure it ends up in the "targets" directory.
     /// </remarks>
-    internal sealed class ImplementsIObjectView {
+    internal sealed class ImplementsIObjectProxy {
         Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>> targets;
         ModuleDeclaration module;
         Type viewNETType;
@@ -38,7 +38,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         InstructionWriter writer;
         IMethod notImplementedCtor;
         static MethodAttributes methodAttributes;
-        static ImplementsIObjectView() {
+        static ImplementsIObjectProxy() {
             methodAttributes =
                 MethodAttributes.Virtual |
                 MethodAttributes.Private |
@@ -47,7 +47,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 MethodAttributes.NewSlot;
         }
 
-        internal ImplementsIObjectView(ModuleDeclaration module, InstructionWriter writer) {
+        internal ImplementsIObjectProxy(ModuleDeclaration module, InstructionWriter writer) {
             this.module = module;
             this.writer = writer;
             viewNETType = typeof(IObjectView);
@@ -62,8 +62,6 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
         public void ImplementOn(TypeDefDeclaration typeDef) {
             typeDef.InterfaceImplementations.Add(proxyTypeSignature);
-            // Do we need to add IObjectView too? TODO:
-            // typeDef.InterfaceImplementations.Add(viewTypeSignature);
 
             foreach (var interfaceMethod in viewNETType.GetMethods()) {
                 IMethod methodRef = module.FindMethod(interfaceMethod, BindingOptions.Default);

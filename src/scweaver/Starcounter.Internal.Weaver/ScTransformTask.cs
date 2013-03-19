@@ -328,7 +328,7 @@ namespace Starcounter.Internal.Weaver {
                     // on types with a given naming convention, for testing.
                     var typeDef2 = (TypeDefDeclaration)_module.FindType(dbc.Name + "_NEW", BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
                     if (typeDef2 != null) {
-                        ImplementIObjectView(typeDef2);
+                        ImplementIObjectProxy(typeDef2);
                     }
                 }
 
@@ -907,9 +907,9 @@ namespace Starcounter.Internal.Weaver {
                     || typeDef.Name.StartsWith("VB$AnonymousType");
         }
 
-        private void ImplementIObjectView(TypeDefDeclaration typeDef) {
-            ScMessageSource.Write(SeverityType.Info, string.Format("Implementing IObjectView for {0}", typeDef.Name), new Object[] {});
-            new ImplementsIObjectView(_module, _writer).ImplementOn(typeDef);
+        private void ImplementIObjectProxy(TypeDefDeclaration typeDef) {
+            ScMessageSource.Write(SeverityType.Info, string.Format("Implementing IObjectProxy/IObjectView for {0}", typeDef.Name), new Object[] {});
+            new ImplementsIObjectProxy(_module, _writer).ImplementOn(typeDef);
         }
 
         /// <summary>
