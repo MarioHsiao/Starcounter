@@ -281,33 +281,33 @@ namespace Starcounter {
             get { return _transaction; }
         }
 
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>Action.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Action Get(TTrigger property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new NotImplementedException();
-#endif
-        }
+//        /// <summary>
+//        /// Gets the value.
+//        /// </summary>
+//        /// <param name="property">The property.</param>
+//        /// <returns>Action.</returns>
+//        [EditorBrowsable(EditorBrowsableState.Never)]
+//        public Action Get(TTrigger property) {
+//#if QUICKTUPLE
+//            return _Values[property.Index];
+//#else
+//            throw new NotImplementedException();
+//#endif
+//        }
 
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Set(TTrigger property, Action value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new NotImplementedException();
-#endif
-        }
+//        /// <summary>
+//        /// Sets the value.
+//        /// </summary>
+//        /// <param name="property">The property.</param>
+//        /// <param name="value">The value.</param>
+//        [EditorBrowsable(EditorBrowsableState.Never)]
+//        public void Set(TTrigger property, Action value) {
+//#if QUICKTUPLE
+//            _Values[property.Index] = value;
+//#else
+//            throw new NotImplementedException();
+//#endif
+//        }
 
         ///// <summary>
         ///// Gets the value.
