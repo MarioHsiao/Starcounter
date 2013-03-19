@@ -107,7 +107,7 @@ namespace LoadAndLatencyStartup
             }
 
             // Diagnostics.
-            Console.WriteLine("Running LaL with " + lal.NumOfWorkers + " workers and " + lal.TransactionsNumber + " transactions multiplier.");
+            Console.WriteLine("Running LAL with " + lal.NumOfWorkers + " workers and " + lal.TransactionsNumber + " transactions multiplier.");
 
             // Starting the test.
             lal.EntryPoint();
