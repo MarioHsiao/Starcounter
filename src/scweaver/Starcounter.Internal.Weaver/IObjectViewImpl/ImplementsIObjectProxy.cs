@@ -65,6 +65,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             targets = new Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>>();
             targets.Add("AssertEquals", AssertEquals);
             targets.Add("GetBoolean", GetBoolean);
+            targets.Add("GetByte", GetByte);
             targets.Add("GetUInt32", GetUInt32);
             targets.Add("Bind", Bind);
             targets.Add("get_ThisHandle", GetThisHandle);
@@ -219,6 +220,33 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 w.EmitInstruction(OpCodeNumber.Ldarg_1);
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
                 w.EmitInstructionMethod(OpCodeNumber.Call, viewAccessLayer.GetBoolean);
+                w.EmitInstruction(OpCodeNumber.Ret);
+            }
+        }
+
+        void GetByte(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            // Signature: Nullable<Byte> GetByte(Int32 index)
+            var returnTypeSignature = new GenericTypeInstanceTypeSignature(
+                (INamedType)
+                module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
+                new ITypeSignature[] { module.Cache.GetIntrinsic(IntrinsicType.Byte) }
+                );
+
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = returnTypeSignature
+            };
+            var indexParameter = new ParameterDeclaration(0, "index", module.Cache.GetIntrinsic(IntrinsicType.Int32));
+            impl.Parameters.Add(indexParameter);
+
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                var w = attached.Writer;
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionField(OpCodeNumber.Ldfld, thisBindingField);
+                w.EmitInstruction(OpCodeNumber.Ldarg_1);
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionMethod(OpCodeNumber.Call, viewAccessLayer.GetByte);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
