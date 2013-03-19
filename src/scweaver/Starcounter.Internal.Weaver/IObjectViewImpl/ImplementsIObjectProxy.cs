@@ -58,6 +58,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             targets.Add("AssertEquals", AssertEquals);
             targets.Add("GetBoolean", GetBoolean);
             targets.Add("GetUInt32", GetUInt32);
+            targets.Add("Bind", Bind);
         }
 
         public void ImplementOn(TypeDefDeclaration typeDef) {
@@ -83,7 +84,6 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
                 // Add these:
                 // ObjectRef get_ThisHandle();
-                // set_ThisHandle(ObjectRef handle);
                 // void Bind(ulong addr, ulong oid, TypeBinding typeBinding)
                 var impl = new MethodDefDeclaration() {
                     Name = proxyNETType.Name + "." + interfaceMethod.Name,
@@ -97,7 +97,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             }
         }
 
-        public void ImplementInterfaceMethod(MethodInfo interfaceMethod, TypeDefDeclaration typeDef, IMethod methodRef, MethodDefDeclaration methodDef) {
+        void ImplementInterfaceMethod(MethodInfo interfaceMethod, TypeDefDeclaration typeDef, IMethod methodRef, MethodDefDeclaration methodDef) {
             Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration> emitter;
             if (!targets.TryGetValue(interfaceMethod.Name, out emitter)) {
                 // Simplest possible emission for now: just add a stub for every interface
@@ -108,6 +108,21 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 emitter = SLOPPY_FAKE_EMIT;
             }
             emitter(typeDef, interfaceMethod, methodRef, methodDef);
+        }
+
+        void Bind(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            // Signature: void IObjectProxy.Bind(ulong addr, ulong oid, TypeBinding typeBinding)
+            var ulongSignature = module.Cache.GetIntrinsic(IntrinsicType.UInt64);
+            var parameter = new ParameterDeclaration(0, "address", ulongSignature);
+            impl.Parameters.Add(parameter);
+            parameter = new ParameterDeclaration(1, "oid", ulongSignature);
+            impl.Parameters.Add(parameter);
+            parameter = new ParameterDeclaration(2, "typeBinding", module.FindType(typeof(TypeBinding), BindingOptions.Default));
+            impl.Parameters.Add(parameter);
+            
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
         }
 
         void AssertEquals(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
