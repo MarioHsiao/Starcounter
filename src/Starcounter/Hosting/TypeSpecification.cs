@@ -47,6 +47,12 @@ namespace Starcounter.Hosting {
         public const string ThisHandleName = "__sc__this_handle__";
 
         /// <summary>
+        /// Provides the name of the "this identity" field, part of
+        /// the database class itself.
+        /// </summary>
+        public const string ThisIdName = "__sc__this_id__";
+
+        /// <summary>
         /// Provides the name of the "this binding" field, part of
         /// the database class itself.
         /// </summary>
