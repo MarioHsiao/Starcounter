@@ -82,7 +82,7 @@ void sc_wait_for_bmx_ready()
         Sleep(1);
     }
 
-    // Push is now ready.
+    // Push is now possible.
     g_bmx_data->set_push_ready();
 }
 
