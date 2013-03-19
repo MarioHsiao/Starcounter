@@ -22,6 +22,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
         ModuleDeclaration module;
         ITypeSignature typeBindingType;
         ITypeSignature ushortType;
+        ITypeSignature intType;
         ITypeSignature objectRefType;
         Dictionary<TypeDefDeclaration, TypeDefDeclaration> typeToSpec;
 
@@ -30,6 +31,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             typeBindingType = module.Cache.GetType(typeof(TypeBinding));
             objectRefType = module.Cache.GetType(typeof(ObjectRef));
             ushortType = module.Cache.GetIntrinsic(IntrinsicType.UInt16);
+            intType = module.Cache.GetIntrinsic(IntrinsicType.Int32);
             typeToSpec = new Dictionary<TypeDefDeclaration, TypeDefDeclaration>();
         }
 
@@ -70,9 +72,14 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             typeDef.Fields.Add(thisBinding);
         }
 
-        public void IncludeField(TypeDefDeclaration typeDef) {
+        public void IncludeField(TypeDefDeclaration typeDef, FieldDefDeclaration field) {
             var specType = typeToSpec[typeDef];
-            throw new NotImplementedException();
+            var columnHandle = new FieldDefDeclaration {
+                Name = TypeSpecification.FieldNameToColumnHandleName(field.Name),
+                Attributes = FieldAttributes.Public | FieldAttributes.Static,
+                FieldType = intType
+            };
+            specType.Fields.Add(columnHandle);
         }
     }
 }
