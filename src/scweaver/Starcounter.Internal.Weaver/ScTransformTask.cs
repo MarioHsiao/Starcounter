@@ -323,14 +323,8 @@ namespace Starcounter.Internal.Weaver {
                 if (databaseEntityClass != null) {
                     assemblySpecification.IncludeDatabaseClass(typeDef);
                     typeSpecification.EmitForType(typeDef);
-
-                    AddTypeReferenceFields(typeDef);
-
-                    // Temporary code, allow us to implement the IObjectView interface
-                    // on types with a given naming convention, for testing.
-                    var typeDef2 = (TypeDefDeclaration)_module.FindType(dbc.Name + "_NEW", BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
-                    if (typeDef2 != null && InheritsObject(typeDef2)) {
-                        ImplementIObjectProxy(typeDef2);
+                    if (InheritsObject(typeDef)) {
+                        ImplementIObjectProxy(typeDef);
                     }
                 }
 
@@ -349,7 +343,7 @@ namespace Starcounter.Internal.Weaver {
 
             foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
                 typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
-                EnhanceConstructors(typeDef, dbc);
+                EnhanceConstructors(typeDef, dbc, typeSpecification);
 
                 // Generate field accessors for synonyms
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
@@ -1330,7 +1324,11 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="typeDef">The type def.</param>
         /// <param name="databaseClass">The database class.</param>
-        private void EnhanceConstructors(TypeDefDeclaration typeDef, DatabaseClass databaseClass) {
+        private void EnhanceConstructors(
+            TypeDefDeclaration typeDef, 
+            DatabaseClass databaseClass,
+            TypeSpecificationEmit typeSpecification) {
+            
             CustomAttributeDeclaration customAttr;
             IMethod baseUninitializedConstructor;
             IMethod replacementConstructor;
@@ -1347,8 +1345,6 @@ namespace Starcounter.Internal.Weaver {
             ParameterDeclaration paramDecl;
             EntityConstructorCallAdvice advice;
             TypeDefDeclaration parentTypeDef;
-            FieldDefDeclaration typeTableIdField;
-            FieldDefDeclaration typeBindingField;
 
             // Skip if the type has already been processed.
             if (typeDef.GetTag(_constructorEnhancedTagGuid) != null) {
@@ -1360,19 +1356,12 @@ namespace Starcounter.Internal.Weaver {
             parentTypeDef = parentType as TypeDefDeclaration;
 
             if (parentTypeDef != null) {
-                this.EnhanceConstructors(parentTypeDef, databaseClass.BaseClass);
+                this.EnhanceConstructors(parentTypeDef, databaseClass.BaseClass, typeSpecification);    // TODO: Base type specification!
             }
 
             ScTransformTrace.Instance.WriteLine("Enhancing constructors of {0}", databaseClass);
 
             typeDef.SetTag(_constructorEnhancedTagGuid, "");
-
-            // Get infrastucture type reference fields.
-
-            typeTableIdField = _starcounterImplementationTypeDef.Fields.GetByName(
-                WeaverNamingConventions.GetTypeTableIdFieldName(typeDef));
-            typeBindingField = _starcounterImplementationTypeDef.Fields.GetByName(
-                WeaverNamingConventions.GetTypeBindingFieldName(typeDef));
 
             // Emit the uninitialized constructor
             ScTransformTrace.Instance.WriteLine("Emitting the uninitialized constructor.");
@@ -1590,8 +1579,8 @@ namespace Starcounter.Internal.Weaver {
                     _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, parameter);
                 }
 
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeTableIdField);
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeBindingField);
+                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeSpecification.TableHandle);
+                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeSpecification.TypeBindingReference);
                 _writer.EmitInstruction(OpCodeNumber.Ldnull);
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, enhancedConstructor);
                 _writer.EmitInstruction(OpCodeNumber.Ret);
