@@ -199,83 +199,102 @@ namespace Starcounter.Internal.Weaver {
         /// <paramref name="method" /> has to be casted, or <b>null</b> if no cast is necessary.</param>
         /// <returns><b>true</b> if the method exist, otherwise <b>false</b> (happens for instance
         /// when the <b>write</b> operation is requested on an intrinsically read-only type).</returns>
-        private bool GetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute, string operation,
-                               out IMethod method, out ITypeSignature castType) {
+        private bool GetMethod(
+            ITypeSignature fieldType,
+            DatabaseAttribute databaseAttribute,
+            string operation,
+            out IMethod method, 
+            out ITypeSignature castType) {
+            MethodCastPair methodCastPair;
+
             string key = operation + " : " + GetAttributeTypeCacheKey(databaseAttribute);
             castType = null;
-            MethodCastPair methodCastPair;
-            if (!this.cache.TryGetValue(key, out methodCastPair)) {
-                DatabasePrimitiveType primitiveType;
-                DatabaseEnumType enumType = null;
-                if ((primitiveType = databaseAttribute.AttributeType as DatabasePrimitiveType) != null ||
-                    (enumType = databaseAttribute.AttributeType as DatabaseEnumType) != null) {
-                    DatabasePrimitive primitive = primitiveType != null
-                                                  ?
-                                                  primitiveType.Primitive
-                                                  :
-                                                  enumType.UnderlyingType;
-                    string methodName;
-                    if (databaseAttribute.IsNullable) {
-                        methodName = operation + "Nullable" + primitive.ToString();
-                        if (enumType != null) {
-                            // The caller will have to cast to/from Nullable<primitive>.
-                            // Note that this is a non-trivial cast.
-                            castType = new GenericTypeInstanceTypeSignature(
-                                (INamedType)
-                                this.module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
-                                new ITypeSignature[] { this.module.Cache.GetIntrinsic(MapDatabasePrimitiveToInstrinsic(primitive)) });
-                        }
-                    } else {
-                        methodName = operation + primitive.ToString();
-                    }
 
-                    MethodInfo methodInfo;
-
-                    methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
-                    if (methodInfo == null) {
-                        methodInfo = dbStateType.GetMethod(methodName);
-                    }
-
-                    Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
-
-                    method = this.module.FindMethod(methodInfo, BindingOptions.Default);
-                } else if (databaseAttribute.AttributeType is DatabaseArrayType) {
-                    string methodName = operation + "Array";
-                    if (operation == readOperation) {
-                        method =
-                        this.GetGenericMethodInstance(methodName,
-                        ((ArrayTypeSignature)
-                        TypeSpecDeclaration.Unwrap(fieldType)).
-                        ElementType);
-                    } else {
-                        MethodInfo methodInfo = dbStateType.GetMethod(methodName);
-                        Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
-                        method = this.module.FindMethod(methodInfo, BindingOptions.Default);
-                    }
-                } else if (databaseAttribute.AttributeType is DatabaseClass) {
-                    string methodName = operation + "Object";
-                    MethodInfo methodInfo;
-
-                    methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
-                    if (methodInfo == null) {
-                        methodInfo = dbStateType.GetMethod(methodName);
-                    }
-                    Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
-                    method = this.module.FindMethod(methodInfo, BindingOptions.Default);
-                    // The caller will have to cast from this type:
-                    castType = this.module.Cache.GetType(typeof(Entity));
-                } else {
-                    Trace.Assert(false, string.Format("Not an expected type: {0}", databaseAttribute.AttributeType));
-                    method = null;
-                }
-                methodCastPair = new MethodCastPair();
-                methodCastPair.Method = method;
-                methodCastPair.CastType = castType;
-                this.cache.Add(key, methodCastPair);
-            } else {
+            if (this.cache.TryGetValue(key, out methodCastPair)) {
                 method = methodCastPair.Method;
                 castType = methodCastPair.CastType;
+                return true;
             }
+
+            Func<Type, string, MethodInfo> DoFindMethodByName = (stateType, methodName) => {
+                MethodInfo info;
+                try {
+                    info = stateType.GetMethod(methodName);
+
+                } catch (AmbiguousMatchException) {
+                    var paramTypes = new Type[] { typeof(ulong), typeof(ulong), typeof(int) };
+                    info = stateType.GetMethod(methodName, paramTypes);
+                }
+                return info;
+            };
+ 
+            DatabasePrimitiveType primitiveType;
+            DatabaseEnumType enumType = null;
+            if ((primitiveType = databaseAttribute.AttributeType as DatabasePrimitiveType) != null ||
+                (enumType = databaseAttribute.AttributeType as DatabaseEnumType) != null) {
+                DatabasePrimitive primitive = 
+                    primitiveType != null ? primitiveType.Primitive : enumType.UnderlyingType;
+
+                string methodName;
+                if (databaseAttribute.IsNullable) {
+                    methodName = operation + "Nullable" + primitive.ToString();
+                    if (enumType != null) {
+                        // The caller will have to cast to/from Nullable<primitive>.
+                        // Note that this is a non-trivial cast.
+                        castType = new GenericTypeInstanceTypeSignature(
+                            (INamedType)
+                            this.module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
+                            new ITypeSignature[] { this.module.Cache.GetIntrinsic(MapDatabasePrimitiveToInstrinsic(primitive)) });
+                    }
+                } else {
+                    methodName = operation + primitive.ToString();
+                }
+
+                MethodInfo methodInfo;
+
+                methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
+                if (methodInfo == null) {
+                    methodInfo = DoFindMethodByName(dbStateType, methodName);
+                }
+
+                Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+
+                method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+
+            } else if (databaseAttribute.AttributeType is DatabaseArrayType) {
+                string methodName = operation + "Array";
+                if (operation == readOperation) {
+                    method =
+                    this.GetGenericMethodInstance(methodName,
+                    ((ArrayTypeSignature)
+                    TypeSpecDeclaration.Unwrap(fieldType)).
+                    ElementType);
+                } else {
+                    MethodInfo methodInfo = DoFindMethodByName(dbStateType, methodName);
+                    Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+                    method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+                }
+            } else if (databaseAttribute.AttributeType is DatabaseClass) {
+                string methodName = operation + "Object";
+                MethodInfo methodInfo;
+
+                methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
+                if (methodInfo == null) {
+                    methodInfo = DoFindMethodByName(dbStateType, methodName);
+                }
+                Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+                method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+                // The caller will have to cast from this type:
+                castType = this.module.Cache.GetType(typeof(Entity));
+            } else {
+                Trace.Assert(false, string.Format("Not an expected type: {0}", databaseAttribute.AttributeType));
+                method = null;
+            }
+
+            methodCastPair = new MethodCastPair();
+            methodCastPair.Method = method;
+            methodCastPair.CastType = castType;
+            this.cache.Add(key, methodCastPair);
             return true;
         }
 
