@@ -5,21 +5,18 @@
 // ***********************************************************************
 
 using System;
-using Starcounter.Apps;
 using Starcounter.Internal.Web;
-using Starcounter.Templates;
 using Starcounter.Advanced;
 using System.Diagnostics;
 using Starcounter.Binding;
 using Codeplex.Data;
-using Starcounter.Internal.REST;
 using System.Net;
 
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
     /// Class InternalHandlers
     /// </summary>
-    public class InternalHandlers : Puppet {
+    public class InternalHandlers {
         /// <summary>
         /// Registers this instance.
         /// </summary>
@@ -29,32 +26,24 @@ namespace Starcounter.Internal.JsonPatch {
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
-            GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId) => {
-                Puppet p = Session.Current.GetRootApp(viewModelId);
-
-                if (p == null) {
+            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId) => {
+                Obj json = Session.Data;
+                if (json == null) {
                     return HttpStatusCode.NotFound;
                 }
 
                 return new HttpResponse() {
-                    Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(p.ToJsonUtf8())
+                    Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(json.ToJsonUtf8())
                 };
             });
 
-            PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId, HttpRequest request) => {
-                Puppet rootApp;
-                Session session;
+            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId, HttpRequest request) => {
+                Obj root;
 
                 try {
-                    session = Session.Current;
-                    rootApp = session.GetRootApp(viewModelId);
-                    JsonPatch.EvaluatePatches(rootApp, request.GetContentByteArray_Slow());
-
-                    // TODO:
-                    // Quick and dirty hack to autorefresh dependent properties that might have been 
-                    // updated. This implementation should be removed after the demo.
-                    RefreshAllValues(rootApp, session.ChangeLog);
-                    return rootApp;
+                    root = Session.Data;
+                    JsonPatch.EvaluatePatches(root, request.GetContentByteArray_Slow());
+                    return root;
                 } catch (NotSupportedException nex) {
                     return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
                 } catch (Exception ex) {
@@ -64,7 +53,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (HttpRequest r) => {
+                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (HttpRequest r) => {
                     try {
                         string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
                         string resultJson = ExecuteQuery(bodyData);
@@ -77,33 +66,6 @@ namespace Starcounter.Internal.JsonPatch {
                 });
             }
         }
-
-        private static void RefreshAllValues(Puppet app, PuppetChangeLog log) {
-            foreach (Template template in app.Template.Children) {
-                TValue tv = template as TValue;
-                if (tv != null && !tv.Bound)
-                    continue;
-
-                if (template is TObjArr) {
-                    Arr l = app.Get((TObjArr)template);
-                    foreach (Puppet childApp in l) {
-                        RefreshAllValues(childApp, log);
-                    }
-                    continue;
-                }
-
-                if (template is TPuppet) {
-                    RefreshAllValues((Puppet)app.Get((TPuppet)template), log);
-                    continue;
-                }
-
-                if (template is TTrigger)
-                    continue;
-
-                PuppetChangeLog.UpdateValue(app, (TValue)template);
-            }
-        }
-
 
         private static string ExecuteQuery(string query) {
 

@@ -7,7 +7,7 @@ using System.Web;
 using Newtonsoft.Json;
 
 namespace StarcounterAppsLogTester {
-    partial class SqlApp : Puppet {
+    partial class SqlApp : Json {
 
         /// <summary>
         /// TODO: This is just a concept code

@@ -8,7 +8,7 @@ using Starcounter;
 using Starcounter.Server.PublicModel;
 
 namespace StarcounterApps3 {
-    partial class AppsApp : Puppet {
+    partial class AppsApp : Json {
 
         void Handle(Input.Upload action) {
 
