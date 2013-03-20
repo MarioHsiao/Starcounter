@@ -598,7 +598,7 @@ namespace Starcounter.Internal
         /// <param name="obj">The obj.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        public static String ReadString(Entity obj, Int32 index) {
+        public static String ReadStringFromEntity(Entity obj, Int32 index) {
             return ReadString(obj.ThisRef.ObjectID, obj.ThisRef.ETI, index);
         }
 

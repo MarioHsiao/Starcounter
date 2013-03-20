@@ -33,7 +33,7 @@ namespace Starcounter.Metadata
         /// <value>The name.</value>
         public string Name
         {
-            get { return DbState.ReadString(this, 2); }
+            get { return DbState.ReadStringFromEntity(this, 2); }
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Starcounter.Metadata
         /// <value>The name of the table.</value>
         public string TableName
         {
-            get { return DbState.ReadString(this, 3); }
+            get { return DbState.ReadStringFromEntity(this, 3); }
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Starcounter.Metadata
         /// <value>The description.</value>
         public string Description
         {
-            get { return DbState.ReadString(this, 4); }
+            get { return DbState.ReadStringFromEntity(this, 4); }
         }
 
         /// <summary>

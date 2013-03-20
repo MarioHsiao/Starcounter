@@ -988,7 +988,7 @@ namespace Starcounter.Binding
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
-            value_ = DbState.ReadString(rec_, sourceIndex_);
+            value_ = DbState.ReadStringFromEntity(rec_, sourceIndex_);
         }
 
         /// <summary>
