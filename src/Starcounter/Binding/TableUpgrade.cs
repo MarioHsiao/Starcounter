@@ -998,7 +998,7 @@ namespace Starcounter.Binding
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
-            DbState.WriteString(rec_, targetIndex_, value_);
+            DbState.WriteStringFromEntity(rec_, targetIndex_, value_);
         }
     }
 

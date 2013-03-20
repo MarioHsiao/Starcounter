@@ -1262,25 +1262,23 @@ namespace Starcounter.Internal
         /// <param name="obj">The obj.</param>
         /// <param name="index">The index.</param>
         /// <param name="value">The value.</param>
-        public static void WriteString(Entity obj, Int32 index, String value)
-        {
-            ObjectRef thisRef;
+        public static void WriteStringFromEntity(Entity obj, Int32 index, String value) {
+            WriteString(obj.ThisRef.ObjectID, obj.ThisRef.ETI, index, value);
+        }
+
+        public static void WriteString(ulong oid, ulong address, int index, string value) {
             Boolean br;
-            thisRef = obj.ThisRef;
-            unsafe
-            {
-                fixed (Char* p = value)
-                {
+            unsafe {
+                fixed (Char* p = value) {
                     br = sccoredb.Mdb_ObjectWriteString16(
-                        thisRef.ObjectID,
-                        thisRef.ETI,
+                        oid,
+                        address,
                         index,
                         p
                     );
                 }
             }
-            if (br)
-            {
+            if (br) {
                 return;
             }
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
