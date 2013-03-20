@@ -17,7 +17,8 @@ namespace LoadAndLatencyStartup
         static bool ProcessParams(
             String[] args,
             ref Int32 numberOfWorkers,
-            ref Int32 numberOfTransactions,
+            ref Int32 minNightlyWorkers,
+            ref Int32 transactionsMagnifier,
             ref LoadAndLatencyCore.LALSpecificTestType specificTestType)
         {
             foreach (String s in args)
@@ -30,9 +31,13 @@ namespace LoadAndLatencyStartup
                 {
                     numberOfWorkers = Int32.Parse(s.Substring(16));
                 }
-                else if (s.StartsWith("NumberOfTransactions", StringComparison.InvariantCultureIgnoreCase))
+                else if (s.StartsWith("MinNightlyWorkers", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    numberOfTransactions = Int32.Parse(s.Substring(21));
+                    minNightlyWorkers = Int32.Parse(s.Substring(18));
+                }
+                else if (s.StartsWith("TransactionsMagnifier", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    transactionsMagnifier = Int32.Parse(s.Substring(22));
                 }
                 else if (s.StartsWith("pause", StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -41,7 +46,7 @@ namespace LoadAndLatencyStartup
                 }
                 else if (s.StartsWith("?", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Console.WriteLine("LoadAndLatency.exe [SpecificTestType=0..2] [NumberOfWorkers=1..32] [NumberOfTransactions=10..10000] [pause]");
+                    Console.WriteLine("LoadAndLatency.exe [SpecificTestType=0..2] [NumberOfWorkers=1..32] [MinNightlyWorkers=1..16] [TransactionsMagnifier=10..1000] [pause]");
                     return false;
                 }
             }
@@ -72,10 +77,16 @@ namespace LoadAndLatencyStartup
         /// </summary>
         static Int32 Main(string[] args)
         {
-            Int32 numWorkers = 0, numTransactions = 0;
+            Int32 numWorkers = 0, transactionsMagnifier = 0, minNightlyWorkers = 0;
             LoadAndLatencyCore.LALSpecificTestType specificTestType = LoadAndLatencyCore.LALSpecificTestType.LAL_STANDARD_TEST;
 
-            if (!ProcessParams(args, ref numWorkers, ref numTransactions, ref specificTestType))
+            // Processing command line arguments.
+            if (!ProcessParams(
+                args,
+                ref numWorkers,
+                ref minNightlyWorkers,
+                ref transactionsMagnifier,
+                ref specificTestType))
                 return 0;
 
             // Creating indexes.
@@ -84,9 +95,9 @@ namespace LoadAndLatencyStartup
             // Since Main is started then we are on client.
             LoadAndLatencyCore lal = new LoadAndLatencyCore(false);
 
-            // Modifying number of transactions.
-            if (numTransactions > 0)
-                lal.ChangeNumberOfTransactions(numTransactions);
+            // Modifying transactions magnifier.
+            if (transactionsMagnifier > 0)
+                lal.ChangeTransactionsMagnifier(transactionsMagnifier);
 
             // Setting specific type of test, if any.
             if (specificTestType != LoadAndLatencyCore.LALSpecificTestType.LAL_STANDARD_TEST)
@@ -106,8 +117,9 @@ namespace LoadAndLatencyStartup
                 lal.NumOfWorkers = lal.NumOfLogProc;
             }
 
-            // Diagnostics.
-            Console.WriteLine("Running LAL with " + lal.NumOfWorkers + " workers and " + lal.TransactionsNumber + " transactions multiplier.");
+            // Checking if minimum nightly workers number is supplied.
+            if (minNightlyWorkers > 0)
+                lal.MinNightlyWorkers = minNightlyWorkers;
 
             // Starting the test.
             lal.EntryPoint();
