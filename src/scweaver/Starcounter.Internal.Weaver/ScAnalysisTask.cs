@@ -772,12 +772,15 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="parentName">Name of the parent type.</param>
         /// <returns><b>true</b> if <paramref name="child" /> derives from a type named <paramref name="parentName" />,
         /// otherwise <b>false</b>.</returns>
-        private static bool Inherits(IType child, string parentName) {
+        internal static bool Inherits(IType child, string parentName, bool onlyDirect = false) {
             TypeDefDeclaration cursor = child.GetTypeDefinition();
             while (true) {
                 if (cursor.GetReflectionName() == parentName) {
                     return true;
                 }
+                if (onlyDirect && cursor != child) {
+                    return false;
+                } 
                 if (cursor.BaseType != null) {
                     cursor = cursor.BaseType.GetTypeDefinition();
                 } else {
