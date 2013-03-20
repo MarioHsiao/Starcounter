@@ -72,18 +72,12 @@ EXTERN_C uint32_t sc_init_bmx_manager(DestroyAppsSessionCallback dasc)
 // Waits for BMX component to be ready.
 void sc_wait_for_bmx_ready()
 {
-    uint8_t cpun;
-    cm3_get_cpuc(NULL, &cpun);
-
     // Looping until all push channels are initialized.
-    while (g_bmx_data->get_num_registered_push_channels() < cpun)
+    while (!g_bmx_data->get_push_ready())
     {
         //std::cout << ".";
         Sleep(1);
     }
-
-    // Push is now possible.
-    g_bmx_data->set_push_ready();
 }
 
 // Main message loop for incoming requests. Handles the 
