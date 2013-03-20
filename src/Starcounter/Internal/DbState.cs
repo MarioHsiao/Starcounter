@@ -598,29 +598,36 @@ namespace Starcounter.Internal
         /// <param name="obj">The obj.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        public static String ReadString(Entity obj, Int32 index)
-        {
-            unsafe
-            {
-                ObjectRef thisRef;
+        public static String ReadString(Entity obj, Int32 index) {
+            return ReadString(obj.ThisRef.ObjectID, obj.ThisRef.ETI, index);
+        }
+
+        /// <summary>
+        /// Reads a database string.
+        /// </summary>
+        /// <param name="oid">The identity of the object to read the value
+        /// from.</param>
+        /// <param name="address">The last-known address of the object to
+        /// read the value from.</param>
+        /// <param name="index">The index of the string inside the object.
+        /// </param>
+        /// <returns>The value of the string at the given index.</returns>
+        public static string ReadString(ulong oid, ulong address, int index) {
+            unsafe {
                 UInt16 flags;
                 Byte* value;
                 Int32 sl;
                 UInt32 ec;
 
-                thisRef = obj.ThisRef;
-
                 flags = sccoredb.SCObjectReadStringW2(
-                    thisRef.ObjectID,
-                    thisRef.ETI,
+                    oid,
+                    address,
                     index,
                     &value
                 );
 
-                if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0)
-                {
-                    if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0)
-                    {
+                if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
+                    if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
                         sl = *((Int32*)value);
                         return new String((Char*)(value + 4), 0, sl);
                     }
@@ -631,6 +638,7 @@ namespace Starcounter.Internal
                 throw ErrorCode.ToException(ec);
             }
         }
+
 
         /// <summary>
         /// Reads the binary.
