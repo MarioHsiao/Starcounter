@@ -96,27 +96,27 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Inserts a new object/record of the specified type. The given proxy is
-        /// assumed to match the type; if it's not, the behaviour is undefined.
+        /// Inserts a new object/record of the specified type.
         /// </summary>
-        /// <param name="proxy">Managed instance of the type we are about to instantiate.</param>
-        /// <param name="tableId">Id of the table the type represents.</param>
-        /// <param name="typeBinding">The <see cref="TypeBinding" /> representing the
-        /// type to the engine.</param>
-        /// <remarks>This method is used by the Starcounter database engine and is
-        /// not intended for developers.</remarks>
-        public static void Insert(Entity proxy, ushort tableId, TypeBinding typeBinding) {
+        /// <param name="tableId">Identity of the table to insert into.</param>
+        /// <param name="oid">A new unique identity, assigned before this method
+        /// returns.</param>
+        /// <param name="address">The current (opaque) address of the new object
+        /// in the database, assigned before this method returns.</param>
+        public static void Insert(ushort tableId, ref ulong oid, ref ulong address) {
             uint dr;
-            ulong oid;
-            ulong addr;
+            ulong oid_local;
+            ulong addr_local;
 
             unsafe {
-                dr = sccoredb.sccoredb_insert(tableId, &oid, &addr);
+                dr = sccoredb.sccoredb_insert(tableId, &oid_local, &addr_local);
             }
             if (dr == 0) {
-                proxy.Attach(addr, oid, typeBinding);
+                oid = oid_local;
+                address = addr_local;
                 return;
             }
+
             throw ErrorCode.ToException(dr);
         }
 
