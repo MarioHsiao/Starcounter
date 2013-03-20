@@ -106,7 +106,12 @@ namespace Starcounter
         /// <param name="u"></param>
         public Entity(ushort tableId, TypeBinding typeBinding, Uninitialized u)
         {
-            DbState.Insert(this, tableId, typeBinding);
+            // Temporary implementation to be replaced by the non-Entity way.
+            // Now supports the new API of DbState.
+            ulong oid = 0, addr = 0;
+            DbState.Insert(tableId, ref oid, ref addr);
+            this.thisRef.ETI = addr;
+            this.thisRef.ObjectID = oid;
         }
 
         /// <summary>
