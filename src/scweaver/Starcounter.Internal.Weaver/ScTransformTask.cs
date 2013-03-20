@@ -327,7 +327,7 @@ namespace Starcounter.Internal.Weaver {
                     // Temporary code, allow us to implement the IObjectView interface
                     // on types with a given naming convention, for testing.
                     var typeDef2 = (TypeDefDeclaration)_module.FindType(dbc.Name + "_NEW", BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
-                    if (typeDef2 != null) {
+                    if (typeDef2 != null && InheritsObject(typeDef2)) {
                         ImplementIObjectProxy(typeDef2);
                     }
                 }
@@ -905,6 +905,16 @@ namespace Starcounter.Internal.Weaver {
         private static Boolean IsAnonymousType(TypeDefDeclaration typeDef) {
             return typeDef.Name.StartsWith("<>f__AnonymousType")
                     || typeDef.Name.StartsWith("VB$AnonymousType");
+        }
+
+        /// <summary>
+        /// Gets a value indicating if the given type directly inherits the
+        /// root .NET type System.Object.
+        /// </summary>
+        /// <param name="typeDef">The type to check</param>
+        /// <returns>True if it inherits object direct; false otherwise.</returns>
+        private static bool InheritsObject(TypeDefDeclaration typeDef) {
+            return ScAnalysisTask.Inherits(typeDef, typeof(object).FullName, true);
         }
 
         private void ImplementIObjectProxy(TypeDefDeclaration typeDef) {
