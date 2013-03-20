@@ -541,6 +541,9 @@ namespace bmx
         // Current unique number.
         BMX_HANDLER_UNIQUE_NUM_TYPE unique_handler_num_;
 
+        // Indicates that push is now possible.
+        volatile bool push_ready_;
+
     public:
 
         // Gets specific registered handler.
@@ -555,6 +558,18 @@ namespace bmx
             return num_registered_push_channels_;
         }
 
+        // Push is now ready.
+        void set_push_ready()
+        {
+            push_ready_ = true;
+        }
+
+        // Push is now ready.
+        bool get_push_ready()
+        {
+            return push_ready_;
+        }
+
         // Clones current BMX data.
         BmxData* Clone()
         {
@@ -563,6 +578,7 @@ namespace bmx
 
             new_copy->max_num_entries_ = max_num_entries_;
             new_copy->num_registered_push_channels_ = num_registered_push_channels_;
+            new_copy->push_ready_ = push_ready_;
             new_copy->unique_handler_num_ = unique_handler_num_;
 
             // Note: for non-linear HandlersList structure, need to copy element by element.
@@ -631,6 +647,7 @@ namespace bmx
             max_num_entries_ = 0;
             unique_handler_num_ = 0;
             num_registered_push_channels_ = 0;
+            push_ready_ = false;
         }
 
         // Destructor.

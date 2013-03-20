@@ -8,6 +8,10 @@ using namespace starcounter::core;
 // Pushes registered port handler.
 uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 {
+    // Checking if we are ready to push.
+    if (!bmx_data->get_push_ready())
+        return 0;
+
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
@@ -38,6 +42,10 @@ uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 // Pushes registered subport handler.
 uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 {
+    // Checking if we are ready to push.
+    if (!bmx_data->get_push_ready())
+        return 0;
+
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
@@ -68,6 +76,10 @@ uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 // Pushes registered URI handler.
 uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
 {
+    // Checking if we are ready to push.
+    if (!bmx_data->get_push_ready())
+        return 0;
+
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
@@ -769,6 +781,10 @@ uint32_t BmxData::CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t sess
 // Pushes unregistered handler.
 uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info)
 {
+    // Checking if we are ready to push.
+    if (!get_push_ready())
+        return 0;
+
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 

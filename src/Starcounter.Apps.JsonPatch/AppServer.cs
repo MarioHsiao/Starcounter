@@ -55,37 +55,45 @@ namespace Starcounter.Internal.Web {
 
             try {
                 if (x != null) {
-                    if (x is Puppet) {
-                        // A Puppet as a response could either be a new Puppet in which case we
-                        // send a 201 Created response with the Puppet as Json-content, or if it
-                        // is already created (and cached in the session-state) we send JsonPatch.
-                        var puppet = (Puppet)x;
-                        if (puppet.IsSentExternally) {
+                    if (x is Obj) {
+                        // A json object as a response could be the following:
+                        // 1) A new object not attached to a Session, in which case we just serialize it and
+                        //    send the response as normal json.
+                        // 2) A new object attached to a Session, in which case we respond with a 201 Created and
+                        //    set the location on how to access the object.
+                        // 3) Updates to a session-bound object, in which case we respond with a batch of json-patches.
+
+                        // We always start from the root object, even if the object returned from the handler is further down in the tree.
+                        var root = GetJsonRoot((Obj)x);
+
+                        session = Session.Current;
+                        if (session == null || session.root != root) {
+                            // A simple object with no serverstate. Return a 200 OK with the json as content.
                             response = new HttpResponse() {
-                                Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(Session.Current.ChangeLog)
+                                Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(root.ToJsonUtf8())
                             };
                         } else {
-                            session = Session.Current;
-                            if (session == null) {
-                                session = new Session();
+                            if (session.IsSentExternally) {
+                                // An existing sessionbound object have been updated. Return a batch of jsonpatches.
+                                response = new HttpResponse() {
+                                    Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread)
+                                };
+                            } else {
+                                // A new sessionbound object. Return a 201 Created together with location and content.
+                                request.Debug(" (new view model)");
+                                session.IsSentExternally = true;
+                                response = new HttpResponse() {
+                                    Uncompressed = HttpResponseBuilder.Create201Response(root.ToJsonUtf8(), session.GetDataLocation())
+                                };
+                            }
+
+                            // Need to check if this is a new session and if so generate a new session in the gateway.
+                            if (!request.HasSession) {
                                 errorCode = request.GenerateNewSession(session);
                                 if (errorCode != 0)
                                     throw ErrorCode.ToException(errorCode);
-                                Session.Start(session);
                             }
-
-                            request.Debug(" (new view model)");
-                            session.AttachRootApp(puppet);
-                            puppet.IsSentExternally = true;
-                            response = new HttpResponse() {
-                                Uncompressed = HttpResponseBuilder.Create201Response(puppet.ToJsonUtf8(), puppet.__Location)
-                            };
                         }
-                    } else if (x is Json) {
-                        var msgxxx = x as Json;
-                        response = new HttpResponse() {
-                            Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
-                        };
                     } else if (x is DynamicJson) {
                         var dynJson = (DynamicJson)x;
                         response = new HttpResponse() {
@@ -140,6 +148,14 @@ namespace Starcounter.Internal.Web {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             }
+        }
+
+        private Obj GetJsonRoot(Obj json) {
+            Container current = json;
+            while (current.Parent != null) {
+                current = current.Parent;
+            }
+            return (Obj)current;
         }
 
         /// <summary>

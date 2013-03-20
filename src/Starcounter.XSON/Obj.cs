@@ -209,6 +209,25 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="property">The property that has changed in this Obj</param>
         protected virtual void HasChanged(TValue property) {
+            ChangeLog.UpdateValue(this, property);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="elementIndex"></param>
+        public override void HasAddedElement(TObjArr property, int elementIndex) {
+            ChangeLog.AddItemInList(this, property, elementIndex);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="elementIndex"></param>
+        public override void HasRemovedElement(TObjArr property, int elementIndex) {
+            ChangeLog.RemoveItemInList(this, property, elementIndex);
         }
 
         /// <summary>

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace Starcounter.Templates {
 
     /// <summary>
-    /// Represents an action property in a Puppet. An Action property does not contain a value, 
+    /// Represents an action property in a typed json object. An Action property does not contain a value, 
     /// but can be triggered by the client.
     /// </summary>
     /// <remarks>
@@ -21,11 +21,11 @@ namespace Starcounter.Templates {
     {
         /// <summary>
         /// </summary>
-        private Func<Puppet, TValue, Input> CustomInputEventCreator = null;
+        private Func<Obj, TValue, Input> CustomInputEventCreator = null;
      
         /// <summary>
         /// </summary>
-        public List<Action<Puppet, Input>> CustomInputHandlers = new List<Action<Puppet, Input>>();
+        public List<Action<Obj, Input>> CustomInputHandlers = new List<Action<Obj, Input>>();
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -75,11 +75,11 @@ namespace Starcounter.Templates {
             Input input = null;
 
             if (CustomInputEventCreator != null)
-                input = CustomInputEventCreator.Invoke((Puppet)obj, this);
+                input = CustomInputEventCreator.Invoke(obj, this);
 
             if (input != null) {
                 foreach (var h in CustomInputHandlers) {
-                    h.Invoke((Puppet)obj, input);
+                    h.Invoke(obj, input);
                 }
             } 
         }
