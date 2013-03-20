@@ -33,7 +33,7 @@ namespace Starcounter.Metadata
         /// <summary>
         /// </summary>
         public string Name {
-            get { return DbState.ReadString(this, 2); }
+            get { return DbState.ReadStringFromEntity(this, 2); }
         }
     }
 }
