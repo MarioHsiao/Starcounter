@@ -37,44 +37,29 @@ namespace Starcounter.Internal.JsonPatch {
         }
     }
 
+    internal enum JsonPatchMember {
+        Invalid,
+        Op,
+        Path,
+        Value
+    }
+
     /// <summary>
-    /// Class JsonPatch
+    /// Class for evaluating, handling and creating json-patch to and from typed json objects 
+    /// and logged changes done in a typed json object during a request.
+    /// 
+    /// The json-patch is implemented according to http://tools.ietf.org/html/draft-ietf-appsawg-json-patch-10
     /// </summary>
     public class JsonPatch {
-        /// <summary>
-        /// The UNDEFINED
-        /// </summary>
         public const Int32 UNDEFINED = 0;
-        /// <summary>
-        /// The REMOVE
-        /// </summary>
         public const Int32 REMOVE = 1;
-        /// <summary>
-        /// The REPLACE
-        /// </summary>
         public const Int32 REPLACE = 2;
-        /// <summary>
-        /// The ADD
-        /// </summary>
         public const Int32 ADD = 3;
 
-        /// <summary>
-        /// The _patch type to string
-        /// </summary>
-        private static String[] _patchTypeToString;
-
-        /// <summary>
-        /// The _add patch arr
-        /// </summary>
-        private static Byte[] _addPatchArr;
-        /// <summary>
-        /// The _remove patch arr
-        /// </summary>
-        private static Byte[] _removePatchArr;
-        /// <summary>
-        /// The _replace patch arr
-        /// </summary>
-        private static Byte[] _replacePatchArr;
+        private static string[] _patchTypeToString;
+        private static byte[] _addPatchArr;
+        private static byte[] _removePatchArr;
+        private static byte[] _replacePatchArr;
 
         /// <summary>
         /// Initializes static members of the <see cref="JsonPatch" /> class.
@@ -109,13 +94,15 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="rootApp">the root app for this request.</param>
         /// <param name="body">The body of the request.</param>
         public static void EvaluatePatches(Obj rootApp, byte[] body) {
-            Byte[] contentArr;
-            Byte current;
-            Int32 bracketCount;
+            byte[] contentArr;
+            byte current;
+            int bracketCount;
 
-            Int32 patchType = UNDEFINED;
+            JsonPatchMember member;
+            int patchType = UNDEFINED;
             JsonPointer pointer = null;
-            Byte[] value = null;
+            byte[] value = null;
+            bool valueFound = false;
 
             bracketCount = 0;
             contentArr = body;
@@ -127,11 +114,31 @@ namespace Starcounter.Internal.JsonPatch {
                     offset++;
                     if (bracketCount == 0) {
                         // Start of a new patch. Lets read the needed items from it.
-                        offset = GetPatchVerb(contentArr, offset, out patchType);
-                        offset = GetPatchPointer(contentArr, offset, out pointer);
+                        valueFound = false;
+                        bool first = true;
+                        for (int mi = 0; mi < 3; mi++) {
+                            offset = GotoMember(contentArr, offset, first);
+                            first = false;
+                            offset = GetPatchMember(contentArr, offset, out member);
+                            offset = GotoValue(contentArr, offset);
+                            switch (member) {
+                                case JsonPatchMember.Op:
+                                    offset = GetPatchVerb(contentArr, offset, out patchType);
+                                    break;
+                                case JsonPatchMember.Path:
+                                    offset = GetPatchPointer(contentArr, offset, out pointer);
+                                    break;
+                                case JsonPatchMember.Value:
+                                    offset = GetPatchValue(contentArr, offset, out value);
+                                    valueFound = true;
+                                    break;
+                                default:
+                                    throw new NotSupportedException("Not a valid jsonpatch");
+                            }
+                        }
 
-                        if (patchType != REMOVE) {
-                            offset = GetPatchValue(contentArr, offset, out value);
+                        if (patchType == JsonPatch.UNDEFINED || pointer == null || !valueFound) {
+                            throw new Exception("Not a valid jsonpatch");
                         }
                         HandleParsedPatch(rootApp, patchType, pointer, value);
                     }
@@ -144,17 +151,81 @@ namespace Starcounter.Internal.JsonPatch {
         }
 
         /// <summary>
-        /// Called after a jsonpatch is read. Will evaluate the jsonpointer
-        /// and call the appropriate handler in Apps.
+        /// Skips all bytes until the name of the current member starts.
         /// </summary>
-        /// <param name="rootApp">The root application from which the pointer starts.</param>
-        /// <param name="patchType">The type of patch</param>
-        /// <param name="pointer">A jsonpointer that points to the value to be patched</param>
-        /// <param name="value">The value.</param>
-        /// <exception cref="System.Exception">TODO:</exception>
-        private static void HandleParsedPatch(Obj rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
-            AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
-            ((TValue)aat.Template).ProcessInput(aat.App, value);
+        /// <param name="contentArr"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        private static int GotoMember(byte[] contentArr, int offset, bool first) {
+            if (!first) {
+                while (contentArr[offset] != ',')
+                    offset++;
+                offset++;
+            }
+            while (contentArr[offset] == ' ')
+                offset++;
+            if (contentArr[offset] == (byte)'"')
+                offset++;
+            return offset;
+        }
+
+        /// <summary>
+        /// Skips all bytes until the value of the current member starts.
+        /// </summary>
+        /// <param name="contentArr"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        private static int GotoValue(byte[] contentArr, int offset) {
+            while (contentArr[offset] != ':')
+                offset++;
+            offset++;
+            while (contentArr[offset] == ' ')
+                offset++;
+            //if (contentArr[offset] == (byte)'"')
+            //    offset++;
+            return offset;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="contentArr"></param>
+        /// <param name="offset"></param>
+        /// <param name="member"></param>
+        /// <returns></returns>
+        private static int GetPatchMember(byte[] contentArr, int offset, out JsonPatchMember member) {
+            member = JsonPatchMember.Invalid;
+            switch (contentArr[offset]){
+                case (byte)'o':
+                    offset++;
+                    if (contentArr[offset] == 'p') {
+                        member = JsonPatchMember.Op;
+                        offset++;
+                    }
+                    break;
+                case (byte)'p':
+                    if (contentArr[offset + 1] == 'a'
+                        &&  contentArr[offset + 2] == 't'
+                        &&  contentArr[offset + 3] == 'h') {
+                            offset += 4;
+                            member = JsonPatchMember.Path;
+                    }
+                    break;
+                case (byte)'v':
+                    if (contentArr[offset + 1] == 'a'
+                        && contentArr[offset + 2] == 'l'
+                        && contentArr[offset + 3] == 'u'
+                        && contentArr[offset + 3] == 'u') {
+                            offset += 5;
+                            member = JsonPatchMember.Value;
+                    }
+                    break;
+            }
+
+            if (member == JsonPatchMember.Invalid){
+                throw new Exception("Invalid jsonpatch");
+            }
+            return offset;
         }
 
         /// <summary>
@@ -166,37 +237,35 @@ namespace Starcounter.Internal.JsonPatch {
         /// <returns>Int32.</returns>
         /// <exception cref="System.Exception">Cannot find value in patch</exception>
         private static Int32 GetPatchValue(Byte[] contentArr, Int32 offset, out Byte[] value) {
-            Byte current;
-            Int32 start;
-            Int32 length;
+            bool quotation;
+            int start;
+            int length;
 
-            start = -1;
-            length = 0;
-            while (offset < contentArr.Length) {
-                current = contentArr[offset];
-                if (current == ':') {
-                    offset++;
-                    current = contentArr[offset];
-                    while (current == ' ') {
-                        offset++;
-                        current = contentArr[offset];
-                    }
-
-                    start = offset;
-                    if (current == '"')
-                        start++;
-                } else if ((start != -1) && (current == '"' || current == '}')) {
-                    length = offset - start;
-                    break;
-                }
+            quotation = false;
+            if (contentArr[offset] == '"') {
                 offset++;
+                quotation = true;
             }
 
-            if (start < 0) {
-                throw new Exception("Cannot find value in patch");
+            start = offset;
+            if (quotation) {
+                while (offset < contentArr.Length) {
+                    if (contentArr[offset] == '"')
+                        break;
+                    offset++;
+                }
+                    
+            } else {
+                while (offset < contentArr.Length) {
+                    if (contentArr[offset] == ' ' 
+                        || contentArr[offset] == '}' 
+                        || contentArr[offset] == ',')
+                        break;
+                }
             }
 
-            Byte[] ret = new Byte[length];
+            length = offset - start;
+            byte[] ret = new byte[length];
             Buffer.BlockCopy(contentArr, start, ret, 0, length);
             value = ret;
             return offset;
@@ -259,42 +328,35 @@ namespace Starcounter.Internal.JsonPatch {
         /// <returns>Int32.</returns>
         /// <exception cref="System.Exception">Unsupported json-patch</exception>
         private static Int32 GetPatchVerb(Byte[] contentArr, Int32 offset, out Int32 patchType) {
-            Boolean quotationMark = false;
-
-            while (contentArr[offset] == ' ')
+            if (contentArr[offset] == '"')
                 offset++;
-
-            if (contentArr[offset] == (byte)'"') {
-                quotationMark = true;
-                offset++;
-            }
 
             if (IsPatchVerb(_replacePatchArr, contentArr, offset, contentArr.Length)) {
                 patchType = REPLACE;
-                offset += _replacePatchArr.Length + 1;
+                offset += _replacePatchArr.Length;
             } else {
                 throw new NotSupportedException();
             }
 
-            if (quotationMark)
-                offset++;
+            //if (contentArr[offset] == '"')
+            //    offset++;
             return offset;
         }
 
         /// <summary>
-        /// Determines whether [is patch verb] [the specified field name].
+        /// Determines whether the value in the buffer equals the submitted field.
         /// </summary>
-        /// <param name="fieldName">Name of the field.</param>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
-        private static Boolean IsPatchVerb(Byte[] fieldName, Byte[] buffer, Int32 offset, Int32 length) {
-            Int32 i;
+        /// <param name="verbName">The array of bytes for the field</param>
+        /// <param name="buffer">The buffer containing the value to check</param>
+        /// <param name="offset">The offset in the buffer</param>
+        /// <param name="length">The length of the buffer</param>
+        private static bool IsPatchVerb(byte[] verbName, byte[] buffer, int offset, int length) {
+            int i;
 
-            for (i = 0; i < fieldName.Length; i++) {
+            for (i = 0; i < verbName.Length; i++) {
                 if (i == length)
                     return false;
-                if (buffer[offset] == fieldName[i]) {
+                if (buffer[offset] == verbName[i]) {
                     offset++;
                 } else {
                     return false;
@@ -302,6 +364,20 @@ namespace Starcounter.Internal.JsonPatch {
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Called after a jsonpatch is read. Will evaluate the jsonpointer
+        /// and call the appropriate handler in Apps.
+        /// </summary>
+        /// <param name="rootApp">The root application from which the pointer starts.</param>
+        /// <param name="patchType">The type of patch</param>
+        /// <param name="pointer">A jsonpointer that points to the value to be patched</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.Exception">TODO:</exception>
+        private static void HandleParsedPatch(Obj rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
+            AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
+            ((TValue)aat.Template).ProcessInput(aat.App, value);
         }
 
         /// <summary>
@@ -396,21 +472,19 @@ namespace Starcounter.Internal.JsonPatch {
             List<String> pathList = new List<String>();
             StringBuilder sb = new StringBuilder(40);
 
-            sb.Append('"');
+            sb.Append("{\"op\":\"");
             sb.Append(PatchTypeToString(patchType));
-            sb.Append('"');
-            sb.Append(':');
-            sb.Append('"');
+            sb.Append("\",\"path\":\"");
             IndexPathToString(sb, from, nearestApp);
 
             if (index != -1) {
                 sb.Append('/');
                 sb.Append(index);
             }
-
             sb.Append('"');
+
             if (patchType != REMOVE) {
-                sb.Append(", \"value\":");
+                sb.Append(",\"value\":");
                 if (value is Obj) {
                     var oo = (Obj)value;
                     sb.Append(oo.ToJson());
@@ -419,6 +493,7 @@ namespace Starcounter.Internal.JsonPatch {
                     sb.Append(JsonConvert.SerializeObject(value));
                 }
             }
+            sb.Append('}');
             return sb.ToString();
         }
 
