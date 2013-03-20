@@ -340,7 +340,7 @@ namespace Starcounter.Internal.JsonPatch {
                     current = list[index];
                 } else {
                     if (currentIsTApp) {
-                        mainApp = (Json)mainApp.Get((TJson)current);
+                        mainApp = (Obj)mainApp.Get((TObj)current);
                         currentIsTApp = false;
                     }
 
@@ -358,9 +358,9 @@ namespace Starcounter.Internal.JsonPatch {
                     current = t;
                 }
 
-                if (current is Json) {
-                    mainApp = current as Json;
-                } else if (current is TJson) {
+                if (current is Obj) {
+                    mainApp = current as Obj;
+                } else if (current is TObj) {
                     currentIsTApp = true;
                 } else if (current is TObjArr) {
                     nextTokenShouldBeIndex = true;
@@ -412,7 +412,9 @@ namespace Starcounter.Internal.JsonPatch {
             if (patchType != REMOVE) {
                 sb.Append(", \"value\":");
                 if (value is Obj) {
-                    sb.Append(((Obj)value).ToJson());
+                    var oo = (Obj)value;
+                    sb.Append(oo.ToJson());
+                    oo.ChangeLogEnabled = true;
                 } else {
                     sb.Append(JsonConvert.SerializeObject(value));
                 }
