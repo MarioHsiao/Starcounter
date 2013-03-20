@@ -1175,29 +1175,18 @@ namespace Starcounter.Internal.Weaver {
             getMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
 
+            // We need the this handle and the this identity fields from
+            // the type defining the field we are about to replace, to make
+            // the proper call to the correct DbState method.
+            //   These, we should obviosly cache on the type level for all
+            // future field generation rounds.
+            // TODO:
+
+            var thisHandleField = field.DeclaringType.Fields.GetByName(TypeSpecification.ThisHandleName);
+            var thisIdField = field.DeclaringType.Fields.GetByName(TypeSpecification.ThisIdName);
+
             if (dbStateMethod.ParameterCount == 3) {
-                // We need the this handle and the this identity fields from
-                // the type defining the field we are about to replace, to make
-                // the proper call to the correct DbState method.
-                //   These, we should obviosly cache on the type level for all
-                // future field generation rounds.
-                // TODO:
-
-                var thisHandleField = field.DeclaringType.Fields.GetByName(TypeSpecification.ThisHandleName);
-                var thisIdField = field.DeclaringType.Fields.GetByName(TypeSpecification.ThisIdName);
-
-                // For the new non-Entity API, here's the facit.
-                //.method public hidebysig specialname instance string get_Foo() cil managed
-                //{
-                //    .maxstack 8
-                //    L_0000: ldarg.0 
-                //    L_0001: ldfld uint64 TestAccess::thisId
-                //    L_0006: ldarg.0 
-                //    L_0007: ldfld uint64 TestAccess::thisHandle
-                //    L_000c: ldsfld int32 TestAccess/Spec::Foo1
-                //    L_0011: call string MyDbState::ReadString(uint64, uint64, int32)
-                //    L_0016: ret 
-                //}
+                getMethod.MethodBody.MaxStack = 8;
                 _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                 _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
                 _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
@@ -1240,6 +1229,7 @@ namespace Starcounter.Internal.Weaver {
                 realDatabaseAttribute,
                 out dbStateMethod,
                 out dbStateCast);
+            
             if (haveSetMethod) {
                 setMethod = new MethodDefDeclaration() {
                     Name = ("set_" + field.Name),
@@ -1260,12 +1250,32 @@ namespace Starcounter.Internal.Weaver {
                 setMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence, NodePosition.After, null);
                 _writer.AttachInstructionSequence(sequence);
 
-                // We need to prepare this stack transition:
-                // <this>, <index>, <casted_value> -> void
+                if (dbStateMethod.ParameterCount == 4) {
+                    //.maxstack 8
+                    //L_0000: ldarg.0 
+                    //L_0001: ldfld uint64 TestAccess::thisId
+                    //L_0006: ldarg.0 
+                    //L_0007: ldfld uint64 TestAccess::thisHandle
+                    //L_000c: ldsfld int32 TestAccess/Spec::Foo1
+                    //L_0011: ldarg.1 
+                    //L_0012: call void MyDbState::WriteString(uint64, uint64, int32, string)
+                    //L_0017: ret
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisHandleField);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
+                    _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
 
-                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
-                _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
+                } else {
+
+                    // We need to prepare this stack transition:
+                    // <this>, <index>, <casted_value> -> void
+
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
+                    _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
+                }
 
                 // We have the field value on the stack, but we may need to cast it.
                 if (dbStateCast != null) {
