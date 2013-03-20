@@ -25,12 +25,6 @@ namespace Starcounter {
         private ChangeLog changeLog;
 
         /// <summary>
-        /// Returns true if the dataobject have been sent to a client in a previous
-        /// request.
-        /// </summary>
-        internal Boolean IsSentExternally { get; set; }
-
-        /// <summary>
         /// Returns the current active session.
         /// </summary>
         /// <value></value>
@@ -67,10 +61,10 @@ namespace Starcounter {
                 DisposeJsonRecursively(current.root);
             }
             root = data;
-            IsSentExternally = false;
 
             // We don't want any changes logged during this request since
             // we will have to send the whole object anyway in the response.
+            root.LogChanges = false;
             ChangeLog.CurrentOnThread = null;
         }
 
