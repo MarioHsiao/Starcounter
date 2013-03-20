@@ -73,7 +73,7 @@ namespace Starcounter.Internal.Web {
                                 Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(root.ToJsonUtf8())
                             };
                         } else {
-                            if (session.IsSentExternally) {
+                            if (root.LogChanges) {
                                 // An existing sessionbound object have been updated. Return a batch of jsonpatches.
                                 response = new HttpResponse() {
                                     Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread)
@@ -81,7 +81,7 @@ namespace Starcounter.Internal.Web {
                             } else {
                                 // A new sessionbound object. Return a 201 Created together with location and content.
                                 request.Debug(" (new view model)");
-                                session.IsSentExternally = true;
+                                root.LogChanges = true;
                                 response = new HttpResponse() {
                                     Uncompressed = HttpResponseBuilder.Create201Response(root.ToJsonUtf8(), session.GetDataLocation())
                                 };
