@@ -88,6 +88,8 @@ namespace Starcounter.Internal.Weaver {
         /// The _DB object type
         /// </summary>
         private ITypeSignature _dbObjectType;
+
+        private IType _databaseAttributeType;
         /// <summary>
         /// The type corresponding to the SynonymousToAttribute .NET type.
         /// </summary>
@@ -409,6 +411,7 @@ namespace Starcounter.Internal.Weaver {
             _dbObjectType = FindStarcounterType(typeof(Entity));
             _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+            _databaseAttributeType = FindStarcounterType(typeof(Starcounter.Hosting.DatabaseAttribute));
         }
 
         /// <summary>
@@ -1002,18 +1005,19 @@ namespace Starcounter.Internal.Weaver {
                 this._discoverDatabaseClassCache.Add(typeDef, databaseClass);
                 return databaseClass;
             }
-            
-            if (!typeDef.IsAssignableTo(this._dbObjectType)) {
-                return null;
-            }
-            
-            ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
-            
-            if (typeDef.IsAssignableTo(this._entityType)) {
-                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a regular entity object.", typeDef);
-                databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
+
+            TypeDefDeclaration cursor = typeDef;
+            while (!cursor.CustomAttributes.Contains(_databaseAttributeType)) {
+                if (cursor.BaseType != null) {
+                    cursor = cursor.BaseType.GetTypeDefinition();
+                } else {
+                    return null;
+                }
             }
 
+            ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
+            databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
+            
             databaseClass.SetTypeDefinition(typeDef);
             
             DatabaseClass existingDatabaseClass = this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());
