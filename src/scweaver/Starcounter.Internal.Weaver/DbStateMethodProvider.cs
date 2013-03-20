@@ -218,13 +218,13 @@ namespace Starcounter.Internal.Weaver {
 
             Func<Type, string, MethodInfo> DoFindMethodByName = (stateType, methodName) => {
                 MethodInfo info;
-                try {
-                    info = stateType.GetMethod(methodName);
-
-                } catch (AmbiguousMatchException) {
-                    var paramTypes = new Type[] { typeof(ulong), typeof(ulong), typeof(int) };
-                    info = stateType.GetMethod(methodName, paramTypes);
-                }
+                info = stateType.GetMethod(methodName);
+                Trace.Assert(info != null, "Missing method " + stateType.Name + "." + methodName);
+                Trace.Assert(
+                    methodName.StartsWith("Read") && info.GetParameters().Length == 3 ||
+                    methodName.StartsWith("Write") && info.GetParameters().Length == 4,
+                    "Errornous, legacy signature of " + stateType.Name + "." + methodName
+                    );
                 return info;
             };
  
@@ -298,8 +298,9 @@ namespace Starcounter.Internal.Weaver {
             return true;
         }
 
-
-
+        MethodInfo DoGetAccessMethodByName(Type stateType, string methodName) {
+            return stateType.GetMethod(methodName);
+        }
 
         /// <summary>
         /// Determines which method of the <see cref="DbState" /> class should be called to retrieve
