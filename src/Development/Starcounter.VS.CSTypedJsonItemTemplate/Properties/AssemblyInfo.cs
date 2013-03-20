@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Starcounter.NaiveApp")]
+[assembly: AssemblyTitle("Starcounter.VS.CSTypedJsonItemTemplate")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Starcounter AB")]
-[assembly: AssemblyProduct("Starcounter.NaiveApp")]
-[assembly: AssemblyCopyright("Copyright © Starcounter AB 2012")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Starcounter.VS.CSTypedJsonItemTemplate")]
+[assembly: AssemblyCopyright("Copyright © Starcounter 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,9 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("8d353a6a-946d-4033-a663-8706ff0dfba3")]
-
-[assembly: InternalsVisibleTo("Starcounter.Apps.Tests")]
+[assembly: Guid("f2146ccc-d672-4c85-b260-a99c97176e7f")]
 
 // Version information for an assembly consists of the following four values:
 //

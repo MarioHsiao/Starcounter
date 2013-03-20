@@ -14,6 +14,7 @@ namespace QueryProcessingTest {
             AddQueries();
             ErrorCases();
             SimpleTestsAllQueries();
+            TestDataModification();
 #if false
             foreach query
                 foreach interator
@@ -33,6 +34,10 @@ namespace QueryProcessingTest {
         static void AddQueries() {
             queries.Add((addition, arg) => Db.SQL("select u from user u " + addition, arg));
             queries.Add((addition, arg) => Db.SQL("select u from user u where useridnr < ? " + addition, 5, arg));
+            queries.Add((addition, arg) => Db.SQL("select Client from Account " + addition, arg));
+            queries.Add((addition, arg) => Db.SQL("select Client from Account where accountid < ? " + addition, 5, arg));
+            queries.Add((addition, arg) => Db.SQL("select u from User u, Account a where useridnr < ? and u = Client and amount = ? " + addition, 5, 0, arg));
+            queries.Add((addition, arg) => Db.SQL("select u1 from User u1 join user u2 on u1 <> u2 and u1.useridnr = u2.useridnr + ? " + addition, 1, arg));
         }
 
         static void ErrorCases() {
@@ -82,6 +87,7 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(isException);
 
+#if false
             isException = false;
             e = Db.SQL("select u from user u where useridnr < ? fetch ?", 5, 4).GetEnumerator();
             e.MoveNext();
@@ -115,31 +121,158 @@ namespace QueryProcessingTest {
                 e.Dispose();
             }
             Trace.Assert(isException);
+#endif
         }
 
         static void SimpleTestsAllQueries() {
-            string f = "fetch ?";
-            string o = "offsetkey ?";
             int n = 4;
             byte[] k = null;
             foreach (CallQuery q in queries)
                 Db.Transaction(delegate {
                     int userIdNr = 0;
-                    using (IRowEnumerator<dynamic> e = q(f, n).GetEnumerator()) {
+                    using (IRowEnumerator<dynamic> e = q("fetch ?", n).GetEnumerator()) {
                         e.MoveNext();
                         Trace.Assert(e.Current is User);
-                        Trace.Assert((e.Current as User).UserIdNr == 0);
+                        //Trace.Assert((e.Current as User).UserIdNr == 0);
                         e.MoveNext();
                         Trace.Assert(e.Current is User);
                         userIdNr = (e.Current as User).UserIdNr;
                         k = e.GetOffsetKey();
                     }
-                    using (IRowEnumerator<dynamic> e = q(o, k).GetEnumerator()) {
+                    Trace.Assert(k != null);
+                    using (IRowEnumerator<dynamic> e = q("offsetkey ?", k).GetEnumerator()) {
                         e.MoveNext();
                         Trace.Assert(e.Current is User);
                         Trace.Assert((e.Current as User).UserIdNr == userIdNr);
                     }
                 });
+        }
+
+        static void TestDataModification() {
+            // Populate data
+            User client = PopulateForTest();
+            // Do set of tests
+            String query = "select a from account a where accountid > ?";
+            // Drop inside fetched
+            var key = DoFetch(query);
+            Db.Transaction(delegate {
+                Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1)).First.Delete();
+            });
+            DoOffsetkey(query, key, new int[] {GetAccountId(3-1), GetAccountId(4-1), GetAccountId(5-1)}); // offsetkey does not move forward
+            InsertAccount(GetAccountId(1), client);
+            // Insert inside fetched
+            key = DoFetch(query);
+            InsertAccount(GetAccountId(1)+1, client);
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(5 - 1) }); // offsetkey does not move forward
+            Db.Transaction(delegate {
+                Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1) + 1).First.Delete();
+            });
+            // Insert later after offsetkey
+            key = DoFetch(query);
+            InsertAccount(GetAccountId(3) + 1, client);
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(3) + 1, GetAccountId(5 - 1) });
+            Db.Transaction(delegate {
+                Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3) + 1).First.Delete();
+            });
+            // Insert after offsetkey
+            key = DoFetch(query);
+            InsertAccount(GetAccountId(2) + 1, client);
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(2) + 1, GetAccountId(4 - 1), GetAccountId(5 - 1) });
+            Db.Transaction(delegate {
+                Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2) + 1).First.Delete();
+            });
+            // Delete after offsetkey
+            key = DoFetch(query);
+            Db.Transaction(delegate {
+                Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3)).First.Delete();
+            });
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(5 - 1) });
+            InsertAccount(GetAccountId(3), client);
+            // Delete the offset key
+            key = DoFetch(query);
+            Db.Transaction(delegate {
+                Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2)).First.Delete();
+            });
+            DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(4), GetAccountId(5) });
+            InsertAccount(GetAccountId(2), client);
+            // Delete and insert the offset key
+            // Drop data
+            DropAfterTest();
+        }
+
+        static byte[] DoFetch(String query) {
+            int nrs = 0;
+            byte[] key = null;
+            Db.Transaction(delegate {
+                using (IRowEnumerator<Account> res = Db.SQL<Account>(query + " fetch ?", AccountIdLast, 3).GetEnumerator())
+                    while (res.MoveNext()) {
+                        Trace.Assert(res.Current.AccountId == GetAccountId(nrs));
+                        nrs++;
+                        if (nrs == 3)
+                            key = res.GetOffsetKey();
+                    }
+            });
+            Trace.Assert(key != null);
+            Trace.Assert(nrs == 3);
+            return key;
+        }
+
+        static void DoOffsetkey(String query, byte[] key, int[] expectedResult) {
+            int nrs = 0;
+            Db.Transaction(delegate {
+            foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, expectedResult.Length, key)) {
+                Trace.Assert(a.AccountId == expectedResult[nrs]);
+                nrs++;
+            }
+            });
+            Trace.Assert(nrs == expectedResult.Length);
+        }
+
+        static User PopulateForTest() {
+            User client = null;
+            Db.Transaction(delegate {
+                Trace.Assert(Db.SQL<Account>("select a from account a order by accountid desc").First.AccountId == AccountIdLast);
+                Trace.Assert(Db.SlowSQL<long>("select count(u) from user u").First == 10000);
+                client = new User {
+                    UserIdNr = 10005,
+                    BirthDay = new DateTime(1983, 03, 23),
+                    FirstName = "Test",
+                    LastName = "User",
+                    UserId = DataPopulation.FakeUserId(10005)
+                };
+                for (int i = 0; i < 6; i++)
+                    InsertAccount(GetAccountId(i), client);
+            });
+            return client;
+        }
+
+        static void DropAfterTest() {
+            User client = null;
+            Db.Transaction(delegate {
+                int nrs = 0;
+                foreach (Account a in Db.SQL<Account>("select a from account a where accountid > ?", AccountIdLast)) {
+                    client = a.Client;
+                    a.Delete();
+                    nrs++;
+                }
+                client.Delete();
+                Trace.Assert(nrs == 6);
+                Trace.Assert(Db.SQL<Account>("select a from account a order by accountid desc").First.AccountId == AccountIdLast);
+                Trace.Assert(Db.SlowSQL<long>("select count(u) from user u").First == 10000);
+            });
+        }
+
+        static int GetAccountId(int i) {
+            return 10000 * 3 + (i + 1) * 3;
+        }
+        static int AccountIdLast = 10000 * 3 - 1;
+
+        static Account InsertAccount(int accountId, User client) {
+            Account a = null;
+            Db.Transaction(delegate {
+                a = new Account { AccountId = accountId, Amount = 100.0m - (accountId - AccountIdLast) * 3, Client = client, Updated = DateTime.Now };
+            });
+            return a;
         }
     }
     /*
@@ -152,6 +285,7 @@ namespace QueryProcessingTest {
      * I.6. With join
      * I.7. With multiple join
      * I.8. With outer join
+     * I.9. With fetch
      * 
      * II. Iterations and offset key fetching
      * II.1. Fetch inside and iterate to the end
@@ -169,6 +303,8 @@ namespace QueryProcessingTest {
      * III.9. Insert next after the next
      * III.10. Delete and insert the offset key
      * III.11. Delete and insert the next
+     * III.12. Delete the offset key and insert next
+     * III.13. Non-unique inserts (with deletes) around the offset key
      * 
      * IV. Transactions
      * IV.1. No transaction scope

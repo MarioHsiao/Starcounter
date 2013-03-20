@@ -52,12 +52,8 @@
       <HintPath>$(StarcounterBin)\Starcounter.Internal.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Starcounter.Apps">
-      <HintPath>$(StarcounterBin)\Starcounter.Apps.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Starcounter.Apps.Interfaces">
-      <HintPath>$(StarcounterBin)\Starcounter.Apps.Interfaces.dll</HintPath>
+    <Reference Include="Starcounter.Apps.JsonPatch">
+      <HintPath>$(StarcounterBin)\Starcounter.Apps.JsonPatch.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Starcounter.HyperMedia">

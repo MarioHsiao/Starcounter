@@ -85,9 +85,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Puppet Include="Master.json">
+    <TypedJSON Include="Master.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.html">
@@ -252,49 +252,49 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Puppet Include="ServerApp.json">
+    <TypedJSON Include="ServerApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <Puppet Include="DatabaseApp.json">
+    <TypedJSON Include="DatabaseApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <Puppet Include="DatabasesApp.json">
+    <TypedJSON Include="DatabasesApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <Puppet Include="DatabaseAppsApp.json">
+    <TypedJSON Include="DatabaseAppsApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <Puppet Include="AppApp.json">
+    <TypedJSON Include="AppApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <Puppet Include="LogApp.json">
+    <TypedJSON Include="LogApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
-    <Puppet Include="AppsApp.json">
+    </TypedJSON>
+    <TypedJSON Include="AppsApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
-    <Puppet Include="SqlApp.json">
+    </TypedJSON>
+    <TypedJSON Include="SqlApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
-    <Puppet Include="LogEntryApp.json">
+    </TypedJSON>
+    <TypedJSON Include="LogEntryApp.json">
       <Generator>MSBuild:Compile</Generator>
-    </Puppet>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
     <!-- Group with including all messages supported -->
-    <Typed_JSON Include="ExecRequest.json">
+    <TypedJSON Include="ExecRequest.json">
       <Generator>MSBuild:Compile</Generator>
-    </Typed_JSON>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

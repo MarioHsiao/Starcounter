@@ -4,7 +4,7 @@ using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 
 namespace StarcounterApps3 {
-    partial class DatabaseApp : Puppet {
+    partial class DatabaseApp : Json {
 
         void Handle(Input.Start start) {
 
