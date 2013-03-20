@@ -16,7 +16,7 @@ BmxData* EnterSafeBmxManagement()
     //std::cout << "EnterSafeBmxManagement." << std::endl;
 
     // Checking if there are too many old clones.
-    if (g_bmx_old_clones_.size() > 4096)
+    if (g_bmx_old_clones_.size() > 128)
     {
         // Deleting very old BMX data copy.
         delete g_bmx_old_clones_.front();
@@ -76,11 +76,14 @@ void sc_wait_for_bmx_ready()
     cm3_get_cpuc(NULL, &cpun);
 
     // Looping until all push channels are initialized.
-    while(g_bmx_data->get_num_registered_push_channels() < cpun)
+    while (g_bmx_data->get_num_registered_push_channels() < cpun)
     {
         //std::cout << ".";
         Sleep(1);
     }
+
+    // Push is now possible.
+    g_bmx_data->set_push_ready();
 }
 
 // Main message loop for incoming requests. Handles the 

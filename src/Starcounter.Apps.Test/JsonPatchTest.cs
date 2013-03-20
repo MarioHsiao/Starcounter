@@ -114,8 +114,8 @@ namespace Starcounter.Internal.JsonPatch.Test
             Session session = new Session();
             Session.Execute(session, () =>
             {
-                Puppet rootApp = CreateSampleApp().App;
-                Session.Current.AttachRootApp(rootApp);
+                Obj rootApp = CreateSampleApp().App;
+                Session.Data = rootApp;
                 JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
             });
         }
@@ -266,37 +266,38 @@ namespace Starcounter.Internal.JsonPatch.Test
 
             Int32 repeat = 1;
 
-            Session session = new Session();
-            Session.Execute(session, () => {
-                AppAndTemplate aat = CreateSampleApp();
+            ChangeLog log = new ChangeLog();
+            ChangeLog.CurrentOnThread = log;
 
-                appt = (TPuppet)aat.Template;
+            AppAndTemplate aat = CreateSampleApp();
 
-                TString lastName = (TString)appt.Properties[1];
-                TObjArr items = (TObjArr)appt.Properties[2];
+            appt = (TPuppet)aat.Template;
 
-                dynamic app = aat.App;
-                app.LastName = "Ewing";
-                app.Items.RemoveAt(0);
-                dynamic newitem = app.Items.Add();
-                newitem.Description = "Aight!";
-                app.LastName = "Poe";
+            TString lastName = (TString)appt.Properties[1];
+            TObjArr items = (TObjArr)appt.Properties[2];
 
-                start = DateTime.Now;
-                for (Int32 i = 0; i < repeat; i++) {
-                    PuppetChangeLog.UpdateValue(app, lastName);
-                    //                ChangeLog.RemoveItemInList(app, items, 0);
-                    PuppetChangeLog.AddItemInList(app, items, app.Items.Count - 1);
+            dynamic app = aat.App;
+            app.LastName = "Ewing";
+            app.Items.RemoveAt(0);
+            dynamic newitem = app.Items.Add();
+            newitem.Description = "Aight!";
+            app.LastName = "Poe";
 
-                    //ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
-                    PuppetChangeLog.UpdateValue(app, lastName);
+            start = DateTime.Now;
+            for (Int32 i = 0; i < repeat; i++) {
+                ChangeLog.UpdateValue(app, lastName);
+                //                ChangeLog.RemoveItemInList(app, items, 0);
+                ChangeLog.AddItemInList(app, items, app.Items.Count - 1);
 
-                    response = HttpPatchBuilder.CreateHttpPatchResponse(session.ChangeLog);
-                    session.ChangeLog.Clear();
-                }
-                stop = DateTime.Now;
+                //ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
+                ChangeLog.UpdateValue(app, lastName);
 
-            });
+                response = HttpPatchBuilder.CreateHttpPatchResponse(log);
+                log.Clear();
+            }
+            stop = DateTime.Now;
+            ChangeLog.CurrentOnThread = null;
+
             Console.WriteLine("Created {0} responses in {1} ms", repeat, (stop - start).TotalMilliseconds);
             Console.WriteLine(Encoding.UTF8.GetString(response));
         }
