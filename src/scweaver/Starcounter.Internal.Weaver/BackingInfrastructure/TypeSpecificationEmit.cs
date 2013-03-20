@@ -79,7 +79,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             typeDef.Fields.Add(thisBinding);
         }
 
-        public void IncludeField(TypeDefDeclaration typeDef, FieldDefDeclaration field) {
+        public FieldDefDeclaration IncludeField(TypeDefDeclaration typeDef, FieldDefDeclaration field) {
             var specType = typeToSpec[typeDef];
             var columnHandle = new FieldDefDeclaration {
                 Name = TypeSpecification.FieldNameToColumnHandleName(field.Name),
@@ -87,6 +87,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 FieldType = intType
             };
             specType.Fields.Add(columnHandle);
+            return columnHandle;
         }
     }
 }
