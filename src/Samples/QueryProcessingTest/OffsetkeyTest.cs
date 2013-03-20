@@ -163,12 +163,27 @@ namespace QueryProcessingTest {
             InsertAccount(GetAccountId(1)+1, client);
             DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(5 - 1) }); // offsetkey does not move forward
             Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1) + 1).First.Delete();
+            // Insert later after offsetkey
+            key = DoFetch(query);
+            InsertAccount(GetAccountId(3) + 1, client);
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(3) + 1, GetAccountId(5 - 1) });
+            Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3) + 1).First.Delete();
             // Insert after offsetkey
             key = DoFetch(query);
             InsertAccount(GetAccountId(2) + 1, client);
             DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(2) + 1, GetAccountId(4 - 1), GetAccountId(5 - 1) });
             Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3) + 1).First.Delete();
             // Delete after offsetkey
+            key = DoFetch(query);
+            Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3)).First.Delete();
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(5 - 1) });
+            InsertAccount(GetAccountId(2) + 1, client);
+            // Delete the offset key
+            key = DoFetch(query);
+            Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2)).First.Delete();
+            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(5 - 1) });
+            InsertAccount(GetAccountId(2) + 1, client);
+            // Delete and insert the offset key
             // Drop data
             DropAfterTest();
         }
@@ -176,13 +191,13 @@ namespace QueryProcessingTest {
         static byte[] DoFetch(String query) {
             int nrs = 0;
             byte[] key = null;
-            IRowEnumerator<Account> res = Db.SQL<Account>(query+" fetch ?", AccountIdLast, 3).GetEnumerator();
-            while (res.MoveNext()) {
-                Trace.Assert(res.Current.AccountId == GetAccountId(nrs));
-                nrs++;
-                if (nrs == 3)
-                    key = res.GetOffsetKey();
-            }
+            using (IRowEnumerator<Account> res = Db.SQL<Account>(query + " fetch ?", AccountIdLast, 3).GetEnumerator())
+                while (res.MoveNext()) {
+                    Trace.Assert(res.Current.AccountId == GetAccountId(nrs));
+                    nrs++;
+                    if (nrs == 3)
+                        key = res.GetOffsetKey();
+                }
             Trace.Assert(key != null);
             Trace.Assert(nrs == 3);
             return key;
@@ -190,7 +205,7 @@ namespace QueryProcessingTest {
 
         static void DoOffsetkey(String query, byte[] key, int[] expectedResult) {
             int nrs = 0;
-            foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, 3, key)) {
+            foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, expectedResult.Length, key)) {
                 Trace.Assert(a.AccountId == expectedResult[nrs]);
                 nrs++;
             }
