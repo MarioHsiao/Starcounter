@@ -23,7 +23,7 @@ namespace LoadAndLatency
         const Int32 SingleWorkerSchedId = 255;
 
         // Minimum number of workers during nightly build.
-        const Int32 MinNightlyWorkers = 8;
+        const Int32 MinNightlyWorkers = 9;
 
         // Performance timer frequency (counts per microsecond).
         Double timerFreqTicksPerMcs = 0;
