@@ -23,7 +23,7 @@ namespace LoadAndLatency
         const Int32 SingleWorkerSchedId = 255;
 
         // Minimum number of workers during nightly build.
-        const Int32 MinNightlyWorkers = 9;
+        public Int32 MinNightlyWorkers = 5;
 
         // Performance timer frequency (counts per microsecond).
         Double timerFreqTicksPerMcs = 0;
@@ -32,7 +32,7 @@ namespace LoadAndLatency
         Boolean startedOnClient = false;
 
         // Object creation transactions multiplier.
-        public Int32 TransactionsNumber = 100;
+        public Int32 TransactionsMagnifier = 100;
 
         // Number of objects per each transaction.
         Int32 NumObjectsPerTransaction = 1000;
@@ -216,18 +216,8 @@ namespace LoadAndLatency
             // Ticks per microsecond.
             timerFreqTicksPerMcs = freqTempVar / 1000000.0;
 
-            // Getting transactions number from env variable.
-            String transNumVar = Environment.GetEnvironmentVariable("LAL_TRANS_NUM");
-            if (transNumVar != null)
-                TransactionsNumber = Int32.Parse(transNumVar);
-
-            // Getting objects number per each transaction from env variable.
-            String objPerTransVar = Environment.GetEnvironmentVariable("LAL_OBJ_PER_TRANS");
-            if (objPerTransVar != null)
-                NumObjectsPerTransaction = Int32.Parse(objPerTransVar);
-
-            // Initializing data.
-            TotalNumOfObjectsInDB = TransactionsNumber * NumObjectsPerTransaction;
+            // Determining number of objects in database.
+            TotalNumOfObjectsInDB = TransactionsMagnifier * NumObjectsPerTransaction;
             NumOfQueryTypes = QueryStrings.Length;
 
             this.startedOnClient = startedOnClient;
@@ -241,17 +231,17 @@ namespace LoadAndLatency
             if (TestLogger.IsNightlyBuild())
             {
                 additionalWorkersNum = 0;
-                TotalNumOfObjectsInDB = TransactionsNumber * NumObjectsPerTransaction;
+                TotalNumOfObjectsInDB = TransactionsMagnifier * NumObjectsPerTransaction;
             }
         }
 
         /// <summary>
-        /// Changes number of transactions to a new value.
+        /// Changes transactions magnifier to a new value.
         /// </summary>
-        public void ChangeNumberOfTransactions(Int32 numberOfTrans)
+        public void ChangeTransactionsMagnifier(Int32 transactionsMagnifier)
         {
-            TransactionsNumber = numberOfTrans;
-            TotalNumOfObjectsInDB = TransactionsNumber * NumObjectsPerTransaction;
+            TransactionsMagnifier = transactionsMagnifier;
+            TotalNumOfObjectsInDB = TransactionsMagnifier * NumObjectsPerTransaction;
         }
 
         /// <summary>
@@ -285,9 +275,6 @@ namespace LoadAndLatency
 
             // Determining total number of workers.
             Int32 numOfJobsTotal = NumOfLogProc + additionalWorkersNum;
-
-            // Flag for ladder test.
-            Boolean ladderTest = (Environment.GetEnvironmentVariable("LAL_LADDER") != null);
 
             // Creating shuffled data for workers.
             InitRandomData(numOfJobsTotal);
@@ -358,7 +345,7 @@ namespace LoadAndLatency
             SQLSelectMulti(false, NumOfWorkers);
 
             // Running ladder test if its a nightly build.
-            if (TestLogger.IsNightlyBuild() || ladderTest)
+            if (TestLogger.IsNightlyBuild())
             {
                 // Disabling logging through error console.
                 logger.TurnOffStatistics = true;
@@ -398,7 +385,7 @@ namespace LoadAndLatency
                         testType <= SimpleObjectOperations.SIMPLE_OBJECT_DELETE_WITH_QUERY;
                         testType++)
                     {
-                        SimplePerformanceTest(NumObjectsPerTransaction, TransactionsNumber * i / 5, testType, 0, true);
+                        SimplePerformanceTest(NumObjectsPerTransaction, TransactionsMagnifier * i / 5, testType, 0, true);
                     }
                 }
 
@@ -448,7 +435,7 @@ namespace LoadAndLatency
 
             // Creating objects only if there are none of them.
             LogEvent(String.Format("   Inserting new {0} average-size objects using {1} transactions with {2} object inserts each.",
-                TotalNumOfObjectsInDB, TransactionsNumber, NumObjectsPerTransaction));
+                TotalNumOfObjectsInDB, TransactionsMagnifier, NumObjectsPerTransaction));
 
             PreciseTimer perfTimer = new PreciseTimer();
             perfTimer.Start();
@@ -618,7 +605,7 @@ namespace LoadAndLatency
                     SqlEnumerator<Object> sqlEnum = null;
 
                     // Running throw all transactions.
-                    for (Int32 trans = 0; trans < TransactionsNumber; trans++)
+                    for (Int32 trans = 0; trans < TransactionsMagnifier; trans++)
                     {
                         if (trans == 0)
                         {
@@ -692,7 +679,7 @@ namespace LoadAndLatency
 
             perfTimer.Stop();
 
-            LogEvent(String.Format("   {0} rows selection {1} times, {2} repeats took: {3} mcs.", NumObjectsPerTransaction, TransactionsNumber, repeats, perfTimer.DurationMcs));
+            LogEvent(String.Format("   {0} rows selection {1} times, {2} repeats took: {3} mcs.", NumObjectsPerTransaction, TransactionsMagnifier, repeats, perfTimer.DurationMcs));
             LogEvent("---------------------------------------------------------------");
         }
 
@@ -707,7 +694,7 @@ namespace LoadAndLatency
             Int32 fetchNumber = NumObjectsPerTransaction,
                 repeats = 100;
 
-            LogEvent(String.Format("   Running SQL SELECT test for {0} rows selection (pyramide with FETCH), {1} times, {2} repeats.", NumObjectsPerTransaction, TransactionsNumber, repeats));
+            LogEvent(String.Format("   Running SQL SELECT test for {0} rows selection (pyramide with FETCH), {1} times, {2} repeats.", NumObjectsPerTransaction, TransactionsMagnifier, repeats));
 
             // Creating indexes array strings.
             String[] shuffledArrayString = new String[TotalNumOfObjectsInDB];
@@ -724,7 +711,7 @@ namespace LoadAndLatency
                 Int64 calcChecksum = 0, m = 0, artChecksum = 0;
 
                 // Running specified number of transactions.
-                for (Int32 i = 0; i < TransactionsNumber; i++)
+                for (Int32 i = 0; i < TransactionsMagnifier; i++)
                 {
                     // Transaction scope.
                     using (Transaction transaction = Transaction.NewCurrent())
@@ -778,7 +765,7 @@ namespace LoadAndLatency
 
             perfTimer.Stop();
 
-            LogEvent(String.Format("   {0} rows selection {1} times, {2} repeats took: {3} mcs.", NumObjectsPerTransaction, TransactionsNumber, repeats, perfTimer.DurationMcs));
+            LogEvent(String.Format("   {0} rows selection {1} times, {2} repeats took: {3} mcs.", NumObjectsPerTransaction, TransactionsMagnifier, repeats, perfTimer.DurationMcs));
             LogEvent("---------------------------------------------------------------");
         }
 
@@ -1984,7 +1971,7 @@ namespace LoadAndLatency
             Int64 curObjectNum = 0;
 
             // Populating database using number of given transactions.
-            for (Int32 t = 0; t < TransactionsNumber; t++)
+            for (Int32 t = 0; t < TransactionsMagnifier; t++)
             {
                 using (Transaction transaction = Transaction.NewCurrent())
                 {
