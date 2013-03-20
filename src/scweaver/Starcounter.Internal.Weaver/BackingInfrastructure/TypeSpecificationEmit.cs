@@ -26,6 +26,31 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
         ITypeSignature intType;
         Dictionary<TypeDefDeclaration, TypeDefDeclaration> typeToSpec;
 
+        public FieldDefDeclaration TableHandle {
+            get;
+            private set;
+        }
+
+        public FieldDefDeclaration TypeBindingReference {
+            get;
+            private set;
+        }
+
+        public FieldDefDeclaration ThisHandle {
+            get;
+            private set;
+        }
+
+        public FieldDefDeclaration ThisIdentity {
+            get;
+            private set;
+        }
+
+        public FieldDefDeclaration ThisBinding {
+            get;
+            private set;
+        }
+
         public TypeSpecificationEmit(ModuleDeclaration module) {
             this.module = module;
             typeBindingType = module.Cache.GetType(typeof(TypeBinding));
@@ -49,6 +74,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 FieldType = ushortType
             };
             typeSpec.Fields.Add(tableHandle);
+            this.TableHandle = tableHandle;
 
             var typeBindingReference = new FieldDefDeclaration {
                 Name = TypeSpecification.TypeBindingName,
@@ -56,6 +82,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 FieldType = typeBindingType
             };
             typeSpec.Fields.Add(typeBindingReference);
+            this.TypeBindingReference = typeBindingReference;
 
             var thisHandle = new FieldDefDeclaration {
                 Name = TypeSpecification.ThisHandleName,
@@ -63,6 +90,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 FieldType = ulongType
             };
             typeDef.Fields.Add(thisHandle);
+            this.ThisHandle = thisHandle;
 
             var thisId = new FieldDefDeclaration {
                 Name = TypeSpecification.ThisIdName,
@@ -70,6 +98,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 FieldType = ulongType
             };
             typeDef.Fields.Add(thisId);
+            this.ThisIdentity = thisId;
 
             var thisBinding = new FieldDefDeclaration {
                 Name = TypeSpecification.ThisBindingName,
@@ -77,6 +106,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 FieldType = typeBindingType
             };
             typeDef.Fields.Add(thisBinding);
+            this.ThisBinding = thisBinding;
         }
 
         public FieldDefDeclaration IncludeField(TypeDefDeclaration typeDef, FieldDefDeclaration field) {
