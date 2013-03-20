@@ -21,19 +21,19 @@ namespace Starcounter.Metadata
         /// <summary>
         /// </summary>
         public ulong TableId {
-            get { return DbState.ReadUInt64(this, 0); }
+            get { return DbState.ReadUInt64(this.ThisRef.ObjectID, ThisRef.ETI, 0); }
         }
 
         /// <summary>
         /// </summary>
         public ulong Index {
-            get { return DbState.ReadUInt64(this, 1); }
+            get { return DbState.ReadUInt64(ThisRef.ObjectID, ThisRef.ETI, 1); }
         }
 
         /// <summary>
         /// </summary>
         public string Name {
-            get { return DbState.ReadStringFromEntity(this, 2); }
+            get { return DbState.ReadString(ThisRef.ObjectID, ThisRef.ETI, 2); }
         }
     }
 }
