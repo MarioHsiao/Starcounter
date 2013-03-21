@@ -12,6 +12,7 @@ using Starcounter.Internal.Weaver;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
 using Starcounter.Binding;
 using Starcounter.Hosting;
+using PostSharp.Extensibility;
 
 namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
@@ -100,11 +101,32 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             typeDef.InterfaceImplementations.Add(viewTypeSignature);
             typeDef.InterfaceImplementations.Add(proxyTypeSignature);
 
+            foreach (var interfaceProperty in viewNETType.GetProperties()) {
+                var p = new PropertyDeclaration() {
+                    PropertyType = module.FindType(interfaceProperty.PropertyType),
+                    Name = viewNETType.FullName + "." + interfaceProperty.Name
+                };
+                
+                typeDef.Properties.Add(p);
+                if (interfaceProperty.CanRead) {
+                    var getSemantic = new MethodSemanticDeclaration() {
+                        Semantic = MethodSemantics.Getter
+                    };
+                    p.Members.Add(getSemantic);
+                }
+                if (interfaceProperty.CanWrite) {
+                    var setSemantic = new MethodSemanticDeclaration() {
+                        Semantic = MethodSemantics.Setter
+                    };
+                    p.Members.Add(setSemantic);
+                }
+            }
+
             foreach (var interfaceMethod in viewNETType.GetMethods()) {
                 IMethod methodRef = module.FindMethod(interfaceMethod, BindingOptions.Default);
 
                 var impl = new MethodDefDeclaration() {
-                    Name = viewNETType.Name + "." + interfaceMethod.Name,
+                    Name = viewNETType.FullName + "." + interfaceMethod.Name,
                     Attributes = methodAttributes,
                     CallingConvention = CallingConvention.HasThis,
                 };
@@ -114,11 +136,31 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 ImplementInterfaceMethod(interfaceMethod, typeDef, methodRef, impl);
             }
 
+            foreach (var interfaceProperty in proxyNETType.GetProperties()) {
+                var p = new PropertyDeclaration() {
+                    PropertyType = module.FindType(interfaceProperty.PropertyType),
+                    Name = proxyNETType.FullName + "." + interfaceProperty.Name
+                };
+                typeDef.Properties.Add(p);
+                if (interfaceProperty.CanRead) {
+                    var getSemantic = new MethodSemanticDeclaration() {
+                        Semantic = MethodSemantics.Getter
+                    };
+                    p.Members.Add(getSemantic);
+                }
+                if (interfaceProperty.CanWrite) {
+                    var setSemantic = new MethodSemanticDeclaration() {
+                        Semantic = MethodSemantics.Setter
+                    };
+                    p.Members.Add(setSemantic);
+                }
+            }
+
             foreach (var interfaceMethod in proxyNETType.GetMethods()) {
                 IMethod methodRef = module.FindMethod(interfaceMethod, BindingOptions.Default);
 
                 var impl = new MethodDefDeclaration() {
-                    Name = proxyNETType.Name + "." + interfaceMethod.Name,
+                    Name = proxyNETType.FullName + "." + interfaceMethod.Name,
                     Attributes = methodAttributes,
                     CallingConvention = CallingConvention.HasThis,
                 };
@@ -185,6 +227,9 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 Attributes = ParameterAttributes.Retval,
                 ParameterType = module.Cache.GetIntrinsic(IntrinsicType.UInt64)
             };
+            var propertyName = proxyNETType.FullName + "." + "ThisHandle";
+            var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
+            getter.Method = impl;
 
             using (var attached = new AttachedInstructionWriter(writer, impl)) {
                 var w = attached.Writer;
@@ -202,6 +247,9 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 Attributes = ParameterAttributes.Retval,
                 ParameterType = module.Cache.GetIntrinsic(IntrinsicType.UInt64)
             };
+            var propertyName = proxyNETType.FullName + "." + "Identity";
+            var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
+            getter.Method = impl;
 
             using (var attached = new AttachedInstructionWriter(writer, impl)) {
                 var w = attached.Writer;
@@ -372,6 +420,9 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 Attributes = ParameterAttributes.Retval,
                 ParameterType = module.FindType(typeof(ITypeBinding))
             };
+            var propertyName = viewNETType.FullName + "." + "TypeBinding";
+            var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
+            getter.Method = impl;
 
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
@@ -436,6 +487,9 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 Attributes = ParameterAttributes.Retval,
                 ParameterType = module.FindType(typeof(ObjectRef))
             };
+            var propertyName = viewNETType.FullName + "." + "ThisRef";
+            var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
+            getter.Method = impl;
 
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
@@ -446,6 +500,9 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             impl.Attributes |= MethodAttributes.SpecialName;
             var refParameter = new ParameterDeclaration(0, "value", module.FindType(typeof(ObjectRef)));
             impl.Parameters.Add(refParameter);
+            var propertyName = viewNETType.FullName + "." + "ThisRef";
+            var setter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Setter);
+            setter.Method = impl;
 
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
