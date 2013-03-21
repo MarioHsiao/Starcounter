@@ -117,8 +117,6 @@ namespace Starcounter
         Nullable<UInt64> GetUInt64(Int32 index);
 
         #region Temporary extension methods from Entity
-        void Attach(ObjectRef objectRef, TypeBinding typeBinding);
-        void Attach(ulong addr, ulong oid, TypeBinding typeBinding);
         ObjectRef ThisRef {get;set;}
 
         #endregion

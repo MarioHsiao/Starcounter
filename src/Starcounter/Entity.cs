@@ -82,7 +82,7 @@ namespace Starcounter
 
         private ObjectRef thisRef;
         public ObjectRef ThisRef { get { return thisRef; } set { thisRef = value; } }
-        private TypeBinding typeBinding_;
+        private TypeBinding typeBinding_ = null;
 
         /// <summary>
         /// 
@@ -209,52 +209,6 @@ namespace Starcounter
         public override string ToString()
         {
             return string.Format("{0}({1})", GetType().Name, ThisRef.ObjectID.ToString());
-        }
-
-        /// <summary>
-        /// Called when a delete is issued.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// For better performance; this method isn't called if not overridden
-        /// in a base class.
-        /// </para>
-        /// <para>
-        /// The transaction is locked on the thread during the call to this
-        /// method (as long as called from Delete that is). Implementation is
-        /// not allowed to change the current transaction or modify the state
-        /// of the current transaction (like committing or rolling back the
-        /// transaction). If the state of the transaction is changed by another
-        /// thread the delete operation will be aborted.
-        /// </para>
-        /// </remarks>
-        //protected internal virtual void OnDelete()
-        //{
-        //    // Note that this method isn't called unless overriden in a base
-        //    // class and that override calls the base implementation. No use
-        //    // putting any code here in other words.
-        //}
-
-        /// <summary>
-        /// </summary>
-        /// <param name="objectRef"></param>
-        /// <param name="typeBinding"></param>
-#if ERIK_TEST
-        public void Attach(ObjectRef objectRef, TypeBinding typeBinding)
-#else
-        public void Attach(ObjectRef objectRef, TypeBinding typeBinding)
-#endif
-        {
-            thisRef.ETI = objectRef.ETI;
-            thisRef.ObjectID = objectRef.ObjectID;
-            typeBinding_ = typeBinding;
-        }
-
-        public void Attach(ulong addr, ulong oid, TypeBinding typeBinding)
-        {
-            thisRef.ETI = addr;
-            thisRef.ObjectID = oid;
-            typeBinding_ = typeBinding;
         }
 
         internal TypeBinding TypeBinding { get { return typeBinding_; } }

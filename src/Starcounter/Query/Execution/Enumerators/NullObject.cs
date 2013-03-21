@@ -132,12 +132,6 @@ internal sealed class NullObject : IObjectView
     }
 
     #region Temporary extension methods from Entity
-    public void Attach(ObjectRef objectRef, TypeBinding typeBinding) {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-    }
-    public void Attach(ulong addr, ulong oid, TypeBinding typeBinding) {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-    }
     public ObjectRef ThisRef {
         get {
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
@@ -145,9 +139,6 @@ internal sealed class NullObject : IObjectView
         set {
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
         }
-    }
-    public void Delete() {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface method is temporary");
     }
     #endregion
 
