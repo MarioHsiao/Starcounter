@@ -29,6 +29,7 @@ using Starcounter.Internal.Weaver.IObjectViewImpl;
 using Starcounter.Internal.Weaver.BackingInfrastructure;
 using Starcounter.Hosting;
 using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+using Starcounter.Internal.Weaver.BackingCode;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
@@ -923,7 +924,7 @@ namespace Starcounter.Internal.Weaver {
             // implement it.
 
             if (_weaveForIPC) {
-                LucentClassInitializerMethodAdvice pcia = new LucentClassInitializerMethodAdvice();
+                DatabaseClassInitCallMethodAdvice pcia = new DatabaseClassInitCallMethodAdvice();
 
                 foreach (DatabaseClass dbc in ScAnalysisTask.GetTask(this.Project).DatabaseClassesInCurrentModule) {
                     var typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);

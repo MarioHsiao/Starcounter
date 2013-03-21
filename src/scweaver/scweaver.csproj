@@ -111,7 +111,7 @@
     <Compile Include="Starcounter.Internal.Weaver\IObjectViewImpl\ImplementsIObjectProxy.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Starcounter.Internal.Weaver\LucentClassInitializerMethodAdvice.cs" />
+    <Compile Include="Starcounter.Internal.Weaver\DatabaseClassInitCallMethodAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\PostSharpExtensions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ReimplementWeavedLucentAccessorAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScAnalysisTask.cs" />
