@@ -4,7 +4,7 @@
 // This is particulary useful when we want to compare the
 // generated signatures- and metadata to that of a class
 // being default-implemented by Visual Studio.
-#define THROW_NOT_IMPLEMENTED
+// #define THROW_NOT_IMPLEMENTED
 
 using System;
 using System.Collections.Generic;
