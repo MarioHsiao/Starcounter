@@ -1329,12 +1329,10 @@ namespace Starcounter.Internal.Weaver {
             DatabaseClass databaseClass,
             TypeSpecificationEmit typeSpecification) {
             
-            CustomAttributeDeclaration customAttr;
             IMethod baseUninitializedConstructor;
             IMethod replacementConstructor;
             InstructionBlock rootInstrBlock;
             InstructionSequence sequence;
-//            IType forbiddenType;
             IType parentType;
             MethodBodyDeclaration constructorImplementation;
             MethodDefDeclaration enhancedConstructor;
@@ -1366,35 +1364,7 @@ namespace Starcounter.Internal.Weaver {
             // Emit the uninitialized constructor
             ScTransformTrace.Instance.WriteLine("Emitting the uninitialized constructor.");
 
-            // Get the 'uninitialized' constructor on the base type.
-            baseUninitializedConstructor = parentType.Methods.GetMethod(
-                ".ctor",
-                _uninitializedConstructorSignature,
-                BindingOptions.Default
-                );
-
-            // Define the 'uninitialized' constructor.
-            uninitializedConstructor = new MethodDefDeclaration {
-                Name = ".ctor",
-                Attributes = MethodAttributes.SpecialName
-                                | MethodAttributes.RTSpecialName
-                                | MethodAttributes.HideBySig
-                                | MethodAttributes.Public,
-                CallingConvention = CallingConvention.HasThis
-            };
-            typeDef.Methods.Add(uninitializedConstructor);
-
-            customAttr = _weavingHelper.GetDebuggerNonUserCodeAttribute();
-            uninitializedConstructor.CustomAttributes.Add(customAttr);
-
-            paramDecl = new ParameterDeclaration(0, "u", this._uninitializedType);
-            uninitializedConstructor.Parameters.Add(paramDecl);
-
-            paramDecl = new ParameterDeclaration {
-                Attributes = ParameterAttributes.Retval,
-                ParameterType = _module.Cache.GetIntrinsic(IntrinsicType.Void)
-            };
-            uninitializedConstructor.ReturnParameter = paramDecl;
+            CreateAndAddUninitializedConstructorSignature(typeDef, out uninitializedConstructor);
 
             rootInstrBlock = uninitializedConstructor.MethodBody.CreateInstructionBlock();
             uninitializedConstructor.MethodBody.RootInstructionBlock = rootInstrBlock;
@@ -1402,9 +1372,15 @@ namespace Starcounter.Internal.Weaver {
             sequence = uninitializedConstructor.MethodBody.CreateInstructionSequence();
             rootInstrBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstruction(OpCodeNumber.Ldnull);
-            _writer.EmitInstructionMethod(OpCodeNumber.Call, baseUninitializedConstructor);
+            if (!InheritsObject(typeDef)) {
+                baseUninitializedConstructor = parentType.Methods.GetMethod(".ctor",
+                    _uninitializedConstructorSignature,
+                    BindingOptions.Default
+                    );
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstruction(OpCodeNumber.Ldnull);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call, baseUninitializedConstructor);
+            }
             _writer.EmitInstruction(OpCodeNumber.Ret);
             _writer.DetachInstructionSequence();
             uninitializedConstructor.SetTag(_constructorEnhancedTagGuid, "uninitialized");
@@ -1592,6 +1568,35 @@ namespace Starcounter.Internal.Weaver {
                 // Calls to the base constructor should be redirected in this constructor.
                 advice.AddWovenConstructor(enhancedConstructor);
             }
+        }
+
+        private void CreateAndAddUninitializedConstructorSignature(
+            TypeDefDeclaration typeDef, out MethodDefDeclaration uninitializedConstructor) {
+            CustomAttributeDeclaration customAttr;
+            ParameterDeclaration paramDecl;
+
+            // Define the 'uninitialized' constructor.
+            uninitializedConstructor = new MethodDefDeclaration {
+                Name = ".ctor",
+                Attributes = MethodAttributes.SpecialName
+                                | MethodAttributes.RTSpecialName
+                                | MethodAttributes.HideBySig
+                                | MethodAttributes.Public,
+                CallingConvention = CallingConvention.HasThis
+            };
+            typeDef.Methods.Add(uninitializedConstructor);
+
+            customAttr = _weavingHelper.GetDebuggerNonUserCodeAttribute();
+            uninitializedConstructor.CustomAttributes.Add(customAttr);
+
+            paramDecl = new ParameterDeclaration(0, "u", this._uninitializedType);
+            uninitializedConstructor.Parameters.Add(paramDecl);
+
+            paramDecl = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = _module.Cache.GetIntrinsic(IntrinsicType.Void)
+            };
+            uninitializedConstructor.ReturnParameter = paramDecl;
         }
     }
 }
