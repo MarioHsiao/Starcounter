@@ -404,7 +404,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         //public float? GetSingle(int index) {
 
         void GetString(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            BuildIObjectViewIntristicGetterSignature(IntrinsicType.String, impl);
+            BuildIObjectViewNonIntristicGetterSignature(typeof(string), false, impl);
 
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
