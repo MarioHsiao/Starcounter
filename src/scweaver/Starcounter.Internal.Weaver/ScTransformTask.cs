@@ -1461,7 +1461,42 @@ namespace Starcounter.Internal.Weaver {
                 constructorImplementation = constructor.MethodBody;
                 constructor.MethodBody = new MethodBodyDeclaration();
                 enhancedConstructor.MethodBody = constructorImplementation;
-                
+
+                if (InheritsObject(typeDef)) {
+                    // This will be a real challenge - we need to inject the call
+                    // to DbState.Insert just after the object is actually created.
+                    // The constructor being "moved" here generally will contain
+                    // that code, so we can't just use the "first line principle".
+                    //   For now, we'll just assume an empty ctor calling object:ctor
+                    // and we'll do our stuff after that (or, actually, we are just
+                    // replacing the whole thingy.
+                    //   When implementing the final solution, consider if it's a
+                    // good approach to have every root have a private ctor with a
+                    // hidden signature that is responsible for the call to insert.
+                    // TODO:
+                    enhancedConstructor.MethodBody = new MethodBodyDeclaration();
+                    enhancedConstructor.MethodBody.RootInstructionBlock
+                                = enhancedConstructor.MethodBody.CreateInstructionBlock();
+                    sequence = enhancedConstructor.MethodBody.CreateInstructionSequence();
+                    enhancedConstructor.MethodBody.RootInstructionBlock.AddInstructionSequence(
+                        sequence,
+                        NodePosition.After,
+                        null);
+                    _writer.AttachInstructionSequence(sequence);
+
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_1);
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisIdentity);
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisHandle);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Call,
+                        _module.FindMethod(_dbStateMethodProvider.DbStateType.GetMethod("Insert"), BindingOptions.Default));
+                    _writer.EmitInstruction(OpCodeNumber.Ret);
+                    _writer.DetachInstructionSequence();
+                }
+
                 // Create a new implementation of the original constructor, where we
                 // only call the new one.
                 constructor.CustomAttributes.Add(_weavingHelper.GetDebuggerNonUserCodeAttribute());
