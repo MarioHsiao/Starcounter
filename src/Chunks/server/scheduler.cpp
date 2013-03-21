@@ -359,6 +359,8 @@ public:
 private:
 	FORCE_INLINE unsigned long prepare_wait_or_wait_for_signal(unsigned long timeout_milliseconds)
 	{
+		timeout_milliseconds = 1; /// Debug nightly build!
+
 		// If the notify flag is not set, then this was the first scan not
 		// finding any message to process since last time we had work to do.
 		if (this_scheduler_interface_->get_notify_flag() == false) {
