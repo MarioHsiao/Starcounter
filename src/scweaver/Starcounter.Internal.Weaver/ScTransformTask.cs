@@ -119,11 +119,6 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private ModuleDeclaration _module;
         /// <summary>
-        /// The _starcounter implementation type def
-        /// </summary>
-        private TypeDefDeclaration _starcounterImplementationTypeDef;
-        //private MethodDefDeclaration _lucentClientAssemblyInitializerMethod;
-        /// <summary>
         /// The _weaving helper
         /// </summary>
         private WeavingHelper _weavingHelper;
@@ -484,27 +479,25 @@ namespace Starcounter.Internal.Weaver {
             Type type;
 
             voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
-
+            
             _uninitializedType = (IType)_module.Cache.GetType(typeof(Uninitialized));
 
             uninitTypeSignArr = new ITypeSignature[] { _uninitializedType };
-            _uninitializedConstructorSignature = new MethodSignature(_module,
-                                                                     CallingConvention.HasThis,
-                                                                     voidTypeSign,
-                                                                     uninitTypeSignArr,
-                                                                     0);
-            _nullableType = (INamedType)_module.FindType(
-                typeof(Nullable<>),
-                BindingOptions.RequireGenericDefinition
-                );
+            _uninitializedConstructorSignature = new MethodSignature(
+                _module,
+                CallingConvention.HasThis,
+                voidTypeSign,
+                uninitTypeSignArr,
+                0);
+            _nullableType = (INamedType)_module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition);
 
             _typeBindingType = _module.Cache.GetType(typeof(Starcounter.Binding.TypeBinding));
             _ushortType = _module.Cache.GetIntrinsic(IntrinsicType.UInt16);
 
             _objectViewType = _module.FindType(typeof(IObjectView), BindingOptions.Default);
-            
-            _objectConstructor = _module.FindMethod(typeof(Object).GetConstructor(Type.EmptyTypes),
-                                                    BindingOptions.Default);
+
+            _objectConstructor = _module.FindMethod(
+                typeof(Object).GetConstructor(Type.EmptyTypes), BindingOptions.Default);
 
             type = typeof(AnonymousTypePropertyAttribute);
             cstrInfo = type.GetConstructor(new[] { typeof(int) });
@@ -518,39 +511,6 @@ namespace Starcounter.Internal.Weaver {
                                                             BindingOptions.Default);
 
             _weavingHelper = new WeavingHelper(_module);
-
-            _starcounterImplementationTypeDef = new TypeDefDeclaration {
-                Name = WeaverNamingConventions.ImplementationDetailsTypeName,
-                Attributes = TypeAttributes.AutoLayout | TypeAttributes.Public | TypeAttributes.Sealed
-            };
-
-            _module.Types.Add(_starcounterImplementationTypeDef);
-
-            //if (_weaveForIPC)
-            //{
-            //    // If we weave for IPC, we make sure the implementation type we hide
-            //    // inside each assembly contains a client side initializer routine that
-            //    // can set up the runtime environment.
-
-            //    _lucentClientAssemblyInitializerMethod = new MethodDefDeclaration()
-            //    {
-            //        Name = WeaverNamingConventions.LucentObjectsClientAssemblyInitializerName,
-            //        Attributes = MethodAttributes.Static | MethodAttributes.Public,
-            //        CallingConvention = CallingConvention.Default
-            //    };
-            //    _starcounterImplementationTypeDef.Methods.Add(_lucentClientAssemblyInitializerMethod);
-            //    _weavingHelper.AddCompilerGeneratedAttribute(_lucentClientAssemblyInitializerMethod.CustomAttributes);
-
-            //    _lucentClientAssemblyInitializerMethod.MethodBody.RootInstructionBlock = _lucentClientAssemblyInitializerMethod.MethodBody.CreateInstructionBlock();
-
-            //    var sequence = _lucentClientAssemblyInitializerMethod.MethodBody.CreateInstructionSequence();
-            //    _lucentClientAssemblyInitializerMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(
-            //        sequence,
-            //        NodePosition.After,
-            //        null
-            //        );
-            //}
-
         }
 
         /// <summary>
@@ -919,44 +879,6 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Decorates the assembly level implementation type with the neccessary
-        /// infrastructure reference fields for the given type.
-        /// </summary>
-        /// <param name="typeDef">The type to decorate.</param>
-        private void AddTypeReferenceFields(TypeDefDeclaration typeDef) {
-            FieldDefDeclaration typeTableId;
-            FieldDefDeclaration typeBinding;
-            FieldDefDeclaration typeReference;
-
-            typeTableId = new FieldDefDeclaration {
-                Name = WeaverNamingConventions.GetTypeTableIdFieldName(typeDef),
-                Attributes = (FieldAttributes.Assembly | FieldAttributes.Static),
-                FieldType = _ushortType
-            };
-
-            typeBinding = new FieldDefDeclaration {
-                Name = WeaverNamingConventions.GetTypeBindingFieldName(typeDef),
-                Attributes = (FieldAttributes.Assembly | FieldAttributes.Static),
-                FieldType = _typeBindingType
-            };
-
-            // Add also a field referencing the type itself and name it after
-            // the full name. This way, we can speed up the client side initialization
-            // by using the implementation type as an index for all types that are
-            // entities (and needs initialization).
-
-            typeReference = new FieldDefDeclaration {
-                Name = WeaverNamingConventions.GetTypeFieldName(typeDef),
-                Attributes = (FieldAttributes.Assembly | FieldAttributes.Static),
-                FieldType = typeDef
-            };
-
-            _starcounterImplementationTypeDef.Fields.Add(typeTableId);
-            _starcounterImplementationTypeDef.Fields.Add(typeBinding);
-            _starcounterImplementationTypeDef.Fields.Add(typeReference);
-        }
-
-        /// <summary>
         /// Method called by the code weaver when it wants to know which advices
         /// we want to provide.
         /// </summary>
@@ -1001,15 +923,6 @@ namespace Starcounter.Internal.Weaver {
             // implement it.
 
             if (_weaveForIPC) {
-                //LucentAssemblyInitializerMethodAdvice moduleInitializerAdvice = new LucentAssemblyInitializerMethodAdvice();
-
-                //codeWeaver.AddMethodLevelAdvice(
-                //    moduleInitializerAdvice,
-                //    new Singleton<MethodDefDeclaration>(_lucentClientAssemblyInitializerMethod),
-                //    JoinPointKinds.BeforeMethodBody,
-                //    null
-                //    );
-
                 LucentClassInitializerMethodAdvice pcia = new LucentClassInitializerMethodAdvice();
 
                 foreach (DatabaseClass dbc in ScAnalysisTask.GetTask(this.Project).DatabaseClassesInCurrentModule) {
@@ -1075,16 +988,22 @@ namespace Starcounter.Internal.Weaver {
                 // Generate a static field that can hold the attribute index in
                 // hosted environments.
 
-                attributeIndexField = new FieldDefDeclaration {
-                    Name = WeaverNamingConventions.MakeAttributeIndexVariableName(field.Name),
-                    Attributes = (FieldAttributes.Family | FieldAttributes.Static),
-                    FieldType = _module.Cache.GetIntrinsic(IntrinsicType.Int32)
-                };
+                // To be removed.
+                // TODO:
 
-                field.DeclaringType.Fields.Add((FieldDefDeclaration)attributeIndexField);
-                _weavingHelper.AddCompilerGeneratedAttribute(attributeIndexField.CustomAttributes);
+                //attributeIndexField = new FieldDefDeclaration {
+                //    Name = WeaverNamingConventions.MakeAttributeIndexVariableName(field.Name),
+                //    Attributes = (FieldAttributes.Family | FieldAttributes.Static),
+                //    FieldType = _module.Cache.GetIntrinsic(IntrinsicType.Int32)
+                //};
+
+                //field.DeclaringType.Fields.Add((FieldDefDeclaration)attributeIndexField);
+                //_weavingHelper.AddCompilerGeneratedAttribute(attributeIndexField.CustomAttributes);
 
             } else {
+
+                // To be rewritten.
+                // TODO:
 
                 var nameOfAttributeIndexField = WeaverNamingConventions.MakeAttributeIndexVariableName(synonymousTo.Name);
 
