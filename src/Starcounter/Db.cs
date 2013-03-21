@@ -199,6 +199,76 @@ namespace Starcounter
             Environment = e;
         }
 
+        /// <summary>
+        /// Allows the deletion of database objects.
+        /// </summary>
+        /// <param name="target">
+        /// The database object to delete.</param>
+        public static void Delete(this object target) {
+            var proxy = target as IObjectProxy;
+            if (proxy == null) {
+                // Proper error message
+                // TODO:
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Not a database object.");
+            }
+
+            ulong oid;
+            ulong address;
+
+            oid = proxy.Identity;
+            address = proxy.ThisHandle;
+
+            var r = sccoredb.sccoredb_begin_delete(oid, address);
+            if (r != 0) {
+                // If the error is because the delete already was issued then
+                // we ignore it and just return. We are processing the delete
+                // of this object so it will be deleted eventually.
+
+                if (r == Error.SCERRDELETEPENDING) return;
+                throw ErrorCode.ToException(r);
+            }
+
+            // Invoke all callbacks. If any of theese throws an exception then
+            // we rollback the issued delete and pass on the thrown exception
+            // to the caller.
+
+            try {
+                InvokeOnDelete(proxy);
+            } catch (Exception ex) {
+                // We can't generate an exception from an error in this
+                // function since this will hide the original error.
+                //
+                // We can handle any error that can occur except for a fatal
+                // error (and this will kill the process) and that the thread
+                // has been detached (shouldn't occur). The most important
+                // thing is that the transaction lock set when the delete was
+                // issued is released and this will be the case as long as none
+                // of the above errors occur.
+
+                sccoredb.sccoredb_abort_delete(oid, address);
+                if (ex is System.Threading.ThreadAbortException) throw;
+                throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
+            }
+
+            r = sccoredb.sccoredb_complete_delete(oid, address);
+            if (r == 0) return;
+            throw ErrorCode.ToException(r);
+        }
+
+        static void InvokeOnDelete(IObjectProxy proxy) {
+            // These flags really don't do their work right now, since we
+            // are in fact doing a cast just to retreive them. The whole
+            // purpose of them is to not do an extra cast if not neccessary.
+            // From the proxy, we must all for a non-generated way of
+            // getting the binding.
+            // TODO:
+
+            var typeBindingFlags = (proxy.TypeBinding as TypeBinding).Flags;
+            if ((typeBindingFlags & TypeBindingFlags.Callback_OnDelete) != 0) {
+                ((IEntity)proxy).OnDelete();
+            }
+        }
+
         private static void HandleFatalErrorInTransactionScope()
         {
             uint e = sccoredb.Mdb_GetLastError();
