@@ -97,7 +97,7 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// The db state type
         /// </summary>
-        private static readonly Type dbStateType = typeof(DbState);
+        private readonly Type dbStateType;
         /// <summary>
         /// The code generated db state type
         /// </summary>
@@ -108,17 +108,21 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         public ViewAccessors ViewAccessMethods { get; private set; }
 
+        public Type DbStateType { get { return dbStateType; } }
+
         /// <summary>
         /// Initializes a new <see cref="DbStateMethodProvider" />.
         /// </summary>
         /// <param name="module">Modules from which the <see cref="DbState" /> methods will be called.</param>
         /// <param name="dynamicLibDir">The dynamic lib dir.</param>
-        public DbStateMethodProvider(ModuleDeclaration module, String dynamicLibDir) {
-            Trace.Assert(string.IsNullOrEmpty(dynamicLibDir), "Currently, we don't support generated code.");
+        public DbStateMethodProvider(ModuleDeclaration module, string dynamicLibDir, bool useStateRedirect = false) {
+            Trace.Assert(
+                string.IsNullOrEmpty(dynamicLibDir), "Currently, we don't support generated code.");
 
             this.module = module;
             this.codeGeneratedDbStateType = null;
             this.ViewAccessMethods = new ViewAccessors(module);
+            this.dbStateType = useStateRedirect ? typeof(Starcounter.Hosting.DbStateRedirect) : typeof(DbState);
         }
 
         #region Helper methods

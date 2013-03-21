@@ -87,6 +87,8 @@ namespace Weaver {
         /// </summary>
         public bool WeaveForIPC { get; set; }
 
+        public bool UseStateRedirect { get; set; }
+
         /// <summary>
         /// Gets or sets a value that adapts the code weaver to perform
         /// weaving only to the cache directory and never touch the input
@@ -658,6 +660,8 @@ namespace Weaver {
                 parameters.Properties["WeaveForIPC"] = this.WeaveForIPC ? bool.TrueString : bool.FalseString;
                 parameters.Properties["TempDirectory"] = this.TempDirectoryPath;
                 parameters.Properties["ScOutputDirectory"] = this.OutputDirectory;
+                parameters.Properties["UseStateRedirect"] = this.UseStateRedirect ? bool.TrueString : bool.FalseString;
+
             } else {
                 // We are only analyzing. Do this straight from the input directory.
 
