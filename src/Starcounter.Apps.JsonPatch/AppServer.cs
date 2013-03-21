@@ -48,7 +48,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="x">Result of calling user delegate.</param>
         /// <returns>HttpResponse instance.</returns>
         public HttpResponse HandleResponse(HttpRequest request, Object x) {
-            uint errorCode;
+//            uint errorCode;
             HttpResponse response = null;
             string responseReasonPhrase;
             Session session = null;
@@ -73,7 +73,7 @@ namespace Starcounter.Internal.Web {
                                 Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(root.ToJsonUtf8())
                             };
                         } else {
-                            if (session.IsSentExternally) {
+                            if (root.LogChanges) {
                                 // An existing sessionbound object have been updated. Return a batch of jsonpatches.
                                 response = new HttpResponse() {
                                     Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread)
@@ -81,18 +81,18 @@ namespace Starcounter.Internal.Web {
                             } else {
                                 // A new sessionbound object. Return a 201 Created together with location and content.
                                 request.Debug(" (new view model)");
-                                session.IsSentExternally = true;
+                                root.LogChanges = true;
                                 response = new HttpResponse() {
                                     Uncompressed = HttpResponseBuilder.Create201Response(root.ToJsonUtf8(), session.GetDataLocation())
                                 };
                             }
 
                             // Need to check if this is a new session and if so generate a new session in the gateway.
-                            if (!request.HasSession) {
-                                errorCode = request.GenerateNewSession(session);
-                                if (errorCode != 0)
-                                    throw ErrorCode.ToException(errorCode);
-                            }
+                            //if (!request.HasSession) {
+                            //    errorCode = request.GenerateNewSession(session);
+                            //    if (errorCode != 0)
+                            //        throw ErrorCode.ToException(errorCode);
+                            //}
                         }
                     } else if (x is DynamicJson) {
                         var dynJson = (DynamicJson)x;
@@ -131,17 +131,17 @@ namespace Starcounter.Internal.Web {
                 if (response == null)
                     response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
 
-                if (request.HasNewSession) {
-                    // A new session have been created. We need to inject a session-cookie stub to the response.
+                //if (request.HasNewSession) {
+                //    // A new session have been created. We need to inject a session-cookie stub to the response.
 
-                    // TODO:
-                    // We should try to inject all things in one go (scriptinjection, headerinjection) to avoid 
-                    // unnecessary creation and copying of buffers.
-                    response.Uncompressed = ScriptInjector.InjectInHeader(
-                        response.GetBytes(request),
-                        ScSessionStruct.SessionIdCookiePlusEndlineStubBytes,
-                        response.HeaderInjectionPoint);
-                }
+                //    // TODO:
+                //    // We should try to inject all things in one go (scriptinjection, headerinjection) to avoid 
+                //    // unnecessary creation and copying of buffers.
+                //    response.Uncompressed = ScriptInjector.InjectInHeader(
+                //        response.GetBytes(request),
+                //        ScSessionStruct.SessionIdCookiePlusEndlineStubBytes,
+                //        response.HeaderInjectionPoint);
+                //}
 
                 return response;
             } catch (Exception ex) {

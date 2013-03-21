@@ -226,8 +226,10 @@ namespace Starcounter {
                 data = GetBound(property);
 
 #if QUICKTUPLE
-            Obj v = _Values[property.Index]; 
-            v.Data = data;
+            Obj v = _Values[property.Index];
+            if (v.Data != data) {
+                v.Data = data;
+            }
             return v;
 #else
             throw new NotImplementedException();
@@ -240,6 +242,8 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObj property, Obj value) {
+            value.Parent = this;
+
             if (property.Bound)
                 SetBound(property, value.Data);
 #if QUICKTUPLE
