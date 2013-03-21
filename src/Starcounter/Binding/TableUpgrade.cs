@@ -544,14 +544,14 @@ namespace Starcounter.Binding
         /// <summary>
         /// Class UpgradeRecord
         /// </summary>
-        internal sealed class UpgradeRecord : Entity
+        internal sealed class UpgradeRecord
         {
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="UpgradeRecord" /> class.
-            /// </summary>
-            /// <param name="u">The u.</param>
-            public UpgradeRecord(Uninitialized u) : base(u) { }
+            // Psa 21/3 2013: Couldn't see in what way this class
+            // had to extend Entity since all it does is to keep a
+            // reference to an ObjectRef.
+            //   Check this, because it's probably something I have
+            // missed or don't understand with the design.
+            public ObjectRef ThisRef;
         }
 
         /// <summary>
@@ -574,7 +574,7 @@ namespace Starcounter.Binding
         /// <param name="targetIndex">Index of the target.</param>
         public ColumnValueTransfer(int sourceIndex, int targetIndex)
         {
-            rec_ = new UpgradeRecord((Uninitialized)null);
+            rec_ = new UpgradeRecord();
             sourceIndex_ = sourceIndex;
             targetIndex_ = targetIndex;
         }
@@ -617,7 +617,7 @@ namespace Starcounter.Binding
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
-            value_ = DbState.ReadNullableBoolean(0,0, sourceIndex_);
+            value_ = DbState.ReadNullableBoolean(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, sourceIndex_);
         }
 
         /// <summary>
@@ -628,7 +628,7 @@ namespace Starcounter.Binding
         {
             rec_.ThisRef = target;
             if (value_.HasValue)
-                DbState.WriteBoolean(0,0, targetIndex_, value_.Value);
+                DbState.WriteBoolean(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_.Value);
         }
     }
 
@@ -667,7 +667,7 @@ namespace Starcounter.Binding
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
-            DbState.WriteBinary(0,0, targetIndex_, value_);
+            DbState.WriteBinary(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_);
         }
     }
 
@@ -696,7 +696,7 @@ namespace Starcounter.Binding
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
-            value_ = DbState.ReadNullableDecimal(0,0, sourceIndex_);
+            value_ = DbState.ReadNullableDecimal(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, sourceIndex_);
         }
 
         /// <summary>
@@ -707,7 +707,7 @@ namespace Starcounter.Binding
         {
             rec_.ThisRef = target;
             if (value_.HasValue)
-                DbState.WriteDecimal(0,0, targetIndex_, value_.Value);
+                DbState.WriteDecimal(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_.Value);
         }
     }
 
@@ -736,7 +736,7 @@ namespace Starcounter.Binding
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
-            value_ = DbState.ReadNullableDouble(0,0, sourceIndex_);
+            value_ = DbState.ReadNullableDouble(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, sourceIndex_);
         }
 
         /// <summary>
@@ -747,7 +747,7 @@ namespace Starcounter.Binding
         {
             rec_.ThisRef = target;
             if (value_.HasValue)
-                DbState.WriteDouble(0,0, targetIndex_, value_.Value);
+                DbState.WriteDouble(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_.Value);
         }
     }
 
@@ -776,7 +776,7 @@ namespace Starcounter.Binding
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
-            value_ = DbState.ReadNullableInt64(0,0, sourceIndex_);
+            value_ = DbState.ReadNullableInt64(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, sourceIndex_);
         }
 
         /// <summary>
@@ -787,7 +787,7 @@ namespace Starcounter.Binding
         {
             rec_.ThisRef = target;
             if (value_.HasValue)
-                DbState.WriteInt64(0,0, targetIndex_, value_.Value);
+                DbState.WriteInt64(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_.Value);
         }
     }
 
@@ -826,7 +826,7 @@ namespace Starcounter.Binding
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
-            DbState.WriteLargeBinary(0,0, targetIndex_, value_);
+            DbState.WriteLargeBinary(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_);
         }
     }
 
@@ -948,7 +948,7 @@ namespace Starcounter.Binding
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
-            value_ = DbState.ReadNullableSingle(0,0, sourceIndex_);
+            value_ = DbState.ReadNullableSingle(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, sourceIndex_);
         }
 
         /// <summary>
@@ -959,7 +959,7 @@ namespace Starcounter.Binding
         {
             rec_.ThisRef = target;
             if (value_.HasValue)
-                DbState.WriteSingle(0,0, targetIndex_, value_.Value);
+                DbState.WriteSingle(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_.Value);
         }
     }
 
@@ -988,7 +988,7 @@ namespace Starcounter.Binding
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
-            value_ = DbState.ReadString(0,0, sourceIndex_);
+            value_ = DbState.ReadString(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, sourceIndex_);
         }
 
         /// <summary>
@@ -998,7 +998,7 @@ namespace Starcounter.Binding
         public override void Write(ObjectRef target)
         {
             rec_.ThisRef = target;
-            DbState.WriteString(0,0, targetIndex_, value_);
+            DbState.WriteString(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_);
         }
     }
 
@@ -1027,7 +1027,7 @@ namespace Starcounter.Binding
         public override void Read(ObjectRef source)
         {
             rec_.ThisRef = source;
-            value_ = DbState.ReadNullableUInt64(0,0, sourceIndex_);
+            value_ = DbState.ReadNullableUInt64(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, sourceIndex_);
         }
 
         /// <summary>
@@ -1038,7 +1038,7 @@ namespace Starcounter.Binding
         {
             rec_.ThisRef = target;
             if (value_.HasValue)
-                DbState.WriteUInt64(0,0, targetIndex_, value_.Value);
+                DbState.WriteUInt64(rec_.ThisRef.ObjectID, rec_.ThisRef.ETI, targetIndex_, value_.Value);
         }
     }
 }
