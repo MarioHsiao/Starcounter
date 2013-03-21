@@ -12,7 +12,7 @@ namespace Starcounter {
     /// <summary>
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class Obj<T> : Obj where T : IBindable {
+//    public abstract class Obj<T> : Obj where T : IBindable {
 
         /// <summary>
         /// </summary>
@@ -22,5 +22,5 @@ namespace Starcounter {
         //    get { return (T)base.Data; }
         //    set { base.Data = value; }
         //}
-    }
+ //   }
 }
