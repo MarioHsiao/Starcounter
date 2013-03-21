@@ -179,7 +179,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         }
 
         void GetThisHandle(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            // Signature: ulong IObjectProxy.get_ThisHandle()
+            // ulong IObjectProxy.get_ThisHandle()
             impl.Attributes |= MethodAttributes.SpecialName;
             impl.ReturnParameter = new ParameterDeclaration {
                 Attributes = ParameterAttributes.Retval,
@@ -366,53 +366,92 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         //public ulong? GetUInt64(int index) {
 
         void GetTypeBinding(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            //public ITypeBinding TypeBinding {get;}
-            
+            //public ITypeBinding TypeBinding {get;} = ITypeBindinng get_TypeBinding()
+            impl.Attributes |= MethodAttributes.SpecialName;
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.FindType(typeof(ITypeBinding))
+            };
+
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
         }
 
+        //public bool EqualsOrIsDerivedFrom(IObjectView obj)
         void EqualsOrIsDerivedFrom(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            //public bool EqualsOrIsDerivedFrom(IObjectView obj)
+            var retSign = module.Cache.GetIntrinsic(IntrinsicType.Boolean);
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = retSign
+            };
+
+            var objParameter = new ParameterDeclaration(0, "obj", module.FindType(typeof(IObjectView)));
+            impl.Parameters.Add(objParameter);
 
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
         }
 
+        //public void Delete() {
         void Delete(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
         }
-        //public void Delete() {
 
-        void Attach(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
-            }
-        }
         //public void Attach(ObjectRef objectRef, TypeBinding typeBinding) {
+        void Attach(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            var objParameter = new ParameterDeclaration(0, "objRef", module.FindType(typeof(ObjectRef)));
+            impl.Parameters.Add(objParameter);
+            var bindingParameter = new ParameterDeclaration(1, "binding", module.FindType(typeof(TypeBinding)));
+            impl.Parameters.Add(bindingParameter);
 
-        void AttachByAddress(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
         }
+
         //public void Attach(ulong addr, ulong oid, TypeBinding typeBinding) {
+        void AttachByAddress(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            var addrParameter = new ParameterDeclaration(0, "addr", module.Cache.GetIntrinsic(IntrinsicType.UInt64));
+            impl.Parameters.Add(addrParameter);
+            var objParameter = new ParameterDeclaration(1, "oid", module.Cache.GetIntrinsic(IntrinsicType.UInt64));
+            impl.Parameters.Add(objParameter);
+            var bindingParameter = new ParameterDeclaration(2, "binding", module.FindType(typeof(TypeBinding)));
+            impl.Parameters.Add(bindingParameter);
 
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+
+        //public ObjectRef ThisRef { get; set; } =
+        //   ObjectRef get_ObjectRef();
+        //   void set_ObjectRef(ObjectRef);
         void GetThisRef(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            impl.Attributes |= MethodAttributes.SpecialName;
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.FindType(typeof(ObjectRef))
+            };
+
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
         }
+
         void SetThisRef(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            impl.Attributes |= MethodAttributes.SpecialName;
+            var refParameter = new ParameterDeclaration(0, "value", module.FindType(typeof(ObjectRef)));
+            impl.Parameters.Add(refParameter);
+
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
         }
-        //public ObjectRef ThisRef { get; set; }
+        
 
         void AssertEquals(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             // Signature: bool AssertEquals(IObjectView)
