@@ -63,13 +63,33 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             viewAccessLayer = viewGetMethods;
             
             targets = new Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>>();
-            targets.Add("AssertEquals", AssertEquals);
-            targets.Add("GetBoolean", GetBoolean);
-            targets.Add("GetByte", GetByte);
-            targets.Add("GetUInt32", GetUInt32);
             targets.Add("Bind", Bind);
             targets.Add("get_ThisHandle", GetThisHandle);
             targets.Add("get_Identity", GetThisIdentity);
+            targets.Add("GetBoolean", GetBoolean);
+            targets.Add("GetByte", GetByte);
+            targets.Add("GetBinary", GetBinary);
+            targets.Add("GetDateTime", GetDateTime);
+            targets.Add("GetDecimal", GetDecimal);
+            targets.Add("GetDouble", GetDouble);
+            targets.Add("GetInt16", GetInt16);
+            targets.Add("GetUInt16", GetUInt16);
+            targets.Add("GetInt32", GetInt32);
+            targets.Add("GetUInt32", GetUInt32);
+            targets.Add("GetInt64", GetInt64);
+            targets.Add("GetUInt64", GetUInt64);
+            targets.Add("GetObject", GetObject);
+            targets.Add("GetSByte", GetSByte);
+            targets.Add("GetSingle", GetSingle);
+            targets.Add("GetString", GetString);
+            targets.Add("Attach", Attach);
+            targets.Add("AttachAddr", AttachByAddress);
+            targets.Add("get_ThisRef", GetThisRef);
+            targets.Add("set_ThisRef", SetThisRef);
+            targets.Add("get_TypeBinding", GetTypeBinding);
+            targets.Add("Delete", Delete);
+            targets.Add("AssertEquals", AssertEquals);
+            targets.Add("EqualsOrIsDerivedFrom", EqualsOrIsDerivedFrom);
         }
 
         public void ImplementOn(TypeDefDeclaration typeDef) {
@@ -111,14 +131,23 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
         void ImplementInterfaceMethod(MethodInfo interfaceMethod, TypeDefDeclaration typeDef, IMethod methodRef, MethodDefDeclaration methodDef) {
             Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration> emitter;
-            if (!targets.TryGetValue(interfaceMethod.Name, out emitter)) {
-                // Simplest possible emission for now: just add a stub for every interface
-                // method and throw a NotImplementedException. The code will still not load,
-                // since signatures are not considered, but we can view the result in tools
-                // like .NET Reflector and we have the principles of interface emission
-                // figured out.
-                emitter = SLOPPY_FAKE_EMIT;
+
+            // Semi-hack for legacy Attach that is overloaded.
+            // When removed from IObjectView, we can do a real
+            // 1-1 lookup.
+            var hackName = interfaceMethod.Name;
+            if (hackName == "Attach") {
+                // Overloaded attach signatures:
+                // void Attach(ObjectRef objectRef, TypeBinding typeBinding);
+                // void Attach(ulong addr, ulong oid, TypeBinding typeBinding);
+                // Check which one to map to proper emitter.
+                if (interfaceMethod.GetParameters().Length == 3)
+                    hackName = "AttachAddr";
             }
+
+            emitter = targets[hackName];
+            Trace.Assert(emitter != null, "Missing interface emitter method for " + hackName);
+            
             emitter(typeDef, interfaceMethod, methodRef, methodDef);
         }
 
@@ -183,34 +212,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             }
         }
 
-        void AssertEquals(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            // Signature: bool AssertEquals(IObjectView)
-            impl.ReturnParameter = new ParameterDeclaration {
-                Attributes = ParameterAttributes.Retval,
-                ParameterType = module.Cache.GetIntrinsic(IntrinsicType.Boolean)
-            };
-            var otherParameter = new ParameterDeclaration(0, "other", viewTypeSignature);
-            impl.Parameters.Add(otherParameter);
-
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
-            }
-        }
-
         void GetBoolean(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            // Signature: Nullable<Boolean> GetBoolean(Int32 index)
-            var returnTypeSignature = new GenericTypeInstanceTypeSignature(
-                (INamedType)
-                module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
-                new ITypeSignature[] { module.Cache.GetIntrinsic(IntrinsicType.Boolean) }
-                );
-
-            impl.ReturnParameter = new ParameterDeclaration {
-                Attributes = ParameterAttributes.Retval,
-                ParameterType = returnTypeSignature
-            };
-            var indexParameter = new ParameterDeclaration(0, "index", module.Cache.GetIntrinsic(IntrinsicType.Int32));
-            impl.Parameters.Add(indexParameter);
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.Boolean, impl);
 
             using (var attached = new AttachedInstructionWriter(writer, impl)) {
                 var w = attached.Writer;
@@ -225,19 +228,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         }
 
         void GetByte(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            // Signature: Nullable<Byte> GetByte(Int32 index)
-            var returnTypeSignature = new GenericTypeInstanceTypeSignature(
-                (INamedType)
-                module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
-                new ITypeSignature[] { module.Cache.GetIntrinsic(IntrinsicType.Byte) }
-                );
-
-            impl.ReturnParameter = new ParameterDeclaration {
-                Attributes = ParameterAttributes.Retval,
-                ParameterType = returnTypeSignature
-            };
-            var indexParameter = new ParameterDeclaration(0, "index", module.Cache.GetIntrinsic(IntrinsicType.Int32));
-            impl.Parameters.Add(indexParameter);
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.Byte, impl);
 
             using (var attached = new AttachedInstructionWriter(writer, impl)) {
                 var w = attached.Writer;
@@ -251,30 +242,236 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             }
         }
 
-        void GetUInt32(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            // Signature: Nullable<UInt32> GetUInt32(Int32 index)
-            var returnTypeSignature = new GenericTypeInstanceTypeSignature(
-                (INamedType)
-                module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
-                new ITypeSignature[] { module.Cache.GetIntrinsic(IntrinsicType.UInt32) }
-                );
+        void GetBinary(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewNonIntristicGetterSignature(typeof(Binary), true, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
 
-            impl.ReturnParameter = new ParameterDeclaration {
-                Attributes = ParameterAttributes.Retval,
-                ParameterType = returnTypeSignature
-            };
-            var indexParameter = new ParameterDeclaration(0, "index", module.Cache.GetIntrinsic(IntrinsicType.Int32));
-            impl.Parameters.Add(indexParameter);
+        }
+        // public Binary? GetBinary(int index) {
+
+        void GetDateTime(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewNonIntristicGetterSignature(typeof(DateTime), true, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+
+        }
+        //public DateTime? GetDateTime(int index) {
+
+        void GetDecimal(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewNonIntristicGetterSignature(typeof(decimal), true, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public decimal? GetDecimal(int index) {
+
+        void GetDouble(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.Double, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+
+        }
+        //public double? GetDouble(int index) {
+
+        void GetInt16(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.Int16, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+
+        }
+        //public short? GetInt16(int index) {
+
+        void GetInt32(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.Int32, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+
+        }
+        //public int? GetInt32(int index) {
+
+        void GetInt64(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.Int64, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+
+        }
+        //public long? GetInt64(int index) {
+
+        void GetObject(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewNonIntristicGetterSignature(typeof(IObjectView), false, impl);
+
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public IObjectView GetObject(int index) {
+
+        void GetSByte(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.SByte, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public sbyte? GetSByte(int index) {
+
+        void GetSingle(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.Single, impl);
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public float? GetSingle(int index) {
+
+        void GetString(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.String, impl);
+
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public string GetString(int index) {
+
+        void GetUInt16(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.UInt16, impl);
+
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public ushort? GetUInt16(int index) {
+
+        // uint? GetUInt32(int index)
+        void GetUInt32(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.UInt32, impl);
 
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
         }
 
-        void SLOPPY_FAKE_EMIT(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+        void GetUInt64(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            BuildIObjectViewIntristicGetterSignature(IntrinsicType.UInt64, impl);
+
             using (var w = new AttachedInstructionWriter(writer, impl)) {
                 EmitNotImplemented(w);
             }
+        }
+        //public ulong? GetUInt64(int index) {
+
+        void GetTypeBinding(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            //public ITypeBinding TypeBinding {get;}
+            
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+
+        void EqualsOrIsDerivedFrom(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            //public bool EqualsOrIsDerivedFrom(IObjectView obj)
+
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+
+        void Delete(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public void Delete() {
+
+        void Attach(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public void Attach(ObjectRef objectRef, TypeBinding typeBinding) {
+
+        void AttachByAddress(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public void Attach(ulong addr, ulong oid, TypeBinding typeBinding) {
+
+        void GetThisRef(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        void SetThisRef(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+        //public ObjectRef ThisRef { get; set; }
+
+        void AssertEquals(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            // Signature: bool AssertEquals(IObjectView)
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.Cache.GetIntrinsic(IntrinsicType.Boolean)
+            };
+            var otherParameter = new ParameterDeclaration(0, "other", viewTypeSignature);
+            impl.Parameters.Add(otherParameter);
+
+            using (var w = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(w);
+            }
+        }
+
+        void BuildIObjectViewIntristicGetterSignature(IntrinsicType intristic, MethodDefDeclaration impl) {
+            // Every intristic IObjectView getter return Nullable<type>,
+            // e.g. int? IObjectView.GetInt32(Int32 index);
+            // Thats the kind of signature we produce here.
+
+            var retSign = new GenericTypeInstanceTypeSignature(
+                (INamedType)
+                module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
+                new ITypeSignature[] { module.Cache.GetIntrinsic(intristic) }
+                );
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = retSign
+            };
+
+            var indexParameter = new ParameterDeclaration(0, "index", module.Cache.GetIntrinsic(IntrinsicType.Int32));
+            impl.Parameters.Add(indexParameter);
+        }
+
+        void BuildIObjectViewNonIntristicGetterSignature(Type t, bool nullable, MethodDefDeclaration impl) {
+            ITypeSignature retSign;
+            ITypeSignature retDataType;
+
+            // Every non-intristic IObjectView getter return Nullable<type>
+            // or <type>, e.g. DateTime? IObjectView.GetDateTime(Int32 index),
+            // or IObjectView IObjectView.GetObject(Int32 index)
+            // Thats the kind of signature we produce here.
+            
+            retSign = retDataType = module.FindType(t, BindingOptions.Default);
+            if (nullable) {
+                retSign = new GenericTypeInstanceTypeSignature(
+                    (INamedType)
+                    module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
+                    new ITypeSignature[] { retDataType }
+                );
+            }
+
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = retSign
+            };
+
+            var indexParameter = new ParameterDeclaration(0, "index", module.Cache.GetIntrinsic(IntrinsicType.Int32));
+            impl.Parameters.Add(indexParameter);
         }
 
         void EmitNotImplemented(AttachedInstructionWriter attachedWriter) {
