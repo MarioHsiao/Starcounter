@@ -1395,91 +1395,93 @@ namespace Starcounter.Internal.Weaver {
             advice = new EntityConstructorCallAdvice();
             _methodAdvices.Add(advice);
 
-            ScTransformTrace.Instance.WriteLine("Inspecting constructors of the parent type.");
+            if (!InheritsObject(typeDef)) {
+                ScTransformTrace.Instance.WriteLine("Inspecting constructors of the parent type.");
 
-            foreach (IMethod referencedConstructor in parentType.Methods.GetByName(".ctor")) {
-                tag = referencedConstructor.GetTag(_constructorEnhancedTagGuid);
+                foreach (IMethod referencedConstructor in parentType.Methods.GetByName(".ctor")) {
+                    tag = referencedConstructor.GetTag(_constructorEnhancedTagGuid);
 
-                // We skip the constructors we have generated ourselves.
-                if (tag is String) {
-                    continue;
-                }
+                    // We skip the constructors we have generated ourselves.
+                    if (tag is String) {
+                        continue;
+                    }
 
-                // Get the constructor that should be called instead.
-                replacementConstructor = tag as IMethod;
-                if (replacementConstructor == null) {
-                    ScTransformTrace.Instance.WriteLine(
-                                "Don't know how to map the base constructor {{{0}}}.",
-                                referencedConstructor
-                            );
+                    // Get the constructor that should be called instead.
+                    replacementConstructor = tag as IMethod;
+                    if (replacementConstructor == null) {
+                        ScTransformTrace.Instance.WriteLine(
+                                    "Don't know how to map the base constructor {{{0}}}.",
+                                    referencedConstructor
+                                );
 
-                    referencedConstructorDef =
-                        referencedConstructor.GetMethodDefinition(BindingOptions.DontThrowException);
-                    if (referencedConstructorDef != null) {
-                        if (referencedConstructorDef != referencedConstructor) {
-                            tag = referencedConstructorDef.GetTag(_constructorEnhancedTagGuid);
-                            if (tag is String) {
-                                continue;
+                        referencedConstructorDef =
+                            referencedConstructor.GetMethodDefinition(BindingOptions.DontThrowException);
+                        if (referencedConstructorDef != null) {
+                            if (referencedConstructorDef != referencedConstructor) {
+                                tag = referencedConstructorDef.GetTag(_constructorEnhancedTagGuid);
+                                if (tag is String) {
+                                    continue;
+                                }
                             }
+
+                            // Not sure about the purpose of this code, but I think it has to do
+                            // with a certain handling we need for referenced constructors we have
+                            // defined for built-in types. But since Entity.ctor(Uninitialized) is
+                            // also equipped with HideFromApplications in Yellow, we keep the code
+                            // to see when it runs if it behaves and how to possibly reimplement it.
+                            // TODO:
+
+                            //// Skip the method if it has a custom attribute "HideFromApplications".
+                            //forbiddenType = (IType)referencedConstructorDef.Module.Cache.GetType(
+                            //                                    typeof(HideFromApplicationsAttribute)
+                            //                        );
+
+                            //if (referencedConstructorDef.CustomAttributes.Contains(forbiddenType)) {
+                            //    ScTransformTrace.Instance.WriteLine(
+                            //        "Skipping this constructor because it has the [HideFromApplications] custom attribute.");
+                            //    continue;
+                            //}
                         }
 
-                        // Not sure about the purpose of this code, but I think it has to do
-                        // with a certain handling we need for referenced constructors we have
-                        // defined for built-in types. But since Entity.ctor(Uninitialized) is
-                        // also equipped with HideFromApplications in Yellow, we keep the code
-                        // to see when it runs if it behaves and how to possibly reimplement it.
-                        // TODO:
+                        // This happens when the constructor is defined outside the current module.
+                        // Build the signature of the constructor we are looking for.
+                        signature = new MethodSignature(_module,
+                                                        referencedConstructor.CallingConvention,
+                                                        referencedConstructor.ReturnType,
+                                                        null,
+                                                        0);
 
-                        //// Skip the method if it has a custom attribute "HideFromApplications".
-                        //forbiddenType = (IType)referencedConstructorDef.Module.Cache.GetType(
-                        //                                    typeof(HideFromApplicationsAttribute)
-                        //                        );
+                        // Copying the original parameters to the signature.
+                        for (Int32 i = 0; i < referencedConstructor.ParameterCount; i++) {
+                            signature.ParameterTypes.Add(referencedConstructor.GetParameterType(i));
+                        }
 
-                        //if (referencedConstructorDef.CustomAttributes.Contains(forbiddenType)) {
-                        //    ScTransformTrace.Instance.WriteLine(
-                        //        "Skipping this constructor because it has the [HideFromApplications] custom attribute.");
-                        //    continue;
-                        //}
+                        // Add the infrastructure parameters to the constructor.
+
+                        signature.ParameterTypes.Add(_ushortType);
+                        signature.ParameterTypes.Add(_typeBindingType);
+                        signature.ParameterTypes.Add(_module.Cache.GetType(typeof(Uninitialized)));
+
+                        replacementConstructor = referencedConstructor.DeclaringType.Methods.GetMethod(
+                            ".ctor",
+                            signature,
+                            BindingOptions.Default
+                            );
+                        if (replacementConstructor == null) {
+                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED,
+                                string.Format("Cannot find the enhanced constructor of {{{0}}}.",
+                                              referencedConstructor));
+                        }
+
+                        // Cache the result for next use.
+                        referencedConstructor.SetTag(_constructorEnhancedTagGuid, replacementConstructor);
                     }
 
-                    // This happens when the constructor is defined outside the current module.
-                    // Build the signature of the constructor we are looking for.
-                    signature = new MethodSignature(_module,
-                                                    referencedConstructor.CallingConvention,
-                                                    referencedConstructor.ReturnType,
-                                                    null,
-                                                    0);
+                    ScTransformTrace.Instance.WriteLine("The base constructor {{{0}}} maps to {{{1}}}.",
+                                                        referencedConstructor, replacementConstructor);
 
-                    // Copying the original parameters to the signature.
-                    for (Int32 i = 0; i < referencedConstructor.ParameterCount; i++) {
-                        signature.ParameterTypes.Add(referencedConstructor.GetParameterType(i));
-                    }
-
-                    // Add the infrastructure parameters to the constructor.
-
-                    signature.ParameterTypes.Add(_ushortType);
-                    signature.ParameterTypes.Add(_typeBindingType);
-                    signature.ParameterTypes.Add(_module.Cache.GetType(typeof(Uninitialized)));
-
-                    replacementConstructor = referencedConstructor.DeclaringType.Methods.GetMethod(
-                        ".ctor",
-                        signature,
-                        BindingOptions.Default
-                        );
-                    if (replacementConstructor == null) {
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED,
-                            string.Format("Cannot find the enhanced constructor of {{{0}}}.",
-                                          referencedConstructor));
-                    }
-
-                    // Cache the result for next use.
-                    referencedConstructor.SetTag(_constructorEnhancedTagGuid, replacementConstructor);
+                    advice.AddRedirection(referencedConstructor, replacementConstructor);
                 }
-
-                ScTransformTrace.Instance.WriteLine("The base constructor {{{0}}} maps to {{{1}}}.",
-                                                    referencedConstructor, replacementConstructor);
-
-                advice.AddRedirection(referencedConstructor, replacementConstructor);
             }
 
             // Enhance other constructors
@@ -1539,9 +1541,10 @@ namespace Starcounter.Internal.Weaver {
                 constructorImplementation = constructor.MethodBody;
                 constructor.MethodBody = new MethodBodyDeclaration();
                 enhancedConstructor.MethodBody = constructorImplementation;
+                
+                // Create a new implementation of the original constructor, where we
+                // only call the new one.
                 constructor.CustomAttributes.Add(_weavingHelper.GetDebuggerNonUserCodeAttribute());
-
-                // Create a new implementation of the original constructor, where we only call the new one.
                 constructor.MethodBody.RootInstructionBlock
                                 = constructor.MethodBody.CreateInstructionBlock();
                 sequence = constructor.MethodBody.CreateInstructionSequence();
