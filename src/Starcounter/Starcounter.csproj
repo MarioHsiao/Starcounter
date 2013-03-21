@@ -101,6 +101,7 @@
     <Compile Include="Hosting\IBackingHost.cs" />
     <Compile Include="Hosting\IDbState.cs" />
     <Compile Include="Hosting\TypeSpecification.cs" />
+    <Compile Include="IEntity.cs" />
     <Compile Include="Internal\bmx.cs" />
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
       <SubType>Code</SubType>
