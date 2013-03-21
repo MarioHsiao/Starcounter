@@ -459,7 +459,10 @@ namespace Starcounter.Internal.Weaver {
                 ? null
                 : Project.Properties["ScDynamicLibInputDir"];
 
-            _dbStateMethodProvider = new DbStateMethodProvider(_module, dynamicLibDir);
+            var val = Project.Properties["UseStateRedirect"];
+            bool useRedirect = !string.IsNullOrEmpty(val) && val.Equals(bool.TrueString);
+
+            _dbStateMethodProvider = new DbStateMethodProvider(_module, dynamicLibDir, useRedirect);
             _castHelper = new CastHelper(_module);
         }
 
