@@ -1,4 +1,12 @@
-﻿using System;
+﻿
+// Allows us to force the implementation of every method
+// to be implemented as throwing a NotImplementedException.
+// This is particulary useful when we want to compare the
+// generated signatures- and metadata to that of a class
+// being default-implemented by Visual Studio.
+#define THROW_NOT_IMPLEMENTED
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -135,6 +143,14 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 impl.InterfaceImplementations.Add(methodRef);
 
                 ImplementInterfaceMethod(interfaceMethod, typeDef, methodRef, impl);
+                #region #ifdef THROW_NOT_IMPLEMENTED
+#if THROW_NOT_IMPLEMENTED
+                impl.MethodBody = new MethodBodyDeclaration();
+                using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                    EmitNotImplemented(attached);
+                }
+#endif
+                #endregion
             }
 
             foreach (var interfaceProperty in proxyNETType.GetProperties()) {
@@ -170,6 +186,14 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 impl.InterfaceImplementations.Add(methodRef);
 
                 ImplementInterfaceMethod(interfaceMethod, typeDef, methodRef, impl);
+                #region #ifdef THROW_NOT_IMPLEMENTED
+#if THROW_NOT_IMPLEMENTED
+                impl.MethodBody = new MethodBodyDeclaration();
+                using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                    EmitNotImplemented(attached);
+                }
+#endif
+                #endregion
             }
         }
 
