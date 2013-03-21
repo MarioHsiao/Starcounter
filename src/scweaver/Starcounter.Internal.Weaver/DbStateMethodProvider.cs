@@ -289,7 +289,7 @@ namespace Starcounter.Internal.Weaver {
                 Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
                 method = this.module.FindMethod(methodInfo, BindingOptions.Default);
                 // The caller will have to cast from this type:
-                castType = this.module.Cache.GetType(typeof(Entity));
+                castType = this.module.Cache.GetType(typeof(IObjectView));
             } else {
                 Trace.Assert(false, string.Format("Not an expected type: {0}", databaseAttribute.AttributeType));
                 method = null;
