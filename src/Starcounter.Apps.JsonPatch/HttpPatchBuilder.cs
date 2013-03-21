@@ -162,13 +162,10 @@ namespace Starcounter.Internal.JsonPatch
                     obj = null;
                 }
 
-                buffer.Add((byte)'{');
-
                 patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.Obj, change.Template, obj, change.Index);
                 Byte[] patchArr = Encoding.UTF8.GetBytes(patch);
                 buffer.AddRange(patchArr);
 
-                buffer.Add((byte)'}');
                 buffer.Add((byte)',');
                 buffer.Add((byte)'\n');
             }

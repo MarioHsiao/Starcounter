@@ -297,15 +297,6 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="item"></param>
-        internal override void OnSetParent(Container item) {
-            base.OnSetParent(item);
-            //            QuickAndDirtyArray.Add((App)item);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
         public void Add(Obj item) {
             Int32 index;
 
