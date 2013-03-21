@@ -104,7 +104,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             foreach (var interfaceProperty in viewNETType.GetProperties()) {
                 var p = new PropertyDeclaration() {
                     PropertyType = module.FindType(interfaceProperty.PropertyType),
-                    Name = viewNETType.FullName + "." + interfaceProperty.Name
+                    Name = viewNETType.FullName + "." + interfaceProperty.Name,
+                    CallingConvention = CallingConvention.HasThis
                 };
                 
                 typeDef.Properties.Add(p);
@@ -139,7 +140,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             foreach (var interfaceProperty in proxyNETType.GetProperties()) {
                 var p = new PropertyDeclaration() {
                     PropertyType = module.FindType(interfaceProperty.PropertyType),
-                    Name = proxyNETType.FullName + "." + interfaceProperty.Name
+                    Name = proxyNETType.FullName + "." + interfaceProperty.Name,
+                    CallingConvention = CallingConvention.HasThis
                 };
                 typeDef.Properties.Add(p);
                 if (interfaceProperty.CanRead) {
