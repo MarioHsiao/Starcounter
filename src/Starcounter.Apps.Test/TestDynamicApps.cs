@@ -10,6 +10,7 @@ using Starcounter.Client;
 using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using System;
 
 namespace Starcounter.Client.Tests.Application {
 
@@ -276,10 +277,13 @@ namespace Starcounter.Client.Tests.Application {
             myDataObj.Number = new PhoneNumberObject() { Number = "123-555-7890" };
             msg.Data = myDataObj;
 
+            msg.Updated = "2013-04-25 13:15:12";
+
             // Reading bound values.
             Assert.AreEqual("Kalle", msg.FirstName);
             Assert.AreEqual("Kula", msg.LastName);
             Assert.AreEqual(0, msg._Age); // Since Age shouldn't be bound we should get a zero back and not 21.
+            Assert.IsNotNullOrEmpty(msg.Created);
             Assert.IsNullOrEmpty(msg.Misc); // Same as above. Not bound so no value should be retrieved.
             Assert.AreEqual("123-555-7890", msg._PhoneNumber.Number); // Should be bound even if the name start with '_' since we specify a binding when registering the template.
 
@@ -303,6 +307,9 @@ namespace Starcounter.Client.Tests.Application {
             personSchema.Add<TString>("FirstName$"); // Bound to FirstName
             personSchema.Add<TString>("LastName", "Surname"); // Bound to Surname
             personSchema.Add<TLong>("_Age"); // Will not be bound
+            personSchema.Add<TString>("Created");
+            personSchema.Add<TString>("Updated");
+            
             var misc = personSchema.Add<TString>("Misc");
             misc.Bind = null; // Removing the binding for this specific template.
            
@@ -318,7 +325,7 @@ namespace Starcounter.Client.Tests.Application {
             personSchema.Add<TString>("FirstName$");
             personSchema.Add<TString>("LastName");
             personSchema.Add<TLong>("Age");
-
+            
             var phoneNumber = new TJson();
             phoneNumber.Add<TString>("Number");
             personSchema.Add<TArr<Json,TJson>>("PhoneNumbers", phoneNumber);
@@ -366,11 +373,17 @@ namespace Starcounter.Client.Tests.Application {
     }
 
     internal class BasePerson : IBindable {
+        public BasePerson() {
+            Created = DateTime.Now;
+        }
+
         public ulong UniqueID {
             get { return 0; }
         }
 
         public string FirstName { get; set; }
         public string Surname { get; set; }
+        public DateTime Created { get; private set; }
+        public DateTime Updated { get; set; }
     }
 }

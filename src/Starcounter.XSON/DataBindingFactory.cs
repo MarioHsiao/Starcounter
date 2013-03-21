@@ -32,6 +32,9 @@ namespace Starcounter.XSON {
     }
 
     internal class DataValueBinding<TVal> {
+        private static MethodInfo dateTimeToStringInfo = typeof(DateTime).GetMethod("ToString", new Type[] { typeof(string) });
+        private static MethodInfo dateTimeParseInfo = typeof(DateTime).GetMethod("Parse", new Type[] { typeof(string) });
+
         private Func<IBindable, TVal> getBinding;
         private Action<IBindable, TVal> setBinding;
         private Type dataType;
@@ -75,10 +78,26 @@ namespace Starcounter.XSON {
         }
 
         private Expression AddTypeConversionIfPossible(Expression expr, Type from, Type to) {
-            // TODO:
-            // Check if typeconversion is possible.
-            Expression cast = Expression.Convert(expr, to);
-            return cast;
+            Expression newExpr = null;
+
+            if (to.Equals(typeof(string))) {
+                if (from.Equals(typeof(DateTime))) {
+                    // TODO:
+                    // What format should be used and how much information?
+                    newExpr = Expression.Call(expr, dateTimeToStringInfo, Expression.Constant("u")); // "u": datetime universal sortable format.
+                }
+            } else if (to.Equals(typeof(DateTime))) {
+                if (from.Equals(typeof(string))) {
+                    newExpr = Expression.Call(null, dateTimeParseInfo, expr);
+                }
+            } 
+                
+            if (newExpr == null) {
+                // TODO:
+                // Check if typeconversion is possible.
+                newExpr = Expression.Convert(expr, to);
+            }
+            return newExpr;
         }
 
         internal bool HasGetBinding(){
