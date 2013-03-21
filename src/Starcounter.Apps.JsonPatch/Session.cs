@@ -15,7 +15,7 @@ namespace Starcounter {
     /// Class Session
     /// </summary>
     public class Session : IAppsSession {
-        [ThreadStatic]
+//        [ThreadStatic]
         private static Session current;
 
         private static string dataLocationUri = "/__" + Db.Environment.DatabaseName.ToLower() + "/";
@@ -47,9 +47,9 @@ namespace Starcounter {
                 return null;
             }
             set {
-                if (current == null) {
+//                if (current == null) {
                     current = new Session();
-                }
+//                }
                 current.SetData(value);
             }
         }
@@ -65,7 +65,8 @@ namespace Starcounter {
             // We don't want any changes logged during this request since
             // we will have to send the whole object anyway in the response.
             root.LogChanges = false;
-            ChangeLog.CurrentOnThread = null;
+//            ChangeLog.CurrentOnThread = null;
+            ChangeLog.CurrentOnThread = changeLog;
         }
 
         /// <summary>
@@ -84,21 +85,21 @@ namespace Starcounter {
         /// </summary>
         /// <param name="session"></param>
         internal static void Start(Session session) {
-            Debug.Assert(current == null);
-            Session.current = session;
-            ChangeLog.CurrentOnThread = session.changeLog;
+            //Debug.Assert(current == null);
+            //Session.current = session;
+            //ChangeLog.CurrentOnThread = session.changeLog;
         }
 
         /// <summary>
         /// 
         /// </summary>
         internal static void End() {
-            var s = Current;
-            if (s != null) {
-                s.changeLog.Clear();
-                Session.current = null;
-                ChangeLog.CurrentOnThread = null;
-            }
+            //var s = Current;
+            //if (s != null) {
+            //    s.changeLog.Clear();
+            //    Session.current = null;
+            //    ChangeLog.CurrentOnThread = null;
+            //}
         }
 
         /// <summary>
