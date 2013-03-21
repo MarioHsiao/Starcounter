@@ -1,27 +1,27 @@
 ﻿// ***********************************************************************
-// <copyright file="LucentClassInitializerMethodAdvice.cs" company="Starcounter AB">
+// <copyright file="DatabaseClassInitCallMethodAdvice.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Reflection;
-using Sc.Server.Weaver;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
-using Starcounter.Internal.Weaver;
 using Starcounter.Hosting;
+using System;
 
-namespace Starcounter.LucentObjects {
+namespace Starcounter.Internal.Weaver.BackingCode {
+
     /// <summary>
-    /// Class LucentClassInitializerMethodAdvice
+    /// Implements a feature enabling database classes to self-register to
+    /// the host in which they are loaded upon first usage.
     /// </summary>
-    internal sealed class LucentClassInitializerMethodAdvice : IAdvice {
+    internal sealed class DatabaseClassInitCallMethodAdvice : IAdvice {
+        
         /// <summary>
-        /// Initializes a new instance of the <see cref="LucentClassInitializerMethodAdvice" /> class.
+        /// Initializes a new instance of the <see cref="DatabaseClassInitCallMethodAdvice" /> class.
         /// </summary>
-        public LucentClassInitializerMethodAdvice() {
+        public DatabaseClassInitCallMethodAdvice() {
         }
 
         /// <summary>
