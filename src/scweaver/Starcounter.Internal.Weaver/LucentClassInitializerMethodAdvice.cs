@@ -11,6 +11,7 @@ using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Collections;
 using Starcounter.Internal.Weaver;
+using Starcounter.Hosting;
 
 namespace Starcounter.LucentObjects {
     /// <summary>
@@ -48,26 +49,30 @@ namespace Starcounter.LucentObjects {
         /// <param name="context">Weaving context.</param>
         /// <param name="block">Block into which we have to write our instructions.</param>
         public void Weave(WeavingContext context, InstructionBlock block) {
-            InstructionSequence sequence;
-
-            sequence = context.Method.MethodBody.CreateInstructionSequence();
+            var sequence = context.Method.MethodBody.CreateInstructionSequence();
             block.AddInstructionSequence(sequence, NodePosition.Before, null);
-
             context.InstructionWriter.AttachInstructionSequence(sequence);
 
-            MethodInfo typeGetType = typeof(Type).GetMethod("GetTypeFromHandle");
-            IMethod typeGetMethod = context.Method.Module.FindMethod(typeGetType, BindingOptions.Default);
+            // Weave in a call such as the below as the first line of any static
+            // constructor
+            // [Starcounter.Hosting.]
+            //    HostManager.InitTypeSpecification(currentType.TypeSpecification);
+            //
+            // Prepare for "typeof(xxx)" call.
+            var typeGetMethod = context.Method.Module.FindMethod(
+                typeof(Type).GetMethod("GetTypeFromHandle"), BindingOptions.Default);
+            var specTypeFullName = context.Method.DeclaringType + "+" + TypeSpecification.Name;
+            var specificationType = context.Method.Module.FindType(specTypeFullName, BindingOptions.Default);
 
-            ITypeSignature implementationType =
-                context.Method.Module.FindType(WeaverNamingConventions.ImplementationDetailsTypeName, BindingOptions.Default);
-            context.InstructionWriter.EmitInstructionType(OpCodeNumber.Ldtoken, implementationType);
+            // Generate typeof([currentType]).TypeSpefication)
+            context.InstructionWriter.EmitInstructionType(OpCodeNumber.Ldtoken, specificationType);
             context.InstructionWriter.EmitInstructionMethod(OpCodeNumber.Call, typeGetMethod);
 
-            context.InstructionWriter.EmitInstructionType(OpCodeNumber.Ldtoken, context.Method.DeclaringType);
-            context.InstructionWriter.EmitInstructionMethod(OpCodeNumber.Call, typeGetMethod);
-
-            var prepareAssembly = context.Method.Module.FindMethod(typeof(LucentObjectsRuntime).GetMethod("InitializeClientAssembly", new[] { typeof(Type), typeof(Type) }), BindingOptions.Default);
-            context.InstructionWriter.EmitInstructionMethod(OpCodeNumber.Call, prepareAssembly);
+            // With the type on the stack, call HostManager.InitTypeSpecification
+            var initMethod = context.Method.Module.FindMethod(
+                typeof(HostManager).GetMethod("InitTypeSpecification",
+                new[] { typeof(Type) }), BindingOptions.Default);
+            context.InstructionWriter.EmitInstructionMethod(OpCodeNumber.Call, initMethod);
 
             context.InstructionWriter.DetachInstructionSequence();
         }
