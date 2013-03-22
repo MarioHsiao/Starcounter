@@ -398,8 +398,12 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
             getter.Method = impl;
 
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                var w = attached.Writer;
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionField(OpCodeNumber.Ldfld, thisBindingField);
+                w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
 
