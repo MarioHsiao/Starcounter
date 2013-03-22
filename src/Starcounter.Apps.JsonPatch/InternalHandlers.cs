@@ -26,7 +26,7 @@ namespace Starcounter.Internal.JsonPatch {
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
-            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId) => {
+            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session) => {
                 Obj json = Session.Data;
                 if (json == null) {
                     return HttpStatusCode.NotFound;
@@ -37,7 +37,7 @@ namespace Starcounter.Internal.JsonPatch {
                 };
             });
 
-            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId, HttpRequest request) => {
+            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, HttpRequest request) => {
                 Obj root;
 
                 try {
