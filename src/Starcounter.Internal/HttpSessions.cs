@@ -318,7 +318,7 @@ namespace HttpStructs
         {
             while (true)
             {
-                Console.WriteLine("Cleaning up inactive sessions!");
+                //Console.WriteLine("Cleaning up inactive sessions!");
 
                 // Incrementing global time.
                 CurrentTimeTick++;
