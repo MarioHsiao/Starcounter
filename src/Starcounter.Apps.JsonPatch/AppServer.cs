@@ -48,7 +48,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="x">Result of calling user delegate.</param>
         /// <returns>HttpResponse instance.</returns>
         public HttpResponse HandleResponse(HttpRequest request, Object x) {
-            uint errorCode;
+//            uint errorCode;
             HttpResponse response = null;
             string responseReasonPhrase;
             Session session = null;
@@ -88,11 +88,11 @@ namespace Starcounter.Internal.Web {
                             }
 
                             // Need to check if this is a new session and if so generate a new session in the gateway.
-                            if (!request.HasSession) {
-                                errorCode = request.GenerateNewSession(session);
-                                if (errorCode != 0)
-                                    throw ErrorCode.ToException(errorCode);
-                            }
+                            //if (!request.HasSession) {
+                            //    errorCode = request.GenerateNewSession(session);
+                            //    if (errorCode != 0)
+                            //        throw ErrorCode.ToException(errorCode);
+                            //}
                         }
                     } else if (x is DynamicJson) {
                         var dynJson = (DynamicJson)x;
@@ -131,18 +131,17 @@ namespace Starcounter.Internal.Web {
                 if (response == null)
                     response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
 
-                if (request.HasNewSession) {
-                    // A new session have been created. We need to inject a session-cookie stub to the response.
+                //if (request.HasNewSession) {
+                //    // A new session have been created. We need to inject a session-cookie stub to the response.
 
-                    // TODO:
-                    // We should try to inject all things in one go (scriptinjection, headerinjection) to avoid 
-                    // unnecessary creation and copying of buffers.
-                    /*response.Uncompressed = ScriptInjector.InjectInHeader(
-                        response.GetBytes(request),
-                        ScSessionStruct.SessionIdCookiePlusEndlineStubBytes,
-                        response.HeaderInjectionPoint);
-                    */
-                }
+                //    // TODO:
+                //    // We should try to inject all things in one go (scriptinjection, headerinjection) to avoid 
+                //    // unnecessary creation and copying of buffers.
+                //    response.Uncompressed = ScriptInjector.InjectInHeader(
+                //        response.GetBytes(request),
+                //        ScSessionStruct.SessionIdCookiePlusEndlineStubBytes,
+                //        response.HeaderInjectionPoint);
+                //}
 
                 return response;
             } catch (Exception ex) {

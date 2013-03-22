@@ -17,7 +17,7 @@ namespace Starcounter {
     public class ChangeLog : IEnumerable<Change> {
         private List<Change> changes;
         
-        [ThreadStatic]
+//        [ThreadStatic]
         private static ChangeLog log;
 
         /// <summary>

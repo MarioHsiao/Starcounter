@@ -8,7 +8,15 @@ using System.ComponentModel;
 using System.Text;
 
 namespace Starcounter {
-
+    /// <summary>
+    /// 
+    /// </summary>
+    public class NullData : IBindable {
+        /// <summary>
+        /// 
+        /// </summary>
+        public UInt64 UniqueID { get { return 0; } }
+    }
 
     /// <summary>
     /// See Puppet TODO! REF 
@@ -46,7 +54,7 @@ namespace Starcounter {
     /// your C# code will be called. If you make a property editable, changes by the user will change App object (and an event will be triggered
     /// in case you which to validate the change).
     /// </remarks>
-    public partial class Puppet<T> : Obj<T> where T : IBindable {
+    public partial class Puppet<T> : Obj where T : IBindable {
 
         /// <summary>
         /// 
@@ -281,33 +289,33 @@ namespace Starcounter {
             get { return _transaction; }
         }
 
-//        /// <summary>
-//        /// Gets the value.
-//        /// </summary>
-//        /// <param name="property">The property.</param>
-//        /// <returns>Action.</returns>
-//        [EditorBrowsable(EditorBrowsableState.Never)]
-//        public Action Get(TTrigger property) {
-//#if QUICKTUPLE
-//            return _Values[property.Index];
-//#else
-//            throw new NotImplementedException();
-//#endif
-//        }
+        //        /// <summary>
+        //        /// Gets the value.
+        //        /// </summary>
+        //        /// <param name="property">The property.</param>
+        //        /// <returns>Action.</returns>
+        //        [EditorBrowsable(EditorBrowsableState.Never)]
+        //        public Action Get(TTrigger property) {
+        //#if QUICKTUPLE
+        //            return _Values[property.Index];
+        //#else
+        //            throw new NotImplementedException();
+        //#endif
+        //        }
 
-//        /// <summary>
-//        /// Sets the value.
-//        /// </summary>
-//        /// <param name="property">The property.</param>
-//        /// <param name="value">The value.</param>
-//        [EditorBrowsable(EditorBrowsableState.Never)]
-//        public void Set(TTrigger property, Action value) {
-//#if QUICKTUPLE
-//            _Values[property.Index] = value;
-//#else
-//            throw new NotImplementedException();
-//#endif
-//        }
+        //        /// <summary>
+        //        /// Sets the value.
+        //        /// </summary>
+        //        /// <param name="property">The property.</param>
+        //        /// <param name="value">The value.</param>
+        //        [EditorBrowsable(EditorBrowsableState.Never)]
+        //        public void Set(TTrigger property, Action value) {
+        //#if QUICKTUPLE
+        //            _Values[property.Index] = value;
+        //#else
+        //            throw new NotImplementedException();
+        //#endif
+        //        }
 
         ///// <summary>
         ///// Gets the value.
