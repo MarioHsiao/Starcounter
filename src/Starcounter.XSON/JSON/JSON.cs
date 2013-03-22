@@ -31,9 +31,7 @@ namespace Starcounter {
     /// of a response to a request or deserialized from a Json text as a part of data
     /// in a request.
     /// </remarks>
-    /// <typeparam name="T"></typeparam>
-    public class Json<T> : Obj<T> where T : IBindable {
-
+    public class Json : Obj {
         /// <summary>
         /// As messages are not kept at the server, it does not make sense to interact with
         /// them using "user input".
@@ -84,20 +82,20 @@ namespace Starcounter {
         }
     }
 
-    /// <summary>
-    /// <see cref="Json"/>
-    /// </summary>
-    public class Json : Json<NullData> {
+    ///// <summary>
+    ///// <see cref="Json"/>
+    ///// </summary>
+    public class Json<T> : Json where T: IBindable {
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class NullData : IBindable {
-        /// <summary>
-        /// 
-        /// </summary>
-        public UInt64 UniqueID { get { return 0; } }
-    }
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    //public class NullData : IBindable {
+    //    /// <summary>
+    //    /// 
+    //    /// </summary>
+    //    public UInt64 UniqueID { get { return 0; } }
+    //}
 
 }
