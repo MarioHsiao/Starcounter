@@ -873,7 +873,7 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="typeDef">The type to check</param>
         /// <returns>True if it inherits object direct; false otherwise.</returns>
-        private static bool InheritsObject(TypeDefDeclaration typeDef) {
+        internal static bool InheritsObject(TypeDefDeclaration typeDef) {
             return ScAnalysisTask.Inherits(typeDef, typeof(object).FullName, true);
         }
 
