@@ -91,12 +91,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             targets.Add("GetSByte", GetSByte);
             targets.Add("GetSingle", GetSingle);
             targets.Add("GetString", GetString);
-            targets.Add("Attach", Attach);
-            targets.Add("AttachAddr", AttachByAddress);
-            targets.Add("get_ThisRef", GetThisRef);
-            targets.Add("set_ThisRef", SetThisRef);
             targets.Add("get_TypeBinding", GetTypeBinding);
-            targets.Add("Delete", Delete);
             targets.Add("AssertEquals", AssertEquals);
             targets.Add("EqualsOrIsDerivedFrom", EqualsOrIsDerivedFrom);
         }
@@ -200,21 +195,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         void ImplementInterfaceMethod(MethodInfo interfaceMethod, TypeDefDeclaration typeDef, IMethod methodRef, MethodDefDeclaration methodDef) {
             Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration> emitter;
 
-            // Semi-hack for legacy Attach that is overloaded.
-            // When removed from IObjectView, we can do a real
-            // 1-1 lookup.
-            var hackName = interfaceMethod.Name;
-            if (hackName == "Attach") {
-                // Overloaded attach signatures:
-                // void Attach(ObjectRef objectRef, TypeBinding typeBinding);
-                // void Attach(ulong addr, ulong oid, TypeBinding typeBinding);
-                // Check which one to map to proper emitter.
-                if (interfaceMethod.GetParameters().Length == 3)
-                    hackName = "AttachAddr";
-            }
-
-            emitter = targets[hackName];
-            Trace.Assert(emitter != null, "Missing interface emitter method for " + hackName);
+            emitter = targets[interfaceMethod.Name];
+            Trace.Assert(emitter != null, "Missing interface emitter method for " + interfaceMethod.Name);
             
             emitter(typeDef, interfaceMethod, methodRef, methodDef);
         }
@@ -470,71 +452,6 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 EmitNotImplemented(w);
             }
         }
-
-        //public void Delete() {
-        void Delete(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
-            }
-        }
-
-        //public void Attach(ObjectRef objectRef, TypeBinding typeBinding) {
-        void Attach(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            var objParameter = new ParameterDeclaration(0, "objRef", module.FindType(typeof(ObjectRef)));
-            impl.Parameters.Add(objParameter);
-            var bindingParameter = new ParameterDeclaration(1, "binding", module.FindType(typeof(TypeBinding)));
-            impl.Parameters.Add(bindingParameter);
-
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
-            }
-        }
-
-        //public void Attach(ulong addr, ulong oid, TypeBinding typeBinding) {
-        void AttachByAddress(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            var addrParameter = new ParameterDeclaration(0, "addr", module.Cache.GetIntrinsic(IntrinsicType.UInt64));
-            impl.Parameters.Add(addrParameter);
-            var objParameter = new ParameterDeclaration(1, "oid", module.Cache.GetIntrinsic(IntrinsicType.UInt64));
-            impl.Parameters.Add(objParameter);
-            var bindingParameter = new ParameterDeclaration(2, "binding", module.FindType(typeof(TypeBinding)));
-            impl.Parameters.Add(bindingParameter);
-
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
-            }
-        }
-
-        //public ObjectRef ThisRef { get; set; } =
-        //   ObjectRef get_ObjectRef();
-        //   void set_ObjectRef(ObjectRef);
-        void GetThisRef(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            impl.Attributes |= MethodAttributes.SpecialName;
-            impl.ReturnParameter = new ParameterDeclaration {
-                Attributes = ParameterAttributes.Retval,
-                ParameterType = module.FindType(typeof(ObjectRef))
-            };
-            var propertyName = viewNETType.FullName + "." + "ThisRef";
-            var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
-            getter.Method = impl;
-
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
-            }
-        }
-
-        void SetThisRef(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            impl.Attributes |= MethodAttributes.SpecialName;
-            var refParameter = new ParameterDeclaration(0, "value", module.FindType(typeof(ObjectRef)));
-            impl.Parameters.Add(refParameter);
-            var propertyName = viewNETType.FullName + "." + "ThisRef";
-            var setter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Setter);
-            setter.Method = impl;
-
-            using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
-            }
-        }
-        
 
         void AssertEquals(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             // Signature: bool AssertEquals(IObjectView)
