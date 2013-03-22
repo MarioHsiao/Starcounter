@@ -272,14 +272,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.Boolean, impl);
 
             using (var attached = new AttachedInstructionWriter(writer, impl)) {
-                var w = attached.Writer;
-                impl.MethodBody.MaxStack = 8;
-                w.EmitInstruction(OpCodeNumber.Ldarg_0);
-                w.EmitInstructionField(OpCodeNumber.Ldfld, thisBindingField);
-                w.EmitInstruction(OpCodeNumber.Ldarg_1);
-                w.EmitInstruction(OpCodeNumber.Ldarg_0);
-                w.EmitInstructionMethod(OpCodeNumber.Call, viewAccessLayer.GetBoolean);
-                w.EmitInstruction(OpCodeNumber.Ret);
+                EmitGetterBody(attached, impl, viewAccessLayer.GetBoolean);
             }
         }
 
@@ -287,140 +280,113 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.Byte, impl);
 
             using (var attached = new AttachedInstructionWriter(writer, impl)) {
-                var w = attached.Writer;
-                impl.MethodBody.MaxStack = 8;
-                w.EmitInstruction(OpCodeNumber.Ldarg_0);
-                w.EmitInstructionField(OpCodeNumber.Ldfld, thisBindingField);
-                w.EmitInstruction(OpCodeNumber.Ldarg_1);
-                w.EmitInstruction(OpCodeNumber.Ldarg_0);
-                w.EmitInstructionMethod(OpCodeNumber.Call, viewAccessLayer.GetByte);
-                w.EmitInstruction(OpCodeNumber.Ret);
+                EmitGetterBody(attached, impl, viewAccessLayer.GetByte);
             }
         }
 
         void GetBinary(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewNonIntristicGetterSignature(typeof(Binary), true, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetBinary);
             }
 
         }
-        // public Binary? GetBinary(int index) {
-
+        
         void GetDateTime(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewNonIntristicGetterSignature(typeof(DateTime), true, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetDateTime);
             }
 
         }
-        //public DateTime? GetDateTime(int index) {
-
+        
         void GetDecimal(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewNonIntristicGetterSignature(typeof(decimal), true, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetDecimal);
             }
         }
-        //public decimal? GetDecimal(int index) {
-
+        
         void GetDouble(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.Double, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetDouble);
             }
 
         }
-        //public double? GetDouble(int index) {
-
+        
         void GetInt16(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.Int16, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetInt16);
             }
 
         }
-        //public short? GetInt16(int index) {
-
+        
         void GetInt32(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.Int32, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetInt32);
             }
 
         }
-        //public int? GetInt32(int index) {
-
+        
         void GetInt64(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.Int64, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetInt64);
             }
 
         }
-        //public long? GetInt64(int index) {
-
+        
         void GetObject(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewNonIntristicGetterSignature(typeof(IObjectView), false, impl);
-
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetObject);
             }
         }
-        //public IObjectView GetObject(int index) {
-
+        
         void GetSByte(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.SByte, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetSByte);
             }
         }
-        //public sbyte? GetSByte(int index) {
-
+        
         void GetSingle(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.Single, impl);
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetSingle);
             }
         }
-        //public float? GetSingle(int index) {
-
+        
         void GetString(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewNonIntristicGetterSignature(typeof(string), false, impl);
-
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetString);
             }
         }
-        //public string GetString(int index) {
-
+        
         void GetUInt16(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.UInt16, impl);
-
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetUInt16);
             }
         }
-        //public ushort? GetUInt16(int index) {
-
-        // uint? GetUInt32(int index)
         void GetUInt32(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.UInt32, impl);
-
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetUInt32);
             }
         }
 
         void GetUInt64(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             BuildIObjectViewIntristicGetterSignature(IntrinsicType.UInt64, impl);
-
             using (var w = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(w);
+                EmitGetterBody(w, impl, viewAccessLayer.GetUInt64);
             }
         }
-        //public ulong? GetUInt64(int index) {
-
+        
         void GetTypeBinding(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             //public ITypeBinding TypeBinding {get;} = ITypeBindinng get_TypeBinding()
             impl.Attributes |= MethodAttributes.SpecialName;
@@ -511,6 +477,19 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
             var indexParameter = new ParameterDeclaration(0, "index", module.Cache.GetIntrinsic(IntrinsicType.Int32));
             impl.Parameters.Add(indexParameter);
+        }
+
+        // Emits a method body such as
+        // return DbState.View.Read[datatype](this.__sc__this_binding__, index, this);
+        void EmitGetterBody(AttachedInstructionWriter attachedWriter, MethodDefDeclaration impl, IMethod getterAPI) {
+            var w = attachedWriter.Writer;
+            impl.MethodBody.MaxStack = 8;
+            w.EmitInstruction(OpCodeNumber.Ldarg_0);
+            w.EmitInstructionField(OpCodeNumber.Ldfld, thisBindingField);
+            w.EmitInstruction(OpCodeNumber.Ldarg_1);
+            w.EmitInstruction(OpCodeNumber.Ldarg_0);
+            w.EmitInstructionMethod(OpCodeNumber.Call, getterAPI);
+            w.EmitInstruction(OpCodeNumber.Ret);
         }
 
         void EmitNotImplemented(AttachedInstructionWriter attachedWriter) {
