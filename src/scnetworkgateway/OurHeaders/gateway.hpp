@@ -48,6 +48,7 @@ typedef uint32_t channel_chunk;
 typedef uint64_t apps_unique_session_num_type;
 typedef uint64_t session_salt_type;
 typedef uint32_t session_index_type;
+typedef uint8_t scheduler_id_type;
 typedef uint64_t session_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t log_handle_type;
@@ -68,6 +69,7 @@ typedef uint64_t log_handle_type;
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
 //#define GW_OLD_ACTIVE_DATABASES_DISCOVER
+#define GW_NEW_SESSIONS_APPROACH
 
 // Enable to check for unique socket usage.
 #define GW_SOCKET_ID_CHECK
@@ -223,14 +225,20 @@ const int32_t INVALID_URI_INDEX = -1;
 // Bad log handler.
 const log_handle_type INVALID_LOG_HANDLE = 0;
 
+// Invalid parameter index in user delegate.
+const uint8_t INVALID_PARAMETER_INDEX = 255;
+
 // Bad chunk index.
 const uint32_t INVALID_CHUNK_INDEX = shared_memory_chunk::link_terminator;
 
 // Bad linear session index.
 const session_index_type INVALID_SESSION_INDEX = ~0;
 
+// Bad view model index.
+const session_index_type INVALID_VIEW_MODEL_INDEX = ~0;
+
 // Bad scheduler index.
-const uint32_t INVALID_SCHEDULER_ID = ~0;
+const scheduler_id_type INVALID_SCHEDULER_ID = 255;
 
 // Bad session salt.
 const session_salt_type INVALID_SESSION_SALT = 0;
@@ -839,6 +847,57 @@ public:
 // Represents a session in terms of gateway/Apps.
 struct ScSessionStruct
 {
+#ifdef GW_NEW_SESSIONS_APPROACH
+
+    // Scheduler id.
+    scheduler_id_type scheduler_id_;
+
+    // Session linear index.
+    session_index_type linear_index_;
+
+    // Unique random number.
+    session_salt_type random_salt_;
+
+    // View model number.
+    session_index_type view_model_index_;
+
+    // Reset.
+    void Reset()
+    {
+        scheduler_id_ = (uint8_t)INVALID_SCHEDULER_ID;
+        linear_index_ = INVALID_SESSION_INDEX;
+        random_salt_ = INVALID_APPS_SESSION_SALT;
+        view_model_index_ = INVALID_VIEW_MODEL_INDEX;
+    }
+
+    // Constructing session from string.
+    void FillFromString(char* str_in, uint32_t len_bytes)
+    {
+        GW_ASSERT(32 == len_bytes);
+
+        scheduler_id_ = hex_string_to_uint64(str_in, 2);
+        linear_index_ = hex_string_to_uint64(str_in + 2, 6);
+        random_salt_ = hex_string_to_uint64(str_in + 8, 16);
+        view_model_index_ = hex_string_to_uint64(str_in + 24, 8);
+    }
+
+    // Compare socket stamps of two sessions.
+    bool CompareSalts(session_salt_type session_salt)
+    {
+        if (INVALID_SESSION_INDEX == linear_index_)
+            return false;
+
+        return random_salt_ == session_salt;
+    }
+
+    // Checks if session is active.
+    bool IsActive()
+    {
+        return (INVALID_SESSION_INDEX != linear_index_);
+    }
+
+#else
+
     // Session random salt.
     session_salt_type gw_session_salt_;
 
@@ -853,7 +912,7 @@ struct ScSessionStruct
     apps_unique_session_num_type apps_unique_session_num_;
 
     // Apps unique session salt.
-    session_salt_type apps_session_salt_;
+    session_salt_type random_salt_;
 
     // Default constructor.
     ScSessionStruct()
@@ -874,7 +933,7 @@ struct ScSessionStruct
         gw_session_salt_ = INVALID_SESSION_SALT;
         scheduler_id_ = INVALID_SCHEDULER_ID;
         apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
-        apps_session_salt_ = INVALID_APPS_SESSION_SALT;
+        random_salt_ = INVALID_APPS_SESSION_SALT;
     }
 
     // Initializes.
@@ -889,7 +948,7 @@ struct ScSessionStruct
         gw_session_index_ = session_index;
         scheduler_id_ = scheduler_id;
         apps_unique_session_num_ = apps_unique_session_num;
-        apps_session_salt_ = apps_session_salt;
+        random_salt_ = apps_session_salt;
     }
 
     // Comparing two sessions.
@@ -926,6 +985,7 @@ struct ScSessionStruct
 
         return gw_session_salt_ == session_salt;
     }
+#endif
 };
 
 // Structure that wraps the session and contains some
@@ -1940,6 +2000,8 @@ public:
         return num_processed_http_requests_unsafe_;
     }
 
+#ifndef GW_NEW_SESSIONS_APPROACH
+
     // Number of active sessions.
     int64_t get_num_active_sessions_unsafe()
     {
@@ -1969,6 +2031,8 @@ public:
     {
         global_timer_unsafe_ += value;
     }
+
+#endif
 
     // Getting settings log file directory.
     std::wstring& get_setting_server_output_dir()
@@ -2262,6 +2326,8 @@ public:
     void LogWriteNotice(const wchar_t* msg);
     void LogWriteGeneral(const wchar_t* msg, uint32_t log_type);
 
+#ifndef GW_NEW_SESSIONS_APPROACH
+
     // Deletes existing session.
     uint32_t KillSession(session_index_type session_index, bool* was_killed)
     {
@@ -2357,8 +2423,24 @@ public:
         return all_sessions_unsafe_[free_session_index].session_;
     }
 
+#endif
+
+    // Checks if global session data is active.
+    bool IsGlobalSessionActive(session_index_type session_index)
+    {
+        return all_sessions_unsafe_[session_index].session_.IsActive();
+    }
+
+    // Checks if global session data is active.
+    bool CompareGlobalSessionSalt(
+        session_index_type session_index,
+        session_salt_type random_salt)
+    {
+        return all_sessions_unsafe_[session_index].session_.CompareSalts(random_salt);
+    }
+
     // Gets session data by index.
-    ScSessionStruct GetGlobalSessionDataCopy(session_index_type session_index)
+    ScSessionStruct GetGlobalSessionCopy(session_index_type session_index)
     {
         // Checking validity of linear session index other wise return a wrong copy.
         if (INVALID_SESSION_INDEX == session_index)
@@ -2366,6 +2448,22 @@ public:
 
         // Fetching the session by index.
         return all_sessions_unsafe_[session_index].session_;
+    }
+
+    // Gets session data by index.
+    void SetGlobalSessionDataCopy(
+        session_index_type session_index,
+        ScSessionStruct session_copy)
+    {
+        // Fetching the session by index.
+        all_sessions_unsafe_[session_index].session_ = session_copy;
+    }
+
+    // Gets session data by index.
+    void DeleteGlobalSession(session_index_type session_index)
+    {
+        // Fetching the session by index.
+        all_sessions_unsafe_[session_index].session_.Reset();
     }
 
     // Gets scheduler id for specific session.

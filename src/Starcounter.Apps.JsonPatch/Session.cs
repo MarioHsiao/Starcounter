@@ -31,10 +31,21 @@ namespace Starcounter {
         public static Session Current { get { return current; } }
 
         /// <summary>
+        /// Getting internal session.
+        /// </summary>
+        public ScSessionClass InternalSession { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Session" /> class.
         /// </summary>
         internal Session() {
             changeLog = new ChangeLog();
+        }
+
+        public static Session CreateNewEmptySession()
+        {
+            current = new Session();
+            return current;
         }
 
         /// <summary>
@@ -69,13 +80,21 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Internal session string.
+        /// </summary>
+        String SessionIdString
+        {
+            get { return InternalSession.ToAsciiString(); }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         internal string GetDataLocation() {
             if (root == null)
                 return null;
-            return dataLocationUri + "12345"; // TODO: Proper id.
+            return dataLocationUri + SessionIdString;
         }
 
 
@@ -85,6 +104,11 @@ namespace Starcounter {
         /// <param name="session"></param>
         internal static void Start(Session session) {
             Debug.Assert(current == null);
+
+            // Session still can be null, e.g. did not pass the verification.
+            if (session == null)
+                return;
+
             Session.current = session;
             ChangeLog.CurrentOnThread = session.changeLog;
         }
@@ -146,6 +170,7 @@ namespace Starcounter {
             }
             root = null;
             changeLog = null;
+            Session.current = null;
         }
 
         private void DisposeJsonRecursively(Obj json) {

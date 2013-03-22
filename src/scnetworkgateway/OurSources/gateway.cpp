@@ -834,7 +834,7 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(core::chunk_type::static_header_size == bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
     // Checking overall gateway stuff.
-    GW_ASSERT(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
+    GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
     GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
@@ -2117,6 +2117,8 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
+#ifndef GW_NEW_SESSIONS_APPROACH
+
 // Cleans up all collected inactive sessions.
 uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
 {
@@ -2129,7 +2131,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
     for (int32_t i = 0; i < num_sessions_to_cleanup; i++)
     {
         // Getting existing session copy.
-        ScSessionStruct global_session_copy = GetGlobalSessionDataCopy(sessions_to_cleanup_unsafe_[i]);
+        ScSessionStruct global_session_copy = GetGlobalSessionCopy(sessions_to_cleanup_unsafe_[i]);
 
         // Checking if session is valid.
         if (global_session_copy.IsValid())
@@ -2238,6 +2240,7 @@ uint32_t Gateway::CollectInactiveSessions()
 
     return 0;
 }
+#endif
 
 // Entry point for inactive sessions cleanup.
 uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
@@ -2247,6 +2250,7 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 
     while (true)
     {
+#ifndef GW_NEW_SESSIONS_APPROACH
         // Sleeping minimum interval.
         Sleep(g_gateway.get_min_inactive_session_life_seconds() * 1000);
 
@@ -2255,6 +2259,10 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 
         // Collecting inactive sessions if any.
         g_gateway.CollectInactiveSessions();
+
+#else
+        Sleep(100000);
+#endif
     }
 
     return 0;
@@ -2262,6 +2270,7 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
     // Catching all unhandled exceptions in this thread.
     GW_SC_END_FUNC
 }
+
 
 // Entry point for Gateway logging routine.
 uint32_t __stdcall GatewayLoggingRoutine(LPVOID params)
@@ -2527,7 +2536,9 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // Global statistics.
         global_statistics_stream_ << "Global: " <<
             "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
+#ifndef GW_NEW_SESSIONS_APPROACH
             ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
+#endif
             ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
             ", reusable conn socks " << g_gateway.NumberOfReusableConnectSockets() <<
             "<br>" << GW_ENDL;
@@ -2959,12 +2970,25 @@ uint32_t Gateway::AddUriHandler(
     // Checking if there is an entry.
     if (index < 0)
     {
+        // Checking if there is a session in parameters.
+        uint8_t session_param_index = INVALID_PARAMETER_INDEX;
+        for (int32_t i = 0; i < num_params; i++)
+        {
+            // Checking for REST_ARG_SESSION.
+            if (MixedCodeConstants::REST_ARG_SESSION == param_types[i])
+            {
+                session_param_index = i;
+                break;
+            }
+        }
+
         // Creating totally new URI entry.
         RegisteredUri new_entry(
             original_uri_info,
             original_uri_info_len_chars,
             processed_uri_info,
             processed_uri_info_len_chars,
+            session_param_index,
             db_index,
             handlers_table->get_handler_list(handler_index));
 
