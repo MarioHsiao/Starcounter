@@ -84,29 +84,31 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             typeSpec.Fields.Add(typeBindingReference);
             this.TypeBindingReference = typeBindingReference;
 
-            var thisHandle = new FieldDefDeclaration {
-                Name = TypeSpecification.ThisHandleName,
-                Attributes = FieldAttributes.Family,
-                FieldType = ulongType
-            };
-            typeDef.Fields.Add(thisHandle);
-            this.ThisHandle = thisHandle;
+            if (ScTransformTask.InheritsObject(typeDef)) {
+                var thisHandle = new FieldDefDeclaration {
+                    Name = TypeSpecification.ThisHandleName,
+                    Attributes = FieldAttributes.Family,
+                    FieldType = ulongType
+                };
+                typeDef.Fields.Add(thisHandle);
+                this.ThisHandle = thisHandle;
 
-            var thisId = new FieldDefDeclaration {
-                Name = TypeSpecification.ThisIdName,
-                Attributes = FieldAttributes.Family,
-                FieldType = ulongType
-            };
-            typeDef.Fields.Add(thisId);
-            this.ThisIdentity = thisId;
+                var thisId = new FieldDefDeclaration {
+                    Name = TypeSpecification.ThisIdName,
+                    Attributes = FieldAttributes.Family,
+                    FieldType = ulongType
+                };
+                typeDef.Fields.Add(thisId);
+                this.ThisIdentity = thisId;
 
-            var thisBinding = new FieldDefDeclaration {
-                Name = TypeSpecification.ThisBindingName,
-                Attributes = FieldAttributes.Family,
-                FieldType = typeBindingType
-            };
-            typeDef.Fields.Add(thisBinding);
-            this.ThisBinding = thisBinding;
+                var thisBinding = new FieldDefDeclaration {
+                    Name = TypeSpecification.ThisBindingName,
+                    Attributes = FieldAttributes.Family,
+                    FieldType = typeBindingType
+                };
+                typeDef.Fields.Add(thisBinding);
+                this.ThisBinding = thisBinding;
+            }
         }
 
         public FieldDefDeclaration IncludeField(TypeDefDeclaration typeDef, FieldDefDeclaration field) {
