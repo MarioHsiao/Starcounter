@@ -1099,8 +1099,8 @@ namespace Starcounter.Internal.Weaver {
             // future field generation rounds.
             // TODO:
 
-            var thisHandleField = field.DeclaringType.Fields.GetByName(TypeSpecification.ThisHandleName);
-            var thisIdField = field.DeclaringType.Fields.GetByName(TypeSpecification.ThisIdName);
+            var thisHandleField = field.DeclaringType.FindField(TypeSpecification.ThisHandleName).Field;
+            var thisIdField = field.DeclaringType.FindField(TypeSpecification.ThisIdName).Field;
 
             if (dbStateMethod.ParameterCount == 3) {
                 getMethod.MethodBody.MaxStack = 8;
