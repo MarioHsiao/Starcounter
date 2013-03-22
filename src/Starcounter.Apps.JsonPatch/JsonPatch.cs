@@ -261,6 +261,7 @@ namespace Starcounter.Internal.JsonPatch {
                         || contentArr[offset] == '}' 
                         || contentArr[offset] == ',')
                         break;
+                    offset++;
                 }
             }
 
