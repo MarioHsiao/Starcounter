@@ -26,7 +26,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="defaultPort"></param>
         public static void InitAppsBootstrapper(
-            Byte schedCount,
+            Byte numSchedulers,
             UInt16 defaultUserHttpPort,
             UInt16 defaultSystemHttpPort,
             String dbName)
@@ -47,7 +47,7 @@ namespace Starcounter.Internal {
                 OnHttpMessageRoot);
 
             // Explicitly starting inactive sessions cleanup.
-            for (Byte i = 0; i < schedCount; i++)
+            for (Byte i = 0; i < numSchedulers; i++)
             {
                 // Getting sessions for current scheduler.
                 SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
