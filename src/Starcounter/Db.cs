@@ -200,6 +200,21 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Gets a value indicating of the given object is a
+        /// Starcounter database instance.
+        /// </summary>
+        /// <param name="obj">The object to evaluate.</param>
+        /// <returns>True if considered a database object; false
+        /// otherwise.</returns>
+        public static bool IsPersistent(this object obj) {
+            // This is probably not the final solution; we should compare
+            // this one (and maybe other alternatives) to the one that is
+            // probably fastest (but most complex), as suggested here:
+            // http://www.starcounter.com/forum/showthread.php?2493-Making-a-polymorphic-Object.IsPersistent()
+            return obj is IObjectProxy;
+        }
+
+        /// <summary>
         /// Allows the deletion of database objects.
         /// </summary>
         /// <param name="target">
