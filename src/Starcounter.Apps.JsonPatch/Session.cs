@@ -82,7 +82,7 @@ namespace Starcounter {
         /// <summary>
         /// Internal session string.
         /// </summary>
-        String SessionIdString
+        public String SessionIdString
         {
             get { return InternalSession.ToAsciiString(); }
         }

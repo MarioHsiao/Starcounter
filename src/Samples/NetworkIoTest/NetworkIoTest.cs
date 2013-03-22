@@ -159,7 +159,10 @@ namespace NetworkIoTestApp
 
             GET("/view-session/{?}", (Session s) =>
             {
-                return "Session viewed!";
+                if (s != null)
+                    return "Session string: " + s.SessionIdString;
+
+                return "No session to view!";
             });
         }
     }
