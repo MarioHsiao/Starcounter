@@ -11,12 +11,9 @@ namespace Starcounter.Metadata
 
     /// <summary>
     /// </summary>
-    public sealed class SysColumn : Entity
+    public sealed class SysColumn
     {
-
-        /// <summary>
-        /// </summary>
-        public SysColumn(Uninitialized u) : base(u) { }
+        public ObjectRef ThisRef;
 
         /// <summary>
         /// </summary>

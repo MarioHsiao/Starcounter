@@ -82,6 +82,7 @@ namespace Starcounter
 
         private ObjectRef thisRef;
         public ObjectRef ThisRef { get { return thisRef; } set { thisRef = value; } }
+        public ulong Identity { get { throw new NotImplementedException(); } }
         private TypeBinding typeBinding_ = null;
 
         /// <summary>

@@ -22,6 +22,11 @@ namespace Starcounter
         ITypeBinding TypeBinding { get; }
 
         /// <summary>
+        /// Gets the unique identity of the underlying object.
+        /// </summary>
+        ulong Identity { get; }
+
+        /// <summary>
         /// Determines if the current object is equal to or derived from the
         /// specified object.
         /// </summary>
@@ -115,11 +120,6 @@ namespace Starcounter
         /// Gets the value of an integer attribute as a unsigned 64-bits integer.
         /// </summary>
         Nullable<UInt64> GetUInt64(Int32 index);
-
-        #region Temporary extension methods from Entity
-        ObjectRef ThisRef {get;set;}
-
-        #endregion
 
 #if DEBUG
         /// <summary>
