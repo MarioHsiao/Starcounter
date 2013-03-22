@@ -86,7 +86,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
 
             var thisHandle = new FieldDefDeclaration {
                 Name = TypeSpecification.ThisHandleName,
-                Attributes = FieldAttributes.Private,
+                Attributes = FieldAttributes.Family,
                 FieldType = ulongType
             };
             typeDef.Fields.Add(thisHandle);
@@ -94,7 +94,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
 
             var thisId = new FieldDefDeclaration {
                 Name = TypeSpecification.ThisIdName,
-                Attributes = FieldAttributes.Private,
+                Attributes = FieldAttributes.Family,
                 FieldType = ulongType
             };
             typeDef.Fields.Add(thisId);
@@ -102,7 +102,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
 
             var thisBinding = new FieldDefDeclaration {
                 Name = TypeSpecification.ThisBindingName,
-                Attributes = FieldAttributes.Private,
+                Attributes = FieldAttributes.Family,
                 FieldType = typeBindingType
             };
             typeDef.Fields.Add(thisBinding);
