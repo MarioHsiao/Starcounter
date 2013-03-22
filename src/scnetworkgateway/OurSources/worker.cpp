@@ -542,21 +542,36 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         }
     }
 
-    // Getting attached session if any.
-    if (INVALID_SESSION_INDEX != sd->get_session_index())
+    // Checking if there is a session on this socket.
+    if (g_gateway.IsGlobalSessionActive(sd->get_socket()))
     {
-        // Checking for session correctness.
-        ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
-
-        // Check that data received belongs to the correct session (not coming from abandoned connection).
-        if (!global_session_copy.CompareSalts(sd->get_session_salt()))
+        // Getting attached session if any.
+        if (sd->HasActiveSession())
         {
-#ifdef GW_ERRORS_DIAG
-            GW_PRINT_WORKER << "Data from abandoned/different socket received." << GW_ENDL;
-#endif
+            // Check that data received belongs to the correct session (not coming from abandoned connection).
+            if (!g_gateway.CompareGlobalSessionSalt(sd->get_socket(), sd->get_session_salt()))
+            {
+    #ifdef GW_ERRORS_DIAG
+                GW_PRINT_WORKER << "Data from abandoned/different socket received." << GW_ENDL;
+    #endif
 
-            // Just resetting the session.
-            sd->ResetSdSession();
+                // Just resetting the session.
+                sd->ResetSdSession();
+            }
+        }
+        else
+        {
+            // Attaching to existing session.
+            *sd->GetSessionStruct() = g_gateway.GetGlobalSessionCopy(sd->get_socket());
+        }
+    }
+    else
+    {
+        // Getting attached session if any.
+        if (sd->HasActiveSession())
+        {
+            // Creating global session on this socket.
+            g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *sd->GetSessionStruct());
         }
     }
 
@@ -1399,9 +1414,11 @@ uint32_t GatewayWorker::WorkerRoutine()
             sleep_interval_ms = INFINITE;
         }
 
+#ifndef GW_NEW_SESSIONS_APPROACH
         // Checking inactive sessions cleanup (only first worker).
         if ((g_gateway.get_num_sessions_to_cleanup_unsafe()) && (worker_id_ == 0))
             g_gateway.CleanupInactiveSessions(this);
+#endif
 
 #ifdef GW_TESTING_MODE
         // Checking if its time to switch to measured test.

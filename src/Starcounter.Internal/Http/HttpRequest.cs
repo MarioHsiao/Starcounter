@@ -445,7 +445,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Invalid Apps session unique number.
         /// </summary>
-        public const UInt64 INVALID_APPS_UNIQUE_SESSION_NUMBER = UInt64.MaxValue;
+        public const UInt32 INVALID_APPS_UNIQUE_SESSION_INDEX = UInt32.MaxValue;
 
         /// <summary>
         /// Invalid Apps session salt.
@@ -453,12 +453,22 @@ namespace Starcounter.Advanced {
         public const UInt64 INVALID_APPS_SESSION_SALT = 0;
 
         /// <summary>
+        /// Invalid Apps session index.
+        /// </summary>
+        public const UInt32 INVALID_APPS_SESSION_INDEX = UInt32.MaxValue;
+
+        /// <summary>
+        /// Invalid View model index.
+        /// </summary>
+        public const UInt32 INVALID_VIEW_MODEL_INDEX = UInt32.MaxValue;
+
+        /// <summary>
         /// Checks if HTTP request already has session.
         /// </summary>
         public Boolean HasSession {
             get {
                 unsafe {
-                    return INVALID_APPS_UNIQUE_SESSION_NUMBER != (session_->apps_unique_session_index_);
+                    return INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
                 }
             }
         }
@@ -469,10 +479,18 @@ namespace Starcounter.Advanced {
         public IAppsSession AppsSessionInterface {
             get {
                 unsafe {
-                    return GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
+
+                    // Obtaining corresponding Apps session.
+                    IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
                         session_->scheduler_id_,
-                        session_->apps_unique_session_index_,
-                        session_->apps_session_salt_);
+                        session_->linear_index_,
+                        session_->random_salt_);
+
+                    // Destroying the session if Apps session was destroyed.
+                    if (apps_session == null)
+                        session_->Destroy();
+
+                    return apps_session;
                 }
             }
         }
@@ -497,15 +515,13 @@ namespace Starcounter.Advanced {
                 // Indicating that new session was created.
                 newSession_ = true;
 
-                // Resetting the session index.
-                session_->gw_session_index_ = INVALID_GW_SESSION_INDEX;
-
                 // Simply generating new session.
                 return GlobalSessions.AllGlobalSessions.CreateNewSession(
                     apps_session,
                     session_->scheduler_id_,
-                    ref session_->apps_unique_session_index_,
-                    ref session_->apps_session_salt_);
+                    ref session_->linear_index_,
+                    ref session_->random_salt_,
+                    ref session_->view_model_index_); // TODO
             }
         }
 
@@ -521,13 +537,12 @@ namespace Starcounter.Advanced {
 
                 // Simply generating new session.
                 err_code = GlobalSessions.AllGlobalSessions.DestroySession(
-                    session_->apps_unique_session_index_,
-                    session_->apps_session_salt_,
-                    session_->scheduler_id_);
+                    session_->scheduler_id_,
+                    session_->linear_index_,
+                    session_->random_salt_);
 
                 // Killing this session by setting invalid unique number and salt.
-                session_->apps_unique_session_index_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
-                session_->apps_session_salt_ = INVALID_APPS_SESSION_SALT;
+                session_->Destroy();
             }
 
             return err_code;
@@ -539,7 +554,7 @@ namespace Starcounter.Advanced {
         public UInt64 UniqueSessionIndex {
             get {
                 unsafe {
-                    return session_->apps_unique_session_index_;
+                    return session_->linear_index_;
                 }
             }
         }
@@ -550,7 +565,7 @@ namespace Starcounter.Advanced {
         public UInt64 SessionSalt {
             get {
                 unsafe {
-                    return session_->apps_session_salt_;
+                    return session_->random_salt_;
                 }
             }
         }

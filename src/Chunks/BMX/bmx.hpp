@@ -70,17 +70,12 @@ namespace bmx
     // Some socket data constants.
     const uint32_t  SOCKET_DATA_FLAGS_JUST_SEND = 64;
 
-    // WARNING: Change corresponding managed code variables
-    // that have exactly the same names!
-    const uint32_t SESSION_STRUCT_SIZE = 32;
-    const uint32_t OVERLAPPED_STRUCT_SIZE = 32;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 144;
 
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 152;
-
-    const uint32_t CHUNK_OFFSET_USER_DATA = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_STRUCT_SIZE + SESSION_STRUCT_SIZE;
+    const uint32_t CHUNK_OFFSET_USER_DATA = BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants::OVERLAPPED_SIZE + MixedCodeConstants::SESSION_STRUCT_SIZE;
     const uint32_t CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA + 4;
     const uint32_t CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = CHUNK_OFFSET_MAX_USER_DATA_BYTES + 4;
-    const uint32_t CHUNK_OFFSET_SOCKET_FLAGS = BMX_HEADER_MAX_SIZE_BYTES + 112;
+    const uint32_t CHUNK_OFFSET_SOCKET_FLAGS = BMX_HEADER_MAX_SIZE_BYTES + 104;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
     const uint32_t CHUNK_OFFSET_BMX_HTTP_REQUEST = BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST;
     const uint32_t SOCKET_DATA_MAX_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::link_size;
