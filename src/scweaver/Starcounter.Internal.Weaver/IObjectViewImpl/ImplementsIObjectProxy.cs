@@ -267,13 +267,13 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         }
 
         void GetThisIdentity(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            // Signature: ulong IObjectProxy.get_Identity()
+            // Signature: ulong IObjectView.get_Identity()
             impl.Attributes |= MethodAttributes.SpecialName;
             impl.ReturnParameter = new ParameterDeclaration {
                 Attributes = ParameterAttributes.Retval,
                 ParameterType = module.Cache.GetIntrinsic(IntrinsicType.UInt64)
             };
-            var propertyName = proxyNETType.FullName + "." + "Identity";
+            var propertyName = viewNETType.FullName + "." + "Identity";
             var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
             getter.Method = impl;
 
