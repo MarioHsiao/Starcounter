@@ -9,6 +9,8 @@ using System;
 using System.ComponentModel;
 using Starcounter.Advanced;
 using Starcounter.XSON;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Starcounter {
 
@@ -34,6 +36,14 @@ namespace Starcounter {
         //internal void SetBound(TValue template, object value) {
         //    template.SetBoundValueAsObject(this, value);
         //}
+
+        internal IEnumerable GetBound(TObjArr template) {
+            IBindable data = this.Data;
+            if (data == null)
+                return default(Rows<object>);
+
+            return template.GetBinding(data).Get(data);
+        }
 
         internal IBindable GetBound(TObj template) {
             IBindable data = this.Data;
@@ -221,15 +231,15 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <returns></returns>
         public Obj Get(TObj property) {
-            IBindable data = null;
-            if (property.Bound)
-                data = GetBound(property);
+            //IBindable data = null;
+            //if (property.Bound)
+            //    data = GetBound(property);
 
 #if QUICKTUPLE
             Obj v = _Values[property.Index];
-            if (v.Data != data) {
-                v.Data = data;
-            }
+            //if (v.Data != data) {
+            //    v.Data = data;
+            //}
             return v;
 #else
             throw new NotImplementedException();
@@ -323,7 +333,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <param name="data"></param>
-        public void Set(TObjArr property, Rows<object> data) {
+        public void Set(TObjArr property, IEnumerable data) {
             Arr current = _Values[property.Index];
             if (current != null) {
                 current.Clear();
