@@ -215,7 +215,10 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Allows the deletion of database objects.
+        /// Deletes an object from the database. The runtime will check
+        /// the object to see if it's a valid database object. If it is,
+        /// the delete will be carried out. If not, an exception will be
+        /// raised.
         /// </summary>
         /// <param name="target">
         /// The database object to delete.</param>
@@ -226,7 +229,15 @@ namespace Starcounter
                 // TODO:
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Not a database object.");
             }
+            Db.Delete(proxy);
+        }
 
+        /// <summary>
+        /// Deletes a database object from the database.
+        /// </summary>
+        /// <param name="proxy">The database object to delete,
+        /// reprsented as a <see cref="IObjectProxy"/>.</param>
+        public static void Delete(this IObjectProxy proxy) {
             ulong oid;
             ulong address;
 
