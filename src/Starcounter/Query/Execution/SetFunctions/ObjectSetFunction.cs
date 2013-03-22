@@ -67,7 +67,7 @@ internal class ObjectSetFunction : SetFunction, ISetFunction
                     {
                         result = value;
                     }
-                    else if (value.ThisRef.ObjectID > result.ThisRef.ObjectID)
+                    else if (value.Identity > result.Identity)
                     {
                         result = value;
                     }
@@ -80,7 +80,7 @@ internal class ObjectSetFunction : SetFunction, ISetFunction
                     {
                         result = value;
                     }
-                    else if (value.ThisRef.ObjectID < result.ThisRef.ObjectID)
+                    else if (value.Identity < result.Identity)
                     {
                         result = value;
                     }

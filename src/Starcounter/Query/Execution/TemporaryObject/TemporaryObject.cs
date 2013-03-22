@@ -623,25 +623,8 @@ internal sealed class TemporaryObject : IObjectView
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "TemporaryObject");
     }
 
-    #region Temporary extension methods from Entity
-    public void Attach(ObjectRef objectRef, TypeBinding typeBinding) {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-    }
-    public void Attach(ulong addr, ulong oid, TypeBinding typeBinding) {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-    }
-    public ObjectRef ThisRef {
-        get {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-        }
-        set {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-        }
-    }
-    public void Delete() {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface method is temporary");
-    }
-    #endregion
+    // TODO/Entity:
+    public ulong Identity { get { throw new NotImplementedException(); } }
 
 #if DEBUG
     private bool AssertEqualsVisited = false;

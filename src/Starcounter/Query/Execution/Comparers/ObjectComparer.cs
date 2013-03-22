@@ -73,11 +73,11 @@ internal class ObjectComparer : ISingleComparer
                 //{
                 //    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Cannot compare non-entity objects.");
                 //}
-                if (value1.ThisRef.ObjectID < value2.ThisRef.ObjectID)
+                if (value1.Identity < value2.Identity)
                 {
                     return -1;
                 }
-                if (value1.ThisRef.ObjectID > value2.ThisRef.ObjectID)
+                if (value1.Identity > value2.Identity)
                 {
                     return 1;
                 }
@@ -100,11 +100,11 @@ internal class ObjectComparer : ISingleComparer
                 //{
                 //    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Cannot compare non-entity objects.");
                 //}
-                if (value1.ThisRef.ObjectID < value2.ThisRef.ObjectID)
+                if (value1.Identity < value2.Identity)
                 {
                     return 1;
                 }
-                if (value1.ThisRef.ObjectID > value2.ThisRef.ObjectID)
+                if (value1.Identity > value2.Identity)
                 {
                     return -1;
                 }
