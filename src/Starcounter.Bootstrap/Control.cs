@@ -38,7 +38,7 @@ namespace StarcounterInternal.Bootstrap
         {
             try
             {
-                //System.Diagnostics.Debugger.Break();
+                //Debugger.Launch();
 
                 Control c = new Control();
                 c.OnProcessInitialized();
@@ -205,6 +205,14 @@ namespace StarcounterInternal.Bootstrap
 
             OnSchedulerStarted();
 
+            // TODO: Fix the proper BMX push channel registration with gateway.
+            // Waiting until BMX component is ready.
+            if (!configuration.NoNetworkGateway)
+            {
+                bmx.sc_wait_for_bmx_ready();
+                OnNetworkGatewayConnected();
+            }
+
             var appDomain = AppDomain.CurrentDomain;
             appDomain.AssemblyResolve += new ResolveEventHandler(Loader.ResolveAssembly);
 
@@ -268,15 +276,7 @@ namespace StarcounterInternal.Bootstrap
                 Loader.AddBasePackage(hsched_);
                 OnBasePackageLoaded();
             }
-
-            // TODO: Fix the proper BMX push channel registration with gateway.
-            // Waiting until BMX component is ready.
-            if (!configuration.NoNetworkGateway)
-            {
-                bmx.sc_wait_for_bmx_ready();
-                OnNetworkGatewayConnected();
-            }
-            
+           
             } finally { OnEndStart(); }
         }
 

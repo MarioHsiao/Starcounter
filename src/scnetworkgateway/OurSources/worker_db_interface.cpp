@@ -693,9 +693,9 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     GW_PRINT_WORKER << "All push channels confirmed!" << GW_ENDL;
 
                     // Requesting all registered handlers.
-                    err_code = RequestRegisteredHandlers();
-                    if (err_code)
-                        return err_code;
+                    //err_code = RequestRegisteredHandlers();
+                    //if (err_code)
+                    //    return err_code;
                 }
 
                 return 0;

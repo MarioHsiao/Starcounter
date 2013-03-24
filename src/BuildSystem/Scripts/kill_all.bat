@@ -21,6 +21,7 @@ TASKKILL /f /t /im scsqlparser.exe
 :: TASKKILL /f /t /im SQLTest2Client.exe
 :: TASKKILL /f /t /im SQLTest3Client.exe
 
-CMD /C "timeout 2" 2>NUL
+:: Sleeping some time using ping.
+ping -n 3 127.0.0.1 > nul
 
 IF NOT "%SC_RUNNING_ON_BUILD_SERVER%"=="" EXIT 0
