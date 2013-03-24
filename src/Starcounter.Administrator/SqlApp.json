@@ -1,9 +1,0 @@
-﻿{
-	"DatabaseName$" : "default",
-	"Exception":"message",
-	"Port$" : 8181,
-	"Query$" : "select m from systable m",
-	"Execute$" : null,
-	"Output" : "Some output"
-	
-}
