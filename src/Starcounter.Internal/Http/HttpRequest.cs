@@ -510,18 +510,32 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Generates session number and writes it to response.
         /// </summary>
-        public UInt32 GenerateNewSession(IAppsSession apps_session) {
-            unsafe {
+        public UInt32 GenerateNewSession(IAppsSession apps_session)
+        {
+            unsafe
+            {
                 // Indicating that new session was created.
                 newSession_ = true;
 
                 // Simply generating new session.
                 return GlobalSessions.AllGlobalSessions.CreateNewSession(
-                    apps_session,
                     session_->scheduler_id_,
                     ref session_->linear_index_,
                     ref session_->random_salt_,
-                    ref session_->view_model_index_); // TODO
+                    ref session_->view_model_index_, // TODO
+                    apps_session);
+            }
+        }
+
+        /// <summary>
+        /// Attaches existing session on this HTTP request.
+        /// </summary>
+        /// <param name="apps_session"></param>
+        public void AttachSession(IAppsSession apps_session)
+        {
+            unsafe
+            {
+                *session_ = apps_session.InternalSession.session_struct_;
             }
         }
 

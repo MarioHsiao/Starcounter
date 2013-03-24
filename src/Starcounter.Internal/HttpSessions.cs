@@ -191,7 +191,7 @@ namespace HttpStructs
     public class SchedulerSessions
     {
         // Maximum number of sessions per scheduler.
-        public const Int32 MaxSessionsPerScheduler = 10000;
+        public const Int32 MaxSessionsPerScheduler = 100000;
 
         // All Apps sessions belonging to the scheduler.
         ScSessionClass[] apps_sessions_ = new ScSessionClass[MaxSessionsPerScheduler];
@@ -210,11 +210,11 @@ namespace HttpStructs
 
         // Creates new Apps session.
         public UInt32 CreateNewSession(
-            IAppsSession apps_session_int,
             Byte scheduler_id,
             ref UInt32 linear_index,
             ref UInt64 random_salt,
-            ref UInt32 view_model_index)
+            ref UInt32 view_model_index,
+            IAppsSession apps_session_int)
         {
             // Getting free linear session index.
             linear_index = free_session_indexes_[num_active_sessions_];
@@ -237,7 +237,8 @@ namespace HttpStructs
             apps_sessions_[linear_index].SerializeToBytes();
 
             // Saving reference to internal session.
-            apps_session_int.InternalSession = apps_sessions_[linear_index];
+            if (apps_session_int != null)
+                apps_session_int.InternalSession = apps_sessions_[linear_index];
 
             // Setting last active time.
             apps_sessions_[linear_index].LastActiveTimeTick = CurrentTimeTick;
@@ -317,7 +318,7 @@ namespace HttpStructs
         {
             while (true)
             {
-                Console.WriteLine("Cleaning up inactive sessions!");
+                //Console.WriteLine("Cleaning up inactive sessions!");
 
                 // Incrementing global time.
                 CurrentTimeTick++;
@@ -395,6 +396,30 @@ namespace HttpStructs
         }
 
         /// <summary>
+        /// Generates a new session on a specific scheduler.
+        /// </summary>
+        /// <param name="scheduler_id"></param>
+        /// <param name="apps_session"></param>
+        /// <returns></returns>
+        public UInt32 CreateNewSession(
+            Byte scheduler_id,
+            IAppsSession apps_session)
+        {
+            // NOTE: Does not matter what values this variables have,
+            // since they are not used anyway.
+            UInt32 linear_index = 0;
+            UInt64 random_salt = 0;
+            UInt32 view_model_index = 0;
+
+            return scheduler_sessions_[scheduler_id].CreateNewSession(
+                scheduler_id,
+                ref linear_index,
+                ref random_salt,
+                ref view_model_index,
+                apps_session);
+        }
+
+        /// <summary>
         /// Creates a new sessions.
         /// </summary>
         /// <param name="apps_session"></param>
@@ -403,18 +428,18 @@ namespace HttpStructs
         /// <param name="session_salt"></param>
         /// <returns></returns>
         public UInt32 CreateNewSession(
-            IAppsSession apps_session,
             Byte scheduler_id,
             ref UInt32 linear_index,
             ref UInt64 random_salt,
-            ref UInt32 view_model_index)
+            ref UInt32 view_model_index,
+            IAppsSession apps_session)
         {
             return scheduler_sessions_[scheduler_id].CreateNewSession(
-                apps_session,
                 scheduler_id,
                 ref linear_index,
                 ref random_salt,
-                ref view_model_index);
+                ref view_model_index,
+                apps_session);
         }
 
         /// <summary>

@@ -23,7 +23,7 @@ IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 
 :: Creating image files.
-sccreatedb.exe -ip %DB_DIR% -lp %DB_DIR% %DB_NAME%
+sccreatedb.exe -dbs 32768 -ip %DB_DIR% -lp %DB_DIR% %DB_NAME%
 
 :: Starting IPC monitor first.
 START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
