@@ -24,6 +24,9 @@ namespace StarcounterApps3 {
         }
 
         void Handle(Input.FilterWarning action) {
+
+            //this.FilterWarning = action.Value;
+
             this.RefreshLogEntriesList();
         }
 
