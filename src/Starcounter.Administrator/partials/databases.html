@@ -1,0 +1,27 @@
+﻿<div ng-show="hasMessage()">
+    <div class="alert alert-error">
+        {{message}}
+    </div>
+</div>
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>ProcessId</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-repeat="database in databases">
+            <td>
+                <a href="#/databases/{{database.DatabaseId}}">{{database.DatabaseName}}</a>
+            </td>
+            <td>{{database.HostProcessId}}
+            </td>
+        </tr>
+    </tbody>
+
+
+</table>
