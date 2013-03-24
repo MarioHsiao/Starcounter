@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Hosting;
 using System.Reflection;
+using Starcounter.Binding;
 
 namespace Starcounter.Internal.Weaver.BackingInfrastructure {
     /// <summary>
@@ -18,11 +19,12 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
     /// use the corresponding <see cref="AssemblySpecification"/> type.
     /// </remarks>
     internal sealed class AssemblySpecificationEmit {
-        ModuleDeclaration module;
         TypeDefDeclaration assemblyTypeDefinition;
         TypeDefDeclaration databaseClassIndexTypeDefinition;
+        Dictionary<TypeDefDeclaration, TypeSpecificationEmit> typeToSpec;
         static TypeAttributes specificationTypeAttributes;
         static TypeAttributes databaseClassIndexTypeAttributes;
+
         static AssemblySpecificationEmit() {
             specificationTypeAttributes =
                 TypeAttributes.Class |
@@ -38,9 +40,51 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 TypeAttributes.BeforeFieldInit;
         }
 
+        public ModuleDeclaration Module;
+        public ITypeSignature TypeBindingType { get; private set; }
+        public ITypeSignature UInt16Type { get; private set; }
+        public ITypeSignature UInt64Type { get; private set; }
+        public ITypeSignature Int32Type { get; private set; }
+
         public AssemblySpecificationEmit(ModuleDeclaration module) {
-            this.module = module;
+            this.Module = module;
+            TypeBindingType = module.Cache.GetType(typeof(TypeBinding));
+            UInt16Type = module.Cache.GetIntrinsic(IntrinsicType.UInt16);
+            UInt64Type = module.Cache.GetIntrinsic(IntrinsicType.UInt64);
+            Int32Type = module.Cache.GetIntrinsic(IntrinsicType.Int32);
+            typeToSpec = new Dictionary<TypeDefDeclaration, TypeSpecificationEmit>();
             EmitSpecification();
+        }
+
+        internal TypeSpecificationEmit IncludeDatabaseClass(TypeDefDeclaration databaseClassTypeDef) {
+            TypeSpecificationEmit emitter;
+
+            if (typeToSpec.TryGetValue(databaseClassTypeDef, out emitter))
+                return emitter;
+
+            var parentType = databaseClassTypeDef.BaseType;
+            var parentTypeDef = parentType as TypeDefDeclaration;
+            if (parentTypeDef != null) {
+                IncludeDatabaseClass(parentTypeDef);
+            }
+
+            var name = AssemblySpecification.TypeNameToClassIndexName(databaseClassTypeDef.Name);
+            var typeReference = new FieldDefDeclaration {
+                Name = name,
+                Attributes = (FieldAttributes.Public | FieldAttributes.Static),
+                FieldType = Module.Cache.GetType(typeof(Type))
+            };
+
+            databaseClassIndexTypeDefinition.Fields.Add(typeReference);
+
+            emitter = new TypeSpecificationEmit(this, databaseClassTypeDef);
+            typeToSpec.Add(databaseClassTypeDef, emitter);
+
+            return emitter;
+        }
+
+        public TypeSpecificationEmit GetSpecification(TypeDefDeclaration type) {
+            return typeToSpec[type];
         }
 
         void EmitSpecification() {
@@ -48,24 +92,13 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 Name = AssemblySpecification.Name,
                 Attributes = specificationTypeAttributes
             };
-            module.Types.Add(assemblyTypeDefinition);
+            Module.Types.Add(assemblyTypeDefinition);
 
             databaseClassIndexTypeDefinition = new TypeDefDeclaration {
                 Name = AssemblySpecification.DatabaseClassIndexName,
                 Attributes = databaseClassIndexTypeAttributes
             };
             assemblyTypeDefinition.Types.Add(databaseClassIndexTypeDefinition);
-        }
-
-        internal void IncludeDatabaseClass(TypeDefDeclaration databaseClassTypeDef) {
-            var name = AssemblySpecification.TypeNameToClassIndexName(databaseClassTypeDef.Name);
-            var typeReference = new FieldDefDeclaration {
-                Name = name,
-                Attributes = (FieldAttributes.Public | FieldAttributes.Static),
-                FieldType = module.Cache.GetType(typeof(Type))
-            };
-
-            databaseClassIndexTypeDefinition.Fields.Add(typeReference);
         }
     }
 }

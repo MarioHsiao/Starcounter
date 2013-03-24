@@ -19,12 +19,9 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
     /// use the corresponding <see cref="TypeSpecification"/> type.
     /// </remarks>
     internal sealed class TypeSpecificationEmit {
-        ModuleDeclaration module;
-        ITypeSignature typeBindingType;
-        ITypeSignature ushortType;
-        ITypeSignature ulongType;
-        ITypeSignature intType;
-        Dictionary<TypeDefDeclaration, TypeDefDeclaration> typeToSpec;
+        AssemblySpecificationEmit assemblySpec;
+        TypeDefDeclaration typeDef;
+        TypeDefDeclaration emittedSpec;
 
         public FieldDefDeclaration TableHandle {
             get;
@@ -51,44 +48,48 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             private set;
         }
 
-        public TypeSpecificationEmit(ModuleDeclaration module) {
-            this.module = module;
-            typeBindingType = module.Cache.GetType(typeof(TypeBinding));
-            ushortType = module.Cache.GetIntrinsic(IntrinsicType.UInt16);
-            ulongType = module.Cache.GetIntrinsic(IntrinsicType.UInt64);
-            intType = module.Cache.GetIntrinsic(IntrinsicType.Int32);
-            typeToSpec = new Dictionary<TypeDefDeclaration, TypeDefDeclaration>();
+        public TypeSpecificationEmit BaseSpecification {
+            get {
+                var parentType = typeDef.BaseType;
+                var parentTypeDef = parentType as TypeDefDeclaration;
+                return assemblySpec.GetSpecification(parentTypeDef);
+            }
         }
 
-        public void EmitForType(TypeDefDeclaration typeDef) {
-            var typeSpec = new TypeDefDeclaration {
+        public TypeSpecificationEmit(AssemblySpecificationEmit assemblySpecEmit, TypeDefDeclaration typeDef) {
+            this.assemblySpec = assemblySpecEmit;
+            this.typeDef = typeDef;
+            EmitSpecification();
+        }
+
+        void EmitSpecification() {
+            emittedSpec = new TypeDefDeclaration {
                 Name = TypeSpecification.Name,
                 Attributes = TypeAttributes.Class | TypeAttributes.NestedAssembly | TypeAttributes.Sealed
             };
-            typeDef.Types.Add(typeSpec);
-            typeToSpec.Add(typeDef, typeSpec);
+            typeDef.Types.Add(emittedSpec);
 
             var tableHandle = new FieldDefDeclaration {
                 Name = TypeSpecification.TableHandleName,
                 Attributes = (FieldAttributes.FamORAssem | FieldAttributes.Static),
-                FieldType = ushortType
+                FieldType = assemblySpec.UInt16Type
             };
-            typeSpec.Fields.Add(tableHandle);
+            emittedSpec.Fields.Add(tableHandle);
             this.TableHandle = tableHandle;
 
             var typeBindingReference = new FieldDefDeclaration {
                 Name = TypeSpecification.TypeBindingName,
                 Attributes = (FieldAttributes.FamORAssem | FieldAttributes.Static),
-                FieldType = typeBindingType
+                FieldType = assemblySpec.TypeBindingType
             };
-            typeSpec.Fields.Add(typeBindingReference);
+            emittedSpec.Fields.Add(typeBindingReference);
             this.TypeBindingReference = typeBindingReference;
 
             if (ScTransformTask.InheritsObject(typeDef)) {
                 var thisHandle = new FieldDefDeclaration {
                     Name = TypeSpecification.ThisHandleName,
                     Attributes = FieldAttributes.Family,
-                    FieldType = ulongType
+                    FieldType = assemblySpec.UInt64Type
                 };
                 typeDef.Fields.Add(thisHandle);
                 this.ThisHandle = thisHandle;
@@ -96,7 +97,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 var thisId = new FieldDefDeclaration {
                     Name = TypeSpecification.ThisIdName,
                     Attributes = FieldAttributes.Family,
-                    FieldType = ulongType
+                    FieldType = assemblySpec.UInt64Type
                 };
                 typeDef.Fields.Add(thisId);
                 this.ThisIdentity = thisId;
@@ -104,19 +105,24 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 var thisBinding = new FieldDefDeclaration {
                     Name = TypeSpecification.ThisBindingName,
                     Attributes = FieldAttributes.Family,
-                    FieldType = typeBindingType
+                    FieldType = assemblySpec.TypeBindingType
                 };
                 typeDef.Fields.Add(thisBinding);
                 this.ThisBinding = thisBinding;
+
+            } else {
+                this.ThisHandle = typeDef.FindField(TypeSpecification.ThisHandleName).Field;
+                this.ThisBinding = typeDef.FindField(TypeSpecification.ThisBindingName).Field;
+                this.ThisIdentity = typeDef.FindField(TypeSpecification.ThisIdName).Field;
             }
         }
 
-        public FieldDefDeclaration IncludeField(TypeDefDeclaration typeDef, FieldDefDeclaration field) {
-            var specType = typeToSpec[typeDef];
+        public FieldDefDeclaration IncludeField(FieldDefDeclaration field) {
+            var specType = this.emittedSpec;
             var columnHandle = new FieldDefDeclaration {
                 Name = TypeSpecification.FieldNameToColumnHandleName(field.Name),
                 Attributes = FieldAttributes.Public | FieldAttributes.Static,
-                FieldType = intType
+                FieldType = assemblySpec.Int32Type
             };
             specType.Fields.Add(columnHandle);
             return columnHandle;

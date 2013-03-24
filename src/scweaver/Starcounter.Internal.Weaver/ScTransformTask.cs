@@ -306,7 +306,7 @@ namespace Starcounter.Internal.Weaver {
             }
 
             var assemblySpecification = new AssemblySpecificationEmit(_module);
-            var typeSpecification = new TypeSpecificationEmit(_module);
+            TypeSpecificationEmit typeSpecification = null;
 
             // Process database classes defined in the current assembly.
 
@@ -316,19 +316,17 @@ namespace Starcounter.Internal.Weaver {
 
                 // Transformations specific to entity classes.
                 databaseEntityClass = dbc as DatabaseEntityClass;
-                if (databaseEntityClass != null) {
-                    assemblySpecification.IncludeDatabaseClass(typeDef);
-                    typeSpecification.EmitForType(typeDef);
-                    if (InheritsObject(typeDef)) {
-                        ImplementIObjectProxy(typeDef);
-                    }
+                
+                typeSpecification = assemblySpecification.IncludeDatabaseClass(typeDef);
+                if (InheritsObject(typeDef)) {
+                    ImplementIObjectProxy(typeDef);
                 }
 
                 // Generate field accessors and add corresponding advices
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        var columnHandleField = typeSpecification.IncludeField(typeDef, field);
+                        var columnHandleField = typeSpecification.IncludeField(field);
                         GenerateFieldAccessors(dba, field, columnHandleField);
                     }
                 }
@@ -339,8 +337,10 @@ namespace Starcounter.Internal.Weaver {
 
             foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
                 typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
+                typeSpecification = assemblySpecification.GetSpecification(typeDef);
+                
                 EnhanceConstructors(typeDef, dbc, typeSpecification);
-
+                
                 // Generate field accessors for synonyms
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
@@ -1273,11 +1273,11 @@ namespace Starcounter.Internal.Weaver {
             }
 
             // Ensure that the base type has been processed.
+
             parentType = typeDef.BaseType;
             parentTypeDef = parentType as TypeDefDeclaration;
-
             if (parentTypeDef != null) {
-                this.EnhanceConstructors(parentTypeDef, databaseClass.BaseClass, typeSpecification);    // TODO: Base type specification!
+                this.EnhanceConstructors(parentTypeDef, databaseClass.BaseClass, typeSpecification.BaseSpecification);
             }
 
             ScTransformTrace.Instance.WriteLine("Enhancing constructors of {0}", databaseClass);
@@ -1486,6 +1486,22 @@ namespace Starcounter.Internal.Weaver {
                         NodePosition.After,
                         null);
                     _writer.AttachInstructionSequence(sequence);
+
+                    // This is a clear simplification that won't work in more complex
+                    // scenarios. This code assumes the current constructor has the following
+                    // signature:
+                    // .ctor(ushort tableId, TypeBinding, Uninitialized);
+                    //   All weave-time created ctors will have ctors with these three as
+                    // their LAST arguments, but we can't emit code using there ORDINAL.
+                    // Instead, we should turn into using ParameterVariable, etc, to let
+                    // PS decide for us the right orginal to emit.
+                    //   With that being said, the foundation is still to turn
+                    //   .ctor(ushort tableId, TypeBinding, Uninitialized)
+                    //   into
+                    //   (...) : base() {
+                    //     DbState.Insert(tableId, ref __sc__this__id, ref __sc__this__handle);
+                    //   }
+                    // But still quite a lot of job to be done. It's in the near backlog.
 
                     _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                     _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
