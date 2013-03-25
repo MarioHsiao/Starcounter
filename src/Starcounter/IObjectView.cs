@@ -6,6 +6,7 @@
 
 using Starcounter.Binding;
 using System;
+using Starcounter.Advanced;
 
 namespace Starcounter
 {
@@ -14,17 +15,12 @@ namespace Starcounter
     /// Interface to an object that acts as a view of a data object. Provides
     /// methods for accessing the data of the viewed object.
     /// </summary>
-    public interface IObjectView
+    public interface IObjectView : IBindable
     {
         /// <summary>
         /// View type binding.
         /// </summary>
         ITypeBinding TypeBinding { get; }
-
-        /// <summary>
-        /// Gets the unique identity of the underlying object.
-        /// </summary>
-        ulong Identity { get; }
 
         /// <summary>
         /// Determines if the current object is equal to or derived from the

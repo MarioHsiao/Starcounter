@@ -1235,7 +1235,11 @@ namespace Starcounter.Internal.Weaver {
             sequence = uninitializedConstructor.MethodBody.CreateInstructionSequence();
             rootInstrBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
-            if (!InheritsObject(typeDef)) {
+            if (InheritsObject(typeDef)) {
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
+            }
+            else {
                 baseUninitializedConstructor = parentType.Methods.GetMethod(".ctor",
                     _uninitializedConstructorSignature,
                     BindingOptions.Default

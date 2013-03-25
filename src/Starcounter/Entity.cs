@@ -268,7 +268,7 @@ namespace Starcounter
         }
 #endif
 
-        ulong IBindable.UniqueID {
+        ulong IBindable.Identity {
             get { return DbHelper.GetObjectID(this); }
         }
     }

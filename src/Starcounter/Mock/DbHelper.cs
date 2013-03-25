@@ -79,10 +79,8 @@ namespace Starcounter
         /// underlying object may for example be have been deleted in which
         /// case the method returns the identifier the object had.
         /// </remarks>
-        public static UInt64 GetObjectID(Entity obj) {
-            // TODO/Entity:
-            // Make this extension an method.
-
+        public static UInt64 GetObjectID(object obj) {
+            
             if (obj == null) {
                 throw new ArgumentNullException("obj");
             }
@@ -92,7 +90,7 @@ namespace Starcounter
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
             }
 
-            return obj.Identity;
+            return view.Identity;
         }
     }
 }
