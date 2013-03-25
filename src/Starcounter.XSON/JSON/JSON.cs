@@ -85,10 +85,10 @@ namespace Starcounter {
     ///// <summary>
     ///// <see cref="Json"/>
     ///// </summary>
-    public class Json<T> : Json where T: IBindable {
+    public class Json<T> : Json {
         public new T Data {
             get { return (T)base.Data; }
-            set { base.Data = value; }
+            set { base.Data = (IBindable)value; }
         }
     }
 }

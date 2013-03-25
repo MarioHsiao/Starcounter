@@ -38,6 +38,9 @@ namespace Starcounter.Internal {
             NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
             Node.ThisStarcounterNode = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
 
+            // Dependencyinjection for db and transaction calls.
+            StarcounterBase._DB = new DbImpl();
+
             // Setting the response handler.
             Node.SetHandleResponse(appServer.HandleResponse);
 

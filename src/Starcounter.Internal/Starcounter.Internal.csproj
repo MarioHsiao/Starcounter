@@ -93,6 +93,7 @@
     <Compile Include="IHttpRestServer.cs" />
     <Compile Include="IREST.cs" />
     <Compile Include="ISqlResult.cs" />
+    <Compile Include="ITransaction.cs" />
     <Compile Include="KeyValueBinary.cs" />
     <Compile Include="Media.cs" />
     <Compile Include="NewConfig.cs" />
