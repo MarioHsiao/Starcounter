@@ -10,7 +10,7 @@ namespace Starcounter.Hosting {
     /// <summary>
     /// A class with a well-known static method that every database
     /// class expects to invoke once it's loaded in a host.
-    /// <see cref="HostManager."/>
+    /// <see cref="HostManager.InitTypeSpecification"/>
     /// </summary>
     public sealed class HostManager : IBackingHost {
         LogSource log;
