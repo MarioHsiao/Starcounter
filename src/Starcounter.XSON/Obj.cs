@@ -134,9 +134,8 @@ namespace Starcounter {
         /// <param name="data">The bound data object (usually an Entity)</param>
         protected virtual void InternalSetData(IBindable data) {
             this.data = data;
-
             if (Template.Bound) {
-//                Template.SetBoundValue((Obj)this.Parent, data);
+                ((Obj)this.Parent).SetBound(Template, data);
             }
 
             RefreshAllBoundValues();
@@ -182,15 +181,12 @@ namespace Starcounter {
         public void Refresh(Template property) {
             if (property is TObjArr) {
                 TObjArr apa = (TObjArr)property;
-//                this[apa] = apa.GetBoundValue(this);
+                this.Set(apa, this.GetBound(apa));
             }
             else if (property is TObj) {
                 var at = (TObj)property;
-
-                // TODO:
-                IBindable v = null; //at.GetBoundValue(this);
-                if (v != null)
-                    this.Set(at, v);
+                IBindable v = this.GetBound(at);
+                this.Set(at, v);
             }
             else {
                 TValue p = property as TValue;
@@ -209,6 +205,25 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="property">The property that has changed in this Obj</param>
         protected virtual void HasChanged(TValue property) {
+            ChangeLog.UpdateValue(this, property);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="elementIndex"></param>
+        public override void HasAddedElement(TObjArr property, int elementIndex) {
+            ChangeLog.AddItemInList(this, property, elementIndex);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="elementIndex"></param>
+        public override void HasRemovedElement(TObjArr property, int elementIndex) {
+            ChangeLog.RemoveItemInList(this, property, elementIndex);
         }
 
         /// <summary>
@@ -238,6 +253,12 @@ namespace Starcounter {
                 return _Metadata;
             }
         }
+
+        /// <summary>
+        /// If set true and a ChangeLog is set on the current thread, all 
+        /// changes done to this Obj will be logged.
+        /// </summary>
+        public bool LogChanges { get; set; }
 
         public abstract void ProcessInput<V>(TValue<V> template, V value);
     }

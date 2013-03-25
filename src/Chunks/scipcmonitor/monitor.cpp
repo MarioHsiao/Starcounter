@@ -136,13 +136,15 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	using namespace starcounter::core;
 
+	std::wcout << L"Starcounter Interprocess Communication (IPC) monitor" << std::endl;
+	
 	// Start the monitor application.
 	boost::scoped_ptr<monitor> app(new monitor(argc, argv));
 	app->run();
 	
 	// Now the monitor is running. Send ack to the server that the monitor is
 	// monitoring.
-	std::wcout << L"monitoring" << std::endl;
+	std::wcout << L"Monitoring Starcounter processes." << std::endl;
 	std::wcout.flush();
 	
 	/// TODO: A mechanism for shutdown is not completed. I'm not so sure that
@@ -169,19 +171,26 @@ try {
 		if (command == "quit" || command == "q") {
 			break;
 		}
-	}
+	}   
 	
 	std::cout << boost::this_thread::get_id() << " main():\n"
 	<< "Exit." << std::endl; /// debug
 	#endif
 }
 catch (const starcounter::core::ipc_monitor_exception& e) {
+	std::wcout << L"Andreas. You need to provide better feedback when started using command line." << std::endl;
 	return e.error_code();
 }
 catch (const starcounter::log_exception& e) {
+	std::wcout << L"Error: starcounter::log_exception caught: "
+	<< "Failed to open a Starcounter log for IPC monitor logging.\n"
+	<< L"SCERR" << e.error_code() << "\n"
+	<< L"This error has therefore not been logged." << std::endl;
 	return e.error_code();
 }
 catch (...) {
+	std::wcout << L"Unknown exception" << std::endl;
+	std::wcout << L"Error code is SCERR" << SCERRIPCMONITORUNKNOWNEXCEPTION << std::endl;
 	return SCERRIPCMONITORUNKNOWNEXCEPTION;
 }
 

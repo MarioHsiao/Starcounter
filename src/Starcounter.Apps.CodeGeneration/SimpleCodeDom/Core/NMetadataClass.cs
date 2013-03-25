@@ -40,8 +40,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 string type;
 
                 // TODO: 
-                // If we have a Message or Puppet class either we need to use the ObjMetadata 
-                // class or have a separate MessageMetadata and PuppetMetadata class.
+                // If we have a typed Json or Puppet class either we need to use the ObjMetadata 
+                // class or have a separate JsonMetadata and PuppetMetadata class.
                 if (NTemplateClass.Template is TObj) {
                     type = "Obj";
                 } else {

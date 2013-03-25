@@ -1,37 +1,21 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);GeneratePuppetCode;GenerateMessageCode</CoreCompileDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateTypedJsonCode</CoreCompileDependsOn>
   </PropertyGroup>
   <ItemGroup>
-    <AvailableItemName Include="Puppet"/>
-    <AvailableItemName Include="Message"/>
+    <AvailableItemName Include="TypedJSON"/>
   </ItemGroup>
-     
-  <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToPuppetCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
-
-
-  <Target Name="GeneratePuppetCode" Inputs="@(Puppet)" Outputs="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToPuppetCsMsBuildTaskNoLocking
-       InputFiles="@(Puppet)"
-       OutputFiles="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="puppetFiles" /> 
-    </JsonToPuppetCsMsBuildTaskNoLocking>
+  
+  <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
+  
+  <Target Name="GenerateTypedJsonCode" Inputs="@(TypedJSON)" Outputs="@(TypedJSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToTypedJsonCsMsBuildTaskNoLocking
+       InputFiles="@(TypedJSON)"
+       OutputFiles="@(TypedJSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="TypedJSONFiles" /> 
+    </JsonToTypedJsonCsMsBuildTaskNoLocking>
 	<ItemGroup>
-      <Compile Include="@(puppetFiles)" />
-    </ItemGroup>
-  </Target>
-
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToMessageCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
-
-  <Target Name="GenerateMessageCode" Inputs="@(Message)" Outputs="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToMessageCsMsBuildTaskNoLocking
-       InputFiles="@(Message)"
-       OutputFiles="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="messageFiles" /> 
-    </JsonToMessageCsMsBuildTaskNoLocking>
-	<ItemGroup>
-      <Compile Include="@(messageFiles)" />
+      <Compile Include="@(TypedJSONFiles)" />
     </ItemGroup>
   </Target>
   

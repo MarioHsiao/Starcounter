@@ -10,6 +10,7 @@ using Starcounter.Client;
 using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using System;
 
 namespace Starcounter.Client.Tests.Application {
 
@@ -182,7 +183,7 @@ namespace Starcounter.Client.Tests.Application {
         public static void TestSlowSerializeSimpleDynamicApp() {
             TObj personSchema = CreateSimplePersonTemplate();
 
-            dynamic p1 = new Message() { Template = personSchema };
+            dynamic p1 = new Json() { Template = personSchema };
             p1.FirstName = "Allan";
             p1.LastName = "Ballan";
             p1.Age = 19;
@@ -200,7 +201,7 @@ namespace Starcounter.Client.Tests.Application {
         public static void TestSlowSerializeComplexDynamicApp() {
             TObj personSchema = CreateComplexPersonTemplate();
 
-            dynamic p1 = new Message() { Template = personSchema };
+            dynamic p1 = new Json() { Template = personSchema };
             p1.FirstName = "Allan";
             p1.LastName = "Ballan";
             p1.Age = 19;
@@ -230,7 +231,7 @@ namespace Starcounter.Client.Tests.Application {
             TObj personSchema = CreateSimplePersonTemplate();
             string json = "{\"FirstName$\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"PhoneNumbers\":[{\"Number\":\"123-555-7890\"}]}";
 
-            dynamic p1 = new Message() { Template = personSchema };
+            dynamic p1 = new Json() { Template = personSchema };
             p1.PopulateFromJson(json);
 
             Assert.AreEqual("Allan", p1.FirstName);
@@ -245,7 +246,7 @@ namespace Starcounter.Client.Tests.Application {
             TObj personSchema = CreateComplexPersonTemplate();
             string json = "{\"FirstName$\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"Stats\":39.4567,\"Fields\":[{\"Type\":\"Phone\",\"Info\":{\"Text\":\"123-555-7890\"}},{\"Type\":\"Email\",\"Info\":{\"Text\":\"allanballan@gmail.com\"}}],\"ExtraInfo\":{\"Text\":\"Hi ha ho he\"}}";
 
-            dynamic p1 = new Message() { Template = personSchema };
+            dynamic p1 = new Json() { Template = personSchema };
             p1.PopulateFromJson(json);
 
             Assert.AreEqual("Allan", p1.FirstName);
@@ -270,16 +271,19 @@ namespace Starcounter.Client.Tests.Application {
 
         [Test]
         public static void TestDataBinding() {
-            dynamic msg = new Message<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
+            dynamic msg = new Json<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
 
             var myDataObj = new PersonObject() { FirstName = "Kalle", Surname = "Kula", Age = 21, Misc = "Lorem Ipsum" };
             myDataObj.Number = new PhoneNumberObject() { Number = "123-555-7890" };
             msg.Data = myDataObj;
 
+            msg.Updated = "2013-04-25 13:15:12";
+
             // Reading bound values.
             Assert.AreEqual("Kalle", msg.FirstName);
             Assert.AreEqual("Kula", msg.LastName);
             Assert.AreEqual(0, msg._Age); // Since Age shouldn't be bound we should get a zero back and not 21.
+            Assert.IsNotNullOrEmpty(msg.Created);
             Assert.IsNullOrEmpty(msg.Misc); // Same as above. Not bound so no value should be retrieved.
             Assert.AreEqual("123-555-7890", msg._PhoneNumber.Number); // Should be bound even if the name start with '_' since we specify a binding when registering the template.
 
@@ -298,15 +302,18 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual("Lorem Ipsum", myDataObj.Misc); // Not bound so updating the message should not alter the dataobject.
         }
 
-        private static TMessage CreateSimplePersonTemplateWithDataBinding() {
-            var personSchema = new TMessage() { BindChildren = true };
+        private static TJson CreateSimplePersonTemplateWithDataBinding() {
+            var personSchema = new TJson() { BindChildren = true };
             personSchema.Add<TString>("FirstName$"); // Bound to FirstName
             personSchema.Add<TString>("LastName", "Surname"); // Bound to Surname
             personSchema.Add<TLong>("_Age"); // Will not be bound
+            personSchema.Add<TString>("Created");
+            personSchema.Add<TString>("Updated");
+            
             var misc = personSchema.Add<TString>("Misc");
             misc.Bind = null; // Removing the binding for this specific template.
            
-            var phoneNumber = personSchema.Add<TMessage>("_PhoneNumber", "Number"); // Bound to Number even though name start with '_'
+            var phoneNumber = personSchema.Add<TJson>("_PhoneNumber", "Number"); // Bound to Number even though name start with '_'
             phoneNumber.BindChildren = true;
             phoneNumber.Add<TString>("Number"); // Bound to Number
             
@@ -314,40 +321,40 @@ namespace Starcounter.Client.Tests.Application {
         }
 
         private static TObj CreateSimplePersonTemplate() {
-            var personSchema = new TMessage();
+            var personSchema = new TJson();
             personSchema.Add<TString>("FirstName$");
             personSchema.Add<TString>("LastName");
             personSchema.Add<TLong>("Age");
-
-            var phoneNumber = new TMessage();
+            
+            var phoneNumber = new TJson();
             phoneNumber.Add<TString>("Number");
-            personSchema.Add<TArr<Message, TMessage>>("PhoneNumbers", phoneNumber);
+            personSchema.Add<TArr<Json,TJson>>("PhoneNumbers", phoneNumber);
 
             return personSchema;
         }
 
         private static TObj CreateComplexPersonTemplate() {
-            var personSchema = new TMessage();
+            var personSchema = new TJson();
             personSchema.Add<TString>("FirstName$");
             personSchema.Add<TString>("LastName");
             personSchema.Add<TLong>("Age");
             personSchema.Add<TDecimal>("Stats");
 
-            var field = new TMessage();
+            var field = new TJson();
             field.Add<TString>("Type");
-            var info = field.Add<TMessage>("Info");
+            var info = field.Add<TJson>("Info");
             info.Add<TString>("Text");
             field.InstanceType = typeof(MyFieldMessage);
-            personSchema.Add<TArr<MyFieldMessage, TMessage>>("Fields", field);
+            personSchema.Add<TArr<MyFieldMessage, TJson>>("Fields", field);
 
-            var extraInfo = personSchema.Add<TMessage>("ExtraInfo");
+            var extraInfo = personSchema.Add<TJson>("ExtraInfo");
             extraInfo.Add<TString>("Text");
 
             return personSchema;
         }
     }
 
-    internal class MyFieldMessage : Message {
+    internal class MyFieldMessage : Json {
     }
 
     internal class PersonObject : BasePerson {
@@ -366,11 +373,17 @@ namespace Starcounter.Client.Tests.Application {
     }
 
     internal class BasePerson : IBindable {
+        public BasePerson() {
+            Created = DateTime.Now;
+        }
+
         public ulong UniqueID {
             get { return 0; }
         }
 
         public string FirstName { get; set; }
         public string Surname { get; set; }
+        public DateTime Created { get; private set; }
+        public DateTime Updated { get; set; }
     }
 }

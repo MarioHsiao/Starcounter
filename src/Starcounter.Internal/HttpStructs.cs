@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter;
+using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -98,6 +99,49 @@ namespace HttpStructs
     /// </summary>
     public struct ScSessionStruct
     {
+        // Scheduler id.
+        public Byte scheduler_id_;
+
+        // Session linear index.
+        public UInt32 linear_index_;
+
+        // Unique random salt.
+        public UInt64 random_salt_;
+
+        // View model number.
+        public UInt32 view_model_index_;
+
+        public void Init(
+            Byte scheduler_id,
+            UInt32 linear_index,
+            UInt64 random_salt,
+            UInt32 view_model_index)
+        {
+            scheduler_id_ = scheduler_id;
+            linear_index_ = linear_index;
+            random_salt_ = random_salt;
+            view_model_index_ = view_model_index;
+        }
+
+        // Checks if this session is active.
+        public Boolean IsActive()
+        {
+            return linear_index_ != HttpRequest.INVALID_APPS_SESSION_INDEX;
+        }
+
+        // Destroys existing session.
+        public void Destroy()
+        {
+            linear_index_ = HttpRequest.INVALID_APPS_SESSION_INDEX;
+            random_salt_ = HttpRequest.INVALID_APPS_SESSION_SALT;
+        }
+    }
+
+    /// <summary>
+    /// Struct ScSessionStruct
+    /// </summary>
+    public struct ScSessionStructOld
+    {
         // Session random salt.
         /// <summary>
         /// The session random salt.
@@ -115,12 +159,12 @@ namespace HttpStructs
         /// <summary>
         /// The scheduler_id_
         /// </summary>
-        public UInt32 scheduler_id_;
+        public Byte scheduler_id_;
 
         /// <summary>
         /// Unique number coming from Apps.
         /// </summary>
-        public UInt64 apps_unique_session_index_;
+        public UInt32 apps_unique_session_index_;
 
         /// <summary>
         /// Apps session salt.
@@ -301,7 +345,6 @@ namespace HttpStructs
         {
             return SessionCookiePrefix + ConvertToStringFaster();
         }
-        */
 
         /// <summary>
         /// SessionIdStub
@@ -316,12 +359,12 @@ namespace HttpStructs
         /// <summary>
         /// SessionIdHeaderStubString_.
         /// </summary>
-        public const String SessionIdHeaderPlusEndLineStubString = SessionIdName + ": " + SessionIdStub + "\r\n";
+        public const String SessionIdHeaderPlusEndLineStubString = SessionIdName + ": " + SessionIdStub + StarcounterConstants.NetworkConstants.CRLF;
 
         /// <summary>
         /// SessionIdCookieStubString_
         /// </summary>
-        public const String SessionIdCookiePlusEndlineStubString = "Set-Cookie: " + SessionIdName + "=" + SessionIdStub + "\r\n";
+        public const String SessionIdCookiePlusEndlineStubString = "Set-Cookie: " + SessionIdName + "=" + SessionIdStub + StarcounterConstants.NetworkConstants.CRLF;
 
         /// <summary>
         /// SessionIdHeaderPlusEndlineStubBytes_.
@@ -332,5 +375,6 @@ namespace HttpStructs
         /// SessionIdHeaderPlusEndlineStubBytes_.
         /// </summary>
         public static readonly Byte[] SessionIdCookiePlusEndlineStubBytes = System.Text.Encoding.UTF8.GetBytes(SessionIdCookiePlusEndlineStubString);
+        */
     }
 }

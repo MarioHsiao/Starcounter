@@ -25,7 +25,7 @@ namespace NetworkIoTestApp
         {
             String localString = "This is local string!";
 
-            GET(85, "/local", () =>
+            GET(80, "/local", () =>
             {
                 return localString;
             });
@@ -115,6 +115,56 @@ namespace NetworkIoTestApp
                 return "str_concat_with_static=" + str1 + "static" + str2;
             });
         }
+
+        /// <summary>
+        /// Initializes some Apps handlers.
+        /// </summary>
+        public static void InitAppHandlersSession()
+        {
+            GET("/new-session", (HttpRequest r) =>
+            {
+                if (!r.HasSession)
+                {
+                    Session session = Session.Current;
+                    if (session == null)
+                    {
+                        session = Session.CreateNewEmptySession();
+                    }
+
+                    UInt32 err = r.GenerateNewSession(session);
+                    if (err != 0)
+                        throw ErrorCode.ToException(err);
+
+                    return "New session created: " + session.InternalSession.ToAsciiString();
+                }
+                else
+                {
+                    return "Session already exists!";
+                }
+                
+            });
+
+            GET("/del-session/{?}", (Session s, HttpRequest r) =>
+            {
+                if (r.HasSession)
+                {
+                    r.DestroySession();
+                    return "Session deleted!";
+                }
+                else
+                {
+                    return "Session does not exist!";
+                }
+            });
+
+            GET("/view-session/{?}", (Session s) =>
+            {
+                if (s != null)
+                    return "Session string: " + s.SessionIdString;
+
+                return "No session to view!";
+            });
+        }
     }
 
     public class NetworkIoTestApp
@@ -139,6 +189,7 @@ namespace NetworkIoTestApp
             MODE_STANDARD_BROWSER,
             MODE_US_WEBSITE,
             MODE_APPS_URIS,
+            MODE_APPS_URIS_SESSION,
             MODE_HTTP_REST_CLIENT
         }
 
@@ -259,8 +310,8 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_GATEWAY_SMC_HTTP:
                 {
-                    handler_uri = "/smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpEcho, out handler_id);
+                    handler_uri = "POST /smc-http-echo";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -268,8 +319,8 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
                 {
-                    handler_uri = "/smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpEcho, out handler_id);
+                    handler_uri = "POST /smc-http-echo";
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
                     
                     break;
@@ -310,8 +361,17 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_APPS_URIS:
                 {
-                    AppsBootstrapper.Bootstrap();
+                    AppsBootstrapper.Bootstrap(
+                        StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "c:\\pics");
+
                     AppsClass.InitAppHandlers();
+
+                    break;
+                }
+
+                case TestTypes.MODE_APPS_URIS_SESSION:
+                {
+                    AppsClass.InitAppHandlersSession();
 
                     break;
                 }
@@ -765,9 +825,6 @@ namespace NetworkIoTestApp
 
                 // Displaying new session unique number.
                 Console.WriteLine("Generated new session with index: " + p.UniqueSessionIndex);
-
-                // Adding the session cookie stub.
-                responseHeader += ScSessionStruct.SessionIdCookiePlusEndlineStubString;
             }
 
             // Converting string to byte array.
@@ -824,9 +881,9 @@ namespace NetworkIoTestApp
 
         private static Boolean OnRestClient(HttpRequest httpRequest)
         {
-            someNode.GET("/testrest", httpRequest, (HttpResponse resp) => {
+            someNode.GET("/testrest", null, httpRequest, (HttpResponse resp) => {
                 if (resp["Content-Type"] == "text/html; charset=UTF-8") {
-                    dynamic jsonData = Json.Parse(resp.GetContentStringUtf8_Slow());
+                    dynamic jsonData = DynamicJson.Parse(resp.GetContentStringUtf8_Slow());
                     string htmlFileName = jsonData.FirstName;
                     return htmlFileName;
                 } else {

@@ -53,6 +53,7 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(nrs == 1);
             HelpMethods.LogEvent("Finished test queries with like");
+            Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
         }
 
         public static void TestOffsetkeyWithSorting() {

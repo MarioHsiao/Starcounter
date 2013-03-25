@@ -174,15 +174,20 @@ namespace Starcounter.SqlParser.Tests
             analyzer.ParseQuery("asdfqad",true);
             analyzer.ParseQuery("1342", true);
             analyzer.ParseQuery("()", true);
-            analyzer.ParseQuery("");
-            analyzer.ParseQuery(" ");
-            analyzer.ParseQuery("\n");
+            analyzer.ParseQuery("", true);
+            analyzer.ParseQuery(" ", true);
+            analyzer.ParseQuery("\n", true);
             analyzer.ParseQuery("select a from account a where accountid > ? fetch ?");
             analyzer.ParseQuery("select a from account a where accountid > ? fetch ? offset ?");
             analyzer.ParseQuery("select a from account a where accountid > ? fetch ? offsetkey ?");
             analyzer.ParseQuery("select a from account a join user u where a.client = u and u.prop = ?");
             analyzer.ParseQuery("select asdfas from tbl1 join tbl2 join tbl3 on tbl2.f = tbl3.f join (tbl4 join tbl5 on tbl4.s = tbl5.s) on tbl2.k = tbl4.k where tbl1.m = tbl4.m");
             analyzer.ParseQuery("select asdfas from tbl1 join (tbl2 join tbl3) on tbl2.f = tbl3.f join (tbl4 join tbl5 on tbl4.s = tbl5.s) on tbl2.k = tbl4.k where tbl1.m = tbl4.m");
+            analyzer.ParseQuery("select u1 from user u1 join user u2 on u1 != u2 and u1.useridnr = u2.useridn2 + ?", true);
+            analyzer.ParseQuery("select ?a where a=2");
+            analyzer.ParseQuery("select $1a");
+            analyzer.ParseQuery("select?a");
+            analyzer.ParseQuery("select$1a", true);
         }
 
         [Test]

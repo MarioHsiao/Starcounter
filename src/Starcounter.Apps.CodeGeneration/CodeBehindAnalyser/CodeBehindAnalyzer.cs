@@ -29,21 +29,27 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             List<InputBindingInfo> inputList;
             string ns;
             string genericArg;
+            string jsonInstanceName;
             SyntaxNode root;
             SyntaxTree tree;
 
             if (!File.Exists(codeBehindFilename))
                 return CodeBehindMetadata.Empty;
 
+            // TODO:
+            // We need to specify this somewhere else then here. Whenever the json-name changes
+            // this class stops working. 
+            jsonInstanceName = "Json";
+            
             tree = SyntaxTree.ParseFile(codeBehindFilename);
             root = tree.GetRoot();
 
             classDecl = FindClassDeclarationFor(className, root);
-            autoBindToDataObject = IsBoundToEntity(classDecl, out genericArg);
+            autoBindToDataObject = IsBoundToEntity(classDecl, jsonInstanceName, out genericArg);
             ns = GetNamespaceForClass(className, root);
 
             mapList = new List<JsonMapInfo>();
-            FillListWithJsonMapInfo(className, root, mapList);
+            FillListWithJsonMapInfo(className, root, jsonInstanceName, mapList);
 
             inputList = new List<InputBindingInfo>();
             FillListWithHandleInputInfo(root, inputList);
@@ -57,7 +63,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="classDecl"></param>
         /// <param name="genericArgument"></param>
         /// <returns></returns>
-        private static bool IsBoundToEntity(ClassDeclarationSyntax classDecl, out string genericArgument) {
+        private static bool IsBoundToEntity(ClassDeclarationSyntax classDecl, string jsonInstanceName, out string genericArgument) {
             GenericNameSyntax gns;
             IdentifierNameSyntax ins;
             SeparatedSyntaxList<TypeSyntax> baseTypes = classDecl.BaseList.Types;
@@ -65,7 +71,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             foreach (var ts in baseTypes){
                 if (ts.Kind == SyntaxKind.GenericName){
                     gns = (GenericNameSyntax)ts;
-                    if ("App".Equals(gns.Identifier.ValueText)) {
+                    if (jsonInstanceName.Equals(gns.Identifier.ValueText)) {
                         if (gns.TypeArgumentList.Arguments.Count == 1) {
                             ins = (IdentifierNameSyntax)gns.TypeArgumentList.Arguments[0];
                             genericArgument = ins.Identifier.ValueText;
@@ -204,19 +210,19 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="className">Name of the class.</param>
         /// <param name="node">The node.</param>
         /// <param name="list">The list.</param>
-        private static void FillListWithJsonMapInfo(String className, SyntaxNode node, List<JsonMapInfo> list) {
+        private static void FillListWithJsonMapInfo(String className, SyntaxNode node, string jsonInstanceName, List<JsonMapInfo> list) {
             AttributeSyntax attribute;
 
             if (node.Kind == SyntaxKind.Attribute) {
                 attribute = (AttributeSyntax)node;
                 if (IsJsonMapAttribute(attribute)) {
-                    list.Add(GetJsonMapInfoFrom(attribute));
+                    list.Add(GetJsonMapInfoFrom(attribute, jsonInstanceName));
                     return;
                 }
             }
 
             foreach (SyntaxNode child in node.ChildNodes()) {
-                FillListWithJsonMapInfo(className, child, list);
+                FillListWithJsonMapInfo(className, child, jsonInstanceName, list);
             }
         }
 
@@ -226,7 +232,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="attributeNode">The attribute node.</param>
         /// <returns>JsonMapInfo.</returns>
-        private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode) {
+        private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode, string jsonInstanceName) {
             bool autoBindToDataObject;
             ClassDeclarationSyntax classDecl;
             ClassDeclarationSyntax parentClassDecl;
@@ -235,7 +241,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
             // Find the class the attribute was declared on.
             classDecl = FindClass(attributeNode.Parent);
-            autoBindToDataObject = IsBoundToEntity(classDecl, out genericArg);
+            autoBindToDataObject = IsBoundToEntity(classDecl, jsonInstanceName, out genericArg);
             
             // If the class is an inner class we need to get the full name of all classes
             // to be able to connect the generated code in the same structure as the 
@@ -264,7 +270,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         private static Boolean IsJsonMapAttribute(AttributeSyntax attribute) {
             String attributeName = attribute.Name.ToString();
 
-            if (attributeName.StartsWith("Json."))
+            if (attributeName.StartsWith("json."))
                 return true;
             return false;
         }

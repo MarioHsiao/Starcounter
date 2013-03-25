@@ -82,8 +82,8 @@ namespace Test {
             String className = "TestMessage";
             CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
 
-            TMessage actual = (TMessage)TemplateFromJs.CreateFromJs(typeof(TMessage), File.ReadAllText(className + ".json"), false);
-            Assert.IsInstanceOf(typeof(TMessage), actual);
+            TJson actual = (TJson)TemplateFromJs.CreateFromJs(typeof(TJson), File.ReadAllText(className + ".json"), false);
+            Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
             actual.ClassName = className;
@@ -91,7 +91,7 @@ namespace Test {
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TMessage),"C#", actual, metadata);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson),"C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
         }
 

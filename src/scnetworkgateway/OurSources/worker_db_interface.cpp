@@ -100,7 +100,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                 // Releasing global lock.
                 gw->LeaveGlobalLock();
 
-                GW_ERR_CHECK(err_code);
+                if (err_code)
+                    return err_code;
 
                 continue;
             }
@@ -141,12 +142,14 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             ChangeNumUsedChunks(sd->get_num_chunks());
 
 #ifdef GW_CHUNKS_DIAG
-            GW_PRINT_WORKER << "Popping chunk: socket " << sd->sock() << ":" << sd->get_chunk_index() << GW_ENDL;
+            GW_PRINT_WORKER << "Popping chunk: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
             // Checking if this socket data is for send only.
             if (sd->get_socket_just_send_flag())
                 goto JUST_SEND_SOCKET_DATA;
+
+#ifndef GW_NEW_SESSIONS_APPROACH
 
             session_index_type gw_session_index = sd->get_session_index();
             session_salt_type gw_session_salt = sd->get_session_salt();
@@ -157,7 +160,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
             if (INVALID_SESSION_INDEX != gw_session_index)
             {
                 // Getting copy of a global session.
-                ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(gw_session_index);
+                ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionCopy(gw_session_index);
 
                 // Checking if Apps unique number is valid.
                 if (INVALID_APPS_UNIQUE_SESSION_NUMBER != sd->get_apps_unique_session_num())
@@ -239,6 +242,16 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_somethin
                     }
                 }
             }
+
+#else
+            // Checking if we have session related socket.
+            if (sd->HasActiveSession())
+            {
+                // Creating global session on this socket.
+                g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *sd->GetSessionStruct());
+            }
+
+#endif
 
 JUST_SEND_SOCKET_DATA:
 
@@ -336,7 +349,7 @@ void WorkerDbInterface::PushLinkedChunksToDb(
 void WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunkRef sd)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Returning chunk: " << sd->sock() << " " << sd->get_chunk_index() << GW_ENDL;
+    GW_PRINT_WORKER << "Returning chunk: " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -395,7 +408,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Pushing chunk: socket " << sd->sock() << ":" << sd->get_chunk_index() << " handler_id " << user_handler_id << GW_ENDL;
+    GW_PRINT_WORKER << "Pushing chunk: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << " handler_id " << user_handler_id << GW_ENDL;
 #endif
 
     // Checking if chunk belongs to this database.
@@ -407,6 +420,8 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 #endif
         return SCERRGWSOCKETDATAWRONGDATABASE;
     }
+
+#ifndef GW_NEW_SESSIONS_APPROACH
 
     // Setting the Apps session number right before sending to that Apps (if session exists at all).
     if (INVALID_SESSION_INDEX != sd->get_session_index())
@@ -421,13 +436,18 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         sd->set_apps_session_salt(current_db->GetAppsSessionSalt(session_index));
     }
 
+    // Obtaining the current scheduler id.
+    uint8_t sched_id = g_gateway.GetGlobalSessionSchedulerId(sd->get_session_index());
+
+#endif
+
+    // Obtaining the current scheduler id.
+    scheduler_id_type sched_id = sd->get_scheduler_id();
+
     // Modifying chunk data to use correct handler.
     shared_memory_chunk *smc = (shared_memory_chunk*) &(shared_int_.chunk(sd->get_chunk_index()));
     smc->set_bmx_handler_info(user_handler_id); // User code handler id.
     smc->set_request_size(4);
-
-    // Obtaining the current scheduler id.
-    uint32_t sched_id = g_gateway.GetGlobalSessionSchedulerId(sd->get_session_index());
 
     // Checking scheduler id validity.
     if (INVALID_SCHEDULER_ID == sched_id)
@@ -635,7 +655,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
     if (0 == response_size)
         return SCERRGWBMXCHUNKWRONGFORMAT;
 
-    uint32_t err_code;
+    uint32_t err_code = 0;
     uint32_t offset = 0;
 
     resp_chunk->reset_offset();
@@ -654,7 +674,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 resp_chunk->skip(8);
 
                 err_code = sc_bmx_parse_pong(smc, &ping_data);
-                GW_ERR_CHECK(err_code);
+                if (err_code)
+                    return err_code;
 
                 GW_PRINT_WORKER << "Pong with data: " << ping_data << GW_ENDL;
 
@@ -672,10 +693,9 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     GW_PRINT_WORKER << "All push channels confirmed!" << GW_ENDL;
 
                     // Requesting all registered handlers.
-                    err_code = RequestRegisteredHandlers();
-
-                    if (err_code)
-                        return err_code;
+                    //err_code = RequestRegisteredHandlers();
+                    //if (err_code)
+                    //    return err_code;
                 }
 
                 return 0;
@@ -711,9 +731,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     db_index_,
                     AppsPortProcessData);
 
-                if (err_code)
-                    return err_code;
-
                 break;
             }
             
@@ -742,9 +759,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     handler_info,
                     db_index_,
                     AppsSubportProcessData);
-
-                if (err_code)
-                    return err_code;
 
                 break;
             }
@@ -778,11 +792,12 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
 
 #ifdef GW_TESTING_MODE
-                if ((g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_HTTP) &&
-                    (g_gateway.setting_mode() != GatewayTestingMode::MODE_GATEWAY_SMC_APPS_HTTP))
-                {
-                    GW_ASSERT(false);
-                }
+
+                HttpTestInformation* http_test_info = g_gateway.GetHttpTestInformation();
+
+                // Comparing URI with current test URI.
+                if (!http_test_info || strcmp(original_uri_info, http_test_info->method_and_uri_info))
+                    break;
 #endif
 
                 GW_PRINT_WORKER << "New URI handler \"" << processed_uri_info << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
@@ -805,9 +820,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     handler_info,
                     db_index_,
                     AppsUriProcessData);
-
-                if (err_code)
-                    return err_code;
 
                 break;
             }
@@ -865,6 +877,20 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
             default:
             {
                 return SCERRGWWRONGBMXCHUNKTYPE;
+            }
+        }
+
+        // Checking for error code after registrations.
+        if (err_code)
+        {
+            switch (err_code)
+            {
+            case SCERRGWFAILEDTOBINDPORT:
+                // Ignore.
+                break;
+
+            default:
+                return err_code;
             }
         }
 

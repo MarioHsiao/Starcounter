@@ -4,7 +4,7 @@ using namespace starcounter::bmx;
 using namespace starcounter::core;
 
 // Global BMX data structures.
-static BmxData* starcounter::bmx::g_bmx_data;
+static BmxData* starcounter::bmx::g_bmx_data = NULL;
 CRITICAL_SECTION g_bmx_cs_;
 std::list<BmxData*> g_bmx_old_clones_;
 
@@ -16,7 +16,7 @@ BmxData* EnterSafeBmxManagement()
     //std::cout << "EnterSafeBmxManagement." << std::endl;
 
     // Checking if there are too many old clones.
-    if (g_bmx_old_clones_.size() > 4096)
+    if (g_bmx_old_clones_.size() > 128)
     {
         // Deleting very old BMX data copy.
         delete g_bmx_old_clones_.front();
@@ -45,7 +45,7 @@ void LeaveSafeBmxManagement(BmxData* new_bmx_data)
 DestroyAppsSessionCallback starcounter::bmx::g_destroy_apps_session_callback = NULL;
 
 // Initializes BMX related data structures.
-uint32_t sc_init_bmx_manager(DestroyAppsSessionCallback dasc)
+EXTERN_C uint32_t sc_init_bmx_manager(DestroyAppsSessionCallback dasc)
 {
     // Initializing BMX critical section.
     InitializeCriticalSection(&g_bmx_cs_);
@@ -72,11 +72,8 @@ uint32_t sc_init_bmx_manager(DestroyAppsSessionCallback dasc)
 // Waits for BMX component to be ready.
 void sc_wait_for_bmx_ready()
 {
-    uint8_t cpun;
-    cm3_get_cpuc(NULL, &cpun);
-
     // Looping until all push channels are initialized.
-    while(g_bmx_data->get_num_registered_push_channels() < cpun)
+    while (!g_bmx_data->get_push_ready())
     {
         //std::cout << ".";
         Sleep(1);
@@ -92,12 +89,14 @@ uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
 }
 
 // Registers port handler.
-uint32_t sc_bmx_register_port_handler(
+EXTERN_C uint32_t sc_bmx_register_port_handler(
     uint16_t port_num, 
     GENERIC_HANDLER_CALLBACK callback,
     BMX_HANDLER_TYPE* handler_id
     )
 {
+    assert(NULL != g_bmx_data);
+
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code = g_bmx_data->FindPortHandler(port_num, &handler_index);
     if (0 == err_code)
@@ -118,13 +117,15 @@ uint32_t sc_bmx_register_port_handler(
 };
 
 // Registers sub-port handler.
-uint32_t sc_bmx_register_subport_handler(
+EXTERN_C uint32_t sc_bmx_register_subport_handler(
     uint16_t port_num,
     BMX_SUBPORT_TYPE sub_port,
     GENERIC_HANDLER_CALLBACK callback,
     BMX_HANDLER_TYPE* handler_id
     )
 {
+    assert(NULL != g_bmx_data);
+
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code = g_bmx_data->FindSubportHandler(port_num, sub_port, &handler_index);
     if (0 == err_code)
@@ -145,7 +146,7 @@ uint32_t sc_bmx_register_subport_handler(
 }
 
 // Registers raw port handler.
-uint32_t sc_bmx_register_uri_handler(
+EXTERN_C uint32_t sc_bmx_register_uri_handler(
     uint16_t port_num,
     char* original_uri_info,
     char* processed_uri_info,
@@ -156,6 +157,8 @@ uint32_t sc_bmx_register_uri_handler(
     BMX_HANDLER_TYPE* handler_id
     )
 {
+    assert(NULL != g_bmx_data);
+
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code = g_bmx_data->FindUriHandler(port_num, processed_uri_info, &handler_index);
     if (0 == err_code)

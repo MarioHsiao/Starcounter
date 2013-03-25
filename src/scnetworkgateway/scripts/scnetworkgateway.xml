@@ -33,7 +33,7 @@
   <InactiveSessionTimeout>1200</InactiveSessionTimeout>
 
   <!-- Gateway global statistics port -->
-  <GatewayStatisticsPort>12345</GatewayStatisticsPort>
+  <GatewayStatisticsPort>8181</GatewayStatisticsPort>
 
   <!-- Information on reverse proxies if any. -->
   <!--

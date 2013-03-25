@@ -61,12 +61,12 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ProjectTemplates\CSharp\Starcounter\1033</VSIXSubPath>
     </Content>
-	<Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\CSMessage.zip">
+    <Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\CSTypedJson.zip">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ItemTemplates\CSharp\Starcounter\1033</VSIXSubPath>
     </Content>
-	<Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\CSPuppet.zip">
+	<Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\CSTypedJsonWithCode.zip">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ItemTemplates\CSharp\Starcounter\1033</VSIXSubPath>

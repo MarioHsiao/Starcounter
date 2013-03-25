@@ -8,7 +8,15 @@ using System.ComponentModel;
 using System.Text;
 
 namespace Starcounter {
-
+    /// <summary>
+    /// 
+    /// </summary>
+    public class NullData : IBindable {
+        /// <summary>
+        /// 
+        /// </summary>
+        public UInt64 UniqueID { get { return 0; } }
+    }
 
     /// <summary>
     /// See Puppet TODO! REF 
@@ -46,13 +54,14 @@ namespace Starcounter {
     /// your C# code will be called. If you make a property editable, changes by the user will change App object (and an event will be triggered
     /// in case you which to validate the change).
     /// </remarks>
-    public partial class Puppet<T> : Obj<T> where T : IBindable {
+    public partial class Puppet<T> : Obj where T : IBindable {
 
         /// <summary>
         /// 
         /// </summary>
-        public Puppet() : base() {
-                   ViewModelId = -1;
+        public Puppet()
+            : base() {
+            ViewModelId = -1;
         }
 
         /// <summary>
@@ -84,10 +93,17 @@ namespace Starcounter {
         public string View { get; set; }
 
 
+        private int vmId;
         /// <summary>
         /// Returns the id of this app or -1 if not used.
         /// </summary>
-        internal int ViewModelId { get; set; }
+        internal int ViewModelId {
+            get { return vmId; }
+            set {
+                vmId = value;
+                //                Location = "/__" + Db.Environment.DatabaseName.ToLower() + '/' + vmId;
+            }
+        }
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.String" /> to <see cref="Puppet" />.
@@ -103,7 +119,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property that changed</param>
         protected override void HasChanged(TValue property) {
-            ChangeLog.UpdateValue(this, property);
+            //JsonChangeLog.UpdateValue(this, property);
         }
 
         /// <summary>
@@ -116,14 +132,19 @@ namespace Starcounter {
 
             int t = 0;
 
-            if (ViewModelId != -1) {
-                if (addComma)
-                    sb.Append(',');
-                sb.Append("\"View-Model\":");
-                sb.Append(ViewModelId);
-                t++;
-                addComma = true;
-            }
+            //if (ViewModelId != -1) {
+            //    if (addComma)
+            //        sb.Append(',');
+
+            //    sb.Append("\"__Location\":\"");
+            //    sb.Append(Location);
+            //    sb.Append('"');
+
+            //    //sb.Append("\"View-Model\":");
+            //    //sb.Append(ViewModelId);
+            //    t++;
+            //    addComma = true;
+            //}
 
             if (Media.Content != null) {
                 if (addComma)
@@ -139,8 +160,7 @@ namespace Starcounter {
                 //                }
                 t++;
                 addComma = true;
-            }
-            else {
+            } else {
                 //                var view = View ?? templ.PropertyName;
 
                 if (View != null) {
@@ -187,7 +207,7 @@ namespace Starcounter {
         /// <param name="property">The array property of this Puppet</param>
         /// <param name="elementIndex">The added element index</param>
         public override void HasAddedElement(TObjArr property, int elementIndex) {
-            ChangeLog.AddItemInList(this, (TObjArr)property, elementIndex);
+            //JsonChangeLog.AddItemInList(this, (TObjArr)property, elementIndex);
         }
 
         /// <summary>
@@ -196,14 +216,11 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="elementIndex"></param>
         public override void HasRemovedElement(TObjArr property, int elementIndex) {
-            ChangeLog.RemoveItemInList(this, property, elementIndex );
+            //JsonChangeLog.RemoveItemInList(this, property, elementIndex );
         }
 
 
-        /// <summary>
-        /// Returns true if this puppet have been sent to the client.
-        /// </summary>
-        public Boolean IsSentExternally { get; internal set; }
+
 
         /// <summary>
         /// Commits this instance.
@@ -272,52 +289,52 @@ namespace Starcounter {
             get { return _transaction; }
         }
 
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>Action.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Action Get(TTrigger property) {
-#if QUICKTUPLE
-            return _Values[property.Index];
-#else
-            throw new NotImplementedException();
-#endif
-        }
+        //        /// <summary>
+        //        /// Gets the value.
+        //        /// </summary>
+        //        /// <param name="property">The property.</param>
+        //        /// <returns>Action.</returns>
+        //        [EditorBrowsable(EditorBrowsableState.Never)]
+        //        public Action Get(TTrigger property) {
+        //#if QUICKTUPLE
+        //            return _Values[property.Index];
+        //#else
+        //            throw new NotImplementedException();
+        //#endif
+        //        }
 
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Set(TTrigger property, Action value) {
-#if QUICKTUPLE
-            _Values[property.Index] = value;
-#else
-            throw new NotImplementedException();
-#endif
-        }
+        //        /// <summary>
+        //        /// Sets the value.
+        //        /// </summary>
+        //        /// <param name="property">The property.</param>
+        //        /// <param name="value">The value.</param>
+        //        [EditorBrowsable(EditorBrowsableState.Never)]
+        //        public void Set(TTrigger property, Action value) {
+        //#if QUICKTUPLE
+        //            _Values[property.Index] = value;
+        //#else
+        //            throw new NotImplementedException();
+        //#endif
+        //        }
 
-        /// <summary>
-        /// Gets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>Action.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Puppet Get(TPuppet property) {
-            return Get<Puppet>(property);
-        }
+        ///// <summary>
+        ///// Gets the value.
+        ///// </summary>
+        ///// <param name="property">The property.</param>
+        ///// <returns>Action.</returns>
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public Puppet Get(TPuppet property) {
+        //    return Get<Puppet>(property);
+        //}
 
-        /// <summary>
-        /// Sets the value.
-        /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Set(TPuppet property, Puppet value) {
-            Set((TObj)property, value);
-        }
+        ///// <summary>
+        ///// Sets the value.
+        ///// </summary>
+        ///// <param name="property">The property.</param>
+        ///// <param name="value">The value.</param>
+        //[EditorBrowsable(EditorBrowsableState.Never)]
+        //public void Set(TPuppet property, Puppet value) {
+        //    Set((TObj)property, value);
+        //}
     }
 }

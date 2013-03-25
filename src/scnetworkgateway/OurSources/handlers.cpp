@@ -82,11 +82,13 @@ uint32_t HandlersTable::RegisterPortHandler(
         NULL,
         0);
 
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        goto ERROR_HANDLING;
 
     // Adding handler to the list.
     err_code = registered_handlers_[empty_slot].AddHandler(port_handler);
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        goto ERROR_HANDLING;
 
     // New handler added.
     if (empty_slot == max_num_entries_)
@@ -104,7 +106,8 @@ PROCESS_SERVER_PORT:
 
         // Creating socket and binding to port for all workers.
         err_code = g_gateway.CreateListeningSocketAndBindToPort(gw, port_num, listening_sock);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            goto ERROR_HANDLING;
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock, RAW_BLOB_USER_DATA_OFFSET);
@@ -127,13 +130,19 @@ PROCESS_SERVER_PORT:
         // Creating new connections if needed for this database.
         err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
         if (err_code)
-            return err_code;
+            goto ERROR_HANDLING;
     }
 
     // Adding handler if it does not exist yet.
     server_port->get_port_handlers()->Add(db_index, OuterPortProcessData);
 
     return 0;
+
+    // Handling error.
+ERROR_HANDLING:
+
+    registered_handlers_[empty_slot].Unregister();
+    return err_code;
 }
 
 // Registers sub-port handler.
@@ -212,11 +221,13 @@ uint32_t HandlersTable::RegisterSubPortHandler(
         NULL,
         0);
 
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        goto ERROR_HANDLING;
 
     // Adding handler to the list.
     err_code = registered_handlers_[empty_slot].AddHandler(subport_handler);
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        goto ERROR_HANDLING;
 
     // New handler added.
     if (empty_slot == max_num_entries_)
@@ -234,7 +245,8 @@ PROCESS_SERVER_PORT:
 
         // Creating socket and binding to port for all workers.
         err_code = g_gateway.CreateListeningSocketAndBindToPort(gw, port_num, listening_sock);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            goto ERROR_HANDLING;
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock, SUBPORT_BLOB_USER_DATA_OFFSET);
@@ -257,13 +269,19 @@ PROCESS_SERVER_PORT:
         // Creating new connections if needed for this database.
         err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
         if (err_code)
-            return err_code;
+            goto ERROR_HANDLING;
     }
 
     // Adding handler if it does not exist yet.
     server_port->get_port_handlers()->Add(db_index, OuterSubportProcessData);
 
     return 0;
+
+    // Handling error.
+ERROR_HANDLING:
+
+    registered_handlers_[empty_slot].Unregister();
+    return err_code;
 }
 
 // Registers URI handler.
@@ -349,11 +367,13 @@ uint32_t HandlersTable::RegisterUriHandler(
         param_types,
         num_params);
 
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        goto ERROR_HANDLING;
 
     // Adding handler to the list.
     err_code = registered_handlers_[empty_slot].AddHandler(uri_handler);
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        goto ERROR_HANDLING;
 
     // New handler added.
     if (empty_slot == max_num_entries_)
@@ -371,7 +391,8 @@ PROCESS_SERVER_PORT:
 
         // Creating socket and binding to port for all workers.
         err_code = g_gateway.CreateListeningSocketAndBindToPort(gw, port_num, listening_sock);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            goto ERROR_HANDLING;
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock, HTTP_BLOB_USER_DATA_OFFSET);
@@ -394,13 +415,19 @@ PROCESS_SERVER_PORT:
         // Creating new connections if needed for this database.
         err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
         if (err_code)
-            return err_code;
+            goto ERROR_HANDLING;
     }
 
     // Adding handler if it does not exist yet.
     server_port->get_port_handlers()->Add(db_index, OuterUriProcessData);
 
     return 0;
+
+    // Handling error.
+ERROR_HANDLING:
+
+    registered_handlers_[empty_slot].Unregister();
+    return err_code;
 }
 
 // Finds certain handler.

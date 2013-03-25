@@ -104,6 +104,9 @@ public:
 #endif
 
         worker_dbs_[db_index]->UntrackSocket(s);
+
+        // Erasing corresponding session.
+        g_gateway.DeleteGlobalSession(s);
     }
 
     // Getting number of used sockets.

@@ -2,6 +2,6 @@
 using Starcounter;
 
 namespace MySampleNamespace {
-    partial class TestMessage : Message {
+    partial class TestMessage : Json {
     }
 }

@@ -686,6 +686,10 @@ namespace Starcounter.CommandLine
                         RaiseSyntaxErrorException(
                             "Option \"{0}\" is a flag, it can not have a value.", key);
 
+                    if ((matchingInfo.Attributes & OptionAttributes.Flag) == 0 && value.Equals(string.Empty))
+                        RaiseSyntaxErrorException(
+                            "Option \"{0}\" is a property, it must have a value. Use \"{0}=[value]\".", key);
+
                     givenValue = new GivenOption();
                     givenValue.SpecifiedName = key;
                     givenValue.Value = value;

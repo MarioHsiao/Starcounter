@@ -7,7 +7,6 @@ SET DB_DIR=.db
 SET DB_OUT_DIR=.db.output
 SET DB_NAME=QUERYPROCESSINGTEST
 SET TEST_NAME=QueryProcessingTest
-SET TEST_ARGS=
 
 :: Killing all processes.
 CMD /C "kill_all.bat" 2>NUL
@@ -38,4 +37,4 @@ START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
-sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway --UserArguments="%TEST_ARGS%"
+sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --CompilerPath=MinGW\bin\x86_64-w64-mingw32-gcc.exe --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway

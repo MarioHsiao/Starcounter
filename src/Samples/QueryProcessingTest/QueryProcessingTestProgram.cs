@@ -16,6 +16,7 @@ namespace QueryProcessingTest {
                 AggregationTest.RunAggregationTest();
                 CodePropertiesTesting.TestCodeProperties();
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
+                OffsetkeyTest.Master();
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
                 HelpMethods.LogEvent(e.ToString());
