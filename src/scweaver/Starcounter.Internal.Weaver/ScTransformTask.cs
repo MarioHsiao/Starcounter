@@ -321,6 +321,14 @@ namespace Starcounter.Internal.Weaver {
                 if (InheritsObject(typeDef)) {
                     ImplementIObjectProxy(typeDef);
                 }
+            }
+
+            // Re-iterate all database classes in the current module and process
+            // fields, constructors and synonyms.
+
+            foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
+                typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
+                typeSpecification = assemblySpecification.GetSpecification(typeDef);
 
                 // Generate field accessors and add corresponding advices
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
@@ -330,15 +338,7 @@ namespace Starcounter.Internal.Weaver {
                         GenerateFieldAccessors(dba, field, typeSpecification, columnHandleField);
                     }
                 }
-            }
 
-            // Re-iterate all database classes in the current module and process
-            // constructors and synonyms.
-
-            foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
-                typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
-                typeSpecification = assemblySpecification.GetSpecification(typeDef);
-                
                 EnhanceConstructors(typeDef, dbc, typeSpecification);
                 
                 // Generate field accessors for synonyms
