@@ -78,8 +78,8 @@
     <Compile Include="Handle.cs" />
     <Compile Include="HttpSessions.cs" />
     <Compile Include="HttpStructs.cs" />
-    <Compile Include="Http\HttpRequest.cs" />
-    <Compile Include="Http\HttpResponse.cs" />
+    <Compile Include="Http\Request.cs" />
+    <Compile Include="Http\Response.cs" />
     <Compile Include="IDb.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="Error.cs" />
