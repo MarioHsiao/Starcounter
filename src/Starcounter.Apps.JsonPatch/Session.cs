@@ -15,7 +15,7 @@ namespace Starcounter {
     /// Class Session
     /// </summary>
     public class Session : IAppsSession {
-//        [ThreadStatic]
+        [ThreadStatic]
         private static Session current;
 
         private static string dataLocationUri = "/__" + Db.Environment.DatabaseName.ToLower() + "/";
@@ -31,10 +31,21 @@ namespace Starcounter {
         public static Session Current { get { return current; } }
 
         /// <summary>
+        /// Getting internal session.
+        /// </summary>
+        public ScSessionClass InternalSession { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Session" /> class.
         /// </summary>
         internal Session() {
             changeLog = new ChangeLog();
+        }
+
+        public static Session CreateNewEmptySession()
+        {
+            current = new Session();
+            return current;
         }
 
         /// <summary>
@@ -47,9 +58,9 @@ namespace Starcounter {
                 return null;
             }
             set {
-//                if (current == null) {
+                if (current == null) {
                     current = new Session();
-//                }
+                }
                 current.SetData(value);
             }
         }
@@ -65,8 +76,15 @@ namespace Starcounter {
             // We don't want any changes logged during this request since
             // we will have to send the whole object anyway in the response.
             root.LogChanges = false;
-//            ChangeLog.CurrentOnThread = null;
-            ChangeLog.CurrentOnThread = changeLog;
+            ChangeLog.CurrentOnThread = null;
+        }
+
+        /// <summary>
+        /// Internal session string.
+        /// </summary>
+        public String SessionIdString
+        {
+            get { return InternalSession.ToAsciiString(); }
         }
 
         /// <summary>
@@ -76,7 +94,7 @@ namespace Starcounter {
         internal string GetDataLocation() {
             if (root == null)
                 return null;
-            return dataLocationUri + "12345"; // TODO: Proper id.
+            return dataLocationUri + SessionIdString;
         }
 
 
@@ -85,21 +103,26 @@ namespace Starcounter {
         /// </summary>
         /// <param name="session"></param>
         internal static void Start(Session session) {
-            //Debug.Assert(current == null);
-            //Session.current = session;
-            //ChangeLog.CurrentOnThread = session.changeLog;
+            Debug.Assert(current == null);
+
+            // Session still can be null, e.g. did not pass the verification.
+            if (session == null)
+                return;
+
+            Session.current = session;
+            ChangeLog.CurrentOnThread = session.changeLog;
         }
 
         /// <summary>
         /// 
         /// </summary>
         internal static void End() {
-            //var s = Current;
-            //if (s != null) {
-            //    s.changeLog.Clear();
-            //    Session.current = null;
-            //    ChangeLog.CurrentOnThread = null;
-            //}
+            var s = Current;
+            if (s != null) {
+                s.changeLog.Clear();
+                Session.current = null;
+                ChangeLog.CurrentOnThread = null;
+            }
         }
 
         /// <summary>
@@ -147,6 +170,7 @@ namespace Starcounter {
             }
             root = null;
             changeLog = null;
+            Session.current = null;
         }
 
         private void DisposeJsonRecursively(Obj json) {

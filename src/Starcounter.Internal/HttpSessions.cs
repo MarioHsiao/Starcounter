@@ -41,104 +41,320 @@ namespace HttpStructs
         /// Indicates that session was stopped being used.
         /// </summary>
         void StopUsing();
+
+        /// <summary>
+        /// Getting internal session.
+        /// </summary>
+        ScSessionClass InternalSession { get; set; }
     }
+
+    // Session structure 128 bits:
+    //
+    // | Scheduler Id |  Linear Index | Session Salt | View Model Number |
+    // |    1 byte    |    3 bytes    |    8 bytes   |      4 bytes      |
+    //
 
     /// <summary>
     /// Apps session representation struct.
     /// </summary>
-    struct AppsSessionInternal
+    public class ScSessionClass
     {
-        // Unique Apps session number.
-        public UInt64 apps_session_salt_;
+        // Internal session structure.
+        public ScSessionStruct session_struct_;
+
+        // Last active time tick.
+        public UInt64 LastActiveTimeTick { get; set; }
 
         // Apps session object reference.
         public IAppsSession apps_session_int_;
 
+        // Is being used.
+        public Boolean IsBeingUsed()
+        {
+            if (apps_session_int_ != null)
+                return apps_session_int_.IsBeingUsed();
+
+            return false;
+        }
+
         // Destroys the instance.
         public void Destroy()
         {
-            Console.WriteLine("Destroying session with salt: " + apps_session_salt_);
+            //Console.WriteLine("Destroying session with salt: " + session_struct_.random_salt_);
 
             // Destroying corresponding Apps session.
-            apps_session_int_.Destroy();
+            if (apps_session_int_ != null)
+                apps_session_int_.Destroy();
 
-            // Resetting the salt also.
-            apps_session_salt_ = HttpRequest.INVALID_APPS_SESSION_SALT;
+            // Destroying session string.
+            session_string_ = null;
+
+            // Resetting some fields.
+            session_struct_.Destroy();
+        }
+
+        public const Int32 SESSION_STRING_NUM_BYTES = 32;
+
+        // Session stored in ASCII bytes.
+        Byte[] session_bytes_ = new Byte[SESSION_STRING_NUM_BYTES];
+
+        // Session string representation.
+        String session_string_ = null;
+
+        // Converts internal bytes to session.
+        public String ToAsciiString()
+        {
+            if (session_string_ == null)
+                session_string_ = Encoding.ASCII.GetString(session_bytes_);
+
+            return session_string_;
+        }
+
+        // Serializing session structure to bytes.
+        public void SerializeToBytes()
+        {
+            uint64_to_hex_string(session_struct_.scheduler_id_, session_bytes_, 0, 2);
+            uint64_to_hex_string(session_struct_.linear_index_, session_bytes_, 2, 8);
+            uint64_to_hex_string(session_struct_.random_salt_, session_bytes_, 8, 16);
+            uint64_to_hex_string(session_struct_.view_model_index_, session_bytes_, 24, 8);
+        }
+
+        static Byte[] hex_table = { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
+        
+        // Converts uint64 number to hexadecimal string.
+        Int32 uint64_to_hex_string(UInt64 number, Byte[] str_out, Int32 offset, Int32 num_4bits)
+        {
+            Int32 n = 0;
+            while(number > 0)
+            {
+                str_out[offset + n] = hex_table[number & 0xF];
+                n++;
+                number >>= 4;
+            }
+
+            // Filling with zero values if necessary.
+            while (n < num_4bits)
+            {
+                str_out[offset + n] = (Byte)'0';
+                n++;
+            }
+
+            // Returning length.
+            return n;
+        }
+
+        // Invalid value of converted number from hexadecimal string.
+        const UInt64 INVALID_CONVERTED_NUMBER = 0xFFFFFFFFFFFFFFFF;
+
+        // Converts hexadecimal string to uint64.
+        UInt64 hex_string_to_uint64(Byte[] str_in, Int32 offset, Int32 num_4bits)
+        {
+            UInt64 result = 0;
+            Int32 i = offset, s = 0;
+
+            for (Int32 n = 0; n < num_4bits; n++)
+            {
+                switch(str_in[i])
+                {
+                    case (Byte)'0': result |= ((UInt64)0 << s); break;
+                    case (Byte)'1': result |= ((UInt64)1 << s); break;
+                    case (Byte)'2': result |= ((UInt64)2 << s); break;
+                    case (Byte)'3': result |= ((UInt64)3 << s); break;
+                    case (Byte)'4': result |= ((UInt64)4 << s); break;
+                    case (Byte)'5': result |= ((UInt64)5 << s); break;
+                    case (Byte)'6': result |= ((UInt64)6 << s); break;
+                    case (Byte)'7': result |= ((UInt64)7 << s); break;
+                    case (Byte)'8': result |= ((UInt64)8 << s); break;
+                    case (Byte)'9': result |= ((UInt64)9 << s); break;
+                    case (Byte)'A': result |= ((UInt64)0xA << s); break;
+                    case (Byte)'B': result |= ((UInt64)0xB << s); break;
+                    case (Byte)'C': result |= ((UInt64)0xC << s); break;
+                    case (Byte)'D': result |= ((UInt64)0xD << s); break;
+                    case (Byte)'E': result |= ((UInt64)0xE << s); break;
+                    case (Byte)'F': result |= ((UInt64)0xF << s); break;
+
+                    // INVALID_CONVERTED_NUMBER should never be returned in normal case.
+                    default: return INVALID_CONVERTED_NUMBER;
+                }
+
+                i++;
+                s += 4;
+            }
+
+            return result;
         }
     }
 
     /// <summary>
     /// Contains all sessions per scheduler.
     /// </summary>
-    class SchedulerSessions
+    public class SchedulerSessions
     {
         // Maximum number of sessions per scheduler.
-        public const Int32 MaxSessionsPerScheduler = 10000;
+        public const Int32 MaxSessionsPerScheduler = 100000;
 
         // All Apps sessions belonging to the scheduler.
-        AppsSessionInternal[] apps_sessions_ = new AppsSessionInternal[MaxSessionsPerScheduler];
+        ScSessionClass[] apps_sessions_ = new ScSessionClass[MaxSessionsPerScheduler];
 
         // Number of active sessions on this scheduler.
-        UInt64 num_active_sessions_ = 0;
+        UInt32 num_active_sessions_ = 0;
 
         // List of free sessions.
-        UInt64[] free_session_indexes_ = new UInt64[MaxSessionsPerScheduler];
+        UInt32[] free_session_indexes_ = new UInt32[MaxSessionsPerScheduler];
 
         public SchedulerSessions()
         {
-            for (UInt64 i = 0; i < MaxSessionsPerScheduler; i++)
+            for (UInt32 i = 0; i < MaxSessionsPerScheduler; i++)
                 free_session_indexes_[i] = i;
         }
 
         // Creates new Apps session.
         public UInt32 CreateNewSession(
-            IAppsSession apps_session,
-            ref UInt64 session_index,
-            ref UInt64 session_salt)
+            Byte scheduler_id,
+            ref UInt32 linear_index,
+            ref UInt64 random_salt,
+            ref UInt32 view_model_index,
+            IAppsSession apps_session_int)
         {
-            UInt64 free_session_index = free_session_indexes_[num_active_sessions_];
+            // Getting free linear session index.
+            linear_index = free_session_indexes_[num_active_sessions_];
 
-            apps_sessions_[num_active_sessions_].apps_session_salt_ = session_salt = GlobalSessions.AllGlobalSessions.GenerateSalt();
+            // Creating new session object if needed.
+            if (apps_sessions_[linear_index] == null)
+                apps_sessions_[linear_index] = new ScSessionClass();
 
-            apps_sessions_[num_active_sessions_].apps_session_int_ = apps_session;
+            // Generating random salt.
+            random_salt = GlobalSessions.AllGlobalSessions.GenerateSalt();
 
-            session_index = num_active_sessions_;
+            // Initializing session structure underneath.
+            apps_sessions_[linear_index].session_struct_.Init(
+                scheduler_id,
+                linear_index,
+                random_salt,
+                view_model_index); // TODO
 
+            // Serializing to bytes.
+            apps_sessions_[linear_index].SerializeToBytes();
+
+            // Saving reference to internal session.
+            if (apps_session_int != null)
+                apps_session_int.InternalSession = apps_sessions_[linear_index];
+
+            // Setting last active time.
+            apps_sessions_[linear_index].LastActiveTimeTick = CurrentTimeTick;
+
+            // Attaching the interface.
+            apps_sessions_[linear_index].apps_session_int_ = apps_session_int;
+
+            // New session has been created.
             num_active_sessions_++;
 
             return 0;
         }
 
         // Destroys existing Apps session.
-        public UInt32 DestroySession(UInt64 apps_session_index, UInt64 apps_unique_salt)
+        public UInt32 DestroySession(ScSessionStruct s)
+        {
+            return DestroySession(s.linear_index_, s.random_salt_);
+        }
+
+        // Destroys existing Apps session.
+        public UInt32 DestroySession(UInt32 linear_index, UInt64 random_salt)
         {
             // Checking that salt is correct.
-            if (apps_sessions_[apps_session_index].apps_session_salt_ == apps_unique_salt)
+            if (apps_sessions_[linear_index].session_struct_.random_salt_ == random_salt)
             {
                 // Checking that session is not being used at the moment.
-                if (apps_sessions_[apps_session_index].apps_session_int_.IsBeingUsed())
+                if (apps_sessions_[linear_index].IsBeingUsed())
                     throw new Exception("Trying to destroy a session that is already used in some task!");
 
                 // Destroys existing Apps session.
-                apps_sessions_[apps_session_index].Destroy();
+                apps_sessions_[linear_index].Destroy();
 
+                // Restoring the free index back.
                 num_active_sessions_--;
-                free_session_indexes_[num_active_sessions_] = apps_session_index;
+                free_session_indexes_[num_active_sessions_] = linear_index;
             }
 
             return 0;
         }
 
         // Gets certain Apps session.
-        public IAppsSession GetAppsSessionInterface(UInt64 apps_session_index, UInt64 apps_session_salt)
+        public IAppsSession GetAppsSessionInterface(
+            UInt32 linear_index,
+            UInt64 random_salt)
         {
-            AppsSessionInternal s = apps_sessions_[apps_session_index];
+            // Checking if we are out of range.
+            if (linear_index >= num_active_sessions_)
+                return null;
+
+            ScSessionClass s = apps_sessions_[linear_index];
+            if (s == null)
+                return null;
 
             // Checking for the correct session salt.
-            if (apps_session_salt == s.apps_session_salt_)
-                return apps_sessions_[apps_session_index].apps_session_int_;
+            if (random_salt == s.session_struct_.random_salt_)
+            {
+                // Setting last active time.
+                s.LastActiveTimeTick = CurrentTimeTick;
+
+                // Returning the interface.
+                return s.apps_session_int_;
+            }
 
             return null;
+        }
+
+        // Current per-scheduler time tick.
+        public UInt64 CurrentTimeTick = 0;
+
+        // Default session timeout interval in minutes.
+        public const Int32 DefaultSessionTimeoutMinutes = 10;
+
+        /// <summary>
+        /// Looks up for inactive sessions and kills them.
+        /// </summary>
+        public void InactiveSessionsCleanupRoutine()
+        {
+            while (true)
+            {
+                //Console.WriteLine("Cleaning up inactive sessions!");
+
+                // Incrementing global time.
+                CurrentTimeTick++;
+
+                // Sleeping given minutes.
+                Thread.Sleep(1000 * 60 * DefaultSessionTimeoutMinutes);
+
+                UInt32 num_checked_sessions = 0;
+                for (UInt32 i = 0; i < MaxSessionsPerScheduler; i++)
+                {
+                    // Checking if session is created at all.
+                    if (apps_sessions_[i] != null)
+                    {
+                        // Checking that session is active at all.
+                        if (apps_sessions_[i].session_struct_.IsActive())
+                        {
+                            // Checking that session is not currently in use.
+                            if (!apps_sessions_[i].apps_session_int_.IsBeingUsed())
+                            {
+                                // Checking if session is outdated.
+                                if ((CurrentTimeTick - apps_sessions_[i].LastActiveTimeTick) > 2)
+                                {
+                                    // Destroying old session.
+                                    DestroySession(apps_sessions_[i].session_struct_);
+                                }
+                            }
+
+                            num_checked_sessions++;
+                        }
+                    }
+
+                    // Checking if we have scanned all created sessions.
+                    if (num_checked_sessions >= num_active_sessions_)
+                        break;
+                }
+            }
         }
     }
 
@@ -170,6 +386,40 @@ namespace HttpStructs
         }
 
         /// <summary>
+        /// Getting scheduler sessions.
+        /// </summary>
+        /// <param name="sched_index"></param>
+        /// <returns></returns>
+        public SchedulerSessions GetSchedulerSessions(Byte sched_index)
+        {
+            return scheduler_sessions_[sched_index];
+        }
+
+        /// <summary>
+        /// Generates a new session on a specific scheduler.
+        /// </summary>
+        /// <param name="scheduler_id"></param>
+        /// <param name="apps_session"></param>
+        /// <returns></returns>
+        public UInt32 CreateNewSession(
+            Byte scheduler_id,
+            IAppsSession apps_session)
+        {
+            // NOTE: Does not matter what values this variables have,
+            // since they are not used anyway.
+            UInt32 linear_index = 0;
+            UInt64 random_salt = 0;
+            UInt32 view_model_index = 0;
+
+            return scheduler_sessions_[scheduler_id].CreateNewSession(
+                scheduler_id,
+                ref linear_index,
+                ref random_salt,
+                ref view_model_index,
+                apps_session);
+        }
+
+        /// <summary>
         /// Creates a new sessions.
         /// </summary>
         /// <param name="apps_session"></param>
@@ -178,15 +428,18 @@ namespace HttpStructs
         /// <param name="session_salt"></param>
         /// <returns></returns>
         public UInt32 CreateNewSession(
-            IAppsSession apps_session,
-            UInt32 scheduler_id,
-            ref UInt64 session_index,
-            ref UInt64 session_salt)
+            Byte scheduler_id,
+            ref UInt32 linear_index,
+            ref UInt64 random_salt,
+            ref UInt32 view_model_index,
+            IAppsSession apps_session)
         {
             return scheduler_sessions_[scheduler_id].CreateNewSession(
-                apps_session,
-                ref session_index,
-                ref session_salt);
+                scheduler_id,
+                ref linear_index,
+                ref random_salt,
+                ref view_model_index,
+                apps_session);
         }
 
         /// <summary>
@@ -197,11 +450,13 @@ namespace HttpStructs
         /// <param name="scheduler_id"></param>
         /// <returns></returns>
         public UInt32 DestroySession(
-            UInt64 apps_session_index,
-            UInt64 apps_session_salt,
-            UInt32 scheduler_id)
+            Byte scheduler_id,
+            UInt32 linear_index,
+            UInt64 random_salt)
         {
-            return scheduler_sessions_[scheduler_id].DestroySession(apps_session_index, apps_session_salt);
+            return scheduler_sessions_[scheduler_id].DestroySession(
+                linear_index,
+                random_salt);
         }
 
         /// <summary>
@@ -216,9 +471,10 @@ namespace HttpStructs
         /// <param name="apps_session_salt"></param>
         /// <param name="scheduler_id"></param>
         public delegate void DestroyAppsSessionCallback(
-            UInt64 apps_session_index,
-            UInt64 apps_session_salt,
-            UInt32 scheduler_id);
+            Byte scheduler_id,
+            UInt32 linear_index,
+            UInt64 random_salt
+            );
 
         /// <summary>
         /// Managed callback to destroy Apps session.
@@ -232,11 +488,16 @@ namespace HttpStructs
         /// <param name="apps_session_salt"></param>
         /// <param name="scheduler_id"></param>
         public static void DestroySessionCallback(
-            UInt64 apps_session_index,
-            UInt64 apps_session_salt,
-            UInt32 scheduler_id)
+            Byte scheduler_id,
+            UInt32 linear_index,
+            UInt64 random_salt
+            )
         {
-            AllGlobalSessions.DestroySession(apps_session_index, apps_session_salt, scheduler_id);
+            AllGlobalSessions.DestroySession(
+                scheduler_id,
+                linear_index,
+                random_salt
+                );
         }
 
         /// <summary>
@@ -255,11 +516,13 @@ namespace HttpStructs
         /// <param name="apps_session_index"></param>
         /// <returns></returns>
         internal IAppsSession GetAppsSessionInterface(
-            UInt32 scheduler_id,
-            UInt64 apps_session_index,
-            UInt64 apps_session_salt)
+            Byte scheduler_id,
+            UInt32 linear_index,
+            UInt64 random_salt)
         {
-            return scheduler_sessions_[scheduler_id].GetAppsSessionInterface(apps_session_index, apps_session_salt);
+            return scheduler_sessions_[scheduler_id].GetAppsSessionInterface(
+                linear_index,
+                random_salt);
         }
     }
 
@@ -273,6 +536,11 @@ namespace HttpStructs
 
         // Linked list node with this session in it.
         LinkedListNode<AppsSession> node_ = null;
+
+        /// <summary>
+        /// Getting internal session.
+        /// </summary>
+        public ScSessionClass InternalSession { get; set; }
 
         /// <summary>
         /// Linked list node to itself.

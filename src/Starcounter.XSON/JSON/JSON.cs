@@ -86,16 +86,9 @@ namespace Starcounter {
     ///// <see cref="Json"/>
     ///// </summary>
     public class Json<T> : Json where T: IBindable {
+        public new T Data {
+            get { return (T)base.Data; }
+            set { base.Data = value; }
+        }
     }
-
-    ///// <summary>
-    ///// 
-    ///// </summary>
-    //public class NullData : IBindable {
-    //    /// <summary>
-    //    /// 
-    //    /// </summary>
-    //    public UInt64 UniqueID { get { return 0; } }
-    //}
-
 }

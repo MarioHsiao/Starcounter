@@ -115,6 +115,56 @@ namespace NetworkIoTestApp
                 return "str_concat_with_static=" + str1 + "static" + str2;
             });
         }
+
+        /// <summary>
+        /// Initializes some Apps handlers.
+        /// </summary>
+        public static void InitAppHandlersSession()
+        {
+            GET("/new-session", (HttpRequest r) =>
+            {
+                if (!r.HasSession)
+                {
+                    Session session = Session.Current;
+                    if (session == null)
+                    {
+                        session = Session.CreateNewEmptySession();
+                    }
+
+                    UInt32 err = r.GenerateNewSession(session);
+                    if (err != 0)
+                        throw ErrorCode.ToException(err);
+
+                    return "New session created: " + session.InternalSession.ToAsciiString();
+                }
+                else
+                {
+                    return "Session already exists!";
+                }
+                
+            });
+
+            GET("/del-session/{?}", (Session s, HttpRequest r) =>
+            {
+                if (r.HasSession)
+                {
+                    r.DestroySession();
+                    return "Session deleted!";
+                }
+                else
+                {
+                    return "Session does not exist!";
+                }
+            });
+
+            GET("/view-session/{?}", (Session s) =>
+            {
+                if (s != null)
+                    return "Session string: " + s.SessionIdString;
+
+                return "No session to view!";
+            });
+        }
     }
 
     public class NetworkIoTestApp
@@ -139,6 +189,7 @@ namespace NetworkIoTestApp
             MODE_STANDARD_BROWSER,
             MODE_US_WEBSITE,
             MODE_APPS_URIS,
+            MODE_APPS_URIS_SESSION,
             MODE_HTTP_REST_CLIENT
         }
 
@@ -314,6 +365,13 @@ namespace NetworkIoTestApp
                         StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "c:\\pics");
 
                     AppsClass.InitAppHandlers();
+
+                    break;
+                }
+
+                case TestTypes.MODE_APPS_URIS_SESSION:
+                {
+                    AppsClass.InitAppHandlersSession();
 
                     break;
                 }
@@ -767,9 +825,6 @@ namespace NetworkIoTestApp
 
                 // Displaying new session unique number.
                 Console.WriteLine("Generated new session with index: " + p.UniqueSessionIndex);
-
-                // Adding the session cookie stub.
-                responseHeader += ScSessionStruct.SessionIdCookiePlusEndlineStubString;
             }
 
             // Converting string to byte array.

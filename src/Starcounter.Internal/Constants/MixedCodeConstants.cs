@@ -77,7 +77,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Size of the session structure in bytes.
         /// </summary>
-        public const int SESSION_STRUCT_SIZE = 32;
+        public const int SESSION_STRUCT_SIZE = 24;
 
         /// <summary>
         /// User data offset in chunk.
@@ -107,22 +107,22 @@ namespace Starcounter.Internal
         /// <summary>
         /// Offset in bytes for the session.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 648;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 640;
 
         /// <summary>
         /// Offset of data blob in socket data.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_BLOB = 712;
+        public const int SOCKET_DATA_OFFSET_BLOB = 704;
 
         /// <summary>
         /// HTTP request offset in socket data.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 232;
+        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 224;
 
         /// <summary>
         /// Number of chunks offset in gateway.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_NUM_CHUNKS = 84;
+        public const int SOCKET_DATA_OFFSET_NUM_CHUNKS = 76;
 
         /// <summary>
         /// Maximum number of URI callback parameters.
@@ -151,6 +151,9 @@ namespace Starcounter.Internal
 
         // Maximum URI string length.
         public const int MAX_URI_STRING_LEN = 512;
+
+        // Session parameter type number in user delegate.
+        public const int REST_ARG_SESSION = 10;
 
         /// <summary>
         /// Example of string constant.

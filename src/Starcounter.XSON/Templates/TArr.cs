@@ -86,7 +86,7 @@ namespace Starcounter.Templates {
 //        , ITObjArr
 #endif
     {
-        private DataValueBinding<Rows<object>> dataBinding;
+        private DataValueBinding<IEnumerable> dataBinding;
 
         /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements
@@ -110,8 +110,8 @@ namespace Starcounter.Templates {
             }
         }
 
-        internal DataValueBinding<Rows<object>> GetDataBinding(IBindable data) {
-            dataBinding = DataBindingFactory.VerifyOrCreateBinding<Rows<object>>(this, dataBinding, data.GetType(), Bind);
+        internal DataValueBinding<IEnumerable> GetBinding(IBindable data) {
+            dataBinding = DataBindingFactory.VerifyOrCreateBinding<IEnumerable>(this, dataBinding, data.GetType(), Bind);
             return dataBinding;
         }
 
