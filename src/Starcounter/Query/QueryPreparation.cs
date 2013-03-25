@@ -23,7 +23,6 @@ namespace Starcounter.Query {
             OptimizerInput optArgsProlog = null;
             IExecutionEnumerator prologParsedQueryPlan = null;
             Exception prologException = null;
-            // Call to Bison parser and type checker
             // Call to Prolog parser and type checker
 #if !BISON_ONLY
             // Call Prolog and get answer
@@ -37,6 +36,7 @@ namespace Starcounter.Query {
             if (prologException == null)
                 optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
 #endif
+            // Call to Bison parser and type checker
 #if !PROLOG_ONLY
             try {
 #if HELLOTEST

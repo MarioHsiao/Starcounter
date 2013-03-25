@@ -45,8 +45,8 @@ namespace Starcounter.Internal.JsonTemplate
             TObj appTemplate;
             ITemplateFactory factory;
 
-            if (objTemplateType.Equals(typeof(TMessage))) {
-                factory = new TAppFactory<Message, TMessage>();
+            if (objTemplateType.Equals(typeof(TJson))) {
+                factory = new TAppFactory<Json, TJson>();
             } else {
                 factory = new TAppFactory<Puppet, TPuppet>();
             }

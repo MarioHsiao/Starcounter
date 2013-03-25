@@ -49,11 +49,35 @@ std::string GetOperTypeString(SocketOperType typeOfOper)
 }
 
 // Writing to log once object is destroyed.
+ThreadSafeWCout::~ThreadSafeWCout()
+{
+    switch (t_)
+    {
+        case GW_LOGGING_ERROR_TYPE:
+            g_gateway.LogWriteError(ss_.str().c_str());
+            break;
+
+        case GW_LOGGING_WARNING_TYPE:
+            g_gateway.LogWriteWarning(ss_.str().c_str());
+            break;
+
+        case GW_LOGGING_NOTICE_TYPE:
+            g_gateway.LogWriteNotice(ss_.str().c_str());
+            break;
+
+        case GW_LOGGING_CRITICAL_TYPE:
+            g_gateway.LogWriteCritical(ss_.str().c_str());
+            break;
+    }
+    
+}
+
+// Writing to log once object is destroyed.
 ThreadSafeCout::~ThreadSafeCout()
 {
 #ifdef GW_LOGGING_ON
 
-    std::string str = ss.str();
+    std::string str = ss_.str();
     g_gateway.get_gw_log_writer()->WriteToLog(str.c_str(), str.length());
 
 #endif
@@ -810,7 +834,7 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(core::chunk_type::static_header_size == bmx::BMX_HEADER_MAX_SIZE_BYTES);
 
     // Checking overall gateway stuff.
-    GW_ASSERT(sizeof(ScSessionStruct) == bmx::SESSION_STRUCT_SIZE);
+    GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
     GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
@@ -858,15 +882,20 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
 
     // Getting IOCP handle.
     HANDLE iocp = NULL;
-    if (!gw) iocp = g_gateway.get_iocp();
-    else iocp = gw->get_worker_iocp();
+    if (!gw)
+        iocp = g_gateway.get_iocp();
+    else
+        iocp = gw->get_worker_iocp();
 
     // Attaching socket to IOCP.
     HANDLE temp = CreateIoCompletionPort((HANDLE) sock, iocp, 0, setting_num_workers_);
     if (temp != iocp)
     {
+        PrintLastError(true);
+        closesocket(sock);
+
         GW_COUT << "Wrong IOCP returned when adding reference." << GW_ENDL;
-        return PrintLastError();
+        return SCERRGWFAILEDTOATTACHSOCKETTOIOCP;
     }
 
     // Skipping completion port if operation is already successful.
@@ -887,15 +916,21 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     // Binding socket to certain interface and port.
     if (bind(sock, (SOCKADDR*) &binding_addr, sizeof(binding_addr)))
     {
-        GW_COUT << "Failed to bind server port " << port_num << GW_ENDL;
-        return PrintLastError();
+        PrintLastError(true);
+        closesocket(sock);
+       
+        GW_LOG_ERROR << L"Failed to bind server port: " << port_num << L". Please check that port is not occupied by any software." << GW_WENDL;
+        return SCERRGWFAILEDTOBINDPORT;
     }
 
     // Listening to connections.
     if (listen(sock, SOMAXCONN))
     {
+        PrintLastError(true);
+        closesocket(sock);
+
         GW_COUT << "Error listening on server socket." << GW_ENDL;
-        return PrintLastError();
+        return SCERRGWFAILEDTOLISTENONSOCKET;
     }
 
     return 0;
@@ -1138,10 +1173,10 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         &gw_workers_[0],
                         gw_handlers_,
                         port_number,
-                        test_http_echo_requests_[g_gateway.setting_mode()].uri,
-                        test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
-                        test_http_echo_requests_[g_gateway.setting_mode()].uri,
-                        test_http_echo_requests_[g_gateway.setting_mode()].uri_len,
+                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
+                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info_len,
+                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
+                        http_tests_information_[g_gateway.setting_mode()].method_and_uri_info_len,
                         bmx::HTTP_METHODS::OTHER_METHOD,
                         NULL,
                         0,
@@ -2021,25 +2056,43 @@ uint32_t __stdcall MonitorDatabases(LPVOID params)
 // Entry point for gateway worker.
 uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
 {
+    uint32_t err_code = 0;
+
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
 
-    return MonitorDatabases(params);
+    // Starting routine.
+    err_code = MonitorDatabases(params);
 
     // Catching all unhandled exceptions in this thread.
     GW_SC_END_FUNC
+
+    wchar_t temp[256];
+    wsprintf(temp, L"Databases monitoring thread exited with error code: %d", err_code);
+    g_gateway.LogWriteError(temp);
+
+    return err_code;
 }
 
 // Entry point for gateway worker.
 uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
 {
+    uint32_t err_code = 0;
+
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
 
-    return ((GatewayWorker *)params)->WorkerRoutine();
+    // Starting routine.
+    err_code = ((GatewayWorker *)params)->WorkerRoutine();
 
     // Catching all unhandled exceptions in this thread.
     GW_SC_END_FUNC
+
+    wchar_t temp[256];
+    wsprintf(temp, L"Gateway worker thread exited with error code: %d", err_code);
+    g_gateway.LogWriteError(temp);
+
+    return err_code;
 }
 
 // Entry point for channels events monitor.
@@ -2064,6 +2117,8 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
+#ifndef GW_NEW_SESSIONS_APPROACH
+
 // Cleans up all collected inactive sessions.
 uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
 {
@@ -2076,7 +2131,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
     for (int32_t i = 0; i < num_sessions_to_cleanup; i++)
     {
         // Getting existing session copy.
-        ScSessionStruct global_session_copy = GetGlobalSessionDataCopy(sessions_to_cleanup_unsafe_[i]);
+        ScSessionStruct global_session_copy = GetGlobalSessionCopy(sessions_to_cleanup_unsafe_[i]);
 
         // Checking if session is valid.
         if (global_session_copy.IsValid())
@@ -2185,6 +2240,7 @@ uint32_t Gateway::CollectInactiveSessions()
 
     return 0;
 }
+#endif
 
 // Entry point for inactive sessions cleanup.
 uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
@@ -2194,6 +2250,7 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 
     while (true)
     {
+#ifndef GW_NEW_SESSIONS_APPROACH
         // Sleeping minimum interval.
         Sleep(g_gateway.get_min_inactive_session_life_seconds() * 1000);
 
@@ -2202,6 +2259,10 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 
         // Collecting inactive sessions if any.
         g_gateway.CollectInactiveSessions();
+
+#else
+        Sleep(100000);
+#endif
     }
 
     return 0;
@@ -2209,6 +2270,7 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
     // Catching all unhandled exceptions in this thread.
     GW_SC_END_FUNC
 }
+
 
 // Entry point for Gateway logging routine.
 uint32_t __stdcall GatewayLoggingRoutine(LPVOID params)
@@ -2236,13 +2298,22 @@ uint32_t __stdcall GatewayLoggingRoutine(LPVOID params)
 // Entry point for all threads monitor routine.
 uint32_t __stdcall GatewayMonitorRoutine(LPVOID params)
 {
+    uint32_t err_code = 0;
+
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
 
-    return g_gateway.GatewayMonitor();
+    // Starting routine.
+    err_code = g_gateway.GatewayMonitor();
 
     // Catching all unhandled exceptions in this thread.
     GW_SC_END_FUNC
+
+    wchar_t temp[256];
+    wsprintf(temp, L"Gateway monitoring thread exited with error code: %d", err_code);
+    g_gateway.LogWriteError(temp);
+
+    return err_code;
 }
 
 // Cleaning up all global resources.
@@ -2286,7 +2357,12 @@ uint32_t Gateway::GatewayMonitor()
         {
             if (!WaitForSingleObject(worker_thread_handles_[i], 0))
             {
+                // Stating explicitly that this worker is dead.
+                gw_workers_[i].set_worker_suspended(true);
+
+                // Printing diagnostics.
                 GW_COUT << "Worker " << i << " is dead." << GW_ENDL;
+
                 return SCERRGWWORKERISDEAD;
             }
         }
@@ -2460,7 +2536,9 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // Global statistics.
         global_statistics_stream_ << "Global: " <<
             "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
+#ifndef GW_NEW_SESSIONS_APPROACH
             ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
+#endif
             ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
             ", reusable conn socks " << g_gateway.NumberOfReusableConnectSockets() <<
             "<br>" << GW_ENDL;
@@ -2892,12 +2970,25 @@ uint32_t Gateway::AddUriHandler(
     // Checking if there is an entry.
     if (index < 0)
     {
+        // Checking if there is a session in parameters.
+        uint8_t session_param_index = INVALID_PARAMETER_INDEX;
+        for (int32_t i = 0; i < num_params; i++)
+        {
+            // Checking for REST_ARG_SESSION.
+            if (MixedCodeConstants::REST_ARG_SESSION == param_types[i])
+            {
+                session_param_index = i;
+                break;
+            }
+        }
+
         // Creating totally new URI entry.
         RegisteredUri new_entry(
             original_uri_info,
             original_uri_info_len_chars,
             processed_uri_info,
             processed_uri_info_len_chars,
+            session_param_index,
             db_index,
             handlers_table->get_handler_list(handler_index));
 
@@ -3012,22 +3103,29 @@ void Gateway::CloseStarcounterLog()
     GW_ASSERT(0 == err_code);
 }
 
-// Write critical into log.
 void Gateway::LogWriteCritical(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
-
-    GW_ASSERT(0 == err_code);
-
-    err_code = sccorelog_flush_to_logs(sc_log_handle_);
-
-    GW_ASSERT(0 == err_code);
+    LogWriteGeneral(msg, SC_ENTRY_CRITICAL);
 }
 
-// Write error into log.
 void Gateway::LogWriteError(const wchar_t* msg)
 {
-    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, SC_ENTRY_ERROR, 0, msg);
+    LogWriteGeneral(msg, SC_ENTRY_ERROR);
+}
+
+void Gateway::LogWriteWarning(const wchar_t* msg)
+{
+    LogWriteGeneral(msg, SC_ENTRY_WARNING);
+}
+
+void Gateway::LogWriteNotice(const wchar_t* msg)
+{
+    LogWriteGeneral(msg, SC_ENTRY_NOTICE);
+}
+
+void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
+{
+    uint32_t err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, log_type, 0, msg);
 
     GW_ASSERT(0 == err_code);
 
@@ -3038,10 +3136,10 @@ void Gateway::LogWriteError(const wchar_t* msg)
 
 #ifdef GW_TESTING_MODE
 
-TestHttpEchoRequest g_test_http_echo_requests[kNumTestHttpEchoRequests] =
+HttpTestInformation g_test_http_echo_requests[kNumTestHttpEchoRequests] =
 {
     {
-        "/gw-http-echo", 0,
+        "POST /gw-http-echo", 0,
 
         "POST /gw-http-echo HTTP/1.1\r\n"
         "Content-Type: text/html\r\n"
@@ -3051,7 +3149,7 @@ TestHttpEchoRequest g_test_http_echo_requests[kNumTestHttpEchoRequests] =
     },
 
     {
-        "/smc-http-echo", 0,
+        "POST /smc-http-echo", 0,
 
         "POST /smc-http-echo HTTP/1.1\r\n"
         "Content-Type: text/html\r\n"
@@ -3060,7 +3158,7 @@ TestHttpEchoRequest g_test_http_echo_requests[kNumTestHttpEchoRequests] =
         "@@@@@@@@", 0, 0
     },
     {
-        "/apps-http-echo", 0,
+        "POST /apps-http-echo", 0,
 
         "POST /apps-http-echo HTTP/1.1\r\n"
         "Content-Type: text/html\r\n"
@@ -3072,13 +3170,13 @@ TestHttpEchoRequest g_test_http_echo_requests[kNumTestHttpEchoRequests] =
 
 void Gateway::InitTestHttpEchoRequests()
 {
-    test_http_echo_requests_ = g_test_http_echo_requests;
+    http_tests_information_ = g_test_http_echo_requests;
 
     for (int32_t i = 0; i < kNumTestHttpEchoRequests; i++)
     {
-        test_http_echo_requests_[i].uri_len = strlen(test_http_echo_requests_[i].uri);
-        test_http_echo_requests_[i].http_request_len = strlen(test_http_echo_requests_[i].http_request_str);
-        test_http_echo_requests_[i].http_request_insert_point = strstr(test_http_echo_requests_[i].http_request_str, "@") - test_http_echo_requests_[i].http_request_str;
+        http_tests_information_[i].method_and_uri_info_len = strlen(http_tests_information_[i].method_and_uri_info);
+        http_tests_information_[i].http_request_len = strlen(http_tests_information_[i].http_request_str);
+        http_tests_information_[i].http_request_insert_point = strstr(http_tests_information_[i].http_request_str, "@") - http_tests_information_[i].http_request_str;
     }
 }
 
@@ -3108,17 +3206,19 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     if (err_code)
         return err_code;
 
-    //int32_t xxx = 0;
-    //int32_t yyy = 123 / xxx;
-    //GW_ASSERT(123 == 1);
-
     // Setting I/O as low priority.
     SetPriorityClass(GetCurrentProcess(), PROCESS_MODE_BACKGROUND_BEGIN);
 
     // Stating the network gateway.
     err_code = g_gateway.StartGateway();
     if (err_code)
+    {
+        wchar_t temp[256];
+        wsprintf(temp, L"Gateway exited with error code: %d", err_code);
+        g_gateway.LogWriteError(temp);
+
         return err_code;
+    }
 
     // Cleaning up resources.
     err_code = g_gateway.GlobalCleanup();

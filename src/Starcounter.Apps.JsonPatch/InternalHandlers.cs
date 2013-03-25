@@ -5,124 +5,69 @@
 // ***********************************************************************
 
 using System;
-using Starcounter.Apps;
 using Starcounter.Internal.Web;
-using Starcounter.Templates;
 using Starcounter.Advanced;
-using Newtonsoft.Json;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using Starcounter.Binding;
 using Codeplex.Data;
-using System.Threading;
+using System.Net;
 
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
     /// Class InternalHandlers
     /// </summary>
-    public class InternalHandlers : Puppet {
+    public class InternalHandlers {
         /// <summary>
         /// Registers this instance.
         /// </summary>
-        public static void Register() {
-
-            // TODO: __vm will conflict with other databases, make per database prefix.
-            GET("/__vm/{?}", (int viewModelId) => {
-                Puppet rootApp;
-                Byte[] json;
-                HttpResponse response = null;
-
-                // TODO: Put verification on view model number.
-
-                rootApp = Session.Current.GetRootApp(viewModelId);
-                json = rootApp.ToJsonUtf8();
-                response = new HttpResponse() { Uncompressed = HttpResponseBuilder.CreateMinimalOk200WithContent(json, 0, (uint)json.Length) };
-
-                return response;
-            });
+        public static void Register(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort) {
+            string dbName = Db.Environment.DatabaseName.ToLower();
 
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
-            if (Db.Environment.HasDatabase) {
+            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session) => {
+                Obj json = Session.Data;
+                if (json == null) {
+                    return HttpStatusCode.NotFound;
+                }
 
-                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
+                return new HttpResponse() {
+                    Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(json.ToJsonUtf8())
+                };
+            });
 
-                // SQL command
-                POST( "/__sql/" + Db.Environment.DatabaseName.ToLower(), (HttpRequest r) => {
-                    try {
-                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
-                        string resultJson = ExecuteQuery(bodyData);
-                        return resultJson;
-                    }
-                    catch (Starcounter.SqlException sqle) {
-                        return sqle.Message;
-                    }
-                    catch (Exception e) {
-                        return e.ToString();
-                    }
+            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, HttpRequest request) => {
+                Obj root;
 
-
-                });
-            }
-
-            // TODO: __vm will conflict with other databases, make per database prefix.
-            PATCH("/__vm/{?}", (int viewModelId, HttpRequest request) => {
-                Puppet rootApp;
-                Session session;
-                HttpResponse response = null;
-
-                response = new HttpResponse();
                 try {
-                    session = Session.Current;
-                    rootApp = session.GetRootApp(viewModelId);
-
-                    JsonPatch.EvaluatePatches(rootApp, request.GetContentByteArray_Slow());
-
-                    // TODO:
-                    // Quick and dirty hack to autorefresh dependent properties that might have been 
-                    // updated. This implementation should be removed after the demo.
-                    RefreshAllValues(rootApp, session.changeLog);
-
-                    response.Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(session.changeLog);
+                    root = Session.Data;
+                    JsonPatch.EvaluatePatches(root, request.GetContentByteArray_Slow());
+                    return root;
                 }
                 catch (NotSupportedException nex) {
-                    response.Uncompressed = HttpPatchBuilder.Create415Response(nex.Message);
+                    return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
                 }
                 catch (Exception ex) {
-                    response.Uncompressed = HttpPatchBuilder.Create400Response(ex.Message);
+                    return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
                 }
-                return response;
             });
-        }
 
-        private static void RefreshAllValues(Puppet app, ChangeLog log) {
-            foreach (Template template in app.Template.Children) {
-                TValue tv = template as TValue;
-                if (tv != null && !tv.Bound)
-                    continue;
-
-                if (template is TObjArr) {
-                    Arr l = app.Get((TObjArr)template);
-                    foreach (Puppet childApp in l) {
-                        RefreshAllValues(childApp, log);
-                    }
-                    continue;
-                }
-
-                if (template is TPuppet) {
-                    RefreshAllValues((Puppet)app.Get((TPuppet)template), log);
-                    continue;
-                }
-
-                if (template is TTrigger)
-                    continue;
-
-                ChangeLog.UpdateValue(app, (TValue)template);
+            if (Db.Environment.HasDatabase) {
+                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
+                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (HttpRequest r) => {
+                    string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+                    return ExecuteQuery(bodyData);
+                });
             }
         }
 
 
+        /// <summary>
+        /// Executes the query and returns a json string of the result
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
         private static string ExecuteQuery(string query) {
 
             Starcounter.SqlEnumerator<object> sqle = null;
@@ -130,14 +75,17 @@ namespace Starcounter.Internal.JsonPatch {
             IPropertyBinding propertyBinding;
             IPropertyBinding[] props;
 
+            dynamic resultJson = new DynamicJson();
+            resultJson.columns = new object[] { };
+            resultJson.rows = new object[] { };
+            resultJson.exception = null; // new object { };
+            resultJson.sqlexception = null; // new object { };
+
             try {
-
-                dynamic resultJson = new Json();
-
                 sqle = (Starcounter.SqlEnumerator<object>)Db.SQL(query).GetEnumerator();
 
-                // Retrive Columns
-                resultJson.columns = new object[] { };
+                #region Retrive Columns
+                //resultJson.columns = new object[] { };
 
                 if (sqle.ProjectionTypeCode != null && false) {
                     props = new IPropertyBinding[1];
@@ -152,9 +100,10 @@ namespace Starcounter.Internal.JsonPatch {
                         resultJson.columns[i] = new { title = props[i].Name, value = props[i].Name, type = props[i].TypeCode.ToString() };
                     }
                 }
+                #endregion
 
                 #region Retrive Rows
-                resultJson.rows = new object[] { };
+                // resultJson.rows = new object[] { };
                 int index = 0;
                 while (sqle.MoveNext()) {
 
@@ -236,28 +185,31 @@ namespace Starcounter.Internal.JsonPatch {
 
                 #endregion
 
-                // empty error message
-                resultJson.error = new object { };
-
-                return resultJson.ToString();
-
+            }
+            catch (Starcounter.SqlException ee) {
+                resultJson.sqlexception = new {
+                    BeginPosition = ee.BeginPosition,
+                    EndPosition = ee.EndPosition,
+                    ErrorMessage = ee.ErrorMessage,
+                    HelpLink = ee.HelpLink,
+                    Message = ee.Message,
+                    Query = ee.Query,
+                    ScErrorCode = ee.ScErrorCode,
+                    Token = ee.Token
+                };
             }
             catch (Exception e) {
-
-                dynamic resultJson = new Json();
-                resultJson.columns = new object[] { };
-                resultJson.rows = new object[] { };
-
-                resultJson.error = new { message = e.Message, helplink = e.HelpLink };
+                resultJson.exception = new { message = e.Message, helplink = e.HelpLink };
                 //resultJson.error["Message"] = e.Message;
                 //resultJson.error["HelpLink"] = e.HelpLink;
-                return resultJson.ToString();
 
             }
             finally {
                 if (sqle != null)
                     sqle.Dispose();
             }
+
+            return resultJson.ToString();
 
         }
 

@@ -20,6 +20,7 @@ using StarcounterInternal.Hosting;
 using HttpStructs;
 using System.Text.RegularExpressions;
 using System.IO;
+using Starcounter.Internal.JsonPatch;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -37,7 +38,7 @@ namespace StarcounterInternal.Bootstrap
         {
             try
             {
-                //System.Diagnostics.Debugger.Break();
+                //Debugger.Launch();
 
                 Control c = new Control();
                 c.OnProcessInitialized();
@@ -73,7 +74,7 @@ namespace StarcounterInternal.Bootstrap
 
         /// <summary>
         /// The <see cref="Server"/> used as the interface to support local
-        /// requests such as the hosting/exeuting of executables and to handle
+        /// requests such as the hosting/executing of executables and to handle
         /// our servers management demands.
         /// </summary>
         /// <see cref="Control.ConfigureHost"/>
@@ -138,24 +139,37 @@ namespace StarcounterInternal.Bootstrap
             {
                 bmx.sc_init_bmx_manager(HttpStructs.GlobalSessions.g_destroy_apps_session_callback);
                 OnBmxManagerInitialized();
+
+                // Initializing package loader.
+                Package.InitPackage(() => InternalHandlers.Register(
+                    configuration.DefaultUserHttpPort,
+                    configuration.DefaultSystemHttpPort)
+                );
             }
 
             // Initializing REST.
             RequestHandler.InitREST(configuration.TempDirectory);
 
-            // Initilize the Db environment (database name)
+            // Initialize the Db environment (database name)
             Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
-            // Initializing AppsBootstrapper.
-            AppsBootstrapper.InitAppsBootstrapper(configuration.DefaultUserHttpPort);
-
+            // Configuring host environment.
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();
 
+            // Configuring schedulers.
             hsched_ = ConfigureScheduler(configuration, mem, hmenv, schedulerCount);
             mem += (1024 + (schedulerCount * 512));
             OnSchedulerConfigured();
 
+            // Initializing AppsBootstrapper.
+            AppsBootstrapper.InitAppsBootstrapper(
+                (Byte)configuration.SchedulerCount,
+                configuration.DefaultUserHttpPort,
+                configuration.DefaultSystemHttpPort,
+                configuration.Name);
+
+            // Configuring database related settings.
             if (withdb_)
             {
                 ConfigureDatabase(configuration);
@@ -190,6 +204,14 @@ namespace StarcounterInternal.Bootstrap
             if (e != 0) throw ErrorCode.ToException(e);
 
             OnSchedulerStarted();
+
+            // TODO: Fix the proper BMX push channel registration with gateway.
+            // Waiting until BMX component is ready.
+            if (!configuration.NoNetworkGateway)
+            {
+                bmx.sc_wait_for_bmx_ready();
+                OnNetworkGatewayConnected();
+            }
 
             var appDomain = AppDomain.CurrentDomain;
             appDomain.AssemblyResolve += new ResolveEventHandler(Loader.ResolveAssembly);
@@ -254,15 +276,7 @@ namespace StarcounterInternal.Bootstrap
                 Loader.AddBasePackage(hsched_);
                 OnBasePackageLoaded();
             }
-
-            // TODO: Fix the proper BMX push channel registration with gateway.
-            // Waiting until BMX component is ready.
-            if (!configuration.NoNetworkGateway)
-            {
-                bmx.sc_wait_for_bmx_ready();
-                OnNetworkGatewayConnected();
-            }
-            
+           
             } finally { OnEndStart(); }
         }
 

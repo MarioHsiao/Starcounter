@@ -5,6 +5,8 @@ using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
+using System.Diagnostics;
+using System.IO;
 namespace Starcounter.Internal {
 
     /// <summary>
@@ -15,17 +17,45 @@ namespace Starcounter.Internal {
     /// considered for a future version. This includes Apps, SQL and other modules.
     /// </remarks>
     public static class AppsBootstrapper {
+
         private static HttpAppServer appServer;
-       // private static StaticWebServer fileServer;
-        private static UInt16 defaultPort_ = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+        // private static StaticWebServer fileServer;
 
         /// <summary>
         /// Initializes AppsBootstrapper.
         /// </summary>
         /// <param name="defaultPort"></param>
-        public static void InitAppsBootstrapper(UInt16 defaultPort)
+        public static void InitAppsBootstrapper(
+            Byte numSchedulers,
+            UInt16 defaultUserHttpPort,
+            UInt16 defaultSystemHttpPort,
+            String dbName)
         {
-            defaultPort_ = defaultPort;
+            // Setting some configuration settings.
+            NewConfig.Default.UserHttpPort = defaultUserHttpPort;
+            NewConfig.Default.SystemHttpPort = defaultSystemHttpPort;
+
+            NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
+            Node.ThisStarcounterNode = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
+
+            // Setting the response handler.
+            Node.SetHandleResponse(appServer.HandleResponse);
+
+            // Giving REST needed delegates.
+            UserHandlerCodegen.Setup(
+                GatewayHandlers.RegisterUriHandler,
+                OnHttpMessageRoot);
+
+            // Explicitly starting inactive sessions cleanup.
+            for (Byte i = 0; i < numSchedulers; i++)
+            {
+                // Getting sessions for current scheduler.
+                SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
+
+                // Starting inactive sessions cleanup for this scheduler.
+                DbSession dbs = new DbSession();
+                dbs.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
+            }
         }
         
         /// <summary>
@@ -55,33 +85,51 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="port">Listens for http traffic on the given port. </param>
         /// <param name="resourceResolvePath">Adds a directory path to the list of paths used when resolving a request for a static REST (web) resource</param>
-        public static void Bootstrap(UInt16 port = 0, string resourceResolvePath = null) {
+        public static void Bootstrap(
+            UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
+            string resourceResolvePath = null)
+        {
+            // Checking for the port.
+            if (port == StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
+                port = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+
+            // Setting default user port.
+            NewConfig.Default.UserHttpPort = port;
 
             if (resourceResolvePath != null)
+            {
                 AddFileServingDirectory(resourceResolvePath);
 
-            // Let the Network Gateway now when the user adds a handler (like GET("/")).
+                // Registering static content directory with Administrator.
 
-            // Checking for the port.
-            if (port == 0)
-                port = defaultPort_;
+                // Getting bytes from string.
+                //byte[] staticContentDirBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(resourceResolvePath);
 
-            // Setting the response handler.
-            Node.SetHandleResponse(appServer.HandleResponse);
+                // Converting path string to base64 string.
+                //string staticContentDirBase64 = System.Convert.ToBase64String(staticContentDirBytes);
 
-            // Giving REST needed delegates.
-            UserHandlerCodegen.Setup(
-                port,
-                GatewayHandlers.RegisterUriHandler,
-                OnHttpMessageRoot);
-            
-            // Register the handlers required by the Apps system. These work as user code handlers, but
-            // listens to the built in REST API serving view models to REST clients.
-            InternalHandlers.Register();
+                // Checking if this is not administrator.
+                if (!NewConfig.IsAdministratorApp)
+                {
+                    // Putting port and full path to resources directory.
+                    String content = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
+
+                    // Sending REST POST request to Administrator to register static resources directory.
+                    Node.ThisStarcounterNode.POST("/addstaticcontentdir", content, null, (HttpResponse resp) =>
+                    {
+                        String respString = resp.GetContentStringUtf8_Slow();
+
+                        if ("Success!" != respString)
+                            throw new Exception("Could not register static resources directory with administrator!");
+
+                        return "Success!";
+                    });
+                }
+            }
         }
 
         /// <summary>
-        /// Entrypoint for all incoming http requests from the Network Gateway.
+        /// Entry-point for all incoming http requests from the Network Gateway.
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>

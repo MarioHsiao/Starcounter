@@ -48,16 +48,16 @@ namespace Starcounter.Internal.JsonPatch
         {
             String headerStr;
 
-            headerStr = "HTTP/1.1 200 OK\r\nContent-Type: application/json-patch\r\nContent-Length: ";
+            headerStr = "HTTP/1.1 200 OK" + StarcounterConstants.NetworkConstants.CRLF + "Content-Type: application/json-patch" + StarcounterConstants.NetworkConstants.CRLF + "Content-Length: ";
             OK200_WITH_JSON_PATCH = Encoding.UTF8.GetBytes(headerStr);
 
-            headerStr = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\nContent-Length: ";
+            headerStr = "HTTP/1.1 400 Bad Request" + StarcounterConstants.NetworkConstants.CRLF + "Content-Type: text/plain" + StarcounterConstants.NetworkConstants.CRLF + "Content-Length: ";
             ERROR400_WITH_CONTENT = Encoding.UTF8.GetBytes(headerStr);
 
-            headerStr = "HTTP/1.1 415 Unsupported Media Type\r\nContent-Type: text/plain\r\nContent-Length: ";
+            headerStr = "HTTP/1.1 415 Unsupported Media Type" + StarcounterConstants.NetworkConstants.CRLF + "Content-Type: text/plain" + StarcounterConstants.NetworkConstants.CRLF + "Content-Length: ";
             ERROR415_WITH_CONTENT = Encoding.UTF8.GetBytes(headerStr);
 
-            headerStr = "\r\n\r\n";
+            headerStr = StarcounterConstants.NetworkConstants.CRLFCRLF;
             HTTP_HEADER_TERMINATOR = Encoding.UTF8.GetBytes(headerStr);
         }
 
@@ -162,13 +162,10 @@ namespace Starcounter.Internal.JsonPatch
                     obj = null;
                 }
 
-                buffer.Add((byte)'{');
-
-                patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.App, change.Template, obj, change.Index);
+                patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.Obj, change.Template, obj, change.Index);
                 Byte[] patchArr = Encoding.UTF8.GetBytes(patch);
                 buffer.AddRange(patchArr);
 
-                buffer.Add((byte)'}');
                 buffer.Add((byte)',');
                 buffer.Add((byte)'\n');
             }
@@ -194,20 +191,20 @@ namespace Starcounter.Internal.JsonPatch
             // Need a faster way than checking type and casting to get the value.
                 
             if (template is TString) {
-                ret = change.App.Get((TString)template);
+                ret = change.Obj.Get((TString)template);
             } else if (template is TObjArr) {
-                Arr appList = (Arr)change.App.Get((TObjArr)template);
+                Arr appList = (Arr)change.Obj.Get((TObjArr)template);
                 ret = appList[change.Index];
             } else if (template is TLong) {
-                ret = change.App.Get((TLong)template);
+                ret = change.Obj.Get((TLong)template);
             } else if (template is TBool) {
-                ret = change.App.Get((TBool)template);
+                ret = change.Obj.Get((TBool)template);
             } else if (template is TDouble) {
-                ret = change.App.Get((TDouble)template);
+                ret = change.Obj.Get((TDouble)template);
             } else if (template is TDecimal) {
-                ret = change.App.Get((TDecimal)template);
-            } else if (template is TPuppet) {
-                ret = change.App.Get((TPuppet)template);
+                ret = change.Obj.Get((TDecimal)template);
+            } else if (template is TObj) {
+                ret = change.Obj.Get((TObj)template);
             }
             return ret;
         }

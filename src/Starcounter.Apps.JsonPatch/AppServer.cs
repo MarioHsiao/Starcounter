@@ -5,7 +5,6 @@
 // ***********************************************************************
 
 using System;
-using System.Diagnostics;
 using System.Text;
 using HttpStructs;
 using Starcounter.Apps;
@@ -13,6 +12,7 @@ using Starcounter.Internal.REST;
 using Starcounter.Advanced;
 using System.Net;
 using Codeplex.Data;
+using Starcounter.Internal.JsonPatch;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -31,7 +31,7 @@ namespace Starcounter.Internal.Web {
         /// If the URI does not point to a App view model or a user implemented
         /// handler, this is where the request will go.
         /// </summary>
-        public StaticWebServer StaticFileServer;
+        private StaticWebServer StaticFileServer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpAppServer" /> class.
@@ -47,62 +47,54 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">Incomming HTTP request.</param>
         /// <param name="x">Result of calling user delegate.</param>
         /// <returns>HttpResponse instance.</returns>
-        public HttpResponse HandleResponse(HttpRequest request, Object x)
-        {
-            HttpResponse response = null;
-            Session session;
+        public HttpResponse HandleResponse(HttpRequest request, Object x) {
             uint errorCode;
+            HttpResponse response = null;
             string responseReasonPhrase;
+            Session session = null;
 
-            try
-            {
-                if (x != null)
-                {
-                    if (x is Puppet)
-                    {
-                        var app = (Puppet)x;
+            try {
+                if (x != null) {
+                    if (x is Obj) {
+                        // A json object as a response could be the following:
+                        // 1) A new object not attached to a Session, in which case we just serialize it and
+                        //    send the response as normal json.
+                        // 2) A new object attached to a Session, in which case we respond with a 201 Created and
+                        //    set the location on how to access the object.
+                        // 3) Updates to a session-bound object, in which case we respond with a batch of json-patches.
 
-                        // TODO:
-                        // How do we create new sessions and what is allowed here...
-                        // Should the users themselves create the session?
+                        // We always start from the root object, even if the object returned from the handler is further down in the tree.
+                        var root = GetJsonRoot((Obj)x);
+
                         session = Session.Current;
-                        if (session == null)
-                        {
-                            session = new Session();
-                            errorCode = request.GenerateNewSession(session);
-                            if (errorCode != 0)
-                                ErrorCode.ToException(errorCode);
-                            session.Start(request);
-                        }
+                        if (session == null || session.root != root) {
+                            // A simple object with no serverstate. Return a 200 OK with the json as content.
+                            response = new HttpResponse() {
+                                Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(root.ToJsonUtf8())
+                            };
+                        } else {
+                            if (root.LogChanges) {
+                                // An existing sessionbound object have been updated. Return a batch of jsonpatches.
+                                response = new HttpResponse() {
+                                    Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread)
+                                };
+                            } else {
+                                // A new sessionbound object. Return a 201 Created together with location and content.
+                                if (!request.HasSession) {
+                                    errorCode = request.GenerateNewSession(session);
+                                    if (errorCode != 0)
+                                        throw ErrorCode.ToException(errorCode);
+                                }
 
-                        request.Debug(" (new view model)");
-                        session.AttachRootApp(app);
-                        request.IsAppView = true;
-                        request.ViewModel = app.ToJsonUtf8();
-                        request.NeedsScriptInjection = true;
-                        //                          request.CanUseStaticResponse = false; // We need to provide the view model, so we can use 
-                        //                                                          // cached (and gziped) content, but not a complete cached
-                        //                                                          // response.
-
-                        var view = (string)app.View;
-                        if (view == null)
-                        {
-                            view = app.Template.ClassName + ".html";
+                                request.Debug(" (new view model)");
+                                root.LogChanges = true;
+                                response = new HttpResponse() {
+                                    Uncompressed = HttpResponseBuilder.Create201Response(root.ToJsonUtf8(), session.GetDataLocation())
+                                };
+                            }
                         }
-                        view = "/" + view;
-                        request.GzipAdvisable = false;
-                        response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(view, request) };
-                        app.IsSentExternally = true;
-                    }
-                    else if (x is Message)
-                    {
-                        var msgxxx = x as Message;
-                        response = new HttpResponse()
-                        {
-                            Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(msgxxx.ToJsonUtf8())
-                        };
-                    } else if (x is Json) {
-                        var dynJson = (Json)x;
+                    } else if (x is DynamicJson) {
+                        var dynJson = (DynamicJson)x;
                         response = new HttpResponse() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
                         };
@@ -134,27 +126,23 @@ namespace Starcounter.Internal.Web {
                         throw new NotImplementedException();
                     }
                 }
+
                 if (response == null)
                     response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
 
-                if (request.HasNewSession) {
-                    // A new session have been created. We need to inject a session-cookie stub to the response.
-
-                    // TODO:
-                    // We should try to inject all things in one go (scriptinjection, headerinjection) to avoid 
-                    // unnecessary creation and copying of buffers.
-                    response.Uncompressed = ScriptInjector.InjectInHeader(
-                        response.GetBytes(request),
-                        ScSessionStruct.SessionIdCookiePlusEndlineStubBytes,
-                        response.HeaderInjectionPoint);
-                }
-
                 return response;
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
                 return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             }
+        }
+
+        private Obj GetJsonRoot(Obj json) {
+            Container current = json;
+            while (current.Parent != null) {
+                current = current.Parent;
+            }
+            return (Obj)current;
         }
 
         /// <summary>
@@ -166,15 +154,12 @@ namespace Starcounter.Internal.Web {
         /// <exception cref="System.NotImplementedException"></exception>
         public override HttpResponse Handle(HttpRequest request) {
             object x;
-            Session session = null;
-
-            // Checking if we are in session already.
-            if (request.HasSession) {
-                session = (Session)request.AppsSessionInterface;
-                session.Start(request);
-            }
 
             try {
+                // Checking if we are in session already.
+                if (request.HasSession) {
+                    Session.Start((Session)request.AppsSessionInterface);
+                }
                 // Invoking original user delegate with parameters here.
 #if GW_URI_MATCHING_CODEGEN
                 UserHandlerCodegen.HandlersManager.RunDelegate(request, out x);
@@ -183,12 +168,11 @@ namespace Starcounter.Internal.Web {
 #endif
                 // Handling and returning the HTTP response.
                 return HandleResponse(request, x);
+            } catch (Exception ex) {
+                byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
+                return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             } finally {
-                session = Session.Current;
-                if (session != null) {
-                    session.End();
-                    session = null;
-                }
+                Session.End();
             }
         }
 
@@ -219,24 +203,22 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="ex">The ex.</param>
         /// <returns>String.</returns>
-		private String GetExceptionString(Exception ex)
-		{
-			Exception inner;
-			StringBuilder sb = new StringBuilder();
+        private String GetExceptionString(Exception ex) {
+            Exception inner;
+            StringBuilder sb = new StringBuilder();
 
-			sb.AppendLine(ex.Message);
-			sb.AppendLine(ex.StackTrace);
+            sb.AppendLine(ex.Message);
+            sb.AppendLine(ex.StackTrace);
 
-			inner = ex.InnerException;
-			while (inner != null)
-			{
-				sb.Append("-->");
-				sb.AppendLine(inner.Message);
-				sb.AppendLine(inner.StackTrace);
-				inner = inner.InnerException;
-			}
-			return sb.ToString();
-		}
+            inner = ex.InnerException;
+            while (inner != null) {
+                sb.Append("-->");
+                sb.AppendLine(inner.Message);
+                sb.AppendLine(inner.StackTrace);
+                inner = inner.InnerException;
+            }
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Sent from the Node when the user runs a module (an .EXE).
@@ -254,7 +236,7 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <returns>System.Int32.</returns>
         public override int Housekeep() {
-           return StaticFileServer.Housekeep();
+            return StaticFileServer.Housekeep();
         }
     }
 

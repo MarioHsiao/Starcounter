@@ -68,6 +68,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by " + StarcounterConstants.ProgramNames.ScSqlParser + ".exe.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort, "Specifies default HTTP port for user code.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort, "Specifies system HTTP port for user code.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SchedulerCount, "Specifies the number of schedulers.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, "User command line arguments.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, "Working directory for applet.");

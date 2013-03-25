@@ -46,13 +46,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arr.cs" />
+    <Compile Include="ChangeLog.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="DataBindingFactory.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
-    <Compile Include="Messages\Message.cs" />
-    <Compile Include="Messages\TMessage.cs" />
+    <Compile Include="JSON\JSON.cs" />
+    <Compile Include="JSON\TJSON.cs" />
     <Compile Include="Obj.cs" />
     <Compile Include="Obj.Dynamic.cs" />
     <Compile Include="Obj.GetSetValue.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="Templates\TObj.cs" />
     <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\TString.cs" />
+    <Compile Include="Templates\TTrigger.cs" />
     <Compile Include="ValueMetaData\ArrMetadata.cs" />
     <Compile Include="ValueMetaData\BoolMetadata.cs" />
     <Compile Include="ValueMetaData\DecimalMetadata.cs" />
@@ -81,9 +83,9 @@
     <Compile Include="ValueMetaData\Foundation\ObjMetadataBase.cs" />
     <Compile Include="ValueMetaData\Foundation\ValueMetadata.cs" />
     <Compile Include="ValueMetaData\LongMetadata.cs" />
-    <Compile Include="ValueMetaData\ObjectMetadata.cs" />
     <Compile Include="ValueMetaData\ObjMetadata.cs" />
     <Compile Include="ValueMetaData\StringMetadata.cs" />
+    <Compile Include="ValueMetaData\TriggerMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">

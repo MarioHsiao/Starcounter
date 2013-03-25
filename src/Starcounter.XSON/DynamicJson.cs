@@ -22,7 +22,7 @@ using System.Xml.Linq;
 
 namespace Codeplex.Data
 {
-    public class Json : DynamicObject
+    public class DynamicJson : DynamicObject
     {
         private enum JsonType
         {
@@ -85,7 +85,7 @@ namespace Codeplex.Data
                     return (string)element;
                 case JsonType.@object:
                 case JsonType.array:
-                    return new Json(element, type);
+                    return new DynamicJson(element, type);
                 case JsonType.@null:
                 default:
                     return null;
@@ -181,13 +181,13 @@ namespace Codeplex.Data
         readonly JsonType jsonType;
 
         /// <summary>create blank JSObject</summary>
-        public Json()
+        public DynamicJson()
         {
             xml = new XElement("root", CreateTypeAttr(JsonType.@object));
             jsonType = JsonType.@object;
         }
 
-        private Json(XElement element, JsonType type)
+        private DynamicJson(XElement element, JsonType type)
         {
             Debug.Assert(type == JsonType.array || type == JsonType.@object);
 
@@ -249,9 +249,9 @@ namespace Codeplex.Data
         private dynamic DeserializeValue(XElement element, Type elementType)
         {
             var value = ToValue(element);
-            if (value is Json)
+            if (value is DynamicJson)
             {
-                value = ((Json)value).Deserialize(elementType);
+                value = ((DynamicJson)value).Deserialize(elementType);
             }
             return Convert.ChangeType(value, elementType);
         }

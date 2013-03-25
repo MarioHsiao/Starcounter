@@ -12,6 +12,7 @@ using Starcounter.Apps;
 using Starcounter.Internal;
 using Starcounter.Templates;
 using Starcounter.Internal.JsonTemplate;
+using System.IO;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {
@@ -104,20 +105,14 @@ namespace Starcounter.Internal.JsonPatch.Test
         public static void TestReadJsonPatchBlob()
         {
             String patchBlob;
-            
             patchBlob = "[";
-            patchBlob += "{\"replace\":\"/FirstName\", \"value\": \"Hmmz\"},";
-            patchBlob += "{\"replace\":\"/FirstName\", \"value\": \"Hmmz\"   }";
-            patchBlob += " { \"replace\" :\"/FirstName\" ,  \"value\"  : \"abc123\" }";
+            patchBlob += "{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\": \"Hmmz\"},";
+            patchBlob += "{\"path\" :\"/FirstName\",  \"value\":    \"apapapapapapa\", \"op\": \"replace\"},";
+            patchBlob += "{  \"op\":\"replace\", \"value\": \"Abc123\",    \"path\"  :   \"/FirstName\"}";
             patchBlob += "]";
 
-            Session session = new Session();
-            session.Execute(null, () =>
-            {
-                Puppet rootApp = CreateSampleApp().App;
-                Session.Current.AttachRootApp(rootApp);
-                JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
-            });
+            Obj rootApp = CreateSampleApp().App;
+            JsonPatch.EvaluatePatches(rootApp, System.Text.Encoding.UTF8.GetBytes(patchBlob));
         }
 
         /// <summary>
@@ -128,7 +123,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         {
             Session session = new Session();
 
-            session.Execute(null, () => {
+            Session.Execute(session, () => {
 
                 AppAndTemplate aat = CreateSampleApp();
                 dynamic app = aat.App;
@@ -183,8 +178,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, from, "Hmmz", -1);
             Console.WriteLine(str);
 
-            // "replace":"/FirstName", "value":"hmmz"
-            Assert.AreEqual("\"replace\":\"/FirstName\", \"value\":\"Hmmz\"", str);
+            Assert.AreEqual("{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Hmmz\"}", str);
 
             //from = aat.Template.Children[2].Children[0].Children[0];
             //str = JsonPatch.BuildJsonPatch(JsonPatchType.replace, item, from, "Hmmz", -1);
@@ -192,7 +186,6 @@ namespace Starcounter.Internal.JsonPatch.Test
 
             //// "replace":"/Items/1/Description", "value":"Hmmz"
             //Assert.AreEqual("\"replace\":\"/Items/1/Description\", \"value\":\"Hmmz\"", str);
-
 
             from = appt.Properties[0];
             Int32 repeat = 100000;
@@ -266,37 +259,38 @@ namespace Starcounter.Internal.JsonPatch.Test
 
             Int32 repeat = 1;
 
-            Session session = new Session();
-            session.Execute(null, () => {
-                AppAndTemplate aat = CreateSampleApp();
+            ChangeLog log = new ChangeLog();
+            ChangeLog.CurrentOnThread = log;
 
-                appt = (TPuppet)aat.Template;
+            AppAndTemplate aat = CreateSampleApp();
 
-                TString lastName = (TString)appt.Properties[1];
-                TObjArr items = (TObjArr)appt.Properties[2];
+            appt = (TPuppet)aat.Template;
 
-                dynamic app = aat.App;
-                app.LastName = "Ewing";
-                app.Items.RemoveAt(0);
-                dynamic newitem = app.Items.Add();
-                newitem.Description = "Aight!";
-                app.LastName = "Poe";
+            TString lastName = (TString)appt.Properties[1];
+            TObjArr items = (TObjArr)appt.Properties[2];
 
-                start = DateTime.Now;
-                for (Int32 i = 0; i < repeat; i++) {
-                    ChangeLog.UpdateValue(app, lastName);
-                    //                ChangeLog.RemoveItemInList(app, items, 0);
-                    ChangeLog.AddItemInList(app, items, app.Items.Count - 1);
+            dynamic app = aat.App;
+            app.LastName = "Ewing";
+            app.Items.RemoveAt(0);
+            dynamic newitem = app.Items.Add();
+            newitem.Description = "Aight!";
+            app.LastName = "Poe";
 
-                    //ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
-                    ChangeLog.UpdateValue(app, lastName);
+            start = DateTime.Now;
+            for (Int32 i = 0; i < repeat; i++) {
+                ChangeLog.UpdateValue(app, lastName);
+                //                ChangeLog.RemoveItemInList(app, items, 0);
+                ChangeLog.AddItemInList(app, items, app.Items.Count - 1);
 
-                    response = HttpPatchBuilder.CreateHttpPatchResponse(session.changeLog);
-                    session.changeLog.Clear();
-                }
-                stop = DateTime.Now;
+                //ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
+                ChangeLog.UpdateValue(app, lastName);
 
-            });
+                response = HttpPatchBuilder.CreateHttpPatchResponse(log);
+                log.Clear();
+            }
+            stop = DateTime.Now;
+            ChangeLog.CurrentOnThread = null;
+
             Console.WriteLine("Created {0} responses in {1} ms", repeat, (stop - start).TotalMilliseconds);
             Console.WriteLine(Encoding.UTF8.GetString(response));
         }
@@ -325,8 +319,8 @@ namespace Starcounter.Internal.JsonPatch.Test
         /// <returns>AppAndTemplate.</returns>
         private static AppAndTemplate CreateSampleApp()
         {
-            dynamic template = TemplateFromJs.ReadPuppetTemplateFromFile("SampleApp.json");
-            dynamic app = new Puppet() { Template = template };
+            dynamic template = TemplateFromJs.CreateFromJs(typeof(TObj), File.ReadAllText("SampleApp.json"), false);
+            dynamic app = new Json() { Template = template };
             
             app.FirstName = "Cliff";
             app.LastName = "Barnes";

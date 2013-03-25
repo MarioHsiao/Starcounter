@@ -10,6 +10,7 @@ using Starcounter;
 
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using System.Collections;
 
 namespace Starcounter {
 
@@ -32,7 +33,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="result"></param>
-        protected Arr(Rows<object> result) : base(result) {
+        protected Arr(IEnumerable result) : base(result) {
         }
 
         /// <summary>
@@ -108,7 +109,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        internal Rows<object> notEnumeratedResult = null;
+        internal IEnumerable notEnumeratedResult = null;
 
         /// <summary>
         /// 
@@ -140,7 +141,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="result"></param>
-        protected Arr(Rows<object> result) {
+        protected Arr(IEnumerable result) {
             notEnumeratedResult = result;
         }
 
@@ -291,15 +292,6 @@ namespace Starcounter {
 #else
          throw new NotImplementedException();
 #endif
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        internal override void OnSetParent(Container item) {
-            base.OnSetParent(item);
-            //            QuickAndDirtyArray.Add((App)item);
         }
 
         /// <summary>

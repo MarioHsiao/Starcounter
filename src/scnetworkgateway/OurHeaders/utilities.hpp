@@ -23,6 +23,39 @@ namespace network {
 #define GW_LOGGING_ON
 #endif
 
+enum GwLoggingType
+{
+    GW_LOGGING_ERROR_TYPE,
+    GW_LOGGING_WARNING_TYPE,
+    GW_LOGGING_NOTICE_TYPE,
+    GW_LOGGING_CRITICAL_TYPE
+};
+
+class ThreadSafeWCout
+{
+public:
+
+    ThreadSafeWCout(GwLoggingType t)
+    {
+        t_ = t;
+    }
+
+    // Writing to log once object is destroyed.
+    ~ThreadSafeWCout();
+
+    // Overloading all needed streaming operators.
+    template <typename T> ThreadSafeWCout& operator<<(T const& t)
+    {
+        ss_ << t; // Accumulate into a non-shared stringstream, no threading issues.
+        return *this;
+    }
+
+private:
+
+    std::wstringstream ss_;
+    GwLoggingType t_;
+};
+
 class ThreadSafeCout
 {
 public:
@@ -34,7 +67,7 @@ public:
     template <typename T> ThreadSafeCout& operator<<(T const& t)
     {
 #ifdef GW_LOGGING_ON
-        ss << t; // Accumulate into a non-shared stringstream, no threading issues.
+        ss_ << t; // Accumulate into a non-shared stringstream, no threading issues.
 #endif
         return *this;
     }
@@ -42,16 +75,23 @@ public:
 private:
 
 #ifdef GW_LOGGING_ON
-    std::stringstream ss;
+    std::stringstream ss_;
 #endif
 };
 
 // Defining two streams output object.
 #define GW_COUT ThreadSafeCout()
+
+#define GW_LOG_ERROR ThreadSafeWCout(GW_LOGGING_ERROR_TYPE)
+#define GW_LOG_WARNING ThreadSafeWCout(GW_LOGGING_WARNING_TYPE)
+#define GW_LOG_NOTICE ThreadSafeWCout(GW_LOGGING_NOTICE_TYPE)
+#define GW_LOG_CRITICAL ThreadSafeWCout(GW_LOGGING_CRITICAL_TYPE)
+
 #define GW_ENDL "\n"
+#define GW_WENDL L"\n"
 
 //uint64_t ReadDecimal(const char *start);
-uint32_t PrintLastError();
+uint32_t PrintLastError(bool report_to_log = false);
 
 // Invalid value of converted number from hexadecimal string.
 const uint64_t INVALID_CONVERTED_NUMBER = 0xFFFFFFFFFFFFFFFF;

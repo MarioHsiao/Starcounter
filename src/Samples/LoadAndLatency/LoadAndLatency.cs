@@ -23,7 +23,7 @@ namespace LoadAndLatency
         const Int32 SingleWorkerSchedId = 255;
 
         // Minimum number of workers during nightly build.
-        const Int32 MinNightlyWorkers = 8;
+        public Int32 MinNightlyWorkers = 5;
 
         // Performance timer frequency (counts per microsecond).
         Double timerFreqTicksPerMcs = 0;
@@ -32,7 +32,7 @@ namespace LoadAndLatency
         Boolean startedOnClient = false;
 
         // Object creation transactions multiplier.
-        public Int32 TransactionsNumber = 100;
+        public Int32 TransactionsMagnifier = 100;
 
         // Number of objects per each transaction.
         Int32 NumObjectsPerTransaction = 1000;
@@ -106,6 +106,16 @@ namespace LoadAndLatency
             SIMPLE_OBJECT_DELETE_WITH_QUERY
         }
 
+        public enum LALSpecificTestType
+        {
+            LAL_STANDARD_TEST,
+            LAL_PARALLEL_READ_ONLY_TEST,
+            LAL_PARALLEL_UPDATES_TEST
+        }
+
+        // Specific LAL test type if any.
+        public LALSpecificTestType SpecificTestType = LALSpecificTestType.LAL_STANDARD_TEST;
+
         // Number of different query types.
         readonly Int32 NumOfQueryTypes = 0;
 
@@ -126,9 +136,6 @@ namespace LoadAndLatency
 
         // Some of nanoseconds per object per operation.
         Double g_nsPerObjectUnsafe = 0;
-
-        // Indicates if only parallel test should run.
-        Boolean parallelTestOnly = false;
 
         // Used for logging test messages.
         TestLogger logger = null;
@@ -196,7 +203,7 @@ namespace LoadAndLatency
         /// <summary>
         /// Constructor.
         /// </summary>
-        public LoadAndLatencyCore(Boolean startedOnClient, Boolean onlyParallelTest)
+        public LoadAndLatencyCore(Boolean startedOnClient)
         {
             // Determine performance timer frequency.
             UInt64 freqTempVar = 0;
@@ -209,19 +216,8 @@ namespace LoadAndLatency
             // Ticks per microsecond.
             timerFreqTicksPerMcs = freqTempVar / 1000000.0;
 
-            // Getting transactions number from env variable.
-            String transNumVar = Environment.GetEnvironmentVariable("LAL_TRANS_NUM");
-            if (transNumVar != null)
-                TransactionsNumber = Int32.Parse(transNumVar);
-
-            // Getting objects number per each transaction from env variable.
-            String objPerTransVar = Environment.GetEnvironmentVariable("LAL_OBJ_PER_TRANS");
-            if (objPerTransVar != null)
-                NumObjectsPerTransaction = Int32.Parse(objPerTransVar);
-
-            // Initializing data.
-            parallelTestOnly = onlyParallelTest;
-            TotalNumOfObjectsInDB = TransactionsNumber * NumObjectsPerTransaction;
+            // Determining number of objects in database.
+            TotalNumOfObjectsInDB = TransactionsMagnifier * NumObjectsPerTransaction;
             NumOfQueryTypes = QueryStrings.Length;
 
             this.startedOnClient = startedOnClient;
@@ -235,17 +231,17 @@ namespace LoadAndLatency
             if (TestLogger.IsNightlyBuild())
             {
                 additionalWorkersNum = 0;
-                TotalNumOfObjectsInDB = TransactionsNumber * NumObjectsPerTransaction;
+                TotalNumOfObjectsInDB = TransactionsMagnifier * NumObjectsPerTransaction;
             }
         }
 
         /// <summary>
-        /// Changes number of transactions to a new value.
+        /// Changes transactions magnifier to a new value.
         /// </summary>
-        public void ChangeNumberOfTransactions(Int32 numberOfTrans)
+        public void ChangeTransactionsMagnifier(Int32 transactionsMagnifier)
         {
-            TransactionsNumber = numberOfTrans;
-            TotalNumOfObjectsInDB = TransactionsNumber * NumObjectsPerTransaction;
+            TransactionsMagnifier = transactionsMagnifier;
+            TotalNumOfObjectsInDB = TransactionsMagnifier * NumObjectsPerTransaction;
         }
 
         /// <summary>
@@ -259,7 +255,7 @@ namespace LoadAndLatency
         /// <summary>
         /// Main entry point for all LoadAndLatency tests.
         /// </summary>
-        public void EntryPoint(Object state)
+        public UInt32 EntryPoint()
         {
             //System.Diagnostics.Debugger.Break();
 
@@ -269,7 +265,7 @@ namespace LoadAndLatency
                 // Creating file indicating finish of the work.
                 logger.Log("LoadAndLatency in-process test is skipped!", TestLogger.LogMsgType.MSG_SUCCESS);
 
-                return;
+                return 0;
             }
 
             LogEvent("--- Starting LoadAndLatency Test...");
@@ -280,32 +276,57 @@ namespace LoadAndLatency
             // Determining total number of workers.
             Int32 numOfJobsTotal = NumOfLogProc + additionalWorkersNum;
 
-            // Flag for ladder test.
-            Boolean ladderTest = (Environment.GetEnvironmentVariable("LAL_LADDER") != null);
-
             // Creating shuffled data for workers.
             InitRandomData(numOfJobsTotal);
             LogEvent("---------------------------------------------------------------");
 
-            // Checking if we need to run parallel test only.
-            if (parallelTestOnly)
-            {
-                LogEvent("--- Only parallel test selected to be run...");
+            // Preparing database to run tests.
+            SQLSelectPrepare();
 
-                // Preparing database to run tests.
-                SQLSelectPrepare();
+            // Checking if we need to run parallel test only.
+            if (SpecificTestType == LALSpecificTestType.LAL_PARALLEL_READ_ONLY_TEST)
+            {
+                LogEvent("--- Only parallel read-only test selected to be run...");
 
                 // Doing read transactions performance with multiple workers.
                 SQLSelectMulti(false, NumOfWorkers);
 
                 // Indicating successful finish of the work.
-                logger.Log("LoadAndLatency parallel test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+                logger.Log("LoadAndLatency parallel read-only test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
 
-                return;
+                return 0;
             }
+            // Checking type of a test.
+            else if (SpecificTestType == LALSpecificTestType.LAL_PARALLEL_UPDATES_TEST)
+            {
+                LogEvent("--- Only parallel updates test selected to be run...");
 
-            // Preparing database to run tests.
-            SQLSelectPrepare();
+                // Doing update transactions performance.
+                SQLSelectSingle(true);
+
+                // Running simple multi-workers scalability test.
+                for (Int32 i = MinNightlyWorkers; i <= NumOfWorkers; i++)
+                {
+                    SQLSimpleMultiTest(i, TotalNumOfObjectsInDB, 1);
+                }
+
+                // Running more complex multi-workers scalability test with updates.
+                for (Int32 i = MinNightlyWorkers; i <= NumOfWorkers; i++)
+                {
+                    SQLSelectMulti(true, i);
+                }
+
+                // Running simple multi-workers scalability test.
+                for (Int32 i = MinNightlyWorkers; i <= NumOfWorkers; i++)
+                {
+                    SQLSimpleMultiTest(i, TotalNumOfObjectsInDB / 100, 100);
+                }
+
+                // Indicating successful finish of the work.
+                logger.Log("LoadAndLatency parallel updates test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+
+                return 0;
+            }
 
             // Testing that recreation/offset key works.
             SQLTestOffsetKeySimple();
@@ -324,7 +345,7 @@ namespace LoadAndLatency
             SQLSelectMulti(false, NumOfWorkers);
 
             // Running ladder test if its a nightly build.
-            if (TestLogger.IsNightlyBuild() || ladderTest)
+            if (TestLogger.IsNightlyBuild())
             {
                 // Disabling logging through error console.
                 logger.TurnOffStatistics = true;
@@ -364,7 +385,7 @@ namespace LoadAndLatency
                         testType <= SimpleObjectOperations.SIMPLE_OBJECT_DELETE_WITH_QUERY;
                         testType++)
                     {
-                        SimplePerformanceTest(NumObjectsPerTransaction, TransactionsNumber * i / 5, testType, 0, true);
+                        SimplePerformanceTest(NumObjectsPerTransaction, TransactionsMagnifier * i / 5, testType, 0, true);
                     }
                 }
 
@@ -374,6 +395,8 @@ namespace LoadAndLatency
 
             // Indicating successful finish of the work.
             logger.Log("LoadAndLatency successfully finished!", TestLogger.LogMsgType.MSG_SUCCESS);
+
+            return 0;
         }
 
         /// <summary>
@@ -412,7 +435,7 @@ namespace LoadAndLatency
 
             // Creating objects only if there are none of them.
             LogEvent(String.Format("   Inserting new {0} average-size objects using {1} transactions with {2} object inserts each.",
-                TotalNumOfObjectsInDB, TransactionsNumber, NumObjectsPerTransaction));
+                TotalNumOfObjectsInDB, TransactionsMagnifier, NumObjectsPerTransaction));
 
             PreciseTimer perfTimer = new PreciseTimer();
             perfTimer.Start();
@@ -582,7 +605,7 @@ namespace LoadAndLatency
                     SqlEnumerator<Object> sqlEnum = null;
 
                     // Running throw all transactions.
-                    for (Int32 trans = 0; trans < TransactionsNumber; trans++)
+                    for (Int32 trans = 0; trans < TransactionsMagnifier; trans++)
                     {
                         if (trans == 0)
                         {
@@ -656,7 +679,7 @@ namespace LoadAndLatency
 
             perfTimer.Stop();
 
-            LogEvent(String.Format("   {0} rows selection {1} times, {2} repeats took: {3} mcs.", NumObjectsPerTransaction, TransactionsNumber, repeats, perfTimer.DurationMcs));
+            LogEvent(String.Format("   {0} rows selection {1} times, {2} repeats took: {3} mcs.", NumObjectsPerTransaction, TransactionsMagnifier, repeats, perfTimer.DurationMcs));
             LogEvent("---------------------------------------------------------------");
         }
 
@@ -671,7 +694,7 @@ namespace LoadAndLatency
             Int32 fetchNumber = NumObjectsPerTransaction,
                 repeats = 100;
 
-            LogEvent(String.Format("   Running SQL SELECT test for {0} rows selection (pyramide with FETCH), {1} times, {2} repeats.", NumObjectsPerTransaction, TransactionsNumber, repeats));
+            LogEvent(String.Format("   Running SQL SELECT test for {0} rows selection (pyramide with FETCH), {1} times, {2} repeats.", NumObjectsPerTransaction, TransactionsMagnifier, repeats));
 
             // Creating indexes array strings.
             String[] shuffledArrayString = new String[TotalNumOfObjectsInDB];
@@ -688,7 +711,7 @@ namespace LoadAndLatency
                 Int64 calcChecksum = 0, m = 0, artChecksum = 0;
 
                 // Running specified number of transactions.
-                for (Int32 i = 0; i < TransactionsNumber; i++)
+                for (Int32 i = 0; i < TransactionsMagnifier; i++)
                 {
                     // Transaction scope.
                     using (Transaction transaction = Transaction.NewCurrent())
@@ -742,7 +765,7 @@ namespace LoadAndLatency
 
             perfTimer.Stop();
 
-            LogEvent(String.Format("   {0} rows selection {1} times, {2} repeats took: {3} mcs.", NumObjectsPerTransaction, TransactionsNumber, repeats, perfTimer.DurationMcs));
+            LogEvent(String.Format("   {0} rows selection {1} times, {2} repeats took: {3} mcs.", NumObjectsPerTransaction, TransactionsMagnifier, repeats, perfTimer.DurationMcs));
             LogEvent("---------------------------------------------------------------");
         }
 
@@ -1948,7 +1971,7 @@ namespace LoadAndLatency
             Int64 curObjectNum = 0;
 
             // Populating database using number of given transactions.
-            for (Int32 t = 0; t < TransactionsNumber; t++)
+            for (Int32 t = 0; t < TransactionsMagnifier; t++)
             {
                 using (Transaction transaction = Transaction.NewCurrent())
                 {

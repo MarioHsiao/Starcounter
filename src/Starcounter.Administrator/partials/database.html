@@ -1,0 +1,52 @@
+﻿<div ng-show="hasMessage()">
+    <div class="alert alert-error">
+        {{message}}
+    </div>
+</div>
+
+<div ng-hide="hasMessage()">
+
+
+    <!--<h4>Database: {{database.DatabaseName}}</h4>-->
+
+    <dl class="dl-horizontal">
+        <dt>Name</dt>
+        <dd>{{database.DatabaseName}}</dd>
+        <dt>ProcessId</dt>
+        <dd>{{database.HostProcessId}}</dd>
+<!--        <dt>MaxImageSize</dt>
+        <dd>{{database.MaxImageSize}}</dd>
+        <dt>TransactionLogSize</dt>
+        <dd>{{database.TransactionLogSize}}</dd>
+        <dt>CollationFile</dt>
+        <dd>{{database.CollationFile}}</dd>
+        <dt>SupportReplication</dt>
+        <dd>{{database.SupportReplication}}</dd>-->
+    </dl>
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>ExecutablePath</th>
+                <th>WorkingDirectory</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr ng-repeat="app in database.Apps">
+                <td>{{app.ExecutablePath}}</td>
+                <td>{{app.WorkingDirectory}}</td>
+            </tr>
+        </tbody>
+
+    </table>
+
+    <div class="btn-group">
+        <button class="btn" ng-click="btnClick_start()">Start</button>
+        <button class="btn" ng-click="btnClick_stop()">Stop</button>
+    </div>
+
+</div>
+
+

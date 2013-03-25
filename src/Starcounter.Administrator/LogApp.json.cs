@@ -6,8 +6,8 @@ using System.Threading;
 using Sc.Tools.Logging;
 using Starcounter;
 
-namespace StarcounterApps3 {
-    partial class LogApp : Puppet {
+namespace Starcounter.Administrator {
+    partial class LogApp : Json {
 
         static string directoryPath;
 
@@ -24,6 +24,9 @@ namespace StarcounterApps3 {
         }
 
         void Handle(Input.FilterWarning action) {
+
+            //this.FilterWarning = action.Value;
+
             this.RefreshLogEntriesList();
         }
 

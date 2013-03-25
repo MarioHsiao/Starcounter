@@ -323,6 +323,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             break;
         }
 
+#ifndef GW_NEW_SESSIONS_APPROACH
         case SCSESSIONID_FIELD:
         {
             // Checking if Starcounter session id is presented.
@@ -349,7 +350,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
                 }
 
                 // Checking if we have existing session.
-                ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(cookie_session_index);
+                ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionCopy(cookie_session_index);
 
                 // Compare this session with existing one.
                 if (!global_session_copy.CompareSalts(cookie_random_salt))
@@ -372,6 +373,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
             break;
         }
+#endif
 
         case CONTENT_LENGTH_FIELD:
         {
@@ -652,6 +654,16 @@ DONE_URI_MATCHING:
         if (matched_index < 0)
             return SCERRREQUESTONUNREGISTEREDURI;
 
+        // Getting matched URI index.
+        RegisteredUri* matched_uri = port_uris->GetEntryByIndex(matched_index);
+
+        // Checking if we have a session parameter.
+        if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
+        {
+            MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_data()) + matched_uri->get_session_param_index();
+            sd->GetSessionStruct()->FillFromString(method_and_uri + p->offset_, p->len_);
+        }
+
         // Indicating that matching URI index was found.
         //set_matched_uri_index(matched_index);
 
@@ -660,7 +672,7 @@ DONE_URI_MATCHING:
         sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
-        return port_uris->GetEntryByIndex(matched_index)->RunHandlers(gw, sd, is_handled);
+        return matched_uri->RunHandlers(gw, sd, is_handled);
     }
     else
     {
@@ -927,6 +939,7 @@ ALL_DATA_ACCUMULATED:
             return ws_proto_.ProcessWsDataFromDb(gw, sd, handler_id);
         }
 
+#ifndef GW_NEW_SESSIONS_APPROACH
         // Correcting the session cookie.
         if (sd->get_new_session_flag())
         {
@@ -942,7 +955,7 @@ ALL_DATA_ACCUMULATED:
             session_cookie += kSetCookieStringPrefixLength;
 
             // Getting session global copy.
-            ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionDataCopy(sd->get_session_index());
+            ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionCopy(sd->get_session_index());
 
             // Comparing session salts for correctness.
             bool correct_session = global_session_copy.CompareSalts(sd->get_session_salt());
@@ -954,6 +967,7 @@ ALL_DATA_ACCUMULATED:
             // Session has been created.
             sd->set_new_session_flag(false);
         }
+#endif
 
         // Prepare buffer to send outside.
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());

@@ -2,9 +2,13 @@
 using Starcounter;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
+using System.Web;
 
-namespace StarcounterApps3 {
-    partial class DatabaseApp : Puppet {
+namespace Starcounter.Administrator {
+    partial class DatabaseApp : Json {
+
+        void Handle(Input.DatabaseName action) {
+        }
 
         void Handle(Input.Start start) {
 
@@ -37,15 +41,16 @@ namespace StarcounterApps3 {
         public void SetDatabaseInfo(DatabaseInfo databaseInfo) {
 
             this.DatabaseName = databaseInfo.Name;
-            this.Uri = System.Uri.EscapeDataString(databaseInfo.Uri); // This will be used in the url string for getting one database
+
+            this.DatabaseId = Master.EncodeTo64(databaseInfo.Uri);
+            this.Uri = databaseInfo.Uri; 
+
             this.MaxImageSize = (int)databaseInfo.MaxImageSize;
             this.TransactionLogSize = (int)databaseInfo.TransactionLogSize;
             this.CollationFile = databaseInfo.CollationFile;
             this.SupportReplication = databaseInfo.SupportReplication;
 
             this.HostProcessId = databaseInfo.HostProcessId;
-
-//                        Uri = Uri.EscapeDataString(database.Uri),
 
             this.Apps.Clear(); // TODO: Update list, do not recreate it.
             foreach (var app in databaseInfo.HostedApps) {

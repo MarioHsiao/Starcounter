@@ -1,36 +1,21 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);GeneratePuppetCode;GenerateMessageCode</CoreCompileDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateTypedJsonCode</CoreCompileDependsOn>
   </PropertyGroup>
   <ItemGroup>
-    <AvailableItemName Include="Puppet"/>
-    <AvailableItemName Include="Message"/>
+    <AvailableItemName Include="TypedJSON"/>
   </ItemGroup>
-     
-  <!-- TODO: Temporary path. Use installation directory for starcounter later when Apps is integrated into main Starcounter -->
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToPuppetCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
+  
+  <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
 
-  <Target Name="GeneratePuppetCode" Inputs="@(Puppet)" Outputs="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToPuppetCsMsBuildTask
-       InputFiles="@(Puppet)"
-       OutputFiles="@(Puppet->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="puppetFiles" /> 
-    </JsonToPuppetCsMsBuildTask>
-	<ItemGroup>
-      <Compile Include="@(puppetFiles)" />
-    </ItemGroup>
-  </Target>
-
- <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToMessageCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
-
-  <Target Name="GenerateMessageCode" Inputs="@(Message)" Outputs="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-    <JsonToMessageCsMsBuildTask
-       InputFiles="@(Message)"
-       OutputFiles="@(Message->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="messageFiles" /> 
-    </JsonToMessageCsMsBuildTask>
-	<ItemGroup>
-      <Compile Include="@(messageFiles)" />
+  <Target Name="GenerateTypedJSONCode" Inputs="@(TypedJSON)" Outputs="@(TypedJSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+    <JsonToTypedJsonCsMsBuildTask
+       InputFiles="@(TypedJSON)"
+       OutputFiles="@(TypedJSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       <Output TaskParameter="OutputFiles" ItemName="TypedJSONFiles" /> 
+    </JsonToTypedJsonCsMsBuildTask>
+    <ItemGroup>
+      <Compile Include="@(TypedJSONFiles)" />
     </ItemGroup>
   </Target>
 
@@ -38,8 +23,7 @@
     <Exec Command="&quot;$(StarcounterBin)\scweaver.exe&quot; WeaveBootstrapper &quot;$(TargetPath)&quot;"/>
   </Target>
 
-  <Target Name="AfterBuild" DependsOnTargets="BootstrapWeaving">
-  </Target>
+  <Target Name="AfterBuild" DependsOnTargets="BootstrapWeaving"></Target>
 </Project>
 
 

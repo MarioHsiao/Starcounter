@@ -8,7 +8,7 @@ namespace Starcounter.Internal.MsBuild {
     /// <summary>
     /// Task that creates a C# message class from JSON file(s).
     /// </summary>
-    public class JsonToMessageCsMsBuildTask : Task {
+    public class JsonToTypedJsonCsMsBuildTask : Task {
         /// <summary>
         /// Gets or sets the input files.
         /// </summary>
@@ -28,14 +28,14 @@ namespace Starcounter.Internal.MsBuild {
         /// </summary>
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         public override bool Execute() {
-            return BuildCustomObjClass<TMessage>.ExecuteTask(InputFiles, OutputFiles, Log);
+            return BuildCustomObjClass<TJson>.ExecuteTask(InputFiles, OutputFiles, Log);
         }
     }
 
     /// <summary>
     /// Class JsonToCsMsBuildTask without loading into domain (slower).
     /// </summary>
-    public class JsonToMessageCsMsBuildTaskNoLocking : AppDomainIsolatedTask {
+    public class JsonToTypedJsonCsMsBuildTaskNoLocking : AppDomainIsolatedTask {
         /// <summary>
         /// Gets or sets the input files.
         /// </summary>
@@ -55,7 +55,7 @@ namespace Starcounter.Internal.MsBuild {
         /// </summary>
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         public override bool Execute() {
-            return BuildCustomObjClass<TMessage>.ExecuteTask(InputFiles, OutputFiles, Log);
+            return BuildCustomObjClass<TJson>.ExecuteTask(InputFiles, OutputFiles, Log);
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using System;
 using Starcounter;
 
-namespace StarcounterApps3 {
-    partial class AppApp : Puppet {
+namespace Starcounter.Administrator {
+    partial class AppApp : Json {
     }
 
 
