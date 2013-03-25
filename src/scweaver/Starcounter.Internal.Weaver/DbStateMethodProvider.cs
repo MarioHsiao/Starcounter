@@ -4,18 +4,19 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
 using Sc.Server.Weaver.Schema;
-using Starcounter;
-using Starcounter.Internal;
-using IMethod = PostSharp.Sdk.CodeModel.IMethod;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 
 namespace Starcounter.Internal.Weaver {
+
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+
     /// <summary>
     /// Provides the method <see cref="GetGetMethod" /> and <see cref="GetSetMethod" />, which determine
     /// which method of the <see cref="DbState" /> class should be called to retrieve or store the value
