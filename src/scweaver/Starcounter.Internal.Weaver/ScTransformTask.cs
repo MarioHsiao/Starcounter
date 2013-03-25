@@ -4,16 +4,9 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
 using PostSharp.Extensibility;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeModel.Binding;
-using PostSharp.Sdk.CodeModel.Collections;
-using PostSharp.Sdk.CodeModel.Helpers;
 using PostSharp.Sdk.CodeModel.SerializationTypes;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
 using PostSharp.Sdk.CodeWeaver;
@@ -21,12 +14,24 @@ using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
 using Sc.Server.Weaver.Schema;
-using Starcounter;
+using Starcounter.Hosting;
+using Starcounter.Internal.Weaver.BackingCode;
+using Starcounter.Internal.Weaver.BackingInfrastructure;
+using Starcounter.Internal.Weaver.IObjectViewImpl;
 using Starcounter.LucentObjects;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
+using System.Text;
+
 using IMember = PostSharp.Sdk.CodeModel.IMember;
 using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 
 namespace Starcounter.Internal.Weaver {
+
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+
     /// <summary>
     /// PostSharp task responsible for transforming the assembly. It also implements the
     /// <see cref="IAdviceProvider" /> interface to provide advices to the low-level
@@ -114,11 +119,6 @@ namespace Starcounter.Internal.Weaver {
         /// The _module
         /// </summary>
         private ModuleDeclaration _module;
-        /// <summary>
-        /// The _starcounter implementation type def
-        /// </summary>
-        private TypeDefDeclaration _starcounterImplementationTypeDef;
-        //private MethodDefDeclaration _lucentClientAssemblyInitializerMethod;
         /// <summary>
         /// The _weaving helper
         /// </summary>
@@ -305,24 +305,30 @@ namespace Starcounter.Internal.Weaver {
                 _module.AssemblyManifest.CustomAttributes.Add(new CustomAttributeDeclaration(weavedAssemblyAttributeCtor));
             }
 
+            var assemblySpecification = new AssemblySpecificationEmit(_module);
+            TypeSpecificationEmit typeSpecification = null;
+
             // Process database classes defined in the current assembly.
 
             foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
                 ScTransformTrace.Instance.WriteLine("Transforming {0}.", dbc);
                 typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
 
+                // Transformations specific to entity classes.
+                databaseEntityClass = dbc as DatabaseEntityClass;
+                
+                typeSpecification = assemblySpecification.IncludeDatabaseClass(typeDef);
+                if (InheritsObject(typeDef)) {
+                    ImplementIObjectProxy(typeDef);
+                }
+
                 // Generate field accessors and add corresponding advices
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        GenerateFieldAccessors(dba, field);
+                        var columnHandleField = typeSpecification.IncludeField(field);
+                        GenerateFieldAccessors(dba, field, columnHandleField);
                     }
-                }
-
-                // Transformations specific to entity classes.
-                databaseEntityClass = dbc as DatabaseEntityClass;
-                if (databaseEntityClass != null) {
-                    AddTypeReferenceFields(typeDef);
                 }
             }
 
@@ -331,13 +337,15 @@ namespace Starcounter.Internal.Weaver {
 
             foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
                 typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
-                EnhanceConstructors(typeDef, dbc);
-
+                typeSpecification = assemblySpecification.GetSpecification(typeDef);
+                
+                EnhanceConstructors(typeDef, dbc, typeSpecification);
+                
                 // Generate field accessors for synonyms
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        GenerateFieldAccessors(dba, field);
+                        GenerateFieldAccessors(dba, field, null);
                     }
                 }
             }
@@ -451,7 +459,10 @@ namespace Starcounter.Internal.Weaver {
                 ? null
                 : Project.Properties["ScDynamicLibInputDir"];
 
-            _dbStateMethodProvider = new DbStateMethodProvider(_module, dynamicLibDir);
+            var val = Project.Properties["UseStateRedirect"];
+            bool useRedirect = !string.IsNullOrEmpty(val) && val.Equals(bool.TrueString);
+
+            _dbStateMethodProvider = new DbStateMethodProvider(_module, dynamicLibDir, useRedirect);
             _castHelper = new CastHelper(_module);
         }
 
@@ -472,26 +483,25 @@ namespace Starcounter.Internal.Weaver {
             Type type;
 
             voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
-
+            
             _uninitializedType = (IType)_module.Cache.GetType(typeof(Uninitialized));
 
             uninitTypeSignArr = new ITypeSignature[] { _uninitializedType };
-            _uninitializedConstructorSignature = new MethodSignature(_module,
-                                                                     CallingConvention.HasThis,
-                                                                     voidTypeSign,
-                                                                     uninitTypeSignArr,
-                                                                     0);
-            _nullableType = (INamedType)_module.FindType(
-                typeof(Nullable<>),
-                BindingOptions.RequireGenericDefinition
-                );
+            _uninitializedConstructorSignature = new MethodSignature(
+                _module,
+                CallingConvention.HasThis,
+                voidTypeSign,
+                uninitTypeSignArr,
+                0);
+            _nullableType = (INamedType)_module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition);
 
             _typeBindingType = _module.Cache.GetType(typeof(Starcounter.Binding.TypeBinding));
             _ushortType = _module.Cache.GetIntrinsic(IntrinsicType.UInt16);
 
             _objectViewType = _module.FindType(typeof(IObjectView), BindingOptions.Default);
-            _objectConstructor = _module.FindMethod(typeof(Object).GetConstructor(Type.EmptyTypes),
-                                                    BindingOptions.Default);
+
+            _objectConstructor = _module.FindMethod(
+                typeof(Object).GetConstructor(Type.EmptyTypes), BindingOptions.Default);
 
             type = typeof(AnonymousTypePropertyAttribute);
             cstrInfo = type.GetConstructor(new[] { typeof(int) });
@@ -505,39 +515,6 @@ namespace Starcounter.Internal.Weaver {
                                                             BindingOptions.Default);
 
             _weavingHelper = new WeavingHelper(_module);
-
-            _starcounterImplementationTypeDef = new TypeDefDeclaration {
-                Name = WeaverNamingConventions.ImplementationDetailsTypeName,
-                Attributes = TypeAttributes.AutoLayout | TypeAttributes.Public | TypeAttributes.Sealed
-            };
-
-            _module.Types.Add(_starcounterImplementationTypeDef);
-
-            //if (_weaveForIPC)
-            //{
-            //    // If we weave for IPC, we make sure the implementation type we hide
-            //    // inside each assembly contains a client side initializer routine that
-            //    // can set up the runtime environment.
-
-            //    _lucentClientAssemblyInitializerMethod = new MethodDefDeclaration()
-            //    {
-            //        Name = WeaverNamingConventions.LucentObjectsClientAssemblyInitializerName,
-            //        Attributes = MethodAttributes.Static | MethodAttributes.Public,
-            //        CallingConvention = CallingConvention.Default
-            //    };
-            //    _starcounterImplementationTypeDef.Methods.Add(_lucentClientAssemblyInitializerMethod);
-            //    _weavingHelper.AddCompilerGeneratedAttribute(_lucentClientAssemblyInitializerMethod.CustomAttributes);
-
-            //    _lucentClientAssemblyInitializerMethod.MethodBody.RootInstructionBlock = _lucentClientAssemblyInitializerMethod.MethodBody.CreateInstructionBlock();
-
-            //    var sequence = _lucentClientAssemblyInitializerMethod.MethodBody.CreateInstructionSequence();
-            //    _lucentClientAssemblyInitializerMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(
-            //        sequence,
-            //        NodePosition.After,
-            //        null
-            //        );
-            //}
-
         }
 
         /// <summary>
@@ -891,41 +868,18 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Decorates the assembly level implementation type with the neccessary
-        /// infrastructure reference fields for the given type.
+        /// Gets a value indicating if the given type directly inherits the
+        /// root .NET type System.Object.
         /// </summary>
-        /// <param name="typeDef">The type to decorate.</param>
-        private void AddTypeReferenceFields(TypeDefDeclaration typeDef) {
-            FieldDefDeclaration typeTableId;
-            FieldDefDeclaration typeBinding;
-            FieldDefDeclaration typeReference;
+        /// <param name="typeDef">The type to check</param>
+        /// <returns>True if it inherits object direct; false otherwise.</returns>
+        internal static bool InheritsObject(TypeDefDeclaration typeDef) {
+            return ScAnalysisTask.Inherits(typeDef, typeof(object).FullName, true);
+        }
 
-            typeTableId = new FieldDefDeclaration {
-                Name = WeaverNamingConventions.GetTypeTableIdFieldName(typeDef),
-                Attributes = (FieldAttributes.Assembly | FieldAttributes.Static),
-                FieldType = _ushortType
-            };
-
-            typeBinding = new FieldDefDeclaration {
-                Name = WeaverNamingConventions.GetTypeBindingFieldName(typeDef),
-                Attributes = (FieldAttributes.Assembly | FieldAttributes.Static),
-                FieldType = _typeBindingType
-            };
-
-            // Add also a field referencing the type itself and name it after
-            // the full name. This way, we can speed up the client side initialization
-            // by using the implementation type as an index for all types that are
-            // entities (and needs initialization).
-
-            typeReference = new FieldDefDeclaration {
-                Name = WeaverNamingConventions.GetTypeFieldName(typeDef),
-                Attributes = (FieldAttributes.Assembly | FieldAttributes.Static),
-                FieldType = typeDef
-            };
-
-            _starcounterImplementationTypeDef.Fields.Add(typeTableId);
-            _starcounterImplementationTypeDef.Fields.Add(typeBinding);
-            _starcounterImplementationTypeDef.Fields.Add(typeReference);
+        private void ImplementIObjectProxy(TypeDefDeclaration typeDef) {
+            ScMessageSource.Write(SeverityType.Info, string.Format("Implementing IObjectProxy/IObjectView for {0}", typeDef.Name), new Object[] {});
+            new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods).ImplementOn(typeDef);
         }
 
         /// <summary>
@@ -973,16 +927,7 @@ namespace Starcounter.Internal.Weaver {
             // implement it.
 
             if (_weaveForIPC) {
-                //LucentAssemblyInitializerMethodAdvice moduleInitializerAdvice = new LucentAssemblyInitializerMethodAdvice();
-
-                //codeWeaver.AddMethodLevelAdvice(
-                //    moduleInitializerAdvice,
-                //    new Singleton<MethodDefDeclaration>(_lucentClientAssemblyInitializerMethod),
-                //    JoinPointKinds.BeforeMethodBody,
-                //    null
-                //    );
-
-                LucentClassInitializerMethodAdvice pcia = new LucentClassInitializerMethodAdvice();
+                DatabaseClassInitCallMethodAdvice pcia = new DatabaseClassInitCallMethodAdvice();
 
                 foreach (DatabaseClass dbc in ScAnalysisTask.GetTask(this.Project).DatabaseClassesInCurrentModule) {
                     var typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
@@ -1002,10 +947,11 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseAttribute">The <see cref="DatabaseAttribute" /> for which accessors have to be generated.</param>
         /// <param name="field">The <see cref="FieldDefDeclaration" /> corresponding
         /// to <paramref name="databaseAttribute" />.</param>
+        /// <param name="columnHandle">The column handle field to bind to the accessors.</param>
         /// <exception cref="System.Exception"></exception>
         /// <exception cref="System.NotSupportedException"></exception>
-        private void GenerateFieldAccessors(DatabaseAttribute databaseAttribute,
-                                            FieldDefDeclaration field) {
+        void GenerateFieldAccessors(DatabaseAttribute databaseAttribute, FieldDefDeclaration field, IField columnHandle) {
+            
             // TODO: This method really needs to be refactored and broken down into 
             // smaller pieces. As it is now it's really hard to get an overview of all the code.
 
@@ -1022,57 +968,53 @@ namespace Starcounter.Internal.Weaver {
             MethodSemanticDeclaration setSemantic;
             ParameterDeclaration valueParameter;
             PropertyDeclaration property;
-            IField attributeIndexField;
+            // IField attributeIndexField;
             DatabaseAttribute synonymousTo;
+
+            // Since we currently support just a single weaving mechanism,
+            // I'll try cleaning this method up a bit. One of the things is
+            // to remove alternative implementation for different weaving
+            // targets.
+            Trace.Assert(_weaveForIPC);
+            Trace.Assert(columnHandle != null);
 
             ScTransformTrace.Instance.WriteLine("Generating accessors for {0}.", databaseAttribute);
 
-            attributeIndexField = null;
             synonymousTo = databaseAttribute.SynonymousTo;
             realDatabaseAttribute = synonymousTo ?? databaseAttribute;
 
-            if (_weaveForIPC) {
+            if (synonymousTo != null) {
 
-                if (synonymousTo == null) {
-                    // Generate a static field that can hold the attribute index in
-                    // hosted environments.
+                // To be rewritten.
+                // TODO:
+                
+                throw new NotImplementedException();
 
-                    attributeIndexField = new FieldDefDeclaration {
-                        Name = WeaverNamingConventions.MakeAttributeIndexVariableName(field.Name),
-                        Attributes = (FieldAttributes.Family | FieldAttributes.Static),
-                        FieldType = _module.Cache.GetIntrinsic(IntrinsicType.Int32)
-                    };
-                    field.DeclaringType.Fields.Add((FieldDefDeclaration)attributeIndexField);
-                    _weavingHelper.AddCompilerGeneratedAttribute(attributeIndexField.CustomAttributes);
+                //var nameOfAttributeIndexField = WeaverNamingConventions.MakeAttributeIndexVariableName(synonymousTo.Name);
 
-                } else {
+                //// We must locate the type of the target field. It might be a definition, or a
+                //// type reference.
 
-                    var nameOfAttributeIndexField = WeaverNamingConventions.MakeAttributeIndexVariableName(synonymousTo.Name);
+                //var synonymTargetType = (IType)_module.FindType(synonymousTo.DeclaringClass.Name, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                //if (synonymTargetType == null) {
+                //    var typeEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeRef);
+                //    while (typeEnumerator.MoveNext()) {
+                //        var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
+                //        if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(synonymousTo.DeclaringClass.Name)) {
+                //            synonymTargetType = typeRef;
+                //            break;
+                //        }
+                //    }
+                //}
 
-                    // We must locate the type of the target field. It might be a definition, or a
-                    // type reference.
+                //// Lets not do any verification here, since the analyzer should already
+                //// have done that for us. We simply rely on both the type and the field
+                //// to be found, or else let a null reference exception be raised.
 
-                    var synonymTargetType = (IType)_module.FindType(synonymousTo.DeclaringClass.Name, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
-                    if (synonymTargetType == null) {
-                        var typeEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeRef);
-                        while (typeEnumerator.MoveNext()) {
-                            var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
-                            if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(synonymousTo.DeclaringClass.Name)) {
-                                synonymTargetType = typeRef;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Lets not do any verification here, since the analyzer should already
-                    // have done that for us. We simply rely on both the type and the field
-                    // to be found, or else let a null reference exception be raised.
-
-                    attributeIndexField = synonymTargetType.Fields.GetField(
-                        nameOfAttributeIndexField, synonymTargetType.Module.FindType(typeof(int)), BindingOptions.Default);
-                }
+                //attributeIndexField = synonymTargetType.Fields.GetField(
+                //    nameOfAttributeIndexField, synonymTargetType.Module.FindType(typeof(int)), BindingOptions.Default);
             }
-
+            
             // Compute method attributes according to field attributes.
             switch (field.Attributes & FieldAttributes.FieldAccessMask) {
                 case FieldAttributes.Assembly:
@@ -1105,11 +1047,9 @@ namespace Starcounter.Internal.Weaver {
                 callingConvention = CallingConvention.HasThis;
             }
 
-            // Generate the Get accessor.
-            _dbStateMethodProvider.GetGetMethod(field.FieldType,
-                                                realDatabaseAttribute,
-                                                out dbStateMethod,
-                                                out dbStateCast);
+            // First generate a get method.
+
+            _dbStateMethodProvider.GetGetMethod(field.FieldType, realDatabaseAttribute, out dbStateMethod, out dbStateCast);
 
             getMethod = new MethodDefDeclaration() {
                 Name = ("get_" + field.Name),
@@ -1126,21 +1066,18 @@ namespace Starcounter.Internal.Weaver {
             getMethod.MethodBody.RootInstructionBlock = getMethod.MethodBody.CreateInstructionBlock();
 
             sequence = getMethod.MethodBody.CreateInstructionSequence();
-            getMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence,
-                                                                             NodePosition.After,
-                                                                             null);
+            getMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
 
-            // We will call a method with this stack transition:
-            // <this>, <index> -> <value>
+            var thisHandleField = field.DeclaringType.FindField(TypeSpecification.ThisHandleName).Field;
+            var thisIdField = field.DeclaringType.FindField(TypeSpecification.ThisIdName).Field;
+
+            getMethod.MethodBody.MaxStack = 8;
             _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-
-            if (_weaveForIPC) {
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
-            } else {
-                _writer.EmitInstructionInt32(OpCodeNumber.Ldc_I4, databaseAttribute.Index);
-            }
-
+            _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
+            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+            _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisHandleField);
+            _writer.EmitInstructionField(OpCodeNumber.Ldsfld, columnHandle);
             if (dbStateCast == null) {
                 // If we don't have to cast the value, we can use a 'tail' call.
                 _writer.EmitPrefix(InstructionPrefixes.Tail);
@@ -1160,10 +1097,12 @@ namespace Starcounter.Internal.Weaver {
             _writer.DetachInstructionSequence();
 
             // Generate the Set accessor.
-            haveSetMethod = _dbStateMethodProvider.GetSetMethod(field.FieldType,
-                                                                realDatabaseAttribute,
-                                                                out dbStateMethod,
-                                                                out dbStateCast);
+            haveSetMethod = _dbStateMethodProvider.GetSetMethod(
+                field.FieldType,
+                realDatabaseAttribute,
+                out dbStateMethod,
+                out dbStateCast);
+            
             if (haveSetMethod) {
                 setMethod = new MethodDefDeclaration() {
                     Name = ("set_" + field.Name),
@@ -1179,32 +1118,23 @@ namespace Starcounter.Internal.Weaver {
 
                 valueParameter = new ParameterDeclaration(0, "value", field.FieldType);
                 setMethod.Parameters.Add(valueParameter);
-                setMethod.MethodBody.RootInstructionBlock
-                                        = setMethod.MethodBody.CreateInstructionBlock();
+                setMethod.MethodBody.RootInstructionBlock = setMethod.MethodBody.CreateInstructionBlock();
                 sequence = setMethod.MethodBody.CreateInstructionSequence();
-                setMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence,
-                                                                                 NodePosition.After,
-                                                                                 null);
+                setMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence, NodePosition.After, null);
                 _writer.AttachInstructionSequence(sequence);
 
-                // We need to prepare this stack transition:
-                // <this>, <index>, <casted_value> -> void
                 _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-
-                if (_weaveForIPC) {
-                    _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
-                } else {
-                    _writer.EmitInstructionInt32(OpCodeNumber.Ldc_I4, databaseAttribute.Index);
-                }
-
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisHandleField);
+                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, columnHandle);
                 _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
 
                 // We have the field value on the stack, but we may need to cast it.
                 if (dbStateCast != null) {
                     if (!_castHelper.EmitCast(field.FieldType, dbStateCast, _writer, ref sequence)) {
-                        throw new NotSupportedException(string.Format("Don't know how to cast {0} to {1}.",
-                                                                      field.FieldType,
-                                                                      dbStateCast));
+                        throw new NotSupportedException(string.Format(
+                            "Don't know how to cast {0} to {1}.", field.FieldType, dbStateCast));
                     }
                 }
 
@@ -1213,6 +1143,7 @@ namespace Starcounter.Internal.Weaver {
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, dbStateMethod);
                 _writer.EmitInstruction(OpCodeNumber.Ret);
                 _writer.DetachInstructionSequence();
+
             } else {
                 setMethod = null;
                 ScTransformTrace.Instance.WriteLine("This field is read-only. No set accessor generated.");
@@ -1242,14 +1173,8 @@ namespace Starcounter.Internal.Weaver {
 
             // Mark the field for removal.
 
-            // Don't do this if we are preparing an assembly for an external process.
-            // Only do this if we are running in the database.
-
-            //        if (!_weaveForIPC)
-            //        {
             RemoveTask.GetTask(Project).MarkForRemoval(field);
-            //        }
-
+            
             _fieldAdvices.Add(new InsteadOfFieldAccessAdvice(field, getMethod, setMethod));
         }
 
@@ -1258,13 +1183,15 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         /// <param name="typeDef">The type def.</param>
         /// <param name="databaseClass">The database class.</param>
-        private void EnhanceConstructors(TypeDefDeclaration typeDef, DatabaseClass databaseClass) {
-            CustomAttributeDeclaration customAttr;
+        private void EnhanceConstructors(
+            TypeDefDeclaration typeDef, 
+            DatabaseClass databaseClass,
+            TypeSpecificationEmit typeSpecification) {
+            
             IMethod baseUninitializedConstructor;
             IMethod replacementConstructor;
             InstructionBlock rootInstrBlock;
             InstructionSequence sequence;
-//            IType forbiddenType;
             IType parentType;
             MethodBodyDeclaration constructorImplementation;
             MethodDefDeclaration enhancedConstructor;
@@ -1275,8 +1202,6 @@ namespace Starcounter.Internal.Weaver {
             ParameterDeclaration paramDecl;
             EntityConstructorCallAdvice advice;
             TypeDefDeclaration parentTypeDef;
-            FieldDefDeclaration typeTableIdField;
-            FieldDefDeclaration typeBindingField;
 
             // Skip if the type has already been processed.
             if (typeDef.GetTag(_constructorEnhancedTagGuid) != null) {
@@ -1284,56 +1209,21 @@ namespace Starcounter.Internal.Weaver {
             }
 
             // Ensure that the base type has been processed.
+
             parentType = typeDef.BaseType;
             parentTypeDef = parentType as TypeDefDeclaration;
-
             if (parentTypeDef != null) {
-                this.EnhanceConstructors(parentTypeDef, databaseClass.BaseClass);
+                this.EnhanceConstructors(parentTypeDef, databaseClass.BaseClass, typeSpecification.BaseSpecification);
             }
 
             ScTransformTrace.Instance.WriteLine("Enhancing constructors of {0}", databaseClass);
 
             typeDef.SetTag(_constructorEnhancedTagGuid, "");
 
-            // Get infrastucture type reference fields.
-
-            typeTableIdField = _starcounterImplementationTypeDef.Fields.GetByName(
-                WeaverNamingConventions.GetTypeTableIdFieldName(typeDef));
-            typeBindingField = _starcounterImplementationTypeDef.Fields.GetByName(
-                WeaverNamingConventions.GetTypeBindingFieldName(typeDef));
-
             // Emit the uninitialized constructor
             ScTransformTrace.Instance.WriteLine("Emitting the uninitialized constructor.");
 
-            // Get the 'uninitialized' constructor on the base type.
-            baseUninitializedConstructor = parentType.Methods.GetMethod(
-                ".ctor",
-                _uninitializedConstructorSignature,
-                BindingOptions.Default
-                );
-
-            // Define the 'uninitialized' constructor.
-            uninitializedConstructor = new MethodDefDeclaration {
-                Name = ".ctor",
-                Attributes = MethodAttributes.SpecialName
-                                | MethodAttributes.RTSpecialName
-                                | MethodAttributes.HideBySig
-                                | MethodAttributes.Public,
-                CallingConvention = CallingConvention.HasThis
-            };
-            typeDef.Methods.Add(uninitializedConstructor);
-
-            customAttr = _weavingHelper.GetDebuggerNonUserCodeAttribute();
-            uninitializedConstructor.CustomAttributes.Add(customAttr);
-
-            paramDecl = new ParameterDeclaration(0, "u", this._uninitializedType);
-            uninitializedConstructor.Parameters.Add(paramDecl);
-
-            paramDecl = new ParameterDeclaration {
-                Attributes = ParameterAttributes.Retval,
-                ParameterType = _module.Cache.GetIntrinsic(IntrinsicType.Void)
-            };
-            uninitializedConstructor.ReturnParameter = paramDecl;
+            CreateAndAddUninitializedConstructorSignature(typeDef, out uninitializedConstructor);
 
             rootInstrBlock = uninitializedConstructor.MethodBody.CreateInstructionBlock();
             uninitializedConstructor.MethodBody.RootInstructionBlock = rootInstrBlock;
@@ -1341,9 +1231,15 @@ namespace Starcounter.Internal.Weaver {
             sequence = uninitializedConstructor.MethodBody.CreateInstructionSequence();
             rootInstrBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstruction(OpCodeNumber.Ldnull);
-            _writer.EmitInstructionMethod(OpCodeNumber.Call, baseUninitializedConstructor);
+            if (!InheritsObject(typeDef)) {
+                baseUninitializedConstructor = parentType.Methods.GetMethod(".ctor",
+                    _uninitializedConstructorSignature,
+                    BindingOptions.Default
+                    );
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstruction(OpCodeNumber.Ldnull);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call, baseUninitializedConstructor);
+            }
             _writer.EmitInstruction(OpCodeNumber.Ret);
             _writer.DetachInstructionSequence();
             uninitializedConstructor.SetTag(_constructorEnhancedTagGuid, "uninitialized");
@@ -1358,91 +1254,93 @@ namespace Starcounter.Internal.Weaver {
             advice = new EntityConstructorCallAdvice();
             _methodAdvices.Add(advice);
 
-            ScTransformTrace.Instance.WriteLine("Inspecting constructors of the parent type.");
+            if (!InheritsObject(typeDef)) {
+                ScTransformTrace.Instance.WriteLine("Inspecting constructors of the parent type.");
 
-            foreach (IMethod referencedConstructor in parentType.Methods.GetByName(".ctor")) {
-                tag = referencedConstructor.GetTag(_constructorEnhancedTagGuid);
+                foreach (IMethod referencedConstructor in parentType.Methods.GetByName(".ctor")) {
+                    tag = referencedConstructor.GetTag(_constructorEnhancedTagGuid);
 
-                // We skip the constructors we have generated ourselves.
-                if (tag is String) {
-                    continue;
-                }
+                    // We skip the constructors we have generated ourselves.
+                    if (tag is String) {
+                        continue;
+                    }
 
-                // Get the constructor that should be called instead.
-                replacementConstructor = tag as IMethod;
-                if (replacementConstructor == null) {
-                    ScTransformTrace.Instance.WriteLine(
-                                "Don't know how to map the base constructor {{{0}}}.",
-                                referencedConstructor
-                            );
+                    // Get the constructor that should be called instead.
+                    replacementConstructor = tag as IMethod;
+                    if (replacementConstructor == null) {
+                        ScTransformTrace.Instance.WriteLine(
+                                    "Don't know how to map the base constructor {{{0}}}.",
+                                    referencedConstructor
+                                );
 
-                    referencedConstructorDef =
-                        referencedConstructor.GetMethodDefinition(BindingOptions.DontThrowException);
-                    if (referencedConstructorDef != null) {
-                        if (referencedConstructorDef != referencedConstructor) {
-                            tag = referencedConstructorDef.GetTag(_constructorEnhancedTagGuid);
-                            if (tag is String) {
-                                continue;
+                        referencedConstructorDef =
+                            referencedConstructor.GetMethodDefinition(BindingOptions.DontThrowException);
+                        if (referencedConstructorDef != null) {
+                            if (referencedConstructorDef != referencedConstructor) {
+                                tag = referencedConstructorDef.GetTag(_constructorEnhancedTagGuid);
+                                if (tag is String) {
+                                    continue;
+                                }
                             }
+
+                            // Not sure about the purpose of this code, but I think it has to do
+                            // with a certain handling we need for referenced constructors we have
+                            // defined for built-in types. But since Entity.ctor(Uninitialized) is
+                            // also equipped with HideFromApplications in Yellow, we keep the code
+                            // to see when it runs if it behaves and how to possibly reimplement it.
+                            // TODO:
+
+                            //// Skip the method if it has a custom attribute "HideFromApplications".
+                            //forbiddenType = (IType)referencedConstructorDef.Module.Cache.GetType(
+                            //                                    typeof(HideFromApplicationsAttribute)
+                            //                        );
+
+                            //if (referencedConstructorDef.CustomAttributes.Contains(forbiddenType)) {
+                            //    ScTransformTrace.Instance.WriteLine(
+                            //        "Skipping this constructor because it has the [HideFromApplications] custom attribute.");
+                            //    continue;
+                            //}
                         }
 
-                        // Not sure about the purpose of this code, but I think it has to do
-                        // with a certain handling we need for referenced constructors we have
-                        // defined for built-in types. But since Entity.ctor(Uninitialized) is
-                        // also equipped with HideFromApplications in Yellow, we keep the code
-                        // to see when it runs if it behaves and how to possibly reimplement it.
-                        // TODO:
+                        // This happens when the constructor is defined outside the current module.
+                        // Build the signature of the constructor we are looking for.
+                        signature = new MethodSignature(_module,
+                                                        referencedConstructor.CallingConvention,
+                                                        referencedConstructor.ReturnType,
+                                                        null,
+                                                        0);
 
-                        //// Skip the method if it has a custom attribute "HideFromApplications".
-                        //forbiddenType = (IType)referencedConstructorDef.Module.Cache.GetType(
-                        //                                    typeof(HideFromApplicationsAttribute)
-                        //                        );
+                        // Copying the original parameters to the signature.
+                        for (Int32 i = 0; i < referencedConstructor.ParameterCount; i++) {
+                            signature.ParameterTypes.Add(referencedConstructor.GetParameterType(i));
+                        }
 
-                        //if (referencedConstructorDef.CustomAttributes.Contains(forbiddenType)) {
-                        //    ScTransformTrace.Instance.WriteLine(
-                        //        "Skipping this constructor because it has the [HideFromApplications] custom attribute.");
-                        //    continue;
-                        //}
+                        // Add the infrastructure parameters to the constructor.
+
+                        signature.ParameterTypes.Add(_ushortType);
+                        signature.ParameterTypes.Add(_typeBindingType);
+                        signature.ParameterTypes.Add(_module.Cache.GetType(typeof(Uninitialized)));
+
+                        replacementConstructor = referencedConstructor.DeclaringType.Methods.GetMethod(
+                            ".ctor",
+                            signature,
+                            BindingOptions.Default
+                            );
+                        if (replacementConstructor == null) {
+                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED,
+                                string.Format("Cannot find the enhanced constructor of {{{0}}}.",
+                                              referencedConstructor));
+                        }
+
+                        // Cache the result for next use.
+                        referencedConstructor.SetTag(_constructorEnhancedTagGuid, replacementConstructor);
                     }
 
-                    // This happens when the constructor is defined outside the current module.
-                    // Build the signature of the constructor we are looking for.
-                    signature = new MethodSignature(_module,
-                                                    referencedConstructor.CallingConvention,
-                                                    referencedConstructor.ReturnType,
-                                                    null,
-                                                    0);
+                    ScTransformTrace.Instance.WriteLine("The base constructor {{{0}}} maps to {{{1}}}.",
+                                                        referencedConstructor, replacementConstructor);
 
-                    // Copying the original parameters to the signature.
-                    for (Int32 i = 0; i < referencedConstructor.ParameterCount; i++) {
-                        signature.ParameterTypes.Add(referencedConstructor.GetParameterType(i));
-                    }
-
-                    // Add the infrastructure parameters to the constructor.
-
-                    signature.ParameterTypes.Add(_ushortType);
-                    signature.ParameterTypes.Add(_typeBindingType);
-                    signature.ParameterTypes.Add(_module.Cache.GetType(typeof(Uninitialized)));
-
-                    replacementConstructor = referencedConstructor.DeclaringType.Methods.GetMethod(
-                        ".ctor",
-                        signature,
-                        BindingOptions.Default
-                        );
-                    if (replacementConstructor == null) {
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED,
-                            string.Format("Cannot find the enhanced constructor of {{{0}}}.",
-                                          referencedConstructor));
-                    }
-
-                    // Cache the result for next use.
-                    referencedConstructor.SetTag(_constructorEnhancedTagGuid, replacementConstructor);
+                    advice.AddRedirection(referencedConstructor, replacementConstructor);
                 }
-
-                ScTransformTrace.Instance.WriteLine("The base constructor {{{0}}} maps to {{{1}}}.",
-                                                    referencedConstructor, replacementConstructor);
-
-                advice.AddRedirection(referencedConstructor, replacementConstructor);
             }
 
             // Enhance other constructors
@@ -1502,9 +1400,61 @@ namespace Starcounter.Internal.Weaver {
                 constructorImplementation = constructor.MethodBody;
                 constructor.MethodBody = new MethodBodyDeclaration();
                 enhancedConstructor.MethodBody = constructorImplementation;
-                constructor.CustomAttributes.Add(_weavingHelper.GetDebuggerNonUserCodeAttribute());
 
-                // Create a new implementation of the original constructor, where we only call the new one.
+                if (InheritsObject(typeDef)) {
+                    // This will be a real challenge - we need to inject the call
+                    // to DbState.Insert just after the object is actually created.
+                    // The constructor being "moved" here generally will contain
+                    // that code, so we can't just use the "first line principle".
+                    //   For now, we'll just assume an empty ctor calling object:ctor
+                    // and we'll do our stuff after that (or, actually, we are just
+                    // replacing the whole thingy.
+                    //   When implementing the final solution, consider if it's a
+                    // good approach to have every root have a private ctor with a
+                    // hidden signature that is responsible for the call to insert.
+                    // TODO:
+                    enhancedConstructor.MethodBody = new MethodBodyDeclaration();
+                    enhancedConstructor.MethodBody.RootInstructionBlock
+                                = enhancedConstructor.MethodBody.CreateInstructionBlock();
+                    sequence = enhancedConstructor.MethodBody.CreateInstructionSequence();
+                    enhancedConstructor.MethodBody.RootInstructionBlock.AddInstructionSequence(
+                        sequence,
+                        NodePosition.After,
+                        null);
+                    _writer.AttachInstructionSequence(sequence);
+
+                    // This is a clear simplification that won't work in more complex
+                    // scenarios. This code assumes the current constructor has the following
+                    // signature:
+                    // .ctor(ushort tableId, TypeBinding, Uninitialized);
+                    //   All weave-time created ctors will have ctors with these three as
+                    // their LAST arguments, but we can't emit code using there ORDINAL.
+                    // Instead, we should turn into using ParameterVariable, etc, to let
+                    // PS decide for us the right orginal to emit.
+                    //   With that being said, the foundation is still to turn
+                    //   .ctor(ushort tableId, TypeBinding, Uninitialized)
+                    //   into
+                    //   (...) : base() {
+                    //     DbState.Insert(tableId, ref __sc__this__id, ref __sc__this__handle);
+                    //   }
+                    // But still quite a lot of job to be done. It's in the near backlog.
+
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_1);
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisIdentity);
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisHandle);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Call,
+                        _module.FindMethod(_dbStateMethodProvider.DbStateType.GetMethod("Insert"), BindingOptions.Default));
+                    _writer.EmitInstruction(OpCodeNumber.Ret);
+                    _writer.DetachInstructionSequence();
+                }
+
+                // Create a new implementation of the original constructor, where we
+                // only call the new one.
+                constructor.CustomAttributes.Add(_weavingHelper.GetDebuggerNonUserCodeAttribute());
                 constructor.MethodBody.RootInstructionBlock
                                 = constructor.MethodBody.CreateInstructionBlock();
                 sequence = constructor.MethodBody.CreateInstructionSequence();
@@ -1518,8 +1468,8 @@ namespace Starcounter.Internal.Weaver {
                     _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, parameter);
                 }
 
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeTableIdField);
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeBindingField);
+                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeSpecification.TableHandle);
+                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, typeSpecification.TypeBindingReference);
                 _writer.EmitInstruction(OpCodeNumber.Ldnull);
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, enhancedConstructor);
                 _writer.EmitInstruction(OpCodeNumber.Ret);
@@ -1531,6 +1481,35 @@ namespace Starcounter.Internal.Weaver {
                 // Calls to the base constructor should be redirected in this constructor.
                 advice.AddWovenConstructor(enhancedConstructor);
             }
+        }
+
+        private void CreateAndAddUninitializedConstructorSignature(
+            TypeDefDeclaration typeDef, out MethodDefDeclaration uninitializedConstructor) {
+            CustomAttributeDeclaration customAttr;
+            ParameterDeclaration paramDecl;
+
+            // Define the 'uninitialized' constructor.
+            uninitializedConstructor = new MethodDefDeclaration {
+                Name = ".ctor",
+                Attributes = MethodAttributes.SpecialName
+                                | MethodAttributes.RTSpecialName
+                                | MethodAttributes.HideBySig
+                                | MethodAttributes.Public,
+                CallingConvention = CallingConvention.HasThis
+            };
+            typeDef.Methods.Add(uninitializedConstructor);
+
+            customAttr = _weavingHelper.GetDebuggerNonUserCodeAttribute();
+            uninitializedConstructor.CustomAttributes.Add(customAttr);
+
+            paramDecl = new ParameterDeclaration(0, "u", this._uninitializedType);
+            uninitializedConstructor.Parameters.Add(paramDecl);
+
+            paramDecl = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = _module.Cache.GetIntrinsic(IntrinsicType.Void)
+            };
+            uninitializedConstructor.ReturnParameter = paramDecl;
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Starcounter.Metadata
         /// <summary>
         /// </summary>
         public ulong TableId {
-            get { return DbState.ReadUInt64(this, 0); }
+            get { return DbState.ReadUInt64(0,0, 0); }
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Starcounter.Metadata
         /// <value>The name.</value>
         public string Name
         {
-            get { return DbState.ReadString(this, 1); }
+            get { return DbState.ReadString(0,0, 1); }
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Starcounter.Metadata
         /// <value>The name of the base.</value>
         public string BaseName
         {
-            get { return DbState.ReadString(this, 2); }
+            get { return DbState.ReadString(0,0, 2); }
         }
     }
 }
