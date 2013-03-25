@@ -211,7 +211,7 @@ namespace Starcounter.Advanced
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>System.Byte[][].</returns>
-        public byte[] GetBytes(HttpRequest request)
+        public byte[] GetBytes(Request request)
         {
             if (request.IsGzipAccepted && Compressed != null)
                 return Compressed;
@@ -307,13 +307,13 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Reference to corresponding HTTP request.
         /// </summary>
-        HttpRequest httpRequest_ = null;
+        Request httpRequest_ = null;
 
         /// <summary>
         /// Setting corresponding HTTP request.
         /// </summary>
         /// <param name="httpRequest"></param>
-        public void SetHttpRequest(HttpRequest httpRequest)
+        public void SetHttpRequest(Request httpRequest)
         {
             httpRequest_ = httpRequest;
         }
@@ -363,7 +363,7 @@ namespace Starcounter.Advanced
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public HttpResponse(Byte[] buf, Int32 lenBytes, HttpRequest httpRequest = null)
+        public HttpResponse(Byte[] buf, Int32 lenBytes, Request httpRequest = null)
         {
             UInt32 err_code;
             unsafe
@@ -741,7 +741,7 @@ namespace Starcounter.Advanced
             {
                 unsafe
                 {
-                    return HttpRequest.INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
+                    return Request.INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
                 }
             }
         }

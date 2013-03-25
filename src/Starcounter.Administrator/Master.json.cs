@@ -84,7 +84,7 @@ namespace Starcounter.Administrator {
             #region Database(s)
 
             // Returns a list of databases
-            GET("/databases", (HttpRequest req) => {
+            GET("/databases", (Request req) => {
 
                 var contentType = req["Accept"];
 
@@ -125,7 +125,7 @@ namespace Starcounter.Administrator {
 
 
             // Returns a database
-            GET("/databases/{?}", (string databaseid, HttpRequest req) => {
+            GET("/databases/{?}", (string databaseid, Request req) => {
 
                 var contentType = req["Accept"];
 
@@ -154,7 +154,7 @@ namespace Starcounter.Administrator {
 
             #region Log
             // Returns the log
-            GET("/log", (HttpRequest req) => {
+            GET("/log", (Request req) => {
 
                 var contentType = req["Accept"];
 
@@ -184,7 +184,7 @@ namespace Starcounter.Administrator {
 
             #region SQL
 
-            GET("/sql", (HttpRequest req) => {
+            GET("/sql", (Request req) => {
 
                 var contentType = req["Accept"];
 
@@ -216,7 +216,7 @@ namespace Starcounter.Administrator {
             #endregion
 
             //// Returns a database
-            //POST("/databases/{?}", (string databaseid, HttpRequest req) => {
+            //POST("/databases/{?}", (string databaseid, Request req) => {
 
             //    databaseid = databaseid.Replace("_colon_", ":"); // TODO: Remove when bug is fixed
             //    databaseid = databaseid.Replace("_slash_", "/");    // TODO: Remove when bug is fixed
@@ -250,7 +250,7 @@ namespace Starcounter.Administrator {
             #endregion
 
 
-            POST("/addstaticcontentdir", (HttpRequest req) => {
+            POST("/addstaticcontentdir", (Request req) => {
 
                 // Getting POST contents.
                 String content = req.GetContentStringUtf8_Slow();

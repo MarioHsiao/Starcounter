@@ -42,7 +42,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="relativeUri">The uri without the server domain</param>
         /// <param name="req">The Starcounter session id</param>
         /// <returns>A cacheable resource item with at least one version (compressed or uncompressed).</returns>
-        public HttpResponse GetFileResource(HttpResponse cached, string relativeUri, HttpRequest req) {
+        public HttpResponse GetFileResource(HttpResponse cached, string relativeUri, Request req) {
 
 
             req.Debug(" (FILE ACCESS)");

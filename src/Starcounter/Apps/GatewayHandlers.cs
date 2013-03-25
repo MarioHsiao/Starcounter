@@ -254,8 +254,8 @@ namespace Starcounter
                     if (errorCode != 0)
                         throw ErrorCode.ToException(errorCode);
 
-                    // Obtaining HttpRequest structure.
-                    HttpRequest http_request = new HttpRequest(
+                    // Obtaining Request structure.
+                    Request http_request = new Request(
                         raw_chunk,
                         is_single_chunk,
                         task_info->chunk_index,
@@ -270,8 +270,8 @@ namespace Starcounter
             }
             else
             {
-                // Obtaining HttpRequest structure.
-                HttpRequest http_request = new HttpRequest(
+                // Obtaining Request structure.
+                Request http_request = new Request(
                     raw_chunk,
                     is_single_chunk,
                     task_info->chunk_index,

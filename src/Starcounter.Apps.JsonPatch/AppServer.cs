@@ -47,7 +47,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">Incomming HTTP request.</param>
         /// <param name="x">Result of calling user delegate.</param>
         /// <returns>HttpResponse instance.</returns>
-        public HttpResponse HandleResponse(HttpRequest request, Object x) {
+        public HttpResponse HandleResponse(Request request, Object x) {
             uint errorCode;
             HttpResponse response = null;
             string responseReasonPhrase;
@@ -152,7 +152,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override HttpResponse Handle(HttpRequest request) {
+        public override HttpResponse Handle(Request request) {
             object x;
 
             try {
@@ -185,7 +185,7 @@ namespace Starcounter.Internal.Web {
         /// <returns>The http response</returns>
         /// <remarks>To save an additional http request, in the event of a html resource request,
         /// the Starcounter App view model is embedded in a script tag.</remarks>
-        private byte[] ResolveAndPrepareFile(string relativeUri, HttpRequest request) {
+        private byte[] ResolveAndPrepareFile(string relativeUri, Request request) {
             HttpResponse ri = StaticFileServer.GetStatic(relativeUri, request);
             byte[] original = ri.GetBytes(request);
             if (request.NeedsScriptInjection) {

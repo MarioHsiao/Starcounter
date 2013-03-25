@@ -136,7 +136,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(HttpRequest request) {
+        private static Boolean OnHttpMessageRoot(Request request) {
             var result = (HttpResponse)appServer.Handle(request);
             request.SendResponse(result.Uncompressed, 0, result.Uncompressed.Length);
             return true;

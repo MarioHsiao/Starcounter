@@ -37,7 +37,7 @@ namespace Starcounter.Internal.JsonPatch {
                 };
             });
 
-            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, HttpRequest request) => {
+            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, Request request) => {
                 Obj root;
 
                 try {
@@ -55,7 +55,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (HttpRequest r) => {
+                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
                     string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
                     return ExecuteQuery(bodyData);
                 });
