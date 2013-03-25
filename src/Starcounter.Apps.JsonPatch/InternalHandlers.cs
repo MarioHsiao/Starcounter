@@ -32,12 +32,12 @@ namespace Starcounter.Internal.JsonPatch {
                     return HttpStatusCode.NotFound;
                 }
 
-                return new HttpResponse() {
+                return new Response() {
                     Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(json.ToJsonUtf8())
                 };
             });
 
-            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, HttpRequest request) => {
+            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, Request request) => {
                 Obj root;
 
                 try {
@@ -46,16 +46,16 @@ namespace Starcounter.Internal.JsonPatch {
                     return root;
                 }
                 catch (NotSupportedException nex) {
-                    return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
+                    return new Response() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
                 }
                 catch (Exception ex) {
-                    return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
+                    return new Response() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
                 }
             });
 
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (HttpRequest r) => {
+                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
                     string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
                     return ExecuteQuery(bodyData);
                 });

@@ -45,7 +45,7 @@ namespace __simple_urimatcher__ {
          BitsAndBytes.SlowMemCopy(PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
       }
 
-      public override bool Process(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+      public override bool Process(IntPtr fragment, int size, bool invoke, Request request, out SingleRequestProcessorBase handler, out object resource) {
 #if DEBUG
          UriOutput = "";
          TemplateOutput = "";
@@ -128,7 +128,7 @@ namespace __simple_urimatcher__ {
 
       public class Sub0Processor : SingleRequestProcessor {
 
-         public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+         public bool SubProcess(IntPtr fragment, int size, bool invoke, Request request, out SingleRequestProcessorBase handler, out object resource) {
          //AT END
          handler = this;
          if (!invoke)
@@ -141,7 +141,7 @@ namespace __simple_urimatcher__ {
 
       public class Sub1Processor : SingleRequestProcessor<Int32> {
 
-         public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+         public bool SubProcess(IntPtr fragment, int size, bool invoke, Request request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
             int valueSize;
 #if DEBUG
@@ -172,7 +172,7 @@ namespace __simple_urimatcher__ {
 
       public class Sub2Processor : SingleRequestProcessor<Int32> {
 
-         public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+         public bool SubProcess(int val1, IntPtr fragment, int size, bool invoke, Request request, out SingleRequestProcessorBase handler, out object resource) {
          //AT END
          handler = this;
          if (!invoke)
@@ -185,7 +185,7 @@ namespace __simple_urimatcher__ {
 
       public class Sub3Processor : RequestProcessor {
 
-         public bool SubProcess(IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+         public bool SubProcess(IntPtr fragment, int size, bool invoke, Request request, out SingleRequestProcessorBase handler, out object resource) {
             string val;
             int valueSize;
 #if DEBUG
@@ -239,7 +239,7 @@ namespace __simple_urimatcher__ {
 
       public class Sub4Processor : SingleRequestProcessor<String, Int32> {
 
-         public bool SubProcess(string val1, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+         public bool SubProcess(string val1, IntPtr fragment, int size, bool invoke, Request request, out SingleRequestProcessorBase handler, out object resource) {
             int val;
             int valueSize;
 #if DEBUG
@@ -270,7 +270,7 @@ namespace __simple_urimatcher__ {
 
       public class Sub5Processor : SingleRequestProcessor<String, Int32> {
 
-         public bool SubProcess(string val1, int val2, IntPtr fragment, int size, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
+         public bool SubProcess(string val1, int val2, IntPtr fragment, int size, bool invoke, Request request, out SingleRequestProcessorBase handler, out object resource) {
          //AT END
          handler = this;
          if (!invoke)

@@ -130,7 +130,8 @@ namespace Starcounter {
                 s.changeLog.Clear();
                 Session.current = null;
                 ChangeLog.CurrentOnThread = null;
-                StarcounterBase._DB.SetCurrentTransaction(null);
+                if (StarcounterBase._DB.GetCurrentTransaction() != null)
+                    StarcounterBase._DB.SetCurrentTransaction(null);
             }
         }
 

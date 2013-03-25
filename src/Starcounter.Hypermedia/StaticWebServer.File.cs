@@ -42,16 +42,16 @@ namespace Starcounter.Internal.Web {
         /// <param name="relativeUri">The uri without the server domain</param>
         /// <param name="req">The Starcounter session id</param>
         /// <returns>A cacheable resource item with at least one version (compressed or uncompressed).</returns>
-        public HttpResponse GetFileResource(HttpResponse cached, string relativeUri, HttpRequest req) {
+        public Response GetFileResource(Response cached, string relativeUri, Request req) {
 
 
             req.Debug(" (FILE ACCESS)");
 
             bool shouldBeCached = true;
             bool shouldCompress = req.IsGzipAccepted;
-            HttpResponse fres = cached;
+            Response fres = cached;
             if (fres == null)
-                fres = new HttpResponse();
+                fres = new Response();
 
             string dir = null;
             string fileName = null;
@@ -280,7 +280,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="e">The <see cref="FileSystemEventArgs" /> instance containing the event data.</param>
         internal void FileHasChanged(object sender, FileSystemEventArgs e) {
             string fileSignature = e.FullPath.ToUpper();
-            HttpResponse cached;
+            Response cached;
             if (CacheOnFilePath.TryGetValue(fileSignature, out cached)) {
 
                 foreach (var uri in cached.Uris) {
