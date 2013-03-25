@@ -1,24 +1,5 @@
 ﻿
-
-//angular.module('scadminServices', ['ngResource']).
-//    factory('Database', function ($resource) {
-//        return $resource('/databases/:databaseId', { databaseId: '@databaseId' }, {
-//            query: { method: 'GET', isArray: false },
-//            get: { method: 'GET', headers: { 'Content-Type': 'application/json' } }
-//        });
-//    }).
-//    factory('Log', function ($resource) {
-//        return $resource('/log', {}, { query: { method: 'GET', isArray: false } });
-//    }).
-//    factory('Sql', function ($resource) {
-//        return $resource('/sql', {}, { query: { method: 'GET', isArray: false } });
-//    });
-
-// databases
-// databases/<databaseid>
-
 angular.module('scadminServices', ['ngResource'], function ($provide) {
-
 
     $provide.service('patchService', function ($resource) {
 
@@ -40,6 +21,13 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
         }
     });
 
+    $provide.factory('Server', function ($resource) {
+
+        return $resource('/server', {}, {
+            query: { method: 'GET', isArray: false }    // We need to override this (the return type is not an array)
+        });
+
+    });
 
     $provide.factory('Database', function ($resource) {
 
@@ -52,9 +40,11 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
     $provide.factory('Log', function ($resource) {
 
+        //query: { method: 'GET', params: { debug: '@debug', notice: '@notice', error: '@error', warning: '@warning' }, isArray: false }    // We need to override this (the return type is not an array)
+
         return $resource('/log', {}, {
-            query: { method: 'GET', isArray: false }    // We need to override this (the return type is not an array)
-        });
+            query: { method: 'GET',  isArray: false }    // We need to override this (the return type is not an array)
+    });
 
     });
 
@@ -68,22 +58,15 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
     $provide.factory('SqlQuery', function ($resource) {
 
-
-        // "/__{0}/sql", this.DatabaseName
-        return $resource('/__:databaseName/sql', { databaseName: '@databaseName' }, {
+        return $resource('/sql/:databaseName', { databaseName: '@databaseName' }, {
             send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
         });
 
+//        return $resource('/__:databaseName/sql', { databaseName: '@databaseName' }, {
+//            send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
+//        });
+
     });
-
-
-    //$provide.factory('Patch', function ($resource) {
-
-    //    return $resource('http://localhost\\:80:location', { location: '@location' }, {
-    //        patch: { method: 'PATCH', isArray: true }    // We need to override this (the return type is not an array)
-    //    });
-
-    //});
 
 });
 

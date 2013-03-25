@@ -1,7 +1,7 @@
 /**
- * angular-ui-handsontable 0.3.3
+ * angular-ui-handsontable 0.3.5
  * 
- * Date: Thu Feb 28 2013 00:54:12 GMT+0100 (Central European Standard Time)
+ * Date: Sun Mar 24 2013 17:47:35 GMT+0100 (Central European Standard Time)
 */
 
 /**
@@ -50,16 +50,49 @@ angular.module('uiHandsontable', [])
           , rhs = match[2]
           , childScope = scope.$new()
           , lastItems
-          , lastOptionScope;
+          , lastOptionScope
+          , deregister;
+
+        $container.on('blur', 'textarea', function () {
+          //need to deregister when focus is moved to another cell, typically when autocomplete editor is destroyed
+          //another way to do this would be to call deregister on (yet nonexistent) event destroyeditor.handsontable
+          if (deregister) {
+            deregister();
+          }
+        });
 
         column.source = function (query, process) {
-          var htInstance = uiDatagrid.$container.data('handsontable');
-          var row = htInstance.getSelected()[0];
-          childScope[uiDatagrid.lhs] = scope.$parent.$eval(uiDatagrid.rhs)[row];
-          lastItems = childScope.$eval(rhs);
-          childScope.$apply();
+          if (deregister) {
+            deregister();
+          }
+
+          var getItems = function () {
+            var htInstance = uiDatagrid.$container.data('handsontable');
+            var row = htInstance.getSelected()[0];
+            childScope[uiDatagrid.lhs] = scope.$parent.$eval(uiDatagrid.rhs)[row];
+            return childScope.$eval(rhs);
+          };
+
+          lastItems = getItems();
+          if (!childScope.$$phase) {
+            childScope.$apply();
+          }
           process(lastItems);
           lastOptionScope.$apply(); //without this, last option is never rendered. TODO: why?
+
+          deregister = scope.$parent.$watch(getItems, function (newVal, oldVal) {
+            if (newVal === oldVal) {
+              return;
+            }
+            setTimeout(function () {
+              column.source(query, process);
+            }, 0);
+          }/*, true*/);
+
+          if (!column.saveOnBlur) {
+            childScope.$eval(column.value + ' = "' + $.trim(query).replace(/"/g, '\"') + '"'); //refresh value after each key stroke
+            childScope.$apply();
+          }
         };
 
         column.sorter = function (items) {
@@ -70,7 +103,6 @@ angular.module('uiHandsontable', [])
           var el;
           var optionScope = childScope.$new();
           optionScope[lhs] = item;
-          optionScope.$apply();
           lastOptionScope = optionScope;
           if (column.transclude) {
             column.transclude(optionScope, function (elem) {
@@ -85,7 +117,6 @@ angular.module('uiHandsontable', [])
 
         column.onSelect = function (row, col, prop, value, index) {
           //index is the selection index in the menu
-          //var htInstance = uiDatagrid.$container.data('handsontable');
           childScope[lhs] = lastItems[index];
           childScope.$eval(column.clickrow);
           childScope.$apply();
@@ -121,17 +152,16 @@ angular.module('uiHandsontable', [])
         uiDatagrid.settings = angular.extend(uiDatagrid.settings, scope.$parent.$eval(attrs.uiHandsontable || attrs.settings));
 
         for (i in htOptions) {
-          if (typeof scope[htOptions[i]] !== 'undefined') {
+          if (htOptions.hasOwnProperty(i) && typeof scope[htOptions[i]] !== 'undefined') {
             uiDatagrid.settings[htOptions[i]] = scope[htOptions[i]];
           }
         }
 
-        //console.log('uiDatagrid.settings', uiDatagrid.settings);
-
         $(element).append($container);
 
-        if (typeof scope.$parent[rhs] !== 'undefined') {
-          uiDatagrid.settings['data'] = scope.$parent[rhs];
+        var data = scope.$parent.$eval(rhs);
+        if (typeof data !== 'undefined') {
+          uiDatagrid.settings['data'] = data;
         }
 
         if (uiDatagrid.settings.columns) {
@@ -147,7 +177,7 @@ angular.module('uiHandsontable', [])
 
         $container.handsontable(uiDatagrid.settings);
 
-        $container.on('datachange.handsontable', function (event, changes, source) {
+        $container.on('datachange.handsontable', function () {
           if (!scope.$$phase) { //if digest is not in progress
             scope.$apply(); //programmatic change does not trigger digest in AnuglarJS so we need to trigger it automatically
           }
@@ -161,7 +191,7 @@ angular.module('uiHandsontable', [])
         var lastTotalRows = 0;
         scope.$watch(function () {
           //check if visible data has changed
-          if (scope.$parent[rhs] !== $container.handsontable('getData')) {
+          if (scope.$parent.$eval(rhs) !== $container.handsontable('getData')) {
             return true;
           }
 
@@ -184,7 +214,7 @@ angular.module('uiHandsontable', [])
         }, function (newVal, oldVal) {
           //if data has changed, render the table
           if (newVal == true) {
-            $container.handsontable('loadData', scope.$parent[rhs]);
+            $container.handsontable('loadData', scope.$parent.$eval(rhs));
           }
           else if (newVal !== oldVal) {
             $container.handsontable('render');
@@ -196,7 +226,6 @@ angular.module('uiHandsontable', [])
           (function (key) {
             scope.$watch(key, function (newVal, oldVal) {
               //if configuration has changed, call updateSettings
-              //console.log(key, 'changed value to ', newVal);
               if (newVal === oldVal) {
                 return;
               }
@@ -334,9 +363,9 @@ angular.module('uiHandsontable', [])
             lastSelectionRow = r;
             lastSelectionCol = c;
 
-            if (!scope.$$phase && typeof scope.selectedIndex === 'object' && typeof scope.selectedIndex !== 'undefined' && scope.selectedIndex != r) {
+            if (!scope.$$phase && /*typeof scope.selectedIndex === 'object' && */typeof scope.selectedIndex !== 'undefined' && scope.selectedIndex != r) {
               //make sure digest is not in progress
-              //make sure selectgedIndex is observable to avoid "Non-assignable model expression" error
+              //typeof scope.selectedIndex === 'object' was used to make sure selectedIndex is observable (to avoid "Non-assignable model expression" error), but it seems unnecessary now
               scope.$apply(function () {
                 scope.selectedIndex = r;
               });
@@ -347,9 +376,9 @@ angular.module('uiHandsontable', [])
             isSelected = false;
             lastSelectionRow = null;
 
-            if (!scope.$$phase && typeof scope.selectedIndex === 'object' && typeof scope.selectedIndex !== 'undefined' && scope.selectedIndex != null) {
+            if (!scope.$$phase && /*typeof scope.selectedIndex === 'object' && */typeof scope.selectedIndex !== 'undefined' && scope.selectedIndex != null) {
               //make sure digest is not in progress
-              //make sure selectgedIndex is observable to avoid "Non-assignable model expression" error
+              //typeof scope.selectedIndex === 'object' was used to make sure selectedIndex is observable (to avoid "Non-assignable model expression" error), but it seems unnecessary now
               scope.$apply(function () {
                 scope.selectedIndex = null;
               });
@@ -359,7 +388,7 @@ angular.module('uiHandsontable', [])
           // set up watcher for selectedIndex
           scope.$watch('selectedIndex', function (newVal, oldVal) {
             //if selectedIndex has changed, change table selection
-            var row = newVal * 1; //convert to numeric
+            var row = parseInt(newVal, 10);
             if (typeof newVal !== 'undefined' && newVal !== null && row !== lastSelectionRow) {
               var col = lastSelectionCol || 0;
               $container.handsontable('selectCell', row, col, row, col, true);
@@ -371,14 +400,14 @@ angular.module('uiHandsontable', [])
     return directiveDefinitionObject;
   });
 /**
- * Handsontable 0.8.6
+ * Handsontable 0.8.8
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Feb 27 2013 19:09:10 GMT+0100 (Central European Standard Time)
+ * Date: Mon Mar 04 2013 00:45:03 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1574,24 +1603,18 @@ Handsontable.Core = function (rootElement, settings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
-      editproxy.focus();
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
         window.prepareFrame = setTimeout(function () {
-          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
+          var TD = self.view.getCellAtCoords(priv.selStart.coords());
+          TD.focus();
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
         }, 0);
       }
       else {
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
-      }
-    },
-
-    /**
-     * Sets focus to event listener
-     */
-    focus: function () {
-      if (selection.isSelected()) {
-        self.$table[0].focus();
+        var TD = self.view.getCellAtCoords(priv.selStart.coords());
+        TD.focus();
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       }
     }
   };
@@ -1645,7 +1668,7 @@ Handsontable.Core = function (rootElement, settings) {
       };
 
       for (var i = changes.length - 1; i >= 0; i--) {
-        var cellProperties = self.getCellMeta(changes[i][0], changes[i][1]);
+        var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
         if (cellProperties.strict && cellProperties.source) {
           var items = $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : cellProperties.source;
           if (items) {
@@ -1661,7 +1684,7 @@ Handsontable.Core = function (rootElement, settings) {
           changes.splice(i, 1);
         }
 
-        var cellProperties = self.getCellMeta(changes[i][0], changes[i][1]);
+        var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
         if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
             changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
@@ -1830,8 +1853,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    * @param {Array} data
    */
-  this.loadData = function (data, isInitial) {
-    var rlen;
+  this.loadData = function (data) {
     priv.isPopulated = false;
     priv.settings.data = data;
     if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
@@ -1847,16 +1869,6 @@ Handsontable.Core = function (rootElement, settings) {
       priv.duckDataSchema = {};
     }
     datamap.createMap();
-
-    if (isInitial) {
-      rlen = self.countRows();
-      if (priv.settings.startRows) {
-        while (priv.settings.startRows > rlen) {
-          datamap.createRow();
-          rlen++;
-        }
-      }
-    }
 
     grid.keepEmptyRows();
     Handsontable.PluginHooks.run(self, 'afterLoadData');
@@ -1927,22 +1939,20 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    if (priv.settings.data === void 0) {
-      if (settings.data === void 0) {
-        settings.data = [];
-        var row;
-        for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-          row = [];
-          for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
-            row.push(null);
-          }
-          settings.data.push(row);
+    if (settings.data === void 0 && priv.settings.data === void 0) {
+      var data = [];
+      var row;
+      for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        row = [];
+        for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+          row.push(null);
         }
+        data.push(row);
       }
+      self.loadData(data); //data source created just now
     }
-
-    if (settings.data !== void 0) {
-      self.loadData(settings.data, true);
+    else if (settings.data !== void 0) {
+      self.loadData(settings.data); //data source given as option
     }
     else if (settings.columns !== void 0) {
       datamap.createMap();
@@ -2099,8 +2109,11 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Object}
    */
   this.getCellMeta = function (row, col) {
-    var cellProperties = {}
-      , prop = datamap.colToProp(col);
+    var cellProperties = $.extend(true, cellProperties, Handsontable.TextCell)
+      , prop = datamap.colToProp(col)
+      , i
+      , type;
+
     if (priv.settings.columns) {
       cellProperties = $.extend(true, cellProperties, priv.settings.columns[col] || {});
     }
@@ -2110,17 +2123,18 @@ Handsontable.Core = function (rootElement, settings) {
     Handsontable.PluginHooks.run(self, 'beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
-      cellProperties = $.extend(true, cellProperties, Handsontable.cellTypes[cellProperties.type]);
+      type = Handsontable.cellTypes[cellProperties.type];
     }
     else if (typeof cellProperties.type === 'object') {
-      for (var i in cellProperties.type) {
-        if (cellProperties.type.hasOwnProperty(i)) {
-          cellProperties[i] = cellProperties.type[i];
+      type = cellProperties.type;
+    }
+
+    if (type) {
+      for (i in type) {
+        if (type.hasOwnProperty(i)) {
+          cellProperties[i] = type[i];
         }
       }
-    }
-    else {
-      cellProperties = $.extend(true, cellProperties, Handsontable.TextCell);
     }
 
     cellProperties.isWritable = !cellProperties.readOnly;
@@ -2334,7 +2348,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.8.6'; //inserted by grunt from package.json
+  this.version = '0.8.8'; //inserted by grunt from package.json
 };
 
 var settings = {
@@ -2418,10 +2432,7 @@ Handsontable.TableView = function (instance) {
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
 
   instance.$table = $table;
-  $table.attr('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
-
   instance.rootElement.prepend($table);
-  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 
   this.overflow = instance.rootElement.css('overflow');
   if ((settings.width || settings.height) && !(this.overflow === 'scroll' || this.overflow === 'auto')) {
@@ -2608,6 +2619,7 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
+      TD.focus();
       event.preventDefault();
       clearTextSelection();
     },
@@ -2660,6 +2672,8 @@ Handsontable.TableView = function (instance) {
       event.stopPropagation();
     }
   });
+
+  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
@@ -3103,11 +3117,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         event.preventDefault(); //don't add newline to field
         break;
 
-      case 8: /* backspace */
-      case 46: /* delete */
-      case 36: /* home */
-      case 35: /* end */
-        event.stopPropagation();
+      default:
+        event.stopPropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
     }
   });
@@ -3206,7 +3217,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   }
 
   ///start prepare textarea position
-  var $td = $(this.instance.getCell(this.row, this.col)); //because old td may have been scrolled out with scrollViewport
+  this.TD = this.instance.getCell(this.row, this.col);
+  var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
   var currentOffset = $td.offset();
   var containerOffset = this.instance.rootElement.offset();
   var scrollTop = this.instance.rootElement.scrollTop();
@@ -3284,8 +3296,8 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   }
 
   this.instance.$table.off(".editor");
-  if (document.activeElement === this.TEXTAREA) {
-    this.instance.$table[0].focus(); //don't refocus the table if user focused some cell outside of HT on purpose
+  if (document.activeElement === this.TEXTAREA[0]) {
+    this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
   this.instance.view.wt.update('onCellDblClick', null);
 
@@ -3307,6 +3319,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
 
+  instance.textEditor.TD = td;
   instance.textEditor.isCellEdited = false;
   instance.textEditor.originalValue = value;
 
@@ -3475,6 +3488,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
     instance.autocompleteEditor = new HandsontableAutocompleteEditorClass(instance);
   }
 
+  instance.autocompleteEditor.TD = td;
   instance.autocompleteEditor.isCellEdited = false;
   instance.autocompleteEditor.originalValue = value;
 
@@ -4686,7 +4700,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 /**
  * walkontable 0.2.0
  * 
- * Date: Wed Feb 27 2013 12:41:20 GMT+0100 (Central European Standard Time)
+ * Date: Thu Feb 28 2013 17:54:27 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -6130,6 +6144,7 @@ function WalkontableTable(instance) {
   if (this.hasCellSpacingProblem) { //IE7
     this.TABLE.cellSpacing = 0;
   }
+  this.TABLE.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
 
   this.visibilityStartRow = this.visibilityStartColumn = this.visibilityEdgeRow = this.visibilityEdgeColumn = null;
 
@@ -6382,7 +6397,9 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   for (var r = 0, rlen = TRs.length; r < rlen; r++) {
     trChildrenLength = TRs[r].childNodes.length;
     while (trChildrenLength < displayTds + frozenColumnsCount) {
-      TRs[r].appendChild(document.createElement('TD'));
+      var TD = document.createElement('TD');
+      TD.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
+      TRs[r].appendChild(TD);
       trChildrenLength++;
     }
     while (trChildrenLength > displayTds + frozenColumnsCount) {
@@ -6700,49 +6717,49 @@ function WalkontableWheel(instance) {
 
 var Cursor =
 {
-  x: 0, y: 0,
-  init: function()
-  {
-    this.setEvent('mouse');
-    this.setEvent('touch');
-  },
-  setEvent: function(type)
-  {
-    var moveHandler = document['on' + type + 'move'] || function(){};
-    document['on' + type + 'move'] = function(e)
-    {
-      moveHandler(e);
-      Cursor.refresh(e);
-    }
-  },
-  refresh: function(e)
-  {
-    if(!e)
-    {
-      e = window.event;
-    }
-    if(e.type == 'mousemove')
-    {
-      this.set(e);
-    }
-    else if(e.touches)
-    {
-      this.set(e.touches[0]);
-    }
-  },
-  set: function(e)
-  {
-    if(e.pageX || e.pageY)
-    {
-      this.x = e.pageX;
-      this.y = e.pageY;
-    }
-    else if(e.clientX || e.clientY)
-    {
-      this.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-      this.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-    }
-  }
+	x: 0, y: 0,
+	init: function()
+	{
+		this.setEvent('mouse');
+		this.setEvent('touch');
+	},
+	setEvent: function(type)
+	{
+		var moveHandler = document['on' + type + 'move'] || function(){};
+		document['on' + type + 'move'] = function(e)
+		{
+			moveHandler(e);
+			Cursor.refresh(e);
+		}
+	},
+	refresh: function(e)
+	{
+		if(!e)
+		{
+			e = window.event;
+		}
+		if(e.type == 'mousemove')
+		{
+			this.set(e);
+		}
+		else if(e.touches)
+		{
+			this.set(e.touches[0]);
+		}
+	},
+	set: function(e)
+	{
+		if(e.pageX || e.pageY)
+		{
+			this.x = e.pageX;
+			this.y = e.pageY;
+		}
+		else if(e.clientX || e.clientY)
+		{
+			this.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			this.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+		}
+	}
 };
 Cursor.init();
 
@@ -6750,532 +6767,532 @@ Cursor.init();
 
 var Position =
 {
-  get: function(obj)
-  {
-    var curtop = 0, curleft = 0; //Walkontable patch. Original (var curleft = curtop = 0;) created curtop in global scope
-    if(obj.offsetParent)
-    {
-      do
-      {
-        curleft += obj.offsetLeft;
-        curtop += obj.offsetTop;
-      }
-      while((obj = obj.offsetParent));
-    }
-    return [curleft, curtop];
-  }
+	get: function(obj)
+	{
+		var curtop = 0, curleft = 0; //Walkontable patch. Original (var curleft = curtop = 0;) created curtop in global scope
+		if(obj.offsetParent)
+		{
+			do
+			{
+				curleft += obj.offsetLeft;
+				curtop += obj.offsetTop;
+			}
+			while((obj = obj.offsetParent));
+		}
+		return [curleft, curtop];
+	}
 };
 
 /* Dragdealer */
 
 var Dragdealer = function(wrapper, options)
 {
-  if(typeof(wrapper) == 'string')
-  {
-    wrapper = document.getElementById(wrapper);
-  }
-  if(!wrapper)
-  {
-    return;
-  }
-  var handle = wrapper.getElementsByTagName('div')[0];
-  if(!handle || handle.className.search(/(^|\s)handle(\s|$)/) == -1)
-  {
-    return;
-  }
-  this.init(wrapper, handle, options || {});
-  this.setup();
+	if(typeof(wrapper) == 'string')
+	{
+		wrapper = document.getElementById(wrapper);
+	}
+	if(!wrapper)
+	{
+		return;
+	}
+	var handle = wrapper.getElementsByTagName('div')[0];
+	if(!handle || handle.className.search(/(^|\s)handle(\s|$)/) == -1)
+	{
+		return;
+	}
+	this.init(wrapper, handle, options || {});
+	this.setup();
 };
 Dragdealer.prototype =
 {
-  init: function(wrapper, handle, options)
-  {
-    this.wrapper = wrapper;
-    this.handle = handle;
-    this.options = options;
-    
-    this.disabled = this.getOption('disabled', false);
-    this.horizontal = this.getOption('horizontal', true);
-    this.vertical = this.getOption('vertical', false);
-    this.slide = this.getOption('slide', true);
-    this.steps = this.getOption('steps', 0);
-    this.snap = this.getOption('snap', false);
-    this.loose = this.getOption('loose', false);
-    this.speed = this.getOption('speed', 10) / 100;
-    this.xPrecision = this.getOption('xPrecision', 0);
-    this.yPrecision = this.getOption('yPrecision', 0);
-    
-    this.callback = options.callback || null;
-    this.animationCallback = options.animationCallback || null;
-    
-    this.bounds = {
-      left: options.left || 0, right: -(options.right || 0),
-      top: options.top || 0, bottom: -(options.bottom || 0),
-      x0: 0, x1: 0, xRange: 0,
-      y0: 0, y1: 0, yRange: 0
-    };
-    this.value = {
-      prev: [-1, -1],
-      current: [options.x || 0, options.y || 0],
-      target: [options.x || 0, options.y || 0]
-    };
-    this.offset = {
-      wrapper: [0, 0],
-      mouse: [0, 0],
-      prev: [-999999, -999999],
-      current: [0, 0],
-      target: [0, 0]
-    };
-    this.change = [0, 0];
-    
-    this.activity = false;
-    this.dragging = false;
-    this.tapping = false;
-  },
-  getOption: function(name, defaultValue)
-  {
-    return this.options[name] !== undefined ? this.options[name] : defaultValue;
-  },
-  setup: function()
-  {
-    this.setWrapperOffset();
-    this.setBoundsPadding();
-    this.setBounds();
-    this.setSteps();
-    
-    this.addListeners();
-  },
-  setWrapperOffset: function()
-  {
-    this.offset.wrapper = Position.get(this.wrapper);
-  },
-  setBoundsPadding: function()
-  {
-    if(!this.bounds.left && !this.bounds.right)
-    {
-      this.bounds.left = Position.get(this.handle)[0] - this.offset.wrapper[0];
-      this.bounds.right = -this.bounds.left;
-    }
-    if(!this.bounds.top && !this.bounds.bottom)
-    {
-      this.bounds.top = Position.get(this.handle)[1] - this.offset.wrapper[1];
-      this.bounds.bottom = -this.bounds.top;
-    }
-  },
-  setBounds: function()
-  {
-    this.bounds.x0 = this.bounds.left;
-    this.bounds.x1 = this.wrapper.offsetWidth + this.bounds.right;
-    this.bounds.xRange = (this.bounds.x1 - this.bounds.x0) - this.handle.offsetWidth;
-    
-    this.bounds.y0 = this.bounds.top;
-    this.bounds.y1 = this.wrapper.offsetHeight + this.bounds.bottom;
-    this.bounds.yRange = (this.bounds.y1 - this.bounds.y0) - this.handle.offsetHeight;
-    
-    this.bounds.xStep = 1 / (this.xPrecision || Math.max(this.wrapper.offsetWidth, this.handle.offsetWidth));
-    this.bounds.yStep = 1 / (this.yPrecision || Math.max(this.wrapper.offsetHeight, this.handle.offsetHeight));
-  },
-  setSteps: function()
-  {
-    if(this.steps > 1)
-    {
-      this.stepRatios = [];
-      for(var i = 0; i <= this.steps - 1; i++)
-      {
-        this.stepRatios[i] = i / (this.steps - 1);
-      }
-    }
-  },
-  addListeners: function()
-  {
-    var self = this;
-    
-    this.wrapper.onselectstart = function()
-    {
-      return false;
-    }
-    this.handle.onmousedown = this.handle.ontouchstart = function(e)
-    {
-      self.handleDownHandler(e);
-    };
-    this.wrapper.onmousedown = this.wrapper.ontouchstart = function(e)
-    {
-      self.wrapperDownHandler(e);
-    };
-    var mouseUpHandler = document.onmouseup || function(){};
-    document.onmouseup = function(e)
-    {
-      mouseUpHandler(e);
-      self.documentUpHandler(e);
-    };
-    var touchEndHandler = document.ontouchend || function(){};
-    document.ontouchend = function(e)
-    {
-      touchEndHandler(e);
-      self.documentUpHandler(e);
-    };
-    var resizeHandler = window.onresize || function(){};
-    window.onresize = function(e)
-    {
-      resizeHandler(e);
-      self.documentResizeHandler(e);
-    };
-    this.wrapper.onmousemove = function(e)
-    {
-      self.activity = true;
-    }
-    this.wrapper.onclick = function(e)
-    {
-      return !self.activity;
-    }
-    
-    this.interval = setInterval(function(){ self.animate() }, 25);
-    self.animate(false, true);
-  },
-  handleDownHandler: function(e)
-  {
-    this.activity = false;
-    Cursor.refresh(e);
-    
-    this.preventDefaults(e, true);
-    this.startDrag();
-    this.cancelEvent(e);
-  },
-  wrapperDownHandler: function(e)
-  {
-    Cursor.refresh(e);
-    
-    this.preventDefaults(e, true);
-    this.startTap();
-  },
-  documentUpHandler: function(e)
-  {
-    this.stopDrag();
-    this.stopTap();
-    //this.cancelEvent(e);
-  },
-  documentResizeHandler: function(e)
-  {
-    this.setWrapperOffset();
-    this.setBounds();
-    
-    this.update();
-  },
-  enable: function()
-  {
-    this.disabled = false;
-    this.handle.className = this.handle.className.replace(/\s?disabled/g, '');
-  },
-  disable: function()
-  {
-    this.disabled = true;
-    this.handle.className += ' disabled';
-  },
-  setStep: function(x, y, snap)
-  {
-    this.setValue(
-      this.steps && x > 1 ? (x - 1) / (this.steps - 1) : 0,
-      this.steps && y > 1 ? (y - 1) / (this.steps - 1) : 0,
-      snap
-    );
-  },
-  setValue: function(x, y, snap)
-  {
-    this.setTargetValue([x, y || 0]);
-    if(snap)
-    {
-      this.groupCopy(this.value.current, this.value.target);
-    }
-  },
-  startTap: function(target)
-  {
-    if(this.disabled)
-    {
-      return;
-    }
-    this.tapping = true;
-    
-    if(target === undefined)
-    {
-      target = [
-        Cursor.x - this.offset.wrapper[0] - (this.handle.offsetWidth / 2),
-        Cursor.y - this.offset.wrapper[1] - (this.handle.offsetHeight / 2)
-      ];
-    }
-    this.setTargetOffset(target);
-  },
-  stopTap: function()
-  {
-    if(this.disabled || !this.tapping)
-    {
-      return;
-    }
-    this.tapping = false;
-    
-    this.setTargetValue(this.value.current);
-    this.result();
-  },
-  startDrag: function()
-  {
-    if(this.disabled)
-    {
-      return;
-    }
-    this.offset.mouse = [
-      Cursor.x - Position.get(this.handle)[0],
-      Cursor.y - Position.get(this.handle)[1]
-    ];
-    
-    this.dragging = true;
-  },
-  stopDrag: function()
-  {
-    if(this.disabled || !this.dragging)
-    {
-      return;
-    }
-    this.dragging = false;
-    
-    var target = this.groupClone(this.value.current);
-    if(this.slide)
-    {
-      var ratioChange = this.change;
-      target[0] += ratioChange[0] * 4;
-      target[1] += ratioChange[1] * 4;
-    }
-    this.setTargetValue(target);
-    this.result();
-  },
-  feedback: function()
-  {
-    var value = this.value.current;
-    if(this.snap && this.steps > 1)
-    {
-      value = this.getClosestSteps(value);
-    }
-    if(!this.groupCompare(value, this.value.prev))
-    {
-      if(typeof(this.animationCallback) == 'function')
-      {
-        this.animationCallback(value[0], value[1]);
-      }
-      this.groupCopy(this.value.prev, value);
-    }
-  },
-  result: function()
-  {
-    if(typeof(this.callback) == 'function')
-    {
-      this.callback(this.value.target[0], this.value.target[1]);
-    }
-  },
-  animate: function(direct, first)
-  {
-    if(direct && !this.dragging)
-    {
-      return;
-    }
-    if(this.dragging)
-    {
-      var prevTarget = this.groupClone(this.value.target);
-      
-      var offset = [
-        Cursor.x - this.offset.wrapper[0] - this.offset.mouse[0],
-        Cursor.y - this.offset.wrapper[1] - this.offset.mouse[1]
-      ];
-      this.setTargetOffset(offset, this.loose);
-      
-      this.change = [
-        this.value.target[0] - prevTarget[0],
-        this.value.target[1] - prevTarget[1]
-      ];
-    }
-    if(this.dragging || first)
-    {
-      this.groupCopy(this.value.current, this.value.target);
-    }
-    if(this.dragging || this.glide() || first)
-    {
-      this.update();
-      this.feedback();
-    }
-  },
-  glide: function()
-  {
-    var diff = [
-      this.value.target[0] - this.value.current[0],
-      this.value.target[1] - this.value.current[1]
-    ];
-    if(!diff[0] && !diff[1])
-    {
-      return false;
-    }
-    if(Math.abs(diff[0]) > this.bounds.xStep || Math.abs(diff[1]) > this.bounds.yStep)
-    {
-      this.value.current[0] += diff[0] * this.speed;
-      this.value.current[1] += diff[1] * this.speed;
-    }
-    else
-    {
-      this.groupCopy(this.value.current, this.value.target);
-    }
-    return true;
-  },
-  update: function()
-  {
-    if(!this.snap)
-    {
-      this.offset.current = this.getOffsetsByRatios(this.value.current);
-    }
-    else
-    {
-      this.offset.current = this.getOffsetsByRatios(
-        this.getClosestSteps(this.value.current)
-      );
-    }
-    this.show();
-  },
-  show: function()
-  {
-    if(!this.groupCompare(this.offset.current, this.offset.prev))
-    {
-      if(this.horizontal)
-      {
-        this.handle.style.left = String(this.offset.current[0]) + 'px';
-      }
-      if(this.vertical)
-      {
-        this.handle.style.top = String(this.offset.current[1]) + 'px';
-      }
-      this.groupCopy(this.offset.prev, this.offset.current);
-    }
-  },
-  setTargetValue: function(value, loose)
-  {
-    var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-    
-    this.groupCopy(this.value.target, target);
-    this.offset.target = this.getOffsetsByRatios(target);
-  },
-  setTargetOffset: function(offset, loose)
-  {
-    var value = this.getRatiosByOffsets(offset);
-    var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-    
-    this.groupCopy(this.value.target, target);
-    this.offset.target = this.getOffsetsByRatios(target);
-  },
-  getLooseValue: function(value)
-  {
-    var proper = this.getProperValue(value);
-    return [
-      proper[0] + ((value[0] - proper[0]) / 4),
-      proper[1] + ((value[1] - proper[1]) / 4)
-    ];
-  },
-  getProperValue: function(value)
-  {
-    var proper = this.groupClone(value);
+	init: function(wrapper, handle, options)
+	{
+		this.wrapper = wrapper;
+		this.handle = handle;
+		this.options = options;
+		
+		this.disabled = this.getOption('disabled', false);
+		this.horizontal = this.getOption('horizontal', true);
+		this.vertical = this.getOption('vertical', false);
+		this.slide = this.getOption('slide', true);
+		this.steps = this.getOption('steps', 0);
+		this.snap = this.getOption('snap', false);
+		this.loose = this.getOption('loose', false);
+		this.speed = this.getOption('speed', 10) / 100;
+		this.xPrecision = this.getOption('xPrecision', 0);
+		this.yPrecision = this.getOption('yPrecision', 0);
+		
+		this.callback = options.callback || null;
+		this.animationCallback = options.animationCallback || null;
+		
+		this.bounds = {
+			left: options.left || 0, right: -(options.right || 0),
+			top: options.top || 0, bottom: -(options.bottom || 0),
+			x0: 0, x1: 0, xRange: 0,
+			y0: 0, y1: 0, yRange: 0
+		};
+		this.value = {
+			prev: [-1, -1],
+			current: [options.x || 0, options.y || 0],
+			target: [options.x || 0, options.y || 0]
+		};
+		this.offset = {
+			wrapper: [0, 0],
+			mouse: [0, 0],
+			prev: [-999999, -999999],
+			current: [0, 0],
+			target: [0, 0]
+		};
+		this.change = [0, 0];
+		
+		this.activity = false;
+		this.dragging = false;
+		this.tapping = false;
+	},
+	getOption: function(name, defaultValue)
+	{
+		return this.options[name] !== undefined ? this.options[name] : defaultValue;
+	},
+	setup: function()
+	{
+		this.setWrapperOffset();
+		this.setBoundsPadding();
+		this.setBounds();
+		this.setSteps();
+		
+		this.addListeners();
+	},
+	setWrapperOffset: function()
+	{
+		this.offset.wrapper = Position.get(this.wrapper);
+	},
+	setBoundsPadding: function()
+	{
+		if(!this.bounds.left && !this.bounds.right)
+		{
+			this.bounds.left = Position.get(this.handle)[0] - this.offset.wrapper[0];
+			this.bounds.right = -this.bounds.left;
+		}
+		if(!this.bounds.top && !this.bounds.bottom)
+		{
+			this.bounds.top = Position.get(this.handle)[1] - this.offset.wrapper[1];
+			this.bounds.bottom = -this.bounds.top;
+		}
+	},
+	setBounds: function()
+	{
+		this.bounds.x0 = this.bounds.left;
+		this.bounds.x1 = this.wrapper.offsetWidth + this.bounds.right;
+		this.bounds.xRange = (this.bounds.x1 - this.bounds.x0) - this.handle.offsetWidth;
+		
+		this.bounds.y0 = this.bounds.top;
+		this.bounds.y1 = this.wrapper.offsetHeight + this.bounds.bottom;
+		this.bounds.yRange = (this.bounds.y1 - this.bounds.y0) - this.handle.offsetHeight;
+		
+		this.bounds.xStep = 1 / (this.xPrecision || Math.max(this.wrapper.offsetWidth, this.handle.offsetWidth));
+		this.bounds.yStep = 1 / (this.yPrecision || Math.max(this.wrapper.offsetHeight, this.handle.offsetHeight));
+	},
+	setSteps: function()
+	{
+		if(this.steps > 1)
+		{
+			this.stepRatios = [];
+			for(var i = 0; i <= this.steps - 1; i++)
+			{
+				this.stepRatios[i] = i / (this.steps - 1);
+			}
+		}
+	},
+	addListeners: function()
+	{
+		var self = this;
+		
+		this.wrapper.onselectstart = function()
+		{
+			return false;
+		}
+		this.handle.onmousedown = this.handle.ontouchstart = function(e)
+		{
+			self.handleDownHandler(e);
+		};
+		this.wrapper.onmousedown = this.wrapper.ontouchstart = function(e)
+		{
+			self.wrapperDownHandler(e);
+		};
+		var mouseUpHandler = document.onmouseup || function(){};
+		document.onmouseup = function(e)
+		{
+			mouseUpHandler(e);
+			self.documentUpHandler(e);
+		};
+		var touchEndHandler = document.ontouchend || function(){};
+		document.ontouchend = function(e)
+		{
+			touchEndHandler(e);
+			self.documentUpHandler(e);
+		};
+		var resizeHandler = window.onresize || function(){};
+		window.onresize = function(e)
+		{
+			resizeHandler(e);
+			self.documentResizeHandler(e);
+		};
+		this.wrapper.onmousemove = function(e)
+		{
+			self.activity = true;
+		}
+		this.wrapper.onclick = function(e)
+		{
+			return !self.activity;
+		}
+		
+		this.interval = setInterval(function(){ self.animate() }, 25);
+		self.animate(false, true);
+	},
+	handleDownHandler: function(e)
+	{
+		this.activity = false;
+		Cursor.refresh(e);
+		
+		this.preventDefaults(e, true);
+		this.startDrag();
+		this.cancelEvent(e);
+	},
+	wrapperDownHandler: function(e)
+	{
+		Cursor.refresh(e);
+		
+		this.preventDefaults(e, true);
+		this.startTap();
+	},
+	documentUpHandler: function(e)
+	{
+		this.stopDrag();
+		this.stopTap();
+		//this.cancelEvent(e);
+	},
+	documentResizeHandler: function(e)
+	{
+		this.setWrapperOffset();
+		this.setBounds();
+		
+		this.update();
+	},
+	enable: function()
+	{
+		this.disabled = false;
+		this.handle.className = this.handle.className.replace(/\s?disabled/g, '');
+	},
+	disable: function()
+	{
+		this.disabled = true;
+		this.handle.className += ' disabled';
+	},
+	setStep: function(x, y, snap)
+	{
+		this.setValue(
+			this.steps && x > 1 ? (x - 1) / (this.steps - 1) : 0,
+			this.steps && y > 1 ? (y - 1) / (this.steps - 1) : 0,
+			snap
+		);
+	},
+	setValue: function(x, y, snap)
+	{
+		this.setTargetValue([x, y || 0]);
+		if(snap)
+		{
+			this.groupCopy(this.value.current, this.value.target);
+		}
+	},
+	startTap: function(target)
+	{
+		if(this.disabled)
+		{
+			return;
+		}
+		this.tapping = true;
+		
+		if(target === undefined)
+		{
+			target = [
+				Cursor.x - this.offset.wrapper[0] - (this.handle.offsetWidth / 2),
+				Cursor.y - this.offset.wrapper[1] - (this.handle.offsetHeight / 2)
+			];
+		}
+		this.setTargetOffset(target);
+	},
+	stopTap: function()
+	{
+		if(this.disabled || !this.tapping)
+		{
+			return;
+		}
+		this.tapping = false;
+		
+		this.setTargetValue(this.value.current);
+		this.result();
+	},
+	startDrag: function()
+	{
+		if(this.disabled)
+		{
+			return;
+		}
+		this.offset.mouse = [
+			Cursor.x - Position.get(this.handle)[0],
+			Cursor.y - Position.get(this.handle)[1]
+		];
+		
+		this.dragging = true;
+	},
+	stopDrag: function()
+	{
+		if(this.disabled || !this.dragging)
+		{
+			return;
+		}
+		this.dragging = false;
+		
+		var target = this.groupClone(this.value.current);
+		if(this.slide)
+		{
+			var ratioChange = this.change;
+			target[0] += ratioChange[0] * 4;
+			target[1] += ratioChange[1] * 4;
+		}
+		this.setTargetValue(target);
+		this.result();
+	},
+	feedback: function()
+	{
+		var value = this.value.current;
+		if(this.snap && this.steps > 1)
+		{
+			value = this.getClosestSteps(value);
+		}
+		if(!this.groupCompare(value, this.value.prev))
+		{
+			if(typeof(this.animationCallback) == 'function')
+			{
+				this.animationCallback(value[0], value[1]);
+			}
+			this.groupCopy(this.value.prev, value);
+		}
+	},
+	result: function()
+	{
+		if(typeof(this.callback) == 'function')
+		{
+			this.callback(this.value.target[0], this.value.target[1]);
+		}
+	},
+	animate: function(direct, first)
+	{
+		if(direct && !this.dragging)
+		{
+			return;
+		}
+		if(this.dragging)
+		{
+			var prevTarget = this.groupClone(this.value.target);
+			
+			var offset = [
+				Cursor.x - this.offset.wrapper[0] - this.offset.mouse[0],
+				Cursor.y - this.offset.wrapper[1] - this.offset.mouse[1]
+			];
+			this.setTargetOffset(offset, this.loose);
+			
+			this.change = [
+				this.value.target[0] - prevTarget[0],
+				this.value.target[1] - prevTarget[1]
+			];
+		}
+		if(this.dragging || first)
+		{
+			this.groupCopy(this.value.current, this.value.target);
+		}
+		if(this.dragging || this.glide() || first)
+		{
+			this.update();
+			this.feedback();
+		}
+	},
+	glide: function()
+	{
+		var diff = [
+			this.value.target[0] - this.value.current[0],
+			this.value.target[1] - this.value.current[1]
+		];
+		if(!diff[0] && !diff[1])
+		{
+			return false;
+		}
+		if(Math.abs(diff[0]) > this.bounds.xStep || Math.abs(diff[1]) > this.bounds.yStep)
+		{
+			this.value.current[0] += diff[0] * this.speed;
+			this.value.current[1] += diff[1] * this.speed;
+		}
+		else
+		{
+			this.groupCopy(this.value.current, this.value.target);
+		}
+		return true;
+	},
+	update: function()
+	{
+		if(!this.snap)
+		{
+			this.offset.current = this.getOffsetsByRatios(this.value.current);
+		}
+		else
+		{
+			this.offset.current = this.getOffsetsByRatios(
+				this.getClosestSteps(this.value.current)
+			);
+		}
+		this.show();
+	},
+	show: function()
+	{
+		if(!this.groupCompare(this.offset.current, this.offset.prev))
+		{
+			if(this.horizontal)
+			{
+				this.handle.style.left = String(this.offset.current[0]) + 'px';
+			}
+			if(this.vertical)
+			{
+				this.handle.style.top = String(this.offset.current[1]) + 'px';
+			}
+			this.groupCopy(this.offset.prev, this.offset.current);
+		}
+	},
+	setTargetValue: function(value, loose)
+	{
+		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
+		
+		this.groupCopy(this.value.target, target);
+		this.offset.target = this.getOffsetsByRatios(target);
+	},
+	setTargetOffset: function(offset, loose)
+	{
+		var value = this.getRatiosByOffsets(offset);
+		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
+		
+		this.groupCopy(this.value.target, target);
+		this.offset.target = this.getOffsetsByRatios(target);
+	},
+	getLooseValue: function(value)
+	{
+		var proper = this.getProperValue(value);
+		return [
+			proper[0] + ((value[0] - proper[0]) / 4),
+			proper[1] + ((value[1] - proper[1]) / 4)
+		];
+	},
+	getProperValue: function(value)
+	{
+		var proper = this.groupClone(value);
 
-    proper[0] = Math.max(proper[0], 0);
-    proper[1] = Math.max(proper[1], 0);
-    proper[0] = Math.min(proper[0], 1);
-    proper[1] = Math.min(proper[1], 1);
-    
-    if((!this.dragging && !this.tapping) || this.snap)
-    {
-      if(this.steps > 1)
-      {
-        proper = this.getClosestSteps(proper);
-      }
-    }
-    return proper;
-  },
-  getRatiosByOffsets: function(group)
-  {
-    return [
-      this.getRatioByOffset(group[0], this.bounds.xRange, this.bounds.x0),
-      this.getRatioByOffset(group[1], this.bounds.yRange, this.bounds.y0)
-    ];
-  },
-  getRatioByOffset: function(offset, range, padding)
-  {
-    return range ? (offset - padding) / range : 0;
-  },
-  getOffsetsByRatios: function(group)
-  {
-    return [
-      this.getOffsetByRatio(group[0], this.bounds.xRange, this.bounds.x0),
-      this.getOffsetByRatio(group[1], this.bounds.yRange, this.bounds.y0)
-    ];
-  },
-  getOffsetByRatio: function(ratio, range, padding)
-  {
-    return Math.round(ratio * range) + padding;
-  },
-  getClosestSteps: function(group)
-  {
-    return [
-      this.getClosestStep(group[0]),
-      this.getClosestStep(group[1])
-    ];
-  },
-  getClosestStep: function(value)
-  {
-    var k = 0;
-    var min = 1;
-    for(var i = 0; i <= this.steps - 1; i++)
-    {
-      if(Math.abs(this.stepRatios[i] - value) < min)
-      {
-        min = Math.abs(this.stepRatios[i] - value);
-        k = i;
-      }
-    }
-    return this.stepRatios[k];
-  },
-  groupCompare: function(a, b)
-  {
-    return a[0] == b[0] && a[1] == b[1];
-  },
-  groupCopy: function(a, b)
-  {
-    a[0] = b[0];
-    a[1] = b[1];
-  },
-  groupClone: function(a)
-  {
-    return [a[0], a[1]];
-  },
-  preventDefaults: function(e, selection)
-  {
-    if(!e)
-    {
-      e = window.event;
-    }
-    if(e.preventDefault)
-    {
-      e.preventDefault();
-    }
-    e.returnValue = false;
-    
-    if(selection && document.selection)
-    {
-      document.selection.empty();
-    }
-  },
-  cancelEvent: function(e)
-  {
-    if(!e)
-    {
-      e = window.event;
-    }
-    if(e.stopPropagation)
-    {
-      e.stopPropagation();
-    }
-    e.cancelBubble = true;
-  }
+		proper[0] = Math.max(proper[0], 0);
+		proper[1] = Math.max(proper[1], 0);
+		proper[0] = Math.min(proper[0], 1);
+		proper[1] = Math.min(proper[1], 1);
+		
+		if((!this.dragging && !this.tapping) || this.snap)
+		{
+			if(this.steps > 1)
+			{
+				proper = this.getClosestSteps(proper);
+			}
+		}
+		return proper;
+	},
+	getRatiosByOffsets: function(group)
+	{
+		return [
+			this.getRatioByOffset(group[0], this.bounds.xRange, this.bounds.x0),
+			this.getRatioByOffset(group[1], this.bounds.yRange, this.bounds.y0)
+		];
+	},
+	getRatioByOffset: function(offset, range, padding)
+	{
+		return range ? (offset - padding) / range : 0;
+	},
+	getOffsetsByRatios: function(group)
+	{
+		return [
+			this.getOffsetByRatio(group[0], this.bounds.xRange, this.bounds.x0),
+			this.getOffsetByRatio(group[1], this.bounds.yRange, this.bounds.y0)
+		];
+	},
+	getOffsetByRatio: function(ratio, range, padding)
+	{
+		return Math.round(ratio * range) + padding;
+	},
+	getClosestSteps: function(group)
+	{
+		return [
+			this.getClosestStep(group[0]),
+			this.getClosestStep(group[1])
+		];
+	},
+	getClosestStep: function(value)
+	{
+		var k = 0;
+		var min = 1;
+		for(var i = 0; i <= this.steps - 1; i++)
+		{
+			if(Math.abs(this.stepRatios[i] - value) < min)
+			{
+				min = Math.abs(this.stepRatios[i] - value);
+				k = i;
+			}
+		}
+		return this.stepRatios[k];
+	},
+	groupCompare: function(a, b)
+	{
+		return a[0] == b[0] && a[1] == b[1];
+	},
+	groupCopy: function(a, b)
+	{
+		a[0] = b[0];
+		a[1] = b[1];
+	},
+	groupClone: function(a)
+	{
+		return [a[0], a[1]];
+	},
+	preventDefaults: function(e, selection)
+	{
+		if(!e)
+		{
+			e = window.event;
+		}
+		if(e.preventDefault)
+		{
+			e.preventDefault();
+		}
+		e.returnValue = false;
+		
+		if(selection && document.selection)
+		{
+			document.selection.empty();
+		}
+	},
+	cancelEvent: function(e)
+	{
+		if(!e)
+		{
+			e = window.event;
+		}
+		if(e.stopPropagation)
+		{
+			e.stopPropagation();
+		}
+		e.cancelBubble = true;
+	}
 };
 
 /*! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
@@ -7397,48 +7414,34 @@ function CopyPaste(listenerElement) {
   }
 
   this._bindEvent(listenerElement, 'keydown', function (event) {
+    var isCtrlDown = false;
+    if (event.metaKey) { //mac
+      isCtrlDown = true;
+    }
+    else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) { //pc
+      isCtrlDown = true;
+    }
+
     /* 67 = c
      * 86 = v
      * 88 = x
      */
-    if ((event.ctrlKey || event.metaKey) && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-      ctrlWasDown = true;
+    if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
       that.selectNodeText(that.elTextarea);
 
       if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
-        that.triggerCut(event);
+        setTimeout(function(){
+          that.triggerCut(event);
+        }, 0);
       }
       else if (event.keyCode === 86) {
-        that.triggerPaste(event);
+        setTimeout(function(){
+          that.triggerPaste(event);
+        }, 0);
       }
-
-      /*if (event.stopPropagation) {
-       event.stopPropagation();
-       }
-       // Support: IE
-       event.cancelBubble = true;*/
     }
   });
-
-  this._bindEvent(listenerElement, 'keyup', function (event) {
-    if (ctrlWasDown) {
-      ctrlWasDown = false;
-    }
-  });
-
-  /*
-   //does not work in Opera < 12.12
-   this._bindEvent(this.elTextarea, 'cut', function (event) {
-   that.triggerCut(event);
-   });
-
-   this._bindEvent(this.elTextarea, 'paste', function (event) {
-   that.triggerPaste(event);
-   });
-   */
 }
-
-var lastActive, ctrlWasDown;
 
 //http://jsperf.com/textara-selection
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie

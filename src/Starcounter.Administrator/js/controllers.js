@@ -2,8 +2,7 @@
 /**
  * Scadmin service module
  */
-
-var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap','$strap.directives', 'uiHandsontable'], function ($routeProvider, $locationProvider) {
+var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap', 'uiHandsontable'], function ($routeProvider, $locationProvider) {
 
     $routeProvider.when('/databases/:databaseId', {
         templateUrl: '/partials/database.html',
@@ -16,6 +15,11 @@ var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap','
                 return delay.promise;
             }
         }
+    });
+
+    $routeProvider.when('/server', {
+        templateUrl: '/partials/server.html',
+        controller: ServerCtrl
     });
 
     $routeProvider.when('/databases', {
@@ -37,6 +41,10 @@ var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap','
     //$locationProvider.html5Mode(true);
 });
 
+
+/**
+ * Configuration for CodeMirror (Sql query textbox)
+ */
 myApp.value('ui.config', {
     codemirror: {
         mode: 'text/x-mysql',
@@ -49,7 +57,33 @@ myApp.value('ui.config', {
 /**
  * Main Controller
  */
-function MainCtrl($scope, $http) {
+function MainCtrl($scope, $location) {
+
+    // Handles the active navbar item
+    $scope.isActiveUrl = function (path) {
+        return $location.path() == path;
+    }
+}
+
+
+/**
+ * Server Controller
+ */
+function ServerCtrl($scope, Server) {
+
+    $scope.message = null;
+
+    // Get a database
+    $scope.server = Server.get({}, function (server, headers) {
+        // Success
+    }, function (response) {
+        // Error, Can not retrive list of databases
+        $scope.message = "Can not retrive the server";
+    });
+
+    $scope.hasMessage = function () {
+        return $scope.message != null && $scope.message.length > 0;
+    }
 }
 
 
@@ -57,7 +91,6 @@ function MainCtrl($scope, $http) {
  * Databases Controller
  */
 function DatabasesCtrl($scope, Database) {
-    console.log("DatabasesCtrl");
 
     $scope.message = null;
 
@@ -79,7 +112,6 @@ function DatabasesCtrl($scope, Database) {
  * Databass Controller
  */
 function DatabaseCtrl($scope, $routeParams, Database, patchService) {
-    console.log("DatabaseCtrl");
 
     $scope.message = null;
 
@@ -88,7 +120,6 @@ function DatabaseCtrl($scope, $routeParams, Database, patchService) {
 
         // Get location from the response header
         $scope.location = headers('Location');
-        console.log("DatabaseCtrl.Location:" + $scope.location);
 
         // Set the data model to the scope
         //$scope.database = database;
@@ -126,29 +157,48 @@ function DatabaseCtrl($scope, $routeParams, Database, patchService) {
 /**
  * Log Controller
  */
-function LogCtrl($scope, $http, Log, patchService) {
+function LogCtrl($scope, Log) {
 
-    console.log("LogCtrl");
+    $scope.message = null;
+    $scope.isBusy = false;
 
-    // Get a database
-    $scope.log = Log.query(function (log, headers) {
+    $scope.log = {};
+    $scope.log.LogEntries = [];
 
-        // Get location from the response header
-        $scope.location = headers('Location');
-        console.log("LogCtr.Location:" + $scope.location);
+    $scope.filterModel = {
+        debug: false,
+        notice: false,
+        warning: true,
+        error: true
+    };
 
-        // Observe the model
-        var observer = jsonpatch.observe($scope.log, function (patches) {
-            console.log("jsonpatch.observe triggerd");
-            patchService.applyPatch($scope.log, $scope.location, patches);
+    $scope.$watch('filterModel', function () {
+        $scope.refresh();
+    }, true);
+
+    $scope.refresh = function () {
+
+        $scope.isBusy = true;
+
+        // Get a database
+        Log.query($scope.filterModel, function (log, headers) {
+            // Success
+            $scope.log = log;
+            $scope.isBusy = false;
+        }, function (response) {
+            // Error, Can not retrive the log
+            $scope.isBusy = false;
+            $scope.message = "Can not retrive the log";
         });
+    }
 
-    });
+    $scope.hasMessage = function () {
+        return $scope.message != null && $scope.message.length > 0;
+    }
 
     // User clicked the "Refresh" button
     $scope.btnClick_refresh = function () {
-        console.log("btnClick_start");
-        $scope.log.RefreshList$ = !$scope.log.RefreshList$;
+        $scope.refresh();
     }
 
 
@@ -160,11 +210,26 @@ function LogCtrl($scope, $http, Log, patchService) {
  */
 function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 
-    console.log("SqlCtrl");
-
     $scope.selectedDatabase = null;
-    $scope.message = null;
-    $scope.sqlquery = "select m from systable m";
+    $scope.sqlQuery = "select m from systable m";
+    $scope.columns = [];
+    $scope.rows = [];
+    $scope.alerts = [];
+
+    $scope.isBusy = false;
+    $scope.executeButtonTitle = function () {
+        if ($scope.isBusy) {
+            return "Executing...";
+        }
+        else {
+            return "Execute";
+        }
+    }
+
+    // Close alert box
+    $scope.closeAlert = function (index) {
+        $scope.alerts.splice(index, 1);
+    };
 
     // Retrive database list
     $scope.databases = Database.query(function (databases, headers) {
@@ -178,38 +243,44 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 
     }, function (response) {
         // Error, Can not retrive a list of databases
-        $scope.message = "Can not retrive a list of databases";
+        $scope.alerts.push({ type: 'error', msg: "Can not retrive a list of databases" });
     });
-
 
     // User clicked the "Execute" button
     $scope.btnClick_execute = function () {
 
-        $scope.message = null;
+        $scope.isBusy = true;
 
-        SqlQuery.send({ databaseName: $scope.selectedDatabase.DatabaseName }, $scope.sqlquery, function (result, headers) {
+        $scope.alerts.length = 0;
 
-            $scope.Columns = result.columns;
-            $scope.Rows = result.rows;
+        SqlQuery.send({ databaseName: $scope.selectedDatabase.DatabaseName }, $scope.sqlQuery, function (result, headers) {
 
-            if (result.sqlexception != null) {
+            $scope.isBusy = false;
+
+            // Success
+
+            $scope.columns = result.columns;
+            $scope.rows = result.rows;
+
+            if (result.sqlException != null) {
                 // Show message
 
-                //$scope.sqlexception.BeginPosition
-                //$scope.sqlexception.EndPosition
-                //$scope.sqlexception.ErrorMessage
-                //$scope.sqlexception.HelpLink
-                //$scope.sqlexception.Message
-                //$scope.sqlexception.Query
-                //$scope.sqlexception.ScErrorCode
-                //$scope.sqlexception.Token
+                //$scope.sqlException.beginPosition
+                //$scope.sqlException.endPosition
+                //$scope.sqlException.errorMessage
+                //$scope.sqlException.helpLink
+                //$scope.sqlException.message
+                //$scope.sqlException.query
+                //$scope.sqlException.scErrorCode
+                //$scope.sqlException.token
+                //$scope.sqlException.stackTrace
 
-                $scope.message = result.sqlexception.Message;
+                $scope.alerts.push({ type: 'error', msg: result.sqlException.message });
 
                 // Show modal window with the error message
-                if (result.sqlexception.ErrorMessage != null) {
+                if (result.sqlException.errorMessage != null) {
                     var title = 'Starcounter internal error';
-                    var msg = result.sqlexception.ErrorMessage + "<br><br>" + result.sqlexception.HelpLink;
+                    var msg = result.sqlException.errorMessage + "<br><br>" + result.sqlException.helpLink;
                     var btns = [{ result: 'ok', label: 'OK', cssClass: 'btn-primary' }];
                     $dialog.messageBox(title, msg, btns).open();
                 }
@@ -218,8 +289,9 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 
             if (result.exception != null) {
                 // Show modal error window (this error is an internal starcounter error)
-                //$scope.exception.helplink
+                //$scope.exception.helpLink
                 //$scope.exception.message
+                //$scope.exception.stackTrace
 
                 //var title = 'Starcounter internal Error';
                 //var msg = result.exception.message + "<br><br>" + result.exception.helplink;
@@ -234,22 +306,18 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
                     backdropClick: true,
                     templateUrl: "partials/error.html",
                     controller: 'DialogController',
-                    data: { header: "Starcounter Error", message: result.exception.message, helplink: result.exception.helplink, stacktrace: "" }
+                    data: { header: "Starcounter Error", message: result.exception.message, helpLink: result.exception.helpLink, stackTrace: "" }
                 };
 
                 var d = $dialog.dialog($scope.opts);
-                d.open().then(function (result) {
-                    if (result) {
-                        alert('dialog closed with result: ' + result);
-                    }
-                });
-
+                d.open();
             }
 
-
-
         }, function (response) {
-            $scope.message = "Can not connect to the database " + $scope.selectedDatabase.DatabaseName;
+            // Error
+            $scope.isBusy = false;
+
+            $scope.alerts.push({ type: 'error', msg: "Can not connect to the database " + $scope.selectedDatabase.DatabaseName });
             ////404 or bad
             //if (response.status === 404) {
             //}
@@ -284,16 +352,13 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
     //      });
     //};
 
-    $scope.hasMessage = function () {
-        return $scope.message != null && $scope.message.length > 0;
-    }
-
 }
 
-// the dialog is injected in the specified controller
-function DialogController($scope, dialog) {
 
-    //console.log("Test");
+/**
+ * Dialog Controller
+ */
+function DialogController($scope, dialog) {
 
     $scope.header = dialog.options.data.header;
     $scope.message = dialog.options.data.message;

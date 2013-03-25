@@ -1,0 +1,26 @@
+﻿<div ng-show="hasMessage()">
+    <div class="alert alert-error">
+        {{message}}
+    </div>
+</div>
+
+<div ng-hide="hasMessage()">
+
+    <dl class="dl-horizontal">
+        <dt>Name</dt>
+        <dd>{{server.ServerName}}</dd>
+
+        <dt>Http Port</dt>
+        <dd>{{server.SystemHttpPort}}</dd>
+
+        <dt>DatabaseDirectory</dt>
+        <dd>{{server.DatabaseDirectory}}</dd>
+        <dt>LogDirectory</dt>
+        <dd>{{server.LogDirectory}}</dd>
+        <dt>TempDirectory</dt>
+        <dd>{{server.TempDirectory}}</dd>
+    </dl>
+
+</div>
+
+

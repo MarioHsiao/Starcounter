@@ -1,21 +1,25 @@
 ﻿<div class="btn-toolbar">
 
     <div class="btn-group">
-        <button class="btn btn-primary" ng-click="btnClick_refresh()">Refresh</button>
+        <button class="btn btn-primary span2" ng-disabled="isBusy == true" ng-click="btnClick_refresh()">Refresh</button>
     </div>
 
-    <div class="btn-group" bs-buttons-checkbox>
-        <button type="button" class="btn" ng-model="log.FilterDebug$">Debug</button>
-        <button type="button" class="btn" ng-model="log.FilterNotice$">Notice</button>
-        <button type="button" class="btn btn-warning" ng-model="log.FilterWarning$">Warning</button>
-        <button type="button" class="btn btn-danger" ng-model="log.FilterError$">Error</button>
+    <div class="btn-group" data-toggle="buttons-checkbox">
+        <button type="button" ng-disabled="isBusy == true" class="btn" ng-model="filterModel.debug" btn-checkbox>Debug</button>
+        <button type="button" ng-disabled="isBusy == true" class="btn" ng-model="filterModel.notice" btn-checkbox>Notice</button>
+        <button type="button" ng-disabled="isBusy == true" class="btn btn-warning" ng-model="filterModel.warning" btn-checkbox>Warning</button>
+        <button type="button" ng-disabled="isBusy == true" class="btn btn-danger" ng-model="filterModel.error" btn-checkbox>Error</button>
     </div>
-
-
 </div>
 
 
-<table class="table table-condensed">
+<div ng-show="hasMessage()">
+    <div class="alert alert-error">
+        {{message}}
+    </div>
+</div>
+
+<!--<table class="table table-condensed">
 
     <thead>
         <tr>
@@ -25,7 +29,6 @@
             <th>Source</th>
             <th>Message</th>
         </tr>
-
     </thead>
 
     <tbody>
@@ -38,6 +41,49 @@
         </tr>
     </tbody>
 
-</table>
+</table>-->
 
 
+<ui-handsontable
+    stretchh="'last'"
+    outsideclickdeselects="false"
+    selectedindex="currentSelection"
+    minsparerows="0"
+    startrows="0"
+    datarows="row in log.LogEntries"
+    currentrowclassname="'currentRow'"
+    manualcolumnmove="false"
+    manualcolumnresize="true"
+    columnsorting="true">
+
+      <datacolumn readOnly="true" value="row.DateTimeStr" title="'Date'"></datacolumn>
+      <datacolumn readOnly="true" value="row.TypeStr" title="'Type'"></datacolumn>
+      <datacolumn readOnly="true" value="row.HostName" title="'Host'"></datacolumn>
+      <datacolumn readOnly="true" value="row.Source" title="'Source'"></datacolumn>
+      <datacolumn readOnly="true" value="row.Message" title="'Message'"></datacolumn>
+
+    </ui-handsontable>
+
+
+<!--
+    <div id="example1" style="width: 400px; height: 300px; overflow: scroll; border: 2px solid red" class="handsontable"></div>
+
+    <script>
+
+    $(document).ready(function () {
+        var border = 2;
+        var windowHeight = $(window).height();
+        var topOffset = $("#example1").position().top;
+        $("#example1").height(windowHeight - topOffset - 2 * border);
+
+        // for the window resize
+        $(window).resize(function () {
+            var windowHeight = $(window).height();
+            var topOffset = $("#example1").position().top;
+            $("#example1").height(windowHeight - topOffset - 2 * border);
+        });
+
+
+    });
+
+</script>-->
