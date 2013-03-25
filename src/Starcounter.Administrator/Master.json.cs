@@ -1,4 +1,5 @@
 ﻿
+using Codeplex.Data;
 using Starcounter;
 using Starcounter.ABCIPC.Internal;
 using Starcounter.Administrator;
@@ -8,6 +9,7 @@ using Starcounter.Internal.REST;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using System;
+using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 
@@ -43,7 +45,7 @@ namespace Starcounter.Administrator {
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
             AppsBootstrapper.Bootstrap(adminPort, "scadmin");
-//            AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+            //AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();
@@ -72,13 +74,15 @@ namespace Starcounter.Administrator {
 
         static void RegisterHandlers() {
 
-            // This dosent work.
-            GET("/", () => {
-                return StarcounterBase.Get("index.html");
-            });
+
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {
                 return null;
+            });
+
+            // This dosent work.
+            GET("/", () => {
+                return StarcounterBase.Get("index.html");
             });
 
             #region Database(s)
@@ -86,40 +90,21 @@ namespace Starcounter.Administrator {
             // Returns a list of databases
             GET("/databases", (HttpRequest req) => {
 
-                var contentType = req["Accept"];
+                if (HasAccept(req["Accept"], "application/json")) {
 
-                if (contentType != null) {
-                    string[] types = contentType.Split(',');
+                    DatabaseInfo[] databases = Master.ServerInterface.GetDatabases();
+                    DatabasesApp databaseList = new DatabasesApp();
 
-                    foreach (string type in types) {
-
-                        if (string.Equals(type, "text/html", StringComparison.CurrentCultureIgnoreCase) ||
-                            string.Equals(type, "text/plain", StringComparison.CurrentCultureIgnoreCase)) {
-                            return StarcounterBase.Get("partials/databases.html");
-                        }
-                        else if (string.Equals(type, "application/json", StringComparison.CurrentCultureIgnoreCase)) {
-
-                            DatabaseInfo[] databases = Master.ServerInterface.GetDatabases();
-                            DatabasesApp databaseList = new DatabasesApp();
-
-
-
-                            foreach (var database in databases) {
-                                DatabaseApp databaseApp = new DatabaseApp();
-
-                                databaseApp.DefaultUserHttpPort = 80;   // TODO: Get this from the database config (via the server enging API)
-                                databaseApp.SystemHttpPort = 8181;      // TODO: Get this from the server config (via the server enging API)
-
-                                databaseApp.SetDatabaseInfo(database);
-                                databaseList.DatabaseList.Add(databaseApp);
-                            }
-                            Session.Data = databaseList;
-                            return databaseList;
-                        }
+                    foreach (var database in databases) {
+                        DatabaseApp databaseApp = new DatabaseApp();
+                        databaseApp.SetDatabaseInfo(database);
+                        databaseList.DatabaseList.Add(databaseApp);
                     }
+                    return databaseList;
                 }
-                return 404;
-
+                else {
+                    return 404;
+                }
 
             });
 
@@ -127,128 +112,111 @@ namespace Starcounter.Administrator {
             // Returns a database
             GET("/databases/{?}", (string databaseid, HttpRequest req) => {
 
-                var contentType = req["Accept"];
-
-                if (contentType != null) {
-                    string[] types = contentType.Split(',');
-
-                    foreach (string type in types) {
-
-                        if (string.Equals(type, "application/json", StringComparison.CurrentCultureIgnoreCase)) {
-
-                            DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(databaseid));
-                            if (database != null) {
-                                DatabaseApp databaseApp = new DatabaseApp();
-                                databaseApp.SetDatabaseInfo(database);
-                                Session.Data = databaseApp;
-                                return databaseApp;
-                            }
-                            return 404;
-                        }
+                if (HasAccept(req["Accept"], "application/json")) {
+                    DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(databaseid));
+                    if (database != null) {
+                        DatabaseApp databaseApp = new DatabaseApp();
+                        databaseApp.SetDatabaseInfo(database);
+                        //Session.Data = databaseApp;
+                        return databaseApp;
                     }
                 }
-
                 return 404;
 
             });
 
+            #endregion
+
             #region Log
+
+            GET("/log?{?}", (string parameters, HttpRequest req) => {
+
+                if (HasAccept(req["Accept"], "application/json")) {
+
+                    NameValueCollection collection = System.Web.HttpUtility.ParseQueryString(parameters);
+
+                    LogApp logApp = new LogApp();
+
+                    #region Set Filter
+                    Boolean filter_debug;
+                    Boolean.TryParse(collection["debug"], out filter_debug);
+                    logApp.FilterDebug = filter_debug;
+
+                    Boolean filter_notice;
+                    Boolean.TryParse(collection["notice"], out filter_notice);
+                    logApp.FilterNotice = filter_notice;
+
+                    Boolean filter_warning;
+                    Boolean.TryParse(collection["warning"], out filter_warning);
+                    logApp.FilterWarning = filter_warning;
+
+                    Boolean filter_error;
+                    Boolean.TryParse(collection["error"], out filter_error);
+                    logApp.FilterError = filter_error;
+                    #endregion
+
+                    logApp.RefreshLogEntriesList();
+                    return logApp;
+                }
+                else {
+                    return 404;
+                }
+            });
+
             // Returns the log
             GET("/log", (HttpRequest req) => {
 
-                var contentType = req["Accept"];
-
-                if (contentType != null) {
-                    string[] types = contentType.Split(',');
-
-                    foreach (string type in types) {
-
-                        if (string.Equals(type, "text/html", StringComparison.CurrentCultureIgnoreCase) ||
-                            string.Equals(type, "text/plain", StringComparison.CurrentCultureIgnoreCase)) {
-                            return StarcounterBase.Get("partials/log.html");
-                        }
-                        else if (string.Equals(type, "application/json", StringComparison.CurrentCultureIgnoreCase)) {
-
-                            LogApp logApp = new LogApp() { FilterNotice = true, FilterWarning = true, FilterError = true };
-                            logApp.RefreshLogEntriesList();
-                            Session.Data = logApp;
-                            return logApp;
-                        }
-                    }
+                if (HasAccept(req["Accept"], "application/json")) {
+                    LogApp logApp = new LogApp() { FilterDebug = false, FilterNotice = false, FilterWarning = true, FilterError = true };
+                    logApp.RefreshLogEntriesList();
+                    return logApp;
                 }
-                return 404;
-
+                else {
+                    return 404;
+                }
             });
 
             #endregion
 
             #region SQL
 
-            GET("/sql", (HttpRequest req) => {
+            POST("/sql/{?}", (string databasename, HttpRequest req) => {
 
-                var contentType = req["Accept"];
+                if (HasAccept(req["Accept"], "application/json")) {
 
-                if (contentType != null) {
-                    string[] types = contentType.Split(',');
+                    ushort port = 8181; // TODO: Use system port
 
-                    foreach (string type in types) {
+                    try {
+                        Starcounter.Advanced.HttpResponse response;
+                        string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        if (string.Equals(type, "text/html", StringComparison.CurrentCultureIgnoreCase) ||
-                            string.Equals(type, "text/plain", StringComparison.CurrentCultureIgnoreCase)) {
-                            return StarcounterBase.Get("partials/sql.html");
+                        Node node = new Node("localhost", port);
+                        node.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
+
+                        if (response == null) {
+                            throw new Exception("Can not connect to remote database");
                         }
-                        //else if (string.Equals(type, "application/json", StringComparison.CurrentCultureIgnoreCase)) {
-                        //    SqlApp sqlApp = new SqlApp();
-                        //    sqlApp.DatabaseName = "default";            // Remove
-                        //    sqlApp.Query = "SELECT m FROM systable m";  // Remove
-                        //    sqlApp.Port = 8181;                         // Remove
-                        //    Session.Data = sqlApp;
-                        //    return sqlApp;
-                        //}
+
+                        return response.GetContentStringUtf8_Slow();
+                    }
+                    catch (Exception e) {
+
+                        dynamic resultJson = new DynamicJson();
+                        resultJson.columns = new object[] { };
+                        resultJson.rows = new object[] { };
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink };
+                        resultJson.sqlException = null;
+
+                        return resultJson.ToString();
                     }
                 }
-                return 404;
+                else {
+                    return 404;
+                }
 
-
-                //return new SqlApp() { View = "sql.html", DatabaseName = "default", Query = "SELECT m FROM systable m", Port = 8181 };
             });
 
             #endregion
-
-            //// Returns a database
-            //POST("/databases/{?}", (string databaseid, HttpRequest req) => {
-
-            //    databaseid = databaseid.Replace("_colon_", ":"); // TODO: Remove when bug is fixed
-            //    databaseid = databaseid.Replace("_slash_", "/");    // TODO: Remove when bug is fixed
-
-            //    var str = req["Accept"];
-
-            //    if (str != null) {
-            //        string[] types = str.Split(',');
-
-            //        foreach (string type in types) {
-
-            //            if (string.Equals(type, "application/json", StringComparison.CurrentCultureIgnoreCase)) {
-
-            //                DatabaseInfo database = Master.ServerInterface.GetDatabase(databaseid);
-            //                if (database != null) {
-            //                    DatabaseApp databaseApp = new DatabaseApp();
-            //                    databaseApp.SetDatabaseInfo(database);
-            //                    Session.Data = databaseApp;
-            //                    return databaseApp;
-            //                }
-            //                return 404;
-            //            }
-            //        }
-            //    }
-
-            //    return 404;
-
-            //});
-
-
-            #endregion
-
 
             POST("/addstaticcontentdir", (HttpRequest req) => {
 
@@ -305,9 +273,8 @@ namespace Starcounter.Administrator {
             GET("/server", () => {
 
                 ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
-
                 ServerApp serverApp = new ServerApp();
-                //                serverApp.View = "server.html";
+                serverApp.SystemHttpPort = serverInfo.Configuration.SystemHttpPort;
                 serverApp.DatabaseDirectory = serverInfo.Configuration.DatabaseDirectory;
                 serverApp.LogDirectory = serverInfo.Configuration.LogDirectory;
                 serverApp.TempDirectory = serverInfo.Configuration.TempDirectory;
@@ -345,6 +312,21 @@ namespace Starcounter.Administrator {
         }
 
         #endregion
+
+        static bool HasAccept(string accept, string match) {
+
+            if (string.IsNullOrEmpty(accept) || string.IsNullOrEmpty(match)) return false;
+
+            string[] types = accept.Split(',');
+
+            foreach (string type in types) {
+                if (string.Equals(type, match, StringComparison.CurrentCultureIgnoreCase)) {
+
+                    return true;
+                }
+            }
+            return false;
+        }
 
         static public string EncodeTo64(string toEncode) {
             byte[] toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
