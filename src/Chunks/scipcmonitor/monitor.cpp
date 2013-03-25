@@ -136,8 +136,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	using namespace starcounter::core;
 
-   std::wcout << L"Starcounter Interprocess Commonication (IPC) monitor"  << std::endl;
-   
+	std::wcout << L"Starcounter Interprocess Communication (IPC) monitor" << std::endl;
+	
 	// Start the monitor application.
 	boost::scoped_ptr<monitor> app(new monitor(argc, argv));
 	app->run();
@@ -178,18 +178,19 @@ try {
 	#endif
 }
 catch (const starcounter::core::ipc_monitor_exception& e) {
-   std::wcout << L"Andreas. You need to provide better feedback when started using command line." << std::endl;
+	std::wcout << L"Andreas. You need to provide better feedback when started using command line." << std::endl;
 	return e.error_code();
 }
 catch (const starcounter::log_exception& e) {
-   std::wcout << L"Cannot initialie event logger." << std::endl;
-   std::wcout << L"Error code is SCERR" << e.error_code() << std::endl;
-   std::wcout << L"This error has not been logged for obvious reasons." << std::endl;
+	std::wcout << L"Error: starcounter::log_exception caught: "
+	<< "Failed to open a Starcounter log for IPC monitor logging.\n"
+	<< L"SCERR" << e.error_code() << "\n"
+	<< L"This error has therefore not been logged." << std::endl;
 	return e.error_code();
 }
 catch (...) {
-   std::wcout << L"Unknown exception" << std::endl;
-   std::wcout << L"Error code is SCERR" << SCERRIPCMONITORUNKNOWNEXCEPTION << std::endl;
+	std::wcout << L"Unknown exception" << std::endl;
+	std::wcout << L"Error code is SCERR" << SCERRIPCMONITORUNKNOWNEXCEPTION << std::endl;
 	return SCERRIPCMONITORUNKNOWNEXCEPTION;
 }
 
