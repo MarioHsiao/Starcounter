@@ -53,8 +53,16 @@ namespace Starcounter {
         /// </summary>
         public static Obj Data {
             get {
-                if (current != null)
-                    return current.root;
+                Session s = current;
+                if (s != null && s.root != null) {
+                    // TODO: 
+                    // Better handling of transactions in jsonobjects.
+                    ITransaction t = s.root.Transaction2;
+                    if (t != null)
+                        StarcounterBase._DB.SetCurrentTransaction(t);
+
+                    return s.root;
+                }
                 return null;
             }
             set {
@@ -122,6 +130,7 @@ namespace Starcounter {
                 s.changeLog.Clear();
                 Session.current = null;
                 ChangeLog.CurrentOnThread = null;
+                StarcounterBase._DB.SetCurrentTransaction(null);
             }
         }
 
