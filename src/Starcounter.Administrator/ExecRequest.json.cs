@@ -1,7 +1,7 @@
 ﻿
 using Starcounter;
 
-namespace StarcounterApps3 {
+namespace Starcounter.Administrator {
     /// <summary>
     /// Represents a request to execute user code in a Starcounter
     /// host code process.
