@@ -1073,8 +1073,8 @@ namespace Starcounter.Internal.Weaver {
             getMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
 
-            var thisHandleField = field.DeclaringType.FindField(TypeSpecification.ThisHandleName).Field;
-            var thisIdField = field.DeclaringType.FindField(TypeSpecification.ThisIdName).Field;
+            var thisHandleField = typeSpecification.ThisHandle;
+            var thisIdField = typeSpecification.ThisIdentity;
 
             getMethod.MethodBody.MaxStack = 8;
             _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
