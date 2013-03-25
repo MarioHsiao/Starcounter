@@ -46,10 +46,10 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="request">Incomming HTTP request.</param>
         /// <param name="x">Result of calling user delegate.</param>
-        /// <returns>HttpResponse instance.</returns>
-        public HttpResponse HandleResponse(Request request, Object x) {
+        /// <returns>Response instance.</returns>
+        public Response HandleResponse(Request request, Object x) {
             uint errorCode;
-            HttpResponse response = null;
+            Response response = null;
             string responseReasonPhrase;
             Session session = null;
 
@@ -69,13 +69,13 @@ namespace Starcounter.Internal.Web {
                         session = Session.Current;
                         if (session == null || session.root != root) {
                             // A simple object with no serverstate. Return a 200 OK with the json as content.
-                            response = new HttpResponse() {
+                            response = new Response() {
                                 Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(root.ToJsonUtf8())
                             };
                         } else {
                             if (root.LogChanges) {
                                 // An existing sessionbound object have been updated. Return a batch of jsonpatches.
-                                response = new HttpResponse() {
+                                response = new Response() {
                                     Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread)
                                 };
                             } else {
@@ -88,14 +88,14 @@ namespace Starcounter.Internal.Web {
 
                                 request.Debug(" (new view model)");
                                 root.LogChanges = true;
-                                response = new HttpResponse() {
+                                response = new Response() {
                                     Uncompressed = HttpResponseBuilder.Create201Response(root.ToJsonUtf8(), session.GetDataLocation())
                                 };
                             }
                         }
                     } else if (x is DynamicJson) {
                         var dynJson = (DynamicJson)x;
-                        response = new HttpResponse() {
+                        response = new Response() {
                             Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
                         };
                     } else if (x is int || x is HttpStatusCode) {
@@ -108,32 +108,32 @@ namespace Starcounter.Internal.Web {
                             // give back our default, "reason phrase not available" message.
                             responseReasonPhrase = HttpStatusCodeAndReason.ReasonNotAvailable;
                         }
-                        response = new HttpResponse() {
+                        response = new Response() {
                             Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(statusCode, responseReasonPhrase)
                         };
                     } else if (x is HttpStatusCodeAndReason) {
                         var codeAndReason = (HttpStatusCodeAndReason)x;
-                        response = new HttpResponse() {
+                        response = new Response() {
                             Uncompressed = HttpResponseBuilder.FromCodeAndReason_NOT_VALIDATING(
                             codeAndReason.StatusCode,
                             codeAndReason.ReasonPhrase)
                         };
-                    } else if (x is HttpResponse) {
-                        response = x as HttpResponse;
+                    } else if (x is Response) {
+                        response = x as Response;
                     } else if (x is string) {
-                        response = new HttpResponse() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
+                        response = new Response() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
                     } else {
                         throw new NotImplementedException();
                     }
                 }
 
                 if (response == null)
-                    response = new HttpResponse() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
+                    response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
 
                 return response;
             } catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
-                return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
+                return new Response() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             }
         }
 
@@ -152,7 +152,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override HttpResponse Handle(Request request) {
+        public override Response Handle(Request request) {
             object x;
 
             try {
@@ -170,7 +170,7 @@ namespace Starcounter.Internal.Web {
                 return HandleResponse(request, x);
             } catch (Exception ex) {
                 byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
-                return new HttpResponse() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
+                return new Response() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
             } finally {
                 Session.End();
             }
@@ -186,7 +186,7 @@ namespace Starcounter.Internal.Web {
         /// <remarks>To save an additional http request, in the event of a html resource request,
         /// the Starcounter App view model is embedded in a script tag.</remarks>
         private byte[] ResolveAndPrepareFile(string relativeUri, Request request) {
-            HttpResponse ri = StaticFileServer.GetStatic(relativeUri, request);
+            Response ri = StaticFileServer.GetStatic(relativeUri, request);
             byte[] original = ri.GetBytes(request);
             if (request.NeedsScriptInjection) {
                 request.Debug(" (injecting script)");

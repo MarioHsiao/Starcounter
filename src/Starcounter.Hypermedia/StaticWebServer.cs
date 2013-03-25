@@ -42,7 +42,7 @@ namespace Starcounter.Internal.Web {
       /// uncompressed versions. Compressed and uncompressed items are cached
       /// the first time they are retrieved.
       /// </remarks>
-      private Dictionary<string, HttpResponse> CacheOnUri;
+      private Dictionary<string, Response> CacheOnUri;
 
       /// <summary>
       /// Http response cache keyed on file path on disk
@@ -52,7 +52,7 @@ namespace Starcounter.Internal.Web {
       /// uncompressed versions. Compressed and uncompressed items are cached
       /// the first time they are retrieved.
       /// </remarks>
-      private Dictionary<string, HttpResponse> CacheOnFilePath;
+      private Dictionary<string, Response> CacheOnFilePath;
 
       /// <summary>
       /// Creates a new web server with an empty cache.
@@ -65,8 +65,8 @@ namespace Starcounter.Internal.Web {
       /// Empties the cache.
       /// </summary>
       public void ClearCache() {
-         CacheOnUri = new Dictionary<string, HttpResponse>();
-         CacheOnFilePath = new Dictionary<string, HttpResponse>();
+         CacheOnUri = new Dictionary<string, Response>();
+         CacheOnFilePath = new Dictionary<string, Response>();
          ClearWatchedParts();
       }
 
@@ -91,7 +91,7 @@ namespace Starcounter.Internal.Web {
       /// </summary>
       /// <param name="request">The http request</param>
       /// <returns>The http response</returns>
-      public override HttpResponse Handle( Request request) {
+      public override Response Handle( Request request) {
          return GetStatic( request.Uri, request );
       }
 
@@ -101,13 +101,13 @@ namespace Starcounter.Internal.Web {
       /// <param name="relativeUri">The URI of the resource</param>
       /// <param name="request">The http request as defined by Starcounter</param>
       /// <returns>The UTF8 encoded response</returns>
-      public HttpResponse GetStatic(string relativeUri, Request request ) {
+      public Response GetStatic(string relativeUri, Request request ) {
 
          //            if (relativeUri.Equals("/")) {
          //                relativeUri = "/index.html";
          //            }
          //            else {
-          HttpResponse resource;
+          Response resource;
          relativeUri = relativeUri.ToLower();
          //            }
 
@@ -167,7 +167,7 @@ namespace Starcounter.Internal.Web {
       /// <returns>System.Int32.</returns>
       public override int Housekeep() {
          //ClearCache(); // TODO! Only invalidate individual items
-         var invalidated = new List<HttpResponse>(CacheOnFilePath.Count);
+         var invalidated = new List<Response>(CacheOnFilePath.Count);
          foreach (var cached in this.CacheOnFilePath) {
             var path = cached.Value.FilePath;
             bool was = cached.Value.FileExists;

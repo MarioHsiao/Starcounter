@@ -123,7 +123,7 @@ namespace Starcounter.Administrator {
             // Also, if the database was created, we should describe that new resource
             // too (name/uri, size, files, whatever).
             //
-            // We are awaiting the proper design of upcoming HttpResponse though, as
+            // We are awaiting the proper design of upcoming Response though, as
             // discussed in this forum thread:
             // http://www.starcounter.com/forum/showthread.php?2482-Returning-HTTP-responses
             //
@@ -148,7 +148,7 @@ namespace Starcounter.Administrator {
             return CreateResponseFor201(commandInfo, execRequest, name);
         }
 
-        static HttpResponse CreateResponseFor201(
+        static Response CreateResponseFor201(
             CommandInfo command, ExecRequest execRequest, string databaseName) {
 
             // The Location response header field SHOULD be set to an ABSOLUTE
@@ -195,14 +195,14 @@ namespace Starcounter.Administrator {
             };
             var content = JsonConvert.SerializeObject(x);
 
-            return new HttpResponse { Uncompressed = 
+            return new Response { Uncompressed = 
                 HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(201, headers, content) 
             };
         }
 
-        static HttpResponse CreateResponseFor422(ErrorInfo error, ExecRequest execRequest) {
+        static Response CreateResponseFor422(ErrorInfo error, ExecRequest execRequest) {
             var text = error.ToErrorMessage().ToString();
-            return new HttpResponse { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(
+            return new Response { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(
                 422,
                 null, 
                 text, 
@@ -211,9 +211,9 @@ namespace Starcounter.Administrator {
             };
         }
 
-        static HttpResponse CreateResponseFor404(ErrorInfo error, ExecRequest execRequest) {
+        static Response CreateResponseFor404(ErrorInfo error, ExecRequest execRequest) {
             var text = error.ToErrorMessage().ToString();
-            return new HttpResponse {
+            return new Response {
                 Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(
                     404,
                     null,

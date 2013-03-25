@@ -16,7 +16,7 @@ namespace Starcounter.Advanced
     /// (compressed or uncompressed content) even if the consumer wants to embedd the content
     /// in a new http response.
     /// </summary>
-    public class HttpResponse
+    public class Response
     {
         /// <summary>
         /// The _ uncompressed
@@ -87,11 +87,11 @@ namespace Starcounter.Advanced
         public int SessionIdOffset { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpResponse" /> class.
+        /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
         /// <param name="content">The content.</param>
         /// <exception cref="System.Exception"></exception>
-        public HttpResponse(string content) {
+        public Response(string content) {
             throw new Exception();
         }
 
@@ -284,7 +284,7 @@ namespace Starcounter.Advanced
         public INetworkDataStream data_stream_;
 
         /// <summary>
-        /// Indicates if this HttpResponse is internally constructed from Apps.
+        /// Indicates if this Response is internally constructed from Apps.
         /// </summary>
         Boolean isInternalResponse = false;
 
@@ -298,9 +298,9 @@ namespace Starcounter.Advanced
             Byte* out_http_response);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpResponse" /> class.
+        /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
-        public HttpResponse() {
+        public Response() {
             HeaderInjectionPoint = -1;
         }
 
@@ -359,11 +359,11 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpResponse" /> class.
+        /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public HttpResponse(Byte[] buf, Int32 lenBytes, Request httpRequest = null)
+        public Response(Byte[] buf, Int32 lenBytes, Request httpRequest = null)
         {
             UInt32 err_code;
             unsafe
@@ -371,7 +371,7 @@ namespace Starcounter.Advanced
                 // Setting uncompressed response reference.
                 UncompressedResponse_ = buf;
 
-                // Allocating space for HttpResponse contents and structure.
+                // Allocating space for Response contents and structure.
                 /*Byte* response_native_buf = (Byte*)BitsAndBytes.Alloc(buf.Length + sizeof(HttpResponseInternal));
                 fixed (Byte* fixed_buf = buf)
                 {
@@ -396,7 +396,7 @@ namespace Starcounter.Advanced
                     // Setting the response data pointer.
                     http_response_struct_->socket_data_ = pbuf;
 
-                    // Indicating that we internally constructing HttpResponse.
+                    // Indicating that we internally constructing Response.
                     isInternalResponse = true;
 
                     // NOTE: No internal sessions support.
@@ -405,7 +405,7 @@ namespace Starcounter.Advanced
                     // NOTE: No internal data stream support:
                     // Simply on which socket to send this "response"?
 
-                    // Executing HTTP response parser and getting HttpResponse structure as result.
+                    // Executing HTTP response parser and getting Response structure as result.
                     err_code = sc_parse_http_response(pbuf, (UInt32)lenBytes, (Byte*)http_response_struct_);
                 }
 
@@ -424,7 +424,7 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Destroys the instance of HttpResponse.
+        /// Destroys the instance of Response.
         /// </summary>
         public void Destroy()
         {
@@ -438,7 +438,7 @@ namespace Starcounter.Advanced
                 if (http_response_struct_ == null)
                     return;
 
-                // Checking if we have constructed this HttpResponse
+                // Checking if we have constructed this Response
                 // internally in Apps or externally in Gateway.
                 if (isInternalResponse)
                 {
@@ -471,7 +471,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Called when GC destroys this object.
         /// </summary>
-        ~HttpResponse()
+        ~Response()
         {
             // TODO: Consult what is better for Apps auto-destructor or manual call to Destroy.
             Destroy();
@@ -479,7 +479,7 @@ namespace Starcounter.Advanced
 
         // Constructor.
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpResponse" /> class.
+        /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
         /// <param name="chunk_data">The chunk_data.</param>
         /// <param name="single_chunk">The single_chunk.</param>
@@ -487,7 +487,7 @@ namespace Starcounter.Advanced
         /// <param name="http_response_begin">The http_response_begin.</param>
         /// <param name="socket_data">The socket_data.</param>
         /// <param name="data_stream">The data_stream.</param>
-        public unsafe HttpResponse(
+        public unsafe Response(
             Byte* chunk_data,
             Boolean single_chunk,
             UInt32 chunk_index,
@@ -643,7 +643,7 @@ namespace Starcounter.Advanced
         /// </summary>
         /// <param name="r"></param>
         /// <returns></returns>
-        public static implicit operator Byte[](HttpResponse r)
+        public static implicit operator Byte[](Response r)
         {
             return r.ResponseBytes;
         }
