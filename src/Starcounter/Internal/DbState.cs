@@ -1347,60 +1347,6 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ret);
         }
 
-        //internal static void WriteObject(ObjectRef thisRef, Int32 index, ObjectRef valueRef)
-        //{
-        //    Boolean br;
-        //    br = sccoredb.Mdb_ObjectWriteObjRef(
-        //             thisRef.ObjectID,
-        //             thisRef.ETI,
-        //             index,
-        //             valueRef.ObjectID,
-        //             valueRef.ETI
-        //         );
-        //    if (br)
-        //    {
-        //        return;
-        //    }
-        //    throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
-        //}
-
-        /// <summary>
-        /// Reads the object.
-        /// </summary>
-        /// <param name="thisRef">The this ref.</param>
-        /// <param name="index">The index.</param>
-        /// <returns>Entity.</returns>
-        //internal static IObjectView ReadObject(ObjectRef thisRef, Int32 index)
-        //{
-        //    UInt16 flags;
-        //    ObjectRef value;
-        //    UInt16 cci;
-        //    UInt32 ec;
-        //    flags = 0;
-        //    unsafe
-        //    {
-        //        sccoredb.Mdb_ObjectReadObjRef(
-        //            thisRef.ObjectID,
-        //            thisRef.ETI,
-        //            index,
-        //            &value.ObjectID,
-        //            &value.ETI,
-        //            &cci,
-        //            &flags
-        //        );
-        //    }
-        //    if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0)
-        //    {
-        //        if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0)
-        //        {
-        //            return Bindings.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
-        //        }
-        //        return null;
-        //    }
-        //    ec = sccoredb.Mdb_GetLastError();
-        //    throw ErrorCode.ToException(ec);
-        //}
-
         /// <summary>
         /// 
         /// </summary>
