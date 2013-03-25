@@ -4,6 +4,7 @@ using Starcounter.Binding;
 using Starcounter.Hosting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -33,17 +34,17 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             private set;
         }
 
-        public FieldDefDeclaration ThisHandle {
+        public IField ThisHandle {
             get;
             private set;
         }
 
-        public FieldDefDeclaration ThisIdentity {
+        public IField ThisIdentity {
             get;
             private set;
         }
 
-        public FieldDefDeclaration ThisBinding {
+        public IField ThisBinding {
             get;
             private set;
         }
@@ -111,9 +112,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 this.ThisBinding = thisBinding;
 
             } else {
-                this.ThisHandle = typeDef.FindField(TypeSpecification.ThisHandleName).Field;
-                this.ThisBinding = typeDef.FindField(TypeSpecification.ThisBindingName).Field;
-                this.ThisIdentity = typeDef.FindField(TypeSpecification.ThisIdName).Field;
+                AssignInstanceLevelFields();
             }
         }
 
@@ -126,6 +125,12 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             };
             specType.Fields.Add(columnHandle);
             return columnHandle;
+        }
+
+        void AssignInstanceLevelFields() {
+            this.ThisHandle = typeDef.FindField(TypeSpecification.ThisHandleName).Field.Translate(typeDef.Module);
+            this.ThisBinding = typeDef.FindField(TypeSpecification.ThisBindingName).Field.Translate(typeDef.Module);
+            this.ThisIdentity = typeDef.FindField(TypeSpecification.ThisIdName).Field.Translate(typeDef.Module);
         }
     }
 }
