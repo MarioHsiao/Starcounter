@@ -15,7 +15,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public UInt64 UniqueID { get { return 0; } }
+        public UInt64 Identity { get { return 0; } }
     }
 
     /// <summary>
