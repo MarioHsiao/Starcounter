@@ -365,7 +365,7 @@ namespace Starcounter.Client.Tests.Application {
     }
 
     internal class PhoneNumberObject : IBindable {
-        public ulong UniqueID {
+        public ulong Identity {
             get { return 0; }
         }
 
@@ -377,7 +377,7 @@ namespace Starcounter.Client.Tests.Application {
             Created = DateTime.Now;
         }
 
-        public ulong UniqueID {
+        public ulong Identity {
             get { return 0; }
         }
 

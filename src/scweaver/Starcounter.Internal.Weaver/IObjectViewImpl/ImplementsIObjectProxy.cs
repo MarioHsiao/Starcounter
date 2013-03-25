@@ -21,6 +21,7 @@ using PostSharp.Sdk.CodeModel.TypeSignatures;
 using Starcounter.Binding;
 using Starcounter.Hosting;
 using PostSharp.Extensibility;
+using Starcounter.Advanced;
 
 namespace Starcounter.Internal.Weaver.IObjectViewImpl {
 
@@ -45,6 +46,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         ITypeSignature viewTypeSignature;
         Type proxyNETType;
         ITypeSignature proxyTypeSignature;
+        Type bindableNETType;
+        ITypeSignature bindableTypeSignature;
         InstructionWriter writer;
         IMethod notImplementedCtor;
         static MethodAttributes methodAttributes;
@@ -69,6 +72,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             viewTypeSignature = module.FindType(viewNETType, BindingOptions.Default);
             proxyNETType = typeof(IObjectProxy);
             proxyTypeSignature = module.FindType(proxyNETType, BindingOptions.Default);
+            bindableNETType = typeof(IBindable);
+            bindableTypeSignature = module.FindType(bindableNETType, BindingOptions.Default);
             viewAccessLayer = viewGetMethods;
             
             targets = new Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>>();
@@ -101,8 +106,53 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             thisIdentityField = typeDef.Fields.GetByName(TypeSpecification.ThisIdName);
             thisBindingField = typeDef.Fields.GetByName(TypeSpecification.ThisBindingName);
 
+            typeDef.InterfaceImplementations.Add(bindableTypeSignature);
             typeDef.InterfaceImplementations.Add(viewTypeSignature);
             typeDef.InterfaceImplementations.Add(proxyTypeSignature);
+
+            foreach (var interfaceProperty in bindableNETType.GetProperties()) {
+                var p = new PropertyDeclaration() {
+                    PropertyType = module.FindType(interfaceProperty.PropertyType),
+                    Name = bindableNETType.FullName + "." + interfaceProperty.Name,
+                    CallingConvention = CallingConvention.HasThis
+                };
+
+                typeDef.Properties.Add(p);
+                if (interfaceProperty.CanRead) {
+                    var getSemantic = new MethodSemanticDeclaration() {
+                        Semantic = MethodSemantics.Getter
+                    };
+                    p.Members.Add(getSemantic);
+                }
+                if (interfaceProperty.CanWrite) {
+                    var setSemantic = new MethodSemanticDeclaration() {
+                        Semantic = MethodSemantics.Setter
+                    };
+                    p.Members.Add(setSemantic);
+                }
+            }
+
+            foreach (var interfaceMethod in bindableNETType.GetMethods()) {
+                IMethod methodRef = module.FindMethod(interfaceMethod, BindingOptions.Default);
+
+                var impl = new MethodDefDeclaration() {
+                    Name = bindableNETType.FullName + "." + interfaceMethod.Name,
+                    Attributes = methodAttributes,
+                    CallingConvention = CallingConvention.HasThis,
+                };
+                typeDef.Methods.Add(impl);
+                impl.InterfaceImplementations.Add(methodRef);
+
+                ImplementInterfaceMethod(interfaceMethod, typeDef, methodRef, impl);
+                #region #ifdef THROW_NOT_IMPLEMENTED
+#if THROW_NOT_IMPLEMENTED
+                impl.MethodBody = new MethodBodyDeclaration();
+                using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                    EmitNotImplemented(attached);
+                }
+#endif
+                #endregion
+            }
 
             foreach (var interfaceProperty in viewNETType.GetProperties()) {
                 var p = new PropertyDeclaration() {
@@ -249,13 +299,13 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         }
 
         void GetThisIdentity(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
-            // Signature: ulong IObjectView.get_Identity()
+            // Signature: ulong IBindable.get_Identity()
             impl.Attributes |= MethodAttributes.SpecialName;
             impl.ReturnParameter = new ParameterDeclaration {
                 Attributes = ParameterAttributes.Retval,
                 ParameterType = module.Cache.GetIntrinsic(IntrinsicType.UInt64)
             };
-            var propertyName = viewNETType.FullName + "." + "Identity";
+            var propertyName = bindableNETType.FullName + "." + "Identity";
             var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
             getter.Method = impl;
 
