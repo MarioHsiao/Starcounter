@@ -1,7 +1,7 @@
 ﻿using System;
 using Starcounter;
 
-namespace StarcounterApps3 {
+namespace Starcounter.Administrator {
     partial class DatabasesApp : Json {
     }
 }
