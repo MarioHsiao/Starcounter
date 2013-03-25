@@ -134,9 +134,8 @@ namespace Starcounter {
         /// <param name="data">The bound data object (usually an Entity)</param>
         protected virtual void InternalSetData(IBindable data) {
             this.data = data;
-
             if (Template.Bound) {
-//                Template.SetBoundValue((Obj)this.Parent, data);
+                ((Obj)this.Parent).SetBound(Template, data);
             }
 
             RefreshAllBoundValues();
@@ -182,15 +181,12 @@ namespace Starcounter {
         public void Refresh(Template property) {
             if (property is TObjArr) {
                 TObjArr apa = (TObjArr)property;
-//                this[apa] = apa.GetBoundValue(this);
+                this.Set(apa, this.GetBound(apa));
             }
             else if (property is TObj) {
                 var at = (TObj)property;
-
-                // TODO:
-                IBindable v = null; //at.GetBoundValue(this);
-                if (v != null)
-                    this.Set(at, v);
+                IBindable v = this.GetBound(at);
+                this.Set(at, v);
             }
             else {
                 TValue p = property as TValue;

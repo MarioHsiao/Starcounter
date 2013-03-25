@@ -26,7 +26,7 @@ namespace Starcounter.Internal.JsonPatch {
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
-            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId) => {
+            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session) => {
                 Obj json = Session.Data;
                 if (json == null) {
                     return HttpStatusCode.NotFound;
@@ -37,16 +37,18 @@ namespace Starcounter.Internal.JsonPatch {
                 };
             });
 
-            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (int viewModelId, HttpRequest request) => {
+            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, HttpRequest request) => {
                 Obj root;
 
                 try {
                     root = Session.Data;
                     JsonPatch.EvaluatePatches(root, request.GetContentByteArray_Slow());
                     return root;
-                } catch (NotSupportedException nex) {
+                }
+                catch (NotSupportedException nex) {
                     return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
                 }
             });
@@ -54,19 +56,18 @@ namespace Starcounter.Internal.JsonPatch {
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
                 Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (HttpRequest r) => {
-                    try {
-                        string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
-                        string resultJson = ExecuteQuery(bodyData);
-                        return resultJson;
-                    } catch (Starcounter.SqlException sqle) {
-                        return sqle.Message;
-                    } catch (Exception e) {
-                        return e.ToString();
-                    }
+                    string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+                    return ExecuteQuery(bodyData);
                 });
             }
         }
 
+
+        /// <summary>
+        /// Executes the query and returns a json string of the result
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
         private static string ExecuteQuery(string query) {
 
             Starcounter.SqlEnumerator<object> sqle = null;
@@ -74,20 +75,24 @@ namespace Starcounter.Internal.JsonPatch {
             IPropertyBinding propertyBinding;
             IPropertyBinding[] props;
 
+            dynamic resultJson = new DynamicJson();
+            resultJson.columns = new object[] { };
+            resultJson.rows = new object[] { };
+            resultJson.exception = null; // new object { };
+            resultJson.sqlexception = null; // new object { };
+
             try {
-
-                dynamic resultJson = new DynamicJson();
-
                 sqle = (Starcounter.SqlEnumerator<object>)Db.SQL(query).GetEnumerator();
 
-                // Retrive Columns
-                resultJson.columns = new object[] { };
+                #region Retrive Columns
+                //resultJson.columns = new object[] { };
 
                 if (sqle.ProjectionTypeCode != null && false) {
                     props = new IPropertyBinding[1];
                     propertyBinding = new SingleProjectionBinding() { TypeCode = (DbTypeCode)sqle.ProjectionTypeCode };
                     resultJson.columns[0] = new { title = propertyBinding.Name, value = propertyBinding.Name, type = propertyBinding.TypeCode.ToString() };
-                } else {
+                }
+                else {
                     resultBinding = sqle.TypeBinding;
                     props = new IPropertyBinding[resultBinding.PropertyCount];
                     for (int i = 0; i < resultBinding.PropertyCount; i++) {
@@ -95,9 +100,10 @@ namespace Starcounter.Internal.JsonPatch {
                         resultJson.columns[i] = new { title = props[i].Name, value = props[i].Name, type = props[i].TypeCode.ToString() };
                     }
                 }
+                #endregion
 
                 #region Retrive Rows
-                resultJson.rows = new object[] { };
+                // resultJson.rows = new object[] { };
                 int index = 0;
                 while (sqle.MoveNext()) {
 
@@ -168,7 +174,8 @@ namespace Starcounter.Internal.JsonPatch {
                             }
                             resultJson.rows[index][prop.Name] = value;
                         }
-                    } else {
+                    }
+                    else {
                         // RODO:
                         //  this.QueryResult.Result.Add(new SqlRowApp(sqle.Current, props));
                     }
@@ -178,26 +185,31 @@ namespace Starcounter.Internal.JsonPatch {
 
                 #endregion
 
-                // empty error message
-                resultJson.error = new object { };
-
-                return resultJson.ToString();
-
-            } catch (Exception e) {
-
-                dynamic resultJson = new DynamicJson();
-                resultJson.columns = new object[] { };
-                resultJson.rows = new object[] { };
-
-                resultJson.error = new { message = e.Message, helplink = e.HelpLink };
+            }
+            catch (Starcounter.SqlException ee) {
+                resultJson.sqlexception = new {
+                    BeginPosition = ee.BeginPosition,
+                    EndPosition = ee.EndPosition,
+                    ErrorMessage = ee.ErrorMessage,
+                    HelpLink = ee.HelpLink,
+                    Message = ee.Message,
+                    Query = ee.Query,
+                    ScErrorCode = ee.ScErrorCode,
+                    Token = ee.Token
+                };
+            }
+            catch (Exception e) {
+                resultJson.exception = new { message = e.Message, helplink = e.HelpLink };
                 //resultJson.error["Message"] = e.Message;
                 //resultJson.error["HelpLink"] = e.HelpLink;
-                return resultJson.ToString();
 
-            } finally {
+            }
+            finally {
                 if (sqle != null)
                     sqle.Dispose();
             }
+
+            return resultJson.ToString();
 
         }
 

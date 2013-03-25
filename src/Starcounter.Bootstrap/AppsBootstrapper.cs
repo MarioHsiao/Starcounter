@@ -25,7 +25,11 @@ namespace Starcounter.Internal {
         /// Initializes AppsBootstrapper.
         /// </summary>
         /// <param name="defaultPort"></param>
-        public static void InitAppsBootstrapper(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort, String dbName)
+        public static void InitAppsBootstrapper(
+            Byte numSchedulers,
+            UInt16 defaultUserHttpPort,
+            UInt16 defaultSystemHttpPort,
+            String dbName)
         {
             // Setting some configuration settings.
             NewConfig.Default.UserHttpPort = defaultUserHttpPort;
@@ -41,6 +45,17 @@ namespace Starcounter.Internal {
             UserHandlerCodegen.Setup(
                 GatewayHandlers.RegisterUriHandler,
                 OnHttpMessageRoot);
+
+            // Explicitly starting inactive sessions cleanup.
+            for (Byte i = 0; i < numSchedulers; i++)
+            {
+                // Getting sessions for current scheduler.
+                SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
+
+                // Starting inactive sessions cleanup for this scheduler.
+                DbSession dbs = new DbSession();
+                dbs.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
+            }
         }
         
         /// <summary>

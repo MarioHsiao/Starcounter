@@ -29,6 +29,9 @@ class RegisteredUri
     char* processed_uri_info_;
     uint32_t processed_uri_info_len_chars_;
 
+    // Indicates index of session parameter in this URI.
+    uint8_t session_param_index_;
+
     // Number of same characters from previous entry.
     uint32_t num_same_prev_chars_;
 
@@ -36,6 +39,12 @@ class RegisteredUri
     LinearList<UniqueHandlerList, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
 
 public:
+
+    // Indicates index of session parameter in this URI.
+    uint8_t get_session_param_index()
+    {
+        return session_param_index_;
+    }
 
     // Converts handler id and database index.
     static BMX_HANDLER_TYPE CreateHandlerInfoType(
@@ -69,6 +78,13 @@ public:
 
         memcpy(param_types, handlers_list.get_param_types(), MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
         *num_params = handlers_list.get_num_params();
+    }
+
+    // Getting number of native parameters in user delegate.
+    uint8_t GetNumberOfNativeParameters()
+    {
+        HandlersList& handlers_list = handler_lists_[0].get_handlers_list()[0];
+        return handlers_list.get_num_params();
     }
 
     // Getting number of handler lists.
@@ -243,6 +259,7 @@ public:
         uint32_t original_uri_info_len_chars,
         const char* processed_uri_info,
         uint32_t processed_uri_info_len_chars,
+        uint8_t session_param_index,
         int32_t db_index,
         HandlersList* handlers_list)
     {
@@ -262,6 +279,8 @@ public:
         strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, _TRUNCATE);
 
         num_same_prev_chars_ = 0;
+
+        session_param_index_ = session_param_index;
     }
 
     // Resetting entry.
@@ -272,6 +291,8 @@ public:
 
         processed_uri_info_len_chars_ = 0;
         original_uri_info_len_chars_ = 0;
+
+        session_param_index_ = INVALID_PARAMETER_INDEX;
 
         num_same_prev_chars_ = 0;
     }

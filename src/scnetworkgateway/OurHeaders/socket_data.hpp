@@ -339,6 +339,38 @@ public:
             flags_ &= ~HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
+    // Getting scheduler id.
+    scheduler_id_type get_scheduler_id()
+    {
+        return session_.scheduler_id_;
+    }
+
+    // Setting scheduler id.
+    void set_scheduler_id(scheduler_id_type scheduler_id)
+    {
+        session_.scheduler_id_ = scheduler_id;
+    }
+
+    // Getting session index.
+    session_index_type get_session_index()
+    {
+        return session_.linear_index_;
+    }
+
+    // Getting session salt.
+    session_salt_type get_session_salt()
+    {
+        return session_.random_salt_;
+    }
+
+    // Determines if this sd has active session attached.
+    bool HasActiveSession()
+    {
+        return INVALID_SESSION_INDEX != session_.linear_index_;
+    }
+
+#ifndef GW_NEW_SESSIONS_APPROACH
+
     // Getting session index.
     session_index_type get_session_index()
     {
@@ -354,13 +386,7 @@ public:
     // Getting Apps session salt.
     session_salt_type get_apps_session_salt()
     {
-        return session_.apps_session_salt_;
-    }
-
-    // Getting unique id.
-    session_salt_type get_unique_socket_id()
-    {
-        return unique_socket_id_;
+        return session_.random_salt_;
     }
 
     // Setting Apps unique session number.
@@ -372,7 +398,7 @@ public:
     // Setting Apps sessions salt.
     void set_apps_session_salt(session_salt_type apps_session_salt)
     {
-        session_.apps_session_salt_ = apps_session_salt;
+        session_.random_salt_ = apps_session_salt;
     }
 
     // Getting session salt.
@@ -381,10 +407,12 @@ public:
         return session_.gw_session_salt_;
     }
 
-    // Setting scheduler id.
-    void set_scheduler_id(uint32_t scheduler_id)
+#endif
+
+    // Getting unique id.
+    session_salt_type get_unique_socket_id()
     {
-        session_.scheduler_id_ = scheduler_id;
+        return unique_socket_id_;
     }
 
     // Returns socket.
@@ -760,6 +788,14 @@ public:
         session_ = session;
     }
 
+    // Getting session structure.
+    ScSessionStruct* GetSessionStruct()
+    {
+        return &session_;
+    }
+
+#ifndef GW_NEW_SESSIONS_APPROACH
+
     // Kills the global and  session.
     void KillGlobalAndSdSession(bool* was_killed)
     {
@@ -769,6 +805,8 @@ public:
         // Resetting session data.
         ResetSdSession();
     }
+
+#endif
 
     // Resets socket data session.
     void ResetSdSession()

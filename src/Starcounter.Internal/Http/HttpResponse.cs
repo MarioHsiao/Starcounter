@@ -733,21 +733,6 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Invalid session index.
-        /// </summary>
-        public const UInt32 INVALID_GW_SESSION_INDEX = UInt32.MaxValue;
-
-        /// <summary>
-        /// Invalid Apps session unique number.
-        /// </summary>
-        public const UInt64 INVALID_APPS_UNIQUE_SESSION_NUMBER = UInt64.MaxValue;
-
-        /// <summary>
-        /// Invalid Apps session salt.
-        /// </summary>
-        public const UInt64 INVALID_APPS_SESSION_SALT = 0;
-
-        /// <summary>
         /// Checks if HTTP response already has session.
         /// </summary>
         public Boolean HasSession
@@ -756,7 +741,7 @@ namespace Starcounter.Advanced
             {
                 unsafe
                 {
-                    return INVALID_APPS_UNIQUE_SESSION_NUMBER != (session_->apps_unique_session_index_);
+                    return HttpRequest.INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
                 }
             }
         }
@@ -786,7 +771,7 @@ namespace Starcounter.Advanced
             {
                 unsafe
                 {
-                    return session_->apps_unique_session_index_;
+                    return session_->linear_index_;
                 }
             }
         }
@@ -800,7 +785,7 @@ namespace Starcounter.Advanced
             {
                 unsafe
                 {
-                    return session_->apps_session_salt_;
+                    return session_->random_salt_;
                 }
             }
         }
