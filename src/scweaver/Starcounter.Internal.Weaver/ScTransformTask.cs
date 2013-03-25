@@ -327,7 +327,7 @@ namespace Starcounter.Internal.Weaver {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
                         var columnHandleField = typeSpecification.IncludeField(field);
-                        GenerateFieldAccessors(dba, field, columnHandleField);
+                        GenerateFieldAccessors(dba, field, typeSpecification, columnHandleField);
                     }
                 }
             }
@@ -345,7 +345,7 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        GenerateFieldAccessors(dba, field, null);
+                        GenerateFieldAccessors(dba, field, typeSpecification, null);
                     }
                 }
             }
@@ -944,13 +944,17 @@ namespace Starcounter.Internal.Weaver {
         /// Generates the <b>get</b> and <b>set</b> accessors for a field, generate a property,
         /// and add an advice to replace field accesses.
         /// </summary>
-        /// <param name="databaseAttribute">The <see cref="DatabaseAttribute" /> for which accessors have to be generated.</param>
+        /// <param name="databaseAttribute">
+        /// The <see cref="DatabaseAttribute" /> for which accessors have to be generated.</param>
         /// <param name="field">The <see cref="FieldDefDeclaration" /> corresponding
         /// to <paramref name="databaseAttribute" />.</param>
+        /// <param name="typeSpecification">
+        /// The <see cref="TypeSpecification"/> being emitted for the type declaring the field.
+        /// </param>
         /// <param name="columnHandle">The column handle field to bind to the accessors.</param>
         /// <exception cref="System.Exception"></exception>
         /// <exception cref="System.NotSupportedException"></exception>
-        void GenerateFieldAccessors(DatabaseAttribute databaseAttribute, FieldDefDeclaration field, IField columnHandle) {
+        void GenerateFieldAccessors(DatabaseAttribute databaseAttribute, FieldDefDeclaration field, TypeSpecificationEmit typeSpecification, IField columnHandle) {
             
             // TODO: This method really needs to be refactored and broken down into 
             // smaller pieces. As it is now it's really hard to get an overview of all the code.
