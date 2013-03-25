@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace Starcounter.Hosting {
+namespace Starcounter {
     /// <summary>
     /// Custom attribute that, when applied to a class, indicates it
     /// is a database class.

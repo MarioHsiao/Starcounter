@@ -4,12 +4,6 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Text;
 using PostSharp;
 using PostSharp.Extensibility;
 using PostSharp.Sdk.CodeModel;
@@ -21,9 +15,16 @@ using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
 using Sc.Server.Weaver.Schema;
-using Starcounter;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Text;
 
 namespace Starcounter.Internal.Weaver {
+    
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
     /// Analytic part of the weaver. Discovers database classes in data assemblies,
@@ -411,7 +412,7 @@ namespace Starcounter.Internal.Weaver {
             _dbObjectType = FindStarcounterType(typeof(Entity));
             _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
-            _databaseAttributeType = FindStarcounterType(typeof(Starcounter.Hosting.DatabaseAttribute));
+            _databaseAttributeType = FindStarcounterType(typeof(Starcounter.DatabaseAttribute));
         }
 
         /// <summary>

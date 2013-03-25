@@ -4,16 +4,9 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
 using PostSharp.Extensibility;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeModel.Binding;
-using PostSharp.Sdk.CodeModel.Collections;
-using PostSharp.Sdk.CodeModel.Helpers;
 using PostSharp.Sdk.CodeModel.SerializationTypes;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
 using PostSharp.Sdk.CodeWeaver;
@@ -21,17 +14,24 @@ using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
 using Sc.Server.Weaver.Schema;
-using Starcounter;
+using Starcounter.Hosting;
+using Starcounter.Internal.Weaver.BackingCode;
+using Starcounter.Internal.Weaver.BackingInfrastructure;
+using Starcounter.Internal.Weaver.IObjectViewImpl;
 using Starcounter.LucentObjects;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
+using System.Text;
+
 using IMember = PostSharp.Sdk.CodeModel.IMember;
 using IMethod = PostSharp.Sdk.CodeModel.IMethod;
-using Starcounter.Internal.Weaver.IObjectViewImpl;
-using Starcounter.Internal.Weaver.BackingInfrastructure;
-using Starcounter.Hosting;
-using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
-using Starcounter.Internal.Weaver.BackingCode;
 
 namespace Starcounter.Internal.Weaver {
+
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+
     /// <summary>
     /// PostSharp task responsible for transforming the assembly. It also implements the
     /// <see cref="IAdviceProvider" /> interface to provide advices to the low-level
