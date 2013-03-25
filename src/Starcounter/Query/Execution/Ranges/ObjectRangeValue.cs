@@ -65,12 +65,12 @@ internal class ObjectRangeValue : RangeValue, IComparable<ObjectRangeValue>
         Boolean rightEntity = !rightIsNull && !rightIsMax;
 
         if ((leftEntity && rightEntity) &&
-            (value.ThisRef.ObjectID < rightRangeValue.GetValue.ThisRef.ObjectID))
+            (value.Identity < rightRangeValue.GetValue.Identity))
         {
             result = -1; // Less.
         }
         else if ((leftEntity && rightEntity) &&
-                 (value.ThisRef.ObjectID > rightRangeValue.GetValue.ThisRef.ObjectID))
+                 (value.Identity > rightRangeValue.GetValue.Identity))
         {
             result = 1; // Greater.
         }

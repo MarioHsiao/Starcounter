@@ -186,7 +186,7 @@ namespace Starcounter
         public Boolean MoveNext()
         {
             TypeBinding typeBinding = null;
-            IObjectView current;
+            IObjectProxy current;
             UInt16 previousCCI;
             UInt32 ir;
             ObjectRef currentRef;
@@ -228,7 +228,7 @@ namespace Starcounter
             previousCCI = currentCCI;
 
         attach:
-            current.Attach(currentRef, typeBinding);
+            current.Bind(currentRef.ETI, currentRef.ObjectID, typeBinding);
             if (_filterCallback != null)
             {
                 br = _filterCallback(current);

@@ -21,7 +21,7 @@ namespace Sc.Server.Weaver.Schema
 /// attribute is a persistent field, a regular field or a persistent property.
 /// </remarks>
 [Serializable]
-public partial class DatabaseAttribute : DatabaseSchemaElement
+public class DatabaseAttribute : DatabaseSchemaElement
 {
     private DatabaseAttributeKind attributeKind;
     private readonly string name;
