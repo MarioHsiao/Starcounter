@@ -116,51 +116,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        //public void Delete() {
-        //    var thisRef = ThisRef;
-        //    uint r;
-            
-        //    r = sccoredb.sccoredb_begin_delete(thisRef.ObjectID, thisRef.ETI);
-        //    if (r != 0) {
-        //        // If the error is because the delete already was issued then
-        //        // we ignore it and just return. We are processing the delete
-        //        // of this object so it will be deleted eventually.
-
-        //        if (r == Error.SCERRDELETEPENDING) return;
-        //        throw ErrorCode.ToException(r);
-        //    }
-
-        //    // Invoke all callbacks. If any of theese throws an exception then
-        //    // we rollback the issued delete and pass on the thrown exception
-        //    // to the caller.
-
-        //    try {
-        //        InvokeOnDelete();
-        //    }
-        //    catch (Exception ex) {
-        //        // We can't generate an exception from an error in this
-        //        // function since this will hide the original error.
-        //        //
-        //        // We can handle any error that can occur except for a fatal
-        //        // error (and this will kill the process) and that the thread
-        //        // has been detached (shouldn't occur). The most important
-        //        // thing is that the transaction lock set when the delete was
-        //        // issued is released and this will be the case as long as none
-        //        // of the above errors occur.
-                
-        //        sccoredb.sccoredb_abort_delete(thisRef.ObjectID, thisRef.ETI);
-        //        if (ex is System.Threading.ThreadAbortException) throw;
-        //        throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
-        //    }
-
-        //    r = sccoredb.sccoredb_complete_delete(thisRef.ObjectID, thisRef.ETI);
-        //    if (r == 0) return;
-        //    throw ErrorCode.ToException(r);
-        //}
-
-        /// <summary>
         /// Overrides the .NET frameworks Object's Equals method, that will
         /// compare for object reference equality. For a database object, the
         /// equals function uses value equality logic rather than reference
