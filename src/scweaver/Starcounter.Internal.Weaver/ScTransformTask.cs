@@ -345,7 +345,7 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        GenerateFieldAccessors(dba, field);
+                        GenerateFieldAccessors(dba, field, null);
                     }
                 }
             }
@@ -950,10 +950,7 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="columnHandle">The column handle field to bind to the accessors.</param>
         /// <exception cref="System.Exception"></exception>
         /// <exception cref="System.NotSupportedException"></exception>
-        void GenerateFieldAccessors(
-            DatabaseAttribute databaseAttribute, 
-            FieldDefDeclaration field, 
-            IField columnHandle = null) {
+        void GenerateFieldAccessors(DatabaseAttribute databaseAttribute, FieldDefDeclaration field, IField columnHandle) {
             
             // TODO: This method really needs to be refactored and broken down into 
             // smaller pieces. As it is now it's really hard to get an overview of all the code.
@@ -971,7 +968,7 @@ namespace Starcounter.Internal.Weaver {
             MethodSemanticDeclaration setSemantic;
             ParameterDeclaration valueParameter;
             PropertyDeclaration property;
-            IField attributeIndexField;
+            // IField attributeIndexField;
             DatabaseAttribute synonymousTo;
 
             // Since we currently support just a single weaving mechanism,
@@ -979,65 +976,45 @@ namespace Starcounter.Internal.Weaver {
             // to remove alternative implementation for different weaving
             // targets.
             Trace.Assert(_weaveForIPC);
+            Trace.Assert(columnHandle != null);
 
             ScTransformTrace.Instance.WriteLine("Generating accessors for {0}.", databaseAttribute);
 
-            attributeIndexField = null;
             synonymousTo = databaseAttribute.SynonymousTo;
             realDatabaseAttribute = synonymousTo ?? databaseAttribute;
 
-            #region Soon obsolete (lookup of attribute index field)
-            
-            if (synonymousTo == null) {
-                // Generate a static field that can hold the attribute index in
-                // hosted environments.
-
-                // To be removed.
-                // TODO:
-
-                //attributeIndexField = new FieldDefDeclaration {
-                //    Name = WeaverNamingConventions.MakeAttributeIndexVariableName(field.Name),
-                //    Attributes = (FieldAttributes.Family | FieldAttributes.Static),
-                //    FieldType = _module.Cache.GetIntrinsic(IntrinsicType.Int32)
-                //};
-
-                //field.DeclaringType.Fields.Add((FieldDefDeclaration)attributeIndexField);
-                //_weavingHelper.AddCompilerGeneratedAttribute(attributeIndexField.CustomAttributes);
-
-            } else {
+            if (synonymousTo != null) {
 
                 // To be rewritten.
                 // TODO:
+                
+                throw new NotImplementedException();
 
-                var nameOfAttributeIndexField = WeaverNamingConventions.MakeAttributeIndexVariableName(synonymousTo.Name);
+                //var nameOfAttributeIndexField = WeaverNamingConventions.MakeAttributeIndexVariableName(synonymousTo.Name);
 
-                // We must locate the type of the target field. It might be a definition, or a
-                // type reference.
+                //// We must locate the type of the target field. It might be a definition, or a
+                //// type reference.
 
-                var synonymTargetType = (IType)_module.FindType(synonymousTo.DeclaringClass.Name, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
-                if (synonymTargetType == null) {
-                    var typeEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeRef);
-                    while (typeEnumerator.MoveNext()) {
-                        var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
-                        if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(synonymousTo.DeclaringClass.Name)) {
-                            synonymTargetType = typeRef;
-                            break;
-                        }
-                    }
-                }
+                //var synonymTargetType = (IType)_module.FindType(synonymousTo.DeclaringClass.Name, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                //if (synonymTargetType == null) {
+                //    var typeEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeRef);
+                //    while (typeEnumerator.MoveNext()) {
+                //        var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
+                //        if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(synonymousTo.DeclaringClass.Name)) {
+                //            synonymTargetType = typeRef;
+                //            break;
+                //        }
+                //    }
+                //}
 
-                // Lets not do any verification here, since the analyzer should already
-                // have done that for us. We simply rely on both the type and the field
-                // to be found, or else let a null reference exception be raised.
+                //// Lets not do any verification here, since the analyzer should already
+                //// have done that for us. We simply rely on both the type and the field
+                //// to be found, or else let a null reference exception be raised.
 
-                attributeIndexField = synonymTargetType.Fields.GetField(
-                    nameOfAttributeIndexField, synonymTargetType.Module.FindType(typeof(int)), BindingOptions.Default);
+                //attributeIndexField = synonymTargetType.Fields.GetField(
+                //    nameOfAttributeIndexField, synonymTargetType.Module.FindType(typeof(int)), BindingOptions.Default);
             }
-            #endregion
-
-            if (columnHandle != null)
-                attributeIndexField = columnHandle;
-
+            
             // Compute method attributes according to field attributes.
             switch (field.Attributes & FieldAttributes.FieldAccessMask) {
                 case FieldAttributes.Assembly:
@@ -1092,41 +1069,20 @@ namespace Starcounter.Internal.Weaver {
             getMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
 
-            // We need the this handle and the this identity fields from
-            // the type defining the field we are about to replace, to make
-            // the proper call to the correct DbState method.
-            //   These, we should obviosly cache on the type level for all
-            // future field generation rounds.
-            // TODO:
-
             var thisHandleField = field.DeclaringType.FindField(TypeSpecification.ThisHandleName).Field;
             var thisIdField = field.DeclaringType.FindField(TypeSpecification.ThisIdName).Field;
 
-            if (dbStateMethod.ParameterCount == 3) {
-                getMethod.MethodBody.MaxStack = 8;
-                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
-                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisHandleField);
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
-                if (dbStateCast == null) {
-                    // If we don't have to cast the value, we can use a 'tail' call.
-                    _writer.EmitPrefix(InstructionPrefixes.Tail);
-                }
-                _writer.EmitInstructionMethod(OpCodeNumber.Call, dbStateMethod);
-
-            } else {
-
-                // We will call a method with this stack transition:
-                // <this>, <index> -> <value>
-                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
-                if (dbStateCast == null) {
-                    // If we don't have to cast the value, we can use a 'tail' call.
-                    _writer.EmitPrefix(InstructionPrefixes.Tail);
-                }
-                _writer.EmitInstructionMethod(OpCodeNumber.Call, dbStateMethod);
+            getMethod.MethodBody.MaxStack = 8;
+            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+            _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
+            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+            _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisHandleField);
+            _writer.EmitInstructionField(OpCodeNumber.Ldsfld, columnHandle);
+            if (dbStateCast == null) {
+                // If we don't have to cast the value, we can use a 'tail' call.
+                _writer.EmitPrefix(InstructionPrefixes.Tail);
             }
+            _writer.EmitInstructionMethod(OpCodeNumber.Call, dbStateMethod);
 
             // We have the field value on the stack, but we may need to cast it.
             if (dbStateCast != null) {
@@ -1167,39 +1123,18 @@ namespace Starcounter.Internal.Weaver {
                 setMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence, NodePosition.After, null);
                 _writer.AttachInstructionSequence(sequence);
 
-                if (dbStateMethod.ParameterCount == 4) {
-                    //.maxstack 8
-                    //L_0000: ldarg.0 
-                    //L_0001: ldfld uint64 TestAccess::thisId
-                    //L_0006: ldarg.0 
-                    //L_0007: ldfld uint64 TestAccess::thisHandle
-                    //L_000c: ldsfld int32 TestAccess/Spec::Foo1
-                    //L_0011: ldarg.1 
-                    //L_0012: call void MyDbState::WriteString(uint64, uint64, int32, string)
-                    //L_0017: ret
-                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
-                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisHandleField);
-                    _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
-                    _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
-
-                } else {
-
-                    // We need to prepare this stack transition:
-                    // <this>, <index>, <casted_value> -> void
-
-                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                    _writer.EmitInstructionField(OpCodeNumber.Ldsfld, attributeIndexField);
-                    _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
-                }
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisHandleField);
+                _writer.EmitInstructionField(OpCodeNumber.Ldsfld, columnHandle);
+                _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
 
                 // We have the field value on the stack, but we may need to cast it.
                 if (dbStateCast != null) {
                     if (!_castHelper.EmitCast(field.FieldType, dbStateCast, _writer, ref sequence)) {
-                        throw new NotSupportedException(string.Format("Don't know how to cast {0} to {1}.",
-                                                                      field.FieldType,
-                                                                      dbStateCast));
+                        throw new NotSupportedException(string.Format(
+                            "Don't know how to cast {0} to {1}.", field.FieldType, dbStateCast));
                     }
                 }
 
@@ -1208,6 +1143,7 @@ namespace Starcounter.Internal.Weaver {
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, dbStateMethod);
                 _writer.EmitInstruction(OpCodeNumber.Ret);
                 _writer.DetachInstructionSequence();
+
             } else {
                 setMethod = null;
                 ScTransformTrace.Instance.WriteLine("This field is read-only. No set accessor generated.");
