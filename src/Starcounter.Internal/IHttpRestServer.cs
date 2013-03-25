@@ -25,7 +25,7 @@ namespace Starcounter.Advanced {
        /// </summary>
        /// <param name="request">The request.</param>
        /// <returns>The bytes containg the resource.</returns>
-      HttpResponse Handle( HttpRequest request );
+      HttpResponse Handle( Request request );
 
       /// <summary>
       /// The starcounter .EXE modules will provide a path where static file resources such as .html files or images

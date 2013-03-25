@@ -91,7 +91,7 @@ namespace Starcounter.Internal.Web {
       /// </summary>
       /// <param name="request">The http request</param>
       /// <returns>The http response</returns>
-      public override HttpResponse Handle( HttpRequest request) {
+      public override HttpResponse Handle( Request request) {
          return GetStatic( request.Uri, request );
       }
 
@@ -101,7 +101,7 @@ namespace Starcounter.Internal.Web {
       /// <param name="relativeUri">The URI of the resource</param>
       /// <param name="request">The http request as defined by Starcounter</param>
       /// <returns>The UTF8 encoded response</returns>
-      public HttpResponse GetStatic(string relativeUri, HttpRequest request ) {
+      public HttpResponse GetStatic(string relativeUri, Request request ) {
 
          //            if (relativeUri.Equals("/")) {
          //                relativeUri = "/index.html";

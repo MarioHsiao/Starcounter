@@ -87,8 +87,8 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        object Request(HttpRequest request);
+        object HandleRequest(Request request);
 
-        object RawRequest(byte[] request);
+        object HandleRawRequest(byte[] request);
     }
 }

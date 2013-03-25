@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 namespace Starcounter.Advanced {
     /// <summary>
-    /// Class HttpRequest
+    /// Class Request
     /// </summary>
-    public class HttpRequest {
+    public class Request {
         /// <summary>
         /// Creates a minimalistic Http 1.0 GET request with the given uri without any headers or even protocol version specifier.
         /// </summary>
@@ -32,8 +32,8 @@ namespace Starcounter.Advanced {
             return vu;
         }
 
-        public static HttpRequest GET(string uri) {
-            return new HttpRequest(RawGET(uri));
+        public static Request GET(string uri) {
+            return new Request(RawGET(uri));
         }
 
         /// <summary>
@@ -60,12 +60,12 @@ namespace Starcounter.Advanced {
         public INetworkDataStream data_stream_;
 
         /// <summary>
-        /// Indicates if this HttpRequest is internally constructed from Apps.
+        /// Indicates if this Request is internally constructed from Apps.
         /// </summary>
         Boolean isInternalRequest = false;
 
         /// <summary>
-        /// Just using HttpRequest as holder for user Message instance type.
+        /// Just using Request as holder for user Message instance type.
         /// </summary>
         Type messageObjectType_ = null;
 
@@ -94,13 +94,13 @@ namespace Starcounter.Advanced {
         public extern static UInt32 sc_init_http_parser();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpRequest" /> class.
+        /// Initializes a new instance of the <see cref="Request" /> class.
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public HttpRequest(Byte[] buf) {
+        public Request(Byte[] buf) {
             unsafe {
-                // Allocating space for HttpRequest contents and structure.
+                // Allocating space for Request contents and structure.
                 Byte* request_native_buf = (Byte*)BitsAndBytes.Alloc(buf.Length + sizeof(HttpRequestInternal));
                 fixed (Byte* fixed_buf = buf) {
                     // Copying HTTP request data.
@@ -113,7 +113,7 @@ namespace Starcounter.Advanced {
                 // Setting the request data pointer.
                 http_request_struct_->socket_data_ = request_native_buf;
 
-                // Indicating that we internally constructing HttpRequest.
+                // Indicating that we internally constructing Request.
                 isInternalRequest = true;
 
                 // NOTE: No internal sessions support.
@@ -122,7 +122,7 @@ namespace Starcounter.Advanced {
                 // NOTE: No internal data stream support:
                 // Simply on which socket to send this "request"?
 
-                // Executing HTTP request parser and getting HttpRequest structure as result.
+                // Executing HTTP request parser and getting Request structure as result.
                 UInt32 err_code = sc_parse_http_request(request_native_buf, (UInt32)buf.Length, (Byte*)http_request_struct_);
 
                 // Checking if any error occurred.
@@ -136,7 +136,7 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Destroys the instance of HttpRequest.
+        /// Destroys the instance of Request.
         /// </summary>
         public void Destroy() {
             unsafe {
@@ -144,7 +144,7 @@ namespace Starcounter.Advanced {
                 if (http_request_struct_ == null)
                     return;
 
-                // Checking if we have constructed this HttpRequest
+                // Checking if we have constructed this Request
                 // internally in Apps or externally in Gateway.
                 if (isInternalRequest) {
                     // Releasing internal resources here.
@@ -173,14 +173,14 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Called when GC destroys this object.
         /// </summary>
-        ~HttpRequest() {
+        ~Request() {
             // TODO: Consult what is better for Apps auto-destructor or manual call to Destroy.
             Destroy();
         }
 
         // Constructor.
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpRequest" /> class.
+        /// Initializes a new instance of the <see cref="Request" /> class.
         /// </summary>
         /// <param name="chunk_data">The chunk_data.</param>
         /// <param name="single_chunk">The single_chunk.</param>
@@ -188,7 +188,7 @@ namespace Starcounter.Advanced {
         /// <param name="http_request_begin">The http_request_begin.</param>
         /// <param name="socket_data">The socket_data.</param>
         /// <param name="data_stream">The data_stream.</param>
-        public unsafe HttpRequest(
+        public unsafe Request(
             Byte* chunk_data,
             Boolean single_chunk,
             UInt32 chunk_index,
@@ -318,7 +318,7 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="r"></param>
         /// <returns></returns>
-        public static implicit operator Byte[](HttpRequest r)
+        public static implicit operator Byte[](Request r)
         {
             return r.GetRequestByteArray_Slow();
         }

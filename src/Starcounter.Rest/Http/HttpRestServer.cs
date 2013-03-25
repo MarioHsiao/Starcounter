@@ -21,7 +21,7 @@ namespace Starcounter.Internal.REST {
        /// <param name="request">The request.</param>
        /// <returns>The bytes containg the resource.</returns>
        /// <exception cref="System.NotImplementedException"></exception>
-      public virtual HttpResponse Handle( HttpRequest request ) {
+      public virtual HttpResponse Handle( Request request ) {
          throw new NotImplementedException();
       }
 
