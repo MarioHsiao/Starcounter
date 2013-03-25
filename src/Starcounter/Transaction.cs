@@ -6,6 +6,7 @@
 
 using Starcounter.Internal;
 using System;
+using Starcounter.Advanced;
 
 namespace Starcounter
 {
@@ -123,7 +124,7 @@ namespace Starcounter
     /// <summary>
     /// Represents a long running transaction.
     /// </summary>
-    public partial class Transaction : IDisposable {
+    public partial class Transaction : ITransaction, IDisposable {
 
         private const ulong _INVALID_VERIFY = 0xFF;
 
@@ -162,6 +163,14 @@ namespace Starcounter
             }
 
             throw ToException(value, r);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static Transaction GetCurrent() {
+            return _current;
         }
 
         /// <summary>
