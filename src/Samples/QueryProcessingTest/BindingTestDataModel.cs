@@ -2,54 +2,65 @@
 using Starcounter;
 
 namespace QueryProcessingTest.CamelNameSpace {
-    public class CommonClass : Entity {
+    [Database]
+    public class CommonClass {
         public int CamelIntProperty;
     }
 
-    public class lowercasecommonclass : Entity {
+    [Database]
+    public class lowercasecommonclass {
         public string StringProperty;
     }
 
-    public class CamelClass : Entity {
+    [Database]
+    public class CamelClass {
         public decimal DecimalProperty;
     }
 }
 
 namespace lowercasenamespace {
-    public class commonclass : Entity {
+    [Database]
+    public class commonclass {
         public int lowercaseintproperty;
     }
 
-    public class lowercasecommonclass : Entity {
+    [Database]
+    public class lowercasecommonclass {
         public string StringProperty;
     }
 
-    public class lowercaseclass : Entity {
+    [Database]
+    public class lowercaseclass {
         public decimal DecimalProperty;
     }
 }
 
 // No namespace
-public class commonclass : Entity {
+[Database]
+public class commonclass {
     public int NoNamespaceProperty;
 }
 
-public class nonamespaceclass : Entity {
+[Database]
+public class nonamespaceclass {
     public decimal DecimalProperty;
 }
 
 // Add another namespace with common class inside
 
 namespace QueryProcessingTest.CamelNameSpace.AName {
-    public class CommonClass : Entity {
+    [Database]
+    public class CommonClass {
         public int CamelIntProperty;
     }
 
-    public class lowercasecommonclass : Entity {
+    [Database]
+    public class lowercasecommonclass {
         public string StringProperty;
     }
 
-    public class LongNameCamelClass : Entity {
+    [Database]
+    public class LongNameCamelClass {
         public decimal DecimalProperty;
     }
 }
