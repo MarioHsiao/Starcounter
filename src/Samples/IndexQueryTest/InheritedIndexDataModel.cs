@@ -2,7 +2,8 @@
 using Starcounter;
 
 namespace IndexQueryTest.InheritedIndex {
-    public class Employer : Entity {
+    [Database]
+    public class Employer {
         public Manager Director;
         public String Address;
     }
@@ -11,7 +12,8 @@ namespace IndexQueryTest.InheritedIndex {
         public String License;
     }
     
-    public class Person : Entity {
+    [Database]
+    public class Person {
         public String Name;
         public DateTime Birthday;
         public Int64 Gender; // 0 - man, 1 -female (standard)
