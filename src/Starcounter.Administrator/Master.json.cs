@@ -129,7 +129,7 @@ namespace Starcounter.Administrator {
 
             #region Log
 
-            GET("/log?{?}", (string parameters, HttpRequest req) => {
+            GET("/log?{?}", (string parameters, Request req) => {
 
                 if (HasAccept(req["Accept"], "application/json")) {
 
@@ -164,7 +164,7 @@ namespace Starcounter.Administrator {
             });
 
             // Returns the log
-            GET("/log", (HttpRequest req) => {
+            GET("/log", (Request req) => {
 
                 if (HasAccept(req["Accept"], "application/json")) {
                     LogApp logApp = new LogApp() { FilterDebug = false, FilterNotice = false, FilterWarning = true, FilterError = true };
@@ -180,14 +180,14 @@ namespace Starcounter.Administrator {
 
             #region SQL
 
-            POST("/sql/{?}", (string databasename, HttpRequest req) => {
+            POST("/sql/{?}", (string databasename, Request req) => {
 
                 if (HasAccept(req["Accept"], "application/json")) {
 
                     ushort port = 8181; // TODO: Use system port
 
                     try {
-                        Starcounter.Advanced.HttpResponse response;
+                        Starcounter.Advanced.Response response;
                         string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
 
                         Node node = new Node("localhost", port);
