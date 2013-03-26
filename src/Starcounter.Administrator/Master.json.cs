@@ -44,8 +44,8 @@ namespace Starcounter.Administrator {
 
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
-            //AppsBootstrapper.Bootstrap(adminPort, "scadmin");
-            AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+            AppsBootstrapper.Bootstrap(adminPort, "scadmin");
+            //AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();
