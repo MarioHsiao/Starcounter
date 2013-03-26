@@ -1358,6 +1358,7 @@ namespace Starcounter.Internal.Weaver {
                     _ushortType
                     );
                 enhancedConstructor.Parameters.Add(paramDecl);
+                var tableIdParameter = paramDecl;
 
                 paramDecl = new ParameterDeclaration(
                     enhancedConstructor.Parameters.Count,
@@ -1422,7 +1423,7 @@ namespace Starcounter.Internal.Weaver {
 
                     _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                     _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
-                    _writer.EmitInstruction(OpCodeNumber.Ldarg_1);
+                    _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, tableIdParameter);
                     _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                     _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisIdentity);
                     _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
