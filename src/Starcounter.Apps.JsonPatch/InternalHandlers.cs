@@ -12,12 +12,15 @@ using Starcounter.Binding;
 using Codeplex.Data;
 using System.Net;
 using HttpStructs;
+using System.Collections.Generic;
 
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
     /// Class InternalHandlers
     /// </summary>
     public class InternalHandlers {
+        private static List<UInt16> registeredPorts = new List<UInt16>();
+
         /// <summary>
         /// Registers this instance.
         /// </summary>
@@ -27,7 +30,34 @@ namespace Starcounter.Internal.JsonPatch {
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
 
-            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session) => {
+            HandlersManagement.SetHandlerRegisteredCallback(HandlerRegistered);
+
+            Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/sessions", () =>
+            {
+                // Collecting number of sessions on all schedulers.
+                return "Active sessions for '" + dbName + "':" + Environment.NewLine +
+                    GlobalSessions.AllGlobalSessions.GetActiveSessionsStats();
+            });
+            
+            if (Db.Environment.HasDatabase) {
+                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
+                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
+                    string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+                    return ExecuteQuery(bodyData);
+                });
+            }
+        }
+
+        private static void HandlerRegistered(string uri, ushort port) {
+            if (registeredPorts.Contains(port))
+                return;
+
+            // We add the internal handlers for stateful access to json-objects
+            // for each new port that is used.
+            registeredPorts.Add(port);
+            string dbName = Db.Environment.DatabaseName.ToLower();
+
+            Handle.GET(port, "/__" + dbName + "/{?}", (Session session) => {
                 Obj json = Session.Data;
                 if (json == null) {
                     return HttpStatusCode.NotFound;
@@ -38,38 +68,20 @@ namespace Starcounter.Internal.JsonPatch {
                 };
             });
 
-            Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/sessions", () =>
-            {
-                // Collecting number of sessions on all schedulers.
-                return "Active sessions for '" + dbName + "':" + Environment.NewLine +
-                    GlobalSessions.AllGlobalSessions.GetActiveSessionsStats();
-            });
-            
-            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, Request request) => {
+            Handle.PATCH(port, "/__" + dbName + "/{?}", (Session session, Request request) => {
                 Obj root;
 
                 try {
                     root = Session.Data;
                     JsonPatch.EvaluatePatches(root, request.GetContentByteArray_Slow());
                     return root;
-                }
-                catch (NotSupportedException nex) {
+                } catch (NotSupportedException nex) {
                     return new Response() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     return new Response() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
                 }
             });
-
-            if (Db.Environment.HasDatabase) {
-                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
-                    string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
-                    return ExecuteQuery(bodyData);
-                });
-            }
         }
-
 
         /// <summary>
         /// Executes the query and returns a json string of the result
