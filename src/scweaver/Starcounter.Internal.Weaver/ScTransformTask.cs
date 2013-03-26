@@ -1192,15 +1192,12 @@ namespace Starcounter.Internal.Weaver {
             DatabaseClass databaseClass,
             TypeSpecificationEmit typeSpecification) {
             
-            IMethod baseUninitializedConstructor;
             IMethod replacementConstructor;
-            InstructionBlock rootInstrBlock;
             InstructionSequence sequence;
             IType parentType;
             MethodBodyDeclaration constructorImplementation;
             MethodDefDeclaration enhancedConstructor;
             MethodDefDeclaration referencedConstructorDef;
-            MethodDefDeclaration uninitializedConstructor;
             MethodSignature signature;
             Object tag;
             ParameterDeclaration paramDecl;
@@ -1226,31 +1223,7 @@ namespace Starcounter.Internal.Weaver {
 
             // Emit the uninitialized constructor
             ScTransformTrace.Instance.WriteLine("Emitting the uninitialized constructor.");
-
-            CreateAndAddUninitializedConstructorSignature(typeDef, out uninitializedConstructor);
-
-            rootInstrBlock = uninitializedConstructor.MethodBody.CreateInstructionBlock();
-            uninitializedConstructor.MethodBody.RootInstructionBlock = rootInstrBlock;
-
-            sequence = uninitializedConstructor.MethodBody.CreateInstructionSequence();
-            rootInstrBlock.AddInstructionSequence(sequence, NodePosition.After, null);
-            _writer.AttachInstructionSequence(sequence);
-            if (InheritsObject(typeDef)) {
-                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
-            }
-            else {
-                baseUninitializedConstructor = parentType.Methods.GetMethod(".ctor",
-                    _uninitializedConstructorSignature,
-                    BindingOptions.Default
-                    );
-                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                _writer.EmitInstruction(OpCodeNumber.Ldnull);
-                _writer.EmitInstructionMethod(OpCodeNumber.Call, baseUninitializedConstructor);
-            }
-            _writer.EmitInstruction(OpCodeNumber.Ret);
-            _writer.DetachInstructionSequence();
-            uninitializedConstructor.SetTag(_constructorEnhancedTagGuid, "uninitialized");
+            CreateAndAddUninitializedConstructor(typeDef);
 
             // Enhance other constructors only for entity classes.
             if (!(databaseClass is DatabaseEntityClass)) {
@@ -1491,13 +1464,11 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
-        private void CreateAndAddUninitializedConstructorSignature(
-            TypeDefDeclaration typeDef, out MethodDefDeclaration uninitializedConstructor) {
+        private MethodDefDeclaration CreateAndAddUninitializedConstructor(TypeDefDeclaration typeDef) {
             CustomAttributeDeclaration customAttr;
             ParameterDeclaration paramDecl;
 
-            // Define the 'uninitialized' constructor.
-            uninitializedConstructor = new MethodDefDeclaration {
+            var uninitializedConstructor = new MethodDefDeclaration {
                 Name = ".ctor",
                 Attributes = MethodAttributes.SpecialName
                                 | MethodAttributes.RTSpecialName
@@ -1518,6 +1489,30 @@ namespace Starcounter.Internal.Weaver {
                 ParameterType = _module.Cache.GetIntrinsic(IntrinsicType.Void)
             };
             uninitializedConstructor.ReturnParameter = paramDecl;
+
+            var rootInstrBlock = uninitializedConstructor.MethodBody.CreateInstructionBlock();
+            uninitializedConstructor.MethodBody.RootInstructionBlock = rootInstrBlock;
+
+            var sequence = uninitializedConstructor.MethodBody.CreateInstructionSequence();
+            rootInstrBlock.AddInstructionSequence(sequence, NodePosition.After, null);
+            _writer.AttachInstructionSequence(sequence);
+            if (InheritsObject(typeDef)) {
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
+            } else {
+                var baseUninitializedConstructor = typeDef.BaseType.Methods.GetMethod(".ctor",
+                    _uninitializedConstructorSignature,
+                    BindingOptions.Default
+                    );
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstruction(OpCodeNumber.Ldnull);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call, baseUninitializedConstructor);
+            }
+            _writer.EmitInstruction(OpCodeNumber.Ret);
+            _writer.DetachInstructionSequence();
+            uninitializedConstructor.SetTag(_constructorEnhancedTagGuid, "uninitialized");
+
+            return uninitializedConstructor;
         }
     }
 }
