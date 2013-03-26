@@ -277,7 +277,9 @@ namespace CheckBuildSystem
                                                 "HtmlAgilityPack.csproj",
                                                 "HtmlAgilityPack.fx.4.0-CP.csproj",
                                                 "HtmlAgilityPack.fx.4.5-CP.csproj",
-                                                "HtmlAgilityPack.fx.4.5.csproj" },
+                                                "HtmlAgilityPack.fx.4.5.csproj", 
+                                                "ApplicationProjectTemplate.csproj",
+                                                "ClassLibraryProjectTemplate.csproj" },
 
                 PolicyDescription = "All managed projects must treat Warnings As Errors."
             },
@@ -290,8 +292,7 @@ namespace CheckBuildSystem
 
                 RequiredPatterns = new String[] { @"\<TreatWarningAsError\>true\<\/TreatWarningAsError\>" },
 
-                FileExceptions = new String[] { "scerrres.vcxproj", "scerrres32.vcxproj", "ApplicationProjectTemplate.csproj",
-                                                "ClassLibraryProjectTemplate.csproj" },
+                FileExceptions = new String[] { "scerrres.vcxproj", "scerrres32.vcxproj" },
 
                 PolicyDescription = "All native projects must treat Warnings As Errors."
             },
