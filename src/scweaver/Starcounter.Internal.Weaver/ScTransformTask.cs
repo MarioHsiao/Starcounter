@@ -1242,20 +1242,28 @@ namespace Starcounter.Internal.Weaver {
                     tag = referencedConstructor.GetTag(_constructorEnhancedTagGuid);
 
                     // We skip the constructors we have generated ourselves.
+                    // These are either the uninitialized constructor, or one
+                    // of the generated/enhanced constructors (as created
+                    // below). Both store an opaque string as the tag. None
+                    // of them is of any interest, since we know there are
+                    // in fact no calls to them - they were just created.
+
                     if (tag is String) {
                         continue;
                     }
 
-                    // Get the constructor that should be called instead.
+                    // We found a constructor in our base type we have to replace
+                    // calls to, to get the upstream propagation right. Get the
+                    // constructor that should be called instead.
+
                     replacementConstructor = tag as IMethod;
                     if (replacementConstructor == null) {
                         ScTransformTrace.Instance.WriteLine(
-                                    "Don't know how to map the base constructor {{{0}}}.",
-                                    referencedConstructor
-                                );
+                            "Don't know how to map the base constructor {{{0}}}.",
+                            referencedConstructor
+                            );
 
-                        referencedConstructorDef =
-                            referencedConstructor.GetMethodDefinition(BindingOptions.DontThrowException);
+                        referencedConstructorDef = referencedConstructor.GetMethodDefinition(BindingOptions.DontThrowException);
                         if (referencedConstructorDef != null) {
                             if (referencedConstructorDef != referencedConstructor) {
                                 tag = referencedConstructorDef.GetTag(_constructorEnhancedTagGuid);
@@ -1263,44 +1271,31 @@ namespace Starcounter.Internal.Weaver {
                                     continue;
                                 }
                             }
-
-                            // Not sure about the purpose of this code, but I think it has to do
-                            // with a certain handling we need for referenced constructors we have
-                            // defined for built-in types. But since Entity.ctor(Uninitialized) is
-                            // also equipped with HideFromApplications in Yellow, we keep the code
-                            // to see when it runs if it behaves and how to possibly reimplement it.
-                            // TODO:
-
-                            //// Skip the method if it has a custom attribute "HideFromApplications".
-                            //forbiddenType = (IType)referencedConstructorDef.Module.Cache.GetType(
-                            //                                    typeof(HideFromApplicationsAttribute)
-                            //                        );
-
-                            //if (referencedConstructorDef.CustomAttributes.Contains(forbiddenType)) {
-                            //    ScTransformTrace.Instance.WriteLine(
-                            //        "Skipping this constructor because it has the [HideFromApplications] custom attribute.");
-                            //    continue;
-                            //}
                         }
 
                         // This happens when the constructor is defined outside the current module.
                         // Build the signature of the constructor we are looking for.
-                        signature = new MethodSignature(_module,
-                                                        referencedConstructor.CallingConvention,
-                                                        referencedConstructor.ReturnType,
-                                                        null,
-                                                        0);
 
-                        // Copying the original parameters to the signature.
+                        signature = new MethodSignature(
+                            _module,
+                            referencedConstructor.CallingConvention,
+                            referencedConstructor.ReturnType,
+                            null,
+                            0);
+
+                        // Copy the original parameters to the signature and then add
+                        // the infrastructure parameters to the constructor.
+
                         for (Int32 i = 0; i < referencedConstructor.ParameterCount; i++) {
                             signature.ParameterTypes.Add(referencedConstructor.GetParameterType(i));
                         }
-
-                        // Add the infrastructure parameters to the constructor.
-
                         signature.ParameterTypes.Add(_ushortType);
                         signature.ParameterTypes.Add(_typeBindingType);
                         signature.ParameterTypes.Add(_module.Cache.GetType(typeof(Uninitialized)));
+
+                        // Get the constructor with the signature we just created, from the
+                        // type the referenced constructor is defined in. Remember, this is
+                        // still out-of-module.
 
                         replacementConstructor = referencedConstructor.DeclaringType.Methods.GetMethod(
                             ".ctor",
@@ -1314,11 +1309,17 @@ namespace Starcounter.Internal.Weaver {
                         }
 
                         // Cache the result for next use.
+
                         referencedConstructor.SetTag(_constructorEnhancedTagGuid, replacementConstructor);
                     }
 
-                    ScTransformTrace.Instance.WriteLine("The base constructor {{{0}}} maps to {{{1}}}.",
-                                                        referencedConstructor, replacementConstructor);
+                    ScTransformTrace.Instance.WriteLine(
+                        "The base constructor {{{0}}} maps to {{{1}}}.", 
+                        referencedConstructor, 
+                        replacementConstructor
+                        );
+
+                    // Finally add the redirection to the advice.
 
                     advice.AddRedirection(referencedConstructor, replacementConstructor);
                 }
@@ -1330,8 +1331,7 @@ namespace Starcounter.Internal.Weaver {
                     continue;
                 }
 
-                ScTransformTrace.Instance.WriteLine("Enhancing the constructor {{{0}}}.",
-                                                    constructor);
+                ScTransformTrace.Instance.WriteLine("Enhancing the constructor {{{0}}}.", constructor);
 
                 enhancedConstructor = new MethodDefDeclaration() {
                     Name = ".ctor",
@@ -1466,7 +1466,7 @@ namespace Starcounter.Internal.Weaver {
 
                 // Calls to the base constructor should be redirected in this
                 // constructor.
-                
+
                 advice.AddWovenConstructor(enhancedConstructor);
             }
         }
