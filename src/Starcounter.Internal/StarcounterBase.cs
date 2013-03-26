@@ -91,8 +91,8 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static object Request(HttpRequest request) {
-            return _REST.Request(request);
+        public static object HandleRequest(Request request) {
+            return _REST.HandleRequest(request);
         }
 
         /// <summary>

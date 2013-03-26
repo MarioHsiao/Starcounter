@@ -55,6 +55,8 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    public ulong Identity { get { throw new NotImplementedException(); } }
+
     /// <summary>
     /// A random number used when ordering a result by random (... ORDER BY RANDOM).
     /// </summary>
@@ -882,26 +884,6 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
     {
         return new RowMetaObject(parameter, this);
     }
-
-    #region Temporary extension methods from Entity
-    public void Attach(ObjectRef objectRef, TypeBinding typeBinding) {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-    }
-    public void Attach(ulong addr, ulong oid, TypeBinding typeBinding) {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-    }
-    public ObjectRef ThisRef {
-        get {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-        }
-        set {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface is temporary");
-        }
-    }
-    public void Delete() {
-        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "This interface method is temporary");
-    }
-    #endregion
 
 #if DEBUG
     private bool AssertEqualsVisited = false;

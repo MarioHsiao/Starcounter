@@ -12,6 +12,11 @@ using System.Reflection;
 
 namespace Starcounter.LucentObjects
 {
+    /*
+     * This class should and will shortly be replaced by similar functionality in the
+     * new hosting infrastruture as found in the Starcounter.Hosting namespace, defined
+     * in this same assembly.
+     */
 
     /// <summary>
     /// Class LucentObjectsRuntime

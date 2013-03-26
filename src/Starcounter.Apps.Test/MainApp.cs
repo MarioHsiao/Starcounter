@@ -50,7 +50,7 @@ namespace PlayersDemoApp {
                 return null;
             });
 
-            PUT("/players/{x}", (int playerId, HttpRequest request) => {
+            PUT("/players/{x}", (int playerId, Request request) => {
                 Assert.AreEqual(123, playerId);
 //                Assert.IsNotNull(request);
                 Console.WriteLine("playerId: " + playerId ); //+ ", request: " + request);

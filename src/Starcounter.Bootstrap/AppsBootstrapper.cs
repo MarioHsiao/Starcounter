@@ -38,6 +38,9 @@ namespace Starcounter.Internal {
             NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
             Node.ThisStarcounterNode = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
 
+            // Dependencyinjection for db and transaction calls.
+            StarcounterBase._DB = new DbImpl();
+
             // Setting the response handler.
             Node.SetHandleResponse(appServer.HandleResponse);
 
@@ -115,7 +118,7 @@ namespace Starcounter.Internal {
                     String content = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Node.ThisStarcounterNode.POST("/addstaticcontentdir", content, null, (HttpResponse resp) =>
+                    Node.ThisStarcounterNode.POST("/addstaticcontentdir", content, null, (Response resp) =>
                     {
                         String respString = resp.GetContentStringUtf8_Slow();
 
@@ -133,8 +136,8 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(HttpRequest request) {
-            var result = (HttpResponse)appServer.Handle(request);
+        private static Boolean OnHttpMessageRoot(Request request) {
+            var result = (Response)appServer.Handle(request);
             request.SendResponse(result.Uncompressed, 0, result.Uncompressed.Length);
             return true;
         }

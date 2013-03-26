@@ -93,6 +93,15 @@
     <Compile Include="Binding\UIntPropertyBinding.cs" />
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
+    <Compile Include="Hosting\AssemblySpecification.cs" />
+    <Compile Include="Hosting\BackingException.cs" />
+    <Compile Include="Hosting\DatabaseAttribute.cs" />
+    <Compile Include="Hosting\DbStateRedirect.cs" />
+    <Compile Include="Hosting\HostManager.cs" />
+    <Compile Include="Hosting\IBackingHost.cs" />
+    <Compile Include="Hosting\IDbState.cs" />
+    <Compile Include="Hosting\TypeSpecification.cs" />
+    <Compile Include="IEntity.cs" />
     <Compile Include="Internal\bmx.cs" />
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
       <SubType>Code</SubType>
@@ -100,6 +109,7 @@
     <Compile Include="Internal\ExceptionManager.cs" />
     <Compile Include="Internal\TaskHelper.cs" />
     <Compile Include="Internal\TestLogger.cs" />
+    <Compile Include="Binding\IObjectProxy.cs" />
     <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />

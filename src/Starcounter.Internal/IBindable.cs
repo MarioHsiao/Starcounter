@@ -1,5 +1,6 @@
 ﻿
 using System;
+
 namespace Starcounter.Advanced {
 
     /// <summary>
@@ -12,6 +13,6 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Returns a unique ID corresponding to the bound data object.
         /// </summary>
-        UInt64 UniqueID { get; }
+        UInt64 Identity { get; }
     }
 }

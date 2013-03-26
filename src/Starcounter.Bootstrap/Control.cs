@@ -132,7 +132,7 @@ namespace StarcounterInternal.Bootstrap
             OnLoggingConfigured();
 
             // Initializing Apps internal HTTP request parser.
-            HttpRequest.sc_init_http_parser();
+            Starcounter.Advanced.Request.sc_init_http_parser();
 
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)
@@ -224,7 +224,7 @@ namespace StarcounterInternal.Bootstrap
             // launching into Starcounter from the OS shell. This handler
             // requires only a single parameter - the path to the assembly
             // file - and will use the defaults based on that.
-            server.Handle("Exec", delegate(Request r)
+            server.Handle("Exec", delegate(Starcounter.ABCIPC.Request r)
             {
                 try
                 {
@@ -236,7 +236,7 @@ namespace StarcounterInternal.Bootstrap
                 }
             });
 
-            server.Handle("Exec2", delegate(Request r)
+            server.Handle("Exec2", delegate(Starcounter.ABCIPC.Request r)
             {
                 try
                 {
@@ -264,7 +264,7 @@ namespace StarcounterInternal.Bootstrap
             // Ping, allowing clients to check the responsiveness of the
             // code host.
 
-            server.Handle("Ping", delegate(Request request)
+            server.Handle("Ping", delegate(Starcounter.ABCIPC.Request request)
             {
                 request.Respond(true);
             });
