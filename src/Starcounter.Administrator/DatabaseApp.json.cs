@@ -4,7 +4,7 @@ using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System.Web;
 
-namespace StarcounterApps3 {
+namespace Starcounter.Administrator {
     partial class DatabaseApp : Json {
 
         void Handle(Input.DatabaseName action) {

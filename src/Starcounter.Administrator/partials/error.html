@@ -7,11 +7,19 @@
     <p>{{message}}</p>
     <br />
 
-    <p>Help page:</p>
-    <a href="{{helplink}}" target="_blank">{{helplink}}</a>
-<!--
-    <pre>{{model.stacktrace}}</pre>
--->
+    <div ng-hide="helpLink == null">
+        <p>Help page: <a href="{{helpLink}}" target="_blank">{{helpLink}}</a></p>
+    </div>
+
+    <accordion close-others="oneAtATime">
+  
+    <accordion-group heading="Stacktrace">
+         <p>{{stackTrace}}</p>  
+    </accordion-group>
+  </accordion>
+
+
+
 </div>
 
 <div class="modal-footer">

@@ -79,13 +79,18 @@ namespace Starcounter
         /// underlying object may for example be have been deleted in which
         /// case the method returns the identifier the object had.
         /// </remarks>
-        public static UInt64 GetObjectID(Entity obj)
-        {
-            if (obj == null)
-            {
+        public static UInt64 GetObjectID(object obj) {
+            
+            if (obj == null) {
                 throw new ArgumentNullException("obj");
             }
-            return obj.ThisRef.ObjectID;
+
+            var view = obj as IObjectView;
+            if (view == null) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+            }
+
+            return view.Identity;
         }
     }
 }

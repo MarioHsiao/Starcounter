@@ -18,6 +18,6 @@ namespace Starcounter {
         /// Processes the request batch.
         /// </summary>
         /// <param name="requestBatch">The request batch.</param>
-        void ProcessRequestBatch(HttpRequest requestBatch);
+        void ProcessRequestBatch(Request requestBatch);
     }
 }

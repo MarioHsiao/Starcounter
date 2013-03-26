@@ -15,7 +15,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public UInt64 UniqueID { get { return 0; } }
+        public UInt64 Identity { get { return 0; } }
     }
 
     /// <summary>
@@ -222,72 +222,72 @@ namespace Starcounter {
 
 
 
-        /// <summary>
-        /// Commits this instance.
-        /// </summary>
-        public virtual void Commit() {
-            if (_transaction != null) {
-                _transaction.Commit();
-            }
-        }
+        ///// <summary>
+        ///// Commits this instance.
+        ///// </summary>
+        //public virtual void Commit() {
+        //    if (_transaction != null) {
+        //        _transaction.Commit();
+        //    }
+        //}
 
-        /// <summary>
-        /// Aborts this instance.
-        /// </summary>
-        public virtual void Abort() {
-            if (_transaction != null) {
-                _transaction.Rollback();
-            }
-        }
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private Transaction _transaction;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data"></param>
-        protected override void InternalSetData(IBindable data) {
-            if (Transaction == null) {
-                Transaction = Transaction._current;
-            }
-            base.InternalSetData(data);
-        }
+        ///// <summary>
+        ///// Aborts this instance.
+        ///// </summary>
+        //public virtual void Abort() {
+        //    if (_transaction != null) {
+        //        _transaction.Rollback();
+        //    }
+        //}
 
 
-        /// <summary>
-        /// Gets the closest transaction for this app looking up in the tree.
-        /// Sets this transaction.
-        /// </summary>
-        public new Transaction Transaction {
-            get {
-                if (_transaction != null)
-                    return _transaction;
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //private Transaction _transaction;
 
-                Obj parent = GetNearestObjParent();
-                if (parent != null)
-                    return ((Puppet)parent).Transaction;
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="data"></param>
+        //protected override void InternalSetData(IBindable data) {
+        //    if (Transaction == null) {
+        //        Transaction = Transaction._current;
+        //    }
+        //    base.InternalSetData(data);
+        //}
 
-                return null;
-            }
-            set {
-                if (_transaction != null) {
-                    throw new Exception("An transaction is already set for this App. Changing transaction is not allowed.");
-                }
-                _transaction = value;
-            }
-        }
 
-        /// <summary>
-        /// Returns the transaction that is set on this app. Does NOT
-        /// look in parents.
-        /// </summary>
-        internal Transaction TransactionOnThisApp {
-            get { return _transaction; }
-        }
+        ///// <summary>
+        ///// Gets the closest transaction for this app looking up in the tree.
+        ///// Sets this transaction.
+        ///// </summary>
+        //public new Transaction Transaction {
+        //    get {
+        //        if (_transaction != null)
+        //            return _transaction;
+
+        //        Obj parent = GetNearestObjParent();
+        //        if (parent != null)
+        //            return ((Puppet)parent).Transaction;
+
+        //        return null;
+        //    }
+        //    set {
+        //        if (_transaction != null) {
+        //            throw new Exception("An transaction is already set for this App. Changing transaction is not allowed.");
+        //        }
+        //        _transaction = value;
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Returns the transaction that is set on this app. Does NOT
+        ///// look in parents.
+        ///// </summary>
+        //internal Transaction TransactionOnThisApp {
+        //    get { return _transaction; }
+        //}
 
         //        /// <summary>
         //        /// Gets the value.

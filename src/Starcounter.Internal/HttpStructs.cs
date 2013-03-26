@@ -126,14 +126,14 @@ namespace HttpStructs
         // Checks if this session is active.
         public Boolean IsActive()
         {
-            return linear_index_ != HttpRequest.INVALID_APPS_SESSION_INDEX;
+            return linear_index_ != Request.INVALID_APPS_SESSION_INDEX;
         }
 
         // Destroys existing session.
         public void Destroy()
         {
-            linear_index_ = HttpRequest.INVALID_APPS_SESSION_INDEX;
-            random_salt_ = HttpRequest.INVALID_APPS_SESSION_SALT;
+            linear_index_ = Request.INVALID_APPS_SESSION_INDEX;
+            random_salt_ = Request.INVALID_APPS_SESSION_SALT;
         }
     }
 

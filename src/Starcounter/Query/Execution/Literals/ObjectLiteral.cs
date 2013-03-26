@@ -196,7 +196,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
         stringBuilder.Append(tabs, "ObjectLiteral(");
         if (value != null)
         {
-            stringBuilder.Append(value.ThisRef.ObjectID.ToString());
+            stringBuilder.Append(value.Identity.ToString());
         }
         else
         {

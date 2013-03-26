@@ -11,29 +11,26 @@ namespace Starcounter.Metadata
 
     /// <summary>
     /// </summary>
-    public sealed class SysColumn : Entity
+    public sealed class SysColumn
     {
-
-        /// <summary>
-        /// </summary>
-        public SysColumn(Uninitialized u) : base(u) { }
+        public ObjectRef ThisRef;
 
         /// <summary>
         /// </summary>
         public ulong TableId {
-            get { return DbState.ReadUInt64(this, 0); }
+            get { return DbState.ReadUInt64(this.ThisRef.ObjectID, ThisRef.ETI, 0); }
         }
 
         /// <summary>
         /// </summary>
         public ulong Index {
-            get { return DbState.ReadUInt64(this, 1); }
+            get { return DbState.ReadUInt64(ThisRef.ObjectID, ThisRef.ETI, 1); }
         }
 
         /// <summary>
         /// </summary>
         public string Name {
-            get { return DbState.ReadString(this, 2); }
+            get { return DbState.ReadString(ThisRef.ObjectID, ThisRef.ETI, 2); }
         }
     }
 }

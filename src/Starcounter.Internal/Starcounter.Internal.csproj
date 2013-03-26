@@ -78,8 +78,8 @@
     <Compile Include="Handle.cs" />
     <Compile Include="HttpSessions.cs" />
     <Compile Include="HttpStructs.cs" />
-    <Compile Include="Http\HttpRequest.cs" />
-    <Compile Include="Http\HttpResponse.cs" />
+    <Compile Include="Http\Request.cs" />
+    <Compile Include="Http\Response.cs" />
     <Compile Include="IDb.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="Error.cs" />
@@ -93,6 +93,7 @@
     <Compile Include="IHttpRestServer.cs" />
     <Compile Include="IREST.cs" />
     <Compile Include="ISqlResult.cs" />
+    <Compile Include="ITransaction.cs" />
     <Compile Include="KeyValueBinary.cs" />
     <Compile Include="Media.cs" />
     <Compile Include="NewConfig.cs" />

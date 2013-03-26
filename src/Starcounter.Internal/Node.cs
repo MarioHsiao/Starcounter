@@ -34,7 +34,7 @@ namespace Starcounter
         UInt16 portNumber_;
 
         // Delegate to process the results of calling user delegate.
-        public delegate HttpResponse HandleResponse(HttpRequest request, Object x);
+        public delegate Response HandleResponse(Request request, Object x);
         public static HandleResponse HandleResponse_ = null;
 
         /// <summary>
@@ -57,49 +57,49 @@ namespace Starcounter
             portNumber_ = portNumber;
         }
 
-        public void GET(String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
+        public void GET(String uri, String content, Request req, Func<Response, Object> func)
         {
             DoRESTRequestAndDelegate("GET", uri, content, req, func);
         }
 
-        public void GET(String uri, HttpRequest httpRequest, out HttpResponse httpResponse)
+        public void GET(String uri, Request httpRequest, out Response httpResponse)
         {
             DoRESTRequestAndGetResponse(uri, "GET", null, httpRequest, out httpResponse);
         }
 
-        public void POST(String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
+        public void POST(String uri, String content, Request req, Func<Response, Object> func)
         {
             DoRESTRequestAndDelegate("POST", uri, content, req, func);
         }
 
-        public void POST(String uri, String content, HttpRequest req, out HttpResponse httpResponse)
+        public void POST(String uri, String content, Request req, out Response httpResponse)
         {
             DoRESTRequestAndGetResponse(uri, "POST", content, req, out httpResponse);
         }
 
-        public void PUT(String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
+        public void PUT(String uri, String content, Request req, Func<Response, Object> func)
         {
             DoRESTRequestAndDelegate("PUT", uri, content, req, func);
         }
 
-        public void PUT(String uri, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
+        public void PUT(String uri, String content, Request httpRequest, out Response httpResponse)
         {
             DoRESTRequestAndGetResponse(uri, "PUT", content, httpRequest, out httpResponse);
         }
 
-        public void DELETE(String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
+        public void DELETE(String uri, String content, Request req, Func<Response, Object> func)
         {
             DoRESTRequestAndDelegate("DELETE", uri, content, req, func);
         }
 
-        public void DELETE(String uri, String content, HttpRequest httpRequest, out HttpResponse httpResponse)
+        public void DELETE(String uri, String content, Request httpRequest, out Response httpResponse)
         {
             DoRESTRequestAndGetResponse(uri, "DELETE", content, httpRequest, out httpResponse);
         }
 
-        void DoRESTRequestAndDelegate(String method, String uri, String content, HttpRequest req, Func<HttpResponse, Object> func)
+        void DoRESTRequestAndDelegate(String method, String uri, String content, Request req, Func<Response, Object> func)
         {
-            HttpResponse resp;
+            Response resp;
             
             // Sending HTTP request and getting response back.
             DoRESTRequestAndGetResponse(uri, method, content, req, out resp);
@@ -112,7 +112,7 @@ namespace Starcounter
             // Checking if we have HTTP request.
             if (req != null)
             {
-                HttpResponse respOnResp = HandleResponse_(req, o);
+                Response respOnResp = HandleResponse_(req, o);
                 req.SendResponse(respOnResp.ResponseBytes, 0, respOnResp.ResponseLength);
             }
         }
@@ -125,12 +125,7 @@ namespace Starcounter
         /// <param name="content"></param>
         /// <param name="httpRequest"></param>
         /// <param name="httpResponse"></param>
-        void DoRESTRequestAndGetResponse(
-            String uri,
-            String method,
-            String content,
-            HttpRequest req,
-            out HttpResponse resp)
+        void DoRESTRequestAndGetResponse(String uri, String method, String content, Request req, out Response resp)
         {
             // No response initially.
             resp = null;
@@ -190,7 +185,7 @@ namespace Starcounter
                     try
                     {
                         // Trying to parse the response.
-                        resp = new HttpResponse(tempBuf, recievedBytes, req);
+                        resp = new Response(tempBuf, recievedBytes, req);
 
                         // Getting the headers and content length then.
                         headersLen = (Int32)resp.GetHeadersLength();
