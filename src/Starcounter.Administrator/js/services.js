@@ -40,11 +40,9 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
     $provide.factory('Log', function ($resource) {
 
-        //query: { method: 'GET', params: { debug: '@debug', notice: '@notice', error: '@error', warning: '@warning' }, isArray: false }    // We need to override this (the return type is not an array)
-
         return $resource('/log', {}, {
-            query: { method: 'GET',  isArray: false }    // We need to override this (the return type is not an array)
-    });
+            query: { method: 'GET', isArray: false }    // We need to override this (the return type is not an array)
+        });
 
     });
 
@@ -62,11 +60,11 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
             send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
         });
 
-//        return $resource('/__:databaseName/sql', { databaseName: '@databaseName' }, {
-//            send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
-//        });
+        //        return $resource('/__:databaseName/sql', { databaseName: '@databaseName' }, {
+        //            send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
+        //        });
 
     });
 
-});
+ });
 

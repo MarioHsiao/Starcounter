@@ -69,21 +69,54 @@ function MainCtrl($scope, $location) {
 /**
  * Server Controller
  */
-function ServerCtrl($scope, Server) {
+function ServerCtrl($scope, Server, $http) {
 
-    $scope.message = null;
+    $scope.isBusy = false;
+    $scope.alerts = [];
 
     // Get a database
-    $scope.server = Server.get({}, function (server, headers) {
+    Server.get({}, function (server, headers) {
         // Success
+        $scope.server = server;
     }, function (response) {
         // Error, Can not retrive list of databases
-        $scope.message = "Can not retrive the server";
+        $scope.alerts.push({ type: 'error', msg: "Can not retrive the server properties" });
     });
 
-    $scope.hasMessage = function () {
-        return $scope.message != null && $scope.message.length > 0;
+    // User clicked the "Refresh" button
+    $scope.btnClick_refresh_gwateway_stats = function () {
+        $scope.get_gateway_stats();
     }
+
+    // Close alert box
+    $scope.closeAlert = function (index) {
+        $scope.alerts.splice(index, 1);
+    };
+
+    $scope.get_gateway_stats = function () {
+
+        $scope.alerts.length = 0;
+        $scope.isBusy = true;
+
+        $http({ method: 'GET', url: '/gwstats', headers: { 'Accept': 'text/html,text/plain,*/*' } }).
+          success(function (data, status, headers, config) {
+              // this callback will be called asynchronously
+              // when the response is available
+              $scope.gwStats = data;
+              $scope.isBusy = false;
+          }).
+          error(function (data, status, headers, config) {
+              // called asynchronously if an error occurs
+              // or server returns response with an error status.
+              $scope.gwStats = "";
+              $scope.alerts.push({ type: 'error', msg: "Can not retrive the gateway statistics" });
+              $scope.isBusy = false;
+          });
+
+    }
+
+    $scope.get_gateway_stats();
+
 }
 
 
@@ -92,18 +125,20 @@ function ServerCtrl($scope, Server) {
  */
 function DatabasesCtrl($scope, Database) {
 
-    $scope.message = null;
+    $scope.alerts = [];
+
+    // Close alert box
+    $scope.closeAlert = function (index) {
+        $scope.alerts.splice(index, 1);
+    };
 
     $scope.databases = Database.query(function (databases) {
         $scope.databases = databases.DatabaseList;
     }, function (response) {
         // Error, Can not retrive list of databases
-        $scope.message = "Can not retrive a list of databases";
+        $scope.alerts.push({ type: 'error', msg: "Can not retrive the database list" });
     });
 
-    $scope.hasMessage = function () {
-        return $scope.message != null && $scope.message.length > 0;
-    }
 
 }
 
@@ -113,7 +148,12 @@ function DatabasesCtrl($scope, Database) {
  */
 function DatabaseCtrl($scope, $routeParams, Database, patchService) {
 
-    $scope.message = null;
+    $scope.alerts = [];
+
+    // Close alert box
+    $scope.closeAlert = function (index) {
+        $scope.alerts.splice(index, 1);
+    };
 
     // Get a database
     $scope.database = Database.get({ databaseId: $routeParams.databaseId }, function (database, headers) {
@@ -132,7 +172,7 @@ function DatabaseCtrl($scope, $routeParams, Database, patchService) {
 
     }, function (response) {
         // Error, Can not retrive list of databases
-        $scope.message = "Can not retrive the database";
+        $scope.alerts.push({ type: 'error', msg: "Can not retrive the database information" });
     });
 
 
@@ -148,9 +188,6 @@ function DatabaseCtrl($scope, $routeParams, Database, patchService) {
         $scope.database.Stop$ = !$scope.database.Stop$;
     }
 
-    $scope.hasMessage = function () {
-        return $scope.message != null && $scope.message.length > 0;
-    }
 }
 
 
@@ -159,8 +196,9 @@ function DatabaseCtrl($scope, $routeParams, Database, patchService) {
  */
 function LogCtrl($scope, Log) {
 
-    $scope.message = null;
     $scope.isBusy = false;
+    $scope.alerts = [];
+
 
     $scope.log = {};
     $scope.log.LogEntries = [];
@@ -172,6 +210,11 @@ function LogCtrl($scope, Log) {
         error: true
     };
 
+    // Close alert box
+    $scope.closeAlert = function (index) {
+        $scope.alerts.splice(index, 1);
+    };
+
     $scope.$watch('filterModel', function () {
         $scope.refresh();
     }, true);
@@ -179,7 +222,7 @@ function LogCtrl($scope, Log) {
     $scope.refresh = function () {
 
         $scope.isBusy = true;
-
+        $scope.alerts.length = 0;
         // Get a database
         Log.query($scope.filterModel, function (log, headers) {
             // Success
@@ -188,18 +231,45 @@ function LogCtrl($scope, Log) {
         }, function (response) {
             // Error, Can not retrive the log
             $scope.isBusy = false;
-            $scope.message = "Can not retrive the log";
+            $scope.alerts.push({ type: 'error', msg: "Can not retrive the log" });
         });
-    }
-
-    $scope.hasMessage = function () {
-        return $scope.message != null && $scope.message.length > 0;
     }
 
     // User clicked the "Refresh" button
     $scope.btnClick_refresh = function () {
         $scope.refresh();
     }
+
+    // Handsontable (fixed the height)
+    var $window = $(window);
+    var winHeight = $window.height();
+    var winWidth = $window.width();
+    $window.resize(function () {
+        winHeight = $window.height();
+        winWidth = $window.width();
+    });
+
+    $scope.calcHeight = function () {
+        var border = 12;
+        var topOffset = $("#handsontable").offset().top;
+        var height = winHeight - topOffset - 2 * border;
+        if (height < 50) {
+            return 50;
+        }
+        return height;
+    };
+
+    $scope.calcWidth = function () {
+        var border = 12;
+        var leftOffset = $("#handsontable").offset().left;
+        var width = winWidth - leftOffset - 2 * border;
+        if (width < 50) {
+            return 50;
+        }
+        return width;
+    };
+
+
 
 
 }
@@ -225,6 +295,7 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
             return "Execute";
         }
     }
+
 
     // Close alert box
     $scope.closeAlert = function (index) {
@@ -306,7 +377,7 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
                     backdropClick: true,
                     templateUrl: "partials/error.html",
                     controller: 'DialogController',
-                    data: { header: "Starcounter Error", message: result.exception.message, helpLink: result.exception.helpLink, stackTrace: "" }
+                    data: { header: "Starcounter Error", message: result.exception.message, helpLink: result.exception.helpLink, stackTrace: result.exception.stackTrace }
                 };
 
                 var d = $dialog.dialog($scope.opts);
@@ -323,6 +394,35 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
             //}
         });
     }
+
+    // Handsontable (fixed the height)
+    var $window = $(window);
+    var winHeight = $window.height();
+    var winWidth = $window.width();
+    $window.resize(function () {
+        winHeight = $window.height();
+        winWidth = $window.width();
+    });
+
+    $scope.calcHeight = function () {
+        var border = 12;
+        var topOffset = $("#handsontable").offset().top;
+        var height = winHeight - topOffset - 2 * border;
+        if (height < 50) {
+            return 50;
+        }
+        return height;
+    };
+
+    $scope.calcWidth = function () {
+        var border = 12;
+        var leftOffset = $("#handsontable").offset().left;
+        var width = winWidth - leftOffset - 2 * border;
+        if (width < 50) {
+            return 50;
+        }
+        return width;
+    };
 
     //$scope.openDialog = function (header, message, helplink, stacktrace) {
 
@@ -362,8 +462,8 @@ function DialogController($scope, dialog) {
 
     $scope.header = dialog.options.data.header;
     $scope.message = dialog.options.data.message;
-    $scope.helplink = dialog.options.data.helplink;
-    $scope.stacktrace = dialog.options.data.stacktrace;
+    $scope.helpLink = dialog.options.data.helpLink;
+    $scope.stackTrace = dialog.options.data.stackTrace;
 
     $scope.close = function (result) {
         dialog.close(result);

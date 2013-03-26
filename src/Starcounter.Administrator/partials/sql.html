@@ -1,4 +1,8 @@
-﻿<div class="btn-toolbar">
+﻿<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+
+<h3>Interactive SQL</h3>
+
+<div class="btn-toolbar">
 
     <div class="input-prepend">
         <div class="btn-group">
@@ -7,12 +11,10 @@
                 <option value="">-- chose database --</option>
             </select>
         </div>
-</div>
+    </div>
 </div>
 
-<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
-
-<textarea ui-codemirror="{theme:'monokai'}" ng-model="sqlQuery"></textarea>
+<textarea id="sqlinput" ui-codemirror="{theme:'monokai'}" ng-model="sqlQuery"></textarea>
 
 <br />
 
@@ -34,7 +36,9 @@ Rows {{Rows}}-->
 
 </table>-->
 
-<ui-handsontable height="400"
+<ui-handsontable 
+    id="handsontable"
+    height="calcHeight" width="calcWidth" 
     stretchh="'last'"
     selectedindex="SelectedIndex"
     outsideclickdeselects="false"

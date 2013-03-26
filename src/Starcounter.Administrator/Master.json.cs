@@ -44,8 +44,8 @@ namespace Starcounter.Administrator {
 
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
-            AppsBootstrapper.Bootstrap(adminPort, "scadmin");
-            //AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+            //AppsBootstrapper.Bootstrap(adminPort, "scadmin");
+            AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();
@@ -193,8 +193,11 @@ namespace Starcounter.Administrator {
                         Node node = new Node("localhost", port);
                         node.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
 
+                        // TODO:REMOVE
                         if (response == null) {
-                            throw new Exception("Can not connect to remote database");
+                            Exception e = new Exception("Can not connect to remote database");
+                            e.HelpLink = "http://starcounter.com/error";
+                            throw e;
                         }
 
                         return response.GetContentStringUtf8_Slow();
@@ -204,7 +207,7 @@ namespace Starcounter.Administrator {
                         dynamic resultJson = new DynamicJson();
                         resultJson.columns = new object[] { };
                         resultJson.rows = new object[] { };
-                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink };
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
                         resultJson.sqlException = null;
 
                         return resultJson.ToString();
