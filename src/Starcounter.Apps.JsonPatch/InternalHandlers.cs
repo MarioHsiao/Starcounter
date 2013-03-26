@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Starcounter.Binding;
 using Codeplex.Data;
 using System.Net;
+using HttpStructs;
 
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
@@ -35,6 +36,11 @@ namespace Starcounter.Internal.JsonPatch {
                 return new HttpResponse() {
                     Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(json.ToJsonUtf8())
                 };
+            });
+
+            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/sessions", () => {
+                // Collecting number of sessions on all schedulers.
+                return "Active sessions per scheduler:" + Environment.NewLine + GlobalSessions.AllGlobalSessions.GetActiveSessionsStats();
             });
 
             Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, HttpRequest request) => {
