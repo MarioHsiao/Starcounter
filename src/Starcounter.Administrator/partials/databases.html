@@ -1,10 +1,9 @@
-﻿<div ng-show="hasMessage()">
-    <div class="alert alert-error">
-        {{message}}
-    </div>
-</div>
+﻿<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
 
-<table class="table">
+<h3>Databases</h3>
+
+
+<table class="table table-bordered">
 
     <thead>
         <tr>

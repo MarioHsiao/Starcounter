@@ -31,20 +31,20 @@ enum GwLoggingType
     GW_LOGGING_CRITICAL_TYPE
 };
 
-class ThreadSafeWCout
+class ServerLoggingSafe
 {
 public:
 
-    ThreadSafeWCout(GwLoggingType t)
+    ServerLoggingSafe(GwLoggingType t)
     {
         t_ = t;
     }
 
     // Writing to log once object is destroyed.
-    ~ThreadSafeWCout();
+    ~ServerLoggingSafe();
 
     // Overloading all needed streaming operators.
-    template <typename T> ThreadSafeWCout& operator<<(T const& t)
+    template <typename T> ServerLoggingSafe& operator<<(T const& t)
     {
         ss_ << t; // Accumulate into a non-shared stringstream, no threading issues.
         return *this;
@@ -56,15 +56,15 @@ private:
     GwLoggingType t_;
 };
 
-class ThreadSafeCout
+class CoutSafe
 {
 public:
 
     // Writing to log once object is destroyed.
-    ~ThreadSafeCout();
+    ~CoutSafe();
 
     // Overloading all needed streaming operators.
-    template <typename T> ThreadSafeCout& operator<<(T const& t)
+    template <typename T> CoutSafe& operator<<(T const& t)
     {
 #ifdef GW_LOGGING_ON
         ss_ << t; // Accumulate into a non-shared stringstream, no threading issues.
@@ -80,12 +80,16 @@ private:
 };
 
 // Defining two streams output object.
-#define GW_COUT ThreadSafeCout()
+#ifdef GW_LOGGING_ON
+#define GW_COUT CoutSafe()
+#else
+#define GW_COUT if (false) CoutSafe()
+#endif
 
-#define GW_LOG_ERROR ThreadSafeWCout(GW_LOGGING_ERROR_TYPE)
-#define GW_LOG_WARNING ThreadSafeWCout(GW_LOGGING_WARNING_TYPE)
-#define GW_LOG_NOTICE ThreadSafeWCout(GW_LOGGING_NOTICE_TYPE)
-#define GW_LOG_CRITICAL ThreadSafeWCout(GW_LOGGING_CRITICAL_TYPE)
+#define GW_LOG_ERROR ServerLoggingSafe(GW_LOGGING_ERROR_TYPE)
+#define GW_LOG_WARNING ServerLoggingSafe(GW_LOGGING_WARNING_TYPE)
+#define GW_LOG_NOTICE ServerLoggingSafe(GW_LOGGING_NOTICE_TYPE)
+#define GW_LOG_CRITICAL ServerLoggingSafe(GW_LOGGING_CRITICAL_TYPE)
 
 #define GW_ENDL "\n"
 #define GW_WENDL L"\n"

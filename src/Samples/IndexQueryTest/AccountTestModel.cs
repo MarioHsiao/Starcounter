@@ -5,7 +5,8 @@ using System;
 #if ACCOUNTTEST_MODEL
 namespace accounttest
 {
-    public class User : Entity
+    [Database]
+    public class User 
     {
         public String FirstName;
         public String LastName;
@@ -17,7 +18,8 @@ namespace accounttest
         }
     }
 
-    public class account : Entity
+    [Database]
+    public class account 
     {
         public Int64 AccountId;
         public User Client;

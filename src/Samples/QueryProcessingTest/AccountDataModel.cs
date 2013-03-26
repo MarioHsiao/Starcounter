@@ -2,7 +2,8 @@
 using Starcounter;
 
 namespace QueryProcessingTest {
-    public class User : Entity {
+    [Database]
+    public class User {
         public String UserId;
         public int UserIdNr;
         public DateTime BirthDay;
@@ -21,7 +22,8 @@ namespace QueryProcessingTest {
         }
     }
 
-    public class Account : Entity {
+    [Database]
+    public class Account {
         public Int64 AccountId;
         public User Client;
         public Decimal Amount;
