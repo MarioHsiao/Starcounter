@@ -129,6 +129,8 @@ public sealed class SqlEnumCache
         // Checking if its completely new query.
         if (enumIndex < 0)
         {
+            if (Transaction.GetCurrent() == null)
+                Transaction.NewCurrent();
             enumIndex = globalQueryCache.AddNewQuery(query);
         }
 
