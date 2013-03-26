@@ -1,4 +1,7 @@
-﻿<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+﻿<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}<br />
+    <div ng-hide="alert.helpLink == null">
+        <p>Help page: <a href="{{alert.helpLink}}" target="_blank">{{alert.helpLink}}</a></p>
+    </div></alert>
 
 <h3>Interactive SQL</h3>
 
@@ -36,9 +39,9 @@ Rows {{Rows}}-->
 
 </table>-->
 
-<ui-handsontable 
+<ui-handsontable
     id="handsontable"
-    height="calcHeight" width="calcWidth" 
+    height="calcHeight" width="calcWidth"
     stretchh="'last'"
     selectedindex="SelectedIndex"
     outsideclickdeselects="false"
