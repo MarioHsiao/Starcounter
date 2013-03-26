@@ -8,7 +8,8 @@ namespace SQLTest.EmployeeDb
         Unknown = 0, Country = 1, City = 2
     }
 
-    public class Location : Entity
+    [Database]
+    public class Location
     {
         public String Name;
         public String Description;
@@ -18,7 +19,8 @@ namespace SQLTest.EmployeeDb
         public Location() { }
     }
 
-    public class Department : Entity
+    [Database]
+    public class Department
     {
         public String Description;
         public String Name;
@@ -28,7 +30,8 @@ namespace SQLTest.EmployeeDb
         public Department() { }
     }
 
-    public class Person : Entity
+    [Database]
+    public class Person
     {
         public String FirstName;
         public String LastName;
@@ -42,6 +45,7 @@ namespace SQLTest.EmployeeDb
         }
     }
 
+    [Database]
     public class Employee : Person
     {
         public DateTime HireDate;
@@ -89,7 +93,8 @@ namespace SQLTest.EmployeeDb
 
 namespace SQLTest.Test1b
 {
-    public class Person : Entity
+    [Database]
+    public class Person
     {
         public String FirstName;
         public String _LastName;
@@ -101,30 +106,37 @@ namespace SQLTest.Test1b
 
 namespace SQLTest.PointDb
 {
-    public class IntegerPoint : Entity
+    [Database]
+    public class IntegerPoint
     {
         public Nullable<Int64> X;
         public Nullable<Int64> Y;
         public Nullable<Int64> Z;
 
-        public IntegerPoint(Nullable<Int64> x, Nullable<Int64> y, Nullable<Int64> z)
+        public static IntegerPoint Init(Nullable<Int64> x, Nullable<Int64> y, Nullable<Int64> z)
         {
-            X = x; Y = y; Z = z;
+            IntegerPoint p = new IntegerPoint();
+            p.X = x; p.Y = y; p.Z = z;
+            return p;
         }
     }
 }
 
 namespace SQLTest.InheritedDb {
-    public class Employer : Entity {
+    
+    [Database]
+    public class Employer {
         public Manager Director;
         public String Address;
     }
 
+    [Database]
     public class University : Employer {
         public String License;
     }
     
-    public class Person : Entity {
+    [Database]
+    public class Person {
         public String Name;
         public DateTime Birthday;
         public Int64 Gender; // 0 - man, 1 -female (standard)

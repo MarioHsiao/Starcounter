@@ -289,10 +289,15 @@ namespace Starcounter
             // getting the binding.
             // TODO:
 
-            var typeBindingFlags = (proxy.TypeBinding as TypeBinding).Flags;
-            if ((typeBindingFlags & TypeBindingFlags.Callback_OnDelete) != 0) {
-                ((IEntity)proxy).OnDelete();
+            var entityInterface = proxy as IEntity;
+            if (entityInterface != null) {
+                entityInterface.OnDelete();
             }
+
+            //var typeBindingFlags = (proxy.TypeBinding as TypeBinding).Flags;
+            //if ((typeBindingFlags & TypeBindingFlags.Callback_OnDelete) != 0) {
+            //    ((IEntity)proxy).OnDelete();
+            //}
         }
 
         private static void HandleFatalErrorInTransactionScope()
