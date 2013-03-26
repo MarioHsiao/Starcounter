@@ -38,9 +38,11 @@ namespace Starcounter.Internal.JsonPatch {
                 };
             });
 
-            Handle.GET(defaultUserHttpPort, "/__" + dbName + "/sessions", () => {
+            Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/sessions", () =>
+            {
                 // Collecting number of sessions on all schedulers.
-                return "Active sessions per scheduler:" + Environment.NewLine + GlobalSessions.AllGlobalSessions.GetActiveSessionsStats();
+                return "Active sessions for '" + dbName + "':" + Environment.NewLine +
+                    GlobalSessions.AllGlobalSessions.GetActiveSessionsStats();
             });
             
             Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, Request request) => {
