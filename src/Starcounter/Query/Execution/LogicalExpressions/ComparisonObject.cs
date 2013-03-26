@@ -12,10 +12,27 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using Starcounter.Query.Execution;
 
 namespace Starcounter.Query.Execution
 {
-/// <summary>
+    public static class TEMPRegressionEquals {
+        public static bool EntityEquals(this IObjectView obj, IObjectView another) {
+            if (obj == null)
+                return another == null;
+            else if (another == null)
+                return false;
+
+            var view = obj as IObjectView;
+            var view2 = another as IObjectView;
+
+            if (view == null || view2 == null)
+                return false;
+
+            return view.Identity == view2.Identity;
+        }
+    }
+    /// <summary>
 /// Class that holds information about an object comparison which is an operation
 /// with operands that are object references and a result value of type TruthValue.
 /// </summary>
@@ -93,7 +110,7 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
                 {
                     return TruthValue.UNKNOWN;
                 }
-                if (value1.Equals(value2))
+                if (value1.EntityEquals(value2))
                 {
                     return TruthValue.TRUE;
                 }
@@ -103,7 +120,7 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
                 {
                     return TruthValue.UNKNOWN;
                 }
-                if (value1.Equals(value2))
+                if (value1.EntityEquals(value2))
                 {
                     return TruthValue.FALSE;
                 }
@@ -117,7 +134,7 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
                 {
                     return TruthValue.FALSE;
                 }
-                if (value1.Equals(value2))
+                if (value1.EntityEquals(value2))
                 {
                     return TruthValue.TRUE;
                 }
@@ -131,7 +148,7 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
                 {
                     return TruthValue.TRUE;
                 }
-                if (value1.Equals(value2))
+                if (value1.EntityEquals(value2))
                 {
                     return TruthValue.FALSE;
                 }
