@@ -13,7 +13,7 @@ namespace SQLTest.PointDb
 {
     public static class PointData
     {
-        static List<Entity> objectList = new List<Entity>();
+        static List<object> objectList = new List<object>();
 
         public static void CreateData()
         {
@@ -94,7 +94,7 @@ namespace SQLTest.PointDb
         {
             Db.Transaction(delegate
             {
-                foreach (Entity obj in objectList)
+                foreach (IObjectView obj in objectList)
                 {
                     if (obj != null)
                         obj.Delete();

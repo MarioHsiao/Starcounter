@@ -140,7 +140,7 @@ namespace SQLTest
                 String value = null;
                 for (Int32 i = 0; i < VariableValuesArr.Length; i++)
                 {
-                    if (VariableValuesArr[i] is Entity)
+                    if (VariableValuesArr[i] is IObjectView)
                     {
                         type = "Object";
                         //value = DbHelper.GetObjectIDString(VariableValuesArr[i] as Entity);

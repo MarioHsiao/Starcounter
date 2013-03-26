@@ -89,7 +89,9 @@ namespace SQLTest
                     if (objValue == null)
                         return Db.NullString;
                     else {
-                        if (objValue is Entity)
+                        //return Utilities.GetObjectIdString(objValue);
+                        //// TODO:Ruslan
+                        if (objValue is IObjectProxy)
                             //result += DbHelper.GetObjectID(objValue as Entity).ToString();
                             return Utilities.GetObjectIdString(objValue);
                         else
@@ -224,7 +226,7 @@ namespace SQLTest
                             result += Db.NullString;
                         else
                         {
-                            if (objValue is Entity)
+                            if (objValue is IObjectProxy)
                                 //result += DbHelper.GetObjectID(objValue as Entity).ToString();
                                 result += Utilities.GetObjectIdString(objValue);
                             else
@@ -338,7 +340,7 @@ namespace SQLTest
                 type = "Int64";
                 value = ((Boolean)obj).ToString(NumberFormatInfo.InvariantInfo);
             }
-            else if (obj is Entity)
+            else if (obj is IObjectProxy)
             {
                 type = "Object";
                 //value = DbHelper.GetObjectIDString(obj as Entity);
@@ -383,7 +385,7 @@ namespace SQLTest
 
         internal static String GetObjectIdString(IObjectView obj)
         {
-            UInt64 uintObjectId = DbHelper.GetObjectID(obj as Entity);
+            UInt64 uintObjectId = DbHelper.GetObjectID(obj);
             return uintObjectId.ToString();
         }
     }
