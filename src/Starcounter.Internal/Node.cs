@@ -125,7 +125,12 @@ namespace Starcounter
         /// <param name="content"></param>
         /// <param name="httpRequest"></param>
         /// <param name="httpResponse"></param>
-        void DoRESTRequestAndGetResponse(String uri, String method, String content, HttpRequest req, out HttpResponse resp)
+        void DoRESTRequestAndGetResponse(
+            String uri,
+            String method,
+            String content,
+            HttpRequest req,
+            out HttpResponse resp)
         {
             // No response initially.
             resp = null;
@@ -205,10 +210,10 @@ namespace Starcounter
                                 // Closing network streams.
                                 stream.Close();
                                 client.Close();
-
-                                return;
                             }
                         }
+
+                        throw exc;
                     }
                 }
 

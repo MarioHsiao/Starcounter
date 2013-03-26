@@ -416,7 +416,7 @@ START_RECEIVING_AGAIN:
         // Checking if socket is closed by the other peer.
         if (0 == numBytes)
         {
-#ifdef GW_ERRORS_DIAG
+#ifdef GW_WARNINGS_DIAG
             GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->get_socket() << " " <<
                 sd->get_chunk_index() << ". Remote side closed the connection." << GW_ENDL;
 #endif
@@ -460,7 +460,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
     {
-#ifdef GW_ERRORS_DIAG
+#ifdef GW_WARNINGS_DIAG
         GW_PRINT_WORKER << "Zero-bytes receive on socket: " << sd->get_socket() << " " <<
             sd->get_chunk_index() << ". Remote side closed the connection." << GW_ENDL;
 #endif
