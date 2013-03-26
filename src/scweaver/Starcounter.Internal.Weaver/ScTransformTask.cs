@@ -1348,10 +1348,9 @@ namespace Starcounter.Internal.Weaver {
                 };
 
                 // Copy the parameters from the original constructor.
+                // and then add the infrastructure parameters to the new constructor.
+
                 enhancedConstructor.Parameters.AddRangeCloned(constructor.Parameters);
-
-                // Add the infrastructure parameters to the new constructor.
-
                 paramDecl = new ParameterDeclaration(
                     enhancedConstructor.Parameters.Count,
                     "tableId",
@@ -1435,15 +1434,17 @@ namespace Starcounter.Internal.Weaver {
                 }
 
                 // Create a new implementation of the original constructor, where we
-                // only call the new one.
+                // only call the new one. This is very simple and straight-forward.
+                // We push "this", we push every parameter from the original one, we
+                // push the infrastructure parameters last and make the call.
+                
                 constructor.CustomAttributes.Add(_weavingHelper.GetDebuggerNonUserCodeAttribute());
-                constructor.MethodBody.RootInstructionBlock
-                                = constructor.MethodBody.CreateInstructionBlock();
+                constructor.MethodBody.RootInstructionBlock = constructor.MethodBody.CreateInstructionBlock();
                 sequence = constructor.MethodBody.CreateInstructionSequence();
-                constructor.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence,
-                                                                                   NodePosition.After,
-                                                                                   null);
+                constructor.MethodBody.RootInstructionBlock.AddInstructionSequence(
+                    sequence, NodePosition.After, null);
                 _writer.AttachInstructionSequence(sequence);
+
                 _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
 
                 foreach (ParameterDeclaration parameter in constructor.Parameters) {
@@ -1457,10 +1458,15 @@ namespace Starcounter.Internal.Weaver {
                 _writer.EmitInstruction(OpCodeNumber.Ret);
                 _writer.DetachInstructionSequence();
 
-                // Sets a redirection map.
+                // Sets a redirection map, meaning that every call that goes
+                // to the original is reimplemented to call the new, replacement
+                // constructor (with added infrastructure parameters).
+
                 advice.AddRedirection(constructor, enhancedConstructor);
 
-                // Calls to the base constructor should be redirected in this constructor.
+                // Calls to the base constructor should be redirected in this
+                // constructor.
+                
                 advice.AddWovenConstructor(enhancedConstructor);
             }
         }
