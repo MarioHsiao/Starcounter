@@ -363,8 +363,8 @@ const int32_t WS_BLOB_USER_DATA_OFFSET = 16;
 #define GW_ERR_CHECK(err_code) if (0 != err_code) return err_code
 
 // Printing prefixes.
-#define GW_PRINT_WORKER (GW_COUT << "[" << worker_id_ << "]: ")
-#define GW_PRINT_GLOBAL (GW_COUT << "Global: ")
+#define GW_PRINT_WORKER GW_COUT << "[" << worker_id_ << "]: "
+#define GW_PRINT_GLOBAL GW_COUT << "Global: "
 
 // Gateway program name.
 const wchar_t* const GW_PROGRAM_NAME = L"scnetworkgateway";
