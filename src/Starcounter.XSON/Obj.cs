@@ -7,6 +7,7 @@
 using Starcounter.Advanced;
 using Starcounter.Templates;
 using System;
+using Starcounter.Internal;
 
 
 namespace Starcounter {
@@ -77,6 +78,11 @@ namespace Starcounter {
         private IBindable data;
 
         /// <summary>
+        /// 
+        /// </summary>
+        private ITransaction transaction;
+
+        /// <summary>
         /// Cache element index if the parent of this Obj is an array (Arr).
         /// </summary>
         internal int cacheIndexInArr;
@@ -87,6 +93,7 @@ namespace Starcounter {
         public Obj()
             : base() {
             cacheIndexInArr = -1;
+            transaction = null;
         }
 
         /// <summary>
@@ -133,6 +140,10 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
         protected virtual void InternalSetData(IBindable data) {
+            if (Transaction2 == null) {
+                Transaction2 = StarcounterBase._DB.GetCurrentTransaction();
+            }
+
             this.data = data;
             if (Template.Bound) {
                 ((Obj)this.Parent).SetBound(Template, data);
@@ -140,6 +151,53 @@ namespace Starcounter {
 
             RefreshAllBoundValues();
             OnData();
+        }
+
+        /// <summary>
+        /// Commits this instance.
+        /// </summary>
+        public virtual void Commit() {
+            if (transaction != null) {
+                transaction.Commit();
+            }
+        }
+
+        /// <summary>
+        /// Aborts this instance.
+        /// </summary>
+        public virtual void Abort() {
+            if (transaction != null) {
+                transaction.Rollback();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ITransaction Transaction2 { // TODO: Name clashes with StarcounterBase
+            get {
+                if (transaction != null)
+                    return transaction;
+
+                Obj parent = GetNearestObjParent();
+                if (parent != null)
+                    return ((Obj)parent).Transaction2;
+                return null;
+            }
+            set {
+                if (transaction != null) {
+                    throw new Exception("An transaction is already set for this object. Changing transaction is not allowed.");
+                }
+                transaction = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns the transaction that is set on this app. Does NOT
+        /// look in parents.
+        /// </summary>
+        internal ITransaction TransactionOnThisApp {
+            get { return transaction; }
         }
 
         /// <summary>

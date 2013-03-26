@@ -108,7 +108,7 @@ namespace Starcounter.Binding
             methodBuilder = typeBuilder.DefineMethod(
                                 "NewUninitializedInst",
                                 (MethodAttributes.HideBySig | MethodAttributes.Final | MethodAttributes.NewSlot | MethodAttributes.Family | MethodAttributes.Virtual),
-                                typeof(IObjectView),
+                                typeof(IObjectProxy),
                                 null
                             );
             typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
@@ -163,27 +163,11 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="binding">The binding.</param>
         /// <param name="type">The type.</param>
-        private void SetTypeBindingFlags(TypeBinding binding, Type type)
-        {
+        private void SetTypeBindingFlags(TypeBinding binding, Type type) {
             TypeBindingFlags bindingFlags = 0;
-
-            while (type != entityType)
-            {
-                MethodInfo callbackMethod = type.GetMethod(
-                                     "OnDelete",
-                                     (BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic)
-                                 );
-                if (callbackMethod == null)
-                {
-                    type = type.BaseType;
-                }
-                else
-                {
-                    bindingFlags |= TypeBindingFlags.Callback_OnDelete;
-                    break;
-                }
+            if (typeof(IEntity).IsAssignableFrom(type)) {
+                bindingFlags |= TypeBindingFlags.Callback_OnDelete;
             }
-
             binding.Flags = bindingFlags;
         }
 

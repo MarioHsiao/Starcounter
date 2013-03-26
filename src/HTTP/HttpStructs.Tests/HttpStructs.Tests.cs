@@ -29,7 +29,7 @@ namespace HttpStructs.Tests
         [SetUp]
         public void InitHttpStructsTests()
         {
-            HttpRequest.sc_init_http_parser();
+            Request.sc_init_http_parser();
         }
     }
 
@@ -148,7 +148,7 @@ namespace HttpStructs.Tests
 
                 Byte[] http_request_bytes = Encoding.ASCII.GetBytes(http_request_strings[i]);
 
-                HttpRequest http_request = new HttpRequest(http_request_bytes);
+                Request http_request = new Request(http_request_bytes);
 
                 // Checking correct URIs.
                 Assert.That(http_request.Uri == http_request_uris[i], Is.True);
@@ -180,7 +180,7 @@ namespace HttpStructs.Tests
 
             Byte[] simple_http_request_bytes = Encoding.ASCII.GetBytes(simple_http_request);
 
-            HttpRequest http_request = null;
+            Request http_request = null;
 
             // Checking that only correct exceptions are thrown.
             Assert.DoesNotThrow(() =>
@@ -188,7 +188,7 @@ namespace HttpStructs.Tests
                 try
                 {
                     // Should through only ScErrAppsHttpParserIncompleteHeaders, ScErrAppsHttpParserIncorrect.
-                    http_request = new HttpRequest(simple_http_request_bytes);
+                    http_request = new Request(simple_http_request_bytes);
                 }
                 catch (Exception e)
                 {

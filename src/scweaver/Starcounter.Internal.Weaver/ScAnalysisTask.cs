@@ -4,12 +4,6 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Text;
 using PostSharp;
 using PostSharp.Extensibility;
 using PostSharp.Sdk.CodeModel;
@@ -21,9 +15,16 @@ using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.Extensibility;
 using PostSharp.Sdk.Extensibility.Tasks;
 using Sc.Server.Weaver.Schema;
-using Starcounter;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Text;
 
 namespace Starcounter.Internal.Weaver {
+    
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
     /// Analytic part of the weaver. Discovers database classes in data assemblies,
@@ -88,6 +89,8 @@ namespace Starcounter.Internal.Weaver {
         /// The _DB object type
         /// </summary>
         private ITypeSignature _dbObjectType;
+
+        private IType _databaseAttributeType;
         /// <summary>
         /// The type corresponding to the SynonymousToAttribute .NET type.
         /// </summary>
@@ -409,6 +412,7 @@ namespace Starcounter.Internal.Weaver {
             _dbObjectType = FindStarcounterType(typeof(Entity));
             _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+            _databaseAttributeType = FindStarcounterType(typeof(Starcounter.DatabaseAttribute));
         }
 
         /// <summary>
@@ -772,12 +776,15 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="parentName">Name of the parent type.</param>
         /// <returns><b>true</b> if <paramref name="child" /> derives from a type named <paramref name="parentName" />,
         /// otherwise <b>false</b>.</returns>
-        private static bool Inherits(IType child, string parentName) {
+        internal static bool Inherits(IType child, string parentName, bool onlyDirect = false) {
             TypeDefDeclaration cursor = child.GetTypeDefinition();
             while (true) {
                 if (cursor.GetReflectionName() == parentName) {
                     return true;
                 }
+                if (onlyDirect && cursor != child) {
+                    return false;
+                } 
                 if (cursor.BaseType != null) {
                     cursor = cursor.BaseType.GetTypeDefinition();
                 } else {
@@ -999,18 +1006,19 @@ namespace Starcounter.Internal.Weaver {
                 this._discoverDatabaseClassCache.Add(typeDef, databaseClass);
                 return databaseClass;
             }
-            
-            if (!typeDef.IsAssignableTo(this._dbObjectType)) {
-                return null;
-            }
-            
-            ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
-            
-            if (typeDef.IsAssignableTo(this._entityType)) {
-                ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: {0} is a regular entity object.", typeDef);
-                databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
+
+            TypeDefDeclaration cursor = typeDef;
+            while (!cursor.CustomAttributes.Contains(_databaseAttributeType)) {
+                if (cursor.BaseType != null) {
+                    cursor = cursor.BaseType.GetTypeDefinition();
+                } else {
+                    return null;
+                }
             }
 
+            ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
+            databaseClass = new DatabaseEntityClass(this._databaseAssembly, typeDef.GetReflectionName());
+            
             databaseClass.SetTypeDefinition(typeDef);
             
             DatabaseClass existingDatabaseClass = this._databaseAssembly.Schema.FindDatabaseClass(typeDef.GetReflectionName());

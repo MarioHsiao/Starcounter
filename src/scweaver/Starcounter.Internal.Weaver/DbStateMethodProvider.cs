@@ -4,18 +4,19 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.CodeModel.TypeSignatures;
 using Sc.Server.Weaver.Schema;
-using Starcounter;
-using Starcounter.Internal;
-using IMethod = PostSharp.Sdk.CodeModel.IMethod;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 
 namespace Starcounter.Internal.Weaver {
+
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+
     /// <summary>
     /// Provides the method <see cref="GetGetMethod" /> and <see cref="GetSetMethod" />, which determine
     /// which method of the <see cref="DbState" /> class should be called to retrieve or store the value
@@ -34,6 +35,47 @@ namespace Starcounter.Internal.Weaver {
             /// The cast type
             /// </summary>
             public ITypeSignature CastType;
+        }
+
+        internal sealed class ViewAccessors {
+            
+            public ViewAccessors(ModuleDeclaration module) {
+                BindingOptions bind = BindingOptions.Default;
+                var viewType = typeof(DbState.View);
+                GetBoolean = module.FindMethod(viewType.GetMethod("GetBoolean"), bind);
+                GetBinary = module.FindMethod(viewType.GetMethod("GetBinary"), bind);
+                GetByte = module.FindMethod(viewType.GetMethod("GetByte"), bind);
+                GetDateTime = module.FindMethod(viewType.GetMethod("GetDateTime"), bind);
+                GetDecimal = module.FindMethod(viewType.GetMethod("GetDecimal"), bind);
+                GetDouble = module.FindMethod(viewType.GetMethod("GetDouble"), bind);
+                GetInt16 = module.FindMethod(viewType.GetMethod("GetInt16"), bind);
+                GetInt32 = module.FindMethod(viewType.GetMethod("GetInt32"), bind);
+                GetInt64 = module.FindMethod(viewType.GetMethod("GetInt64"), bind);
+                GetObject = module.FindMethod(viewType.GetMethod("GetObject"), bind);
+                GetSByte = module.FindMethod(viewType.GetMethod("GetSByte"), bind);
+                GetSingle = module.FindMethod(viewType.GetMethod("GetSingle"), bind);
+                GetString = module.FindMethod(viewType.GetMethod("GetString"), bind);
+                GetUInt16 = module.FindMethod(viewType.GetMethod("GetUInt16"), bind);
+                GetUInt32 = module.FindMethod(viewType.GetMethod("GetUInt32"), bind);
+                GetUInt64 = module.FindMethod(viewType.GetMethod("GetUInt64"), bind);
+            }
+
+            public IMethod GetBoolean { get; private set; }
+            public IMethod GetBinary { get; private set; }
+            public IMethod GetByte{ get; private set; }
+            public IMethod GetDateTime { get; private set; }
+            public IMethod GetDecimal { get; private set; }
+            public IMethod GetDouble { get; private set; }
+            public IMethod GetInt16 { get; private set; }
+            public IMethod GetInt32 { get; private set; }
+            public IMethod GetInt64 { get; private set; }
+            public IMethod GetObject { get; private set; }
+            public IMethod GetSByte { get; private set; }
+            public IMethod GetSingle { get; private set; }
+            public IMethod GetString { get; private set; }
+            public IMethod GetUInt16 { get; private set; }
+            public IMethod GetUInt32 { get; private set; }
+            public IMethod GetUInt64 { get; private set; }
         }
 
         /// <summary>
@@ -56,22 +98,32 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// The db state type
         /// </summary>
-        private static readonly Type dbStateType = typeof(DbState);
+        private readonly Type dbStateType;
         /// <summary>
         /// The code generated db state type
         /// </summary>
         private readonly Type codeGeneratedDbStateType;
+        /// <summary>
+        /// Gets the set of (cached) view access methods we bind to when
+        /// implementing the IObjectView data-retreival methods.
+        /// </summary>
+        public ViewAccessors ViewAccessMethods { get; private set; }
+
+        public Type DbStateType { get { return dbStateType; } }
 
         /// <summary>
         /// Initializes a new <see cref="DbStateMethodProvider" />.
         /// </summary>
         /// <param name="module">Modules from which the <see cref="DbState" /> methods will be called.</param>
         /// <param name="dynamicLibDir">The dynamic lib dir.</param>
-        public DbStateMethodProvider(ModuleDeclaration module, String dynamicLibDir) {
-            Trace.Assert(string.IsNullOrEmpty(dynamicLibDir), "Currently, we don't support generated code.");
+        public DbStateMethodProvider(ModuleDeclaration module, string dynamicLibDir, bool useStateRedirect = false) {
+            Trace.Assert(
+                string.IsNullOrEmpty(dynamicLibDir), "Currently, we don't support generated code.");
 
             this.module = module;
             this.codeGeneratedDbStateType = null;
+            this.ViewAccessMethods = new ViewAccessors(module);
+            this.dbStateType = useStateRedirect ? typeof(Starcounter.Hosting.DbStateRedirect) : typeof(DbState);
         }
 
         #region Helper methods
@@ -152,88 +204,108 @@ namespace Starcounter.Internal.Weaver {
         /// <paramref name="method" /> has to be casted, or <b>null</b> if no cast is necessary.</param>
         /// <returns><b>true</b> if the method exist, otherwise <b>false</b> (happens for instance
         /// when the <b>write</b> operation is requested on an intrinsically read-only type).</returns>
-        private bool GetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute, string operation,
-                               out IMethod method, out ITypeSignature castType) {
+        private bool GetMethod(
+            ITypeSignature fieldType,
+            DatabaseAttribute databaseAttribute,
+            string operation,
+            out IMethod method, 
+            out ITypeSignature castType) {
+            MethodCastPair methodCastPair;
+
             string key = operation + " : " + GetAttributeTypeCacheKey(databaseAttribute);
             castType = null;
-            MethodCastPair methodCastPair;
-            if (!this.cache.TryGetValue(key, out methodCastPair)) {
-                DatabasePrimitiveType primitiveType;
-                DatabaseEnumType enumType = null;
-                if ((primitiveType = databaseAttribute.AttributeType as DatabasePrimitiveType) != null ||
-                    (enumType = databaseAttribute.AttributeType as DatabaseEnumType) != null) {
-                    DatabasePrimitive primitive = primitiveType != null
-                                                  ?
-                                                  primitiveType.Primitive
-                                                  :
-                                                  enumType.UnderlyingType;
-                    string methodName;
-                    if (databaseAttribute.IsNullable) {
-                        methodName = operation + "Nullable" + primitive.ToString();
-                        if (enumType != null) {
-                            // The caller will have to cast to/from Nullable<primitive>.
-                            // Note that this is a non-trivial cast.
-                            castType = new GenericTypeInstanceTypeSignature(
-                                (INamedType)
-                                this.module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
-                                new ITypeSignature[] { this.module.Cache.GetIntrinsic(MapDatabasePrimitiveToInstrinsic(primitive)) });
-                        }
-                    } else {
-                        methodName = operation + primitive.ToString();
-                    }
 
-                    MethodInfo methodInfo;
-
-                    methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
-                    if (methodInfo == null) {
-                        methodInfo = dbStateType.GetMethod(methodName);
-                    }
-
-                    Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
-
-                    method = this.module.FindMethod(methodInfo, BindingOptions.Default);
-                } else if (databaseAttribute.AttributeType is DatabaseArrayType) {
-                    string methodName = operation + "Array";
-                    if (operation == readOperation) {
-                        method =
-                        this.GetGenericMethodInstance(methodName,
-                        ((ArrayTypeSignature)
-                        TypeSpecDeclaration.Unwrap(fieldType)).
-                        ElementType);
-                    } else {
-                        MethodInfo methodInfo = dbStateType.GetMethod(methodName);
-                        Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
-                        method = this.module.FindMethod(methodInfo, BindingOptions.Default);
-                    }
-                } else if (databaseAttribute.AttributeType is DatabaseClass) {
-                    string methodName = operation + "Object";
-                    MethodInfo methodInfo;
-
-                    methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
-                    if (methodInfo == null) {
-                        methodInfo = dbStateType.GetMethod(methodName);
-                    }
-                    Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
-                    method = this.module.FindMethod(methodInfo, BindingOptions.Default);
-                    // The caller will have to cast from this type:
-                    castType = this.module.Cache.GetType(typeof(Entity));
-                } else {
-                    Trace.Assert(false, string.Format("Not an expected type: {0}", databaseAttribute.AttributeType));
-                    method = null;
-                }
-                methodCastPair = new MethodCastPair();
-                methodCastPair.Method = method;
-                methodCastPair.CastType = castType;
-                this.cache.Add(key, methodCastPair);
-            } else {
+            if (this.cache.TryGetValue(key, out methodCastPair)) {
                 method = methodCastPair.Method;
                 castType = methodCastPair.CastType;
+                return true;
             }
+
+            Func<Type, string, MethodInfo> DoFindMethodByName = (stateType, methodName) => {
+                MethodInfo info;
+                info = stateType.GetMethod(methodName);
+                Trace.Assert(info != null, "Missing method " + stateType.Name + "." + methodName);
+                Trace.Assert(
+                    methodName.StartsWith("Read") && info.GetParameters().Length == 3 ||
+                    methodName.StartsWith("Write") && info.GetParameters().Length == 4,
+                    "Errornous, legacy signature of " + stateType.Name + "." + methodName
+                    );
+                return info;
+            };
+ 
+            DatabasePrimitiveType primitiveType;
+            DatabaseEnumType enumType = null;
+            if ((primitiveType = databaseAttribute.AttributeType as DatabasePrimitiveType) != null ||
+                (enumType = databaseAttribute.AttributeType as DatabaseEnumType) != null) {
+                DatabasePrimitive primitive = 
+                    primitiveType != null ? primitiveType.Primitive : enumType.UnderlyingType;
+
+                string methodName;
+                if (databaseAttribute.IsNullable) {
+                    methodName = operation + "Nullable" + primitive.ToString();
+                    if (enumType != null) {
+                        // The caller will have to cast to/from Nullable<primitive>.
+                        // Note that this is a non-trivial cast.
+                        castType = new GenericTypeInstanceTypeSignature(
+                            (INamedType)
+                            this.module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
+                            new ITypeSignature[] { this.module.Cache.GetIntrinsic(MapDatabasePrimitiveToInstrinsic(primitive)) });
+                    }
+                } else {
+                    methodName = operation + primitive.ToString();
+                }
+
+                MethodInfo methodInfo;
+
+                methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
+                if (methodInfo == null) {
+                    methodInfo = DoFindMethodByName(dbStateType, methodName);
+                }
+
+                Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+
+                method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+
+            } else if (databaseAttribute.AttributeType is DatabaseArrayType) {
+                string methodName = operation + "Array";
+                if (operation == readOperation) {
+                    method =
+                    this.GetGenericMethodInstance(methodName,
+                    ((ArrayTypeSignature)
+                    TypeSpecDeclaration.Unwrap(fieldType)).
+                    ElementType);
+                } else {
+                    MethodInfo methodInfo = DoFindMethodByName(dbStateType, methodName);
+                    Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+                    method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+                }
+            } else if (databaseAttribute.AttributeType is DatabaseClass) {
+                string methodName = operation + "Object";
+                MethodInfo methodInfo;
+
+                methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);
+                if (methodInfo == null) {
+                    methodInfo = DoFindMethodByName(dbStateType, methodName);
+                }
+                Trace.Assert(methodInfo != null, string.Format("Cannot find the method DbState.{0}.", methodName));
+                method = this.module.FindMethod(methodInfo, BindingOptions.Default);
+                // The caller will have to cast from this type:
+                castType = this.module.Cache.GetType(typeof(IObjectView));
+            } else {
+                Trace.Assert(false, string.Format("Not an expected type: {0}", databaseAttribute.AttributeType));
+                method = null;
+            }
+
+            methodCastPair = new MethodCastPair();
+            methodCastPair.Method = method;
+            methodCastPair.CastType = castType;
+            this.cache.Add(key, methodCastPair);
             return true;
         }
 
-
-
+        MethodInfo DoGetAccessMethodByName(Type stateType, string methodName) {
+            return stateType.GetMethod(methodName);
+        }
 
         /// <summary>
         /// Determines which method of the <see cref="DbState" /> class should be called to retrieve

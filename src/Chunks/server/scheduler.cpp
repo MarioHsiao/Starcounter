@@ -81,8 +81,11 @@ namespace starcounter {
 namespace core {
 
 class server_port {
+	typedef uint64_t mask_type;
+
 	enum {
-		channel_masks_ = 4
+		mask_bit_size = sizeof(mask_type) * CHAR_BIT,
+		channel_masks_ = (channels +mask_bit_size -1) / mask_bit_size
 	};
 
 	scheduler_channel_type *this_scheduler_task_channel_;
@@ -494,21 +497,21 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 //------------------------------------------------------------------------------
 #if 0 /// TODO: Test if this method results in a faster scan of the channels.
 // Flags which words to scan, those channel_scan words that are not 0.
-uint64_t words_to_scan; /// TODO: Align on cache-line boundary.
+mask_type words_to_scan; /// TODO: Align on cache-line boundary.
 
 // Flags for which of 4096 channels to scan.
-uint64_t channel_scan[64]; /// TODO: Align on cache-line boundary.
+mask_type channel_scan[64]; /// TODO: Align on cache-line boundary.
 
-for (uint64_t word_mask = words_to_scan; word_mask; word_mask &= word_mask -1) {
+for (mask_type word_mask = words_to_scan; word_mask; word_mask &= word_mask -1) {
     std::size_t i = bit_scan_forward(word_mask);
-    for (uint64_t bit_mask = channel_scan[i]; bit_mask; bit_mask &= bit_mask -1) {
+    for (mask_type bit_mask = channel_scan[i]; bit_mask; bit_mask &= bit_mask -1) {
         std::size_t this_channel = bit_scan_forward(bit_mask);
         // Probe the channels in queue to see if there is a message...and process it.
     }
 }
 
 /// The fastest would be to use 64 channels:
-for (uint64_t channels_mask = get_channel_scan_mask();
+for (mask_type channels_mask = get_channel_scan_mask();
 channels_mask; channels_mask &= channels_mask -1) {
     std::size_t this_channel = bit_scan_forward(channels_mask);
     // Probe the channels in queue to see if there is a message...and process it.
@@ -604,7 +607,7 @@ main_processing_loop:
 			
 			for (channel_number mask_word_counter = 0;
 			mask_word_counter < channel_masks_; ++mask_word_counter) {
-				for (uint64_t mask = this_scheduler_interface_
+				for (mask_type mask = this_scheduler_interface_
 				->get_channel_mask_word(mask_word_counter);
 				mask; mask &= mask -1) {
 					channel_number this_channel = bit_scan_forward(mask);
@@ -639,7 +642,7 @@ check_next_channel:
 		for (channel_number mask_word_counter = next_channel_ >> 6;
 		mask_word_counter < channel_masks_; ++mask_word_counter) {
 			uint32_t prev = (next_channel_ & 63);
-			for (uint64_t mask = (this_scheduler_interface_
+			for (mask_type mask = (this_scheduler_interface_
 			->get_channel_mask_word(mask_word_counter) >> prev) << prev;
 			mask; mask &= mask -1) {
 				channel_number this_channel = bit_scan_forward(mask);
@@ -772,7 +775,7 @@ long server_port::has_task() {
 	if (this_scheduler_task_channel_->in.has_more()) return 1;
 
 	for (channel_number n = 0; n < channel_masks_; ++n) {
-		for (uint64_t mask = this_scheduler_interface_
+		for (mask_type mask = this_scheduler_interface_
 		->get_channel_mask_word(n); mask; mask &= mask -1) {
 			uint32_t ch = bit_scan_forward(mask);
 			ch += n << 6;

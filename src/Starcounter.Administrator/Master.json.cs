@@ -88,7 +88,7 @@ namespace Starcounter.Administrator {
             #region Database(s)
 
             // Returns a list of databases
-            GET("/databases", (HttpRequest req) => {
+            GET("/databases", (Request req) => {
 
                 if (HasAccept(req["Accept"], "application/json")) {
 
@@ -110,7 +110,7 @@ namespace Starcounter.Administrator {
 
 
             // Returns a database
-            GET("/databases/{?}", (string databaseid, HttpRequest req) => {
+            GET("/databases/{?}", (string databaseid, Request req) => {
 
                 if (HasAccept(req["Accept"], "application/json")) {
                     DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(databaseid));
@@ -221,7 +221,7 @@ namespace Starcounter.Administrator {
 
             #endregion
 
-            POST("/addstaticcontentdir", (HttpRequest req) => {
+            POST("/addstaticcontentdir", (Request req) => {
 
                 // Getting POST contents.
                 String content = req.GetContentStringUtf8_Slow();
