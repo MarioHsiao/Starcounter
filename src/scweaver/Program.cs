@@ -177,6 +177,7 @@ namespace Weaver {
             weaver.WeaveForIPC = true;//!arguments.ContainsFlag("noipc");
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
             weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
+            weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
 
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
@@ -364,6 +365,9 @@ namespace Weaver {
             // analyzing/weaving code. The effect of this flag is that any up-to-date
             // cached content will always be recreated, i.e. weaving will always occur.
             commandDefinition.DefineFlag("nocache", "Instructs the weaver not to use the weaver cache.");
+
+            commandDefinition.DefineFlag("UseStateRedirect".ToLower(),
+                "Instructs the weaver to weave against a slower, redirected database state layer.");
 
             // Allows the weave command to be ran just weaving to the cache, not touching
             // the input.

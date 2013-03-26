@@ -523,10 +523,13 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             if (enableRecreateObjectCheck)
             {
                 // Fetching new object information.
-                IObjectView dbObject = enumerator.Current;
+                // TODO/Entity:
+                IObjectProxy dbObject = enumerator.Current as IObjectProxy;
 
                 // Checking if its the same object.
-                if ((keyOID != dbObject.ThisRef.ObjectID) && (keyETI != dbObject.ThisRef.ETI))
+                // TODO/Entity:
+                // It should be enough to compare by identity, no?
+                if ((keyOID != dbObject.Identity) && (keyETI != dbObject.ThisHandle))
                     variableArray.FailedToRecreateObject = true;
 
                 // Disabling any further checks.
@@ -635,14 +638,15 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             }
             else
             {
-                IObjectView dbObject = enumerator.CurrentRaw;
+                // TODO/Entity:
+                IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
                 if (dbObject != null)
                 {
                     // Getting current position of the object in iterator.
                     err = sccoredb.sc_get_index_position_key(
                         indexInfo.Handle,
-                        dbObject.ThisRef.ObjectID,
-                        dbObject.ThisRef.ETI,
+                        dbObject.Identity,
+                        dbObject.ThisHandle,
                         &createdKey
                         );
 

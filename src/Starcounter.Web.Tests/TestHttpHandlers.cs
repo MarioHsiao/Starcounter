@@ -24,7 +24,7 @@ namespace Starcounter.Internal.Test {
         [SetUp]
         public void InitHttpStructsTests()
         {
-            HttpRequest.sc_init_http_parser();
+            Request.sc_init_http_parser();
         }
     }
 
@@ -75,36 +75,36 @@ namespace Starcounter.Internal.Test {
                 return null;
             });
 
-            GET("/uri-with-req", (HttpRequest r) => {
+            GET("/uri-with-req", (Request r) => {
                 Assert.IsNotNull(r);
                 return "GET /uri-with-req";
             });
 
-            GET("/uri-with-req/{?}", (HttpRequest r, int i) => {
+            GET("/uri-with-req/{?}", (Request r, int i) => {
                 Assert.AreEqual(123, i);
                 Assert.IsNotNull(r);
                 return "GET /uri-with-req/@i";
             });
 
-            GET("/uri-with-req/{?}", (string s, HttpRequest r) => {
+            GET("/uri-with-req/{?}", (string s, Request r) => {
                 Assert.AreEqual("KalleKula", s);
                 Assert.IsNotNull(r);
                 return "GET /uri-with-req/@s";
             });
 
-            GET("/admin/apapapa/{?}", (int i, HttpRequest r) => {
+            GET("/admin/apapapa/{?}", (int i, Request r) => {
                 Assert.AreEqual(19, i);
                 Assert.IsNotNull(r);
                 return "GET /admin/apapapa/@i";
             });
 
-            GET("/admin/{?}", (string s, HttpRequest r) => {
+            GET("/admin/{?}", (string s, Request r) => {
                 Assert.AreEqual("KalleKula", s);
                 Assert.IsNotNull(r);
                 return "GET /admin/@s";
             });
 
-            GET("/admin/{?}/{?}", (string s, int i, HttpRequest r) => {
+            GET("/admin/{?}/{?}", (string s, int i, Request r) => {
                 Assert.AreEqual("KalleKula", s);
                 Assert.AreEqual(123, i);
                 Assert.IsNotNull(r);
@@ -199,7 +199,7 @@ namespace Starcounter.Internal.Test {
                 return "GET /test-datatime/@t";
             });
 
-            GET("/static{?}/{?}", (string part, string last, HttpRequest request) => {
+            GET("/static{?}/{?}", (string part, string last, Request request) => {
                 Assert.AreEqual("marknad", part);
                 Assert.AreEqual("nyhetsbrev", last);
                 Assert.IsNotNull(request);
@@ -446,46 +446,46 @@ namespace Starcounter.Internal.Test {
             object resource;
 
             // Test succesful URI's
-            var req = new HttpRequest(h2);
+            var req = new Request(h2);
             um.Invoke(req, out resource);
             Assert.AreEqual(resource,"GET /dashboard/@i");
 
-            Assert.True(um.Invoke(new HttpRequest(h3), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h4), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h5), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h6), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h7), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h8), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h9), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h10), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h11), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h13), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h14), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h15), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h16), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h17), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h18), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h19), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h20), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h21), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h22), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h23), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h24), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h25), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h26), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h27), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h28), out resource));
+            Assert.True(um.Invoke(new Request(h3), out resource));
+            Assert.True(um.Invoke(new Request(h4), out resource));
+            Assert.True(um.Invoke(new Request(h5), out resource));
+            Assert.True(um.Invoke(new Request(h6), out resource));
+            Assert.True(um.Invoke(new Request(h7), out resource));
+            Assert.True(um.Invoke(new Request(h8), out resource));
+            Assert.True(um.Invoke(new Request(h9), out resource));
+            Assert.True(um.Invoke(new Request(h10), out resource));
+            Assert.True(um.Invoke(new Request(h11), out resource));
+            Assert.True(um.Invoke(new Request(h12), out resource));
+            Assert.True(um.Invoke(new Request(h13), out resource));
+            Assert.True(um.Invoke(new Request(h14), out resource));
+            Assert.True(um.Invoke(new Request(h15), out resource));
+            Assert.True(um.Invoke(new Request(h16), out resource));
+            Assert.True(um.Invoke(new Request(h17), out resource));
+            Assert.True(um.Invoke(new Request(h18), out resource));
+            Assert.True(um.Invoke(new Request(h19), out resource));
+            Assert.True(um.Invoke(new Request(h20), out resource));
+            Assert.True(um.Invoke(new Request(h21), out resource));
+            Assert.True(um.Invoke(new Request(h22), out resource));
+            Assert.True(um.Invoke(new Request(h23), out resource));
+            Assert.True(um.Invoke(new Request(h24), out resource));
+            Assert.True(um.Invoke(new Request(h25), out resource));
+            Assert.True(um.Invoke(new Request(h26), out resource));
+            Assert.True(um.Invoke(new Request(h27), out resource));
+            Assert.True(um.Invoke(new Request(h28), out resource));
 
             // Test URI's that should fail.
-            Assert.False(um.Invoke(new HttpRequest(h501), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h502), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h503), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h504), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h505), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h506), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h507), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h508), out resource), "There is no handler DELETE /allanballan. How could it be found?");
+            Assert.False(um.Invoke(new Request(h501), out resource));
+            Assert.False(um.Invoke(new Request(h502), out resource));
+            Assert.False(um.Invoke(new Request(h503), out resource));
+            Assert.False(um.Invoke(new Request(h504), out resource));
+            Assert.False(um.Invoke(new Request(h505), out resource));
+            Assert.False(um.Invoke(new Request(h506), out resource));
+            Assert.False(um.Invoke(new Request(h507), out resource));
+            Assert.False(um.Invoke(new Request(h508), out resource), "There is no handler DELETE /allanballan. How could it be found?");
 
         }
 
@@ -509,11 +509,11 @@ namespace Starcounter.Internal.Test {
            object resource;
 
            // Test succesful URI's
-           var req = new HttpRequest(h1);
+           var req = new Request(h1);
            um.Invoke(req, out resource);
            Assert.AreEqual("GET /",resource);
 
-           req = new HttpRequest(h2);
+           req = new Request(h2);
            um.Invoke(req, out resource);
            Assert.AreEqual("GET /@s/@i", resource);
 
@@ -555,9 +555,9 @@ namespace Starcounter.Internal.Test {
 
             var um = RequestHandler.RequestProcessor;
             object resource;
-            Assert.True(um.Invoke(new HttpRequest(h1), out resource));
+            Assert.True(um.Invoke(new Request(h1), out resource));
             Assert.AreEqual(1, (int)resource);
-            Assert.True(um.Invoke(new HttpRequest(h2), out resource));
+            Assert.True(um.Invoke(new Request(h2), out resource));
             Assert.AreEqual(2, (int)resource);
         }
 
@@ -598,9 +598,9 @@ namespace Starcounter.Internal.Test {
             var um = RequestHandler.RequestProcessor;
            
            object resource;
-           um.Invoke(new HttpRequest(h1), out resource);
+           um.Invoke(new Request(h1), out resource);
            Assert.AreEqual("GET /", resource);
-           um.Invoke(new HttpRequest(h2), out resource);
+           um.Invoke(new Request(h2), out resource);
            Assert.AreEqual("GET /products/@s", resource);
         }
 
@@ -630,25 +630,25 @@ namespace Starcounter.Internal.Test {
 
            object resource;
 
-           um.Invoke(new HttpRequest(h13), out resource);
+           um.Invoke(new Request(h13), out resource);
            Assert.AreEqual("GET /",resource);
 
-           um.Invoke(new HttpRequest(h1), out resource);
+           um.Invoke(new Request(h1), out resource);
            Assert.AreEqual("GET /players/@i", resource);
 
-           um.Invoke(new HttpRequest(h2), out resource);
+           um.Invoke(new Request(h2), out resource);
            Assert.AreEqual("GET /dashboard/@i", resource);
 
-            Assert.True(um.Invoke(new HttpRequest(h3), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h4), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h5), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h6), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h7), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h9), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h10), out resource));
-            Assert.True(um.Invoke(new HttpRequest(h12), out resource));
-            Assert.False(um.Invoke(new HttpRequest(h11), out resource), "PUT /players/123/ should not match a handler (there is a trailing slash)");
-            Assert.False(um.Invoke(new HttpRequest(h8), out resource), "There is no handler DELETE /allanballan. How could it be called.");
+            Assert.True(um.Invoke(new Request(h3), out resource));
+            Assert.True(um.Invoke(new Request(h4), out resource));
+            Assert.True(um.Invoke(new Request(h5), out resource));
+            Assert.True(um.Invoke(new Request(h6), out resource));
+            Assert.True(um.Invoke(new Request(h7), out resource));
+            Assert.True(um.Invoke(new Request(h9), out resource));
+            Assert.False(um.Invoke(new Request(h10), out resource));
+            Assert.True(um.Invoke(new Request(h12), out resource));
+            Assert.False(um.Invoke(new Request(h11), out resource), "PUT /players/123/ should not match a handler (there is a trailing slash)");
+            Assert.False(um.Invoke(new Request(h8), out resource), "There is no handler DELETE /allanballan. How could it be called.");
 
         }
 

@@ -33,7 +33,7 @@ namespace Starcounter.Internal.JsonPatch {
                     return HttpStatusCode.NotFound;
                 }
 
-                return new HttpResponse() {
+                return new Response() {
                     Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(json.ToJsonUtf8())
                 };
             });
@@ -42,8 +42,8 @@ namespace Starcounter.Internal.JsonPatch {
                 // Collecting number of sessions on all schedulers.
                 return "Active sessions per scheduler:" + Environment.NewLine + GlobalSessions.AllGlobalSessions.GetActiveSessionsStats();
             });
-
-            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, HttpRequest request) => {
+            
+            Handle.PATCH(defaultUserHttpPort, "/__" + dbName + "/{?}", (Session session, Request request) => {
                 Obj root;
 
                 try {
@@ -52,16 +52,16 @@ namespace Starcounter.Internal.JsonPatch {
                     return root;
                 }
                 catch (NotSupportedException nex) {
-                    return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
+                    return new Response() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
                 }
                 catch (Exception ex) {
-                    return new HttpResponse() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
+                    return new Response() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
                 }
             });
 
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (HttpRequest r) => {
+                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
                     string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
                     return ExecuteQuery(bodyData);
                 });
@@ -73,7 +73,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// Executes the query and returns a json string of the result
         /// </summary>
         /// <param name="query"></param>
-        /// <returns></returns>
+        /// <returns>Always a Json string</returns>
         private static string ExecuteQuery(string query) {
 
             Starcounter.SqlEnumerator<object> sqle = null;
@@ -84,14 +84,13 @@ namespace Starcounter.Internal.JsonPatch {
             dynamic resultJson = new DynamicJson();
             resultJson.columns = new object[] { };
             resultJson.rows = new object[] { };
-            resultJson.exception = null; // new object { };
-            resultJson.sqlexception = null; // new object { };
+            resultJson.exception = null;
+            resultJson.sqlException = null;
 
             try {
                 sqle = (Starcounter.SqlEnumerator<object>)Db.SQL(query).GetEnumerator();
 
                 #region Retrive Columns
-                //resultJson.columns = new object[] { };
 
                 if (sqle.ProjectionTypeCode != null && false) {
                     props = new IPropertyBinding[1];
@@ -109,13 +108,10 @@ namespace Starcounter.Internal.JsonPatch {
                 #endregion
 
                 #region Retrive Rows
-                // resultJson.rows = new object[] { };
                 int index = 0;
                 while (sqle.MoveNext()) {
 
                     if (sqle.ProjectionTypeCode != null) {
-                        //this.QueryResult.Result.Add(new SqlRowApp(sqle.Current, props[0]));
-
                         IObjectView row = (IObjectView)sqle.Current;
                         resultJson.rows[index] = new object { };
 
@@ -176,39 +172,31 @@ namespace Starcounter.Internal.JsonPatch {
                                 default:
                                     // ERROR
                                     throw new Exception("Unknown column type");
-
                             }
                             resultJson.rows[index][prop.Name] = value;
                         }
-                    }
-                    else {
-                        // RODO:
-                        //  this.QueryResult.Result.Add(new SqlRowApp(sqle.Current, props));
+                        index++;
                     }
 
-                    index++;
                 }
 
                 #endregion
 
             }
             catch (Starcounter.SqlException ee) {
-                resultJson.sqlexception = new {
-                    BeginPosition = ee.BeginPosition,
-                    EndPosition = ee.EndPosition,
-                    ErrorMessage = ee.ErrorMessage,
-                    HelpLink = ee.HelpLink,
-                    Message = ee.Message,
-                    Query = ee.Query,
-                    ScErrorCode = ee.ScErrorCode,
-                    Token = ee.Token
+                resultJson.sqlException = new {
+                    beginPosition = ee.BeginPosition,
+                    endPosition = ee.EndPosition,
+                    helpLink = ee.HelpLink,
+                    message = ee.ErrorMessage,
+                    query = ee.Query,
+                    scErrorCode = ee.ScErrorCode,
+                    token = ee.Token,
+                    stackTrace = ee.StackTrace
                 };
             }
             catch (Exception e) {
-                resultJson.exception = new { message = e.Message, helplink = e.HelpLink };
-                //resultJson.error["Message"] = e.Message;
-                //resultJson.error["HelpLink"] = e.HelpLink;
-
+                resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
             }
             finally {
                 if (sqle != null)
@@ -216,7 +204,6 @@ namespace Starcounter.Internal.JsonPatch {
             }
 
             return resultJson.ToString();
-
         }
 
         internal class SingleProjectionBinding : IPropertyBinding {

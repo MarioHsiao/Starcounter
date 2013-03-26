@@ -26,7 +26,7 @@ namespace Starcounter.Internal.Web {
 
         private static readonly Regex _regex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        public static HttpRequest Parse(byte[] bytes, int len) // JOCKE
+        public static Request Parse(byte[] bytes, int len) // JOCKE
         {
             var body = Encoding.UTF8.GetString(bytes, 0, len); // JOCKE
             Match match = _regex.Match(body);
@@ -36,7 +36,7 @@ namespace Starcounter.Internal.Web {
                 return null;
             }
 
-            var request = new HttpRequest(bytes);
+            var request = new Request(bytes);
 
             var fields = match.Groups["field_name"].Captures;
             var values = match.Groups["field_value"].Captures;

@@ -155,7 +155,7 @@ namespace SQLTest
 
             while (sqlEnum.MoveNext())
             {
-                if (sqlEnum.Current == null || sqlEnum.Current is Entity)
+                if (sqlEnum.Current == null || sqlEnum.Current is IObjectProxy) // TODO:Ruslan
                     throw new Exception("Incorrect CompositeObject. Maybe due to incorrect declaration \"SingleObjectProjection: False\".");
                 result = Utilities.CreateObjectString(typeBind, sqlEnum.Current);
                 resultList.Add(result);

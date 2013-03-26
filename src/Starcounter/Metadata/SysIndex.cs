@@ -24,7 +24,7 @@ namespace Starcounter.Metadata
         /// <summary>
         /// </summary>
         public ulong TableId {
-            get { return DbState.ReadUInt64(this, 1); }
+            get { return DbState.ReadUInt64(0,0, 1); }
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Starcounter.Metadata
         /// <value>The name.</value>
         public string Name
         {
-            get { return DbState.ReadString(this, 2); }
+            get { return DbState.ReadString(0,0, 2); }
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Starcounter.Metadata
         /// <value>The name of the table.</value>
         public string TableName
         {
-            get { return DbState.ReadString(this, 3); }
+            get { return DbState.ReadString(0,0, 3); }
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Starcounter.Metadata
         /// <value>The description.</value>
         public string Description
         {
-            get { return DbState.ReadString(this, 4); }
+            get { return DbState.ReadString(0,0, 4); }
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Starcounter.Metadata
         /// <value><c>true</c> if unique; otherwise, <c>false</c>.</value>
         public bool Unique
         {
-            get { return DbState.ReadBoolean(this, 5); }
+            get { return DbState.ReadBoolean(0,0, 5); }
         }
     }
 }

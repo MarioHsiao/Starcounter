@@ -1,27 +1,30 @@
-﻿<form class="form-inline">
+﻿<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}<br />
+    <div ng-hide="alert.helpLink == null">
+        <p>Help page: <a href="{{alert.helpLink}}" target="_blank">{{alert.helpLink}}</a></p>
+    </div></alert>
 
-    <select ng-model="selectedDatabase" ng-options="database.DatabaseName for database in databases">
-        <option value="">-- chose database --</option>
-    </select>
+<h3>Interactive SQL</h3>
 
+<div class="btn-toolbar">
 
-    <button type="submit" class="btn" ng-disabled="selectedDatabase == null" ng-click="btnClick_execute()">Execute</button>
-</form>
-
-
-<div ng-show="hasMessage()">
-    <div class="alert alert-error">
-        {{message}}
+    <div class="input-prepend">
+        <div class="btn-group">
+            <button class="btn btn-primary span2" ng-disabled="selectedDatabase == null||isBusy == true" ng-click="btnClick_execute()">{{executeButtonTitle()}}</button>
+            <select ng-model="selectedDatabase" ng-options="database.DatabaseName for database in databases">
+                <option value="">-- chose database --</option>
+            </select>
+        </div>
     </div>
 </div>
 
-<textarea ui-codemirror="{theme:'monokai'}" ng-model="sqlquery"></textarea>
+<textarea id="sqlinput" ui-codemirror="{theme:'monokai'}" ng-model="sqlQuery"></textarea>
 
+<br />
 
 <!--Columns {{Columns}}<br />
 Rows {{Rows}}-->
 
-<table class="table table-condensed">
+<!--<table class="table table-condensed">
     <thead>
         <tr>
             <th ng-repeat="column in Columns">{{column.title}}</th>
@@ -34,20 +37,22 @@ Rows {{Rows}}-->
         </tr>
     </tbody>
 
-</table>
+</table>-->
 
-<!--<ui-handsontable    height="400"
-                    stretchh="'last'"
-                    selectedindex="SelectedIndex"
-                    outsideclickdeselects="false"
-                    selectedindex="currentSelection"
-                    columns="sql.Columns"
-                    minsparerows="0"
-                    startrows="0"
-                    datarows="row in sql.Rows"
-                    currentrowclassname="'currentRow'"
-                    manualcolumnmove="true"
-                    manualcolumnresize="true"
-                    columnsorting="true">
+<ui-handsontable
+    id="handsontable"
+    height="calcHeight" width="calcWidth"
+    stretchh="'last'"
+    selectedindex="SelectedIndex"
+    outsideclickdeselects="false"
+    selectedindex="currentSelection"
+    columns="columns"
+    minsparerows="0"
+    startrows="0"
+    datarows="row in rows"
+    currentrowclassname="'currentRow'"
+    manualcolumnmove="false"
+    manualcolumnresize="false"
+    columnsorting="false">
 </ui-handsontable>
--->
+

@@ -6,6 +6,7 @@
 
 using Starcounter.Binding;
 using System;
+using Starcounter.Advanced;
 
 namespace Starcounter
 {
@@ -14,7 +15,7 @@ namespace Starcounter
     /// Interface to an object that acts as a view of a data object. Provides
     /// methods for accessing the data of the viewed object.
     /// </summary>
-    public interface IObjectView
+    public interface IObjectView : IBindable
     {
         /// <summary>
         /// View type binding.
@@ -115,14 +116,6 @@ namespace Starcounter
         /// Gets the value of an integer attribute as a unsigned 64-bits integer.
         /// </summary>
         Nullable<UInt64> GetUInt64(Int32 index);
-
-        #region Temporary extension methods from Entity
-        void Attach(ObjectRef objectRef, TypeBinding typeBinding);
-        void Attach(ulong addr, ulong oid, TypeBinding typeBinding);
-        ObjectRef ThisRef {get;set;}
-
-        void Delete();
-        #endregion
 
 #if DEBUG
         /// <summary>

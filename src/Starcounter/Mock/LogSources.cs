@@ -17,5 +17,10 @@ namespace Starcounter
         /// The SQL
         /// </summary>
         public static LogSource Sql = new LogSource("Sql");
+
+        /// <summary>
+        /// Well-known log source used by the database host.
+        /// </summary>
+        public static LogSource Hosting = new LogSource("Starcounter.Host");
     }
 }

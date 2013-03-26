@@ -105,8 +105,9 @@ namespace Starcounter {
                     }
                     else {
                         object papa = val;
-                        //if (prop.Bound)
-                        //    papa = prop.GetBoundValueAsObject(this);
+                        TValue valueProperty = prop as TValue;
+                        if (valueProperty != null && valueProperty.Bound)
+                            papa = valueProperty.GetBoundValueAsObject(this);
                        
                        sb.Append(JsonConvert.SerializeObject(papa));
                     }

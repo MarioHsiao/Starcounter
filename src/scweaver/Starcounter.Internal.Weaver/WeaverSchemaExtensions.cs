@@ -4,16 +4,12 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using PostSharp.Sdk.CodeModel;
 using Sc.Server.Weaver.Schema;
-using Starcounter;
-using System.Reflection;
 
 namespace Starcounter.Internal.Weaver {
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+
     /// <summary>
     /// Class WeaverSchemaExtensions
     /// </summary>

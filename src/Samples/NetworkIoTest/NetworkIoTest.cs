@@ -121,7 +121,7 @@ namespace NetworkIoTestApp
         /// </summary>
         public static void InitAppHandlersSession()
         {
-            GET("/new-session", (HttpRequest r) =>
+            GET("/new-session", (Request r) =>
             {
                 if (!r.HasSession)
                 {
@@ -144,7 +144,7 @@ namespace NetworkIoTestApp
                 
             });
 
-            GET("/del-session/{?}", (Session s, HttpRequest r) =>
+            GET("/del-session/{?}", (Session s, Request r) =>
             {
                 if (r.HasSession)
                 {
@@ -471,7 +471,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpRoot(HttpRequest p)
+        private static Boolean OnHttpRoot(Request p)
         {
             String responseBody =
                 "<html>\r\n" +
@@ -506,7 +506,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpPostRoot(HttpRequest p)
+        private static Boolean OnHttpPostRoot(Request p)
         {
             String responseBody =
                 "<html>\r\n" +
@@ -541,8 +541,8 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        // Creates internal HttpRequest structure.
-        private static Boolean OnInternalHttpRequest(HttpRequest p)
+        // Creates internal Request structure.
+        private static Boolean OnInternalHttpRequest(Request p)
         {
             String[] request_strings =
             {
@@ -596,7 +596,7 @@ namespace NetworkIoTestApp
             for (Int32 i = 0; i < request_strings.Length; i++)
             {
                 Byte[] request_bytes = Encoding.ASCII.GetBytes(request_strings[i]);
-                HttpRequest internal_request = new HttpRequest(request_bytes);
+                Request internal_request = new Request(request_bytes);
 
                 responseBody += "-------------------------------";
                 responseBody += internal_request.ToString();
@@ -627,7 +627,7 @@ namespace NetworkIoTestApp
         }
 
         // Upload any file to /upload/{file_name}
-        private static Boolean OnHttpUpload(HttpRequest p)
+        private static Boolean OnHttpUpload(Request p)
         {
             String responseBody =
                 "<html>\r\n" +
@@ -672,7 +672,7 @@ namespace NetworkIoTestApp
         }
 
         // Download any file from /download/{file_name}
-        private static Boolean OnHttpDownload(HttpRequest p)
+        private static Boolean OnHttpDownload(Request p)
         {
             // Obtaining uploaded file name.
             String file_postfix = "null";
@@ -716,7 +716,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpGetRoot(HttpRequest p)
+        private static Boolean OnHttpGetRoot(Request p)
         {
             String responseBody =
                 "<html>\r\n" +
@@ -750,7 +750,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpKillSession(HttpRequest p)
+        private static Boolean OnHttpKillSession(Request p)
         {
             String responseBody =
                 "<html>\r\n" +
@@ -791,7 +791,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpSession(HttpRequest p)
+        private static Boolean OnHttpSession(Request p)
         {
             String responseBody =
                 "<html>\r\n" +
@@ -844,7 +844,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpEcho(HttpRequest p)
+        private static Boolean OnHttpEcho(Request p)
         {
             String responseBody = p.GetContentStringUtf8_Slow();
             Debug.Assert(responseBody.Length == 8);
@@ -879,9 +879,9 @@ namespace NetworkIoTestApp
 
         static Node someNode = new Node("127.0.0.1");
 
-        private static Boolean OnRestClient(HttpRequest httpRequest)
+        private static Boolean OnRestClient(Request httpRequest)
         {
-            someNode.GET("/testrest", null, httpRequest, (HttpResponse resp) => {
+            someNode.GET("/testrest", null, httpRequest, (Response resp) => {
                 if (resp["Content-Type"] == "text/html; charset=UTF-8") {
                     dynamic jsonData = DynamicJson.Parse(resp.GetContentStringUtf8_Slow());
                     string htmlFileName = jsonData.FirstName;
@@ -892,7 +892,7 @@ namespace NetworkIoTestApp
             });
 
             /*
-            HttpResponse httpResponse;
+            Response httpResponse;
 
             someNode.GET("/testrest", httpRequest, out httpResponse);
 
@@ -913,7 +913,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnTestRest(HttpRequest p)
+        private static Boolean OnTestRest(Request p)
         {
             String jsonContent = "{\"FirstName\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"PhoneNumbers\":[{\"Number\":\"123-555-7890\"}]}";
 
@@ -940,7 +940,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpUsers(HttpRequest p)
+        private static Boolean OnHttpUsers(Request p)
         {
             String responseBody =
                 "<html>\r\n" +
@@ -975,7 +975,7 @@ namespace NetworkIoTestApp
             return true;
         }
 
-        private static Boolean OnHttpOptions(HttpRequest p)
+        private static Boolean OnHttpOptions(Request p)
         {
             String responseHeader =
                 "HTTP/1.1 200 OK\r\n" +
@@ -1005,7 +1005,7 @@ namespace NetworkIoTestApp
         // Loading image file from disk statically.
         static Byte[] ImageBodyBytes = null;
 
-        private static Boolean OnHttpGetImage(HttpRequest p)
+        private static Boolean OnHttpGetImage(Request p)
         {
             String headerString =
                 "HTTP/1.1 200 OK\r\n" +

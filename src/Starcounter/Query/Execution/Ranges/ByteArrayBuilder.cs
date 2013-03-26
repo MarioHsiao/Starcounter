@@ -605,7 +605,7 @@ public sealed class ByteArrayBuilder
         }
         else
         {
-            valueArr = BitConverter.GetBytes(value.ThisRef.ObjectID);
+            valueArr = BitConverter.GetBytes(value.Identity);
         }
         
         Buffer.BlockCopy(valueArr, 0, dataBuffer, position, 8);
@@ -641,7 +641,7 @@ public sealed class ByteArrayBuilder
         }
         else
         {
-            valueArr = BitConverter.GetBytes(value.ThisRef.ObjectID);
+            valueArr = BitConverter.GetBytes(value.Identity);
         }
         Buffer.BlockCopy(valueArr, 0, dataArray, 1, 8);
         return dataArray;
