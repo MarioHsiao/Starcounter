@@ -1,10 +1,9 @@
-﻿<div ng-show="hasMessage()">
-    <div class="alert alert-error">
-        {{message}}
-    </div>
-</div>
+﻿<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
 
-<div ng-hide="hasMessage()">
+<h3>Database</h3>
+
+
+<div n>
 
 
     <!--<h4>Database: {{database.DatabaseName}}</h4>-->
@@ -14,7 +13,7 @@
         <dd>{{database.DatabaseName}}</dd>
         <dt>ProcessId</dt>
         <dd>{{database.HostProcessId}}</dd>
-<!--        <dt>MaxImageSize</dt>
+        <!--        <dt>MaxImageSize</dt>
         <dd>{{database.MaxImageSize}}</dd>
         <dt>TransactionLogSize</dt>
         <dd>{{database.TransactionLogSize}}</dd>
@@ -24,7 +23,7 @@
         <dd>{{database.SupportReplication}}</dd>-->
     </dl>
 
-    <table class="table">
+    <table class="table table-bordered">
 
         <thead>
             <tr>
@@ -42,7 +41,7 @@
 
     </table>
 
- <!--   <div class="btn-group">
+    <!--   <div class="btn-group">
         <button class="btn" ng-click="btnClick_start()">Start</button>
         <button class="btn" ng-click="btnClick_stop()">Stop</button>
     </div>-->

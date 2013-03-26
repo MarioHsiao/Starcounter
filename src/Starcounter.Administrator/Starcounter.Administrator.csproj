@@ -89,22 +89,16 @@
     <Content Include="css\angular-ui-0.3.0.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="css\angular-ui-handsontable.full-0.3.5.css">
+    <Content Include="css\angular-ui-handsontable.full-0.3.6.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="css\angular-ui-handsontable.full-0.3.5.min.css">
+    <Content Include="css\angular-ui-handsontable.full-0.3.6.min.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="css\bootstrap-2.3.0.css">
+    <Content Include="css\bootstrap-2.3.1.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="css\bootstrap-2.3.0.min.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="css\bootstrap-responsive-2.3.0.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="css\bootstrap-responsive-2.3.0.min.css">
+    <Content Include="css\bootstrap-2.3.1.min.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="css\bootstrap-responsive-2.3.1.css">
@@ -123,14 +117,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="img\favicon.ico" />
-    <Content Include="img\sc_logo_24x24.png" />
+    <Content Include="img\sc_logo_24x24.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="partials\server.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="sys\angular-ui-handsontable.full-0.3.5.js">
+    <Content Include="sys\angular-ui-handsontable.full-0.3.6.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="sys\angular-ui-handsontable.full-0.3.5.min.js">
+    <Content Include="sys\angular-ui-handsontable.full-0.3.6.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="sys\bootstrap-2.3.1.js">

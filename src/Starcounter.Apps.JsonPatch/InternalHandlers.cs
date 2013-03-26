@@ -186,7 +186,8 @@ namespace Starcounter.Internal.JsonPatch {
                     message = ee.Message,
                     query = ee.Query,
                     scErrorCode = ee.ScErrorCode,
-                    token = ee.Token
+                    token = ee.Token,
+                    stackTrace = ee.StackTrace
                 };
             }
             catch (Exception e) {

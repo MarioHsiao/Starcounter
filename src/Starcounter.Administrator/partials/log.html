@@ -1,4 +1,8 @@
-﻿<div class="btn-toolbar">
+﻿<alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+
+<h3>Starcounter Log</h3>
+
+<div class="btn-toolbar">
 
     <div class="btn-group">
         <button class="btn btn-primary span2" ng-disabled="isBusy == true" ng-click="btnClick_refresh()">Refresh</button>
@@ -12,12 +16,6 @@
     </div>
 </div>
 
-
-<div ng-show="hasMessage()">
-    <div class="alert alert-error">
-        {{message}}
-    </div>
-</div>
 
 <!--<table class="table table-condensed">
 
@@ -45,6 +43,8 @@
 
 
 <ui-handsontable
+    id="handsontable"
+    height="calcHeight" width="calcWidth" 
     stretchh="'last'"
     outsideclickdeselects="false"
     selectedindex="currentSelection"
