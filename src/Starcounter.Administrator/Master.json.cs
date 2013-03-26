@@ -57,8 +57,6 @@ namespace Starcounter.Administrator {
             // Start listening on log-events
             ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
 
-            //SetupLogListener(serverInfo.Configuration.LogDirectory);
-
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
             HostedExecutables.Setup(
@@ -82,7 +80,7 @@ namespace Starcounter.Administrator {
 
             // This dosent work.
             GET("/", () => {
-                return StarcounterBase.Get("index.html");
+                return StarcounterBase.Get("/index.html");
             });
 
             #region Database(s)
@@ -196,7 +194,7 @@ namespace Starcounter.Administrator {
                         // TODO:REMOVE
                         if (response == null) {
                             Exception e = new Exception("Can not connect to remote database");
-                            e.HelpLink = "http://starcounter.com/error";
+                            e.HelpLink = "http://www.starcounter.com/wiki/SCERR3016";
                             throw e;
                         }
 

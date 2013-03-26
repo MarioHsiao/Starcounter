@@ -49,6 +49,9 @@ namespace Starcounter.Internal {
                 GatewayHandlers.RegisterUriHandler,
                 OnHttpMessageRoot);
 
+            // Initializing global sessions.
+            GlobalSessions.InitGlobalSessions(numSchedulers);
+
             // Explicitly starting inactive sessions cleanup.
             for (Byte i = 0; i < numSchedulers; i++)
             {

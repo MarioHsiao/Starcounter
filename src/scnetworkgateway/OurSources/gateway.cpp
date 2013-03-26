@@ -18,13 +18,6 @@ namespace network {
 // Main network gateway object.
 Gateway g_gateway;
 
-// Logging system.
-/*
-TeeLogStream *g_cout = NULL;
-TeeDevice *g_log_tee = NULL;
-std::ofstream *g_log_stream = NULL;
-*/
-
 // Pointers to extended WinSock functions.
 LPFN_ACCEPTEX AcceptExFunc = NULL;
 LPFN_CONNECTEX ConnectExFunc = NULL;
@@ -49,7 +42,7 @@ std::string GetOperTypeString(SocketOperType typeOfOper)
 }
 
 // Writing to log once object is destroyed.
-ThreadSafeWCout::~ThreadSafeWCout()
+ServerLoggingSafe::~ServerLoggingSafe()
 {
     switch (t_)
     {
@@ -73,7 +66,7 @@ ThreadSafeWCout::~ThreadSafeWCout()
 }
 
 // Writing to log once object is destroyed.
-ThreadSafeCout::~ThreadSafeCout()
+CoutSafe::~CoutSafe()
 {
 #ifdef GW_LOGGING_ON
 
@@ -752,13 +745,6 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     }
 
 #endif
-
-    // Creating double output object.
-    /*
-    g_log_stream = new std::ofstream(setting_log_file_path_, std::ios::out | std::ios::app);
-    g_log_tee = new TeeDevice(std::cout, *g_log_stream);
-    g_cout = new TeeLogStream(*g_log_tee);
-    */
 
     // Predefined ports constants.
     PortType portTypes[NUM_PREDEFINED_PORT_TYPES] = { HTTP_PORT, HTTPS_PORT, WEBSOCKETS_PORT, GENSOCKETS_PORT, AGGREGATION_PORT };
@@ -2321,11 +2307,6 @@ uint32_t Gateway::GlobalCleanup()
 {
     // Closing IOCP.
     CloseHandle(iocp_);
-
-    // Closing logging system.
-    //delete g_cout;
-    //delete g_log_tee;
-    //delete g_log_stream;
 
     // Cleanup WinSock.
     WSACleanup();

@@ -321,8 +321,11 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
     $scope.btnClick_execute = function () {
 
         $scope.isBusy = true;
-
         $scope.alerts.length = 0;
+
+        $scope.columns = [];
+        $scope.rows = [];
+
 
         SqlQuery.send({ databaseName: $scope.selectedDatabase.DatabaseName }, $scope.sqlQuery, function (result, headers) {
 
@@ -338,7 +341,6 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 
                 //$scope.sqlException.beginPosition
                 //$scope.sqlException.endPosition
-                //$scope.sqlException.errorMessage
                 //$scope.sqlException.helpLink
                 //$scope.sqlException.message
                 //$scope.sqlException.query
@@ -346,15 +348,15 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
                 //$scope.sqlException.token
                 //$scope.sqlException.stackTrace
 
-                $scope.alerts.push({ type: 'error', msg: result.sqlException.message });
+                $scope.alerts.push({ type: 'error', msg: result.sqlException.message, helpLink: result.sqlException.helpLink });
 
                 // Show modal window with the error message
-                if (result.sqlException.errorMessage != null) {
-                    var title = 'Starcounter internal error';
-                    var msg = result.sqlException.errorMessage + "<br><br>" + result.sqlException.helpLink;
-                    var btns = [{ result: 'ok', label: 'OK', cssClass: 'btn-primary' }];
-                    $dialog.messageBox(title, msg, btns).open();
-                }
+                //if (result.sqlException.message != null) {
+                //    var title = 'Starcounter internal error';
+                //    var msg = result.sqlException.errorMessage + "<br><br>" + result.sqlException.helpLink;
+                //    var btns = [{ result: 'ok', label: 'OK', cssClass: 'btn-primary' }];
+                //    $dialog.messageBox(title, msg, btns).open();
+                //}
 
             }
 
