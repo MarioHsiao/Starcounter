@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
 using Starcounter.Advanced;
+using System.Security.Cryptography;
+using Starcounter.Internal;
 
 namespace HttpStructs
 {
@@ -68,6 +70,9 @@ namespace HttpStructs
         // Apps session object reference.
         public IAppsSession apps_session_int_;
 
+        // Linear index node.
+        public LinkedListNode<UInt32> linear_index_node_;
+
         // Is being used.
         public Boolean IsBeingUsed()
         {
@@ -91,6 +96,9 @@ namespace HttpStructs
 
             // Resetting some fields.
             session_struct_.Destroy();
+
+            // Removing linear index node.
+            linear_index_node_ = null;
         }
 
         public const Int32 SESSION_STRING_NUM_BYTES = 32;
@@ -196,16 +204,41 @@ namespace HttpStructs
         // All Apps sessions belonging to the scheduler.
         ScSessionClass[] apps_sessions_ = new ScSessionClass[MaxSessionsPerScheduler];
 
-        // Number of active sessions on this scheduler.
-        UInt32 num_active_sessions_ = 0;
-
         // List of free sessions.
-        UInt32[] free_session_indexes_ = new UInt32[MaxSessionsPerScheduler];
+        LinkedList<UInt32> free_session_indexes_ = new LinkedList<UInt32>();
 
+        // List of used sessions.
+        LinkedList<UInt32> used_session_indexes_ = new LinkedList<UInt32>();
+
+        // Random generator for sessions.
+        RNGCryptoServiceProvider rand_gen_ = new RNGCryptoServiceProvider();
+        Byte[] rand_gen_buf_ = new Byte[8];
+
+        /// <summary>
+        /// Generates random salt based on RNGCryptoServiceProvider.
+        /// </summary>
+        public UInt64 GenerateRandomSalt()
+        {
+            rand_gen_.GetBytes(rand_gen_buf_);
+            return BitConverter.ToUInt64(rand_gen_buf_, 0);
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public SchedulerSessions()
         {
             for (UInt32 i = 0; i < MaxSessionsPerScheduler; i++)
-                free_session_indexes_[i] = i;
+                free_session_indexes_.AddLast(i);
+        }
+
+        /// <summary>
+        /// Gets current number of used sessions.
+        /// </summary>
+        /// <returns></returns>
+        public Int32 GetNumberOfActiveSessions()
+        {
+            return used_session_indexes_.Count;
         }
 
         // Creates new Apps session.
@@ -217,37 +250,47 @@ namespace HttpStructs
             IAppsSession apps_session_int)
         {
             // Getting free linear session index.
-            linear_index = free_session_indexes_[num_active_sessions_];
+            LinkedListNode<UInt32> linear_index_node = free_session_indexes_.First;
+            free_session_indexes_.RemoveFirst();
+
+            // Obtaining linear index.
+            linear_index = linear_index_node.Value;
 
             // Creating new session object if needed.
             if (apps_sessions_[linear_index] == null)
                 apps_sessions_[linear_index] = new ScSessionClass();
 
+            // Getting session class reference.
+            ScSessionClass s = apps_sessions_[linear_index];
+
             // Generating random salt.
-            random_salt = GlobalSessions.AllGlobalSessions.GenerateSalt();
+            random_salt = GenerateRandomSalt();
 
             // Initializing session structure underneath.
-            apps_sessions_[linear_index].session_struct_.Init(
+            s.session_struct_.Init(
                 scheduler_id,
                 linear_index,
                 random_salt,
                 view_model_index); // TODO
 
             // Serializing to bytes.
-            apps_sessions_[linear_index].SerializeToBytes();
+            s.SerializeToBytes();
 
             // Saving reference to internal session.
             if (apps_session_int != null)
                 apps_session_int.InternalSession = apps_sessions_[linear_index];
 
             // Setting last active time.
-            apps_sessions_[linear_index].LastActiveTimeTick = CurrentTimeTick;
+            s.LastActiveTimeTick = CurrentTimeTick;
 
             // Attaching the interface.
-            apps_sessions_[linear_index].apps_session_int_ = apps_session_int;
+            s.apps_session_int_ = apps_session_int;
 
-            // New session has been created.
-            num_active_sessions_++;
+            // Adding to used sessions.
+            used_session_indexes_.AddLast(linear_index_node);
+
+            // Attaching linear index node.
+            s.linear_index_node_ = linear_index_node;
 
             return 0;
         }
@@ -261,19 +304,24 @@ namespace HttpStructs
         // Destroys existing Apps session.
         public UInt32 DestroySession(UInt32 linear_index, UInt64 random_salt)
         {
+            ScSessionClass s = apps_sessions_[linear_index];
+
             // Checking that salt is correct.
-            if (apps_sessions_[linear_index].session_struct_.random_salt_ == random_salt)
+            if (s.session_struct_.random_salt_ == random_salt)
             {
                 // Checking that session is not being used at the moment.
-                if (apps_sessions_[linear_index].IsBeingUsed())
+                if (s.IsBeingUsed())
                     throw new Exception("Trying to destroy a session that is already used in some task!");
 
+                // Removing used session index node.
+                LinkedListNode<UInt32> linear_index_node = s.linear_index_node_;
+                used_session_indexes_.Remove(linear_index_node);
+
                 // Destroys existing Apps session.
-                apps_sessions_[linear_index].Destroy();
+                s.Destroy();
 
                 // Restoring the free index back.
-                num_active_sessions_--;
-                free_session_indexes_[num_active_sessions_] = linear_index;
+                free_session_indexes_.AddFirst(linear_index_node);
             }
 
             return 0;
@@ -285,7 +333,7 @@ namespace HttpStructs
             UInt64 random_salt)
         {
             // Checking if we are out of range.
-            if (linear_index >= num_active_sessions_)
+            if (linear_index >= used_session_indexes_.Count)
                 return null;
 
             ScSessionClass s = apps_sessions_[linear_index];
@@ -316,44 +364,66 @@ namespace HttpStructs
         /// </summary>
         public void InactiveSessionsCleanupRoutine()
         {
-            while (true)
+            try
             {
-                //Console.WriteLine("Cleaning up inactive sessions!");
-
-                // Incrementing global time.
-                CurrentTimeTick++;
-
-                // Sleeping given minutes.
-                Thread.Sleep(1000 * 60 * DefaultSessionTimeoutMinutes);
-
-                UInt32 num_checked_sessions = 0;
-                for (UInt32 i = 0; i < MaxSessionsPerScheduler; i++)
+                while (true)
                 {
-                    // Checking if session is created at all.
-                    if (apps_sessions_[i] != null)
+                    //Console.WriteLine("Cleaning up inactive sessions!");
+
+                    // Incrementing global time.
+                    CurrentTimeTick++;
+
+                    // Sleeping given minutes.
+                    Thread.Sleep(1000 * 60 * DefaultSessionTimeoutMinutes);
+
+                    UInt32 num_checked_sessions = 0;
+                    LinkedListNode<UInt32> used_session_index_node = used_session_indexes_.First;
+                    while (used_session_index_node != null)
                     {
-                        // Checking that session is active at all.
-                        if (apps_sessions_[i].session_struct_.IsActive())
+                        LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
+
+                        // Getting session instance.
+                        ScSessionClass s = apps_sessions_[used_session_index_node.Value];
+
+                        // Checking if session is created at all.
+                        if (s != null)
                         {
-                            // Checking that session is not currently in use.
-                            if (!apps_sessions_[i].apps_session_int_.IsBeingUsed())
+                            // Checking that session is active at all.
+                            if (s.session_struct_.IsActive())
                             {
-                                // Checking if session is outdated.
-                                if ((CurrentTimeTick - apps_sessions_[i].LastActiveTimeTick) > 2)
+                                // Checking that session is not currently in use.
+                                if (!s.apps_session_int_.IsBeingUsed())
                                 {
-                                    // Destroying old session.
-                                    DestroySession(apps_sessions_[i].session_struct_);
+                                    // Checking if session is outdated.
+                                    if ((CurrentTimeTick - s.LastActiveTimeTick) > 2)
+                                    {
+                                        // Destroying old session.
+                                        DestroySession(s.session_struct_);
+                                    }
                                 }
+
+                                num_checked_sessions++;
                             }
-
-                            num_checked_sessions++;
                         }
-                    }
+                        else
+                        {
+                            // NOTE: Apps session was destroyed already so deleting the wrapper.
+                            DestroySession(s.session_struct_);
+                        }
 
-                    // Checking if we have scanned all created sessions.
-                    if (num_checked_sessions >= num_active_sessions_)
-                        break;
+                        // Getting next used session.
+                        used_session_index_node = next_used_session_index_node;
+
+                        // Checking if we have scanned all created sessions.
+                        if (num_checked_sessions >= used_session_indexes_.Count)
+                            break;
+                    }
                 }
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc);
+                Environment.Exit((int)Error.SCERRSESSIONMANAGERDIED);
             }
         }
     }
@@ -363,26 +433,36 @@ namespace HttpStructs
     /// </summary>
     public class GlobalSessions
     {
-        /// <summary>
-        /// Maximum number of schedulers.
-        /// </summary>
-        const Byte MaxSchedulersNumber = 32;
-
         // All schedulers sessions.
-        SchedulerSessions[] scheduler_sessions_ = new SchedulerSessions[MaxSchedulersNumber];
-
-        // Apps session salt.
-        Int64 apps_session_salt_ = Int64.MaxValue / 2;
+        SchedulerSessions[] scheduler_sessions_ = null;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public GlobalSessions()
+        public GlobalSessions(Byte num_schedulers)
         {
-            for (Int32 i = 0; i < MaxSchedulersNumber; i++)
+            scheduler_sessions_ = new SchedulerSessions[num_schedulers];
+
+            for (Int32 i = 0; i < num_schedulers; i++)
             {
                 scheduler_sessions_[i] = new SchedulerSessions();
             }
+        }
+
+        /// <summary>
+        /// Total number of active sessions on all schedulers.
+        /// </summary>
+        /// <returns></returns>
+        public String GetActiveSessionsStats()
+        {
+            String all_schedulers_stats = "";
+
+            for (Int32 i = 0; i < scheduler_sessions_.Length; i++)
+            {
+                all_schedulers_stats += "Scheduler " + i + ": " + scheduler_sessions_[i].GetNumberOfActiveSessions() + Environment.NewLine;
+            }
+
+            return all_schedulers_stats;
         }
 
         /// <summary>
@@ -462,7 +542,16 @@ namespace HttpStructs
         /// <summary>
         /// All global sessions.
         /// </summary>
-        public static GlobalSessions AllGlobalSessions = new GlobalSessions();
+        public static GlobalSessions AllGlobalSessions = null;
+
+        /// <summary>
+        /// Creating global sessions.
+        /// </summary>
+        /// <param name="num_schedulers"></param>
+        public static void InitGlobalSessions(Byte num_schedulers)
+        {
+            AllGlobalSessions = new GlobalSessions(num_schedulers);
+        }
 
         /// <summary>
         /// Callback to destroy Apps session.
@@ -498,15 +587,6 @@ namespace HttpStructs
                 linear_index,
                 random_salt
                 );
-        }
-
-        /// <summary>
-        /// Generates session salt.
-        /// </summary>
-        /// <returns>Generated session.</returns>
-        internal UInt64 GenerateSalt()
-        {
-            return (UInt64)Interlocked.Increment(ref apps_session_salt_);
         }
 
         /// <summary>

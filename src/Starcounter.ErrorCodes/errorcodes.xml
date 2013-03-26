@@ -3049,6 +3049,9 @@
     <code hex="0005" severity="Error" name="ScErrSessionInsideDatabase">
       <message>Operations on sessions are only available from clients, not code running inside a database.</message>
     </code>
+    <code hex="0006" severity="Error" name="ScErrSessionManagerDied">
+      <message>Scheduler session manager has died.</message>
+    </code>
   </facility>
 
   <!-- Internal error codes. -->

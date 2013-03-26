@@ -205,10 +205,10 @@ namespace Starcounter
                                 // Closing network streams.
                                 stream.Close();
                                 client.Close();
-
-                                return;
                             }
                         }
+
+                        throw exc;
                     }
                 }
 
