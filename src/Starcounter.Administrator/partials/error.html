@@ -7,7 +7,9 @@
     <p>{{message}}</p>
     <br />
 
-    <p>Help page: <a href="{{helpLink}}" target="_blank">{{helpLink}}</a></p>
+    <div ng-hide="helpLink == null">
+        <p>Help page: <a href="{{helpLink}}" target="_blank">{{helpLink}}</a></p>
+    </div>
 
     <accordion close-others="oneAtATime">
   

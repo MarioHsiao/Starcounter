@@ -181,9 +181,8 @@ namespace Starcounter.Internal.JsonPatch {
                 resultJson.sqlException = new {
                     beginPosition = ee.BeginPosition,
                     endPosition = ee.EndPosition,
-                    errorMessage = ee.ErrorMessage,
                     helpLink = ee.HelpLink,
-                    message = ee.Message,
+                    message = ee.ErrorMessage,
                     query = ee.Query,
                     scErrorCode = ee.ScErrorCode,
                     token = ee.Token,
