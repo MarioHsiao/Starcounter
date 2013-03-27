@@ -25,7 +25,7 @@ void SocketDataChunk::Init(
     ServerPort* server_port = g_gateway.get_server_port(port_index);
     port_index_ = port_index;
     db_index_ = db_index;
-    db_unique_seq_num_ = g_gateway.GetDatabase(db_index_)->unique_num();
+    db_unique_seq_num_ = g_gateway.GetDatabase(db_index_)->get_unique_num();
     blob_user_data_offset_ = server_port->get_blob_user_data_offset();
 
     // Resets data buffer offset.
@@ -347,7 +347,7 @@ bool SocketDataChunk::ForceSocketDataValidity(GatewayWorker* gw)
     ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
 
     // Checking that attached database is correct.
-    if ((active_db != NULL) && (db_unique_seq_num_ == active_db->unique_num()))
+    if ((active_db != NULL) && (db_unique_seq_num_ == active_db->get_unique_num()))
         return true;
 
 CORRECT_STATISTICS_AND_RELEASE_CHUNK:

@@ -613,7 +613,7 @@ public:
     // Attaching to certain database.
     void AttachToDatabase(int32_t db_index)
     {
-        db_unique_seq_num_ = g_gateway.GetDatabase(db_index)->unique_num();
+        db_unique_seq_num_ = g_gateway.GetDatabase(db_index)->get_unique_num();
         db_index_ = db_index;
     }
 

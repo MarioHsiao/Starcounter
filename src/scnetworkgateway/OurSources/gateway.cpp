@@ -293,6 +293,7 @@ Gateway::Gateway()
 
     // Empty global statistics.
     global_statistics_stream_ << "Empty string!";
+    global_port_statistics_stream_ << "Empty string!";
     memcpy(global_statistics_string_, kHttpStatsHeader, kHttpStatsHeaderLength);
 
     codegen_uri_matcher_ = NULL;
@@ -563,10 +564,10 @@ void ServerPort::Erase()
 }
 
 // Printing the registered URIs.
-void ServerPort::Print()
+void ServerPort::PrintInfo(std::stringstream& global_port_statistics_stream)
 {
-    port_handlers_->Print();
-    registered_uris_->Print(port_number_);
+    //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
+    registered_uris_->PrintRegisteredUris(global_port_statistics_stream, port_number_);
 }
 
 ServerPort::ServerPort()
@@ -1021,7 +1022,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
         for (int32_t i = 0; i < num_dbs_slots_; i++)
         {
             // Checking if it is an existing database.
-            if (0 == active_databases_[i].db_name().compare(current_db_name))
+            if (0 == active_databases_[i].get_db_name().compare(current_db_name))
             {
                 // Existing database is up.
                 db_did_go_down_[i] = false;
@@ -1231,8 +1232,9 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 NULL,
                 0,
                 bmx::BMX_INVALID_HANDLER_INFO,
-                empty_db_index,
-                GatewayStatisticsInfo);
+                0,
+                GatewayStatisticsInfo,
+                true);
 
             if (err_code)
             {
@@ -1260,7 +1262,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
         if ((db_did_go_down_[s]) && (!active_databases_[s].IsDeletionStarted()))
         {
 #ifdef GW_DATABASES_DIAG
-            GW_PRINT_GLOBAL << "Start detaching dead database: " << active_databases_[s].db_name() << GW_ENDL;
+            GW_PRINT_GLOBAL << "Start detaching dead database: " << active_databases_[s].get_db_name() << GW_ENDL;
 #endif
 
             // Entering global lock.
@@ -1636,29 +1638,59 @@ uint32_t Gateway::InitSharedMemory(
 }
 
 // Current global statistics value.
-const char* Gateway::GetGlobalStatisticsString(int32_t* out_len)
+const char* Gateway::GetGlobalStatisticsString(int32_t* out_stats_len_bytes)
 {
-    *out_len = 0;
+    *out_stats_len_bytes = 0;
 
     EnterCriticalSection(&cs_statistics_);
 
-    // Getting number of written characters.
-    int32_t n = global_statistics_stream_.tellp();
-    GW_ASSERT(n < MAX_STATS_LENGTH);
-    *out_len = kHttpStatsHeaderLength + n;
+    // Printing port information.
+    PrintPortStatistics();
+
+    // Total number of bytes in HTTP response.
+    int32_t total_response_bytes = kHttpStatsHeaderLength;
+
+    // Getting number of written bytes to the stream.
+    int32_t network_stats_bytes = global_statistics_stream_.tellp();
+    total_response_bytes += network_stats_bytes;
+    // Checking for not too big statistics.
+    if (total_response_bytes >= MAX_STATS_LENGTH)
+    {
+        network_stats_bytes = MAX_STATS_LENGTH - kHttpStatsHeaderLength;
+        total_response_bytes = MAX_STATS_LENGTH;
+    }
 
     // Copying characters from stream to given buffer.
     global_statistics_stream_.seekg(0);
-    global_statistics_stream_.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength, n);
-    global_statistics_string_[kHttpStatsHeaderLength + n] = '\0';
+    global_statistics_stream_.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength, network_stats_bytes);
+
+    // Getting number of written bytes to the stream.
+    int32_t ports_stats_bytes = global_port_statistics_stream_.tellp();
+    total_response_bytes += ports_stats_bytes;
+    // Checking for not too big statistics.
+    if (total_response_bytes >= MAX_STATS_LENGTH)
+    {
+        ports_stats_bytes = MAX_STATS_LENGTH - kHttpStatsHeaderLength - network_stats_bytes;
+        total_response_bytes = MAX_STATS_LENGTH;
+    }
+
+    // Copying characters from stream to given buffer.
+    global_port_statistics_stream_.seekg(0);
+    global_port_statistics_stream_.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength + network_stats_bytes, ports_stats_bytes);
+
+    // Sealing the string.
+    global_statistics_string_[total_response_bytes] = '\0';
 
     // Making length a white space.
     *(uint64_t*)(global_statistics_string_ + kHttpStatsHeaderInsertPoint) = 0x2020202020202020;
     
     // Converting content length to string.
-    WriteUIntToString(global_statistics_string_ + kHttpStatsHeaderInsertPoint, n);
+    WriteUIntToString(global_statistics_string_ + kHttpStatsHeaderInsertPoint, total_response_bytes - kHttpStatsHeaderLength);
 
     LeaveCriticalSection(&cs_statistics_);
+
+    // Calculating final data length in bytes.
+    *out_stats_len_bytes = total_response_bytes;
 
     return global_statistics_string_;
 }
@@ -2527,7 +2559,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // Individual workers statistics.
         for (int32_t worker_id_ = 0; worker_id_ < setting_num_workers_; worker_id_++)
         {
-            global_statistics_stream_ << "[" << worker_id_ << "]: " <<
+            global_statistics_stream_ << "Worker " << worker_id_ << ": " <<
                 "recv_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_received() <<
                 ", recv_times " << gw_workers_[worker_id_].get_worker_stats_recv_num() <<
                 ", sent_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_sent() <<
@@ -2541,13 +2573,13 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
             // Checking if port is alive.
             if (!server_ports_[p].IsEmpty())
             {
-                global_statistics_stream_ << "Port " << server_ports_[p].get_port_number() <<
+                global_statistics_stream_ << "Port " << server_ports_[p].get_port_number() << ":" <<
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
-                    ": active conns " << server_ports_[p].NumberOfActiveConnections() <<
+                    " active conns " << server_ports_[p].NumberOfActiveConnections() <<
 #endif
 
-                    ": accepting socks " << server_ports_[p].get_num_accepting_sockets() <<
+                    " accepting socks " << server_ports_[p].get_num_accepting_sockets() <<
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
                     ", alloc acc-socks " << server_ports_[p].get_num_allocated_accept_sockets() <<
@@ -2914,7 +2946,8 @@ uint32_t Gateway::AddUriHandler(
     int32_t num_params,
     BMX_HANDLER_TYPE handler_id,
     int32_t db_index,
-    GENERIC_HANDLER_CALLBACK handler_proc)
+    GENERIC_HANDLER_CALLBACK handler_proc,
+    bool is_gateway_handler)
 {
     uint32_t err_code;
 
@@ -2971,7 +3004,8 @@ uint32_t Gateway::AddUriHandler(
             processed_uri_info_len_chars,
             session_param_index,
             db_index,
-            handlers_table->get_handler_list(handler_index));
+            handlers_table->get_handler_list(handler_index),
+            is_gateway_handler);
 
         // Adding entry to global list.
         all_port_uris->AddEntry(new_entry);
@@ -2995,9 +3029,6 @@ uint32_t Gateway::AddUriHandler(
 
     // Invalidating URI matching codegen.
     all_port_uris->InvalidateUriMatcherFunction();
-
-    // Printing port information.
-    //server_port->Print();
 
     return 0;
 }

@@ -35,10 +35,19 @@ class RegisteredUri
     // Number of same characters from previous entry.
     uint32_t num_same_prev_chars_;
 
+    // Is a gateway URI handler.
+    bool is_gateway_uri_;
+
     // Unique handler lists.
     LinearList<UniqueHandlerList, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
 
 public:
+
+    // Is gateway URI.
+    bool get_is_gateway_uri()
+    {
+        return is_gateway_uri_;
+    }
 
     // Indicates index of session parameter in this URI.
     uint8_t get_session_param_index()
@@ -212,6 +221,12 @@ public:
     }
 
     // Removes certain entry.
+    int32_t GetFirstDbIndex()
+    {
+        return handler_lists_[0].get_db_index();
+    }
+
+    // Removes certain entry.
     int32_t FindDb(int32_t db_index)
     {
         // Going through all handler list.
@@ -261,7 +276,8 @@ public:
         uint32_t processed_uri_info_len_chars,
         uint8_t session_param_index,
         int32_t db_index,
-        HandlersList* handlers_list)
+        HandlersList* handlers_list,
+        bool is_gateway_uri)
     {
         original_uri_info_len_chars_ = original_uri_info_len_chars;
         processed_uri_info_len_chars_ = processed_uri_info_len_chars;
@@ -281,6 +297,8 @@ public:
         num_same_prev_chars_ = 0;
 
         session_param_index_ = session_param_index;
+
+        is_gateway_uri_ = is_gateway_uri;
     }
 
     // Resetting entry.
@@ -295,6 +313,8 @@ public:
         session_param_index_ = INVALID_PARAMETER_INDEX;
 
         num_same_prev_chars_ = 0;
+
+        is_gateway_uri_ = false;
     }
 
     // Running all registered handlers.
@@ -444,13 +464,26 @@ public:
     }
 
     // Printing the registered URIs.
-    void Print(uint16_t port)
+    void PrintRegisteredUris(std::stringstream& global_port_statistics_stream, uint16_t port_num)
     {
-        GW_PRINT_GLOBAL << "Port " << port << " has following URIs registered: " << GW_ENDL;
+        global_port_statistics_stream << "<br>Port " << port_num << " has following URIs registered: " << "<br>";
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
-            GW_COUT << "    \"" << reg_uris_[i].get_processed_uri_info() << "\" with handlers lists: " <<
-                reg_uris_[i].GetHandlersListsNumber() << GW_ENDL;
+            global_port_statistics_stream << "    \"" << reg_uris_[i].get_processed_uri_info() << "\" in";
+
+            // Checking if its gateway or database URI.
+            if (!reg_uris_[i].get_is_gateway_uri())
+            {
+                // Database handler.
+                global_port_statistics_stream << " database \"" << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << "\"";
+            }
+            else
+            {
+                // Gateway handler.
+                global_port_statistics_stream << " gateway";
+            }
+
+            global_port_statistics_stream << "<br>";
         }
     }
 

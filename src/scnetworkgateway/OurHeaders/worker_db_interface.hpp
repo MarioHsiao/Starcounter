@@ -153,12 +153,6 @@ public:
         return &shared_int_;
     }
 
-    // Index into databases array.
-    uint16_t db_slot_index()
-    {
-        return db_index_;
-    }
-
     // Registers all push channels.
     uint32_t RegisterAllPushChannels();
 
