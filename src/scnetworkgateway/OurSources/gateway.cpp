@@ -94,7 +94,7 @@ void GatewayLogWriter::Init(std::wstring& log_file_path)
         GENERIC_WRITE,
         FILE_SHARE_READ,
         NULL,
-        OPEN_ALWAYS,
+        OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL,
         NULL);
 

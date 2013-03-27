@@ -148,6 +148,12 @@ public:
     }
 #endif
 
+    // Clone current socket data to another database.
+    uint32_t CloneToAnotherDatabase(
+        GatewayWorker*gw,
+        int32_t new_db_index,
+        SocketDataChunk** new_sd);
+
     // Returns all linked chunks except the main one.
     uint32_t ReturnExtraLinkedChunks(GatewayWorker* gw);
 
