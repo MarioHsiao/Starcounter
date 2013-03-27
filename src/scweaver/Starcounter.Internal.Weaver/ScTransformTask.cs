@@ -30,6 +30,7 @@ using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 
 namespace Starcounter.Internal.Weaver {
 
+    using Starcounter.Internal.Weaver.EqualityImpl;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
@@ -115,6 +116,7 @@ namespace Starcounter.Internal.Weaver {
         /// The _object view type
         /// </summary>
         private ITypeSignature _objectViewType;
+
         /// <summary>
         /// The _module
         /// </summary>
@@ -131,6 +133,9 @@ namespace Starcounter.Internal.Weaver {
         /// The _starcounter assembly reference
         /// </summary>
         private AssemblyRefDeclaration _starcounterAssemblyReference;
+
+        private ImplementsIObjectProxy _objectProxyEmitter;
+        private ImplementsEquality _equalityEmitter;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScTransformTask" /> class.
@@ -318,9 +323,8 @@ namespace Starcounter.Internal.Weaver {
                 databaseEntityClass = dbc as DatabaseEntityClass;
                 
                 typeSpecification = assemblySpecification.IncludeDatabaseClass(typeDef);
-                if (InheritsObject(typeDef)) {
-                    ImplementIObjectProxy(typeDef);
-                }
+                ImplementIObjectProxy(typeDef);
+                ImplementEquality(typeDef);
             }
 
             // Re-iterate all database classes in the current module and process
@@ -499,22 +503,22 @@ namespace Starcounter.Internal.Weaver {
             _ushortType = _module.Cache.GetIntrinsic(IntrinsicType.UInt16);
 
             _objectViewType = _module.FindType(typeof(IObjectView), BindingOptions.Default);
-
+            
             _objectConstructor = _module.FindMethod(
                 typeof(Object).GetConstructor(Type.EmptyTypes), BindingOptions.Default);
-
+            
             type = typeof(AnonymousTypePropertyAttribute);
             cstrInfo = type.GetConstructor(new[] { typeof(int) });
-            _objViewPropIndexAttrConstructor = _module.FindMethod(cstrInfo,
-                                                                              BindingOptions.Default);
+            _objViewPropIndexAttrConstructor = _module.FindMethod(cstrInfo, BindingOptions.Default);
 
             type = typeof(AnonymousTypeAdapter);
-            _adapterGetPropertyMethod = _module.FindMethod(type.GetMethod("GetProperty"),
-                                                           BindingOptions.Default);
-            _adapterResolveIndexMethod = _module.FindMethod(type.GetMethod("ResolveIndex"),
-                                                            BindingOptions.Default);
+            _adapterGetPropertyMethod = _module.FindMethod(type.GetMethod("GetProperty"), BindingOptions.Default);
+            _adapterResolveIndexMethod = _module.FindMethod(type.GetMethod("ResolveIndex"), BindingOptions.Default);
 
             _weavingHelper = new WeavingHelper(_module);
+
+            _objectProxyEmitter = new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods);
+            _equalityEmitter = new ImplementsEquality(_module, _writer);
         }
 
         /// <summary>
@@ -867,19 +871,24 @@ namespace Starcounter.Internal.Weaver {
                     || typeDef.Name.StartsWith("VB$AnonymousType");
         }
 
-        /// <summary>
-        /// Gets a value indicating if the given type directly inherits the
-        /// root .NET type System.Object.
-        /// </summary>
-        /// <param name="typeDef">The type to check</param>
-        /// <returns>True if it inherits object direct; false otherwise.</returns>
-        internal static bool InheritsObject(TypeDefDeclaration typeDef) {
-            return ScAnalysisTask.Inherits(typeDef, typeof(object).FullName, true);
+        private bool ImplementIObjectProxy(TypeDefDeclaration typeDef) {
+            var done = false;
+            if (_objectProxyEmitter.ShouldImplementOn(typeDef)) {
+                ScMessageSource.Write(SeverityType.Debug, string.Format("Implementing IObjectProxy on {0}", typeDef.Name), new Object[] { });
+                _objectProxyEmitter.ImplementOn(typeDef);
+                done = true;
+            }
+            return done;
         }
 
-        private void ImplementIObjectProxy(TypeDefDeclaration typeDef) {
-            ScMessageSource.Write(SeverityType.Info, string.Format("Implementing IObjectProxy/IObjectView for {0}", typeDef.Name), new Object[] {});
-            new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods).ImplementOn(typeDef);
+        private bool ImplementEquality(TypeDefDeclaration typeDef) {
+            var done = false;
+            if (_equalityEmitter.ShouldImplementOn(typeDef)) {
+                ScMessageSource.Write(SeverityType.Debug, string.Format("Implementing equality on {0}", typeDef.Name), new Object[] { });
+                _equalityEmitter.ImplementOn(typeDef);
+                done = true;
+            }
+            return done;
         }
 
         /// <summary>
@@ -1228,7 +1237,7 @@ namespace Starcounter.Internal.Weaver {
             ScTransformTrace.Instance.WriteLine("Emitting the uninitialized constructor.");
             EmitUninitializedConstructor(typeDef);
 
-            if (InheritsObject(typeDef)) {
+            if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                 insertConstructor = EmitInsertConstructor(typeDef, typeSpecification);
             }
 
@@ -1283,7 +1292,7 @@ namespace Starcounter.Internal.Weaver {
                     // module, i.e. in a type residing in another assembly than the type
                     // we are currently weaving.
 
-                    if (InheritsObject(typeDef)) {
+                    if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                         // For database root classes - i.e. those directly inheriting one
                         // of the allowed .NET types - we use a certain strategy: we weave
                         // against the so called "insert constructor", emitted as a private
@@ -1446,7 +1455,7 @@ namespace Starcounter.Internal.Weaver {
         }
 
         private MethodDefDeclaration EmitInsertConstructor(TypeDefDeclaration typeDef, TypeSpecificationEmit typeSpecification) {
-            Trace.Assert(InheritsObject(typeDef));
+            Trace.Assert(WeaverUtilities.IsDatabaseRoot(typeDef));
 
             var insertionPoint = new MethodDefDeclaration() {
                 Name = ".ctor",
@@ -1549,7 +1558,7 @@ namespace Starcounter.Internal.Weaver {
             var sequence = uninitializedConstructor.MethodBody.CreateInstructionSequence();
             rootInstrBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
-            if (InheritsObject(typeDef)) {
+            if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                 _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
             } else {
