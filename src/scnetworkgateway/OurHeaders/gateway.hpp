@@ -1132,14 +1132,8 @@ public:
     // Active database constructor.
     ActiveDatabase();
 
-    // Gets the name of the database.
-    std::string db_name()
-    {
-        return db_name_;
-    }
-
     // Returns unique number for this database.
-    uint64_t unique_num()
+    uint64_t get_unique_num()
     {
         return unique_num_unsafe_;
     }
@@ -1190,7 +1184,7 @@ class ServerPort
 public:
 
     // Printing the registered URIs.
-    void Print();
+    void PrintInfo(std::stringstream& global_port_statistics_stream);
 
     // Getting registered URIs.
     RegisteredUris* get_registered_uris()
@@ -1623,7 +1617,8 @@ class Gateway
 
     // Current global statistics stream.
     std::stringstream global_statistics_stream_;
-    char global_statistics_string_[MAX_STATS_LENGTH];
+    std::stringstream global_port_statistics_stream_;
+    char global_statistics_string_[MAX_STATS_LENGTH + 1];
 
     // Critical section for statistics.
     CRITICAL_SECTION cs_statistics_;
@@ -1632,6 +1627,20 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    // Printing statistics for specific port.
+    void PrintPortStatistics()
+    {
+        // Emptying the statistics stream.
+        global_port_statistics_stream_.clear();
+        global_port_statistics_stream_.seekp(0);
+
+        // Going through all ports.
+        for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
+        {
+            server_ports_[i].PrintInfo(global_port_statistics_stream_);
+        }
+    }
 
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type get_sc_log_handle()
@@ -1805,7 +1814,8 @@ public:
         int32_t num_params,
         BMX_HANDLER_TYPE user_handler_id,
         int32_t db_index,
-        GENERIC_HANDLER_CALLBACK handler_proc);
+        GENERIC_HANDLER_CALLBACK handler_proc,
+        bool is_gateway_handler = false);
 
     // Adds some port handler: either Apps or Gateway.
     uint32_t AddPortHandler(

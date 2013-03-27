@@ -1361,10 +1361,10 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    int32_t len;
-    const char* stats_page_string = g_gateway.GetGlobalStatisticsString(&len);
+    int32_t resp_len_bytes;
+    const char* stats_page_string = g_gateway.GetGlobalStatisticsString(&resp_len_bytes);
     *is_handled = true;
-    return gw->SendPredefinedMessage(sd, /*kHttpGatewayPongResponse, kHttpGatewayPongResponseLength*/stats_page_string, len);
+    return gw->SendPredefinedMessage(sd, stats_page_string, resp_len_bytes);
 }
 
 #endif

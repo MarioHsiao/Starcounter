@@ -413,7 +413,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 
     // Checking if chunk belongs to this database.
     ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
-    if ((current_db->unique_num()) != sd->get_db_unique_seq_num())
+    if ((current_db->get_unique_num()) != sd->get_db_unique_seq_num())
     {
 #ifdef GW_ERRORS_DIAG
         GW_PRINT_WORKER << "Socket data does not belong to this database." << GW_ENDL;
@@ -551,7 +551,7 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
 
 // Allocates different channels and pools.
 WorkerDbInterface::WorkerDbInterface(
-    const int32_t new_slot_index,
+    const int32_t new_db_index,
     const core::shared_interface& shared_int,
     const int32_t worker_id)
 {
@@ -567,7 +567,7 @@ WorkerDbInterface::WorkerDbInterface(
     private_chunk_pool_.set_capacity(core::chunks_total_number_max);
     private_overflow_pool_.set_capacity(core::chunks_total_number_max);
 
-    db_index_ = new_slot_index;
+    db_index_ = new_db_index;
     worker_id_ = worker_id;
     shared_int_ = shared_int;
 

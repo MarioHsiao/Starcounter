@@ -518,7 +518,7 @@ public:
 
     void Reset()
     {
-        db_index_ = ~0;
+        db_index_ = INVALID_DB_INDEX;
         handlers_list_ = NULL;
     }
 };
@@ -592,14 +592,14 @@ class PortHandlers
 public:
 
     // Printing the registered URIs.
-    void Print()
+    void PrintRegisteredHandlers(std::stringstream& global_port_statistics_stream)
     {
-        GW_PRINT_GLOBAL << "Port " << port_number_ << " has following handlers registered: ";
+        global_port_statistics_stream << "Port " << port_number_ << " has following handlers registered: ";
         for (int32_t i = 0; i < handlers_.get_num_entries(); i++)
         {
-            GW_COUT << handlers_[i].GetNumberOfAttachedDbs() << ", ";
+            global_port_statistics_stream << handlers_[i].GetNumberOfAttachedDbs() << ", ";
         }
-        GW_COUT << GW_ENDL;
+        global_port_statistics_stream << "<br>";
     }
 
     // Constructor.
