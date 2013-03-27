@@ -79,7 +79,7 @@ namespace Starcounter {
         /// Gets a value indicating whether this template is bound.
         /// </summary>
         /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
-        public bool Bound {  get {  return bound; } }
+        public bool Bound { get { return bound; } set { bound = value; } }
 
         /// <summary>
         /// 

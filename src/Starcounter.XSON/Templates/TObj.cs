@@ -78,6 +78,10 @@ namespace Starcounter.Templates {
             set { _AppType = value; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public string InstanceDataTypeName { get; set; }
 
         /// <summary>
         /// Creates a new template with the specified name and type and
@@ -115,7 +119,7 @@ namespace Starcounter.Templates {
         /// <param name="bind">The name of the property in the dataobject to bind to.</param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, string bind) where T : TValue, new() {
-            T t = new T() { Name = name, Bind = bind };
+            T t = new T() { Name = name, Bind = bind, Bound = true };
             Properties.Add(t);
             return t;
         }
@@ -130,7 +134,7 @@ namespace Starcounter.Templates {
         /// <param name="bind">The name of the property in the dataobject to bind to.</param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, TObj type, string bind) where T : TObjArr, new() {
-            T t = new T() { Name = name, App = type, Bind = bind };
+            T t = new T() { Name = name, App = type, Bind = bind, Bound = true };
             Properties.Add(t);
             return t;
         }

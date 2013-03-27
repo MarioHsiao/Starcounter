@@ -183,11 +183,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 IsPartial = true
             };
 
-            if (metadata == CodeBehindMetadata.Empty) { // No codebehind. Need to set inheritance and remove partial flag.
-                acn.IsPartial = false;
-                acn._Inherits = DefaultObjTemplate.InstanceType.Name;
-            }
-
             var tcn = new NTAppClass( this )
             {
                 Parent = acn,
@@ -196,6 +191,19 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TJson",
                 AutoBindProperties = metadata.AutoBindToDataObject
             };
+
+            if (metadata == CodeBehindMetadata.Empty) { // No codebehind. Need to set a few extra properties depending on metadata from json
+                acn.IsPartial = false;
+                acn._Inherits = DefaultObjTemplate.InstanceType.Name;
+
+                // A specific IBindable type have been specified in the json.
+                // We add it as a generic value on the Json-class this class inherits from.
+                if (at.InstanceDataTypeName != null) {
+                    acn._Inherits += '<' + at.InstanceDataTypeName + '>';
+                    tcn.AutoBindProperties = true;
+                }
+            }
+
             var mcn = new NObjMetadata( this )
             {
                 Parent = acn,
