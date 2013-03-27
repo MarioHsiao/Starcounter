@@ -697,16 +697,15 @@ class AccumBuffer
 
 public:
 
-    // Default initializer.
-    AccumBuffer()
+    // Cloning existing accumulative buffer.
+    void CloneBasedOnNewBaseAddress(uint8_t* new_base, AccumBuffer* accum_buffer)
     {
-        buf_len_bytes_ = 0;
-        cur_buf_ptr_ = NULL;
-        orig_buf_ptr_ = NULL;
-        orig_buf_len_bytes_ = 0;
-        accum_len_bytes_ = 0;
-        last_recv_bytes_ = 0;
-        desired_accum_bytes_ = 0;
+        // Pure data copy from another accumulative buffer.
+        *this = *accum_buffer;
+
+        // Adjusting pointers.
+        orig_buf_ptr_ = new_base;
+        cur_buf_ptr_ = orig_buf_ptr_ + accum_len_bytes_;
     }
 
     // Initializes accumulative buffer.
@@ -720,7 +719,10 @@ public:
 
         // Checking if we need to reset accumulated length.
         if (reset_accum_len)
+        {
+            desired_accum_bytes_ = 0;
             accum_len_bytes_ = 0;
+        }
     }
 
     // Get buffer length.

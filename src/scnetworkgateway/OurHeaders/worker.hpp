@@ -239,16 +239,16 @@ public:
     }
 
     // Getting one of the active databases.
-    WorkerDbInterface* GetWorkerDb(int32_t dbSlotIndex)
+    WorkerDbInterface* GetWorkerDb(int32_t db_index)
     {
-        return worker_dbs_[dbSlotIndex];
+        return worker_dbs_[db_index];
     }
 
     // Gets a new chunk for new database and copies the old one into it.
-    uint32_t CloneChunkForNewDatabase(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** out_sd);
+    uint32_t CloneChunkForAnotherDatabase(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** out_sd);
 
     // Deleting inactive database.
-    void DeleteInactiveDatabase(int32_t dbSlotIndex);
+    void DeleteInactiveDatabase(int32_t db_index);
 
     // Sends given predefined response.
     uint32_t SendPredefinedMessage(

@@ -34,7 +34,7 @@ uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bo
         {
             // Getting new chunk and copy contents from old one.
             SocketDataChunk* new_sd = NULL;
-            err_code = gw->CloneChunkForNewDatabase(sd, handler_lists_[i].get_db_index(), &new_sd);
+            err_code = gw->CloneChunkForAnotherDatabase(sd, handler_lists_[i].get_db_index(), &new_sd);
             if (err_code)
                 return err_code;
 

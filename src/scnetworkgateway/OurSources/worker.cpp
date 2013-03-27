@@ -1551,37 +1551,17 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
 }
 
 // Gets a new chunk for new database and copies the old one into it.
-uint32_t GatewayWorker::CloneChunkForNewDatabase(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** new_sd)
+uint32_t GatewayWorker::CloneChunkForAnotherDatabase(
+    SocketDataChunkRef old_sd,
+    int32_t new_db_index,
+    SocketDataChunk** new_sd)
 {
-    // TODO: Add support for linked chunks.
-    GW_ASSERT(1 == old_sd->get_num_chunks());
-
-    core::chunk_index new_chunk_index;
-    shared_memory_chunk* new_smc;
-
-    // Getting a chunk from new database.
-    uint32_t err_code = worker_dbs_[new_db_index]->GetOneChunkFromPrivatePool(&new_chunk_index, &new_smc);
+    // Cloning current socket data for another database.
+    uint32_t err_code = old_sd->CloneToAnotherDatabase(this, new_db_index, new_sd);
     if (err_code)
-    {
-        // New chunk can not be obtained.
         return err_code;
-    }
-
-    // Socket data inside chunk.
-    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
-
-    // Copying chunk data.
-    memcpy(new_smc, old_sd->get_smc(),
-        bmx::BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_BLOB_OFFSET_BYTES + old_sd->get_accum_buf()->get_accum_len_bytes());
-
-    // Attaching to new database.
-    (*new_sd)->AttachToDatabase(new_db_index);
-
-    // Changing new chunk index.
-    (*new_sd)->set_chunk_index(new_chunk_index);
 
     // Returning old chunk to its pool.
-    // TODO: Or disconnect?
     old_sd->set_socket_diag_active_conn_flag(false);
     worker_dbs_[old_sd->get_db_index()]->ReturnSocketDataChunksToPool(this, old_sd);
 

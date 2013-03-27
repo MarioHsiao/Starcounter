@@ -172,6 +172,45 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     return 0;
 }
 
+// Clone current socket data to another database.
+uint32_t SocketDataChunk::CloneToAnotherDatabase(
+    GatewayWorker*gw,
+    int32_t new_db_index,
+    SocketDataChunk** new_sd)
+{
+    // TODO: Add support for linked chunks.
+    GW_ASSERT(1 == get_num_chunks());
+
+    core::chunk_index new_chunk_index;
+    shared_memory_chunk* new_smc;
+
+    // Getting a chunk from new database.
+    uint32_t err_code = gw->GetWorkerDb(new_db_index)->GetOneChunkFromPrivatePool(&new_chunk_index, &new_smc);
+    if (err_code)
+    {
+        // New chunk can not be obtained.
+        return err_code;
+    }
+
+    // Copying chunk data.
+    memcpy(new_smc, get_smc(),
+        bmx::BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_BLOB_OFFSET_BYTES + get_accum_buf()->get_accum_len_bytes());
+
+    // Socket data inside chunk.
+    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+
+    // Attaching to new database.
+    (*new_sd)->AttachToDatabase(new_db_index);
+
+    // Changing new chunk index.
+    (*new_sd)->set_chunk_index(new_chunk_index);
+
+    // Adjusting accumulative buffer.
+    (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((*new_sd)->get_data_blob(), get_accum_buf());
+
+    return 0;
+}
+
 // Create WSA buffers.
 uint32_t SocketDataChunk::CreateWSABuffers(
     WorkerDbInterface* worker_db,
