@@ -101,6 +101,10 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             targets.Add("EqualsOrIsDerivedFrom", EqualsOrIsDerivedFrom);
         }
 
+        public bool ShouldImplementOn(TypeDefDeclaration typeDef) {
+            return WeaverUtilities.IsDatabaseRoot(typeDef);
+        }
+
         public void ImplementOn(TypeDefDeclaration typeDef) {
             thisHandleField = typeDef.Fields.GetByName(TypeSpecification.ThisHandleName);
             thisIdentityField = typeDef.Fields.GetByName(TypeSpecification.ThisIdName);
