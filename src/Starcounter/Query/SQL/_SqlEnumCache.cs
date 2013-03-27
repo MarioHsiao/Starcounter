@@ -130,6 +130,8 @@ public sealed class SqlEnumCache
         if (enumIndex < 0)
         {
             enumIndex = globalQueryCache.AddNewQuery(query);
+            if (totalCachedEnum == 0) // Cache was reset
+                enumIndex = globalQueryCache.AddNewQuery(query);
         }
 
         // Fetching existing enumerator using index.
