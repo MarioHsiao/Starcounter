@@ -78,6 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FakeDbImpl.cs" />
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="JsonPatchTest.cs" />
     <Compile Include="MainApp.cs" />
