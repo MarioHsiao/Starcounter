@@ -25,67 +25,67 @@ namespace SQLTest.PointDb
 
                 // Create instances of IntegerPoint.
 
-                IntegerPoint point1 = IntegerPoint.Init(null, null, null);
+                IntegerPoint point1 = new IntegerPoint(null, null, null);
                 objectList.Add(point1);
-                IntegerPoint point2 = IntegerPoint.Init(null, null, 1);
+                IntegerPoint point2 = new IntegerPoint(null, null, 1);
                 objectList.Add(point2);
-                IntegerPoint point3 = IntegerPoint.Init(null, null, Int64.MaxValue);
+                IntegerPoint point3 = new IntegerPoint(null, null, Int64.MaxValue);
                 objectList.Add(point3);
 
-                IntegerPoint point4 = IntegerPoint.Init(null, 1, null);
+                IntegerPoint point4 = new IntegerPoint(null, 1, null);
                 objectList.Add(point4);
-                IntegerPoint point5 = IntegerPoint.Init(null, 1, 1);
+                IntegerPoint point5 = new IntegerPoint(null, 1, 1);
                 objectList.Add(point5);
-                IntegerPoint point6 = IntegerPoint.Init(null, 1, Int64.MaxValue);
+                IntegerPoint point6 = new IntegerPoint(null, 1, Int64.MaxValue);
                 objectList.Add(point6);
 
-                IntegerPoint point7 = IntegerPoint.Init(null, Int64.MaxValue, null);
+                IntegerPoint point7 = new IntegerPoint(null, Int64.MaxValue, null);
                 objectList.Add(point7);
-                IntegerPoint point8 = IntegerPoint.Init(null, Int64.MaxValue, 1);
+                IntegerPoint point8 = new IntegerPoint(null, Int64.MaxValue, 1);
                 objectList.Add(point8);
-                IntegerPoint point9 = IntegerPoint.Init(null, Int64.MaxValue, Int64.MaxValue);
+                IntegerPoint point9 = new IntegerPoint(null, Int64.MaxValue, Int64.MaxValue);
                 objectList.Add(point9);
 
-                IntegerPoint point10 = IntegerPoint.Init(1, null, null);
+                IntegerPoint point10 = new IntegerPoint(1, null, null);
                 objectList.Add(point10);
-                IntegerPoint point11 = IntegerPoint.Init(1, null, 1);
+                IntegerPoint point11 = new IntegerPoint(1, null, 1);
                 objectList.Add(point11);
-                IntegerPoint point12 = IntegerPoint.Init(1, null, Int64.MaxValue);
+                IntegerPoint point12 = new IntegerPoint(1, null, Int64.MaxValue);
                 objectList.Add(point12);
 
-                IntegerPoint point13 = IntegerPoint.Init(1, 1, null);
+                IntegerPoint point13 = new IntegerPoint(1, 1, null);
                 objectList.Add(point13);
-                IntegerPoint point14 = IntegerPoint.Init(1, 1, 1);
+                IntegerPoint point14 = new IntegerPoint(1, 1, 1);
                 objectList.Add(point14);
-                IntegerPoint point15 = IntegerPoint.Init(1, 1, Int64.MaxValue);
+                IntegerPoint point15 = new IntegerPoint(1, 1, Int64.MaxValue);
                 objectList.Add(point15);
 
-                IntegerPoint point16 = IntegerPoint.Init(1, Int64.MaxValue, null);
+                IntegerPoint point16 = new IntegerPoint(1, Int64.MaxValue, null);
                 objectList.Add(point16);
-                IntegerPoint point17 = IntegerPoint.Init(1, Int64.MaxValue, 1);
+                IntegerPoint point17 = new IntegerPoint(1, Int64.MaxValue, 1);
                 objectList.Add(point17);
-                IntegerPoint point18 = IntegerPoint.Init(1, Int64.MaxValue, Int64.MaxValue);
+                IntegerPoint point18 = new IntegerPoint(1, Int64.MaxValue, Int64.MaxValue);
                 objectList.Add(point18);
 
-                IntegerPoint point19 = IntegerPoint.Init(Int64.MaxValue, null, null);
+                IntegerPoint point19 = new IntegerPoint(Int64.MaxValue, null, null);
                 objectList.Add(point19);
-                IntegerPoint point20 = IntegerPoint.Init(Int64.MaxValue, null, 1);
+                IntegerPoint point20 = new IntegerPoint(Int64.MaxValue, null, 1);
                 objectList.Add(point20);
-                IntegerPoint point21 = IntegerPoint.Init(Int64.MaxValue, null, Int64.MaxValue);
+                IntegerPoint point21 = new IntegerPoint(Int64.MaxValue, null, Int64.MaxValue);
                 objectList.Add(point21);
 
-                IntegerPoint point22 = IntegerPoint.Init(Int64.MaxValue, 1, null);
+                IntegerPoint point22 = new IntegerPoint(Int64.MaxValue, 1, null);
                 objectList.Add(point22);
-                IntegerPoint point23 = IntegerPoint.Init(Int64.MaxValue, 1, 1);
+                IntegerPoint point23 = new IntegerPoint(Int64.MaxValue, 1, 1);
                 objectList.Add(point23);
-                IntegerPoint point24 = IntegerPoint.Init(Int64.MaxValue, 1, Int64.MaxValue);
+                IntegerPoint point24 = new IntegerPoint(Int64.MaxValue, 1, Int64.MaxValue);
                 objectList.Add(point24);
 
-                IntegerPoint point25 = IntegerPoint.Init(Int64.MaxValue, Int64.MaxValue, null);
+                IntegerPoint point25 = new IntegerPoint(Int64.MaxValue, Int64.MaxValue, null);
                 objectList.Add(point25);
-                IntegerPoint point26 = IntegerPoint.Init(Int64.MaxValue, Int64.MaxValue, 1);
+                IntegerPoint point26 = new IntegerPoint(Int64.MaxValue, Int64.MaxValue, 1);
                 objectList.Add(point26);
-                IntegerPoint point27 = IntegerPoint.Init(Int64.MaxValue, Int64.MaxValue, Int64.MaxValue);
+                IntegerPoint point27 = new IntegerPoint(Int64.MaxValue, Int64.MaxValue, Int64.MaxValue);
                 objectList.Add(point27);
             });
         }
