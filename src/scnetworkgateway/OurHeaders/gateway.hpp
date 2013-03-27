@@ -51,7 +51,6 @@ typedef uint32_t session_index_type;
 typedef uint8_t scheduler_id_type;
 typedef uint64_t session_timestamp_type;
 typedef int64_t echo_id_type;
-typedef uint64_t log_handle_type;
 
 // Statistics macros.
 #define GW_GLOBAL_STATISTICS
@@ -221,9 +220,6 @@ const int32_t INVALID_PORT_NUMBER = 0;
 
 // Bad URI index.
 const int32_t INVALID_URI_INDEX = -1;
-
-// Bad log handler.
-const log_handle_type INVALID_LOG_HANDLE = 0;
 
 // Invalid parameter index in user delegate.
 const uint8_t INVALID_PARAMETER_INDEX = 255;
@@ -1552,7 +1548,7 @@ class Gateway
     session_salt_type unique_socket_id_;
 
     // Handle to Starcounter log.
-    log_handle_type sc_log_handle_;
+    MixedCodeConstants::server_log_handle_type sc_log_handle_;
 
     // Specific gateway log writer.
     GatewayLogWriter gw_log_writer_;
@@ -1636,6 +1632,12 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    // Handle to Starcounter log.
+    MixedCodeConstants::server_log_handle_type get_sc_log_handle()
+    {
+        return sc_log_handle_;
+    }
 
     // Constant reference to monitor interface.
     const core::monitor_interface_ptr& the_monitor_interface() const {
