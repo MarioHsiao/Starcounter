@@ -45,7 +45,7 @@ namespace Starcounter.Administrator {
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
             AppsBootstrapper.Bootstrap(adminPort, "scadmin");
-            //AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+//            AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();
@@ -66,11 +66,14 @@ namespace Starcounter.Administrator {
                 Master.ServerInterface
             );
 
-
-            RegisterHandlers();
+            RegisterHandlers(serverInfo.Configuration.SystemHttpPort);
         }
 
-        static void RegisterHandlers() {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sytemHttpPort">Port for doing SQL queries</param>
+        static void RegisterHandlers(ushort sytemHttpPort) {
 
 
             // Registering default handler for ALL static resources on the server.
@@ -83,6 +86,23 @@ namespace Starcounter.Administrator {
                 return StarcounterBase.Get("/index.html");
             });
 
+            #region Server
+            // Accept "", text/html, OR application/json. Otherwise, 406.
+            GET("/server", () => {
+
+                ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+                ServerApp serverApp = new ServerApp();
+                serverApp.SystemHttpPort = serverInfo.Configuration.SystemHttpPort;
+                serverApp.DatabaseDirectory = serverInfo.Configuration.DatabaseDirectory;
+                serverApp.LogDirectory = serverInfo.Configuration.LogDirectory;
+                serverApp.TempDirectory = serverInfo.Configuration.TempDirectory;
+                serverApp.ServerName = serverInfo.Configuration.Name;
+
+                return serverApp;
+            });
+
+            #endregion
+
             #region Database(s)
 
             // Returns a list of databases
@@ -92,7 +112,6 @@ namespace Starcounter.Administrator {
 
                     DatabaseInfo[] databases = Master.ServerInterface.GetDatabases();
                     DatabasesApp databaseList = new DatabasesApp();
-
                     foreach (var database in databases) {
                         DatabaseApp databaseApp = new DatabaseApp();
                         databaseApp.SetDatabaseInfo(database);
@@ -181,21 +200,16 @@ namespace Starcounter.Administrator {
             POST("/sql/{?}", (string databasename, Request req) => {
 
                 if (HasAccept(req["Accept"], "application/json")) {
-
-                    ushort port = 8181; // TODO: Use system port
-
                     try {
                         Starcounter.Advanced.Response response;
                         string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        Node node = new Node("localhost", port);
+                        Node node = new Node("localhost", sytemHttpPort);
                         node.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
 
-                        // TODO:REMOVE
+                        // TODO: check if 'respone' still can be null
                         if (response == null) {
-                            Exception e = new Exception("Can not connect to remote database");
-                            e.HelpLink = "http://www.starcounter.com/wiki/SCERR3016";
-                            throw e;
+                            throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
                         }
 
                         return response.GetContentStringUtf8_Slow();
@@ -267,21 +281,6 @@ namespace Starcounter.Administrator {
 
             GET("/test", () => {
                 return "hello";
-            });
-
-
-            // Accept "", text/html, OR application/json. Otherwise, 406.
-            GET("/server", () => {
-
-                ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
-                ServerApp serverApp = new ServerApp();
-                serverApp.SystemHttpPort = serverInfo.Configuration.SystemHttpPort;
-                serverApp.DatabaseDirectory = serverInfo.Configuration.DatabaseDirectory;
-                serverApp.LogDirectory = serverInfo.Configuration.LogDirectory;
-                serverApp.TempDirectory = serverInfo.Configuration.TempDirectory;
-                serverApp.ServerName = serverInfo.Configuration.Name;
-
-                return serverApp;
             });
 
 
