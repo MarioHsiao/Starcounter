@@ -54,6 +54,8 @@ namespace Starcounter.Templates {
                 return (TObj)_Single[0];
             }
             set {
+                if (InstanceDataTypeName != null)
+                    value.InstanceDataTypeName = InstanceDataTypeName;
                 _Single = new OTT[1];
                 _Single[0] = (OTT)value;
             }
@@ -87,13 +89,27 @@ namespace Starcounter.Templates {
 #endif
     {
         private DataValueBinding<IEnumerable> dataBinding;
-
+        private string instanceDataTypeName;
+    
         /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements
         /// in this array.
         /// </summary>
         /// <value>The obj template adhering to each element in this array</value>
         public abstract TObj App { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string InstanceDataTypeName {
+            get { return instanceDataTypeName; }
+            set {
+                TObj app = App;
+                if (app != null)
+                    app.InstanceDataTypeName = value;
+                instanceDataTypeName = value;
+            }
+        }
 
         /// <summary>
         /// Contains the default value for the property represented by this

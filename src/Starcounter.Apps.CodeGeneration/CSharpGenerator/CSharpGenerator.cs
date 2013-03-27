@@ -425,11 +425,11 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append('"');
                     
                     TValue tv = mn.Template as TValue;
-                    if (tv != null && tv.Bound) {
-                        // No need to add binding again if the object template is set to automatically 
-                        // bind all children and no specific name of the binding is specified.
-                        if ((tv.PropertyName != tv.Bind) || !a.AutoBindProperties) {
-                            sb.Append(", Bind = \"");
+                    if (tv != null && tv.Bound && tv.PropertyName != tv.Bind) {
+                        if (tv.Bind == null) {
+                            sb.Append(", bind:null");
+                        } else {
+                            sb.Append(", bind:\"");
                             sb.Append(tv.Bind);
                             sb.Append('"');
                         }
