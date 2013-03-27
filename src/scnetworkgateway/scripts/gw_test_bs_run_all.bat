@@ -114,7 +114,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 ::IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Success message.
-ECHO All performance tests finished successfully!
+ECHO All gateway performance tests finished successfully!
 
 :: Killing all processes.
 CMD /C "kill_all.bat" 2>NUL
