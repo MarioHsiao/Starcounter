@@ -48,7 +48,7 @@ namespace Starcounter.Query.RawParserAnalyzer {
                     message += ", near or at token: " + token;
                 else
                     message += ".";
-                return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, position, token, Query));
+                return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, message, position, token, Query));
             }
         }
 
@@ -86,9 +86,10 @@ namespace Starcounter.Query.RawParserAnalyzer {
         }
 
         internal static void OnEmptyQueryError(String query) {
+            String errMessage = "Query string should not be empty";
             if (query == "")
-                throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, "Query string should not be empty",
-                    (m, e) => new SqlException(Error.SCERRSQLINCORRECTSYNTAX, m, 1, query));
+                throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, errMessage,
+                    (m, e) => new SqlException(Error.SCERRSQLINCORRECTSYNTAX, m, errMessage, 1, query));
         }
     }
 }
