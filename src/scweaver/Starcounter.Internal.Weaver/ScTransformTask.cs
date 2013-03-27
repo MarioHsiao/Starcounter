@@ -1333,7 +1333,9 @@ namespace Starcounter.Internal.Weaver {
 
                     // Cache the result for next use.
 
-                    referencedConstructor.SetTag(_constructorEnhancedTagGuid, replacementConstructor);
+                    if (replacementConstructor != insertConstructor) {
+                        referencedConstructor.SetTag(_constructorEnhancedTagGuid, replacementConstructor);
+                    }
                 }
 
                 ScTransformTrace.Instance.WriteLine(
