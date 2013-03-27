@@ -182,18 +182,13 @@ namespace Starcounter.Internal.JsonTemplate
 
                 appTemplate.Namespace = v;
             } else if (upperName == "DATATYPE") {
-                System.Diagnostics.Debugger.Launch();
-
                 if (_template is TObjArr) {
-                    appTemplate = ((TObjArr)_template).App as OTT;
+                    ((TObjArr)_template).InstanceDataTypeName = v;
+                } else if (_template is OTT) {
+                    ((OTT)_template).InstanceDataTypeName = v;
                 } else {
-                    appTemplate = _template as OTT;
-                }
-
-                if (appTemplate == null)
                     ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-
-                appTemplate.InstanceDataTypeName = v;
+                }
             } else {
                 if (_booleanProperties.Contains(upperName))
                     ErrorHelper.RaiseWrongValueForPropertyError(name, "boolean", "string", _debugInfo);
