@@ -47,6 +47,7 @@ namespace Starcounter.Internal.JsonTemplate
             _stringProperties.Add("TYPE");
             _stringProperties.Add("REUSE");
             _stringProperties.Add("NAMESPACE");
+            _stringProperties.Add("DATATYPE");
         }
 
         /// <summary>
@@ -156,6 +157,7 @@ namespace Starcounter.Internal.JsonTemplate
                 valueTemplate = _template as TValue;
                 if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 valueTemplate.Bind = v;
+                valueTemplate.Bound = true;
             }
             else if (upperName == "TYPE")
             {
@@ -179,9 +181,15 @@ namespace Starcounter.Internal.JsonTemplate
                 if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
 
                 appTemplate.Namespace = v;
-            }
-            else
-            {
+            } else if (upperName == "DATATYPE") {
+                if (_template is TObjArr) {
+                    ((TObjArr)_template).InstanceDataTypeName = v;
+                } else if (_template is OTT) {
+                    ((OTT)_template).InstanceDataTypeName = v;
+                } else {
+                    ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                }
+            } else {
                 if (_booleanProperties.Contains(upperName))
                     ErrorHelper.RaiseWrongValueForPropertyError(name, "boolean", "string", _debugInfo);
                 else
@@ -554,6 +562,11 @@ namespace Starcounter.Internal.JsonTemplate
         {
             OTT appTemplate;
             Template newTemplate;
+
+            if (parent is MetaTemplate<OT, OTT>) {
+                ((MetaTemplate<OT,OTT>)parent).Set(name, value);
+                return null;
+            }
 
             // TODO: 
             // It looks a little strange to have this kind of error here, but 
