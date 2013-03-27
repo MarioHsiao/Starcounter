@@ -235,6 +235,7 @@ namespace Starcounter.Advanced {
         public UInt16 HandlerId
         {
             get { return handlerId_; }
+            set { handlerId_ = value; } 
         }
 
         // TODO
