@@ -33,7 +33,7 @@ void CodegenUriMatcher::Init()
     uri_info_test.original_uri_info_len_chars = 4;
     uri_info_test.processed_uri_info_string = uri_test;
     uri_info_test.processed_uri_info_len_chars = 5;
-    uint32_t test_num_codegen_bytes;
+    uint32_t test_num_codegen_bytes = MAX_URI_MATCHING_CODE_BYTES;
 
     uint32_t err_code = generate_uri_matcher_(
         g_gateway.get_sc_log_handle(),
