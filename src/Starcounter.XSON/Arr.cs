@@ -25,7 +25,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Arr<T>(Rows<object> res) {
+        public static implicit operator Arr<T>(Rows res) {
             return new Arr<T>(res);
         }
 
@@ -116,7 +116,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static implicit operator Arr(Rows<object> res) {
+        public static implicit operator Arr(Rows res) {
             return new Arr(res);
         }
 
