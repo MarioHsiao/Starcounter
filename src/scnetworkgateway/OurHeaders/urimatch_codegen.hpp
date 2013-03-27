@@ -47,15 +47,16 @@ public:
     {
         uri_code_size_bytes_ = MAX_URI_MATCHING_CODE_BYTES;
 
-        uint32_t err_code = 0;
-
-        err_code = generate_uri_matcher_(
+        uint32_t err_code = generate_uri_matcher_(
             g_gateway.get_sc_log_handle(),
             root_function_name, 
             uri_infos,
             num_uris,
             uri_matching_code_,
             &uri_code_size_bytes_);
+
+        // Asserting that URI matcher code generation always succeeds.
+        GW_ASSERT(0 == err_code);
 
         /*std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
         std::stringstream str_stream;
