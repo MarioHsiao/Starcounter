@@ -15,39 +15,9 @@ namespace Starcounter.Administrator {
             directoryPath = directory;
         }
 
-        void Handle(Input.RefreshList action) {
-            this.RefreshLogEntriesList();
-        }
-
-        void Handle(Input.FilterNotice action) {
-            this.RefreshLogEntriesList();
-        }
-
-        void Handle(Input.FilterWarning action) {
-
-            //this.FilterWarning = action.Value;
-
-            this.RefreshLogEntriesList();
-        }
-
-        void Handle(Input.FilterError action) {
-            this.RefreshLogEntriesList();
-        }
-
-        void Handle(Input.FilterDebug action) {
-            this.RefreshLogEntriesList();
-        }
-
         public void RefreshLogEntriesList() {
-            
-            
-            //this.LogEntries.Clear(); // Clearlist
 
-            // The .Clear() method dosent work
-            while (this.LogEntries.Count > 0) {
-                this.LogEntries.RemoveAt(0);
-            }
-
+            this.LogEntries.Clear(); // Clearlist
 
             int limit = 30;   // Limith the result
 
