@@ -74,20 +74,20 @@ public class SqlException : Exception
 
     // Constructors used by Bison-based parser
 
-    internal SqlException(uint errorCode, String message, Int32 position, String query)
+    internal SqlException(uint errorCode, String message, String errMessage, Int32 position, String query)
         : base(message) {
         scErrorCode = errorCode;
-        errorMessage = message;
+        errorMessage = errMessage;
         unexpectedToken = null;
         beginPosition = position;
         endPosition = -1;
         queryString = query;
     }
 
-    internal SqlException(uint errorCode, String message, Int32 position, String token, String query)
+    internal SqlException(uint errorCode, String message, String errMessage, Int32 position, String token, String query)
         : base(message) {
         scErrorCode = errorCode;
-        errorMessage = message;
+        errorMessage = errMessage;
         unexpectedToken = token;
         beginPosition = position;
         endPosition = -1;
@@ -184,6 +184,7 @@ public class SqlException : Exception
     public override String ToString() {
         StringBuilder str = new StringBuilder();
         str.AppendLine(Message);
+        //str.AppendLine(ErrorMessage);
         if (Query != null)
             str.AppendLine("Query: " + Query);
         if (Token != null && unexpectedToken != "")
