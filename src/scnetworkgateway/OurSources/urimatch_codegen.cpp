@@ -25,12 +25,12 @@ void CodegenUriMatcher::Init()
     GW_ASSERT(generate_uri_matcher_ != NULL);
 
     // Pre-loading the .NET CLR with the following fake URI data.
-    char* uri_test = "GET /";
+    char* uri_test = "GET / ";
     MixedCodeConstants::RegisteredUriManaged uri_info_test;
     uri_info_test.handler_id = 1;
     uri_info_test.num_params = 0;
     uri_info_test.original_uri_info_string = uri_test;
-    uri_info_test.original_uri_info_len_chars = 5;
+    uri_info_test.original_uri_info_len_chars = 4;
     uri_info_test.processed_uri_info_string = uri_test;
     uri_info_test.processed_uri_info_len_chars = 5;
     uint32_t test_num_codegen_bytes;
