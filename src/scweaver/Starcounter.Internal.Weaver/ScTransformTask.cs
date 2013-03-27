@@ -323,10 +323,8 @@ namespace Starcounter.Internal.Weaver {
                 databaseEntityClass = dbc as DatabaseEntityClass;
                 
                 typeSpecification = assemblySpecification.IncludeDatabaseClass(typeDef);
-                if (InheritsObject(typeDef)) {
-                    ImplementIObjectProxy(typeDef);
-                    ImplementEquality(typeDef);
-                }
+                ImplementIObjectProxy(typeDef);
+                ImplementEquality(typeDef);
             }
 
             // Re-iterate all database classes in the current module and process
@@ -883,9 +881,14 @@ namespace Starcounter.Internal.Weaver {
             return ScAnalysisTask.Inherits(typeDef, typeof(object).FullName, true);
         }
 
-        private void ImplementIObjectProxy(TypeDefDeclaration typeDef) {
-            ScMessageSource.Write(SeverityType.Debug, string.Format("Implementing IObjectProxy/IObjectView for {0}", typeDef.Name), new Object[] { });
-            _objectProxyEmitter.ImplementOn(typeDef);
+        private bool ImplementIObjectProxy(TypeDefDeclaration typeDef) {
+            var done = false;
+            if (_objectProxyEmitter.ShouldImplementOn(typeDef)) {
+                ScMessageSource.Write(SeverityType.Debug, string.Format("Implementing IObjectProxy on {0}", typeDef.Name), new Object[] { });
+                _objectProxyEmitter.ImplementOn(typeDef);
+                done = true;
+            }
+            return done;
         }
 
         private bool ImplementEquality(TypeDefDeclaration typeDef) {
