@@ -374,7 +374,7 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 
                 // Dialogbox options
                 $scope.opts = {
-                    backdrop: false,
+                    backdrop: true,
                     keyboard: true,
                     backdropClick: true,
                     templateUrl: "partials/error.html",
