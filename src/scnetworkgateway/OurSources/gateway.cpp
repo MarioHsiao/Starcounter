@@ -289,7 +289,7 @@ Gateway::Gateway()
     last_bind_interface_num_unsafe_ = 0;
 
     // Resetting Starcounter log handle.
-    sc_log_handle_ = INVALID_LOG_HANDLE;
+    sc_log_handle_ = MixedCodeConstants::INVALID_SERVER_LOG_HANDLE;
 
     // Empty global statistics.
     global_statistics_stream_ << "Empty string!";
@@ -407,7 +407,7 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
     // Creating Starcounter bin directory property.
     setting_sc_bin_dir_ = std::wstring(exe_dir);
 
-    // Specifying gateway output directory as subfolder for server output.
+    // Specifying gateway output directory as sub-folder for server output.
     setting_gateway_output_dir_ = setting_server_output_dir_ + L"\\" + GW_PROGRAM_NAME;
 
     // Trying to create network gateway log directory.

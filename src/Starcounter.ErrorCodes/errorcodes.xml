@@ -3263,6 +3263,9 @@
     <code hex="0040" severity="Error" name="ScErrUnexpErrSetDllDirectory">
       <message>An unexpected OS error occurred when attempting to initialize image write process.</message>
     </code>
+    <code hex="0041" severity="Error" name="ScErrUriMatcherCodeGeneratorFailure">
+      <message>Exception occurred inside URI matcher code generator.</message>
+    </code>  
   </facility>
 
   <facility name="Sql" hex="0007">

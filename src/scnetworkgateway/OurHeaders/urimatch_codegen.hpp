@@ -50,6 +50,7 @@ public:
         uint32_t err_code = 0;
 
         err_code = generate_uri_matcher_(
+            g_gateway.get_sc_log_handle(),
             root_function_name, 
             uri_infos,
             num_uris,

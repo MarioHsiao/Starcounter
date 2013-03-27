@@ -155,6 +155,9 @@ namespace Starcounter.Internal
         // Session parameter type number in user delegate.
         public const int REST_ARG_SESSION = 10;
 
+        // Bad server log handler.
+        public const int INVALID_SERVER_LOG_HANDLE = 0;
+
         /// <summary>
         /// Example of string constant.
         /// </summary>
@@ -200,6 +203,8 @@ namespace Starcounter.Internal
 
 	// C++ code
 
+    typedef uint64_t server_log_handle_type;
+
     struct RegisteredUriManaged
     {
         char* original_uri_info_string;
@@ -220,6 +225,7 @@ namespace Starcounter.Internal
     typedef int32_t (*MatchUriType) (char* uri_info, uint32_t uri_info_len, UserDelegateParamInfo** params);
 
     typedef uint32_t (*GenerateNativeUriMatcherType) (
+        server_log_handle_type server_log_handle,
         const char* const root_function_name,
         RegisteredUriManaged* uri_infos,
         uint32_t num_uris,
