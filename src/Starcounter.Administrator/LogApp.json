@@ -8,10 +8,8 @@
 						"Message" : "Message"
 					}
 	],
-	"FilterNotice$" : true,
-	"FilterWarning$" : true,
-	"FilterError$" : true,
-	"FilterDebug$" : true,
-	"RefreshList$" : null,
-	"ClearList$" : null
+	"FilterNotice" : true,
+	"FilterWarning" : true,
+	"FilterError" : true,
+	"FilterDebug" : true
 }
