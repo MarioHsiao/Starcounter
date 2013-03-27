@@ -79,7 +79,7 @@ namespace Starcounter.Client.Tests.Application {
             ret.Add(tim);
             return ret;
         }
-
+         
         [Test]
         public static void TestDynamic() {
             // First, let's create the schema (template)
@@ -271,6 +271,8 @@ namespace Starcounter.Client.Tests.Application {
 
         [Test]
         public static void TestDataBinding() {
+            StarcounterBase._DB = new FakeDbImpl();
+
             dynamic msg = new Json<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
 
             var myDataObj = new PersonObject() { FirstName = "Kalle", Surname = "Kula", Age = 21, Misc = "Lorem Ipsum" };
@@ -293,7 +295,7 @@ namespace Starcounter.Client.Tests.Application {
             msg._Age = 109L;
             msg._PhoneNumber.Number = "666";
             msg.Misc = "Changed!";
-
+             
             // Check dataobject is changed.
             Assert.AreEqual("Allan", myDataObj.FirstName);
             Assert.AreEqual("Ballan", myDataObj.Surname);
