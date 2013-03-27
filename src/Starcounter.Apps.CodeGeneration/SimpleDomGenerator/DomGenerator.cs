@@ -543,6 +543,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     Parent = appClassParent,
                     _Inherits = DefaultObjTemplate.InstanceType.Name // "Puppet", "Json"
                 };
+
                 tcn = new NTAppClass(this)
                 {
                     Parent = racn,
@@ -550,6 +551,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     NValueClass = racn,
                     _Inherits = DefaultObjTemplate.GetType().Name // "TPuppet", "TJson"
                 };
+
+                // A specific IBindable type have been specified in the json.
+                // We add it as a generic value on the Json-class this class inherits from.
+                if (at.InstanceDataTypeName != null) {
+                    racn._Inherits += '<' + at.InstanceDataTypeName + '>';
+                    ((NTAppClass)tcn).AutoBindProperties = true;
+                }
+
                 mcn = new NObjMetadata(this)
                 {
                     Parent = racn,
