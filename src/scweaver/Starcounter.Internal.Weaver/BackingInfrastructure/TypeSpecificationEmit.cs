@@ -86,7 +86,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             emittedSpec.Fields.Add(typeBindingReference);
             this.TypeBindingReference = typeBindingReference;
 
-            if (ScTransformTask.InheritsObject(typeDef)) {
+            if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                 var thisHandle = new FieldDefDeclaration {
                     Name = TypeSpecification.ThisHandleName,
                     Attributes = FieldAttributes.Family,

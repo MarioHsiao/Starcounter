@@ -113,11 +113,9 @@ namespace SQLTest.PointDb
         public Nullable<Int64> Y;
         public Nullable<Int64> Z;
 
-        public static IntegerPoint Init(Nullable<Int64> x, Nullable<Int64> y, Nullable<Int64> z)
+        public IntegerPoint(Nullable<Int64> x, Nullable<Int64> y, Nullable<Int64> z)
         {
-            IntegerPoint p = new IntegerPoint();
-            p.X = x; p.Y = y; p.Z = z;
-            return p;
+            X = x; Y = y; Z = z;
         }
     }
 }
