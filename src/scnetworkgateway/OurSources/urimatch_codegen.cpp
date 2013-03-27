@@ -34,13 +34,17 @@ void CodegenUriMatcher::Init()
     uri_info_test.processed_uri_info_string = uri_test;
     uri_info_test.processed_uri_info_len_chars = 5;
     uint32_t test_num_codegen_bytes;
-    generate_uri_matcher_(
+
+    uint32_t err_code = generate_uri_matcher_(
         g_gateway.get_sc_log_handle(),
         "MatchUriRoot123",
         &uri_info_test,
         1,
         uri_matching_code_,
         &test_num_codegen_bytes);
+
+    // Asserting that URI matcher code generation always succeeds.
+    GW_ASSERT(0 == err_code);
 }
 
 // Compile given code into native dll.
