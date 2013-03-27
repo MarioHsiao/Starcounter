@@ -18,6 +18,7 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
         private ITypeSignature bindableType;
         private IMethod bindableGetIdentityMethod;
         private IMethod objectReferenceEqualsMethod;
+        private IMethod ulongGetHashCode;
 
         public ImplementsEquality(ModuleDeclaration module, InstructionWriter writer) {
             this.module = module;
@@ -27,6 +28,7 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
             objectReferenceEqualsMethod = module.FindMethod(
                 typeof(object).GetMethod("ReferenceEquals", BindingFlags.Public | BindingFlags.Static),
                 BindingOptions.Default);
+            ulongGetHashCode = module.FindMethod(typeof(object).GetMethod("GetHashCode"), BindingOptions.Default);
         }
 
         public bool ShouldImplementOn(TypeDefDeclaration typeDef) {
@@ -44,11 +46,17 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
         }
 
         public void ImplementOn(TypeDefDeclaration typeDef) {
-            ImplementEquals(typeDef);
-            ImplementGetHashCode(typeDef);
+            // Note: we don't have to look up the hierarchy when loading the variable
+            // holding the identity, as we do when we implement other things, since we
+            // currently only implement equality on database root classes and that is
+            // also the level where we emit these variables.
+            var identityField = typeDef.Fields.GetByName(TypeSpecification.ThisIdName);
+            
+            ImplementEquals(typeDef, identityField);
+            ImplementGetHashCode(typeDef, identityField);
         }
 
-        void ImplementEquals(TypeDefDeclaration typeDef) {
+        void ImplementEquals(TypeDefDeclaration typeDef, FieldDefDeclaration identityField) {
             var equals = new MethodDefDeclaration() {
                 Name = "Equals",
                 Attributes = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual,
@@ -104,18 +112,32 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
                 w.EmitInstructionLocalVariable(OpCodeNumber.Ldloc, bindable);
                 w.EmitInstructionMethod(OpCodeNumber.Callvirt, bindableGetIdentityMethod);
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
-                // Note: we don't have to look up the hierarchy when loading the variable
-                // holding the identity, as we do when we implement other things, since we
-                // currently only implement equality on database root classes and that is
-                // also the level where we emit these variables.
-                w.EmitInstructionField(OpCodeNumber.Ldfld, typeDef.Fields.GetByName(TypeSpecification.ThisIdName));
+                w.EmitInstructionField(OpCodeNumber.Ldfld, identityField);
                 w.EmitInstruction(OpCodeNumber.Ceq);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
 
-        void ImplementGetHashCode(TypeDefDeclaration typeDef) {
-            throw new NotImplementedException();
+        void ImplementGetHashCode(TypeDefDeclaration typeDef, FieldDefDeclaration identityField) {
+            var getHashCode = new MethodDefDeclaration() {
+                Name = "GetHashCode",
+                Attributes = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual,
+                CallingConvention = CallingConvention.HasThis
+            };
+            typeDef.Methods.Add(getHashCode);
+            getHashCode.MethodBody.MaxStack = 8;
+            getHashCode.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.Cache.GetIntrinsic(IntrinsicType.Int32)
+            };
+
+            using (var attached = new AttachedInstructionWriter(writer, getHashCode)) {
+                var w = attached.Writer;
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionField(OpCodeNumber.Ldflda, identityField);
+                w.EmitInstructionMethod(OpCodeNumber.Call, ulongGetHashCode);
+                w.EmitInstruction(OpCodeNumber.Ret);
+            }
         }
     }
 }
