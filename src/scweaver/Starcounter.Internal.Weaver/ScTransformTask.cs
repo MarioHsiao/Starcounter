@@ -30,6 +30,7 @@ using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 
 namespace Starcounter.Internal.Weaver {
 
+    using Starcounter.Internal.Weaver.EqualityImpl;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
@@ -115,6 +116,7 @@ namespace Starcounter.Internal.Weaver {
         /// The _object view type
         /// </summary>
         private ITypeSignature _objectViewType;
+
         /// <summary>
         /// The _module
         /// </summary>
@@ -131,6 +133,9 @@ namespace Starcounter.Internal.Weaver {
         /// The _starcounter assembly reference
         /// </summary>
         private AssemblyRefDeclaration _starcounterAssemblyReference;
+
+        private ImplementsIObjectProxy _objectProxyEmitter;
+        private ImplementsEquality _equalityEmitter;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScTransformTask" /> class.
@@ -320,6 +325,7 @@ namespace Starcounter.Internal.Weaver {
                 typeSpecification = assemblySpecification.IncludeDatabaseClass(typeDef);
                 if (InheritsObject(typeDef)) {
                     ImplementIObjectProxy(typeDef);
+                    ImplementEquality(typeDef);
                 }
             }
 
@@ -499,22 +505,22 @@ namespace Starcounter.Internal.Weaver {
             _ushortType = _module.Cache.GetIntrinsic(IntrinsicType.UInt16);
 
             _objectViewType = _module.FindType(typeof(IObjectView), BindingOptions.Default);
-
+            
             _objectConstructor = _module.FindMethod(
                 typeof(Object).GetConstructor(Type.EmptyTypes), BindingOptions.Default);
-
+            
             type = typeof(AnonymousTypePropertyAttribute);
             cstrInfo = type.GetConstructor(new[] { typeof(int) });
-            _objViewPropIndexAttrConstructor = _module.FindMethod(cstrInfo,
-                                                                              BindingOptions.Default);
+            _objViewPropIndexAttrConstructor = _module.FindMethod(cstrInfo, BindingOptions.Default);
 
             type = typeof(AnonymousTypeAdapter);
-            _adapterGetPropertyMethod = _module.FindMethod(type.GetMethod("GetProperty"),
-                                                           BindingOptions.Default);
-            _adapterResolveIndexMethod = _module.FindMethod(type.GetMethod("ResolveIndex"),
-                                                            BindingOptions.Default);
+            _adapterGetPropertyMethod = _module.FindMethod(type.GetMethod("GetProperty"), BindingOptions.Default);
+            _adapterResolveIndexMethod = _module.FindMethod(type.GetMethod("ResolveIndex"), BindingOptions.Default);
 
             _weavingHelper = new WeavingHelper(_module);
+
+            _objectProxyEmitter = new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods);
+            _equalityEmitter = new ImplementsEquality(_module, _writer);
         }
 
         /// <summary>
@@ -878,8 +884,18 @@ namespace Starcounter.Internal.Weaver {
         }
 
         private void ImplementIObjectProxy(TypeDefDeclaration typeDef) {
-            ScMessageSource.Write(SeverityType.Info, string.Format("Implementing IObjectProxy/IObjectView for {0}", typeDef.Name), new Object[] {});
-            new ImplementsIObjectProxy(_module, _writer, _dbStateMethodProvider.ViewAccessMethods).ImplementOn(typeDef);
+            ScMessageSource.Write(SeverityType.Debug, string.Format("Implementing IObjectProxy/IObjectView for {0}", typeDef.Name), new Object[] { });
+            _objectProxyEmitter.ImplementOn(typeDef);
+        }
+
+        private bool ImplementEquality(TypeDefDeclaration typeDef) {
+            var done = false;
+            if (_equalityEmitter.ShouldImplementOn(typeDef)) {
+                ScMessageSource.Write(SeverityType.Debug, string.Format("Implementing equality on {0}", typeDef.Name), new Object[] { });
+                _equalityEmitter.ImplementOn(typeDef);
+                done = true;
+            }
+            return done;
         }
 
         /// <summary>
