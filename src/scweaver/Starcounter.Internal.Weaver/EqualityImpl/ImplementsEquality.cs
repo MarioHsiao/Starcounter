@@ -31,7 +31,7 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
 
         public bool ShouldImplementOn(TypeDefDeclaration typeDef) {
             var should = false;
-            if (ScTransformTask.InheritsObject(typeDef)) {
+            if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                 var bindOps = BindingOptions.OnlyDefinition | BindingOptions.OnlyExisting | BindingOptions.DontThrowException;
                 Predicate<IMethod> dummy = (IMethod ignored) => { return true; };
                 var methods = typeDef.Methods;

@@ -102,7 +102,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         }
 
         public bool ShouldImplementOn(TypeDefDeclaration typeDef) {
-            return ScTransformTask.InheritsObject(typeDef);
+            return WeaverUtilities.IsDatabaseRoot(typeDef);
         }
 
         public void ImplementOn(TypeDefDeclaration typeDef) {

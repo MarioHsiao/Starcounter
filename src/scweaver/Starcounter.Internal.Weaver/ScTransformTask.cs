@@ -871,16 +871,6 @@ namespace Starcounter.Internal.Weaver {
                     || typeDef.Name.StartsWith("VB$AnonymousType");
         }
 
-        /// <summary>
-        /// Gets a value indicating if the given type directly inherits the
-        /// root .NET type System.Object.
-        /// </summary>
-        /// <param name="typeDef">The type to check</param>
-        /// <returns>True if it inherits object direct; false otherwise.</returns>
-        internal static bool InheritsObject(TypeDefDeclaration typeDef) {
-            return ScAnalysisTask.Inherits(typeDef, typeof(object).FullName, true);
-        }
-
         private bool ImplementIObjectProxy(TypeDefDeclaration typeDef) {
             var done = false;
             if (_objectProxyEmitter.ShouldImplementOn(typeDef)) {
@@ -1247,7 +1237,7 @@ namespace Starcounter.Internal.Weaver {
             ScTransformTrace.Instance.WriteLine("Emitting the uninitialized constructor.");
             EmitUninitializedConstructor(typeDef);
 
-            if (InheritsObject(typeDef)) {
+            if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                 insertConstructor = EmitInsertConstructor(typeDef, typeSpecification);
             }
 
@@ -1302,7 +1292,7 @@ namespace Starcounter.Internal.Weaver {
                     // module, i.e. in a type residing in another assembly than the type
                     // we are currently weaving.
 
-                    if (InheritsObject(typeDef)) {
+                    if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                         // For database root classes - i.e. those directly inheriting one
                         // of the allowed .NET types - we use a certain strategy: we weave
                         // against the so called "insert constructor", emitted as a private
@@ -1465,7 +1455,7 @@ namespace Starcounter.Internal.Weaver {
         }
 
         private MethodDefDeclaration EmitInsertConstructor(TypeDefDeclaration typeDef, TypeSpecificationEmit typeSpecification) {
-            Trace.Assert(InheritsObject(typeDef));
+            Trace.Assert(WeaverUtilities.IsDatabaseRoot(typeDef));
 
             var insertionPoint = new MethodDefDeclaration() {
                 Name = ".ctor",
@@ -1568,7 +1558,7 @@ namespace Starcounter.Internal.Weaver {
             var sequence = uninitializedConstructor.MethodBody.CreateInstructionSequence();
             rootInstrBlock.AddInstructionSequence(sequence, NodePosition.After, null);
             _writer.AttachInstructionSequence(sequence);
-            if (InheritsObject(typeDef)) {
+            if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                 _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
             } else {
