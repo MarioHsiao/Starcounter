@@ -7,6 +7,7 @@ using Starcounter.Internal.Web;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 namespace Starcounter.Internal {
 
     /// <summary>
@@ -19,6 +20,8 @@ namespace Starcounter.Internal {
     public static class AppsBootstrapper {
 
         private static HttpAppServer appServer;
+        private static Timer sessionCleanupTimer;
+
         // private static StaticWebServer fileServer;
 
         /// <summary>
@@ -52,18 +55,21 @@ namespace Starcounter.Internal {
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(numSchedulers);
 
-            // Explicitly starting inactive sessions cleanup.
-            for (Byte i = 0; i < numSchedulers; i++)
-            {
-                // Getting sessions for current scheduler.
-                SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
-
-                // Starting inactive sessions cleanup for this scheduler.
-                DbSession dbs = new DbSession();
-                dbs.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
-            }
+            // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
+            DbSession dbSession = new DbSession();
+            int interval = 1000 * 60 * SchedulerSessions.DefaultSessionTimeoutMinutes;
+            Timer timer = new Timer((state) => {
+                    // Schedule a job to check once for inactive sessions on each scheduler.
+                    for (Byte i = 0; i < numSchedulers; i++) {
+                        // Getting sessions for current scheduler.
+                        SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
+                        dbSession.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
+                    }                                
+                }, 
+                null, interval, interval);
+            sessionCleanupTimer = timer;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
