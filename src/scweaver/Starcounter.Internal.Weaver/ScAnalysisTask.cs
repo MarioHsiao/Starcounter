@@ -766,36 +766,6 @@ namespace Starcounter.Internal.Weaver {
 
         #endregion
 
-        #region Helper methods
-
-        /// <summary>
-        /// Determines whether a <see cref="Type" /> inherits a parent type, given
-        /// the name of the parent type.
-        /// </summary>
-        /// <param name="child">Child <see cref="Type" />.</param>
-        /// <param name="parentName">Name of the parent type.</param>
-        /// <returns><b>true</b> if <paramref name="child" /> derives from a type named <paramref name="parentName" />,
-        /// otherwise <b>false</b>.</returns>
-        internal static bool Inherits(IType child, string parentName, bool onlyDirect = false) {
-            TypeDefDeclaration cursor = child.GetTypeDefinition();
-            while (true) {
-                if (cursor.GetReflectionName() == parentName) {
-                    return true;
-                }
-                if (onlyDirect && cursor != child) {
-                    return false;
-                } 
-                if (cursor.BaseType != null) {
-                    cursor = cursor.BaseType.GetTypeDefinition();
-                } else {
-                    break;
-                }
-            }
-            return false;
-        }
-
-        #endregion
-
         #region Parse attribute types
 
         /// <summary>

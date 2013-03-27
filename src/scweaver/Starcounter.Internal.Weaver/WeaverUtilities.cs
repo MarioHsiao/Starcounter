@@ -7,6 +7,7 @@
 using System;
 using Starcounter;
 using System.Diagnostics;
+using PostSharp.Sdk.CodeModel;
 
 namespace Starcounter.Internal.Weaver
 {
@@ -15,6 +16,61 @@ namespace Starcounter.Internal.Weaver
     /// </summary>
     public static class WeaverUtilities
     {
+        /// <summary>
+        /// Determines whether a <see cref="Type" /> inherits a parent type, given
+        /// the name of the parent type.
+        /// </summary>
+        /// <param name="child">Child <see cref="Type" />.</param>
+        /// <param name="parentName">Name of the parent type.</param>
+        /// <returns><b>true</b> if <paramref name="child" /> derives from a type named <paramref name="parentName" />,
+        /// otherwise <b>false</b>.</returns>
+        internal static bool Inherits(IType child, string parentName, bool onlyDirect = false) {
+            TypeDefDeclaration cursor = child.GetTypeDefinition();
+            while (true) {
+                if (cursor.GetReflectionName() == parentName) {
+                    return true;
+                }
+                if (onlyDirect && cursor != child) {
+                    return false;
+                }
+                if (cursor.BaseType != null) {
+                    cursor = cursor.BaseType.GetTypeDefinition();
+                } else {
+                    break;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets a value indicating if the given type directly inherits the
+        /// root .NET type <see cref="System.Object"/>.
+        /// </summary>
+        /// <param name="typeDef">The type to check</param>
+        /// <returns>True if it inherits <see cref="System.Object"/> direct;
+        /// false otherwise.</returns>
+        internal static bool InheritsObject(TypeDefDeclaration typeDef) {
+            return WeaverUtilities.Inherits(typeDef, typeof(object).FullName, true);
+        }
+
+        /// <summary>
+        /// Gets a value indicating if the given type is considered a database
+        /// root class.
+        /// </summary>
+        /// <remarks>
+        /// Database classes are classes recognized by Starcounter via some
+        /// decoration (currently, a custom attribute). Root database classes
+        /// are database classes that does not inherit another database class,
+        /// but rather one of the allowed framework classes (currently only
+        /// <see cref="System.Object"/>).
+        /// </remarks>
+        /// <param name="typeDef">The type to evaluate</param>
+        /// <returns>True if the type is considered a database root class;
+        /// false otherwise</returns>
+        internal static bool IsDatabaseRoot(TypeDefDeclaration typeDef) {
+            return WeaverUtilities.InheritsObject(typeDef);
+        }
+
         /// <summary>
         /// Converts a weaver message to it's error code.
         /// </summary>
