@@ -16,6 +16,7 @@ using Sc.Server.Weaver.Schema;
 using Starcounter;
 using Starcounter.Hosting;
 using Starcounter.Internal;
+using Starcounter.Metadata;
 
 namespace StarcounterInternal.Hosting
 {
@@ -131,81 +132,9 @@ namespace StarcounterInternal.Hosting
         {
             stopwatch_ = Stopwatch.StartNew();
 
-            TableDef systemTableDef;
-
-            systemTableDef = new TableDef(
-                "sys_table",
-                new ColumnDef[]
-                {
-                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("name", DbTypeCode.String, true, false),
-                    new ColumnDef("base_name", DbTypeCode.String, true, false),
-                }
-                );
-
-            TypeDef sysTableTypeDef = new TypeDef(
-                "Starcounter.Metadata.SysTable",
-                null,
-                new PropertyDef[]
-                {
-                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("BaseName", DbTypeCode.String, true) { ColumnName = "base_name" }
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysTable"),
-                systemTableDef
-                );
-
-            systemTableDef = new TableDef(
-                "sys_column",
-                new ColumnDef[]
-                {
-                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("index", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("name", DbTypeCode.String, true, false),
-                }
-                );
-
-            TypeDef sysColumnTypeDef = new TypeDef(
-                "Starcounter.Metadata.SysColumn",
-                null,
-                new PropertyDef[]
-                {
-                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Index", DbTypeCode.UInt64, false) { ColumnName = "index" },
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysColumn"),
-                systemTableDef
-                );
-
-            systemTableDef = new TableDef(
-                "sys_index",
-                new ColumnDef[]
-                {
-                    new ColumnDef("index_id", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
-                    new ColumnDef("name", DbTypeCode.String, true, false),
-                    new ColumnDef("table_name", DbTypeCode.String, true, false),
-                    new ColumnDef("description", DbTypeCode.String, true, false),
-                    new ColumnDef("unique", DbTypeCode.Boolean, false, false),
-                }
-                );
-
-            TypeDef sysIndexTypeDef = new TypeDef(
-                "Starcounter.Metadata.SysIndex",
-                null,
-                new PropertyDef[]
-                {
-                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("TableName", DbTypeCode.String, true) { ColumnName = "table_name" },
-                    new PropertyDef("Description", DbTypeCode.String, true) { ColumnName = "description" },
-                    new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndex"),
-                systemTableDef
-                );
+            var sysTableTypeDef = SysTable.CreateTypeDef();
+            var sysColumnTypeDef = SysColumn.CreateTypeDef();
+            var sysIndexTypeDef = SysIndex.CreateTypeDef();
 
             Package package = new Package(
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef },
