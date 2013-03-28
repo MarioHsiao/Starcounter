@@ -51,6 +51,7 @@ namespace Starcounter.Administrator {
             Master.ServerEngine.Setup();
             Master.ServerInterface = Master.ServerEngine.Start();
 
+
             // Start Engine services
             StartListeningService();
 
@@ -232,6 +233,45 @@ namespace Starcounter.Administrator {
             });
 
             #endregion
+
+            #region Console out from Apps
+            // Returns the log
+            GET("/databases/{?}/console", (string databaseid, Request req) => {
+
+                if (HasAccept(req["Accept"], "application/json")) {
+                    try {
+                        Starcounter.Advanced.Response response;
+                        string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+
+                        Node node = new Node("localhost", sytemHttpPort);
+
+                        node.GET(string.Format("/__{0}/console", databaseid), null, out response);
+
+                        // TODO: check if 'respone' still can be null
+                        if (response == null) {
+                            throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
+                        }
+
+                        string data = response.GetContentStringUtf8_Slow();
+                        dynamic resultJson = DynamicJson.Parse(data);
+                        resultJson.console = resultJson.console.Replace(Environment.NewLine, "<br>");
+                        return resultJson;
+                    }
+                    catch (Exception e) {
+
+                        dynamic resultJson = new DynamicJson();
+                        resultJson.console = null;
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                        return resultJson.ToString();
+                    }
+                }
+                else {
+                    return 404;
+                }
+
+            });
+            #endregion
+
 
             POST("/addstaticcontentdir", (Request req) => {
 

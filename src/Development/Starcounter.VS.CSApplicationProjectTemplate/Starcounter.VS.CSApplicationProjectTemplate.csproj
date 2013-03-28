@@ -41,7 +41,7 @@
     <WarningLevel>4</WarningLevel>
     <OutputPath>..\..\..\bin\Debug\</OutputPath>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	<DocumentationFile>bin\Debug\Starcounter.VS.CSApplicationProjectTemplate.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Starcounter.VS.CSApplicationProjectTemplate.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugType>pdbonly</DebugType>
@@ -51,7 +51,7 @@
     <WarningLevel>4</WarningLevel>
     <OutputPath>..\..\..\bin\Release\</OutputPath>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	<DocumentationFile>bin\Release\Starcounter.VS.CSApplicationProjectTemplate.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Starcounter.VS.CSApplicationProjectTemplate.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility">
@@ -64,7 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="AssemblyInfo.cs" />
-    <None Include="HelloWorld.cs" />
+    <None Include="Program.cs" />
     <None Include="ApplicationProjectTemplate.csproj">
       <SubType>Designer</SubType>
     </None>
