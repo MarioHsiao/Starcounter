@@ -13,6 +13,7 @@ using Codeplex.Data;
 using System.Net;
 using HttpStructs;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
@@ -21,6 +22,8 @@ namespace Starcounter.Internal.JsonPatch {
     public class InternalHandlers {
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
+        //        private static TextWriter _writer = null;
+        private static StreamWriter consoleWriter;
         /// <summary>
         /// Registers this instance.
         /// </summary>
@@ -32,13 +35,12 @@ namespace Starcounter.Internal.JsonPatch {
 
             HandlersManagement.SetHandlerRegisteredCallback(HandlerRegistered);
 
-            Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/sessions", () =>
-            {
+            Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/sessions", () => {
                 // Collecting number of sessions on all schedulers.
                 return "Active sessions for '" + dbName + "':" + Environment.NewLine +
                     GlobalSessions.AllGlobalSessions.GetActiveSessionsStats();
             });
-            
+
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
                 Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
@@ -46,6 +48,22 @@ namespace Starcounter.Internal.JsonPatch {
                     return ExecuteQuery(bodyData);
                 });
             }
+
+            // Do not redirect the administrator console output
+            if (Db.Environment.DatabaseName != "ADMINISTRATOR") {
+
+                Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/console", () => {
+
+                    return GetConsoleOutput(50);    // Get lines
+
+                });
+
+                // Redirect console output to circular memory buffer
+                InternalHandlers.consoleWriter = new StreamWriter(new CircularStream(1024)); // Console buffer size
+                InternalHandlers.consoleWriter.AutoFlush = true;
+                Console.SetOut(InternalHandlers.consoleWriter);
+            }
+
         }
 
         private static void HandlerRegistered(string uri, ushort port) {
@@ -75,12 +93,46 @@ namespace Starcounter.Internal.JsonPatch {
                     root = Session.Data;
                     JsonPatch.EvaluatePatches(root, request.GetContentByteArray_Slow());
                     return root;
-                } catch (NotSupportedException nex) {
+                }
+                catch (NotSupportedException nex) {
                     return new Response() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     return new Response() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
                 }
             });
+        }
+
+        private static string GetConsoleOutput(int maxLines) {
+
+            dynamic resultJson = new DynamicJson();
+            resultJson.console = null;
+            resultJson.exception = null;
+
+            try {
+
+                CircularStream circularMemoryStream = (CircularStream)InternalHandlers.consoleWriter.BaseStream;
+                byte[] buffer = new byte[circularMemoryStream.Length];
+                int count = circularMemoryStream.Read(buffer, 0, (int)circularMemoryStream.Length);
+                if (count > 0) {
+                    string result = System.Text.Encoding.UTF8.GetString(buffer);
+                    //string[] lines = result.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+                    //string consolelines = string.Empty;
+                    //int startIndex = lines.Length - maxLines;
+                    //if (startIndex < 0) startIndex = 0;
+                    //for (int i = startIndex; i < lines.Length ; i++) {
+                    //    consolelines += lines[i] + Environment.NewLine;
+                    //}
+                    resultJson.console = result;
+                }
+
+            }
+            catch (Exception e) {
+                resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+            }
+
+            return resultJson.ToString();
+
         }
 
         /// <summary>
@@ -244,5 +296,102 @@ namespace Starcounter.Internal.JsonPatch {
                 set { typeCode = value; }
             }
         }
+
+
     }
+
+
+    internal class CircularStream : Stream {
+
+        private long _Position = 0;
+        private bool _IsBufferFull = false;
+        private byte[] _Buffer;
+
+        #region properties
+
+        public override bool CanRead {
+            get { return true; }
+        }
+
+        public override bool CanSeek {
+            get { return false; }
+        }
+
+        public override bool CanWrite {
+            get { return true; }
+        }
+
+        #endregion
+
+        public CircularStream(long size) {
+            if (size <= 0) throw new ArgumentException("size");
+            this._Buffer = new byte[size];
+        }
+
+        public override void Flush() {
+
+        }
+
+        public override long Length {
+            get {
+                if (this._IsBufferFull) return this._Buffer.Length;
+                return this._Position;
+            }
+        }
+
+        public override long Position {
+            get {
+                throw new NotImplementedException();
+            }
+            set {
+                throw new NotImplementedException();
+            }
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) {
+            throw new NotImplementedException();
+        }
+
+        public override void SetLength(long value) {
+            throw new NotImplementedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) {
+
+            lock (this) {
+                long pos = 0;
+                if (this._IsBufferFull) {
+                    pos = this._Position;
+                }
+
+                int i = 0;
+                for (; i < count && i <= (this.Length - 1); i++) {
+                    buffer[offset + i] = this._Buffer[pos++];
+                    if (pos > (this._Buffer.Length - 1)) {
+                        pos = 0;
+                    }
+                }
+                return i;
+            }
+        }
+
+
+        public override void Write(byte[] buffer, int offset, int count) {
+
+            lock (this) {
+
+                for (int i = 0; i < count; i++) {
+
+                    _Buffer[this._Position++] = buffer[i];
+
+                    if (this._Position == this._Buffer.Length) {
+                        this._Position = 0;
+                        this._IsBufferFull = true;
+                    }
+                }
+            }
+
+        }
+    }
+
 }
