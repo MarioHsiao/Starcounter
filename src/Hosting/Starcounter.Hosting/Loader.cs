@@ -167,6 +167,13 @@ namespace StarcounterInternal.Hosting
 
             OnPackageProcessed();
 
+            // User-level classes are self registring and report in to
+            // the installed host manager on first use (via an emitted call
+            // in the static class constructor). For system classes, we
+            // have to do this by hand.
+
+            HostManager.InitTypeSpecification(typeof(SysTable.__starcounterTypeSpecification));
+
             stopwatch_ = null;
         }
 
