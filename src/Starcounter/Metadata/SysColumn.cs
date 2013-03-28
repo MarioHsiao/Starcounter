@@ -4,16 +4,27 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Binding;
 using Starcounter.Internal;
+using System;
 
 namespace Starcounter.Metadata
 {
-
     /// <summary>
     /// </summary>
     public sealed class SysColumn
     {
         public ObjectRef ThisRef;
+
+        /// <summary>
+        /// Creates the database binding <see cref="TypeDef"/> representing
+        /// the type in the database and holding its table- and column defintions.
+        /// </summary>
+        /// <returns>A <see cref="TypeDef"/> representing the current
+        /// type.</returns>
+        static internal TypeDef CreateTypeDef() {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// </summary>
