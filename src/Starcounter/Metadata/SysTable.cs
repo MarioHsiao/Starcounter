@@ -9,13 +9,25 @@ using Starcounter.Internal;
 using System;
 using System.Reflection;
 
-namespace Starcounter.Metadata
-{
+namespace Starcounter.Metadata {
+
     /// <summary>
     /// Class SysTable
     /// </summary>
-    public sealed class SysTable : Entity
-    {
+    public sealed class SysTable {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+        internal sealed class __starcounterTypeSpecification {
+            protected internal static ushort tableHandle;
+            protected internal static TypeBinding typeBinding;
+            protected internal static int columnHandle_TableId = 0;
+            protected internal static int columnHandle_Name = 1;
+            protected internal static int columnHandle_BaseName = 2;
+        }
+        protected TypeBinding __sc__this_binding__;
+        protected ulong __sc__this_handle__;
+        protected ulong __sc__this_id__;
+        #endregion
+
         /// <summary>
         /// Creates the database binding <see cref="TypeDef"/> representing
         /// the type in the database and holding its table- and column defintions.
@@ -23,7 +35,7 @@ namespace Starcounter.Metadata
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
-            
+
             var systemTableDef = new TableDef(
                 "sys_table",
                 new ColumnDef[]
@@ -54,30 +66,29 @@ namespace Starcounter.Metadata
         /// Initializes a new instance of the <see cref="SysTable" /> class.
         /// </summary>
         /// <param name="u">The u.</param>
-        public SysTable(Uninitialized u) : base(u) { }
+        public SysTable(Uninitialized u) : base() {
+        }
 
         /// <summary>
         /// </summary>
         public ulong TableId {
-            get { return DbState.ReadUInt64(0,0, 0); }
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableId); }
         }
 
         /// <summary>
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name
-        {
-            get { return DbState.ReadString(0,0, 1); }
+        public string Name {
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name); }
         }
 
         /// <summary>
         /// Gets the name of the base.
         /// </summary>
         /// <value>The name of the base.</value>
-        public string BaseName
-        {
-            get { return DbState.ReadString(0,0, 2); }
+        public string BaseName {
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_BaseName); }
         }
     }
 }
