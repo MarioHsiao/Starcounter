@@ -6,7 +6,8 @@ using Starcounter.Poleposition.Framework;
 namespace Starcounter.Poleposition.Circuits.Barcelona
 {
 
-public abstract class Barcelona0 : Entity
+[Database]
+public abstract class Barcelona0
 {
     public int Field0;
     public virtual void SetAll(int i)
