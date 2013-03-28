@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("$safeprojectname$")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Starcounter")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("$safeprojectname$")]
-[assembly: AssemblyCopyright("Copyright © Starcounter 2013")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
