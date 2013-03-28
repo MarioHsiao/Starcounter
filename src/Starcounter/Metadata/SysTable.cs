@@ -95,15 +95,17 @@ namespace Starcounter.Metadata {
         }
 
         ulong IObjectProxy.ThisHandle {
-            get { throw new NotImplementedException(); }
+            get { return __sc__this_handle__; }
         }
 
         void IObjectProxy.Bind(ulong addr, ulong oid, TypeBinding typeBinding) {
-            throw new NotImplementedException();
+            __sc__this_handle__ = addr;
+            __sc__this_id__ = oid;
+            __sc__this_binding__ = typeBinding;
         }
 
         ITypeBinding IObjectView.TypeBinding {
-            get { throw new NotImplementedException(); }
+            get { return __sc__this_binding__; }
         }
 
         bool IObjectView.EqualsOrIsDerivedFrom(IObjectView obj) {
@@ -111,67 +113,67 @@ namespace Starcounter.Metadata {
         }
 
         Binary? IObjectView.GetBinary(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetBinary(__sc__this_binding__, index, this);
         }
 
         bool? IObjectView.GetBoolean(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetBoolean(__sc__this_binding__, index, this);
         }
 
         byte? IObjectView.GetByte(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetByte(__sc__this_binding__, index, this);
         }
 
         DateTime? IObjectView.GetDateTime(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetDateTime(__sc__this_binding__, index, this);
         }
 
         decimal? IObjectView.GetDecimal(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetDecimal(__sc__this_binding__, index, this);
         }
 
         double? IObjectView.GetDouble(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetDouble(__sc__this_binding__, index, this);
         }
 
         short? IObjectView.GetInt16(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetInt16(__sc__this_binding__, index, this);
         }
 
         int? IObjectView.GetInt32(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetInt32(__sc__this_binding__, index, this);
         }
 
         long? IObjectView.GetInt64(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetInt64(__sc__this_binding__, index, this);
         }
 
         IObjectView IObjectView.GetObject(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetObject(__sc__this_binding__, index, this);
         }
 
         sbyte? IObjectView.GetSByte(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetSByte(__sc__this_binding__, index, this);
         }
 
         float? IObjectView.GetSingle(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetSingle(__sc__this_binding__, index, this);
         }
 
         string IObjectView.GetString(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetString(__sc__this_binding__, index, this);
         }
 
         ushort? IObjectView.GetUInt16(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetUInt16(__sc__this_binding__, index, this);
         }
 
         uint? IObjectView.GetUInt32(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetUInt32(__sc__this_binding__, index, this);
         }
 
         ulong? IObjectView.GetUInt64(int index) {
-            throw new NotImplementedException();
+            return DbState.View.GetUInt64(__sc__this_binding__, index, this);
         }
 
         bool IObjectView.AssertEquals(IObjectView other) {
@@ -179,7 +181,7 @@ namespace Starcounter.Metadata {
         }
 
         ulong Advanced.IBindable.Identity {
-            get { throw new NotImplementedException(); }
+            get { return __sc__this_id__; }
         }
     }
 }
