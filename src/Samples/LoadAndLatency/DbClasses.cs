@@ -21,7 +21,8 @@ namespace LoadAndLatency
     /// This class contains all variants of primitive
     /// data types supported by Starcounter.
     /// </summary>
-    public class TestClass : Entity
+    [Database]
+    public class TestClass
     {
         public TestClass(
             Nullable<Boolean> prop_boolean_,
@@ -159,7 +160,8 @@ namespace LoadAndLatency
     }
 
     // Simple class that is used for testing insert/delete performance.
-    public class SimpleObject : Entity
+    [Database]
+    public class SimpleObject
     {
         public Int64 fetchInt;
         public Int64 updateInt;
