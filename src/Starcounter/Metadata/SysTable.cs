@@ -7,6 +7,7 @@
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
+using System.Reflection;
 
 namespace Starcounter.Metadata
 {
@@ -22,7 +23,31 @@ namespace Starcounter.Metadata
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
-            throw new NotImplementedException();
+            
+            var systemTableDef = new TableDef(
+                "sys_table",
+                new ColumnDef[]
+                {
+                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("name", DbTypeCode.String, true, false),
+                    new ColumnDef("base_name", DbTypeCode.String, true, false),
+                }
+                );
+
+            var sysTableTypeDef = new TypeDef(
+                "Starcounter.Metadata.SysTable",
+                null,
+                new PropertyDef[]
+                {
+                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
+                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
+                    new PropertyDef("BaseName", DbTypeCode.String, true) { ColumnName = "base_name" }
+                },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysTable"),
+                systemTableDef
+                );
+
+            return sysTableTypeDef;
         }
 
         /// <summary>

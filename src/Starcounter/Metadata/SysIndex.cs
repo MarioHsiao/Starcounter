@@ -7,6 +7,7 @@
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
+using System.Reflection;
 
 namespace Starcounter.Metadata
 {
@@ -22,7 +23,35 @@ namespace Starcounter.Metadata
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
-            throw new NotImplementedException();
+            var systemTableDef = new TableDef(
+                "sys_index",
+                new ColumnDef[]
+                {
+                    new ColumnDef("index_id", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
+                    new ColumnDef("name", DbTypeCode.String, true, false),
+                    new ColumnDef("table_name", DbTypeCode.String, true, false),
+                    new ColumnDef("description", DbTypeCode.String, true, false),
+                    new ColumnDef("unique", DbTypeCode.Boolean, false, false),
+                }
+                );
+
+            var sysIndexTypeDef = new TypeDef(
+                "Starcounter.Metadata.SysIndex",
+                null,
+                new PropertyDef[]
+                {
+                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
+                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
+                    new PropertyDef("TableName", DbTypeCode.String, true) { ColumnName = "table_name" },
+                    new PropertyDef("Description", DbTypeCode.String, true) { ColumnName = "description" },
+                    new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
+                },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.SysIndex"),
+                systemTableDef
+                );
+
+            return sysIndexTypeDef;
         }
 
         /// <summary>
