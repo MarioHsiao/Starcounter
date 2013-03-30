@@ -20,6 +20,7 @@
   <PropertyGroup>
     <LocalBlueSolution>..\..\..\Level0\src\Blue.sln</LocalBlueSolution>
     <LocalStartAllScript>..\BuildSystem\Scripts\start_all.bat</LocalStartAllScript>
+    <LocalCleanOutputScript>..\BuildSystem\Scripts\clean_output.bat</LocalCleanOutputScript>
     <LocalKillAllScript>..\BuildSystem\Scripts\kill_all.bat</LocalKillAllScript>
     <LocalGatewayXML>..\scnetworkgateway\scripts\scnetworkgateway.xml</LocalGatewayXML>
     <ScerrresDll>
@@ -55,6 +56,7 @@
     <!-- Local files. -->
     <Copy Condition="Exists('$(LocalBlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalBlueBinFiles)" DestinationFiles="@(LocalBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalStartAllScript)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalCleanOutputScript)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalKillAllScript)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalTestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
