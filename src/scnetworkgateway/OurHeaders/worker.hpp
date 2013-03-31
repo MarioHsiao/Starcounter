@@ -131,12 +131,6 @@ public:
         return 0;
     }
 
-    // Gets certain socket state.
-    bool GetSocketState(int32_t db_index, SOCKET s)
-    {
-        return worker_dbs_[db_index]->GetSocketState(s);
-    }
-
     // Clone made during last iteration.
     SocketDataChunkRef get_sd_receive_clone()
     {

@@ -571,8 +571,8 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     stats_stream << "Active connections: " << NumberOfActiveConnections() << "<br>";
-    stats_stream << "Allocated Accept sockets: " << get_num_allocated_accept_sockets() << "<br>";
-    stats_stream << "Allocated Connect sockets: " << get_num_allocated_connect_sockets() << "<br>";
+    //stats_stream << "Allocated Accept sockets: " << get_num_allocated_accept_sockets() << "<br>";
+    //stats_stream << "Allocated Connect sockets: " << get_num_allocated_connect_sockets() << "<br>";
 #endif
 
     stats_stream << "<br>";
@@ -1433,7 +1433,7 @@ void ActiveDatabase::CloseSocketData()
         {
             WorkerDbInterface* worker_db = g_gateway.get_worker(w)->GetWorkerDb(db_index_);
 
-            if (worker_db->GetSocketState(s))
+            if (worker_db->IsActiveSocket(s))
                 needs_deletion = true;
 
            worker_db->UntrackSocket(s);
