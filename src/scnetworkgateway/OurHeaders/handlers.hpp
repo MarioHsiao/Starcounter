@@ -14,11 +14,14 @@ class HandlersList
     // Assigned handler info.
     BMX_HANDLER_TYPE handler_info_;
 
-    // Current number of handlers.
-    uint8_t num_entries_;
+    // Database index (from which database this handler was registered).
+    int32_t db_index_;
+
+    // Unique handler number.
+    uint64_t unique_number_;
 
     // Handler callbacks.
-    GENERIC_HANDLER_CALLBACK handlers_[bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST];
+    LinearList<GENERIC_HANDLER_CALLBACK, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handlers_;
 
     // Port number.
     uint16_t port_;
@@ -33,7 +36,6 @@ class HandlersList
     uint32_t original_uri_info_len_chars_;
     uint32_t processed_uri_info_len_chars_;
 
-    bmx::HTTP_METHODS http_method_;
     uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
     uint8_t num_params_;
 
@@ -42,10 +44,26 @@ class HandlersList
 
 public:
 
+    bool ContainsHandler(GENERIC_HANDLER_CALLBACK handler)
+    {
+        return handlers_.Find(handler);
+    }
+
+    bool RemoveHandler(GENERIC_HANDLER_CALLBACK handler)
+    {
+        return handlers_.RemoveEntry(handler);
+    }
+
     // Getting handler index.
     BMX_HANDLER_INDEX_TYPE get_handler_index()
     {
         return GetBmxHandlerIndex(handler_info_);
+    }
+
+    // Getting database index.
+    int32_t get_db_index()
+    {
+        return db_index_;
     }
 
     // Constructor.
@@ -78,13 +96,7 @@ public:
     // Getting number of entries.
     uint8_t get_num_entries()
     {
-        return num_entries_;
-    }
-
-    // Getting all handlers.
-    GENERIC_HANDLER_CALLBACK* get_handlers()
-    {
-        return handlers_;
+        return handlers_.get_num_entries();
     }
 
     // Gets sub-port number.
@@ -123,12 +135,6 @@ public:
         return processed_uri_info_len_chars_;
     }
 
-    // Get HTTP method.
-    bmx::HTTP_METHODS get_http_method()
-    {
-        return http_method_;
-    }
-
     // Gets handler type.
     bmx::HANDLER_TYPE get_type()
     {
@@ -139,7 +145,7 @@ public:
     bool HandlerAlreadyExists(GENERIC_HANDLER_CALLBACK handler_callback)
     {
         // Going through all registered handlers.
-        for (uint8_t i = 0; i < num_entries_; ++i)
+        for (uint8_t i = 0; i < handlers_.get_num_entries(); ++i)
         {
             if (handler_callback == handlers_[i])
                 return true;
@@ -152,7 +158,7 @@ public:
     uint32_t AddHandler(GENERIC_HANDLER_CALLBACK handler_callback)
     {
         // Reached maximum amount of handlers.
-        if (num_entries_ >= bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST)
+        if (handlers_.get_num_entries() >= bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST)
             return SCERRGWMAXPORTHANDLERS;
 
         // Checking if handler already exists.
@@ -160,8 +166,7 @@ public:
             return SCERRGWHANDLEREXISTS;
 
         // Adding handler to array.
-        handlers_[num_entries_] = handler_callback;
-        num_entries_++;
+        handlers_.Add(handler_callback);
 
         return 0;
     }
@@ -176,14 +181,13 @@ public:
         uint32_t original_uri_len_chars,
         const char* processed_uri_info,
         uint32_t processed_uri_len_chars,
-        bmx::HTTP_METHODS http_method,
         uint8_t* param_types,
-        int32_t num_params)
+        int32_t num_params,
+        int32_t db_index,
+        uint64_t unique_number)
     {
         GW_ASSERT(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
         GW_ASSERT(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
-
-        num_entries_ = 0;
 
         type_ = type;
         port_ = port;
@@ -191,7 +195,9 @@ public:
         subport_ = subport;
         handler_info_ = handler_info;
 
-        http_method_ = http_method;
+        db_index_ = db_index;
+        unique_number_ = unique_number;
+
         original_uri_info_len_chars_ = original_uri_len_chars;
         processed_uri_info_len_chars_ = processed_uri_len_chars;
 
@@ -231,9 +237,6 @@ public:
                 if (processed_uri_len_chars > 0)
                     strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, processed_uri_len_chars);
 
-                // Copying the HTTP method.
-                http_method_ = http_method;
-
                 break;
             }
 
@@ -249,9 +252,10 @@ public:
     // Should be called when whole handlers list should be unregistered.
     uint32_t Unregister()
     {
+        unique_number_ = 0;
         type_ = bmx::HANDLER_TYPE::UNUSED_HANDLER;
         handler_info_ = bmx::BMX_INVALID_HANDLER_INFO;
-        num_entries_ = 0;
+        db_index_ = INVALID_DB_INDEX;
 
         return 0;
     }
@@ -265,30 +269,13 @@ public:
     // Unregistering specific handler.
     uint32_t Unregister(GENERIC_HANDLER_CALLBACK handler_callback)
     {
-        // Comparing all handlers.
-        for (uint8_t i = 0; i < num_entries_; ++i)
+        // Removing handler.
+        if (handlers_.RemoveEntry(handler_callback))
         {
-            // Checking if handler is the same.
-            if (handler_callback == handlers_[i])
-            {
-                // Checking if it was not the last handler in the array.
-                if (i < (num_entries_ - 1))
-                {
-                    // Shifting all forward handlers.
-                    for (uint8_t k = i; k < (num_entries_ - 1); ++k)
-                        handlers_[k] = handlers_[k + 1];
-                }
-
-                // Number of entries decreased by one.
-                num_entries_--;
-
-                break;
-            }
+            // Checking if it was the last handler.
+            if (handlers_.IsEmpty())
+                return Unregister();
         }
-
-        // Checking if it was the last handler.
-        if (num_entries_ <= 0)
-            return Unregister();
 
         return SCERRGWHANDLERNOTFOUND;
     }
@@ -299,7 +286,7 @@ public:
         uint32_t err_code;
 
         // Going through all registered handlers.
-        for (int32_t i = 0; i < num_entries_; i++)
+        for (int32_t i = 0; i < handlers_.get_num_entries(); i++)
         {
             // Running the handler.
             err_code = handlers_[i](gw, sd, handler_info_, is_handled);
@@ -312,42 +299,8 @@ public:
         return SCERRGWPORTNOTHANDLED;
     }
 
-    /*
     // Should be called when whole handlers list should be unregistered.
-    uint32_t UnregisterGlobally(int32_t db_index)
-    {
-        // Checking the type of handler.
-        switch(type_)
-        {
-            case bmx::HANDLER_TYPE::PORT_HANDLER:
-            {
-                break;
-            }
-
-            case bmx::HANDLER_TYPE::SUBPORT_HANDLER:
-            {
-                // Unregister globally.
-
-                break;
-            }
-
-            case bmx::HANDLER_TYPE::URI_HANDLER:
-            {
-                // Unregister globally.
-                g_gateway.FindServerPort(port_)->get_registered_uris()->RemoveEntry(uri_string_, uri_len_chars_, db_index);
-
-                break;
-            }
-
-            default:
-            {
-                return SCERRGWWRONGHANDLERTYPE;
-            }
-        }
-
-        return 0;
-    }
-    */
+    uint32_t UnregisterGlobally(int32_t db_index);
 };
 
 // All handlers belonging to database.
@@ -366,11 +319,14 @@ public:
     {
         for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
         {
-            if (bmx::PORT_HANDLER == registered_handlers_[i].get_type())
+            if (!registered_handlers_[i].IsEmpty())
             {
-                if (port_num == registered_handlers_[i].get_port())
+                if (bmx::PORT_HANDLER == registered_handlers_[i].get_type())
                 {
-                    return i;
+                    if (port_num == registered_handlers_[i].get_port())
+                    {
+                        return i;
+                    }
                 }
             }
         }
@@ -383,13 +339,16 @@ public:
     {
         for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
         {
-            if (bmx::SUBPORT_HANDLER == registered_handlers_[i].get_type())
+            if (!registered_handlers_[i].IsEmpty())
             {
-                if (port_num == registered_handlers_[i].get_port())
+                if (bmx::SUBPORT_HANDLER == registered_handlers_[i].get_type())
                 {
-                    if (subport_num == registered_handlers_[i].get_subport())
+                    if (port_num == registered_handlers_[i].get_port())
                     {
-                        return i;
+                        if (subport_num == registered_handlers_[i].get_subport())
+                        {
+                            return i;
+                        }
                     }
                 }
             }
@@ -405,14 +364,17 @@ public:
 
         for (BMX_HANDLER_TYPE i = 0; i < max_num_entries_; i++)
         {
-            if (bmx::HANDLER_TYPE::URI_HANDLER == registered_handlers_[i].get_type())
+            if (!registered_handlers_[i].IsEmpty())
             {
-                if (port_num == registered_handlers_[i].get_port())
+                if (bmx::HANDLER_TYPE::URI_HANDLER == registered_handlers_[i].get_type())
                 {
-                    // Comparing URI as starts with.
-                    if (!strncmp(registered_handlers_[i].get_processed_uri_info(), processed_uri_info, uri_len_chars))
+                    if (port_num == registered_handlers_[i].get_port())
                     {
-                        return i;
+                        // Comparing URI as starts with.
+                        if (!strncmp(registered_handlers_[i].get_processed_uri_info(), processed_uri_info, uri_len_chars))
+                        {
+                            return i;
+                        }
                     }
                 }
             }
@@ -440,7 +402,8 @@ public:
         uint16_t port_num,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handler,
-        int32_t db_index);
+        int32_t db_index,
+        BMX_HANDLER_INDEX_TYPE& out_handler_index);
 
     // Registers sub-port handler.
     uint32_t RegisterSubPortHandler(
@@ -449,7 +412,8 @@ public:
         bmx::BMX_SUBPORT_TYPE subport,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
-        int32_t db_index);
+        int32_t db_index,
+        BMX_HANDLER_INDEX_TYPE& out_handler_index);
 
     // Registers URI handler.
     uint32_t RegisterUriHandler(
@@ -459,12 +423,12 @@ public:
         uint32_t original_uri_str_len,
         const char* processed_uri_string,
         uint32_t processed_uri_str_len,
-        bmx::HTTP_METHODS http_method,
         uint8_t* param_types,
         int32_t num_params,
         BMX_HANDLER_TYPE handler_id,
         GENERIC_HANDLER_CALLBACK port_handle,
-        int32_t db_index);
+        int32_t db_index,
+        BMX_HANDLER_INDEX_TYPE& out_handler_index);
 
     // Constructor.
     HandlersTable()
@@ -485,119 +449,29 @@ public:
     }
 };
 
-class UniqueHandlerList
-{
-    // Database index (if any).
-    int32_t db_index_;
-
-    // Reference to corresponding handlers list.
-    HandlersList* handlers_list_;
-
-public:
-
-    UniqueHandlerList(int32_t db_index, HandlersList* handlers_list)
-    {
-        db_index_ = db_index;
-        handlers_list_ = handlers_list;
-    }
-
-    UniqueHandlerList()
-    {
-        Reset();
-    }
-
-    int32_t get_db_index()
-    {
-        return db_index_;
-    }
-
-    HandlersList* get_handlers_list()
-    {
-        return handlers_list_;
-    }
-
-    void Reset()
-    {
-        db_index_ = INVALID_DB_INDEX;
-        handlers_list_ = NULL;
-    }
-};
-
-class UniquePortHandler
-{
-    // Database index (if any).
-    LinearList<int32_t, MAX_ACTIVE_DATABASES> db_indexes_;
-
-    // Reference to corresponding handlers list.
-    GENERIC_HANDLER_CALLBACK handler_;
-
-public:
-
-    LinearList<int32_t, MAX_ACTIVE_DATABASES>* get_db_indexes()
-    {
-        return &db_indexes_;
-    }
-
-    GENERIC_HANDLER_CALLBACK get_handler()
-    {
-        return handler_;
-    }
-
-    uint32_t GetNumberOfAttachedDbs()
-    {
-        return db_indexes_.get_num_entries();
-    }
-
-    UniquePortHandler()
-    {
-        Reset();
-    }
-
-    void Add(int32_t db_index)
-    {
-        db_indexes_.Add(db_index);
-    }
-
-    bool Remove(int32_t db_index)
-    {
-        return db_indexes_.Remove(db_index);
-    }
-
-    bool IsEmpty()
-    {
-        return db_indexes_.IsEmpty();
-    }
-
-    void Add(int32_t db_index, GENERIC_HANDLER_CALLBACK handler)
-    {
-        db_indexes_.Add(db_index);
-        handler_ = handler;
-    }
-
-    void Reset()
-    {
-        db_indexes_.Clear();
-        handler_ = NULL;
-    }
-};
-
 class PortHandlers
 {
     // Port number.
     uint16_t port_number_;
 
-    // Handler lists.
-    LinearList<UniquePortHandler, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handlers_;
+    // Unique handler lists.
+    LinearList<HandlersList*, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
 
 public:
+
+    // Initializing the entry.
+    void Add(int32_t db_index, HandlersList* handlers_list)
+    {
+        handler_lists_.Add(handlers_list);
+    }
 
     // Printing the registered URIs.
     void PrintRegisteredHandlers(std::stringstream& global_port_statistics_stream)
     {
         global_port_statistics_stream << "Port " << port_number_ << " has following handlers registered: ";
-        for (int32_t i = 0; i < handlers_.get_num_entries(); i++)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
-            global_port_statistics_stream << handlers_[i].GetNumberOfAttachedDbs() << ", ";
+            global_port_statistics_stream << handler_lists_[i]->get_db_index() << ", ";
         }
         global_port_statistics_stream << "<br>";
     }
@@ -611,69 +485,71 @@ public:
     // Checking if handlers list is empty.
     bool IsEmpty()
     {
-        return handlers_.IsEmpty();
+        return handler_lists_.IsEmpty();
     }
 
     // Removes certain entry.
     bool RemoveEntry(GENERIC_HANDLER_CALLBACK handler)
     {
+        bool removed = false;
+
         // Going through all handler lists.
-        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
         {
-            // Checking if handler is the same.
-            if (handlers_[i].get_handler() == handler)
+            if (handler_lists_[i]->RemoveHandler(handler))
             {
-                handlers_.RemoveByIndex(i);
-                break;
-            }
-        }
-
-        // Checking if list is empty.
-        if (IsEmpty())
-            return true;
-
-        return false;
-    }
-
-    // Removes certain entry.
-    bool RemoveEntry(int32_t db_index, GENERIC_HANDLER_CALLBACK handler)
-    {
-        return RemoveEntry(db_index) && RemoveEntry(handler);
-    }
-
-    // Removes certain entry.
-    bool RemoveEntry(int32_t db_index)
-    {
-        // Going through all handler lists.
-        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
-        {
-            if (handlers_[i].Remove(db_index))
-            {
-                // Checking if there are no databases left.
-                if (handlers_[i].IsEmpty())
+                if (handler_lists_[i]->IsEmpty())
                 {
-                    handlers_.RemoveByIndex(i);
-                    --i;
+                    handler_lists_.RemoveByIndex(i);
+                    i--;
                 }
+
+                removed = true;
 
                 // Not stopping, going through all entries.
             }
         }
 
-        // Checking if list is empty.
-        if (IsEmpty())
-            return true;
+        return removed;
+    }
 
-        return false;
+    // Removing certain entry.
+    bool RemoveEntry(HandlersList* handlers_list)
+    {
+        // Removing handler list.
+        return handler_lists_.RemoveEntry(handlers_list);
+    }
+
+    // Removes certain entry.
+    bool RemoveEntry(int32_t db_index)
+    {
+        bool removed = false;
+
+        // Going through all handler lists.
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
+        {
+            if (db_index == handler_lists_[i]->get_db_index())
+            {
+                // Checking if there are no databases left.
+                handler_lists_.RemoveByIndex(i);
+                --i;
+
+                removed = true;
+
+                // Not stopping, going through all entries.
+            }
+        }
+
+        return removed;
     }
 
     // Checking if certain database is contained.
     int32_t GetEntryIndex(int32_t db_index)
     {
         // Going through all handler lists.
-        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
         {
-            if (handlers_[i].get_db_indexes()->Find(db_index))
+            if (handler_lists_[i]->get_db_index() == db_index)
             {
                 return i;
             }
@@ -686,25 +562,9 @@ public:
     int32_t GetEntryIndex(GENERIC_HANDLER_CALLBACK handler)
     {
         // Going through all handler lists.
-        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
         {
-            if (handlers_[i].get_handler() == handler)
-            {
-                return i;
-            }
-        }
-
-        return INVALID_INDEX;
-    }
-
-    // Checking if certain handler is contained.
-    int32_t GetEntryIndex(int32_t db_index, GENERIC_HANDLER_CALLBACK handler)
-    {
-        // Going through all handler lists.
-        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
-        {
-            if ((handlers_[i].get_db_indexes()->Find(db_index)) &&
-                (handlers_[i].get_handler() == handler))
+            if (handler_lists_[i]->ContainsHandler(handler))
             {
                 return i;
             }
@@ -718,31 +578,11 @@ public:
         port_number_ = port_num;
     }
 
-    // Initializing the entry.
-    void Add(int32_t db_index, GENERIC_HANDLER_CALLBACK handler)
-    {
-        // Checking if does not have this handler.
-        int32_t index = GetEntryIndex(handler);
-        if (INVALID_INDEX == index)
-        {
-            // Creating and pushing new handlers list.
-            UniquePortHandler new_entry;
-            new_entry.Add(db_index, handler);
-            handlers_.Add(new_entry);
-        }
-        else
-        {
-            // Checking if does not contain entry for this database.
-            if (INVALID_INDEX == GetEntryIndex(db_index, handler))
-                handlers_[index].Add(db_index);
-        }
-    }
-
     // Resetting entry.
     void Reset()
     {
         // Removing all handlers lists.
-        handlers_.Clear();
+        handler_lists_.Clear();
 
         port_number_ = 0;
     }
@@ -753,9 +593,9 @@ public:
         uint32_t err_code;
 
         // Going through all handler list.
-        for (int32_t i = 0; i < handlers_.get_num_entries(); ++i)
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
         {
-            err_code = (handlers_[i].get_handler())(gw, sd, bmx::BMX_INVALID_HANDLER_INDEX, is_handled);
+            err_code = handler_lists_[i]->RunHandlers(gw, sd, is_handled);
 
             // Checking if information was handled and no errors occurred.
             if (*is_handled || err_code)
@@ -772,7 +612,7 @@ class RegisteredSubport
     bmx::BMX_SUBPORT_TYPE subport_;
  
     // Unique handler lists.
-    LinearList<UniqueHandlerList, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
+    LinearList<HandlersList*, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
 
 public:
 

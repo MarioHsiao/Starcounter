@@ -292,8 +292,6 @@ Gateway::Gateway()
     sc_log_handle_ = MixedCodeConstants::INVALID_SERVER_LOG_HANDLE;
 
     // Empty global statistics.
-    global_statistics_stream_ << "Empty string!";
-    global_port_statistics_stream_ << "Empty string!";
     memcpy(global_statistics_string_, kHttpStatsHeader, kHttpStatsHeaderLength);
 
     codegen_uri_matcher_ = NULL;
@@ -318,6 +316,9 @@ Gateway::Gateway()
 
     // Number of operations per second.
     num_gateway_ops_per_second_ = 0;
+
+    // Test finish critical section.
+    InitializeCriticalSection(&cs_test_finished_);
 
     // Number of measures.
     num_ops_measures_ = 0;
@@ -477,7 +478,7 @@ void ServerPort::EraseDb(int32_t db_index)
 
     // Deleting URI handlers if any.
     registered_uris_->RemoveEntry(db_index);
-
+    
     // Deleting subport handlers if any.
     registered_subports_->RemoveEntry(db_index);
 }
@@ -564,10 +565,33 @@ void ServerPort::Erase()
 }
 
 // Printing the registered URIs.
-void ServerPort::PrintInfo(std::stringstream& global_port_statistics_stream)
+void ServerPort::PrintInfo(std::stringstream& stats_stream)
 {
+    stats_stream << "Accepting sockets: " << get_num_accepting_sockets() << "<br>";
+
+#ifdef GW_COLLECT_SOCKET_STATISTICS
+    stats_stream << "Active connections: " << NumberOfActiveConnections() << "<br>";
+    stats_stream << "Allocated Accept sockets: " << get_num_allocated_accept_sockets() << "<br>";
+    stats_stream << "Allocated Connect sockets: " << get_num_allocated_connect_sockets() << "<br>";
+#endif
+
+    stats_stream << "<br>";
+
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
-    registered_uris_->PrintRegisteredUris(global_port_statistics_stream, port_number_);
+    registered_uris_->PrintRegisteredUris(stats_stream, port_number_);
+}
+
+// Printing the database information.
+void ActiveDatabase::PrintInfo(std::stringstream& stats_stream)
+{
+    stats_stream << "Database \"" << db_name_ << "\" (index " << db_index_ << ") info: " << "<br>";
+    stats_stream << "Used chunks: " << g_gateway.NumberUsedChunksPerDatabase(db_index_) << " ( ";
+
+    for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++)
+    {
+        stats_stream << g_gateway.get_worker(w)->NumberUsedChunksPerDatabasePerWorker(db_index_) << " ";
+    }
+    stats_stream << ")<br><br>";
 }
 
 ServerPort::ServerPort()
@@ -775,7 +799,8 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         }
 
         // Creating a new port entry.
-        err_code = g_gateway.get_gw_handlers()->RegisterPortHandler(NULL, portNumbers[i], 0, portHandlerTypes[i], -1);
+        BMX_HANDLER_INDEX_TYPE new_handler_index;
+        err_code = g_gateway.get_gw_handlers()->RegisterPortHandler(NULL, portNumbers[i], 0, portHandlerTypes[i], -1, new_handler_index);
         GW_ERR_CHECK(err_code);
     }
 
@@ -955,14 +980,13 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 	HANDLE worker_thread_handle[MAX_WORKER_THREADS];
 	HANDLE work_events[MAX_WORKER_THREADS];
 	std::size_t number_of_work_events = 0;
-	core::shared_interface* db_shared_int = 0;
 	std::size_t work_event_index = 0;
 	
     // Setting checking events for each worker.
 	for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id)
     {
 		WorkerDbInterface* db_int = g_gateway.get_worker(worker_id)->GetWorkerDb(db_index);
-		db_shared_int = db_int->get_shared_int();
+		core::shared_interface* db_shared_int = db_int->get_shared_int();
 
 		work_events[worker_id] = db_shared_int->open_client_work_event(db_shared_int->get_client_number());
 		++number_of_work_events;
@@ -977,15 +1001,21 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 		// Waking up the worker thread with APC.
 		QueueUserAPC(EmptyApcFunction, worker_thread_handle[worker_id], 0);
 	}
-	
-    // Looping until the database dies (TODO, does not work, forcedly killed).
-    while (!g_gateway.GetDatabase(db_index)->IsEmpty())
-    {
-        // Waiting forever for more events on channels.
-        db_shared_int->client_interface().wait_for_work(work_event_index, work_events, number_of_work_events);
 
-		// Waking up the worker thread with APC.
-		QueueUserAPC(EmptyApcFunction, worker_thread_handle[work_event_index], 0);
+    // Looping until the database dies (TODO, does not work, forcedly killed).
+    while (true)
+    {
+        for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id)
+        {
+            // Obtaining worker database shared interface.
+            core::shared_interface* db_shared_int = g_gateway.get_worker(worker_id)->GetWorkerDb(db_index)->get_shared_int();
+
+            // Waiting forever for more events on channels.
+            db_shared_int->client_interface().wait_for_work(work_event_index, work_events, number_of_work_events);
+
+            // Waking up the worker thread with APC.
+            QueueUserAPC(EmptyApcFunction, worker_thread_handle[worker_id], 0);
+        }
     }
 
     return 0;
@@ -1073,6 +1103,8 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 if (active_databases_[empty_db_index].IsEmpty())
                     break;
             }
+
+            GW_ASSERT(empty_db_index < MAX_ACTIVE_DATABASES);
 
             // Workers shared interface instances.
             core::shared_interface *workers_shared_ints =
@@ -1164,7 +1196,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                         http_tests_information_[g_gateway.setting_mode()].method_and_uri_info_len,
                         http_tests_information_[g_gateway.setting_mode()].method_and_uri_info,
                         http_tests_information_[g_gateway.setting_mode()].method_and_uri_info_len,
-                        bmx::HTTP_METHODS::OTHER_METHOD,
                         NULL,
                         0,
                         bmx::BMX_INVALID_HANDLER_INFO,
@@ -1199,7 +1230,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     reverse_proxies_[i].service_uri_len_,
                     reverse_proxies_[i].service_uri_.c_str(),
                     reverse_proxies_[i].service_uri_len_,
-                    bmx::HTTP_METHODS::OTHER_METHOD,
                     NULL,
                     0,
                     bmx::BMX_INVALID_HANDLER_INFO,
@@ -1217,33 +1247,33 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
 #endif
 
-#ifdef GW_GLOBAL_STATISTICS
-
-            // Registering URI handler for gateway statistics.
-            err_code = AddUriHandler(
-                &gw_workers_[0],
-                gw_handlers_,
-                setting_gw_stats_port_,
-                "GET /gwstats",
-                12,
-                "GET /gwstats ",
-                13,
-                bmx::HTTP_METHODS::OTHER_METHOD,
-                NULL,
-                0,
-                bmx::BMX_INVALID_HANDLER_INFO,
-                0,
-                GatewayStatisticsInfo,
-                true);
-
-            if (err_code)
+            // Only registering gateway handlers with Administrator database which is first.
+            if (0 == empty_db_index)
             {
-                // Leaving global lock.
-                LeaveGlobalLock();
+                // Registering URI handler for gateway statistics.
+                err_code = AddUriHandler(
+                    &gw_workers_[0],
+                    gw_handlers_,
+                    setting_gw_stats_port_,
+                    "GET /gwstats",
+                    12,
+                    "GET /gwstats ",
+                    13,
+                    NULL,
+                    0,
+                    bmx::BMX_INVALID_HANDLER_INFO,
+                    empty_db_index,
+                    GatewayStatisticsInfo,
+                    true);
 
-                return err_code;
+                if (err_code)
+                {
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    return err_code;
+                }
             }
-#endif
 
 #endif
 
@@ -1268,11 +1298,11 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
             // Entering global lock.
             EnterGlobalLock();
 
-            // Start database deletion.
-            active_databases_[s].StartDeletion();
-
             // Killing channels events monitor thread.
             active_databases_[s].KillChannelsEventsMonitor();
+
+            // Start database deletion.
+            active_databases_[s].StartDeletion();
 
             // Leaving global lock.
             LeaveGlobalLock();
@@ -1288,6 +1318,8 @@ ActiveDatabase::ActiveDatabase()
     apps_unique_session_numbers_unsafe_ = NULL;
     apps_session_salts_unsafe_ = NULL;
     user_handlers_ = NULL;
+    num_holding_workers_ = 0;
+    InitializeCriticalSection(&cs_db_checks_);
 
     StartDeletion();
 }
@@ -1322,6 +1354,9 @@ void ActiveDatabase::Init(
 
     num_confirmed_push_channels_ = 0;
     is_empty_ = false;
+    is_ready_for_cleanup_ = false;
+
+    num_holding_workers_ = g_gateway.setting_num_workers();
 }
 
 // Checks if this database slot empty.
@@ -1330,16 +1365,40 @@ bool ActiveDatabase::IsEmpty()
     if (is_empty_)
         return true;
 
+    EnterCriticalSection(&cs_db_checks_);
+
     // Checking if all chunks for this database were released.
-    is_empty_ = (INVALID_UNIQUE_DB_NUMBER == unique_num_unsafe_) &&
-        (0 == g_gateway.NumberUsedChunksPerDatabase(db_index_));
+    is_empty_ = (num_holding_workers_ == 0) && IsReadyForCleanup();
+
+    LeaveCriticalSection(&cs_db_checks_);
 
     return is_empty_;
+}
+
+bool ActiveDatabase::IsReadyForCleanup()
+{
+    if (is_ready_for_cleanup_)
+        return true;
+
+    EnterCriticalSection(&cs_db_checks_);
+
+    // Checking if all chunks for this database were released.
+    is_ready_for_cleanup_ =
+        (INVALID_UNIQUE_DB_NUMBER == unique_num_unsafe_) &&
+        (0 == g_gateway.NumberUsedChunksPerDatabase(db_index_));
+
+    LeaveCriticalSection(&cs_db_checks_);
+
+    return is_ready_for_cleanup_;
 }
 
 // Makes this database slot empty.
 void ActiveDatabase::StartDeletion()
 {
+    // Deleting all associated info with this database from ports.
+    uint err_code = g_gateway.EraseDatabaseFromPorts(db_index_);
+    GW_ASSERT(0 == err_code);
+
     // Closing all database sockets/sessions data.
     CloseSocketData();
 
@@ -1514,11 +1573,9 @@ uint32_t Gateway::Init()
 
 #endif
 
-#ifdef GW_URI_MATCHING_CODEGEN
     // Loading URI codegen matcher.
     codegen_uri_matcher_ = new CodegenUriMatcher();
     codegen_uri_matcher_->Init();
-#endif
 
     // Loading Clang for URI matching.
     HMODULE clang_dll = LoadLibrary(L"GatewayClang.dll");
@@ -1637,6 +1694,59 @@ uint32_t Gateway::InitSharedMemory(
     return 0;
 }
 
+// Printing statistics for all workers.
+void Gateway::PrintWorkersStatistics(std::stringstream& stats_stream)
+{
+    // Emptying the statistics stream.
+    stats_stream.str(std::string());
+
+    // Going through all ports.
+    stats_stream << "<h4>WORKERS</h4>";
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+    {
+        stats_stream << "<b>Worker " << w << ":</b><br>";
+
+        gw_workers_[w].PrintInfo(stats_stream);
+
+        stats_stream << "<br>";
+    }
+}
+
+// Printing statistics for all ports.
+void Gateway::PrintPortStatistics(std::stringstream& stats_stream)
+{
+    // Emptying the statistics stream.
+    stats_stream.str(std::string());
+
+    // Going through all ports.
+    stats_stream << "<h4>PORTS</h4>";
+    for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
+    {
+        stats_stream << "<b>Port " << server_ports_[p].get_port_number() << ":</b><br>";
+
+        server_ports_[p].PrintInfo(stats_stream);
+
+        stats_stream << "<br>";
+    }
+}
+
+// Printing statistics for all databases.
+void Gateway::PrintDatabaseStatistics(std::stringstream& stats_stream)
+{
+    // Emptying the statistics stream.
+    stats_stream.str(std::string());
+
+    // Going through all databases.
+    stats_stream << "<h4>DATABASES</h4>";
+    for (int32_t d = 0; d < num_dbs_slots_; d++)
+    {
+        if (!active_databases_[d].IsEmpty())
+        {
+            active_databases_[d].PrintInfo(stats_stream);
+        }
+    }
+}
+
 // Current global statistics value.
 const char* Gateway::GetGlobalStatisticsString(int32_t* out_stats_len_bytes)
 {
@@ -1645,38 +1755,38 @@ const char* Gateway::GetGlobalStatisticsString(int32_t* out_stats_len_bytes)
     EnterCriticalSection(&cs_statistics_);
 
     // Printing port information.
-    PrintPortStatistics();
+    PrintPortStatistics(global_port_statistics_stream_);
+
+    // Printing database statistics.
+    PrintDatabaseStatistics(global_databases_statistics_stream_);
+
+    // Printing workers statistics.
+    PrintWorkersStatistics(global_workers_statistics_stream_);
+
+    // Filing everything into one stream.
+    std::stringstream all_stats_stream;
+    all_stats_stream << global_port_statistics_stream_.str();
+    all_stats_stream << global_databases_statistics_stream_.str();
+    all_stats_stream << global_workers_statistics_stream_.str();
+    all_stats_stream << global_statistics_stream_.str();
 
     // Total number of bytes in HTTP response.
     int32_t total_response_bytes = kHttpStatsHeaderLength;
 
     // Getting number of written bytes to the stream.
-    int32_t network_stats_bytes = global_statistics_stream_.tellp();
-    total_response_bytes += network_stats_bytes;
+    int32_t all_stats_bytes = all_stats_stream.tellp();
+    total_response_bytes += all_stats_bytes;
+
     // Checking for not too big statistics.
     if (total_response_bytes >= MAX_STATS_LENGTH)
     {
-        network_stats_bytes = MAX_STATS_LENGTH - kHttpStatsHeaderLength;
+        all_stats_bytes = MAX_STATS_LENGTH - kHttpStatsHeaderLength;
         total_response_bytes = MAX_STATS_LENGTH;
     }
 
     // Copying characters from stream to given buffer.
-    global_statistics_stream_.seekg(0);
-    global_statistics_stream_.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength, network_stats_bytes);
-
-    // Getting number of written bytes to the stream.
-    int32_t ports_stats_bytes = global_port_statistics_stream_.tellp();
-    total_response_bytes += ports_stats_bytes;
-    // Checking for not too big statistics.
-    if (total_response_bytes >= MAX_STATS_LENGTH)
-    {
-        ports_stats_bytes = MAX_STATS_LENGTH - kHttpStatsHeaderLength - network_stats_bytes;
-        total_response_bytes = MAX_STATS_LENGTH;
-    }
-
-    // Copying characters from stream to given buffer.
-    global_port_statistics_stream_.seekg(0);
-    global_port_statistics_stream_.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength + network_stats_bytes, ports_stats_bytes);
+    all_stats_stream.seekg(0);
+    all_stats_stream.rdbuf()->sgetn(global_statistics_string_ + kHttpStatsHeaderLength, all_stats_bytes);
 
     // Sealing the string.
     global_statistics_string_[total_response_bytes] = '\0';
@@ -1716,7 +1826,7 @@ GatewayWorker* Gateway::get_worker(int32_t worker_id)
 }
 
 // Delete all information associated with given database from server ports.
-uint32_t Gateway::DeletePortsForDb(int32_t db_index)
+uint32_t Gateway::EraseDatabaseFromPorts(int32_t db_index)
 {
     // Going through all ports.
     for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
@@ -1726,11 +1836,24 @@ uint32_t Gateway::DeletePortsForDb(int32_t db_index)
         {
             // Deleting port handlers if any.
             server_ports_[i].EraseDb(db_index);
-
-            // Checking if port is not used anywhere.
-            if (server_ports_[i].IsEmpty())
-                server_ports_[i].Erase();
         }
+    }
+
+    // Removing empty server ports.
+    CleanUpEmptyPorts();
+
+    return 0;
+}
+
+// Cleans up empty ports.
+void Gateway::CleanUpEmptyPorts()
+{
+    // Going through all ports.
+    for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
+    {
+        // Checking if port is not used anywhere.
+        if (server_ports_[i].IsEmpty())
+            server_ports_[i].Erase();
     }
 
     // Removing deleted trailing server ports.
@@ -1742,8 +1865,6 @@ uint32_t Gateway::DeletePortsForDb(int32_t db_index)
 
         num_server_ports_unsafe_--;
     }
-
-    return 0;
 }
 
 // Getting the number of used sockets.
@@ -2368,6 +2489,10 @@ uint32_t Gateway::GatewayMonitor()
         // Checking if workers are still running.
         for (int32_t i = 0; i < setting_num_workers_; i++)
         {
+            // Waking up the worker thread with APC.
+            QueueUserAPC(EmptyApcFunction, g_gateway.get_worker_thread_handle(i), 0);
+
+            // Checking if alive.
             if (!WaitForSingleObject(worker_thread_handles_[i], 0))
             {
                 // Stating explicitly that this worker is dead.
@@ -2538,23 +2663,24 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
 #endif
 
-#ifdef GW_GLOBAL_STATISTICS
-
         EnterCriticalSection(&cs_statistics_);
 
         // Emptying the statistics stream.
-        global_statistics_stream_.clear();
-        global_statistics_stream_.seekp(0);
+        global_statistics_stream_.str(std::string());
 
         // Global statistics.
-        global_statistics_stream_ << "Global: " <<
-            "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
-#ifndef GW_NEW_SESSIONS_APPROACH
-            ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
-#endif
-            ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
-            ", reusable conn socks " << g_gateway.NumberOfReusableConnectSockets() <<
+        global_statistics_stream_ << "<h4>GLOBAL</h4>";
+
+        // Printing all workers stats.
+        global_statistics_stream_ << "All workers last second: " <<
+            "received times " << diffRecvNumAllWorkers <<
+            ", HTTP requests " << diffProcessedHttpRequestsAllWorkers <<
+            ", receive bandwidth " << recv_bandwidth_mbit_total << " mbit/sec" <<
+            ", sent times " << diffSentNumAllWorkers <<
+            ", send bandwidth " << send_bandwidth_mbit_total << " mbit/sec" <<
             "<br>" << GW_ENDL;
+
+#ifdef GW_LOGGING_ON
 
         // Individual workers statistics.
         for (int32_t worker_id_ = 0; worker_id_ < setting_num_workers_; worker_id_++)
@@ -2566,6 +2692,18 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
                 ", sent_times " << gw_workers_[worker_id_].get_worker_stats_sent_num() <<
                 "<br>" << GW_ENDL;
         }
+
+        // !!!!!!!!!!!!!
+        // NOTE: The following statistics can be dangerous since its not protected by global lock!
+        // That's why we enable it only for tests.
+
+        global_statistics_stream_ << "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
+#ifndef GW_NEW_SESSIONS_APPROACH
+            ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
+#endif
+            ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
+            ", reusable conn-socks " << g_gateway.NumberOfReusableConnectSockets() <<
+            "<br>" << GW_ENDL;
 
         // Printing handlers information for each attached database and gateway.
         for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
@@ -2589,30 +2727,20 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
             }
         }
 
-        // Printing all workers stats.
-        global_statistics_stream_ << "All workers last sec " <<
-            "recv_times " << diffRecvNumAllWorkers <<
-            ", http_requests " << diffProcessedHttpRequestsAllWorkers <<
-            ", recv_bandwidth " << recv_bandwidth_mbit_total << " mbit/sec" <<
-            ", sent_times " << diffSentNumAllWorkers <<
-            ", send_bandwidth " << send_bandwidth_mbit_total << " mbit/sec" <<
-            "<br>" << GW_ENDL;
-
 #ifdef GW_TESTING_MODE
         global_statistics_stream_ << "Perf Test Info: num confirmed echoes " << num_confirmed_echoes_unsafe_ <<
             "(" << setting_num_echoes_to_master_ << "), num sent echoes " << (current_echo_number_unsafe_ + 1) <<
             "(" << setting_num_echoes_to_master_ << ")" << "<br>" << GW_ENDL;
 #endif
 
-        LeaveCriticalSection(&cs_statistics_);
+#endif
 
-        // Printing the statistics string.
+        // Printing the statistics string to console.
 #ifdef GW_TESTING_MODE
-        int32_t len;
-        std::cout << GetGlobalStatisticsString(&len);
+        std::cout << global_statistics_stream_.str();
 #endif
 
-#endif
+        LeaveCriticalSection(&cs_statistics_);
 
     }
 
@@ -2819,6 +2947,15 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
     if (num_confirmed_echoes_unsafe_ != setting_num_echoes_to_master_)
         return false;
 
+    EnterCriticalSection(&cs_test_finished_);
+
+    // Checking if test already finished.
+    if (finished_measured_test_)
+    {
+        LeaveCriticalSection(&cs_test_finished_);
+        return false;
+    }
+
     // Running through all echoes.
     for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
     {
@@ -2843,6 +2980,10 @@ bool Gateway::CheckConfirmedEchoResponses(GatewayWorker* gw)
 // Gracefully shutdowns all needed processes after test is finished.
 uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
 {
+    // Test has finished.
+    finished_measured_test_ = true;
+    LeaveCriticalSection(&cs_test_finished_);
+
     // Checking if we are on the build server.
     char* envvar_str = std::getenv("SC_RUNNING_ON_BUILD_SERVER");
     bool is_on_build_server = false;
@@ -2941,7 +3082,6 @@ uint32_t Gateway::AddUriHandler(
     uint32_t original_uri_info_len_chars,
     const char* processed_uri_info,
     uint32_t processed_uri_info_len_chars,
-    bmx::HTTP_METHODS http_method,
     uint8_t* param_types,
     int32_t num_params,
     BMX_HANDLER_TYPE handler_id,
@@ -2952,6 +3092,7 @@ uint32_t Gateway::AddUriHandler(
     uint32_t err_code;
 
     // Registering URI handler.
+    BMX_HANDLER_INDEX_TYPE new_handler_index;
     err_code = handlers_table->RegisterUriHandler(
         gw,
         port,
@@ -2959,12 +3100,12 @@ uint32_t Gateway::AddUriHandler(
         original_uri_info_len_chars,
         processed_uri_info,
         processed_uri_info_len_chars,
-        http_method,
         param_types,
         num_params,
         handler_id,
         handler_proc,
-        db_index);
+        db_index,
+        new_handler_index);
 
     GW_ERR_CHECK(err_code);
 
@@ -2979,7 +3120,7 @@ uint32_t Gateway::AddUriHandler(
 
     // Registering URI on port.
     RegisteredUris* all_port_uris = server_port->get_registered_uris();
-    int32_t index = all_port_uris->FindRegisteredUri(processed_uri_info, processed_uri_info_len_chars);
+    int32_t index = all_port_uris->FindRegisteredUri(processed_uri_info);
 
     // Checking if there is an entry.
     if (index < 0)
@@ -2998,10 +3139,6 @@ uint32_t Gateway::AddUriHandler(
 
         // Creating totally new URI entry.
         RegisteredUri new_entry(
-            original_uri_info,
-            original_uri_info_len_chars,
-            processed_uri_info,
-            processed_uri_info_len_chars,
             session_param_index,
             db_index,
             handlers_table->get_handler_list(handler_index),
@@ -3018,11 +3155,8 @@ uint32_t Gateway::AddUriHandler(
         // Checking if there is no database for this URI.
         if (!reg_uri->ContainsDb(db_index))
         {
-            // Creating new unique handlers list for this database.
-            UniqueHandlerList uhl(db_index, handlers_table->get_handler_list(handler_index));
-
             // Adding new handler list for this database to the URI.
-            reg_uri->Add(uhl);
+            reg_uri->Add(handlers_table->get_handler_list(handler_index));
         }
     }
     GW_ERR_CHECK(err_code);
@@ -3042,12 +3176,14 @@ uint32_t Gateway::AddPortHandler(
     int32_t db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
 {
+    BMX_HANDLER_INDEX_TYPE new_handler_index;
     return handlers_table->RegisterPortHandler(
         gw,
         port,
         handler_info,
         handler_proc,
-        db_index);
+        db_index,
+        new_handler_index);
 }
 
 // Adds some sub-port handler: either Apps or Gateway.
@@ -3060,13 +3196,15 @@ uint32_t Gateway::AddSubPortHandler(
     int32_t db_index,
     GENERIC_HANDLER_CALLBACK handler_proc)
 {
+    BMX_HANDLER_INDEX_TYPE new_handler_index;
     return handlers_table->RegisterSubPortHandler(
         gw,
         port,
         subport,
         handler_id,
         handler_proc,
-        db_index);
+        db_index,
+        new_handler_index);
 }
 
 extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);

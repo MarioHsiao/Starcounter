@@ -175,8 +175,6 @@ namespace bmx
         uint32_t original_uri_info_len_chars_;
         uint32_t processed_uri_info_len_chars_;
 
-        bmx::HTTP_METHODS http_method_;
-
         uint8_t num_params_;
         uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
 
@@ -254,12 +252,6 @@ namespace bmx
             return processed_uri_info_len_chars_;
         }
 
-        // Get HTTP method.
-        bmx::HTTP_METHODS get_http_method()
-        {
-            return http_method_;
-        }
-
         // Get number of URI callback parameters.
         int32_t get_num_params()
         {
@@ -313,7 +305,6 @@ namespace bmx
             uint32_t original_uri_len_chars,
             char* processed_uri_info,
             uint32_t processed_uri_len_chars,
-            bmx::HTTP_METHODS http_method,
             uint8_t* param_types,
             int32_t num_params)
         {
@@ -327,8 +318,6 @@ namespace bmx
 
             subport_ = subport;
             handler_info_ = handler_info;
-
-            http_method_ = http_method;
 
             original_uri_info_len_chars_ = original_uri_len_chars;
             processed_uri_info_len_chars_ = processed_uri_len_chars;
@@ -368,9 +357,6 @@ namespace bmx
 
                     if (processed_uri_len_chars > 0)
                         strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, processed_uri_len_chars);
-
-                    // Copying the HTTP method.
-                    http_method_ = http_method;
 
                     break;
                 }
@@ -434,7 +420,6 @@ namespace bmx
             resp_chunk->write(port_);
             resp_chunk->write_string(original_uri_info_, original_uri_info_len_chars_);
             resp_chunk->write_string(processed_uri_info_, processed_uri_info_len_chars_);
-            resp_chunk->write((uint8_t)http_method_);
             resp_chunk->write(num_params_);
             resp_chunk->write_data_only(param_types_, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
 
@@ -629,7 +614,6 @@ namespace bmx
             uint16_t port,
             char* original_uri_info,
             char* processed_uri_info,
-            HTTP_METHODS http_method,
             uint8_t* param_types,
             int32_t num_params,
             GENERIC_HANDLER_CALLBACK uri_handler, 
