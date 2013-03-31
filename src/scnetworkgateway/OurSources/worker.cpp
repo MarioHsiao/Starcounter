@@ -1462,13 +1462,15 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
             if (g_gateway.GetDatabase(i)->IsDeletionStarted())
             {
                 // Checking that database is ready for deletion (i.e. no pending sockets and chunks).
-                if (g_gateway.GetDatabase(i)->IsEmpty())
+                if (g_gateway.GetDatabase(i)->IsReadyForCleanup())
                 {
                     // Entering global lock.
                     EnterGlobalLock();
 
-                    // Deleting all associated info with this database from ports.
-                    g_gateway.DeletePortsForDb(i);
+                    // Deleting all ports that are empty from chunks, etc.
+                    g_gateway.CleanUpEmptyPorts();
+
+                    GW_ASSERT(true == g_gateway.GetDatabase(i)->IsReadyForCleanup());
 
                     // Finally completely deleting database object and closing shared memory.
                     DeleteInactiveDatabase(i);
@@ -1476,6 +1478,7 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
 #ifdef GW_DATABASES_DIAG
                     GW_PRINT_WORKER << "Deleted shared memory for db slot: " << i << GW_ENDL;
 #endif
+                    g_gateway.GetDatabase(i)->ReleaseHoldingWorker();
 
                     // Leaving global lock.
                     LeaveGlobalLock();
@@ -1536,6 +1539,7 @@ uint32_t GatewayWorker::AddNewDatabase(
     const core::shared_interface& worker_shared_int)
 {
     worker_dbs_[db_index] = new WorkerDbInterface(db_index, worker_shared_int, worker_id_);
+
     return 0;
 }
 

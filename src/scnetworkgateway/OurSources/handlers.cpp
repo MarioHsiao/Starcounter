@@ -11,12 +11,51 @@
 namespace starcounter {
 namespace network {
 
+// Should be called when whole handlers list should be unregistered.
+uint32_t HandlersList::UnregisterGlobally(int32_t db_index)
+{
+    // Checking the type of handler.
+    switch(type_)
+    {
+        case bmx::HANDLER_TYPE::PORT_HANDLER:
+        {
+            break;
+        }
+
+        case bmx::HANDLER_TYPE::SUBPORT_HANDLER:
+        {
+            // Unregister globally.
+
+            break;
+        }
+
+        case bmx::HANDLER_TYPE::URI_HANDLER:
+        {
+            // Unregister globally.
+            g_gateway.FindServerPort(port_)->get_registered_uris()->RemoveEntry(db_index, processed_uri_info_);
+
+            // Collecting empty ports.
+            g_gateway.CleanUpEmptyPorts();
+
+            break;
+        }
+
+        default:
+        {
+            return SCERRGWWRONGHANDLERTYPE;
+        }
+    }
+
+    return 0;
+}
+
 uint32_t HandlersTable::RegisterPortHandler(
     GatewayWorker *gw,
     uint16_t port_num,
     BMX_HANDLER_TYPE handler_info,
     GENERIC_HANDLER_CALLBACK port_handler,
-    int32_t db_index)
+    int32_t db_index,
+    BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -24,7 +63,8 @@ uint32_t HandlersTable::RegisterPortHandler(
 
     uint32_t err_code = 0;
 
-    BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
+    BMX_HANDLER_INDEX_TYPE i;
+    out_handler_index = max_num_entries_;
 
     // Running throw existing handlers.
     for (i = 0; i < max_num_entries_; i++)
@@ -32,7 +72,7 @@ uint32_t HandlersTable::RegisterPortHandler(
         // Checking if empty slot.
         if (registered_handlers_[i].IsEmpty())
         {
-            empty_slot = i;
+            out_handler_index = i;
         }
         // Checking current handler type to be port handler.
         else if (bmx::PORT_HANDLER == registered_handlers_[i].get_type())
@@ -69,7 +109,7 @@ uint32_t HandlersTable::RegisterPortHandler(
     }
 
     // Initializing new handlers list.
-    err_code = registered_handlers_[empty_slot].Init(
+    err_code = registered_handlers_[out_handler_index].Init(
         bmx::HANDLER_TYPE::PORT_HANDLER,
         handler_info,
         port_num,
@@ -78,20 +118,21 @@ uint32_t HandlersTable::RegisterPortHandler(
         0,
         NULL,
         0,
-        bmx::HTTP_METHODS::OTHER_METHOD,
         NULL,
+        0,
+        db_index,
         0);
 
     if (err_code)
         goto ERROR_HANDLING;
 
     // Adding handler to the list.
-    err_code = registered_handlers_[empty_slot].AddHandler(port_handler);
+    err_code = registered_handlers_[out_handler_index].AddHandler(port_handler);
     if (err_code)
         goto ERROR_HANDLING;
 
     // New handler added.
-    if (empty_slot == max_num_entries_)
+    if (out_handler_index == max_num_entries_)
         max_num_entries_++;
 
 PROCESS_SERVER_PORT:
@@ -133,15 +174,12 @@ PROCESS_SERVER_PORT:
             goto ERROR_HANDLING;
     }
 
-    // Adding handler if it does not exist yet.
-    server_port->get_port_handlers()->Add(db_index, OuterPortProcessData);
-
     return 0;
 
     // Handling error.
 ERROR_HANDLING:
 
-    registered_handlers_[empty_slot].Unregister();
+    registered_handlers_[out_handler_index].Unregister();
     return err_code;
 }
 
@@ -152,7 +190,8 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     bmx::BMX_SUBPORT_TYPE subport,
     BMX_HANDLER_TYPE handler_info,
     GENERIC_HANDLER_CALLBACK subport_handler,
-    int32_t db_index)
+    int32_t db_index,
+    BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -160,7 +199,8 @@ uint32_t HandlersTable::RegisterSubPortHandler(
 
     uint32_t err_code = 0;
 
-    BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
+    BMX_HANDLER_INDEX_TYPE i;
+    out_handler_index = max_num_entries_;
 
     // Running throw existing handlers.
     for (i = 0; i < max_num_entries_; i++)
@@ -168,7 +208,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
         // Checking if empty slot.
         if (registered_handlers_[i].IsEmpty())
         {
-            empty_slot = i;
+            out_handler_index = i;
         }
         // Checking current handler type to be port handler.
         else if (bmx::HANDLER_TYPE::SUBPORT_HANDLER == registered_handlers_[i].get_type())
@@ -208,7 +248,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
     }
 
     // Initializing new handlers list.
-    err_code = registered_handlers_[empty_slot].Init(
+    err_code = registered_handlers_[out_handler_index].Init(
         bmx::HANDLER_TYPE::SUBPORT_HANDLER,
         handler_info,
         port_num,
@@ -217,20 +257,21 @@ uint32_t HandlersTable::RegisterSubPortHandler(
         0,
         NULL,
         0,
-        bmx::HTTP_METHODS::OTHER_METHOD,
         NULL,
+        0,
+        db_index,
         0);
 
     if (err_code)
         goto ERROR_HANDLING;
 
     // Adding handler to the list.
-    err_code = registered_handlers_[empty_slot].AddHandler(subport_handler);
+    err_code = registered_handlers_[out_handler_index].AddHandler(subport_handler);
     if (err_code)
         goto ERROR_HANDLING;
 
     // New handler added.
-    if (empty_slot == max_num_entries_)
+    if (out_handler_index == max_num_entries_)
         max_num_entries_++;
 
 PROCESS_SERVER_PORT:
@@ -250,6 +291,15 @@ PROCESS_SERVER_PORT:
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock, SUBPORT_BLOB_USER_DATA_OFFSET);
+
+        // Adding new port outer handler.
+        BMX_HANDLER_INDEX_TYPE new_handler_index;
+        err_code = RegisterPortHandler(gw, port_num, 0, OuterSubportProcessData, db_index, new_handler_index);
+        if (err_code)
+            goto ERROR_HANDLING;
+
+        // Adding port handler.
+        server_port->get_port_handlers()->Add(db_index, registered_handlers_ + new_handler_index);
     }
 
     // Checking if port contains handlers from this database.
@@ -272,15 +322,12 @@ PROCESS_SERVER_PORT:
             goto ERROR_HANDLING;
     }
 
-    // Adding handler if it does not exist yet.
-    server_port->get_port_handlers()->Add(db_index, OuterSubportProcessData);
-
     return 0;
 
     // Handling error.
 ERROR_HANDLING:
 
-    registered_handlers_[empty_slot].Unregister();
+    registered_handlers_[out_handler_index].Unregister();
     return err_code;
 }
 
@@ -292,12 +339,12 @@ uint32_t HandlersTable::RegisterUriHandler(
     uint32_t original_uri_str_len,
     const char* processed_uri_string,
     uint32_t processed_uri_str_len,
-    bmx::HTTP_METHODS http_method,
     uint8_t* param_types,
     int32_t num_params,
     BMX_HANDLER_TYPE handler_info,
     GENERIC_HANDLER_CALLBACK uri_handler,
-    int32_t db_index)
+    int32_t db_index,
+    BMX_HANDLER_INDEX_TYPE& out_handler_index)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= bmx::MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -305,7 +352,8 @@ uint32_t HandlersTable::RegisterUriHandler(
 
     uint32_t err_code = 0;
 
-    BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
+    BMX_HANDLER_INDEX_TYPE i;
+    out_handler_index = max_num_entries_;
 
     // Running throw existing handlers.
     for (i = 0; i < max_num_entries_; i++)
@@ -313,7 +361,7 @@ uint32_t HandlersTable::RegisterUriHandler(
         // Checking if empty slot.
         if (registered_handlers_[i].IsEmpty())
         {
-            empty_slot = i;
+            out_handler_index = i;
         }
         // Checking current handler type to be port handler.
         else if (bmx::URI_HANDLER == registered_handlers_[i].get_type())
@@ -354,7 +402,7 @@ uint32_t HandlersTable::RegisterUriHandler(
     }
 
     // Initializing new handlers list.
-    err_code = registered_handlers_[empty_slot].Init(
+    err_code = registered_handlers_[out_handler_index].Init(
         bmx::HANDLER_TYPE::URI_HANDLER,
         handler_info,
         port_num,
@@ -363,20 +411,21 @@ uint32_t HandlersTable::RegisterUriHandler(
         original_uri_str_len,
         processed_uri_string,
         processed_uri_str_len,
-        http_method,
         param_types,
-        num_params);
+        num_params,
+        db_index,
+        0);
 
     if (err_code)
         goto ERROR_HANDLING;
 
     // Adding handler to the list.
-    err_code = registered_handlers_[empty_slot].AddHandler(uri_handler);
+    err_code = registered_handlers_[out_handler_index].AddHandler(uri_handler);
     if (err_code)
         goto ERROR_HANDLING;
 
     // New handler added.
-    if (empty_slot == max_num_entries_)
+    if (out_handler_index == max_num_entries_)
         max_num_entries_++;
 
 PROCESS_SERVER_PORT:
@@ -396,6 +445,15 @@ PROCESS_SERVER_PORT:
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock, HTTP_BLOB_USER_DATA_OFFSET);
+
+        // Adding new port outer handler.
+        BMX_HANDLER_INDEX_TYPE new_handler_index;
+        err_code = RegisterPortHandler(gw, port_num, 0, OuterUriProcessData, db_index, new_handler_index);
+        if (err_code)
+            goto ERROR_HANDLING;
+        
+        // Adding port handler.
+        server_port->get_port_handlers()->Add(db_index, registered_handlers_ + new_handler_index);
     }
 
     // Checking if port contains handlers from this database.
@@ -418,15 +476,12 @@ PROCESS_SERVER_PORT:
             goto ERROR_HANDLING;
     }
 
-    // Adding handler if it does not exist yet.
-    server_port->get_port_handlers()->Add(db_index, OuterUriProcessData);
-
     return 0;
 
     // Handling error.
 ERROR_HANDLING:
 
-    registered_handlers_[empty_slot].Unregister();
+    registered_handlers_[out_handler_index].Unregister();
     return err_code;
 }
 
@@ -438,9 +493,7 @@ HandlersList* HandlersTable::FindHandler(BMX_HANDLER_TYPE handler_info)
     {
         // Checking if the same handler.
         if (GetBmxHandlerIndex(handler_info) == registered_handlers_[i].get_handler_index())
-        {
             return registered_handlers_ + i;
-        }
     }
 
     return NULL;
@@ -486,7 +539,7 @@ uint32_t OuterPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     uint16_t port_num = g_gateway.get_server_port(sd->get_port_index())->get_port_number();
 
     // Searching for the user code handler id.
-    handler_index = handlers_table->FindPortHandlerIndex(port_num);
+    handler_index = g_gateway.get_gw_handlers()->FindPortHandlerIndex(port_num);
 
     // Checking if handler was not found in database handlers.
     if (bmx::BMX_INVALID_HANDLER_INDEX == handler_index)
