@@ -462,7 +462,9 @@ public:
     // Initializing the entry.
     void Add(int32_t db_index, HandlersList* handlers_list)
     {
-        handler_lists_.Add(handlers_list);
+        // Adding only if it does not exist.
+        if (!handler_lists_.Find(handlers_list))
+            handler_lists_.Add(handlers_list);
     }
 
     // Printing the registered URIs.

@@ -174,6 +174,9 @@ PROCESS_SERVER_PORT:
             goto ERROR_HANDLING;
     }
 
+    // Adding port handler if does not exist.
+    server_port->get_port_handlers()->Add(db_index, registered_handlers_ + out_handler_index);
+
     return 0;
 
     // Handling error.
@@ -295,29 +298,6 @@ PROCESS_SERVER_PORT:
         // Adding new port outer handler.
         BMX_HANDLER_INDEX_TYPE new_handler_index;
         err_code = RegisterPortHandler(gw, port_num, 0, OuterSubportProcessData, db_index, new_handler_index);
-        if (err_code)
-            goto ERROR_HANDLING;
-
-        // Adding port handler.
-        server_port->get_port_handlers()->Add(db_index, registered_handlers_ + new_handler_index);
-    }
-
-    // Checking if port contains handlers from this database.
-    if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
-    {
-        // Determining how many connections to create.
-        int32_t how_many = ACCEPT_ROOF_STEP_SIZE;
-
-#ifdef GW_TESTING_MODE
-
-        // On the test client we immediately creating all needed connections.
-        if (!g_gateway.setting_is_master())
-            how_many = g_gateway.setting_num_connections_to_master_per_worker();
-
-#endif
-
-        // Creating new connections if needed for this database.
-        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
         if (err_code)
             goto ERROR_HANDLING;
     }
@@ -449,29 +429,6 @@ PROCESS_SERVER_PORT:
         // Adding new port outer handler.
         BMX_HANDLER_INDEX_TYPE new_handler_index;
         err_code = RegisterPortHandler(gw, port_num, 0, OuterUriProcessData, db_index, new_handler_index);
-        if (err_code)
-            goto ERROR_HANDLING;
-        
-        // Adding port handler.
-        server_port->get_port_handlers()->Add(db_index, registered_handlers_ + new_handler_index);
-    }
-
-    // Checking if port contains handlers from this database.
-    if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
-    {
-        // Determining how many connections to create.
-        int32_t how_many = ACCEPT_ROOF_STEP_SIZE;
-
-#ifdef GW_TESTING_MODE
-
-        // On the test client we immediately creating all needed connections.
-        if (!g_gateway.setting_is_master())
-            how_many = g_gateway.setting_num_connections_to_master_per_worker();
-
-#endif
-
-        // Creating new connections if needed for this database.
-        err_code = g_gateway.CreateNewConnectionsAllWorkers(how_many, port_num, db_index);
         if (err_code)
             goto ERROR_HANDLING;
     }
