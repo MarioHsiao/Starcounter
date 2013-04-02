@@ -493,7 +493,7 @@ function LogCtrl($scope, $dialog, Log) {
 function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 
     $scope.selectedDatabase = null;
-    $scope.sqlQuery = "select m from systable m";
+    $scope.sqlQuery = "";
     $scope.columns = [];
     $scope.rows = [];
     $scope.alerts = [];
