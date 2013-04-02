@@ -154,11 +154,13 @@ namespace Starcounter.Internal {
         ulong? IObjectView.GetUInt64(int index) {
             return DbState.View.GetUInt64(__sc__this_binding__, index, this);
         }
-
+        
+#if DEBUG
         /// <inheritdoc />
         bool IObjectView.AssertEquals(IObjectView other) {
             throw new NotImplementedException();
         }
+#endif
 
         /// <inheritdoc />
         ulong Advanced.IBindable.Identity {
