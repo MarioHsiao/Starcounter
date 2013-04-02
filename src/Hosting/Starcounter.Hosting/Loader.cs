@@ -173,6 +173,8 @@ namespace StarcounterInternal.Hosting
             // have to do this by hand.
 
             HostManager.InitTypeSpecification(typeof(SysTable.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(SysColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(SysIndex.__starcounterTypeSpecification));
 
             stopwatch_ = null;
         }
