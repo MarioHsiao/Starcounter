@@ -24,7 +24,7 @@
   <AggregationPort>0</AggregationPort>
   
   <!-- Number of worker threads -->
-  <WorkersNumber>1</WorkersNumber>
+  <WorkersNumber>2</WorkersNumber>
   
   <!-- Maximum number of connections -->
   <MaxConnections>1000000</MaxConnections>

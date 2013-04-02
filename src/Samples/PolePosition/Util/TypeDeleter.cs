@@ -8,7 +8,6 @@ public static class TypeDeleter
 {
 
     public static void DeleteAllOfType<T>()
-    where T : Entity
     {
         using(SqlEnumerator<Object> se = (SqlEnumerator<Object>)Db.SQL(SelectAll<T>.Query).GetEnumerator())
         {
@@ -19,7 +18,7 @@ public static class TypeDeleter
         }
     }
 
-    private static class SelectAll<T> where T : Entity
+    private static class SelectAll<T>
     {
         public static readonly string Query = "SELECT x FROM " + typeof(T).FullName + " x";
     }

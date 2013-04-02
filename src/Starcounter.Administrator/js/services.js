@@ -66,5 +66,12 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
     });
 
+    $provide.factory('Console', function ($resource) {
+        return $resource('/databases/:databaseName/console', { databaseName: '@databaseName' }, {
+            query: { method: 'GET', isArray: false }    // We need to override this (the return type is not an array)
+        });
+    });
+
+
  });
 
