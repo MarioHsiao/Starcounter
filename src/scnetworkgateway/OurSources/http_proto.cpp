@@ -30,11 +30,11 @@ uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bo
     for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
     {
         // Checking if chunk belongs to the destination database.
-        if (sd->get_db_index() != handler_lists_[i].get_db_index())
+        if (sd->get_db_index() != handler_lists_[i]->get_db_index())
         {
             // Getting new chunk and copy contents from old one.
             SocketDataChunk* new_sd = NULL;
-            err_code = gw->CloneChunkForAnotherDatabase(sd, handler_lists_[i].get_db_index(), &new_sd);
+            err_code = gw->CloneChunkForAnotherDatabase(sd, handler_lists_[i]->get_db_index(), &new_sd);
             if (err_code)
                 return err_code;
 
@@ -43,7 +43,7 @@ uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bo
         }
 
         // Running handlers.
-        err_code = handler_lists_[i].get_handlers_list()->RunHandlers(gw, sd, is_handled);
+        err_code = handler_lists_[i]->RunHandlers(gw, sd, is_handled);
 
         // Checking if information was handled and no errors occurred.
         if (*is_handled || err_code)
@@ -81,9 +81,7 @@ inline uint32_t GetMethodAndUri(
     {
         if (http_data[pos] == ' ')
         {
-#ifdef GW_URI_MATCHING_CODEGEN
             pos++;
-#endif
 
             break;
         }
@@ -96,11 +94,7 @@ inline uint32_t GetMethodAndUri(
     if (pos < http_data_len)
     {
         // Checking for HTTP keyword.
-#ifdef GW_URI_MATCHING_CODEGEN
         if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
-#else
-        if (*(uint32_t*)(http_data + pos + 1) != *(uint32_t*)"HTTP")
-#endif
         {
             // Wrong protocol.
             return SCERRGWNONHTTPPROTOCOL;
@@ -154,10 +148,7 @@ inline uint32_t GetMethodAndUriLowerCase(
     {
         if (http_data[pos] == ' ')
         {
-#ifdef GW_URI_MATCHING_CODEGEN
             pos++;
-#endif
-
             break;
         }
 
@@ -169,11 +160,7 @@ inline uint32_t GetMethodAndUriLowerCase(
     if (pos < http_data_len)
     {
         // Checking for HTTP keyword.
-#ifdef GW_URI_MATCHING_CODEGEN
         if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
-#else
-        if (*(uint32_t*)(http_data + pos + 1) != *(uint32_t*)"HTTP")
-#endif
         {
             // Wrong protocol.
             return SCERRGWNONHTTPPROTOCOL;
@@ -593,8 +580,6 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         // Determining which matched handler to pick.
         int32_t matched_index = INVALID_URI_INDEX;
 
-#ifdef GW_URI_MATCHING_CODEGEN
-
         // Checking if URI matching code is generated.
         if (!port_uris->get_latest_match_uri_func())
         {
@@ -617,38 +602,6 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 
         // Getting the matched uri index.
         matched_index = port_uris->RunCodegenUriMatcher(method_and_uri, method_and_uri_len, sd->get_accept_data());
-        goto DONE_URI_MATCHING;
-
-#endif
-
-        // Searching matching method and URI.
-        int32_t max_matched_chars_method_and_uri;
-        int32_t matched_index_method_and_uri = port_uris->SearchMatchingUriHandler(method_and_uri, method_and_uri_len, max_matched_chars_method_and_uri);
-        max_matched_chars_method_and_uri -= uri_offset;
-
-        // Searching on URIs only now.
-        int32_t max_matched_chars_just_uri;
-        int32_t matched_index_just_uri = port_uris->SearchMatchingUriHandler(method_and_uri + uri_offset, method_and_uri_len - uri_offset, max_matched_chars_just_uri);
-
-        // Checking if succeeded.
-        if (matched_index_method_and_uri >= 0)
-        {
-            matched_index = matched_index_method_and_uri;
-
-            // Checking if pure URI was matched as well.
-            if (matched_index_just_uri >= 0)
-            {
-                // Comparing which URI is longer.
-                if (max_matched_chars_just_uri > max_matched_chars_method_and_uri)
-                    matched_index = matched_index_just_uri;
-            }
-        }
-        else if (matched_index_just_uri >= 0)
-        {
-            matched_index = matched_index_just_uri;
-        }
-
-DONE_URI_MATCHING:
 
         // Checking if we failed to find again.
         if (matched_index < 0)
@@ -1356,8 +1309,6 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
 
 #endif
 
-#ifdef GW_GLOBAL_STATISTICS
-
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
@@ -1366,8 +1317,6 @@ uint32_t GatewayStatisticsInfo(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAN
     *is_handled = true;
     return gw->SendPredefinedMessage(sd, stats_page_string, resp_len_bytes);
 }
-
-#endif
 
 } // namespace network
 } // namespace starcounter

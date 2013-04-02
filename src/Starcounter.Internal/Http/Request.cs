@@ -287,20 +287,20 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetContentRaw(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_request_struct_->GetContentRaw(out ptr, out sizeBytes); }
+            unsafe { http_request_struct_->GetBodyRaw(out ptr, out sizeBytes); }
         }
 
         /// <summary>
         /// Gets the content as byte array.
         /// </summary>
         /// <returns></returns>
-        public Byte[] GetContentByteArray_Slow()
+        public Byte[] GetBodyByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
-            unsafe { return http_request_struct_->GetContentByteArray_Slow(); }
+            unsafe { return http_request_struct_->GetBodyByteArray_Slow(); }
         }
 
         /// <summary>
@@ -328,8 +328,8 @@ namespace Starcounter.Advanced {
         /// Gets the Content as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetContentStringUtf8_Slow() {
-            unsafe { return http_request_struct_->GetContentStringUtf8_Slow(); }
+        public String GetBodyStringUtf8_Slow() {
+            unsafe { return http_request_struct_->GetBodyStringUtf8_Slow(); }
         }
 
         /// <summary>
@@ -775,7 +775,7 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetContentRaw(out IntPtr ptr, out UInt32 sizeBytes) {
+        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes) {
             if (content_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
             else
@@ -788,7 +788,7 @@ namespace Starcounter.Advanced {
         /// Gets the content as byte array.
         /// </summary>
         /// <returns>Content bytes.</returns>
-        public Byte[] GetContentByteArray_Slow()
+        public Byte[] GetBodyByteArray_Slow()
         {
             // Checking if there is a content.
             if (content_len_bytes_ <= 0)
@@ -824,7 +824,7 @@ namespace Starcounter.Advanced {
         /// Gets the content as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetContentStringUtf8_Slow() {
+        public String GetBodyStringUtf8_Slow() {
             // Checking if there is a body.
             if (content_len_bytes_ <= 0)
                 return null;
@@ -1084,7 +1084,7 @@ namespace Starcounter.Advanced {
                    "<h1>Host: " + GetHeaderValue("Host") + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
                    "<h1>Session string: " + GetSessionString() + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
                    "<h1>ContentLength: " + content_len_bytes_ + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
-                   "<h1>Body: " + GetContentStringUtf8_Slow() + "</h1>" + StarcounterConstants.NetworkConstants.CRLF
+                   "<h1>Body: " + GetBodyStringUtf8_Slow() + "</h1>" + StarcounterConstants.NetworkConstants.CRLF
                    ;
         }
     }

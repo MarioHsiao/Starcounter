@@ -24,4 +24,4 @@ TASKKILL /f /t /im scsqlparser.exe
 :: Sleeping some time using ping.
 ping -n 3 127.0.0.1 > nul
 
-IF NOT "%SC_RUNNING_ON_BUILD_SERVER%"=="" EXIT 0
+::IF "%SC_RUNNING_ON_BUILD_SERVER%"=="True" EXIT 0
