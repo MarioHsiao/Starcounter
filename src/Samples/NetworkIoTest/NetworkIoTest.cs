@@ -884,7 +884,7 @@ namespace NetworkIoTestApp
 
         private static Boolean OnRestClient(Request httpRequest)
         {
-            someNode.GET("/testrest", null, httpRequest, (Response resp) => {
+            someNode.GET("/testrest", httpRequest, (Response resp) => {
                 if (resp["Content-Type"] == "text/html; charset=UTF-8") {
                     dynamic jsonData = DynamicJson.Parse(resp.GetContentStringUtf8_Slow());
                     string htmlFileName = jsonData.FirstName;
