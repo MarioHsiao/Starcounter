@@ -478,6 +478,9 @@ void ServerPort::EraseDb(int32_t db_index)
 
     // Deleting URI handlers if any.
     registered_uris_->RemoveEntry(db_index);
+
+    // Checking that matching function is invalidated.
+    GW_ASSERT(NULL == registered_uris_->get_latest_match_uri_func());
     
     // Deleting subport handlers if any.
     registered_subports_->RemoveEntry(db_index);
@@ -3041,8 +3044,8 @@ uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
         &uris_managed.front(),
         uris_managed.size());
 
-    if (err_code)
-        return err_code;
+    // Checking that code generation always succeeds.
+    GW_ASSERT(0 == err_code);
 
     MixedCodeConstants::MatchUriType match_uri_func;
     HMODULE gen_dll_handle;
@@ -3063,8 +3066,8 @@ uint32_t Gateway::GenerateUriMatcher(RegisteredUris* port_uris)
         &match_uri_func,
         &gen_dll_handle);
 
-    if (err_code)
-        return err_code;
+    // Checking that code generation always succeeds.
+    GW_ASSERT(0 == err_code);
 
     // Setting the entry point for new URI matcher.
     port_uris->set_latest_match_uri_func(match_uri_func);
@@ -3145,7 +3148,7 @@ uint32_t Gateway::AddUriHandler(
             is_gateway_handler);
 
         // Adding entry to global list.
-        all_port_uris->AddEntry(new_entry);
+        all_port_uris->AddNewUri(new_entry);
     }
     else
     {
@@ -3161,8 +3164,8 @@ uint32_t Gateway::AddUriHandler(
     }
     GW_ERR_CHECK(err_code);
 
-    // Invalidating URI matching codegen.
-    all_port_uris->InvalidateUriMatcherFunction();
+    // Checking that matching function is invalidated.
+    GW_ASSERT(NULL == all_port_uris->get_latest_match_uri_func());    
 
     return 0;
 }

@@ -581,13 +581,13 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         int32_t matched_index = INVALID_URI_INDEX;
 
         // Checking if URI matching code is generated.
-        if (!port_uris->get_latest_match_uri_func())
+        if (NULL == port_uris->get_latest_match_uri_func())
         {
             // Entering global lock.
             gw->EnterGlobalLock();
 
             // Checking once again since maybe it was already generated.
-            if (!port_uris->get_latest_match_uri_func())
+            if (NULL == port_uris->get_latest_match_uri_func())
             {
                 // Generating and loading URI matcher.
                 err_code = g_gateway.GenerateUriMatcher(port_uris);

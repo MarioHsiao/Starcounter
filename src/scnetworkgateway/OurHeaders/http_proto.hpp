@@ -391,16 +391,29 @@ public:
     }
 
     // Adding new entry.
-    void AddEntry(RegisteredUri& new_entry)
+    void AddNewUri(RegisteredUri& new_entry)
     {
         // Adding new entry to the back.
         reg_uris_.Add(new_entry);
+
+        // Invalidating URI matcher.
+        InvalidateUriMatcherFunction();
     }
 
     // Checking if registered URIs is empty.
     bool IsEmpty()
     {
         return reg_uris_.IsEmpty();
+    }
+
+    // Removes certain URI.
+    void RemoveUriByIndex(int32_t index)
+    {
+        // Removing entry.
+        reg_uris_.RemoveByIndex(index);
+
+        // Invalidating URI matcher.
+        InvalidateUriMatcherFunction();
     }
 
     // Removing certain entry.
@@ -416,7 +429,7 @@ public:
                 if (reg_uris_[i].IsEmpty())
                 {
                     // Removing entry.
-                    reg_uris_.RemoveByIndex(i);
+                    RemoveUriByIndex(i);
                     --i;
                 }
 
@@ -442,7 +455,7 @@ public:
                 if (reg_uris_[i].IsEmpty())
                 {
                     // Removing entry.
-                    reg_uris_.RemoveByIndex(i);
+                    RemoveUriByIndex(i);
                     --i;
                 }
 
@@ -463,14 +476,14 @@ public:
         // Checking if entry found.
         if (index >= 0)
         {
-            reg_uris_.RemoveByIndex(index);
+            RemoveUriByIndex(index);
             return true;
         }
 
         return false;
     }
 
-    // Adding new entry.
+    // Removing certain entry.
     bool RemoveEntry(int32_t db_index, char* processed_uri_info)
     {
         bool removed = false;
@@ -484,7 +497,7 @@ public:
             if (reg_uris_[index].RemoveEntry(db_index))
             {
                 if (reg_uris_[index].IsEmpty())
-                    reg_uris_.RemoveByIndex(index);
+                    RemoveUriByIndex(index);
                 
                 removed = true;
 
