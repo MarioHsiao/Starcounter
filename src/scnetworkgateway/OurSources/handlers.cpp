@@ -35,9 +35,6 @@ uint32_t HandlersList::UnregisterGlobally(int32_t db_index)
             RegisteredUris* port_uris = g_gateway.FindServerPort(port_)->get_registered_uris();
             port_uris->RemoveEntry(db_index, processed_uri_info_);
 
-            // Checking that matching function is invalidated.
-            GW_ASSERT(NULL == port_uris->get_latest_match_uri_func());
-
             // Collecting empty ports.
             g_gateway.CleanUpEmptyPorts();
 

@@ -478,9 +478,6 @@ void ServerPort::EraseDb(int32_t db_index)
 
     // Deleting URI handlers if any.
     registered_uris_->RemoveEntry(db_index);
-
-    // Checking that matching function is invalidated.
-    GW_ASSERT(NULL == registered_uris_->get_latest_match_uri_func());
     
     // Deleting subport handlers if any.
     registered_subports_->RemoveEntry(db_index);
@@ -3163,9 +3160,6 @@ uint32_t Gateway::AddUriHandler(
         }
     }
     GW_ERR_CHECK(err_code);
-
-    // Checking that matching function is invalidated.
-    GW_ASSERT(NULL == all_port_uris->get_latest_match_uri_func());    
 
     return 0;
 }

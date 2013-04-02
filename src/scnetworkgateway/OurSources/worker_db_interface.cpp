@@ -841,9 +841,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
 
                 // Removing this handler from all possible places.
                 server_port->get_registered_uris()->RemoveEntry(handlers_list);
-                // Checking that matching function is invalidated.
-                GW_ASSERT(NULL == server_port->get_registered_uris()->get_latest_match_uri_func());
-
                 server_port->get_registered_subports()->RemoveEntry(handlers_list);
                 server_port->get_port_handlers()->RemoveEntry(handlers_list);
 
