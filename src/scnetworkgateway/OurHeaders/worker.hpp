@@ -131,12 +131,6 @@ public:
         return 0;
     }
 
-    // Gets certain socket state.
-    bool GetSocketState(int32_t db_index, SOCKET s)
-    {
-        return worker_dbs_[db_index]->GetSocketState(s);
-    }
-
     // Clone made during last iteration.
     SocketDataChunkRef get_sd_receive_clone()
     {
@@ -278,6 +272,15 @@ public:
     int64_t get_worker_stats_recv_num()
     {
         return worker_stats_recv_num_;
+    }
+
+    // Printing the worker information.
+    void PrintInfo(std::stringstream& stats_stream)
+    {
+        stats_stream << "Bytes received: " << worker_stats_bytes_received_ << "<br>";
+        stats_stream << "Packets received: " << worker_stats_recv_num_ << "<br>";
+        stats_stream << "Bytes sent: " << worker_stats_bytes_sent_ << "<br>";
+        stats_stream << "Packets sent: " << worker_stats_sent_num_ << "<br>";
     }
 
     // Worker initialization function.

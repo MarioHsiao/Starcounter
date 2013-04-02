@@ -5,7 +5,8 @@ using Starcounter.Poleposition.Framework;
 
 namespace Starcounter.Poleposition.Circuits.Imola
 {
-public class Pilot : Entity, ICheckSummable
+[Database]
+public class Pilot : ICheckSummable
 {
     public string Name;
     public string FirstName;

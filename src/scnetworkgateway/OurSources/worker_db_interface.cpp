@@ -373,7 +373,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(int32_t num_linked_chunks, core
 
     // Check if there are too many private chunks so
     // we need to release them to the shared chunk pool.
-    if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL)
+    if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
     {
         uint32_t err_code = ReleaseToSharedChunkPool(private_chunk_pool_.size() - MAX_CHUNKS_IN_PRIVATE_POOL);
 
@@ -780,9 +780,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 uint32_t processed_uri_info_len_chars = resp_chunk->read_uint32();
                 resp_chunk->read_string(processed_uri_info, processed_uri_info_len_chars, MixedCodeConstants::MAX_URI_STRING_LEN);
 
-                // Reading HTTP method.
-                bmx::HTTP_METHODS http_method = (bmx::HTTP_METHODS)resp_chunk->read_uint8();
-
                 // Reading number of parameters.
                 uint8_t num_params = resp_chunk->read_uint8();
 
@@ -814,7 +811,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     original_uri_info_len_chars,
                     processed_uri_info,
                     processed_uri_info_len_chars,
-                    http_method,
                     param_types,
                     num_params,
                     handler_info,
@@ -846,14 +842,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 // Removing this handler from all possible places.
                 server_port->get_registered_uris()->RemoveEntry(handlers_list);
                 server_port->get_registered_subports()->RemoveEntry(handlers_list);
-                if (bmx::HANDLER_TYPE::PORT_HANDLER == handlers_list->get_type())
-                {
-                    // Should always be only one user handler.
-                    GW_ASSERT(1 == handlers_list->get_num_entries());
-
-                    // Removing corresponding handler.
-                    server_port->get_port_handlers()->RemoveEntry(db_index_, handlers_list->get_handlers()[0]);
-                }
+                server_port->get_port_handlers()->RemoveEntry(handlers_list);
 
                 // Checking if server port became empty.
                 if (server_port->IsEmpty())

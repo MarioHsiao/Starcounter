@@ -134,7 +134,7 @@ function ServerCtrl($scope, $dialog, Server, $http) {
               var message = "Can not retrive the gateway statistics";
 
               // 500 Internal Server Error
-              if (response.status === 500) {
+              if (status === 500) {
                   // Dialogbox options
                   $scope.opts = {
                       backdrop: true,
@@ -210,30 +210,130 @@ function DatabasesCtrl($scope, $dialog, Database) {
 /**
  * Databass Controller
  */
-function DatabaseCtrl($scope, $routeParams, $dialog, Database, patchService) {
+function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, patchService) {
 
     $scope.alerts = [];
+    $scope.apps = [];
 
     // Close alert box
     $scope.closeAlert = function (index) {
         $scope.alerts.splice(index, 1);
     };
 
+    $scope.getConsole = function (databaseName) {
+      
+        $scope.isBusy = true;
+        Console.get({ databaseName: databaseName }, function (result, headers) {
+            // Success
+            $scope.isBusy = false;
+
+            if (result.console === undefined) {
+                $scope.alerts.push({ type: 'error', msg: "invalid response format" });
+            }
+
+            $scope.console = result.console;
+
+            if (result.exception != null) {
+                // Show Exception
+                $scope.opts = {
+                    backdrop: true,
+                    keyboard: true,
+                    backdropClick: true,
+                    templateUrl: "partials/error.html",
+                    controller: 'DialogController',
+                    data: { header: "Internal Server Error", message: result.exception.message, helpLink: result.exception.helpLink, stackTrace: result.exception.stackTrace }
+                };
+                var d = $dialog.dialog($scope.opts);
+                d.open();
+            }
+            
+        }, function (response) {
+            // Error, Can not retrive list of databases
+            $scope.isBusy = false;
+
+            var message = "Can not retrive the console output";
+
+            // 500 Internal Server Error
+            if (response.status === 500) {
+                // Dialogbox options
+                $scope.opts = {
+                    backdrop: true,
+                    keyboard: true,
+                    backdropClick: true,
+                    templateUrl: "partials/error.html",
+                    controller: 'DialogController',
+                    data: { header: "Internal Server Error", message: message, stackTrace: response.data }
+                };
+
+                var d = $dialog.dialog($scope.opts);
+                d.open();
+
+            }
+            else {
+                $scope.alerts.push({ type: 'error', msg: message });
+            }
+
+        });
+
+
+        //$http({ method: 'GET', url: '/databases/' + databaseName + '/console', headers: { 'Accept': 'text/html,text/plain,*/*' } }).
+        //  success(function (data, status, headers, config) {
+        //      // this callback will be called asynchronously
+        //      // when the response is available
+        //      //              $scope.gwStats = data;
+        //      $scope.console = data;
+        //      $scope.isBusy = false;
+        //  }).
+        //  error(function (data, status, headers, config) {
+        //      // called asynchronously if an error occurs
+        //      // or server returns response with an error status.
+        //      $scope.isBusy = false;
+        //      $scope.console = "";
+
+        //      var message = "Can not retrive the console output";
+
+        //      // 500 Internal Server Error
+        //      if (status === 500) {
+        //          // Dialogbox options
+        //          $scope.opts = {
+        //              backdrop: true,
+        //              keyboard: true,
+        //              backdropClick: true,
+        //              templateUrl: "partials/error.html",
+        //              controller: 'DialogController',
+        //              data: { header: "Internal Server Error", message: message, stackTrace: response.data }
+        //          };
+
+        //          var d = $dialog.dialog($scope.opts);
+        //          d.open();
+
+        //      }
+        //      else {
+        //          $scope.alerts.push({ type: 'error', msg: message });
+        //      }
+
+        //  });
+
+    }
+
+
+
+
     // Get a database
-    $scope.database = Database.get({ databaseId: $routeParams.databaseId }, function (database, headers) {
+    Database.get({ databaseId: $routeParams.databaseId }, function (database, headers) {
 
+        $scope.database = database;
         // Get location from the response header
-        $scope.location = headers('Location');
+        //$scope.location = headers('Location');
 
-        // Set the data model to the scope
-        //$scope.database = database;
-
+        $scope.getConsole(database.DatabaseName);
         // Observe the model
+/*
         var observer = jsonpatch.observe($scope.database, function (patches) {
             console.log("jsonpatch.observe triggerd");
             patchService.applyPatch($scope.database, $scope.location, patches);
         });
-
+*/
     }, function (response) {
         // Error, Can not retrive list of databases
         var message = "Can not retrive the database information";
@@ -260,6 +360,11 @@ function DatabaseCtrl($scope, $routeParams, $dialog, Database, patchService) {
 
     });
 
+    // User clicked the "Refresh" button
+    $scope.btnClick_refresh_console = function () {
+        $scope.alerts.length = 0;
+        $scope.getConsole($scope.database.DatabaseName);
+    }
 
     // User clicked the "Start" button
     $scope.btnClick_start = function () {
@@ -388,7 +493,7 @@ function LogCtrl($scope, $dialog, Log) {
 function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 
     $scope.selectedDatabase = null;
-    $scope.sqlQuery = "select m from systable m";
+    $scope.sqlQuery = "";
     $scope.columns = [];
     $scope.rows = [];
     $scope.alerts = [];

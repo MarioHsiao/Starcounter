@@ -28,6 +28,9 @@ using System.Runtime.InteropServices;
 // (TypeBinding, PropertyBinding, PropertyMapping) is publicly exposed.
 [assembly: InternalsVisibleTo("StarcounterSQLApp")]
 
+// Allow Starcounter.Hosting to access the internals of the VMDBMS.
+[assembly: InternalsVisibleTo("Starcounter.Hosting")]
+
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version

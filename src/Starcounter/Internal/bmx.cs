@@ -226,7 +226,6 @@ namespace Starcounter.Internal
             UInt16 port,
             String originalUriInfo,
             String processedUriInfo,
-            Byte http_method,
             Byte* param_types,
             Byte num_params,
             BMX_HANDLER_CALLBACK callback,

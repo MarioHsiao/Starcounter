@@ -22,6 +22,8 @@ namespace Starcounter.Administrator {
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;
 
+        static Node LocalhostAdminNode;
+
         // Argument <path to server configuraton file> <portnumber>
         static void Main(string[] args) {
 
@@ -51,6 +53,7 @@ namespace Starcounter.Administrator {
             Master.ServerEngine.Setup();
             Master.ServerInterface = Master.ServerEngine.Start();
 
+
             // Start Engine services
             StartListeningService();
 
@@ -75,15 +78,27 @@ namespace Starcounter.Administrator {
         /// <param name="sytemHttpPort">Port for doing SQL queries</param>
         static void RegisterHandlers(ushort sytemHttpPort) {
 
+            // Creating localhost node.
+            LocalhostAdminNode = new Node("127.0.0.1", sytemHttpPort);
 
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {
                 return null;
             });
 
-            // This dosent work.
-            GET("/", () => {
-                return StarcounterBase.Get("/index.html");
+            // Redirecting root to index.html.
+            GET("/", (Request req) =>
+            {
+                Response resp;
+
+                // Doing another request with original request attached.
+                LocalhostAdminNode.GET("/index.html", req, out resp);
+
+                if (resp == null)
+                    throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
+
+                // Returns this response to original request.
+                return resp;
             });
 
             #region Server
@@ -201,18 +216,17 @@ namespace Starcounter.Administrator {
 
                 if (HasAccept(req["Accept"], "application/json")) {
                     try {
-                        Starcounter.Advanced.Response response;
-                        string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+                        Response response;
+                        string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        Node node = new Node("localhost", sytemHttpPort);
-                        node.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
+                        LocalhostAdminNode.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
 
-                        // TODO: check if 'respone' still can be null
+                        // TODO: check if 'response' still can be null
                         if (response == null) {
                             throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
                         }
 
-                        return response.GetContentStringUtf8_Slow();
+                        return response.GetBodyStringUtf8_Slow();
                     }
                     catch (Exception e) {
 
@@ -233,10 +247,47 @@ namespace Starcounter.Administrator {
 
             #endregion
 
+            #region Console out from Apps
+            // Returns the log
+            GET("/databases/{?}/console", (string databaseid, Request req) => {
+
+                if (HasAccept(req["Accept"], "application/json")) {
+                    try {
+                        Starcounter.Advanced.Response response;
+                        string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
+
+                        LocalhostAdminNode.GET(string.Format("/__{0}/console", databaseid), null, out response);
+
+                        // TODO: check if 'respone' still can be null
+                        if (response == null) {
+                            throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
+                        }
+
+                        string data = response.GetBodyStringUtf8_Slow();
+                        dynamic resultJson = DynamicJson.Parse(data);
+                        resultJson.console = resultJson.console.Replace(Environment.NewLine, "<br>");
+                        return resultJson;
+                    }
+                    catch (Exception e) {
+
+                        dynamic resultJson = new DynamicJson();
+                        resultJson.console = null;
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                        return resultJson.ToString();
+                    }
+                }
+                else {
+                    return 404;
+                }
+
+            });
+            #endregion
+
+
             POST("/addstaticcontentdir", (Request req) => {
 
                 // Getting POST contents.
-                String content = req.GetContentStringUtf8_Slow();
+                String content = req.GetBodyStringUtf8_Slow();
 
                 // Splitting contents.
                 String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);

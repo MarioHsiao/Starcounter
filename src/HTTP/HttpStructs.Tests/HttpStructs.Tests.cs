@@ -157,7 +157,7 @@ namespace HttpStructs.Tests
                 Assert.That(http_request["Host"] == http_request_hosts[i], Is.True);
 
                 // Checking correct bodies.
-                Assert.That(http_request.GetContentStringUtf8_Slow() == http_request_bodies[i], Is.True);
+                Assert.That(http_request.GetBodyStringUtf8_Slow() == http_request_bodies[i], Is.True);
 
                 // Immediately destroying the structure.
                 http_request.Destroy();

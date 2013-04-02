@@ -211,14 +211,14 @@ namespace Starcounter.Internal.Web {
                 response = new byte[header.Length + compressed.Length];
                 compressed.CopyTo(response, header.Length);
                 fres.Compressed = response;
-                fres.CompressedContentOffset_ = header.Length;
-                fres.CompressedContentLength_ = compressed.Length;
+                fres.CompressedBodyOffset_ = header.Length;
+                fres.CompressedBodyLength_ = compressed.Length;
             }
             else {
                 response = new byte[header.Length + len];
                 payload.CopyTo(response, header.Length);
                 fres.Uncompressed = response;
-                fres.UncompressedContentOffset_ = header.Length;
+                fres.UncompressedBodyOffset_ = header.Length;
                // fres.
             }
             fres.HeadersLength = header.Length;
