@@ -254,7 +254,7 @@ namespace Starcounter.Internal.JsonPatch {
                     beginPosition = ee.BeginPosition,
                     endPosition = ee.EndPosition,
                     helpLink = ee.HelpLink,
-                    message = ee.ErrorMessage,
+                    message = ee.Message,
                     query = ee.Query,
                     scErrorCode = ee.ScErrorCode,
                     token = ee.Token,
