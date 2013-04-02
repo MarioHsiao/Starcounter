@@ -129,7 +129,7 @@ namespace Starcounter.Internal {
                     // Sending REST POST request to Administrator to register static resources directory.
                     Node.ThisStarcounterNode.POST("/addstaticcontentdir", content, null, (Response resp) =>
                     {
-                        String respString = resp.GetContentStringUtf8_Slow();
+                        String respString = resp.GetBodyStringUtf8_Slow();
 
                         if ("Success!" != respString)
                             throw new Exception("Could not register static resources directory with administrator!");

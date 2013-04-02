@@ -59,7 +59,7 @@ namespace Starcounter.Administrator {
         static object HandlePOST(string name, Request request) {
 
             var execRequest = new ExecRequest();
-            execRequest.PopulateFromJson(request.GetContentStringUtf8_Slow());
+            execRequest.PopulateFromJson(request.GetBodyStringUtf8_Slow());
 
             string[] userArgs = null;
             if (!string.IsNullOrEmpty(execRequest.CommandLineString)) {
