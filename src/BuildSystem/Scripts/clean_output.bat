@@ -8,3 +8,6 @@ CALL "kill_all.bat"
 RMDIR ".db" /S /Q
 RMDIR ".db.output" /S /Q
 RMDIR ".srv" /S /Q
+
+:: Always succeeds.
+IF "%SC_RUNNING_ON_BUILD_SERVER%"=="True" EXIT 0
