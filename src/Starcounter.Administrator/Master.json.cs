@@ -217,7 +217,7 @@ namespace Starcounter.Administrator {
                 if (HasAccept(req["Accept"], "application/json")) {
                     try {
                         Response response;
-                        string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+                        string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
                         LocalhostAdminNode.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
 
@@ -226,7 +226,7 @@ namespace Starcounter.Administrator {
                             throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
                         }
 
-                        return response.GetContentStringUtf8_Slow();
+                        return response.GetBodyStringUtf8_Slow();
                     }
                     catch (Exception e) {
 
@@ -254,7 +254,7 @@ namespace Starcounter.Administrator {
                 if (HasAccept(req["Accept"], "application/json")) {
                     try {
                         Starcounter.Advanced.Response response;
-                        string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+                        string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
                         LocalhostAdminNode.GET(string.Format("/__{0}/console", databaseid), null, out response);
 
@@ -263,7 +263,7 @@ namespace Starcounter.Administrator {
                             throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
                         }
 
-                        string data = response.GetContentStringUtf8_Slow();
+                        string data = response.GetBodyStringUtf8_Slow();
                         dynamic resultJson = DynamicJson.Parse(data);
                         resultJson.console = resultJson.console.Replace(Environment.NewLine, "<br>");
                         return resultJson;
@@ -287,7 +287,7 @@ namespace Starcounter.Administrator {
             POST("/addstaticcontentdir", (Request req) => {
 
                 // Getting POST contents.
-                String content = req.GetContentStringUtf8_Slow();
+                String content = req.GetBodyStringUtf8_Slow();
 
                 // Splitting contents.
                 String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);

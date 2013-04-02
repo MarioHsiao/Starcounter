@@ -44,7 +44,7 @@ namespace Starcounter.Internal.JsonPatch {
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
                 Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
-                    string bodyData = r.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
+                    string bodyData = r.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
                     return ExecuteQuery(bodyData);
                 });
             }
@@ -91,7 +91,7 @@ namespace Starcounter.Internal.JsonPatch {
 
                 try {
                     root = Session.Data;
-                    JsonPatch.EvaluatePatches(root, request.GetContentByteArray_Slow());
+                    JsonPatch.EvaluatePatches(root, request.GetBodyByteArray_Slow());
                     return root;
                 }
                 catch (NotSupportedException nex) {
