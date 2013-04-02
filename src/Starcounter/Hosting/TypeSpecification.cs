@@ -119,7 +119,7 @@ namespace Starcounter.Hosting {
         /// </param>
         public void SetColumnIndex(string columnName, int index) {
             var handleName = TypeSpecification.FieldNameToColumnHandleName(columnName);
-            var field = typeSpecificationType.GetField(TypeSpecification.FieldNameToColumnHandleName(columnName));
+            var field = typeSpecificationType.GetField(handleName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             if (field == null) {
                 var msg = string.Format("Missing column handle: {0}/{1}", columnName, handleName);
                 throw ErrorCode.ToException(Error.SCERRTYPESPECILLEGALCONSTRUCT, msg);
