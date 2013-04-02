@@ -213,7 +213,8 @@ namespace Starcounter.Advanced
         /// <returns>System.Byte[][].</returns>
         public byte[] GetBytes(Request request)
         {
-            if (request.IsGzipAccepted && Compressed != null)
+            // TODO: Re-enable once uncompressed resources are fixed.
+            if (/*request.IsGzipAccepted && */Compressed != null)
                 return Compressed;
 
             return Uncompressed;
