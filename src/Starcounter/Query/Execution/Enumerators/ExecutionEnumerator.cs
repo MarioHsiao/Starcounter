@@ -421,6 +421,7 @@ internal abstract class ExecutionEnumerator
         // Taking this object as ISqlEnumerator.
         IExecutionEnumerator thisEnum = this as IExecutionEnumerator;
 
+#if false
         // Checking if we need to recreate the enumerator and move to the last position.
         if (variableArray.RecreationKeyData != null)
         {
@@ -431,6 +432,7 @@ internal abstract class ExecutionEnumerator
             // Resetting the recreation key data.
             variableArray.RecreationKeyData = null;
         }
+#endif
 
         // Just filling up the array.
         //Application.Profiler.Start("Cycled MoveNext", 5);

@@ -1060,6 +1060,24 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
 
     // Set flag indicating getting first result only.
     void SetFirstOnlyFlag();
+
+    /// <summary>
+    /// Returns true if enumerator was re-created and first move next was set to the offset key.
+    /// Default is False.
+    /// </summary>
+    Boolean IsAtRecreatedKey { get; }
+
+    /// <summary>
+    /// Sets a flag that on move next if enumerator is re-created with offset key, it should stay on it.
+    /// Default is False.
+    /// </summary>
+    Boolean StayAtOffsetkey { get; set; }
+
+    /// <summary>
+    /// Sets a flag that on enumerator create offset key should be used.
+    /// Default is True.
+    /// </summary>
+    Boolean UseOffsetkey { get; set; }
 }
 
 /// <summary>
