@@ -389,6 +389,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     {
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
+        // Enabling recreation object check.
+        enableRecreateObjectCheck = true;
 
         // Trying to recreate the enumerator from key.
         if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle))
@@ -397,14 +399,14 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             enumeratorCreated = true;
 
             // Checking if we found a deleted object.
-            if (!innermostExtent)
-            {
+            //if (!innermostExtent)
+            //{
                 // Obtaining saved OID and ETI.
                 iterHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
 
                 // Enabling recreation object check.
                 enableRecreateObjectCheck = true;
-            }
+            //}
 
             return true;
         }
