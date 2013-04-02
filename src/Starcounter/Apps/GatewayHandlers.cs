@@ -402,7 +402,6 @@ namespace Starcounter
                             port,
                             originalUriInfo,
                             processedUriInfo,
-                            (Byte)/*http_method*/HTTP_METHODS.OTHER_METHOD,
                             pp,
                             numParams,
                             uri_outer_handler_,

@@ -352,7 +352,9 @@ bool SocketDataChunk::ForceSocketDataValidity(GatewayWorker* gw)
 
 CORRECT_STATISTICS_AND_RELEASE_CHUNK:
 
+#ifdef GW_SOCKET_DIAG
     GW_COUT << "Force cleaning socket data: " << sock_ << ":" << chunk_index_ << GW_ENDL;
+#endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 

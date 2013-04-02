@@ -5,7 +5,8 @@ using Starcounter.Poleposition.Framework;
 
 namespace Starcounter.Poleposition.Circuits.Bahrain
 {
-public class Pilot : Entity, ICheckSummable
+[Database]
+public class Pilot : ICheckSummable
 {
     public int Id;
     public string Name;

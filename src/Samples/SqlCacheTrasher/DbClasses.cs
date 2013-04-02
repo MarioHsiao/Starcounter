@@ -7,7 +7,8 @@ using System.Diagnostics;
 namespace SqlCacheTrasher
 {
     // Simple class that is used for testing SQL cache functionality.
-    public class SimpleObject : Entity
+    [Database]
+    public class SimpleObject
     {
         public Int64 IntegerProperty;
 

@@ -167,7 +167,6 @@ uint32_t BmxData::RegisterPortHandler(
         0,
         NULL,
         0,
-        bmx::HTTP_METHODS::OTHER_METHOD,
         NULL,
         0);
 
@@ -252,7 +251,6 @@ uint32_t BmxData::RegisterSubPortHandler(
         0,
         NULL,
         0,
-        bmx::HTTP_METHODS::OTHER_METHOD,
         NULL,
         0);
 
@@ -277,7 +275,6 @@ uint32_t BmxData::RegisterUriHandler(
     uint16_t port,
     char* original_uri_info,
     char* processed_uri_info,
-    HTTP_METHODS http_method,
     uint8_t* param_types,
     int32_t num_params,
     GENERIC_HANDLER_CALLBACK uri_handler, 
@@ -359,7 +356,6 @@ uint32_t BmxData::RegisterUriHandler(
         original_uri_len_chars,
         processed_uri_info,
         processed_uri_len_chars,
-        http_method,
         param_types,
         num_params);
 

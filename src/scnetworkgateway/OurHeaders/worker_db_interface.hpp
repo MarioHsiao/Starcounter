@@ -136,7 +136,7 @@ public:
     }
 
     // Gets certain socket state.
-    bool GetSocketState(SOCKET s)
+    bool IsActiveSocket(SOCKET s)
     {
         return active_sockets_bitset_[s];
     }
