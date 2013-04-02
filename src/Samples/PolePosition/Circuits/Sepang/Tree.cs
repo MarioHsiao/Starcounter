@@ -6,7 +6,8 @@ using Starcounter.Poleposition.Framework;
 namespace Starcounter.Poleposition.Circuits.Sepang
 {
 
-public class Tree : Entity, ICheckSummable
+[Database]
+public class Tree : ICheckSummable
 {
     public int Depth;
 

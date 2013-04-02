@@ -11,7 +11,8 @@ using System;
 #if MYMUSIC_MODEL
 #region MyMusic code model
 namespace MyMusic {
-    public class Album : Entity {
+    [Database]
+    public class Album {
         public String Name;
         public String Label;
         public Nullable<DateTime> Published;
@@ -23,7 +24,8 @@ namespace MyMusic {
         }
     }
 
-    public class Artist : Entity {
+    [Database]
+    public class Artist {
         public String Name;
         public String Description;
 
@@ -33,11 +35,13 @@ namespace MyMusic {
         }
     }
 
-    public class Mucho : Entity {
+    [Database]
+    public class Mucho {
         public String Name;
         public Int64 Number;
     }
 
+    [Database]
     public class RatedSong : Song {
         public Nullable<Int32> Rating;
 
@@ -47,7 +51,8 @@ namespace MyMusic {
         }
     }
 
-    public class Song : Entity {
+    [Database]
+    public class Song {
         public String Name;
         public String Composers;
         public Nullable<DateTime> Published;
@@ -61,7 +66,8 @@ namespace MyMusic {
         }
     }
 
-    public class Track : Entity {
+    [Database]
+    public class Track {
         public Song Song;
         public Album Album;
         public Nullable<Int32> Number;
