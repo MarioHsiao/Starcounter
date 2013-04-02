@@ -20,9 +20,9 @@ namespace Starcounter.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_TableId = 0;
-            internal static int columnHandle_Name = 1;
-            internal static int columnHandle_BaseName = 2;
+            internal static int columnHandle_table_id = 0;
+            internal static int columnHandle_name = 1;
+            internal static int columnHandle_base_name = 2;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -76,7 +76,7 @@ namespace Starcounter.Metadata {
         /// <summary>
         /// </summary>
         public ulong TableId {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableId); }
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table_id); }
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <value>The name.</value>
         public string Name {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <value>The name of the base.</value>
         public string BaseName {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_BaseName); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_base_name); }
         }
     }
 }

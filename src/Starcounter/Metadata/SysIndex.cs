@@ -18,12 +18,12 @@ namespace Starcounter.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_IndexId = 0;
-            internal static int columnHandle_TableId = 1;
-            internal static int columnHandle_Name = 2;
-            internal static int columnHandle_TableName = 3;
-            internal static int columnHandle_Description = 4;
-            internal static int columnHandle_Unique = 5;
+            internal static int columnHandle_index_id = 0;
+            internal static int columnHandle_table_id = 1;
+            internal static int columnHandle_name = 2;
+            internal static int columnHandle_table_name = 3;
+            internal static int columnHandle_description = 4;
+            internal static int columnHandle_unique = 5;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -80,7 +80,7 @@ namespace Starcounter.Metadata {
         /// <summary>
         /// </summary>
         public ulong TableId {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableId); }
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table_id); }
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <value>The name.</value>
         public string Name {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <value>The name of the table.</value>
         public string TableName {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableName); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table_name); }
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <value>The description.</value>
         public string Description {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Description); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_description); }
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <value><c>true</c> if unique; otherwise, <c>false</c>.</value>
         public bool Unique {
-            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Unique); }
+            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_unique); }
         }
     }
 }
