@@ -21,25 +21,14 @@ class GatewayWorker;
 
 class RegisteredUri
 {
-    // Registered URI.
-    char* original_uri_info_;
-    uint32_t original_uri_info_len_chars_;
-
-    // Registered URI.
-    char* processed_uri_info_;
-    uint32_t processed_uri_info_len_chars_;
-
     // Indicates index of session parameter in this URI.
     uint8_t session_param_index_;
-
-    // Number of same characters from previous entry.
-    uint32_t num_same_prev_chars_;
 
     // Is a gateway URI handler.
     bool is_gateway_uri_;
 
     // Unique handler lists.
-    LinearList<UniqueHandlerList, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
+    LinearList<HandlersList*, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
 
 public:
 
@@ -79,21 +68,21 @@ public:
         uint8_t* num_params)
     {
         // TODO: Make the investigation about same URI handlers.
-        //GW_ASSERT(1 == handler_lists_.get_num_entries());
+        GW_ASSERT(1 == handler_lists_.get_num_entries());
 
-        HandlersList& handlers_list = handler_lists_[0].get_handlers_list()[0];
+        HandlersList* handlers_list = handler_lists_[0];
 
-        GW_ASSERT(1 == handlers_list.get_num_entries());
+        // TODO: This constrain is not needed.
+        GW_ASSERT(1 == handlers_list->get_num_entries());
 
-        memcpy(param_types, handlers_list.get_param_types(), MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
-        *num_params = handlers_list.get_num_params();
+        memcpy(param_types, handlers_list->get_param_types(), MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
+        *num_params = handlers_list->get_num_params();
     }
 
     // Getting number of native parameters in user delegate.
     uint8_t GetNumberOfNativeParameters()
     {
-        HandlersList& handlers_list = handler_lists_[0].get_handlers_list()[0];
-        return handlers_list.get_num_params();
+        return handler_lists_[0]->get_num_params();
     }
 
     // Getting number of handler lists.
@@ -102,116 +91,46 @@ public:
         return handler_lists_.get_num_entries();
     }
 
-    // Checking if one string starts after another.
-    uint32_t StartsWith(
-        const char* cur_uri,
-        uint32_t cur_uri_chars,
-        uint32_t skip_chars)
-    {
-        uint32_t same_chars = skip_chars;
-
-        // Simply comparing strings by characters until they are the same.
-        while(processed_uri_info_[same_chars] == cur_uri[same_chars])
-        {
-            // Checking that we don't exceed string sizes.
-            if ((same_chars >= processed_uri_info_len_chars_) ||
-                (same_chars >= cur_uri_chars))
-            {
-                break;
-            }
-
-            same_chars++;
-        }
-
-        // Returning number of matched characters plus skipped characters (assuming that they are the same).
-        return same_chars;
-    }
-
-    // Comparison operator.
-    bool operator<(const RegisteredUri& r)
-    {
-        // Slash is always on top.
-        if ((processed_uri_info_len_chars_ == 1) && (processed_uri_info_[0] == '/'))
-            return true;
-
-        // Using normal comparison.
-        bool comp_value = (strcmp(processed_uri_info_, r.processed_uri_info_) < 0);
-
-        // But checking the length of strings.
-            
-        return comp_value;
-    }
-
     // Getting registered URI.
     char* get_original_uri_info()
     {
-        return original_uri_info_;
+        return handler_lists_[0]->get_original_uri_info();
     }
 
     // Getting URI length in characters.
     uint32_t get_original_uri_info_len_chars()
     {
-        return original_uri_info_len_chars_;
+        return handler_lists_[0]->get_original_uri_info_len_chars();
     }
 
     // Getting registered URI.
     char* get_processed_uri_info()
     {
-        return processed_uri_info_;
+        return handler_lists_[0]->get_processed_uri_info();
     }
 
     // Getting URI length in characters.
     uint32_t get_processed_uri_info_len_chars()
     {
-        return processed_uri_info_len_chars_;
-    }
-
-    // Getting number of same characters.
-    uint32_t get_num_same_prev_chars()
-    {
-        return num_same_prev_chars_;
-    }
-
-    // Setting number of same characters.
-    void set_num_same_prev_chars(uint32_t value)
-    {
-        num_same_prev_chars_ = value;
+        return handler_lists_[0]->get_processed_uri_info_len_chars();
     }
 
     // Constructor.
     RegisteredUri()
     {
-        original_uri_info_ = NULL;
-        processed_uri_info_ = NULL;
-
         Reset();
     }
 
     // Checking if handlers list is empty.
     bool IsEmpty()
     {
-        return (handler_lists_.IsEmpty()) || (0 == processed_uri_info_len_chars_);
+        return handler_lists_.IsEmpty();
     }
 
     // Removes certain entry.
-    bool Remove(HandlersList* handlers_list)
+    bool RemoveEntry(HandlersList* handlers_list)
     {
-        // Going through all handler list.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
-        {
-            // Checking if handlers list is the same.
-            if (handler_lists_[i].get_handlers_list() == handlers_list)
-            {
-                handler_lists_.RemoveByIndex(i);
-                break;
-            }
-        }
-
-        // Checking if list is empty.
-        if (IsEmpty())
-            return true;
-
-        return false;
+        return handler_lists_.RemoveEntry(handlers_list);
     }
 
     // Removes certain entry.
@@ -223,7 +142,7 @@ public:
     // Removes certain entry.
     int32_t GetFirstDbIndex()
     {
-        return handler_lists_[0].get_db_index();
+        return handler_lists_[0]->get_db_index();
     }
 
     // Removes certain entry.
@@ -232,7 +151,7 @@ public:
         // Going through all handler list.
         for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
-            if (handler_lists_[i].get_db_index() == db_index)
+            if (handler_lists_[i]->get_db_index() == db_index)
             {
                 return i;
             }
@@ -242,63 +161,47 @@ public:
     }
 
     // Removes certain entry.
-    bool Remove(int32_t db_index)
+    bool RemoveEntry(int32_t db_index)
     {
+        bool removed = false;
+
         // Going through all handler list.
         for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
             // Checking if database index is the same.
-            if (handler_lists_[i].get_db_index() == db_index)
+            if (handler_lists_[i]->get_db_index() == db_index)
             {
                 handler_lists_.RemoveByIndex(i);
-                break;
+                i--;
+
+                removed = true;
+
+                // Not stopping, going through all entries.
             }
         }
 
-        // Checking if list is empty.
-        if (IsEmpty())
-            return true;
-            
-        return false;
-    }
-
-    // Adding new handlers list.
-    void Add(UniqueHandlerList& new_handlers_list)
-    {
-        handler_lists_.Add(new_handlers_list);
+        return removed;
     }
 
     // Initializing the entry.
     RegisteredUri(
-        const char* original_uri_info,
-        uint32_t original_uri_info_len_chars,
-        const char* processed_uri_info,
-        uint32_t processed_uri_info_len_chars,
         uint8_t session_param_index,
         int32_t db_index,
         HandlersList* handlers_list,
         bool is_gateway_uri)
     {
-        original_uri_info_len_chars_ = original_uri_info_len_chars;
-        processed_uri_info_len_chars_ = processed_uri_info_len_chars;
-
-        // Allocating space for URIs if needed.
-        original_uri_info_ = new char[original_uri_info_len_chars_ + 1];
-        processed_uri_info_ = new char[processed_uri_info_len_chars_ + 1];
-
         // Creating and pushing new handlers list.
-        UniqueHandlerList new_entry(db_index, handlers_list);
-        handler_lists_.Add(new_entry);
-
-        // Copying the URI.
-        strncpy_s(original_uri_info_, original_uri_info_len_chars_ + 1, original_uri_info, _TRUNCATE);
-        strncpy_s(processed_uri_info_, processed_uri_info_len_chars_ + 1, processed_uri_info, _TRUNCATE);
-
-        num_same_prev_chars_ = 0;
+        handler_lists_.Add(handlers_list);
 
         session_param_index_ = session_param_index;
 
         is_gateway_uri_ = is_gateway_uri;
+    }
+
+    // Adding new handlers list.
+    void Add(HandlersList* handlers_list)
+    {
+        handler_lists_.Add(handlers_list);
     }
 
     // Resetting entry.
@@ -307,12 +210,7 @@ public:
         // Removing all handlers lists.
         handler_lists_.Clear();
 
-        processed_uri_info_len_chars_ = 0;
-        original_uri_info_len_chars_ = 0;
-
         session_param_index_ = INVALID_PARAMETER_INDEX;
-
-        num_same_prev_chars_ = 0;
 
         is_gateway_uri_ = false;
     }
@@ -324,7 +222,6 @@ public:
 class RegisteredUris
 {
     // Array of all registered URIs.
-    // TODO: Fix resource leak with registered URIs.
     LinearList<RegisteredUri, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_uris_;
 
     // Pointer to generated code verification function.
@@ -440,64 +337,41 @@ public:
         return latest_match_uri_func_(uri_info, uri_info_len, out_params) - 1;
     }
 
-    // Sorting all entries.
-    void Sort()
-    {
-        // TODO: Remove the sorting/matching code completely.
-        return;
-
-        // Sorting the URIs.
-        reg_uris_.Sort();
-
-        // Setting zero same previous characters for the first entry.
-        reg_uris_[0].set_num_same_prev_chars(0);
-
-        // Going through sorted URIs and detecting same starts.
-        for (int32_t i = 0; i < (reg_uris_.get_num_entries() - 1); i++)
-        {
-            // Checking if second URI starts with first.
-            uint32_t same_chars = reg_uris_[i].StartsWith(reg_uris_[i + 1].get_processed_uri_info(), reg_uris_[i + 1].get_processed_uri_info_len_chars(), 0);
-
-            // Setting number of same previous characters.
-            reg_uris_[i + 1].set_num_same_prev_chars(same_chars);
-        }
-    }
-
     // Printing the registered URIs.
-    void PrintRegisteredUris(std::stringstream& global_port_statistics_stream, uint16_t port_num)
+    void PrintRegisteredUris(std::stringstream& stats_stream, uint16_t port_num)
     {
-        global_port_statistics_stream << "<br>Port " << port_num << " has following URIs registered: " << "<br>";
+        stats_stream << "Following URIs are registered: " << "<br>";
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
-            global_port_statistics_stream << "    \"" << reg_uris_[i].get_processed_uri_info() << "\" in";
+            stats_stream << "    \"" << reg_uris_[i].get_processed_uri_info() << "\" in";
 
             // Checking if its gateway or database URI.
             if (!reg_uris_[i].get_is_gateway_uri())
             {
                 // Database handler.
-                global_port_statistics_stream << " database \"" << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << "\"";
+                stats_stream << " database \"" << g_gateway.GetDatabase(reg_uris_[i].GetFirstDbIndex())->get_db_name() << "\"";
             }
             else
             {
                 // Gateway handler.
-                global_port_statistics_stream << " gateway";
+                stats_stream << " gateway";
             }
 
-            global_port_statistics_stream << "<br>";
+            stats_stream << "<br>";
         }
     }
 
     // Checking if entry already exists.
-    bool ContainsEntry(char* uri, uint32_t uri_len_chars)
+    bool ContainsEntry(char* uri)
     {
-        int32_t index = FindRegisteredUri(uri, uri_len_chars);
+        int32_t index = FindRegisteredUri(uri);
         return (index >= 0);
     }
 
     // Checking if entry already exists.
-    bool ContainsEntry(char* uri, uint32_t uri_len_chars, int32_t db_index)
+    bool ContainsEntry(char* uri, int32_t db_index)
     {
-        int32_t index = FindRegisteredUri(uri, uri_len_chars);
+        int32_t index = FindRegisteredUri(uri);
 
         // Checking if entry found.
         if (index >= 0)
@@ -521,9 +395,6 @@ public:
     {
         // Adding new entry to the back.
         reg_uris_.Add(new_entry);
-
-        // Sorting out all entries.
-        Sort();
     }
 
     // Checking if registered URIs is empty.
@@ -535,108 +406,103 @@ public:
     // Removing certain entry.
     bool RemoveEntry(HandlersList* handlers_list)
     {
+        bool removed = false;
+
         // Going through all entries.
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
-            // Removing corresponding entry.
-            if (reg_uris_[i].Remove(handlers_list))
+            if (reg_uris_[i].RemoveEntry(handlers_list))
             {
-                // Removing entry.
-                reg_uris_.RemoveByIndex(i);
-                --i;
-            }
+                if (reg_uris_[i].IsEmpty())
+                {
+                    // Removing entry.
+                    reg_uris_.RemoveByIndex(i);
+                    --i;
+                }
 
-            // Checking all entries.
+                removed = true;
+
+                // Not stopping, going through all entries.
+            }
         }
 
-        // Checking if empty.
-        if (reg_uris_.IsEmpty())
-            return true;
-
-        // Sorting all entries.
-        Sort();
-
-        return false;
+        return removed;
     }
 
     // Removing certain entry.
     bool RemoveEntry(int32_t db_index)
     {
+        bool removed = false;
+
         // Going through all entries.
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); ++i)
         {
-            // Removing corresponding entry.
-            if (reg_uris_[i].Remove(db_index))
+            if (reg_uris_[i].RemoveEntry(db_index))
             {
-                // Removing entry.
-                reg_uris_.RemoveByIndex(i);
-                --i;
-            }
+                if (reg_uris_[i].IsEmpty())
+                {
+                    // Removing entry.
+                    reg_uris_.RemoveByIndex(i);
+                    --i;
+                }
 
-            // Checking all entries.
+                removed = true;
+
+                // Not stopping, going through all entries.
+            }
         }
 
-        // Checking if empty.
-        if (reg_uris_.IsEmpty())
-            return true;
-
-        // Sorting all entries.
-        Sort();
-
-        return false;
+        return removed;
     }
 
     // Removing certain entry.
-    bool RemoveEntry(char* uri, uint32_t uri_len_chars)
+    bool RemoveEntry(char* processed_uri_info)
     {
-        int32_t index = FindRegisteredUri(uri, uri_len_chars);
+        int32_t index = FindRegisteredUri(processed_uri_info);
 
         // Checking if entry found.
         if (index >= 0)
+        {
             reg_uris_.RemoveByIndex(index);
-
-        // Checking if empty.
-        if (reg_uris_.IsEmpty())
             return true;
-
-        // Sorting all entries.
-        Sort();
+        }
 
         return false;
     }
 
     // Adding new entry.
-    bool RemoveEntry(char* uri, uint32_t uri_len_chars, int32_t db_index)
+    bool RemoveEntry(int32_t db_index, char* processed_uri_info)
     {
+        bool removed = false;
+
         // Trying to find entry first.
-        int32_t index = FindRegisteredUri(uri, uri_len_chars);
+        int32_t index = FindRegisteredUri(processed_uri_info);
 
         // If entry was found.
         if (index >= 0)
         {
-            // Removing corresponding database entry.
-            if (reg_uris_[index].Remove(db_index))
+            if (reg_uris_[index].RemoveEntry(db_index))
             {
-                // Removing entry.
-                reg_uris_.RemoveByIndex(index);
+                if (reg_uris_[index].IsEmpty())
+                    reg_uris_.RemoveByIndex(index);
+                
+                removed = true;
+
+                // Not stopping, going through all entries.
             }
         }
 
-        // Checking if empty.
-        if (reg_uris_.IsEmpty())
-            return true;
-
-        return false;
+        return removed;
     }
 
     // Find certain URI entry.
-    int32_t FindRegisteredUri(const char* uri, uint32_t uri_len_chars)
+    int32_t FindRegisteredUri(const char* processed_uri_info)
     {
         // Going through all entries.
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
         {
             // Doing exact comparison.
-            if (!strcmp(uri, reg_uris_[i].get_processed_uri_info()))
+            if (!strcmp(processed_uri_info, reg_uris_[i].get_processed_uri_info()))
             {
                 return i;
             }
@@ -644,54 +510,6 @@ public:
 
         // Returning negative if nothing is found.
         return INVALID_URI_INDEX;
-    }
-
-    // Find certain URI entry.
-    int32_t SearchMatchingUriHandler(const char* uri, uint32_t uri_len_chars, int32_t& out_max_matched_chars)
-    {
-        // Going through all entries.
-        int32_t same_chars = 0;
-        out_max_matched_chars = 0;
-
-        int32_t matched_index = INVALID_URI_INDEX;
-        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
-        {
-            // Checking if this row is similar to previous more than same chars.
-            if (reg_uris_[i].get_num_same_prev_chars() > same_chars)
-                continue;
-
-            // Checking URI starts with registered one.
-            same_chars = reg_uris_[i].StartsWith(uri, uri_len_chars, reg_uris_[i].get_num_same_prev_chars());
-
-            // Checking if there are any matched characters.
-            if (same_chars > 0)
-            {
-                // Checking if we have a longer match.
-                if ((same_chars >= reg_uris_[i].get_processed_uri_info_len_chars()) && // Checking full registered URI match.
-                    (same_chars >= out_max_matched_chars)) // Checking for longer string match.
-                {
-                    // Checking if we have correct URI start with.
-                    if ((uri_len_chars > same_chars) &&
-                        (reg_uris_[i].get_processed_uri_info()[same_chars - 1] != '/'))
-                    {
-                        if (uri[same_chars] != '/')
-                            continue;
-                    }
-
-                    // That was a correct match.
-                    matched_index = i;
-                    out_max_matched_chars = same_chars;
-                }
-                else if (same_chars < out_max_matched_chars)
-                {
-                    // By this search has finished.
-                    break;
-                }
-            }
-        }
-
-        // Returning negative if nothing is found.
-        return matched_index;
     }
 };
 

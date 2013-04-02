@@ -22,6 +22,8 @@ namespace Starcounter.Administrator {
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;
 
+        static Node LocalhostAdminNode;
+
         // Argument <path to server configuraton file> <portnumber>
         static void Main(string[] args) {
 
@@ -76,15 +78,27 @@ namespace Starcounter.Administrator {
         /// <param name="sytemHttpPort">Port for doing SQL queries</param>
         static void RegisterHandlers(ushort sytemHttpPort) {
 
+            // Creating localhost node.
+            LocalhostAdminNode = new Node("127.0.0.1", sytemHttpPort);
 
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {
                 return null;
             });
 
-            // This dosent work.
-            GET("/", () => {
-                return StarcounterBase.Get("/index.html");
+            // Redirecting root to index.html.
+            GET("/", (Request req) =>
+            {
+                Response resp;
+
+                // Doing another request with original request attached.
+                LocalhostAdminNode.GET("/index.html", req, out resp);
+
+                if (resp == null)
+                    throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
+
+                // Returns this response to original request.
+                return resp;
             });
 
             #region Server
@@ -202,13 +216,12 @@ namespace Starcounter.Administrator {
 
                 if (HasAccept(req["Accept"], "application/json")) {
                     try {
-                        Starcounter.Advanced.Response response;
+                        Response response;
                         string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        Node node = new Node("localhost", sytemHttpPort);
-                        node.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
+                        LocalhostAdminNode.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
 
-                        // TODO: check if 'respone' still can be null
+                        // TODO: check if 'response' still can be null
                         if (response == null) {
                             throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
                         }
@@ -243,9 +256,7 @@ namespace Starcounter.Administrator {
                         Starcounter.Advanced.Response response;
                         string bodyData = req.GetContentStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        Node node = new Node("localhost", sytemHttpPort);
-
-                        node.GET(string.Format("/__{0}/console", databaseid), null, out response);
+                        LocalhostAdminNode.GET(string.Format("/__{0}/console", databaseid), null, out response);
 
                         // TODO: check if 'respone' still can be null
                         if (response == null) {

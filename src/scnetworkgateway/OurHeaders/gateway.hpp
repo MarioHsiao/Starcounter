@@ -53,7 +53,6 @@ typedef uint64_t session_timestamp_type;
 typedef int64_t echo_id_type;
 
 // Statistics macros.
-#define GW_GLOBAL_STATISTICS
 #define GW_COLLECT_SOCKET_STATISTICS
 //#define GW_DETAILED_STATISTICS
 //#define GW_ECHO_STATISTICS
@@ -63,7 +62,7 @@ typedef int64_t echo_id_type;
 //#define GW_HTTP_DIAG
 //#define GW_WEBSOCKET_DIAG
 #define GW_ERRORS_DIAG
-#define GW_WARNINGS_DIAG
+//#define GW_WARNINGS_DIAG
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 #define GW_SESSIONS_DIAG
@@ -90,7 +89,6 @@ typedef int64_t echo_id_type;
 //#define GW_LOOPED_TEST_MODE
 //#define GW_PROFILER_ON
 //#define GW_LIMITED_ECHO_TEST
-#define GW_URI_MATCHING_CODEGEN
 
 // Checking that macro definitions are correct.
 #ifdef GW_LOOPED_TEST_MODE
@@ -251,6 +249,7 @@ const session_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
 const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 256;
+const int32_t MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE = MAX_CHUNKS_IN_PRIVATE_POOL * 2;
 
 // Number of predefined gateway port types
 const int32_t NUM_PREDEFINED_PORT_TYPES = 5;
@@ -483,16 +482,12 @@ uint32_t GatewayUriProcessEcho(
 
 #endif
 
-#ifdef GW_GLOBAL_STATISTICS
-
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
-
-#endif
 
 uint32_t GatewayUriProcessProxy(
     GatewayWorker *gw,
@@ -572,7 +567,7 @@ public:
         num_entries_--;
     }
 
-    bool Remove(T& elem)
+    bool RemoveEntry(T& elem)
     {
         for (uint32_t i = 0; i < num_entries_; i++)
         {
@@ -1040,9 +1035,27 @@ class ActiveDatabase
     session_salt_type* apps_session_salts_unsafe_;
 
     // Indicates if database is ready to be deleted.
-    bool is_empty_;
+    volatile bool is_empty_;
+
+    // Indicates if database is ready to be cleaned up.
+    volatile bool is_ready_for_cleanup_;
+
+    // Number of released workers.
+    int32_t num_holding_workers_;
+
+    // Critical section for database checks.
+    CRITICAL_SECTION cs_db_checks_;
 
 public:
+
+    // Printing the database information.
+    void PrintInfo(std::stringstream& global_port_statistics_stream);
+
+    // Releasing worker.
+    void ReleaseHoldingWorker()
+    {
+        num_holding_workers_--;
+    }
 
     // Number of confirmed register push channels.
     int32_t get_num_confirmed_push_channels()
@@ -1122,6 +1135,9 @@ public:
 
     // Checks if this database slot empty.
     bool IsEmpty();
+
+    // Checks if this database is ready to be cleaned up by workers (no used chunks, etc).
+    bool IsReadyForCleanup();
 
     // Checks if this database slot emptying was started.
     bool IsDeletionStarted()
@@ -1554,12 +1570,16 @@ class Gateway
 
     // Starts measured test.
     bool started_measured_test_;
+    volatile bool finished_measured_test_;
 
     // Time when test started.
     uint64_t test_begin_time_;
 
     // Number of confirmed echoes.
     volatile int64_t num_confirmed_echoes_unsafe_;
+
+    // Critical section for test finish.
+    CRITICAL_SECTION cs_test_finished_;
 
     // Current echo number.
     volatile int64_t current_echo_number_unsafe_;
@@ -1618,6 +1638,8 @@ class Gateway
     // Current global statistics stream.
     std::stringstream global_statistics_stream_;
     std::stringstream global_port_statistics_stream_;
+    std::stringstream global_databases_statistics_stream_;
+    std::stringstream global_workers_statistics_stream_;
     char global_statistics_string_[MAX_STATS_LENGTH + 1];
 
     // Critical section for statistics.
@@ -1628,19 +1650,14 @@ class Gateway
 
 public:
 
-    // Printing statistics for specific port.
-    void PrintPortStatistics()
-    {
-        // Emptying the statistics stream.
-        global_port_statistics_stream_.clear();
-        global_port_statistics_stream_.seekp(0);
+    // Printing statistics for all ports.
+    void PrintPortStatistics(std::stringstream& stats_stream);
 
-        // Going through all ports.
-        for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
-        {
-            server_ports_[i].PrintInfo(global_port_statistics_stream_);
-        }
-    }
+    // Printing statistics for all databases.
+    void PrintDatabaseStatistics(std::stringstream& stats_stream);
+
+    // Printing statistics for all workers.
+    void PrintWorkersStatistics(std::stringstream& stats_stream);
 
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type get_sc_log_handle()
@@ -1809,7 +1826,6 @@ public:
         uint32_t original_uri_info_len_chars,
         const char* processed_uri_info,
         uint32_t processed_uri_info_len_chars,
-        bmx::HTTP_METHODS http_method,
         uint8_t* param_types,
         int32_t num_params,
         BMX_HANDLER_TYPE user_handler_id,
@@ -1893,6 +1909,7 @@ public:
     {
         num_confirmed_echoes_unsafe_ = 0;
         started_measured_test_ = true;
+        finished_measured_test_ = false;
         test_begin_time_ = timeGetTime();
     }
 
@@ -1902,6 +1919,7 @@ public:
         num_confirmed_echoes_unsafe_ = 0;
         current_echo_number_unsafe_ = -1;
         started_measured_test_ = false;
+        finished_measured_test_ = false;
         test_begin_time_ = 0;
 
         for (int32_t i = 0; i < setting_num_echoes_to_master_; i++)
@@ -2160,7 +2178,10 @@ public:
     uint32_t RunAllHandlers();
 
     // Delete all handlers associated with given database.
-    uint32_t DeletePortsForDb(int32_t db_index);
+    uint32_t EraseDatabaseFromPorts(int32_t db_index);
+
+    // Cleans up empty ports.
+    void CleanUpEmptyPorts();
 
     // Get active server ports.
     ServerPort* get_server_port(int32_t port_index)
