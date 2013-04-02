@@ -296,5 +296,9 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
 
         return uniqueGenName;
     }
+
+    public Boolean IsAtRecreatedKey { get { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } }
+    public Boolean StayAtOffsetkey { get { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } set { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } }
+    public Boolean UseOffsetkey { get { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } set { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } }
 }
 }
