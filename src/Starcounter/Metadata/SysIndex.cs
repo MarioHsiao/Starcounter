@@ -6,20 +6,37 @@
 
 using Starcounter.Binding;
 using Starcounter.Internal;
-using System;
 using System.Reflection;
 
-namespace Starcounter.Metadata
-{
+namespace Starcounter.Metadata {
     /// <summary>
     /// Class SysIndex
     /// </summary>
-    public sealed class SysIndex : Entity
-    {
+    public sealed class SysIndex : Entity2 {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal sealed class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_IndexId = 0;
+            internal static int columnHandle_TableId = 1;
+            internal static int columnHandle_Name = 2;
+            internal static int columnHandle_TableName = 3;
+            internal static int columnHandle_Description = 4;
+            internal static int columnHandle_Unique = 5;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
         /// <summary>
         /// Creates the database binding <see cref="TypeDef"/> representing
         /// the type in the database and holding its table- and column defintions.
         /// </summary>
+        /// <remarks>
+        /// Developer note: if you extend or change this class in any way, make
+        /// sure to keep the <see cref="SysTable.__starcounterTypeSpecification"/>
+        /// class in sync with what is returned by this method.
+        /// </remarks>
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
@@ -63,43 +80,39 @@ namespace Starcounter.Metadata
         /// <summary>
         /// </summary>
         public ulong TableId {
-            get { return DbState.ReadUInt64(0,0, 1); }
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableId); }
         }
 
         /// <summary>
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name
-        {
-            get { return DbState.ReadString(0,0, 2); }
+        public string Name {
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name); }
         }
 
         /// <summary>
         /// Gets the name of the table.
         /// </summary>
         /// <value>The name of the table.</value>
-        public string TableName
-        {
-            get { return DbState.ReadString(0,0, 3); }
+        public string TableName {
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableName); }
         }
 
         /// <summary>
         /// Gets the description.
         /// </summary>
         /// <value>The description.</value>
-        public string Description
-        {
-            get { return DbState.ReadString(0,0, 4); }
+        public string Description {
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Description); }
         }
 
         /// <summary>
         /// Gets a value indicating whether this <see cref="SysIndex" /> is unique.
         /// </summary>
         /// <value><c>true</c> if unique; otherwise, <c>false</c>.</value>
-        public bool Unique
-        {
-            get { return DbState.ReadBoolean(0,0, 5); }
+        public bool Unique {
+            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Unique); }
         }
     }
 }
