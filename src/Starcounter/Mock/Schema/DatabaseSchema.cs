@@ -154,16 +154,6 @@ public class DatabaseSchema
     }
 
     /// <summary>
-    /// Finds the class named <b>Starcounter.Entity</b>.
-    /// </summary>
-    /// <returns>The <see cref="DatabaseClass"/> named <b>Starcounter.Entity</b>, or
-    /// <b>null</b> if the schema does not contain a class named <b>Starcounter.Entity</b>.</returns>
-    public DatabaseClass FindRootClass()
-    {
-        return this.FindDatabaseClass(rootClassName);
-    }
-
-    /// <summary>
     /// Enumerates all classes contained in the current schema.
     /// </summary>
     /// <returns>An enumerator for all classes contained in the current schema.</returns>
