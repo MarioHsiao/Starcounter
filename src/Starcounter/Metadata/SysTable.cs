@@ -14,7 +14,7 @@ namespace Starcounter.Metadata {
     /// Class SysTable
     /// </summary>
     [Database]
-    public sealed class SysTable : Entity2 {
+    public sealed class SysTable : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal sealed class __starcounterTypeSpecification {
