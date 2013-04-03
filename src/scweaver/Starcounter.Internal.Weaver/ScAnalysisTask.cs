@@ -81,14 +81,6 @@ namespace Starcounter.Internal.Weaver {
         /// The _not persistent attribute type
         /// </summary>
         private IType _notPersistentAttributeType;
-        /// <summary>
-        /// The _entity type
-        /// </summary>
-        private IType _entityType;
-        /// <summary>
-        /// The _DB object type
-        /// </summary>
-        private ITypeSignature _dbObjectType;
 
         private IType _databaseAttributeType;
         /// <summary>
@@ -408,8 +400,6 @@ namespace Starcounter.Internal.Weaver {
         /// even before we check if a reference to Starcounter exist.
         /// </remarks>
         void InitializeModuleThatReferenceStarcounter() {
-            _entityType = FindStarcounterType(typeof(Entity));
-            _dbObjectType = FindStarcounterType(typeof(Entity));
             _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
             _databaseAttributeType = FindStarcounterType(typeof(Starcounter.DatabaseAttribute));

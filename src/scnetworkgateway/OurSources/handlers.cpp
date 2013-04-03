@@ -32,7 +32,8 @@ uint32_t HandlersList::UnregisterGlobally(int32_t db_index)
         case bmx::HANDLER_TYPE::URI_HANDLER:
         {
             // Unregister globally.
-            g_gateway.FindServerPort(port_)->get_registered_uris()->RemoveEntry(db_index, processed_uri_info_);
+            RegisteredUris* port_uris = g_gateway.FindServerPort(port_)->get_registered_uris();
+            port_uris->RemoveEntry(db_index, processed_uri_info_);
 
             // Collecting empty ports.
             g_gateway.CleanUpEmptyPorts();

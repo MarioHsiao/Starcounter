@@ -235,6 +235,9 @@ public:
     // Getting one of the active databases.
     WorkerDbInterface* GetWorkerDb(int32_t db_index)
     {
+        // Checking for correct database.
+        GW_ASSERT_DEBUG(db_index < g_gateway.get_num_dbs_slots());
+
         return worker_dbs_[db_index];
     }
 

@@ -61,12 +61,6 @@ namespace Starcounter.Internal
     /// </summary>
     public static class SchemaLoader
     {
-
-        /// <summary>
-        /// The root class name
-        /// </summary>
-        private const string rootClassName = "Starcounter.Entity";
-
         /// <summary>
         /// Loads the and convert schema.
         /// </summary>
@@ -124,8 +118,7 @@ namespace Starcounter.Internal
             LoaderHelper.MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray);
 
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
-            if (baseName == rootClassName) baseName = null;
-
+            
             var tableDef = new TableDef(databaseClass.Name, baseName, columnDefArray);
             var typeDef = new TypeDef(databaseClass.Name, baseName, propertyDefArray, typeLoader, tableDef);
 
