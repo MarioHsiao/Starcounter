@@ -8,12 +8,15 @@ namespace QueryProcessingTest {
         public static void Master() {
             HelpMethods.LogEvent("Test offset key");
             ErrorCases();
+            // Simple query
             TestDataModification("select a from account a where accountid > ?");
             Db.Transaction(delegate {
                 TestDataModification("select a from account a where accountid > ?");
             });
             // Join with index scan only
+            TestDataModification("select a from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount");
             // Join with index scan and full table scan
+            // Join with proceedings
             // Reference look up
             // Multiple joins
             // With operators
