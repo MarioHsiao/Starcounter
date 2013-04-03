@@ -277,7 +277,7 @@ Gateway::Gateway()
     gw_handlers_ = new HandlersTable();
 
     // Initial number of server ports.
-    num_server_ports_unsafe_ = 0;
+    num_server_ports_slots_ = 0;
 
     // Resetting number of processed HTTP requests.
     num_processed_http_requests_unsafe_ = 0;
@@ -1501,7 +1501,7 @@ uint32_t Gateway::Init()
 #endif
 
         // Going throw all needed ports.
-        for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
+        for (int32_t p = 0; p < num_server_ports_slots_; p++)
         {
             // Skipping empty port.
             if (server_ports_[p].IsEmpty())
@@ -1720,13 +1720,17 @@ void Gateway::PrintPortStatistics(std::stringstream& stats_stream)
 
     // Going through all ports.
     stats_stream << "<h4>PORTS</h4>";
-    for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
+    for (int32_t p = 0; p < num_server_ports_slots_; p++)
     {
-        stats_stream << "<b>Port " << server_ports_[p].get_port_number() << ":</b><br>";
+        // Checking that port is not empty.
+        if (!server_ports_[p].IsEmpty())
+        {
+            stats_stream << "<b>Port " << server_ports_[p].get_port_number() << ":</b><br>";
 
-        server_ports_[p].PrintInfo(stats_stream);
+            server_ports_[p].PrintInfo(stats_stream);
 
-        stats_stream << "<br>";
+            stats_stream << "<br>";
+        }
     }
 }
 
@@ -1829,7 +1833,7 @@ GatewayWorker* Gateway::get_worker(int32_t worker_id)
 uint32_t Gateway::EraseDatabaseFromPorts(int32_t db_index)
 {
     // Going through all ports.
-    for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
+    for (int32_t i = 0; i < num_server_ports_slots_; i++)
     {
         // Checking that port is not empty.
         if (!server_ports_[i].IsEmpty())
@@ -1849,7 +1853,7 @@ uint32_t Gateway::EraseDatabaseFromPorts(int32_t db_index)
 void Gateway::CleanUpEmptyPorts()
 {
     // Going through all ports.
-    for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
+    for (int32_t i = 0; i < num_server_ports_slots_; i++)
     {
         // Checking if port is not used anywhere.
         if (server_ports_[i].IsEmpty())
@@ -1857,13 +1861,13 @@ void Gateway::CleanUpEmptyPorts()
     }
 
     // Removing deleted trailing server ports.
-    for (int32_t i = (num_server_ports_unsafe_ - 1); i >= 0; i--)
+    for (int32_t i = (num_server_ports_slots_ - 1); i >= 0; i--)
     {
         // Removing until one server port is not empty.
         if (!server_ports_[i].IsEmpty())
             break;
 
-        num_server_ports_unsafe_--;
+        num_server_ports_slots_--;
     }
 }
 
@@ -2706,7 +2710,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
             "<br>" << GW_ENDL;
 
         // Printing handlers information for each attached database and gateway.
-        for (int32_t p = 0; p < num_server_ports_unsafe_; p++)
+        for (int32_t p = 0; p < num_server_ports_slots_; p++)
         {
             // Checking if port is alive.
             if (!server_ports_[p].IsEmpty())

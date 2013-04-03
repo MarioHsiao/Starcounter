@@ -1610,8 +1610,8 @@ class Gateway
     // All server ports.
     ServerPort server_ports_[MAX_ACTIVE_SERVER_PORTS];
 
-    // Number of used server ports.
-    volatile int32_t num_server_ports_unsafe_;
+    // Number of used server ports slots.
+    volatile int32_t num_server_ports_slots_;
 
     // Number of processed HTTP requests.
     volatile int64_t num_processed_http_requests_unsafe_;
@@ -2132,7 +2132,7 @@ public:
     // Checks if certain server port exists.
     ServerPort* FindServerPort(uint16_t port_num)
     {
-        for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
+        for (int32_t i = 0; i < num_server_ports_slots_; i++)
         {
             if (port_num == server_ports_[i].get_port_number())
                 return server_ports_ + i;
@@ -2144,7 +2144,7 @@ public:
     // Checks if certain server port exists.
     int32_t FindServerPortIndex(uint16_t port_num)
     {
-        for (int32_t i = 0; i < num_server_ports_unsafe_; i++)
+        for (int32_t i = 0; i < num_server_ports_slots_; i++)
         {
             if (port_num == server_ports_[i].get_port_number())
                 return i;
@@ -2158,7 +2158,7 @@ public:
     {
         // Looking for an empty server port slot.
         int32_t empty_slot = 0;
-        for (empty_slot = 0; empty_slot < num_server_ports_unsafe_; ++empty_slot)
+        for (empty_slot = 0; empty_slot < num_server_ports_slots_; ++empty_slot)
         {
             if (server_ports_[empty_slot].IsEmpty())
                 break;
@@ -2168,8 +2168,8 @@ public:
         server_ports_[empty_slot].Init(empty_slot, port_num, listening_sock, blob_user_data_offset);
 
         // Checking if it was the last slot.
-        if (empty_slot >= num_server_ports_unsafe_)
-            num_server_ports_unsafe_++;
+        if (empty_slot >= num_server_ports_slots_)
+            num_server_ports_slots_++;
 
         return server_ports_ + empty_slot;
     }
@@ -2193,9 +2193,9 @@ public:
     }
 
     // Get number of active server ports.
-    int32_t get_num_server_ports()
+    int32_t get_num_server_ports_slots()
     {
-        return num_server_ports_unsafe_;
+        return num_server_ports_slots_;
     }
 
     // Gets server address.
