@@ -5,16 +5,18 @@ using Starcounter;
 
 namespace QueryProcessingTest {
     public static class OffsetkeyTest {
-        delegate SqlResult<dynamic> CallQuery(String addition, dynamic arg);
-        static List<CallQuery> queries = new List<CallQuery>();
-        //static SqlResult<dynamic> sqlResult;
-
         public static void Master() {
             HelpMethods.LogEvent("Test offset key");
-            AddQueries();
             ErrorCases();
-            SimpleTestsAllQueries();
-            TestDataModification();
+            TestDataModification("select a from account a where accountid > ?");
+            Db.Transaction(delegate {
+                TestDataModification("select a from account a where accountid > ?");
+            });
+            // Join with index scan only
+            // Join with index scan and full table scan
+            // Reference look up
+            // Multiple joins
+            // With operators
 #if false
             foreach query
                 foreach interator
@@ -29,15 +31,6 @@ namespace QueryProcessingTest {
             // If offset key is not null, query with offset key
             // Iterate over it
             HelpMethods.LogEvent("Finished testing offset key");
-        }
-
-        static void AddQueries() {
-            queries.Add((addition, arg) => Db.SQL("select u from user u " + addition, arg));
-            queries.Add((addition, arg) => Db.SQL("select u from user u where useridnr < ? " + addition, 5, arg));
-            queries.Add((addition, arg) => Db.SQL("select Client from Account " + addition, arg));
-            queries.Add((addition, arg) => Db.SQL("select Client from Account where accountid < ? " + addition, 5, arg));
-            queries.Add((addition, arg) => Db.SQL("select u from User u, Account a where useridnr < ? and u = Client and amount = ? " + addition, 5, 0, arg));
-            queries.Add((addition, arg) => Db.SQL("select u1 from User u1 join user u2 on u1 <> u2 and u1.useridnr = u2.useridnr + ? " + addition, 1, arg));
         }
 
         static void ErrorCases() {
@@ -67,7 +60,6 @@ namespace QueryProcessingTest {
             e = Db.SQL(query + f, n).GetEnumerator();
             e.MoveNext();
             Trace.Assert(e.Current is User);
-            Trace.Assert((e.Current as User).UserIdNr == 0);
             e.Dispose();
             // Test offsetkey on the query with the offset key from another query
             Boolean isException = false;
@@ -124,60 +116,39 @@ namespace QueryProcessingTest {
 #endif
         }
 
-        static void SimpleTestsAllQueries() {
-            int n = 4;
-            byte[] k = null;
-            foreach (CallQuery q in queries)
-                Db.Transaction(delegate {
-                    int userIdNr = 0;
-                    using (IRowEnumerator<dynamic> e = q("fetch ?", n).GetEnumerator()) {
-                        e.MoveNext();
-                        Trace.Assert(e.Current is User);
-                        //Trace.Assert((e.Current as User).UserIdNr == 0);
-                        e.MoveNext();
-                        Trace.Assert(e.Current is User);
-                        userIdNr = (e.Current as User).UserIdNr;
-                        k = e.GetOffsetKey();
-                    }
-                    Trace.Assert(k != null);
-                    using (IRowEnumerator<dynamic> e = q("offsetkey ?", k).GetEnumerator()) {
-                        e.MoveNext();
-                        Trace.Assert(e.Current is User);
-                        Trace.Assert((e.Current as User).UserIdNr == userIdNr);
-                    }
-                });
-        }
-
-        static void TestDataModification() {
+        static void TestDataModification(String query) {
             // Populate data
             User client = PopulateForTest();
             // Do set of tests
-            String query = "select a from account a where accountid > ?";
+            byte[] key;
+            // Do nothing
+            key = DoFetch(query);
+            DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(4), GetAccountId(5) }); // offsetkey does not move forward
             // Drop inside fetched
-            var key = DoFetch(query);
+            key = DoFetch(query);
             Db.Transaction(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1)).First.Delete();
             });
-            DoOffsetkey(query, key, new int[] {GetAccountId(3-1), GetAccountId(4-1), GetAccountId(5-1)}); // offsetkey does not move forward
+            DoOffsetkey(query, key, new int[] {GetAccountId(3), GetAccountId(4), GetAccountId(5)}); // offsetkey does not move forward
             InsertAccount(GetAccountId(1), client);
             // Insert inside fetched
             key = DoFetch(query);
-            InsertAccount(GetAccountId(1)+1, client);
-            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(5 - 1) }); // offsetkey does not move forward
+            InsertAccount(GetAccountId(1) + 1, client);
+            DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(4), GetAccountId(5) }); // offsetkey does not move forward
             Db.Transaction(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1) + 1).First.Delete();
             });
             // Insert later after offsetkey
             key = DoFetch(query);
             InsertAccount(GetAccountId(3) + 1, client);
-            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(4 - 1), GetAccountId(3) + 1, GetAccountId(5 - 1) });
+            DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(3) + 1, GetAccountId(4), GetAccountId(5) });
             Db.Transaction(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3) + 1).First.Delete();
             });
             // Insert after offsetkey
             key = DoFetch(query);
             InsertAccount(GetAccountId(2) + 1, client);
-            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(2) + 1, GetAccountId(4 - 1), GetAccountId(5 - 1) });
+            DoOffsetkey(query, key, new int[] { GetAccountId(2) + 1, GetAccountId(3), GetAccountId(4), GetAccountId(5) });
             Db.Transaction(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2) + 1).First.Delete();
             });
@@ -186,7 +157,7 @@ namespace QueryProcessingTest {
             Db.Transaction(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3)).First.Delete();
             });
-            DoOffsetkey(query, key, new int[] { GetAccountId(3 - 1), GetAccountId(5 - 1) });
+            DoOffsetkey(query, key, new int[] { GetAccountId(4), GetAccountId(5) });
             InsertAccount(GetAccountId(3), client);
             // Delete the offset key
             key = DoFetch(query);
@@ -196,6 +167,12 @@ namespace QueryProcessingTest {
             DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(4), GetAccountId(5) });
             InsertAccount(GetAccountId(2), client);
             // Delete and insert the offset key
+            key = DoFetch(query);
+            Db.Transaction(delegate {
+                Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2)).First.Delete();
+            });
+            InsertAccount(GetAccountId(2), client);
+            DoOffsetkey(query, key, new int[] { GetAccountId(2), GetAccountId(3), GetAccountId(4), GetAccountId(5) });
             // Drop data
             DropAfterTest();
         }
