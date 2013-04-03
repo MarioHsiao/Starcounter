@@ -14,7 +14,8 @@ namespace QueryProcessingTest {
                 TestDataModification("select a from account a where accountid > ?");
             });
             // Join with index scan only
-            TestDataModification("select a from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount");
+            Console.WriteLine(Db.SQL("select a1 from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount", 30000).GetEnumerator().ToString());
+            TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount");
             // Join with index scan and full table scan
             // Join with proceedings
             // Reference look up

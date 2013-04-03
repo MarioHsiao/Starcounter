@@ -682,11 +682,13 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                         &createdKey
                         );
 
+#if false
                     // Placing local time of the iterator into recreation key.
                     UInt32 itLocalTime = enumerator.GetIteratorLocalTime();
 
                     // Saving local time of the iterator.
                     (*(UInt32*)(createdKey + (*(UInt32*)createdKey) - 4)) = itLocalTime;
+#endif
                 }
 
                 // Disposing iterator.
