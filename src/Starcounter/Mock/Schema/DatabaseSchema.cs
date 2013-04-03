@@ -53,7 +53,6 @@ public class DatabaseSchema
         databaseAssembly.IsCached = true;
         databaseAssembly.SetSchema(this);
         Assemblies.Add(databaseAssembly);
-        databaseAssembly.DatabaseClasses.Add(new DatabaseEntityClass(databaseAssembly, typeof(Starcounter.Entity).FullName));
     }
 
     /// <summary>
