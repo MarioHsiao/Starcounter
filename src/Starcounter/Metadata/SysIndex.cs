@@ -12,7 +12,7 @@ namespace Starcounter.Metadata {
     /// <summary>
     /// Class SysIndex
     /// </summary>
-    public sealed class SysIndex : Entity2 {
+    public sealed class SysIndex : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal sealed class __starcounterTypeSpecification {

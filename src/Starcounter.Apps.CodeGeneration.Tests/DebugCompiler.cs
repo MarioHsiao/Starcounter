@@ -33,7 +33,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             compilation = Compilation.Create("jsonserializer", copts);
             compilation = compilation.AddReferences(
                                 new MetadataFileReference(typeof(object).Assembly.Location),                    // System.dll
-                                new MetadataFileReference(typeof(Entity).Assembly.Location),                    // Starcounter.dll
+                                new MetadataFileReference(typeof(Db).Assembly.Location),                        // Starcounter.dll
                                 new MetadataFileReference(typeof(JsonHelper).Assembly.Location),                // Starcounter.JsonPatch.dll
                                 new MetadataFileReference(typeof(Template).Assembly.Location),                  // Starcounter.Apps.dll
                                 new MetadataFileReference(typeof(ITemplateCodeGenerator).Assembly.Location),        // Starcounter.Apps.Interfaces.dll

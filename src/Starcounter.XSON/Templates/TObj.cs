@@ -181,11 +181,15 @@ namespace Starcounter.Templates {
 
             if (BindChildren) {
                 value = property as TValue;
-                if (value != null && !value.Bound) {
-                    propertyName = value.PropertyName;
-                    if (!string.IsNullOrEmpty(propertyName)
-                        && !(propertyName[0] == '_')) {
-                        value.Bind = propertyName;
+                if (value != null) {
+                    if (!value.Bound) {
+                        propertyName = value.PropertyName;
+                        if (!string.IsNullOrEmpty(propertyName)
+                            && !(propertyName[0] == '_')) {
+                            value.Bind = propertyName;
+                        }
+                    } else if (value.Bind == null) {
+                        value.Bound = false;
                     }
                 }
             }
