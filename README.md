@@ -6,10 +6,3 @@ Starcounter [(www.starcounter.com)](http://www.starcounter.com) is a memory cent
 Starcounter can be used to build modern applications such as web applications, mobile services and massive real time software such as games, advertising and telecom applications.
 
 This repository contains the public Starcounter bits.
-
-## A complete Starcounter application
-For a programmer, a snippet of code can be helpful to grasp a new piece of technology. The getting started section of the wiki will explain the application below step-by-step.
-
-![Hello World code](http://www.rebelslounge.com/res/starcounter/helloweb.png)
-
-
