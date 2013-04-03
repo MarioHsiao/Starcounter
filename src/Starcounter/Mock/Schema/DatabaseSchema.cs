@@ -17,7 +17,6 @@ namespace Sc.Server.Weaver.Schema
 [Serializable]
 public class DatabaseSchema
 {
-    private const string rootClassName = "Starcounter.Entity";
     private readonly DatabaseAssemblyCollection assemblies;
 
     readonly Dictionary<String, DatabaseClass> databaseClassesByName = new Dictionary<String, DatabaseClass>();
@@ -180,7 +179,7 @@ public class DatabaseSchema
             foreach (DatabaseClass databaseClass in assembly.DatabaseClasses)
             {
                 DatabaseEntityClass entityClass = databaseClass as DatabaseEntityClass;
-                if (entityClass != null && entityClass.Name != rootClassName)
+                if (entityClass != null)
                 {
                     classes.Add(entityClass);
                 }
@@ -229,7 +228,7 @@ public class DatabaseSchema
         Dictionary<DatabaseEntityClass, object> index = new Dictionary<DatabaseEntityClass, object>(this.databaseClassesByName.Count);
         foreach (DatabaseEntityClass databaseClass in this.databaseClassesByName.Values) {
             DatabaseEntityClass entityClass = databaseClass as DatabaseEntityClass;
-            if (entityClass != null && entityClass.Name != rootClassName) {
+            if (entityClass != null) {
                 RecursivePopulateOrderedEntityClasses(entityClass, list, index);
             }
         }
@@ -303,7 +302,7 @@ public class DatabaseSchema
         Dictionary<DatabaseEntityClass, object> index) {
         if (!index.ContainsKey(databaseClass)) {
             DatabaseEntityClass databaseClassBase = databaseClass.BaseClass as DatabaseEntityClass;
-            if (databaseClassBase != null && databaseClassBase.Name != rootClassName) {
+            if (databaseClassBase != null) {
                 RecursivePopulateOrderedEntityClasses(databaseClassBase, orderedClasses, index);
             }
             orderedClasses.Add(databaseClass);
