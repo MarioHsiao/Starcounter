@@ -288,6 +288,106 @@ JUST_SEND_SOCKET_DATA:
     return 0;
 }
 
+// Writes given big linear buffer into obtained linked chunks.
+uint32_t WorkerDbInterface::WriteBigDataToChunks(
+    uint8_t* buf,
+    uint32_t buf_len_bytes,
+    starcounter::core::chunk_index cur_chunk_index,
+    uint32_t* actual_written_bytes,
+    uint32_t first_chunk_offset,
+    bool just_sending_flag
+    )
+{
+    // Maximum number of bytes that will be written in this call.
+    uint32_t num_bytes_to_write = buf_len_bytes;
+    uint32_t num_bytes_first_chunk = starcounter::bmx::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+
+    // Number of chunks to use.
+    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::bmx::CHUNK_MAX_DATA_BYTES) + 1;
+    assert(num_extra_chunks_to_use > 0);
+
+    // Checking if more than maximum chunks we can take at once.
+    if (num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS)
+    {
+        num_extra_chunks_to_use = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS;
+        num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_first_chunk;
+    }
+
+    // Acquiring linked chunks.
+    starcounter::core::chunk_index new_chunk_index;
+    uint32_t err_code = GetMultipleChunksFromPrivatePool(
+        &new_chunk_index,
+        num_extra_chunks_to_use);
+
+    if (err_code)
+        return err_code;
+
+    // Getting chunk memory address.
+    uint8_t* cur_chunk_buf = (uint8_t *)(&shared_int_.chunk(cur_chunk_index));
+
+    // Linking to the first chunk.
+    ((shared_memory_chunk*)cur_chunk_buf)->set_link(new_chunk_index);
+
+    // Checking if we should just send the chunks.
+    if (just_sending_flag)
+        *(cur_chunk_buf + starcounter::bmx::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::bmx::SOCKET_DATA_FLAGS_JUST_SEND;
+
+    // Setting the number of written bytes.
+    *(uint32_t*)(cur_chunk_buf + starcounter::bmx::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
+
+    // Going through each linked chunk and write data there.
+    uint32_t left_bytes_to_write = num_bytes_to_write;
+    uint32_t num_bytes_to_write_in_chunk = starcounter::bmx::CHUNK_MAX_DATA_BYTES;
+
+    // Writing to first chunk.
+    memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_first_chunk);
+    left_bytes_to_write -= num_bytes_first_chunk;
+
+    // Checking how many bytes to write next time.
+    if (left_bytes_to_write < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+    {
+        // Checking if we copied everything.
+        if (left_bytes_to_write <= 0)
+        {
+            // Setting number of total written bytes.
+            *actual_written_bytes = num_bytes_to_write;
+
+            return 0;
+        }
+
+        num_bytes_to_write_in_chunk = left_bytes_to_write;
+    }
+
+    // Processing until have some bytes to write.
+    while (true)
+    {
+        // Getting next chunk in chain.
+        cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
+
+        // Getting chunk memory address.
+        cur_chunk_buf = (uint8_t *)(&shared_int_.chunk(cur_chunk_index));
+
+        // Copying memory.
+        memcpy(cur_chunk_buf, buf + num_bytes_to_write - left_bytes_to_write, num_bytes_to_write_in_chunk);
+        left_bytes_to_write -= num_bytes_to_write_in_chunk;
+
+        // Checking how many bytes to write next time.
+        if (left_bytes_to_write < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        {
+            // Checking if we copied everything.
+            if (left_bytes_to_write <= 0)
+                break;
+
+            num_bytes_to_write_in_chunk = left_bytes_to_write;
+        }
+    }
+
+    // Setting number of total written bytes.
+    *actual_written_bytes = num_bytes_to_write;
+
+    return 0;
+}
+
 // Push given chunk to database queue.
 void WorkerDbInterface::PushLinkedChunksToDb(
     core::chunk_index chunk_index,
