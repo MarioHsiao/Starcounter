@@ -9,18 +9,21 @@ using Starcounter.Templates;
 using Starcounter.Advanced;
 
 namespace Starcounter {
+
+#if false
     /// <summary>
     /// </summary>
     /// <typeparam name="T"></typeparam>
-//    public abstract class Obj<T> : Obj where T : IBindable {
+    public abstract class Obj<T> : Obj where T : IBindable {
 
         /// <summary>
         /// </summary>
         /// <value></value>
-        //public new T Data 
-        //{
-        //    get { return (T)base.Data; }
-        //    set { base.Data = value; }
-        //}
- //   }
+        public new T Data 
+        {
+            get { return (T)base.Data; }
+            set { base.Data = value; }
+        }
+    }
+#endif
 }
