@@ -93,7 +93,7 @@
     <Compile Include="Binding\UIntPropertyBinding.cs" />
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
-    <Compile Include="Entity2.cs" />
+    <Compile Include="Internal\Entity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
     <Compile Include="Hosting\BackingException.cs" />
     <Compile Include="Hosting\DatabaseAttribute.cs" />
@@ -133,6 +133,7 @@
     <Compile Include="Binding\IPropertyBinding.cs" />
     <Compile Include="Binding\ITypeBinding.cs" />
     <Compile Include="Mock\LogSources.cs" />
+    <Compile Include="NotPersistentAttribute.cs" />
     <Compile Include="ObjectRef.cs" />
     <Compile Include="Internal\DbState.cs" />
     <Compile Include="Binding\PropertyBinding.cs" />
@@ -354,7 +355,6 @@
     <Compile Include="Internal\sccoredb.cs" />
     <Compile Include="Internal\sccorelib.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Entity.cs" />
     <Compile Include="Mock\LucentObjectsRuntime.cs" />
     <Compile Include="Binding\TypeBinding.cs" />
     <Compile Include="Internal\Uninitialized.cs" />

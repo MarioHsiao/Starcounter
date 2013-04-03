@@ -17,7 +17,6 @@ namespace Sc.Server.Weaver.Schema
 [Serializable]
 public class DatabaseSchema
 {
-    private const string rootClassName = "Starcounter.Entity";
     private readonly DatabaseAssemblyCollection assemblies;
 
     readonly Dictionary<String, DatabaseClass> databaseClassesByName = new Dictionary<String, DatabaseClass>();
@@ -53,7 +52,6 @@ public class DatabaseSchema
         databaseAssembly.IsCached = true;
         databaseAssembly.SetSchema(this);
         Assemblies.Add(databaseAssembly);
-        databaseAssembly.DatabaseClasses.Add(new DatabaseEntityClass(databaseAssembly, typeof(Starcounter.Entity).FullName));
     }
 
     /// <summary>
@@ -155,16 +153,6 @@ public class DatabaseSchema
     }
 
     /// <summary>
-    /// Finds the class named <b>Starcounter.Entity</b>.
-    /// </summary>
-    /// <returns>The <see cref="DatabaseClass"/> named <b>Starcounter.Entity</b>, or
-    /// <b>null</b> if the schema does not contain a class named <b>Starcounter.Entity</b>.</returns>
-    public DatabaseClass FindRootClass()
-    {
-        return this.FindDatabaseClass(rootClassName);
-    }
-
-    /// <summary>
     /// Enumerates all classes contained in the current schema.
     /// </summary>
     /// <returns>An enumerator for all classes contained in the current schema.</returns>
@@ -191,7 +179,7 @@ public class DatabaseSchema
             foreach (DatabaseClass databaseClass in assembly.DatabaseClasses)
             {
                 DatabaseEntityClass entityClass = databaseClass as DatabaseEntityClass;
-                if (entityClass != null && entityClass.Name != rootClassName)
+                if (entityClass != null)
                 {
                     classes.Add(entityClass);
                 }
@@ -240,7 +228,7 @@ public class DatabaseSchema
         Dictionary<DatabaseEntityClass, object> index = new Dictionary<DatabaseEntityClass, object>(this.databaseClassesByName.Count);
         foreach (DatabaseEntityClass databaseClass in this.databaseClassesByName.Values) {
             DatabaseEntityClass entityClass = databaseClass as DatabaseEntityClass;
-            if (entityClass != null && entityClass.Name != rootClassName) {
+            if (entityClass != null) {
                 RecursivePopulateOrderedEntityClasses(entityClass, list, index);
             }
         }
@@ -314,7 +302,7 @@ public class DatabaseSchema
         Dictionary<DatabaseEntityClass, object> index) {
         if (!index.ContainsKey(databaseClass)) {
             DatabaseEntityClass databaseClassBase = databaseClass.BaseClass as DatabaseEntityClass;
-            if (databaseClassBase != null && databaseClassBase.Name != rootClassName) {
+            if (databaseClassBase != null) {
                 RecursivePopulateOrderedEntityClasses(databaseClassBase, orderedClasses, index);
             }
             orderedClasses.Add(databaseClass);
