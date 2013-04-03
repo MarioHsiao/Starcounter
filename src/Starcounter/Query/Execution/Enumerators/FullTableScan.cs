@@ -389,8 +389,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     {
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
-        // Enabling recreation object check.
-        enableRecreateObjectCheck = true;
 
         // Trying to recreate the enumerator from key.
         if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle))
@@ -556,6 +554,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                     // If stay at recreated key then return
                     if (stayAtOffsetkey || !isAtRecreatedKey)
                         return true;
+                    else
+                        counter = 0;
                 } else {
                     enableRecreateObjectCheck = false;
                     isAtRecreatedKey = false;
