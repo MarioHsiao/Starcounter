@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="Entity2.cs" company="Starcounter AB">
+// <copyright file="Entity.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -21,7 +21,7 @@ namespace Starcounter.Internal {
     /// be used by end-user developers too.
     /// </remarks>
     [Database]
-    public abstract class Entity2 : IObjectProxy {
+    public abstract class Entity : IObjectProxy {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         protected TypeBinding __sc__this_binding__;
@@ -31,12 +31,12 @@ namespace Starcounter.Internal {
         #endregion
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Entity2" /> class.
+        /// Initializes a new instance of the <see cref="Entity" /> class.
         /// </summary>
         /// <param name="u">An instance of <see cref="Uninitialized"/>,
         /// serving the purpose to assure we have a unique signature for
         /// this constructor.</param>
-        public Entity2(Uninitialized u) : base() {
+        public Entity(Uninitialized u) : base() {
         }
 
         /// <inheritdoc />
