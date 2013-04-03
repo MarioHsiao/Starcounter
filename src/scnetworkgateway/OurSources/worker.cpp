@@ -1587,12 +1587,69 @@ uint32_t GatewayWorker::SendPredefinedMessage(
 {
     AccumBuffer* accum_buf = sd->get_accum_buf();
 
-    // Copying given response.
-    if (message)
-        memcpy(accum_buf->get_orig_buf_ptr(), message, message_len);
+    // Checking if data fits inside chunk.
+    if (message_len < accum_buf->get_buf_len_bytes())
+    {
+        // Checking if message should be copied.
+        if (message)
+            memcpy(accum_buf->get_orig_buf_ptr(), message, message_len);
 
-    // Prepare buffer to send outside.
-    accum_buf->PrepareForSend(accum_buf->get_orig_buf_ptr(), message_len);
+        // Prepare buffer to send outside.
+        accum_buf->PrepareForSend(accum_buf->get_orig_buf_ptr(), message_len);
+    }
+    else // Multiple chunks response.
+    {
+        GW_ASSERT(message != NULL);
+
+        WorkerDbInterface* worker_db = GetWorkerDb(sd->get_db_index());
+        starcounter::core::chunk_index src_chunk_index = sd->get_chunk_index();
+
+        uint32_t first_chunk_offset = sd->GetAccumBufferDataOffsetInChunk();
+
+        uint32_t last_written_bytes;
+        uint32_t err_code;
+
+        uint32_t total_processed_bytes = 0;
+        bool just_sending_flag = false;
+
+        // Copying user data to multiple chunks.
+        err_code = worker_db->WriteBigDataToChunks(
+            (uint8_t*)message + total_processed_bytes,
+            message_len - total_processed_bytes,
+            src_chunk_index,
+            &last_written_bytes,
+            first_chunk_offset,
+            just_sending_flag
+            );
+
+        if (err_code)
+            return err_code;
+
+        // Increasing total sent bytes.
+        total_processed_bytes += last_written_bytes;
+
+        // Checking if we have processed everything.
+        if (total_processed_bytes < message_len)
+        {
+            // TODO
+            GW_ASSERT(false);
+        }
+        else
+        {
+            // Creating special chunk for keeping WSA buffers information there.
+            sd->CreateWSABuffers(
+                worker_db,
+                sd->get_smc(),
+                bmx::BMX_HEADER_MAX_SIZE_BYTES + sd->get_user_data_offset(),
+                bmx::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset(),
+                sd->get_user_data_written_bytes());
+
+            GW_ASSERT(sd->get_num_chunks() > 2);
+
+            // NOTE: Not doing anything with chunks since they are not new for the gateway
+            // (getting chunks from shared pool and receive takes care of it).
+        }
+    }
 
     // Sending data.
     return Send(sd);
