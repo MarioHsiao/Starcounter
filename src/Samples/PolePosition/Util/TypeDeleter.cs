@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Starcounter;
+using Starcounter.Binding;
 
 namespace Starcounter.Poleposition.Util
 {
@@ -13,7 +15,7 @@ public static class TypeDeleter
         {
             while (se.MoveNext())
             {
-                (se.Current as Entity).Delete();
+                (se.Current as IObjectProxy).Delete();
             }
         }
     }
