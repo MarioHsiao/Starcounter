@@ -1237,8 +1237,7 @@ uint32_t GatewayWorker::WorkerRoutine()
     ULONG num_fetched_ovls = 0;
     uint32_t err_code = 0;
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime(), newTimeMs;
-    bool found_something = false;
-    uint32_t sleep_interval_ms = INFINITE;
+    uint32_t next_sleep_interval_ms = INFINITE;
 
     sd_receive_clone_ = NULL;
 
@@ -1253,7 +1252,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 #ifdef GW_LOOPED_TEST_MODE
         compl_status = ProcessEmulatedNetworkOperations(fetched_ovls, &num_fetched_ovls, MAX_FETCHED_OVLS);
 #else
-        compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, &num_fetched_ovls, sleep_interval_ms, TRUE);
+        compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, &num_fetched_ovls, next_sleep_interval_ms, TRUE);
 #endif
 
 #ifdef GW_PROFILER_ON
@@ -1397,22 +1396,10 @@ uint32_t GatewayWorker::WorkerRoutine()
 #endif
 
         // Scanning all channels.
-        found_something = false;
-        err_code = ScanChannels(&found_something);
+        next_sleep_interval_ms = INFINITE;
+        err_code = ScanChannels(next_sleep_interval_ms);
         if (err_code)
             return err_code;
-
-        // Checking if something was found.
-        if (found_something)
-        {
-            // Making at least one more round.
-            sleep_interval_ms = 0;
-        }
-        else
-        {
-            // Going to wait infinitely for network events.
-            sleep_interval_ms = INFINITE;
-        }
 
 #ifndef GW_NEW_SESSIONS_APPROACH
         // Checking inactive sessions cleanup (only first worker).
@@ -1444,7 +1431,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 
 // Scans all channels for any incoming chunks.
 void __stdcall EmptyApcFunction(ULONG_PTR arg);
-uint32_t GatewayWorker::ScanChannels(bool* found_something)
+uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 {
     uint32_t err_code;
 
@@ -1455,7 +1442,7 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
         if (NULL != db)
         {
             // Scanning channels first.
-            err_code = db->ScanChannels(this, found_something);
+            err_code = db->ScanChannels(this, next_sleep_interval_ms);
             GW_ERR_CHECK(err_code);
 
             // Checking if database deletion is started.
@@ -1486,7 +1473,7 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
                 else
                 {
                     // Gateway needs to loop for a while because of chunks being released.
-                    *found_something = true;
+                    next_sleep_interval_ms = 100;
 
                     // Releasing all private chunks to shared pool.
                     db->ReturnAllPrivateChunksToSharedPool();

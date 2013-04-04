@@ -36,7 +36,7 @@ uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
 }
 
 // Scans all channels for any incoming chunks.
-uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, bool* found_something)
+uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep_interval_ms)
 {
     core::chunk_index cur_chunk_index;
     uint32_t err_code;
@@ -283,7 +283,7 @@ JUST_SEND_SOCKET_DATA:
 
     // Checking if any chunks were popped.
     if (num_popped_chunks > 0)
-        *found_something = true;
+        next_sleep_interval_ms = 0;
 
     return 0;
 }
