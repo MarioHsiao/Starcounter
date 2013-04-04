@@ -35,6 +35,9 @@ struct HttpResponse
     uint32_t header_value_offsets_[MixedCodeConstants::MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
     uint32_t header_value_len_bytes_[MixedCodeConstants::MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
     uint32_t num_headers_;
+
+    // HTTP response status code.
+    uint16_t status_code_;
 };
 
 // Initializing HTTP response parser data structures.
