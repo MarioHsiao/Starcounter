@@ -1593,9 +1593,6 @@ uint32_t GatewayWorker::SendPredefinedMessage(
         // Checking if message should be copied.
         if (message)
             memcpy(accum_buf->get_orig_buf_ptr(), message, message_len);
-
-        // Prepare buffer to send outside.
-        accum_buf->PrepareForSend(accum_buf->get_orig_buf_ptr(), message_len);
     }
     else // Multiple chunks response.
     {
@@ -1650,6 +1647,9 @@ uint32_t GatewayWorker::SendPredefinedMessage(
             // (getting chunks from shared pool and receive takes care of it).
         }
     }
+
+    // Prepare buffer to send outside.
+    accum_buf->PrepareForSend(accum_buf->get_orig_buf_ptr(), message_len);
 
     // Sending data.
     return Send(sd);
