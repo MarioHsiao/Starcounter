@@ -23,7 +23,6 @@ namespace Starcounter.Internal.JsonPatch {
     public class InternalHandlers {
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
-        //        private static TextWriter _writer = null;
         private static StreamWriter consoleWriter;
         /// <summary>
         /// Registers this instance.
@@ -44,8 +43,8 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
-                    string bodyData = r.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
+                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request req) => {
+                    string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
                     return ExecuteQuery(bodyData);
                 });
             }
@@ -53,8 +52,13 @@ namespace Starcounter.Internal.JsonPatch {
             // Do not redirect the administrator console output
             if (!NewConfig.IsAdministratorApp) {
 
-                Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/console", () => {
+                Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/console", (Request req) => {
+                    //if (StringExistInList("application/json", req["Accept"])) {
                     return GetConsoleOutput();
+                    //}
+                    //else {
+                    //    return HttpStatusCode.NotAcceptable;
+                    //}
                 });
 
                 // Redirect console output to circular memory buffer
@@ -63,6 +67,17 @@ namespace Starcounter.Internal.JsonPatch {
                 Console.SetOut(InternalHandlers.consoleWriter);
             }
 
+        }
+
+        public static bool StringExistInList(string str, string list) {
+            if (string.IsNullOrEmpty(list) || string.IsNullOrEmpty(str)) return false;
+            string[] items = list.Split(',');
+            foreach (string type in items) {
+                if (string.Equals(type, str, StringComparison.CurrentCultureIgnoreCase)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static void HandlerRegistered(string uri, ushort port) {
@@ -109,22 +124,12 @@ namespace Starcounter.Internal.JsonPatch {
             resultJson.exception = null;
 
             try {
-
                 CircularStream circularMemoryStream = (CircularStream)InternalHandlers.consoleWriter.BaseStream;
                 byte[] buffer = new byte[circularMemoryStream.Length];
                 int count = circularMemoryStream.Read(buffer, 0, (int)circularMemoryStream.Length);
                 if (count > 0) {
-                    string result = System.Text.Encoding.UTF8.GetString(buffer);
-                    //string[] lines = result.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-                    //string consolelines = string.Empty;
-                    //int startIndex = lines.Length - maxLines;
-                    //if (startIndex < 0) startIndex = 0;
-                    //for (int i = startIndex; i < lines.Length ; i++) {
-                    //    consolelines += lines[i] + Environment.NewLine;
-                    //}
-                    resultJson.console = result;
+                    resultJson.console = System.Text.Encoding.UTF8.GetString(buffer);
                 }
-
             }
             catch (Exception e) {
                 resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
@@ -270,6 +275,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             }
             catch (Starcounter.SqlException ee) {
+
                 resultJson.sqlException = new {
                     beginPosition = ee.BeginPosition,
                     endPosition = ee.EndPosition,

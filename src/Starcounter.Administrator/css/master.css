@@ -40,3 +40,11 @@
 .handsontable .currentCol {
     background-color: #F9F9FB;
 }
+
+
+.console {
+    background-color: #000000;
+    color: white;
+    padding:5px;
+    margin-top:10px;
+}
