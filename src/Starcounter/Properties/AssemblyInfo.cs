@@ -26,7 +26,7 @@ using System.Runtime.InteropServices;
 // TODO:
 // This should be removed when DisplayName on sqlresults 
 // (TypeBinding, PropertyBinding, PropertyMapping) is publicly exposed.
-[assembly: InternalsVisibleTo("StarcounterSQLApp")]
+[assembly: InternalsVisibleTo("Starcounter.Apps.JsonPatch")]
 
 // Allow Starcounter.Hosting to access the internals of the VMDBMS.
 [assembly: InternalsVisibleTo("Starcounter.Hosting")]
