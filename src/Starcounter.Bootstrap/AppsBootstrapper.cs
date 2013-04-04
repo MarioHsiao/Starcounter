@@ -39,9 +39,9 @@ namespace Starcounter.Internal {
             NewConfig.Default.SystemHttpPort = defaultSystemHttpPort;
 
             NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
-            Node.ThisStarcounterNode = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
+            Node.LocalhostSystemPortNode = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
 
-            // Dependencyinjection for db and transaction calls.
+            // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
 
             // Setting the response handler.
@@ -127,7 +127,7 @@ namespace Starcounter.Internal {
                     String content = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Node.ThisStarcounterNode.POST("/addstaticcontentdir", content, null, (Response resp) =>
+                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", content, null, (Response resp) =>
                     {
                         String respString = resp.GetBodyStringUtf8_Slow();
 

@@ -22,8 +22,6 @@ namespace Starcounter.Administrator {
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;
 
-        static Node LocalhostAdminNode;
-
         // Argument <path to server configuraton file> <portnumber>
         static void Main(string[] args) {
 
@@ -78,9 +76,6 @@ namespace Starcounter.Administrator {
         /// <param name="sytemHttpPort">Port for doing SQL queries</param>
         static void RegisterHandlers(ushort sytemHttpPort) {
 
-            // Creating localhost node.
-            LocalhostAdminNode = new Node("127.0.0.1", sytemHttpPort);
-
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {
                 return null;
@@ -92,7 +87,7 @@ namespace Starcounter.Administrator {
                 Response resp;
 
                 // Doing another request with original request attached.
-                LocalhostAdminNode.GET("/index.html", req, out resp);
+                Node.LocalhostSystemPortNode.GET("/index.html", req, out resp);
 
                 if (resp == null)
                     throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
@@ -219,7 +214,7 @@ namespace Starcounter.Administrator {
                         Response response;
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        LocalhostAdminNode.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
+                        Node.LocalhostSystemPortNode.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
 
                         // TODO: check if 'response' still can be null
                         if (response == null) {
@@ -256,16 +251,20 @@ namespace Starcounter.Administrator {
                         Starcounter.Advanced.Response response;
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        LocalhostAdminNode.GET(string.Format("/__{0}/console", databaseid), null, out response);
+                        Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", databaseid), null, out response);
 
-                        // TODO: check if 'respone' still can be null
+                        // Checking if response is there.
                         if (response == null) {
                             throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
                         }
 
                         string data = response.GetBodyStringUtf8_Slow();
                         dynamic resultJson = DynamicJson.Parse(data);
-                        resultJson.console = resultJson.console.Replace(Environment.NewLine, "<br>");
+
+                        // Checking if there was any console output.
+                        if (resultJson.console != null)
+                            resultJson.console = resultJson.console.Replace(Environment.NewLine, "<br>");
+
                         return resultJson;
                     }
                     catch (Exception e) {
