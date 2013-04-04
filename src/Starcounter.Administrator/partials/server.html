@@ -22,11 +22,19 @@
 </div>
 
 <h3>Gateway</h3>
-<div class="btn-group">
-    <button class="btn btn-primary span2" ng-disabled="isBusy == true" ng-click="btnClick_refresh_gwateway_stats()">Refresh</button>
-</div>
 
-<dl>
-  <dt>Statistics</dt>
-  <dd><div ng-bind-html-unsafe="gwStats"></div></dd>
-</dl>
+<accordion>
+  
+    <accordion-group heading="Statistics">
+
+        <div class="btn-group">
+            <button class="btn btn-primary span2" ng-disabled="isBusy == true" ng-click="btnClick_refresh_gwateway_stats()">Refresh</button>
+        </div>
+
+        <dl>
+          <dt>Statistics</dt>
+          <dd><div ng-bind-html-unsafe="gwStats"></div></dd>
+        </dl>
+    </accordion-group>
+  </accordion>
+
