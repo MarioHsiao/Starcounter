@@ -172,6 +172,12 @@ public:
     // Continues fill up if needed.
     uint32_t ContinueAccumulation(GatewayWorker* gw, bool* is_accumulated);
 
+    // Chunk data offset.
+    uint32_t GetAccumBufferDataOffsetInChunk()
+    {
+        return accum_buf_.get_orig_buf_ptr() - (uint8_t*)get_smc();
+    }
+
     // Getting to database direction flag.
     bool get_to_database_direction_flag()
     {
