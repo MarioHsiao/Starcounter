@@ -66,13 +66,13 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
         void EmitSpecification() {
             emittedSpec = new TypeDefDeclaration {
                 Name = TypeSpecification.Name,
-                Attributes = TypeAttributes.Class | TypeAttributes.NestedAssembly | TypeAttributes.Sealed
+                Attributes = TypeAttributes.Class | TypeAttributes.NestedFamily
             };
             typeDef.Types.Add(emittedSpec);
 
             var tableHandle = new FieldDefDeclaration {
                 Name = TypeSpecification.TableHandleName,
-                Attributes = (FieldAttributes.FamORAssem | FieldAttributes.Static),
+                Attributes = (FieldAttributes.Public | FieldAttributes.Static),
                 FieldType = assemblySpec.UInt16Type
             };
             emittedSpec.Fields.Add(tableHandle);
@@ -80,7 +80,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
 
             var typeBindingReference = new FieldDefDeclaration {
                 Name = TypeSpecification.TypeBindingName,
-                Attributes = (FieldAttributes.FamORAssem | FieldAttributes.Static),
+                Attributes = (FieldAttributes.Public | FieldAttributes.Static),
                 FieldType = assemblySpec.TypeBindingType
             };
             emittedSpec.Fields.Add(typeBindingReference);
@@ -127,10 +127,37 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             return columnHandle;
         }
 
+        public IField GetColumnHandle(string typeNameDeclaring, string fieldName) {
+            IType synonymTargetType;
+
+            var module = assemblySpec.Module;
+            var specificationName = typeNameDeclaring + "+" + TypeSpecification.Name;
+            if (specificationName.Equals(this.emittedSpec.Name)) {
+                synonymTargetType = this.emittedSpec;
+            } else {
+                synonymTargetType = (IType)module.FindType(specificationName, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                if (synonymTargetType == null) {
+                    var typeEnumerator = module.GetDeclarationEnumerator(TokenType.TypeRef);
+                    while (typeEnumerator.MoveNext()) {
+                        var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
+                        if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(typeNameDeclaring)) {
+                            synonymTargetType = (IType)typeRef.GetTypeDefinition().Module.FindType(specificationName, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            var endpoint = synonymTargetType.Fields.GetByName(TypeSpecification.FieldNameToColumnHandleName(fieldName)).TranslateField(typeDef.Module);
+            return endpoint;
+        }
+
         void AssignInstanceLevelFields() {
             this.ThisHandle = typeDef.FindField(TypeSpecification.ThisHandleName).Field.Translate(typeDef.Module);
             this.ThisBinding = typeDef.FindField(TypeSpecification.ThisBindingName).Field.Translate(typeDef.Module);
             this.ThisIdentity = typeDef.FindField(TypeSpecification.ThisIdName).Field.Translate(typeDef.Module);
         }
+
+
     }
 }
