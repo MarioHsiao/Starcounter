@@ -139,6 +139,23 @@ namespace Starcounter.Advanced
         #endregion
 
         /// <summary>
+        /// HTTP response status code.
+        /// </summary>
+        public UInt16 StatusCode
+        {
+            get
+            {
+                unsafe
+                {
+                    if (http_response_struct_ != null)
+                        return http_response_struct_->status_code_;
+                }
+
+                return 0;
+            }
+        }
+
+        /// <summary>
         /// The number of bytes containing the http header in the uncompressed response. This is also
         /// the offset of the first byte of the content.
         /// </summary>
@@ -387,6 +404,10 @@ namespace Starcounter.Advanced
                 http_response_struct_->socket_data_ = response_native_buf;
                 */
 
+                // Indicating that we internally constructing Response.
+                isInternalResponse = true;
+
+                // Allocating space for internal HTTP response.
                 Byte* response_native_buf = (Byte*)BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
 
                 // Pointing to HTTP response structure.
@@ -396,9 +417,6 @@ namespace Starcounter.Advanced
                 {
                     // Setting the response data pointer.
                     http_response_struct_->socket_data_ = pbuf;
-
-                    // Indicating that we internally constructing Response.
-                    isInternalResponse = true;
 
                     // NOTE: No internal sessions support.
                     session_ = null;
@@ -893,6 +911,11 @@ namespace Starcounter.Advanced
         /// The num_headers_
         /// </summary>
         public UInt32 num_headers_;
+
+        /// <summary>
+        /// HTTP response status code.
+        /// </summary>
+        public UInt16 status_code_;
 
         /// <summary>
         /// Socket data pointer.
