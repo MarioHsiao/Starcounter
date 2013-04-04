@@ -28,7 +28,7 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
             objectReferenceEqualsMethod = module.FindMethod(
                 typeof(object).GetMethod("ReferenceEquals", BindingFlags.Public | BindingFlags.Static),
                 BindingOptions.Default);
-            ulongGetHashCode = module.FindMethod(typeof(object).GetMethod("GetHashCode"), BindingOptions.Default);
+            ulongGetHashCode = module.FindMethod(typeof(ulong).GetMethod("GetHashCode"), BindingOptions.Default);
         }
 
         public bool ShouldImplementOn(TypeDefDeclaration typeDef) {
