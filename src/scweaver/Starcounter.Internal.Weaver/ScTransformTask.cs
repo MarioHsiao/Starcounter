@@ -349,7 +349,8 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        GenerateFieldAccessors(dba, field, typeSpecification, null);
+                        var columnHandleField = typeSpecification.GetColumnHandle(dba.SynonymousTo.DeclaringClass.Name, dba.SynonymousTo.Name);
+                        GenerateFieldAccessors(dba, field, typeSpecification, columnHandleField);
                     }
                 }
             }
@@ -981,53 +982,15 @@ namespace Starcounter.Internal.Weaver {
             MethodSemanticDeclaration setSemantic;
             ParameterDeclaration valueParameter;
             PropertyDeclaration property;
-            // IField attributeIndexField;
-            DatabaseAttribute synonymousTo;
 
             // Since we currently support just a single weaving mechanism,
             // I'll try cleaning this method up a bit. One of the things is
             // to remove alternative implementation for different weaving
             // targets.
             Trace.Assert(_weaveForIPC);
-            Trace.Assert(columnHandle != null);
-
+ 
             ScTransformTrace.Instance.WriteLine("Generating accessors for {0}.", databaseAttribute);
 
-            synonymousTo = databaseAttribute.SynonymousTo;
-            realDatabaseAttribute = synonymousTo ?? databaseAttribute;
-
-            if (synonymousTo != null) {
-
-                // To be rewritten.
-                // TODO:
-                
-                throw new NotImplementedException();
-
-                //var nameOfAttributeIndexField = WeaverNamingConventions.MakeAttributeIndexVariableName(synonymousTo.Name);
-
-                //// We must locate the type of the target field. It might be a definition, or a
-                //// type reference.
-
-                //var synonymTargetType = (IType)_module.FindType(synonymousTo.DeclaringClass.Name, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
-                //if (synonymTargetType == null) {
-                //    var typeEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeRef);
-                //    while (typeEnumerator.MoveNext()) {
-                //        var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
-                //        if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(synonymousTo.DeclaringClass.Name)) {
-                //            synonymTargetType = typeRef;
-                //            break;
-                //        }
-                //    }
-                //}
-
-                //// Lets not do any verification here, since the analyzer should already
-                //// have done that for us. We simply rely on both the type and the field
-                //// to be found, or else let a null reference exception be raised.
-
-                //attributeIndexField = synonymTargetType.Fields.GetField(
-                //    nameOfAttributeIndexField, synonymTargetType.Module.FindType(typeof(int)), BindingOptions.Default);
-            }
-            
             // Compute method attributes according to field attributes.
             switch (field.Attributes & FieldAttributes.FieldAccessMask) {
                 case FieldAttributes.Assembly:
@@ -1062,6 +1025,7 @@ namespace Starcounter.Internal.Weaver {
 
             // First generate a get method.
 
+            realDatabaseAttribute = databaseAttribute.SynonymousTo ?? databaseAttribute;
             _dbStateMethodProvider.GetGetMethod(field.FieldType, realDatabaseAttribute, out dbStateMethod, out dbStateCast);
 
             getMethod = new MethodDefDeclaration() {
