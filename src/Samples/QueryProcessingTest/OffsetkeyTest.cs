@@ -8,15 +8,16 @@ namespace QueryProcessingTest {
         public static void Master() {
             HelpMethods.LogEvent("Test offset key");
             ErrorCases();
+            // Populate data
+            User client = PopulateForTest();
             // Simple query
-            TestDataModification("select a from account a where accountid > ?");
+            TestDataModification("select a from account a where accountid > ?", client);
             Db.Transaction(delegate {
-                TestDataModification("select a from account a where accountid > ?");
+                TestDataModification("select a from account a where accountid > ?", client);
             });
             // Join with index scan only
-            Console.WriteLine(Db.SQL("select a1 from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount", 30000).GetEnumerator().ToString());
-            TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount");
             // Join with index scan and full table scan
+            TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount", client);
             // Join with proceedings
             // Reference look up
             // Multiple joins
@@ -34,6 +35,8 @@ namespace QueryProcessingTest {
             // Modify data
             // If offset key is not null, query with offset key
             // Iterate over it
+            // Drop data
+            DropAfterTest();
             HelpMethods.LogEvent("Finished testing offset key");
         }
 
@@ -120,9 +123,10 @@ namespace QueryProcessingTest {
 #endif
         }
 
-        static void TestDataModification(String query) {
-            // Populate data
-            User client = PopulateForTest();
+        static void SomeTest(User client) {
+        }
+
+        static void TestDataModification(String query, User client) {
             // Do set of tests
             byte[] key;
             // Do nothing
@@ -177,8 +181,6 @@ namespace QueryProcessingTest {
             });
             InsertAccount(GetAccountId(2), client);
             DoOffsetkey(query, key, new int[] { GetAccountId(2), GetAccountId(3), GetAccountId(4), GetAccountId(5) });
-            // Drop data
-            DropAfterTest();
         }
 
         static byte[] DoFetch(String query) {
