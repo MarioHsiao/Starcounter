@@ -1429,6 +1429,39 @@ uint32_t GatewayWorker::WorkerRoutine()
     return SCERRGWWORKERROUTINEFAILED;
 }
 
+// Creating accepting sockets on all ports and for all databases.
+uint32_t GatewayWorker::CheckAcceptingSocketsOnAllActivePortsAndDatabases()
+{
+    for (int32_t d = 0; d < g_gateway.get_num_dbs_slots(); d++)
+    {
+        // Checking if database is up.
+        if (g_gateway.GetDatabase(d)->IsDeletionStarted() ||
+            g_gateway.GetDatabase(d)->IsEmpty())
+        {
+            continue;
+        }
+
+        for (int32_t p = 0; p < g_gateway.get_num_server_ports_slots(); p++)
+        {
+            ServerPort* server_port = g_gateway.get_server_port(p);
+
+            // Checking that port is not empty.
+            if (!server_port->IsEmpty())
+            {
+                // Checking if we need to extend number of accepting sockets.
+                if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
+                {
+                    // Creating new set of prepared connections.
+                    uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, p, d);
+                    GW_ERR_CHECK(err_code);
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
 // Scans all channels for any incoming chunks.
 void __stdcall EmptyApcFunction(ULONG_PTR arg);
 uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
@@ -1469,6 +1502,10 @@ uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 
                     // Leaving global lock.
                     LeaveGlobalLock();
+
+                    // Creating accepting sockets on all ports and for all databases.
+                    err_code = CheckAcceptingSocketsOnAllActivePortsAndDatabases();
+                    GW_ERR_CHECK(err_code);
                 }
                 else
                 {

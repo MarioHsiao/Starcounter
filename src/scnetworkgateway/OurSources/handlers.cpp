@@ -286,6 +286,7 @@ PROCESS_SERVER_PORT:
     // Checking if port exists.
     if (!server_port)
     {
+        /*
         SOCKET listening_sock = INVALID_SOCKET;
 
         // Creating socket and binding to port for all workers.
@@ -299,6 +300,17 @@ PROCESS_SERVER_PORT:
         // Adding new port outer handler.
         BMX_HANDLER_INDEX_TYPE new_handler_index;
         err_code = RegisterPortHandler(gw, port_num, 0, OuterSubportProcessData, db_index, new_handler_index);
+        */
+
+        // Registering handler on active database.
+        err_code = g_gateway.AddPortHandler(
+            gw,
+            g_gateway.get_gw_handlers(),
+            port_num,
+            handler_info,
+            0,
+            OuterSubportProcessData);
+
         if (err_code)
             goto ERROR_HANDLING;
     }
@@ -430,6 +442,7 @@ PROCESS_SERVER_PORT:
     // Checking if port exists.
     if (!server_port)
     {
+        /*
         SOCKET listening_sock = INVALID_SOCKET;
 
         // Creating socket and binding to port for all workers.
@@ -443,6 +456,17 @@ PROCESS_SERVER_PORT:
         // Adding new port outer handler.
         BMX_HANDLER_INDEX_TYPE new_handler_index;
         err_code = RegisterPortHandler(gw, port_num, 0, OuterUriProcessData, db_index, new_handler_index);
+        */
+
+        // Registering handler on active database.
+        err_code = g_gateway.AddPortHandler(
+            gw,
+            g_gateway.get_gw_handlers(),
+            port_num,
+            handler_info,
+            0,
+            OuterUriProcessData);
+
         if (err_code)
             goto ERROR_HANDLING;
     }
