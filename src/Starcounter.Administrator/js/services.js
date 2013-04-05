@@ -32,7 +32,8 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     $provide.factory('Database', function ($resource) {
 
         return $resource('/databases/:databaseId', { databaseId: '@databaseId' }, {
-            query: { method: 'GET', isArray: false }   // We need to override this (the return type is not an array)
+            query: { method: 'GET', isArray: false },
+            save: { method: 'POST', isArray: false }
             //get: { method: 'GET', headers: { 'Content-Type': 'application/json' } }
         });
 
@@ -41,7 +42,7 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     $provide.factory('Log', function ($resource) {
 
         return $resource('/log', {}, {
-            query: { method: 'GET', isArray: false }    // We need to override this (the return type is not an array)
+            query: { method: 'GET', isArray: false }   
         });
 
     });
@@ -49,7 +50,7 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     $provide.factory('Sql', function ($resource) {
 
         return $resource('/sql', {}, {
-            query: { method: 'GET', isArray: false }    // We need to override this (the return type is not an array)
+            query: { method: 'GET', isArray: false }    
         });
 
     });
@@ -68,9 +69,28 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
     $provide.factory('Console', function ($resource) {
         return $resource('/databases/:databaseName/console', { databaseName: '@databaseName' }, {
-            query: { method: 'GET', isArray: false }    // We need to override this (the return type is not an array)
+            query: { method: 'GET', isArray: false }    
         });
     });
+
+    $provide.factory('CreateDatabase', function ($resource) {
+        return $resource('/databases/:databaseName', { databaseName: '@databaseName' }, {
+            save: { method: 'POST', isArray: false }
+        });
+    });
+
+    $provide.factory('Settings', function ($resource) {
+        return $resource('/settings/default/:type', { type: '@type' }, {
+            query: { method: 'GET', isArray: false }
+        });
+    });
+
+    $provide.factory('CommandStatus', function ($resource) {
+        return $resource('/command/:commandId', { commandId: '@commandId' }, {
+            query: { method: 'GET', isArray: false }
+        });
+    });
+
 
 
  });
