@@ -4,7 +4,7 @@ Starcounter is a memory centric [database management system (DBMS)](http://en.wi
 
 Starcounter can be used to build modern applications such as web applications, mobile services and massive real time software such as games, advertising and telecom applications.
 
-This repository contains the public Starcounter bits.
+This repository is reserved for the public Starcounter bits.
 
 # More information
 
