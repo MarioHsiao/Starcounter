@@ -438,6 +438,10 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
 #endif
 
+        // Trying to get existing/create new privateFilter.
+        filterHandle = privateFilter.GetFilterHandle();
+        iterHelper.AddGeneratedFilter(filterHandle);
+
         // Trying to recreate the enumerator.
         unsafe
         {
@@ -465,10 +469,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             }
 #endif
         }
-
-        // Trying to get existing/create new privateFilter.
-        filterHandle = privateFilter.GetFilterHandle();
-        iterHelper.AddGeneratedFilter(filterHandle);
 
         // Updating data stream as usual (taking into account
         // the context object from some previous extent).
