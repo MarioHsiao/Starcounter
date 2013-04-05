@@ -52,12 +52,13 @@
 
 <body ng-app="scadmin" ng-controller="MainCtrl" class="container">
 
+
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner">
             <div class="container">
 
                 <a class="brand" href="/index.html">
-                    <img src="/img/sc_logo_24x24.png" style="margin:-3px 0px 0px 0px">
+                    <img src="/img/sc_logo_24x24.png" style="margin: -3px 0px 0px 0px">
                     Starcounter Administrator</a>
                 <ul class="nav">
                     <li ng-class="{active: isActiveUrl('/server') }"><a href="#/server">Server</a></li>
@@ -67,7 +68,15 @@
                 </ul>
             </div>
         </div>
+        
     </div>
+
+    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}
+        <div ng-hide="alert.helpLink == null">
+            <p>Help page: <a href="{{alert.helpLink}}" target="_blank">{{alert.helpLink}}</a></p>
+        </div>
+    </alert>
+
 
     <div ng-view></div>
 

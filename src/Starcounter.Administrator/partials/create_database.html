@@ -1,0 +1,110 @@
+﻿<legend>Create Database</legend>
+<form class="form-horizontal" >
+
+    <div class="control-group">
+        <label class="control-label" for="chunksNumber">Name</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="databaseName" placeholder="databaseName" ng-model="settings.databaseName"><span class="help-inline">Inline help text</span>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="chunksNumber">Chunks</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="chunksNumber" placeholder="Chunks" ng-model="settings.chunksNumber">
+            <span class="help-block">Number of shared memory chunks, dividable by 256..</span>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="defaultUserHttpPort">Default User HttpPort</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="defaultUserHttpPort" placeholder="defaultUserHttpPort" ng-model="settings.defaultUserHttpPort">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="dumpDirectory">Dump Directory</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="dumpDirectory" placeholder="dumpDirectory" ng-model="settings.dumpDirectory">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="imageDirectory">Image Directory</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="imageDirectory" placeholder="imageDirectory" ng-model="settings.imageDirectory">
+        </div>
+    </div>
+
+
+    <div class="control-group">
+        <label class="control-label" for="tempDirectory">Temp Directory</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="tempDirectory" placeholder="tempDirectory" ng-model="settings.tempDirectory">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="transactionLogDirectory">Transaction Log Directory</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="transactionLogDirectory" placeholder="transactionLogDirectory" ng-model="settings.transactionLogDirectory">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="schedulerCount">Scheduler Count</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="schedulerCount" placeholder="schedulerCount" ng-model="settings.schedulerCount">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <div class="controls">
+            <label class="checkbox">
+                <input ng-disabled="isBusy == true" type="checkbox" ng-model="settings.sqlAggregationSupport">SQL Aggregation Support</label>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="sqlProcessPort">SQL Process Port</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="sqlProcessPort" placeholder="sqlProcessPort" ng-model="settings.sqlProcessPort">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="collationFile">Collation File</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="collationFile" placeholder="collationFile" ng-model="settings.collationFile">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="maxImageSize">Max Image Size</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="maxImageSize" placeholder="maxImageSize" ng-model="settings.maxImageSize">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <div class="controls">
+            <label class="checkbox">
+                <input ng-disabled="isBusy == true" type="checkbox" ng-model="settings.supportReplication">Support Replication</label>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="transactionLogSize">Transaction Log Size</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="transactionLogSize" placeholder="transactionLogSize" ng-model="settings.transactionLogSize">
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit"  ng-disabled="isBusy == true" class="btn btn-primary" ng-click="btnClick_createDatabase()">Create Database</button>
+        <!--<a class="btn" href="#/databases">Cancel</a>-->
+        {{status}}
+    </div>
+</form>
+

@@ -219,7 +219,8 @@ namespace Starcounter
         public unsafe Boolean RecreateEnumerator_NoCodeGenFilter(
             Byte* keyData,
             Int32 extentNumber,
-            Enumerator cachedEnum)
+            Enumerator cachedEnum,
+            UInt32 flags)
         {
             int retry = 0;
 
@@ -236,7 +237,7 @@ namespace Starcounter
             UInt64 hCursor, verify;
 
             Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
-            UInt32 flags = *((UInt32*)staticData);
+            //UInt32 flags = *((UInt32*)staticData);
             Byte* lastKey = staticData + 4; // Skipping flags.
 
             // Dynamic data.
@@ -339,7 +340,8 @@ namespace Starcounter
             Byte* keyData,
             Int32 extentNumber,
             Enumerator cachedEnum,
-            UInt64 filterHandle)
+            UInt64 filterHandle,
+            UInt32 flags)
         {
             int retry = 0;
 
@@ -356,7 +358,7 @@ namespace Starcounter
             UInt32 err;
 
             Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
-            UInt32 flags = *((UInt32*)staticData);
+            //UInt32 flags = *((UInt32*)staticData);
             //UInt64 filterHandle = *((UInt64*)(staticData + 4));
             Byte* varStream = staticData + 12;
             Byte* lastKey = *((UInt32*)varStream) + varStream;

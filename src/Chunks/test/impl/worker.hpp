@@ -450,6 +450,8 @@ inline void worker::release_all_resources() {
 #endif // NOT COMPLETE
 
 inline void worker::release_all_resources() {
+	return; // Let the IPC monitor start the cleanup instead.
+
 	shared().common_client_interface().increment_client_interfaces_to_clean_up();
 	
 	// I think it is important that the increment above is done before marking

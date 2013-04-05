@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using Sc.Query.Execution;
 using Starcounter.Internal;
 using Starcounter.Binding;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -49,6 +50,13 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.
     Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
     Boolean usedNativeFillUp = false; // Indicating that native fill up functionality was used.
+
+    Boolean stayAtOffsetkey = false;
+    public Boolean StayAtOffsetkey { get { return stayAtOffsetkey; } set { stayAtOffsetkey = value; } }
+    Boolean useOffsetkey = true;
+    public Boolean UseOffsetkey { get { return useOffsetkey; } set { useOffsetkey = value; } }
+    Boolean isAtRecreatedKey = false;
+    public Boolean IsAtRecreatedKey { get { return isAtRecreatedKey; } }
 
     internal FullTableScan(
         RowTypeBinding rowTypeBind,
@@ -382,21 +390,25 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
 
+        // Creating flags.
+        UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
+
+
         // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle))
+        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags))
         {
             // Indicating that enumerator has been created.
             enumeratorCreated = true;
 
             // Checking if we found a deleted object.
-            if (!innermostExtent)
-            {
+            //if (!innermostExtent)
+            //{
                 // Obtaining saved OID and ETI.
                 iterHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
 
                 // Enabling recreation object check.
                 enableRecreateObjectCheck = true;
-            }
+            //}
 
             return true;
         }
@@ -430,11 +442,16 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
 #endif
 
+        // Trying to get existing/create new privateFilter.
+        filterHandle = privateFilter.GetFilterHandle();
+        iterHelper.AddGeneratedFilter(filterHandle);
+
         // Trying to recreate the enumerator.
         unsafe
         {
             // Using offset key only if enumerator is not already in recreation mode.
-            if ((fetchOffsetKeyExpr != null) && (variableArray.RecreationKeyData == null))
+            if ((useOffsetkey) && (fetchOffsetKeyExpr != null))
+                //&& (variableArray.RecreationKeyData == null))
             {
                 fixed (Byte* recrKey = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer())
                 {
@@ -444,6 +461,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 }
             }
 
+#if false
             // Checking if key data is available and if there is no failure during outer extent recreation.
             if ((variableArray.RecreationKeyData != null) &&
                 (!triedEnumeratorRecreation) &&
@@ -453,11 +471,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 if ((*(Int32*)variableArray.RecreationKeyData) > IteratorHelper.RK_EMPTY_LEN)
                     return TryRecreateEnumerator(variableArray.RecreationKeyData);
             }
+#endif
         }
-
-        // Trying to get existing/create new privateFilter.
-        filterHandle = privateFilter.GetFilterHandle();
-        iterHelper.AddGeneratedFilter(filterHandle);
 
         // Updating data stream as usual (taking into account
         // the context object from some previous extent).
@@ -502,40 +517,61 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 return false;
         }
 
-        if (counter == 0 && fetchOffsetExpr != null)
-            if (fetchOffsetExpr.EvaluateToInteger(null) != null) {
-                for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
-                    if (!enumerator.MoveNext())
+        if (counter == 0) {
+            if (fetchOffsetExpr != null) {
+                Debug.Assert(fetchOffsetKeyExpr == null);
+                if (fetchOffsetExpr.EvaluateToInteger(null) != null) {
+                    for (int i = 0; i < fetchOffsetExpr.EvaluateToInteger(null).Value; i++)
+                        if (!enumerator.MoveNext())
                             return false;
-                counter = 0;
+                    counter = 0;
+                }
             }
-        if (counter == 0 && fetchNumberExpr != null)
-        {
-            if (fetchNumberExpr.EvaluateToInteger(null) != null)
-                fetchNumber = fetchNumberExpr.EvaluateToInteger(null).Value;
-            else
-                fetchNumber = 0;
+            if (fetchNumberExpr != null)
+                if (fetchNumberExpr.EvaluateToInteger(null) != null)
+                    fetchNumber = fetchNumberExpr.EvaluateToInteger(null).Value;
+                else
+                    fetchNumber = 0;
+
+            if (enableRecreateObjectCheck) {
+                // Do move next and check if at recreated key
+                if ((counter < fetchNumber) && enumerator.MoveNext()) {
+                    // Fetching new object information.
+                    // TODO/Entity:
+                    IObjectProxy dbObject = enumerator.Current as IObjectProxy;
+
+                    // Checking if its the same object.
+                    // TODO/Entity:
+                    // It should be enough to compare by identity, no?
+                    if ((keyOID != dbObject.Identity) && (keyETI != dbObject.ThisHandle)) {
+                        isAtRecreatedKey = false;
+                        variableArray.FailedToRecreateObject = true;
+                    } else
+                        isAtRecreatedKey = true;
+
+                    // Disabling any further checks.
+                    enableRecreateObjectCheck = false;
+
+                    currentObject = new Row(rowTypeBinding);
+                    currentObject.AttachObject(extentNumber, enumerator.Current);
+                    counter++;
+                    // If stay at recreated key then return
+                    if (stayAtOffsetkey || !isAtRecreatedKey)
+                        return true;
+                    else
+                        counter = 0;
+                } else {
+                    enableRecreateObjectCheck = false;
+                    isAtRecreatedKey = false;
+                    currentObject = null;
+                    return false;
+                }
+            }
         }
+        isAtRecreatedKey = false;
 
-        if ((counter < fetchNumber) && enumerator.MoveNext())
+        if ((counter < fetchNumber) && enumerator.MoveNext()) // Note: replicated code
         {
-            // Checking if there is a saved recreation object.
-            if (enableRecreateObjectCheck)
-            {
-                // Fetching new object information.
-                // TODO/Entity:
-                IObjectProxy dbObject = enumerator.Current as IObjectProxy;
-
-                // Checking if its the same object.
-                // TODO/Entity:
-                // It should be enough to compare by identity, no?
-                if ((keyOID != dbObject.Identity) && (keyETI != dbObject.ThisHandle))
-                    variableArray.FailedToRecreateObject = true;
-
-                // Disabling any further checks.
-                enableRecreateObjectCheck = false;
-            }
-
             currentObject = new Row(rowTypeBinding);
             currentObject.AttachObject(extentNumber, enumerator.Current);
             counter++;
@@ -650,11 +686,13 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                         &createdKey
                         );
 
+#if false
                     // Placing local time of the iterator into recreation key.
                     UInt32 itLocalTime = enumerator.GetIteratorLocalTime();
 
                     // Saving local time of the iterator.
                     (*(UInt32*)(createdKey + (*(UInt32*)createdKey) - 4)) = itLocalTime;
+#endif
                 }
 
                 // Disposing iterator.
@@ -762,6 +800,12 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
         counter = 0;
         privateFilter.ResetCached(); // Reseting private filters.
+
+        if (obj == null) {
+            isAtRecreatedKey = false;
+            stayAtOffsetkey = false;
+            useOffsetkey = true;
+        }
     }
 
     public override IExecutionEnumerator Clone(RowTypeBinding typeBindingClone, VariableArray varArrClone)

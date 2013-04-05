@@ -364,7 +364,17 @@ public:
 		return work_notify_name_;
 	}
 	
-	int32_t& database_cleanup_index() {
+	/// Set the database cleanup index.
+	/**
+	 * @param index The database cleanup index.
+	 */
+	void set_database_cleanup_index(int32_t index) {
+		_mm_sfence();
+		database_cleanup_index_ = index;
+		_mm_sfence();
+	}
+	
+    int32_t get_database_cleanup_index() const {
 		return database_cleanup_index_;
 	}
 
@@ -402,7 +412,7 @@ private:
 	// the IPC monitor to check this container.
 	// There it will find this, and use the data there to access the IPC shared memory
 	// segment and search through the client_interface[s] for
-	int32_t database_cleanup_index_;
+	volatile int32_t database_cleanup_index_;
 
 	char cache_line_pad_3_[CACHE_LINE_SIZE
 	-sizeof(owner_id) // owner_id_
