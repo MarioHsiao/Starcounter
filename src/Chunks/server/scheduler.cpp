@@ -1071,10 +1071,6 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	uint32_t channels_left
 	= client_interface_ptr->decrement_number_of_allocated_channels();
 	
-	/// Test if open monitor_interface is easy..
-	// Get monitor_interface_ptr for monitor_interface_name.
-	//monitor_interface_ptr the_monitor_interface(monitor_interface_name);
-	///
 	if (channels_left == 0) {
 		if (client_interface_ptr->get_owner_id().get_clean_up()) {
 			// Is the client_interface marked for clean up?
@@ -1082,12 +1078,10 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 			///=================================================================
 			/// Notify the IPC monitor to release all chunks in this
 			/// client_interface, making them available for anyone to allocate.
-			///=================================================================
-
-			int32_t database_cleanup_index = client_interface_ptr
-			->database_cleanup_index();
-
-			if (database_cleanup_index != -1) {
+            ///=================================================================
+            int32_t database_cleanup_index = client_interface_ptr->get_database_cleanup_index();
+ 
+            if (database_cleanup_index != -1) {
 				try {
 					// Get monitor_interface_ptr for monitor_interface_name.
 					monitor_interface_ptr the_monitor_interface
