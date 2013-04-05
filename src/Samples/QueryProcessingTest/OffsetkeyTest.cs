@@ -26,9 +26,17 @@ namespace QueryProcessingTest {
                 TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount", client);
             });
             // Reference look up
-            Console.WriteLine(Db.SQL("select a1 from account a1, Account a2, User u where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client", 30000).GetEnumerator().ToString());
             TestDataModification("select a1 from account a1, Account a2, User u where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client", client);
+            Db.Transaction(delegate {
+                TestDataModification("select a1 from account a1, Account a2, User u where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client", client);
+            });
             // Multiple joins
+            TestDataModification("select a1 from account a1, Account a2, Account a3, User u " +
+                "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client and a2.client.userid = a3.client.userid and a1.amount = a3.amount", client);
+            Db.Transaction(delegate {
+                TestDataModification("select a1 from account a1, Account a2, Account a3, User u " +
+                    "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client and a2.client.userid = a3.client.userid and a1.amount = a3.amount", client);
+            });
             // With operators
 #if false
             foreach query
