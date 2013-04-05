@@ -1430,9 +1430,10 @@ void ActiveDatabase::CloseSocketData()
             WorkerDbInterface* worker_db = g_gateway.get_worker(w)->GetWorkerDb(db_index_);
 
             if (worker_db->IsActiveSocket(s))
+            {
                 needs_deletion = true;
-
-           worker_db->UntrackSocket(s);
+                worker_db->UntrackSocket(s);
+            }
         }
 
         // Checking if socket is active.
@@ -1451,6 +1452,8 @@ void ActiveDatabase::CloseSocketData()
 #endif
                 PrintLastError();
             }
+
+            //GW_COUT << "closesocket: " << s << GW_ENDL;
         }
     }
 }
