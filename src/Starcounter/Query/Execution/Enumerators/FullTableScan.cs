@@ -390,8 +390,12 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
 
+        // Creating flags.
+        UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
+
+
         // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle))
+        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags))
         {
             // Indicating that enumerator has been created.
             enumeratorCreated = true;
