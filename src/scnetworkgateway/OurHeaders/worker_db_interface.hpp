@@ -99,6 +99,16 @@ class WorkerDbInterface
 
 public:
 
+    // Writes given big linear buffer into obtained linked chunks.
+    uint32_t WorkerDbInterface::WriteBigDataToChunks(
+        uint8_t* buf,
+        uint32_t buf_len_bytes,
+        starcounter::core::chunk_index cur_chunk_index,
+        uint32_t* actual_written_bytes,
+        uint32_t first_chunk_offset,
+        bool just_sending_flag
+        );
+
     // Increments or decrements the number of active chunks.
     void ChangeNumUsedChunks(int64_t change_value)
     {
@@ -244,11 +254,13 @@ public:
     uint32_t ReleaseToSharedChunkPool(int32_t num_chunks);
 
     // Scans all channels for any incoming chunks.
-    uint32_t ScanChannels(GatewayWorker *gw, bool* found_something);
+    uint32_t ScanChannels(GatewayWorker *gw, uint32_t& next_sleep_interval_ms);
 
     // Obtains chunk from a private pool if its not empty
     // (otherwise fetches from shared chunk pool).
-    uint32_t GetOneChunkFromPrivatePool(core::chunk_index* chunk_index, shared_memory_chunk** smc)
+    uint32_t GetOneChunkFromPrivatePool(
+        core::chunk_index* chunk_index,
+        shared_memory_chunk** smc)
     {
         // Trying to fetch chunk from private pool.
         uint32_t err_code;
@@ -262,11 +274,30 @@ public:
         // Getting data pointer.
         (*smc) = (shared_memory_chunk *)(&shared_int_.chunk(*chunk_index));
 
-        // Removing possible link to another chunk.
-        (*smc)->terminate_link();
-
 #ifdef GW_CHUNKS_DIAG
         GW_COUT << "Getting new chunk: " << *chunk_index << GW_ENDL;
+#endif
+
+        return 0;
+    }
+
+    // Obtains chunks from a private pool if its not empty
+    // (otherwise fetches from shared chunk pool).
+    uint32_t GetMultipleChunksFromPrivatePool(
+        core::chunk_index* new_chunk_index,
+        uint32_t num_chunks)
+    {
+        // Trying to fetch chunk from private pool.
+        uint32_t err_code;
+        while (!private_chunk_pool_.acquire_linked_chunks_counted(&shared_int_.chunk(0), *new_chunk_index, num_chunks))
+        {
+            // Getting chunks from shared chunk pool.
+            err_code = AcquireChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
+            GW_ERR_CHECK(err_code);
+        }
+
+#ifdef GW_CHUNKS_DIAG
+        GW_COUT << "Acquired new " << num_chunks << " linked chunks: " << *new_chunk_index << GW_ENDL;
 #endif
 
         return 0;

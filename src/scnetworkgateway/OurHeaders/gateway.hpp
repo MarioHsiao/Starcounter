@@ -740,12 +740,6 @@ public:
         accum_len_bytes_ = value;
     }
 
-    // Retrieves length of the buffer.
-    ULONG buf_len_bytes()
-    {
-        return buf_len_bytes_;
-    }
-
     // Setting the data pointer for the next operation.
     void SetDataPointer(uint8_t *dataPointer)
     {

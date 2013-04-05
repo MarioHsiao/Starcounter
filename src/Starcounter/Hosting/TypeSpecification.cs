@@ -88,9 +88,10 @@ namespace Starcounter.Hosting {
         /// verify the type-level construct. Used internally by emitted
         /// code, when it's certain that the construct is correct.</param>
         internal TypeSpecification(Type typeSpecType, bool omitVerifyType = false) {
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
             typeSpecificationType = typeSpecType;
-            tableHandle = typeSpecType.GetField(TypeSpecification.TableHandleName, BindingFlags.NonPublic | BindingFlags.Static);
-            typeBinding = typeSpecType.GetField(TypeSpecification.TypeBindingName, BindingFlags.NonPublic | BindingFlags.Static);
+            tableHandle = typeSpecType.GetField(TypeSpecification.TableHandleName, flags);
+            typeBinding = typeSpecType.GetField(TypeSpecification.TypeBindingName, flags);
             Validate(omitVerifyType);
         }
 

@@ -979,7 +979,6 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     // and wake up that worker.
 	HANDLE worker_thread_handle[MAX_WORKER_THREADS];
 	HANDLE work_events[MAX_WORKER_THREADS];
-	std::size_t number_of_work_events = 0;
 	std::size_t work_event_index = 0;
 	
     // Setting checking events for each worker.
@@ -988,8 +987,8 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 		WorkerDbInterface* db_int = g_gateway.get_worker(worker_id)->GetWorkerDb(db_index);
 		core::shared_interface* db_shared_int = db_int->get_shared_int();
 
+        // Creating work event handle.
 		work_events[worker_id] = db_shared_int->open_client_work_event(db_shared_int->get_client_number());
-		++number_of_work_events;
 
 		// Waiting for all channels.
 		// TODO: Unset notify flag when worker thread is spinning.
@@ -1002,20 +1001,17 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 		QueueUserAPC(EmptyApcFunction, worker_thread_handle[worker_id], 0);
 	}
 
+    // Obtaining client interface.
+    core::client_interface_type& client_int = g_gateway.get_worker(0)->GetWorkerDb(db_index)->get_shared_int()->client_interface();
+
     // Looping until the database dies (TODO, does not work, forcedly killed).
     while (true)
     {
-        for (std::size_t worker_id = 0; worker_id < g_gateway.setting_num_workers(); ++worker_id)
-        {
-            // Obtaining worker database shared interface.
-            core::shared_interface* db_shared_int = g_gateway.get_worker(worker_id)->GetWorkerDb(db_index)->get_shared_int();
+        // Waiting forever for more events on channels.
+        client_int.wait_for_work(work_event_index, work_events, g_gateway.setting_num_workers());
 
-            // Waiting forever for more events on channels.
-            db_shared_int->client_interface().wait_for_work(work_event_index, work_events, number_of_work_events);
-
-            // Waking up the worker thread with APC.
-            QueueUserAPC(EmptyApcFunction, worker_thread_handle[worker_id], 0);
-        }
+        // Waking up the worker thread with APC.
+        QueueUserAPC(EmptyApcFunction, worker_thread_handle[work_event_index], 0);
     }
 
     return 0;
@@ -1434,9 +1430,10 @@ void ActiveDatabase::CloseSocketData()
             WorkerDbInterface* worker_db = g_gateway.get_worker(w)->GetWorkerDb(db_index_);
 
             if (worker_db->IsActiveSocket(s))
+            {
                 needs_deletion = true;
-
-           worker_db->UntrackSocket(s);
+                worker_db->UntrackSocket(s);
+            }
         }
 
         // Checking if socket is active.
@@ -1455,6 +1452,8 @@ void ActiveDatabase::CloseSocketData()
 #endif
                 PrintLastError();
             }
+
+            //GW_COUT << "closesocket: " << s << GW_ENDL;
         }
     }
 }
