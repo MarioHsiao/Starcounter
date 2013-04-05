@@ -406,7 +406,7 @@ public:
     uint32_t PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Scans all channels for any incoming chunks.
-    uint32_t ScanChannels(bool* found_something);
+    uint32_t ScanChannels(uint32_t& next_sleep_interval_ms);
 
     // Creates the socket data structure.
     uint32_t CreateSocketData(

@@ -685,6 +685,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     session_id = smc->get_user_data();
     BMX_HANDLER_TYPE handler_info = smc->get_bmx_handler_info();
     BMX_HANDLER_INDEX_TYPE handler_index = GetBmxHandlerIndex(handler_info);
+    assert(handler_index < unique_handler_num_);
 
     // Checking if handler exists (ignoring if wrong handler).
     if (registered_handlers_[handler_index].IsEmpty())

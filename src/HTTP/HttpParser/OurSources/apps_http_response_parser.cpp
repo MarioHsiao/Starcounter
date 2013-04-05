@@ -191,6 +191,9 @@ EXTERN_C uint32_t sc_parse_http_response(
     http_response->response_offset_ = 0;
     http_response->response_len_bytes_ = response_size_bytes;
 
+    // Setting status code.
+    http_response->status_code_ = thread_http_response_parser.http_parser_.status_code;
+
     return 0;
 }
 

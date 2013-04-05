@@ -1237,8 +1237,7 @@ uint32_t GatewayWorker::WorkerRoutine()
     ULONG num_fetched_ovls = 0;
     uint32_t err_code = 0;
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime(), newTimeMs;
-    bool found_something = false;
-    uint32_t sleep_interval_ms = INFINITE;
+    uint32_t next_sleep_interval_ms = INFINITE;
 
     sd_receive_clone_ = NULL;
 
@@ -1253,7 +1252,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 #ifdef GW_LOOPED_TEST_MODE
         compl_status = ProcessEmulatedNetworkOperations(fetched_ovls, &num_fetched_ovls, MAX_FETCHED_OVLS);
 #else
-        compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, &num_fetched_ovls, sleep_interval_ms, TRUE);
+        compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, &num_fetched_ovls, next_sleep_interval_ms, TRUE);
 #endif
 
 #ifdef GW_PROFILER_ON
@@ -1397,22 +1396,10 @@ uint32_t GatewayWorker::WorkerRoutine()
 #endif
 
         // Scanning all channels.
-        found_something = false;
-        err_code = ScanChannels(&found_something);
+        next_sleep_interval_ms = INFINITE;
+        err_code = ScanChannels(next_sleep_interval_ms);
         if (err_code)
             return err_code;
-
-        // Checking if something was found.
-        if (found_something)
-        {
-            // Making at least one more round.
-            sleep_interval_ms = 0;
-        }
-        else
-        {
-            // Going to wait infinitely for network events.
-            sleep_interval_ms = INFINITE;
-        }
 
 #ifndef GW_NEW_SESSIONS_APPROACH
         // Checking inactive sessions cleanup (only first worker).
@@ -1444,7 +1431,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 
 // Scans all channels for any incoming chunks.
 void __stdcall EmptyApcFunction(ULONG_PTR arg);
-uint32_t GatewayWorker::ScanChannels(bool* found_something)
+uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 {
     uint32_t err_code;
 
@@ -1455,7 +1442,7 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
         if (NULL != db)
         {
             // Scanning channels first.
-            err_code = db->ScanChannels(this, found_something);
+            err_code = db->ScanChannels(this, next_sleep_interval_ms);
             GW_ERR_CHECK(err_code);
 
             // Checking if database deletion is started.
@@ -1486,7 +1473,7 @@ uint32_t GatewayWorker::ScanChannels(bool* found_something)
                 else
                 {
                     // Gateway needs to loop for a while because of chunks being released.
-                    *found_something = true;
+                    next_sleep_interval_ms = 100;
 
                     // Releasing all private chunks to shared pool.
                     db->ReturnAllPrivateChunksToSharedPool();
@@ -1587,9 +1574,66 @@ uint32_t GatewayWorker::SendPredefinedMessage(
 {
     AccumBuffer* accum_buf = sd->get_accum_buf();
 
-    // Copying given response.
-    if (message)
-        memcpy(accum_buf->get_orig_buf_ptr(), message, message_len);
+    // Checking if data fits inside chunk.
+    if (message_len < accum_buf->get_buf_len_bytes())
+    {
+        // Checking if message should be copied.
+        if (message)
+            memcpy(accum_buf->get_orig_buf_ptr(), message, message_len);
+    }
+    else // Multiple chunks response.
+    {
+        GW_ASSERT(message != NULL);
+
+        WorkerDbInterface* worker_db = GetWorkerDb(sd->get_db_index());
+        starcounter::core::chunk_index src_chunk_index = sd->get_chunk_index();
+
+        uint32_t first_chunk_offset = sd->GetAccumBufferDataOffsetInChunk();
+
+        uint32_t last_written_bytes;
+        uint32_t err_code;
+
+        uint32_t total_processed_bytes = 0;
+        bool just_sending_flag = false;
+
+        // Copying user data to multiple chunks.
+        err_code = worker_db->WriteBigDataToChunks(
+            (uint8_t*)message + total_processed_bytes,
+            message_len - total_processed_bytes,
+            src_chunk_index,
+            &last_written_bytes,
+            first_chunk_offset,
+            just_sending_flag
+            );
+
+        if (err_code)
+            return err_code;
+
+        // Increasing total sent bytes.
+        total_processed_bytes += last_written_bytes;
+
+        // Checking if we have processed everything.
+        if (total_processed_bytes < message_len)
+        {
+            // TODO
+            GW_ASSERT(false);
+        }
+        else
+        {
+            // Creating special chunk for keeping WSA buffers information there.
+            sd->CreateWSABuffers(
+                worker_db,
+                sd->get_smc(),
+                bmx::BMX_HEADER_MAX_SIZE_BYTES + sd->get_user_data_offset(),
+                bmx::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset(),
+                sd->get_user_data_written_bytes());
+
+            GW_ASSERT(sd->get_num_chunks() > 2);
+
+            // NOTE: Not doing anything with chunks since they are not new for the gateway
+            // (getting chunks from shared pool and receive takes care of it).
+        }
+    }
 
     // Prepare buffer to send outside.
     accum_buf->PrepareForSend(accum_buf->get_orig_buf_ptr(), message_len);

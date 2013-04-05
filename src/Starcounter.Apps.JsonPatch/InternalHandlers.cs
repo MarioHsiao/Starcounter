@@ -14,6 +14,7 @@ using System.Net;
 using HttpStructs;
 using System.Collections.Generic;
 using System.IO;
+using Starcounter.Query.Execution;
 
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
@@ -22,7 +23,6 @@ namespace Starcounter.Internal.JsonPatch {
     public class InternalHandlers {
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
-        //        private static TextWriter _writer = null;
         private static StreamWriter consoleWriter;
         /// <summary>
         /// Registers this instance.
@@ -43,27 +43,41 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (Db.Environment.HasDatabase) {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request r) => {
-                    string bodyData = r.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
+                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request req) => {
+                    string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
                     return ExecuteQuery(bodyData);
                 });
             }
 
             // Do not redirect the administrator console output
-            if (Db.Environment.DatabaseName != "ADMINISTRATOR") {
+            if (!NewConfig.IsAdministratorApp) {
 
-                Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/console", () => {
-
-                    return GetConsoleOutput(50);    // Get lines
-
+                Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/console", (Request req) => {
+                    //if (StringExistInList("application/json", req["Accept"])) {
+                    return GetConsoleOutput();
+                    //}
+                    //else {
+                    //    return HttpStatusCode.NotAcceptable;
+                    //}
                 });
 
                 // Redirect console output to circular memory buffer
-                InternalHandlers.consoleWriter = new StreamWriter(new CircularStream(1024)); // Console buffer size
+                InternalHandlers.consoleWriter = new StreamWriter(new CircularStream(1024)); // Console buffer size (TODO: Maybe a configuration option)
                 InternalHandlers.consoleWriter.AutoFlush = true;
                 Console.SetOut(InternalHandlers.consoleWriter);
             }
 
+        }
+
+        public static bool StringExistInList(string str, string list) {
+            if (string.IsNullOrEmpty(list) || string.IsNullOrEmpty(str)) return false;
+            string[] items = list.Split(',');
+            foreach (string type in items) {
+                if (string.Equals(type, str, StringComparison.CurrentCultureIgnoreCase)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static void HandlerRegistered(string uri, ushort port) {
@@ -103,29 +117,19 @@ namespace Starcounter.Internal.JsonPatch {
             });
         }
 
-        private static string GetConsoleOutput(int maxLines) {
+        private static string GetConsoleOutput() {
 
             dynamic resultJson = new DynamicJson();
             resultJson.console = null;
             resultJson.exception = null;
 
             try {
-
                 CircularStream circularMemoryStream = (CircularStream)InternalHandlers.consoleWriter.BaseStream;
                 byte[] buffer = new byte[circularMemoryStream.Length];
                 int count = circularMemoryStream.Read(buffer, 0, (int)circularMemoryStream.Length);
                 if (count > 0) {
-                    string result = System.Text.Encoding.UTF8.GetString(buffer);
-                    //string[] lines = result.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-                    //string consolelines = string.Empty;
-                    //int startIndex = lines.Length - maxLines;
-                    //if (startIndex < 0) startIndex = 0;
-                    //for (int i = startIndex; i < lines.Length ; i++) {
-                    //    consolelines += lines[i] + Environment.NewLine;
-                    //}
-                    resultJson.console = result;
+                    resultJson.console = System.Text.Encoding.UTF8.GetString(buffer);
                 }
-
             }
             catch (Exception e) {
                 resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
@@ -144,7 +148,6 @@ namespace Starcounter.Internal.JsonPatch {
 
             Starcounter.SqlEnumerator<object> sqle = null;
             ITypeBinding resultBinding;
-            IPropertyBinding propertyBinding;
             IPropertyBinding[] props;
 
             dynamic resultJson = new DynamicJson();
@@ -154,21 +157,27 @@ namespace Starcounter.Internal.JsonPatch {
             resultJson.sqlException = null;
 
             try {
-                sqle = (Starcounter.SqlEnumerator<object>)Db.SQL(query).GetEnumerator();
+                sqle = (Starcounter.SqlEnumerator<object>)Db.SlowSQL(query).GetEnumerator();
 
                 #region Retrive Columns
 
-                if (sqle.ProjectionTypeCode != null && false) {
+                if (sqle.ProjectionTypeCode != null) {
+
+                    SingleProjectionBinding singleProjectionBinding = new SingleProjectionBinding() { TypeCode = (DbTypeCode)sqle.ProjectionTypeCode };
+
                     props = new IPropertyBinding[1];
-                    propertyBinding = new SingleProjectionBinding() { TypeCode = (DbTypeCode)sqle.ProjectionTypeCode };
-                    resultJson.columns[0] = new { title = propertyBinding.Name, value = propertyBinding.Name, type = propertyBinding.TypeCode.ToString() };
+                    props[0] = singleProjectionBinding;
+
+                    singleProjectionBinding.Name = sqle.ProjectionTypeCode.ToString();
+                    resultJson.columns[0] = new { title = props[0].Name, value = props[0].Name, type = props[0].TypeCode.ToString() };
                 }
                 else {
                     resultBinding = sqle.TypeBinding;
                     props = new IPropertyBinding[resultBinding.PropertyCount];
                     for (int i = 0; i < resultBinding.PropertyCount; i++) {
-                        props[i] = resultBinding.GetPropertyBinding(i);
-                        resultJson.columns[i] = new { title = props[i].Name, value = props[i].Name, type = props[i].TypeCode.ToString() };
+                        PropertyMapping pm = (PropertyMapping)resultBinding.GetPropertyBinding(i);
+                        props[i] = pm;
+                        resultJson.columns[i] = new { title = pm.DisplayName, value = "_" + props[i].Name, type = props[i].TypeCode.ToString() };
                     }
                 }
                 #endregion
@@ -177,72 +186,88 @@ namespace Starcounter.Internal.JsonPatch {
                 int index = 0;
                 while (sqle.MoveNext()) {
 
+                    object row = sqle.Current;
+                    resultJson.rows[index] = new object { };
+
                     if (sqle.ProjectionTypeCode != null) {
-                        IObjectView row = (IObjectView)sqle.Current;
-                        resultJson.rows[index] = new object { };
+
+                        if (sqle.ProjectionTypeCode == DbTypeCode.Object && row != null) {
+                            resultJson.rows[index][props[0].Name] = DbHelper.GetObjectID(row);
+                        }
+                        else {
+                            resultJson.rows[index][props[0].Name] = row;
+                        }
+                    }
+                    else {
+
+                        IObjectView obj = (IObjectView)row;
 
                         foreach (IPropertyBinding prop in props) {
                             object value = null;
                             switch (prop.TypeCode) {
                                 case DbTypeCode.Binary:
-                                    value = row.GetBinary(prop.Index);
+                                    value = obj.GetBinary(prop.Index);
                                     break;
                                 case DbTypeCode.Boolean:
-                                    value = row.GetBoolean(prop.Index);
+                                    value = obj.GetBoolean(prop.Index);
                                     break;
                                 case DbTypeCode.Byte:
-                                    value = row.GetByte(prop.Index);
+                                    value = obj.GetByte(prop.Index);
                                     break;
                                 case DbTypeCode.DateTime:
-                                    value = row.GetDateTime(prop.Index);
+                                    value = obj.GetDateTime(prop.Index);
                                     break;
                                 case DbTypeCode.Decimal:
-                                    value = row.GetDecimal(prop.Index);
+                                    value = obj.GetDecimal(prop.Index);
                                     break;
                                 case DbTypeCode.Double:
-                                    value = row.GetDouble(prop.Index);
+                                    value = obj.GetDouble(prop.Index);
                                     break;
                                 case DbTypeCode.Int16:
-                                    value = row.GetInt16(prop.Index);
+                                    value = obj.GetInt16(prop.Index);
                                     break;
                                 case DbTypeCode.Int32:
-                                    value = row.GetInt32(prop.Index);
+                                    value = obj.GetInt32(prop.Index);
                                     break;
                                 case DbTypeCode.Int64:
-                                    value = row.GetInt64(prop.Index);
+                                    value = obj.GetInt64(prop.Index);
                                     break;
                                 case DbTypeCode.LargeBinary:
-                                    value = row.GetBinary(prop.Index);
+                                    value = obj.GetBinary(prop.Index);
                                     break;
                                 case DbTypeCode.Object:
-                                    value = row.GetObject(prop.Index);
+
+                                    value = obj.GetObject(prop.Index);
+                                    if (value != null) {
+                                        value = DbHelper.GetObjectID(value);
+                                    }
                                     break;
                                 case DbTypeCode.SByte:
-                                    value = row.GetSByte(prop.Index);
+                                    value = obj.GetSByte(prop.Index);
                                     break;
                                 case DbTypeCode.Single:
-                                    value = row.GetSingle(prop.Index);
+                                    value = obj.GetSingle(prop.Index);
                                     break;
                                 case DbTypeCode.String:
-                                    value = row.GetString(prop.Index);
+                                    value = obj.GetString(prop.Index);
                                     break;
                                 case DbTypeCode.UInt16:
-                                    value = row.GetUInt16(prop.Index);
+                                    value = obj.GetUInt16(prop.Index);
                                     break;
                                 case DbTypeCode.UInt32:
-                                    value = row.GetUInt32(prop.Index);
+                                    value = obj.GetUInt32(prop.Index);
                                     break;
                                 case DbTypeCode.UInt64:
-                                    value = row.GetUInt64(prop.Index);
+                                    value = obj.GetUInt64(prop.Index);
                                     break;
                                 default:
                                     // ERROR
                                     throw new Exception("Unknown column type");
                             }
-                            resultJson.rows[index][prop.Name] = value;
+                            resultJson.rows[index]["_" + prop.Name] = value;
                         }
-                        index++;
                     }
+                    index++;
 
                 }
 
@@ -250,6 +275,7 @@ namespace Starcounter.Internal.JsonPatch {
 
             }
             catch (Starcounter.SqlException ee) {
+
                 resultJson.sqlException = new {
                     beginPosition = ee.BeginPosition,
                     endPosition = ee.EndPosition,
@@ -284,7 +310,8 @@ namespace Starcounter.Internal.JsonPatch {
             }
 
             public string Name {
-                get { return "0"; }
+                get;
+                set;
             }
 
             public ITypeBinding TypeBinding {

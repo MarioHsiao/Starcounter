@@ -5,6 +5,7 @@ using Starcounter.ABCIPC.Internal;
 using Starcounter.Administrator;
 using Starcounter.Advanced;
 using Starcounter.Internal;
+using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.REST;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
+using System.Web;
 
 // http://msdn.microsoft.com/en-us/library/system.runtime.compilerservices.internalsvisibletoattribute.aspx
 
@@ -21,8 +23,6 @@ namespace Starcounter.Administrator {
 
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;
-
-        static Node LocalhostAdminNode;
 
         // Argument <path to server configuraton file> <portnumber>
         static void Main(string[] args) {
@@ -47,7 +47,7 @@ namespace Starcounter.Administrator {
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
             AppsBootstrapper.Bootstrap(adminPort, "scadmin");
-//            AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+            //AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();
@@ -78,21 +78,17 @@ namespace Starcounter.Administrator {
         /// <param name="sytemHttpPort">Port for doing SQL queries</param>
         static void RegisterHandlers(ushort sytemHttpPort) {
 
-            // Creating localhost node.
-            LocalhostAdminNode = new Node("127.0.0.1", sytemHttpPort);
-
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {
                 return null;
             });
 
             // Redirecting root to index.html.
-            GET("/", (Request req) =>
-            {
+            GET("/", (Request req) => {
                 Response resp;
 
                 // Doing another request with original request attached.
-                LocalhostAdminNode.GET("/index.html", req, out resp);
+                Node.LocalhostSystemPortNode.GET("/index.html", req, out resp);
 
                 if (resp == null)
                     throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
@@ -123,7 +119,7 @@ namespace Starcounter.Administrator {
             // Returns a list of databases
             GET("/databases", (Request req) => {
 
-                if (HasAccept(req["Accept"], "application/json")) {
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
 
                     DatabaseInfo[] databases = Master.ServerInterface.GetDatabases();
                     DatabasesApp databaseList = new DatabasesApp();
@@ -135,7 +131,7 @@ namespace Starcounter.Administrator {
                     return databaseList;
                 }
                 else {
-                    return 404;
+                    return HttpStatusCode.NotAcceptable;
                 }
 
             });
@@ -144,7 +140,7 @@ namespace Starcounter.Administrator {
             // Returns a database
             GET("/databases/{?}", (string databaseid, Request req) => {
 
-                if (HasAccept(req["Accept"], "application/json")) {
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(databaseid));
                     if (database != null) {
                         DatabaseApp databaseApp = new DatabaseApp();
@@ -152,8 +148,9 @@ namespace Starcounter.Administrator {
                         //Session.Data = databaseApp;
                         return databaseApp;
                     }
+                    return HttpStatusCode.NotFound;
                 }
-                return 404;
+                return HttpStatusCode.NotAcceptable;
 
             });
 
@@ -163,7 +160,7 @@ namespace Starcounter.Administrator {
 
             GET("/log?{?}", (string parameters, Request req) => {
 
-                if (HasAccept(req["Accept"], "application/json")) {
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
 
                     NameValueCollection collection = System.Web.HttpUtility.ParseQueryString(parameters);
 
@@ -191,20 +188,20 @@ namespace Starcounter.Administrator {
                     return logApp;
                 }
                 else {
-                    return 404;
+                    return HttpStatusCode.NotAcceptable;
                 }
             });
 
             // Returns the log
             GET("/log", (Request req) => {
 
-                if (HasAccept(req["Accept"], "application/json")) {
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     LogApp logApp = new LogApp() { FilterDebug = false, FilterNotice = false, FilterWarning = true, FilterError = true };
                     logApp.RefreshLogEntriesList();
                     return logApp;
                 }
                 else {
-                    return 404;
+                    return HttpStatusCode.NotAcceptable;
                 }
             });
 
@@ -214,70 +211,73 @@ namespace Starcounter.Administrator {
 
             POST("/sql/{?}", (string databasename, Request req) => {
 
-                if (HasAccept(req["Accept"], "application/json")) {
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     try {
                         Response response;
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        LocalhostAdminNode.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
+                        Node.LocalhostSystemPortNode.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
 
-                        // TODO: check if 'response' still can be null
                         if (response == null) {
-                            throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
+                            return HttpStatusCode.ServiceUnavailable;
+                        }
+                        if (response.StatusCode >= 200 && response.StatusCode < 300) {
+                            return response.GetBodyStringUtf8_Slow();
                         }
 
-                        return response.GetBodyStringUtf8_Slow();
+                        return (int)response.StatusCode;
                     }
                     catch (Exception e) {
-
                         dynamic resultJson = new DynamicJson();
                         resultJson.columns = new object[] { };
                         resultJson.rows = new object[] { };
                         resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
                         resultJson.sqlException = null;
-
                         return resultJson.ToString();
                     }
                 }
                 else {
-                    return 404;
+                    return HttpStatusCode.NotAcceptable;
                 }
 
             });
 
             #endregion
 
-            #region Console out from Apps
+            #region Get Console output from database
             // Returns the log
             GET("/databases/{?}/console", (string databaseid, Request req) => {
 
-                if (HasAccept(req["Accept"], "application/json")) {
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+                    dynamic resultJson = new DynamicJson();
+                    resultJson.console = null;
+                    resultJson.exception = null;
+
                     try {
-                        Starcounter.Advanced.Response response;
+                        Response response;
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        LocalhostAdminNode.GET(string.Format("/__{0}/console", databaseid), null, out response);
+                        Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", databaseid), null, out response);
 
-                        // TODO: check if 'respone' still can be null
                         if (response == null) {
-                            throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
+                            return HttpStatusCode.ServiceUnavailable;
                         }
 
-                        string data = response.GetBodyStringUtf8_Slow();
-                        dynamic resultJson = DynamicJson.Parse(data);
-                        resultJson.console = resultJson.console.Replace(Environment.NewLine, "<br>");
-                        return resultJson;
+                        if (response.StatusCode >= 200 && response.StatusCode < 300) {
+                            // Success
+                            return response.GetBodyStringUtf8_Slow();
+                        }
+
+                        return (int)response.StatusCode;
                     }
                     catch (Exception e) {
-
-                        dynamic resultJson = new DynamicJson();
-                        resultJson.console = null;
+                        resultJson = new DynamicJson();
                         resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
                         return resultJson.ToString();
                     }
                 }
                 else {
-                    return 404;
+                    return HttpStatusCode.NotAcceptable;
                 }
 
             });
@@ -363,21 +363,6 @@ namespace Starcounter.Administrator {
         }
 
         #endregion
-
-        static bool HasAccept(string accept, string match) {
-
-            if (string.IsNullOrEmpty(accept) || string.IsNullOrEmpty(match)) return false;
-
-            string[] types = accept.Split(',');
-
-            foreach (string type in types) {
-                if (string.Equals(type, match, StringComparison.CurrentCultureIgnoreCase)) {
-
-                    return true;
-                }
-            }
-            return false;
-        }
 
         static public string EncodeTo64(string toEncode) {
             byte[] toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
