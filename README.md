@@ -8,6 +8,6 @@ This repository contains the public Starcounter bits.
 
 # More information
 
-[Wiki](http://www.github.com/starcounter/starcounter/wiki) 
-[Starcounter home page](http://www.starcounter.com) 
-[Contributors home page](http://www.starcounter.github.com) 
+* [Wiki](http://www.github.com/starcounter/starcounter/wiki) 
+* [Starcounter home page](http://www.starcounter.com) 
+* [Contributors home page](http://www.starcounter.github.com) 
