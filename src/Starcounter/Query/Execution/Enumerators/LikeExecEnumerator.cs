@@ -230,7 +230,7 @@ namespace Starcounter.Query.Execution
                 }
 
                 // Setting the recreation key and recreation flag.
-                unsafe { currentExecEnum.VarArray.RecreationKeyData = variableArray.RecreationKeyData; }
+                //unsafe { currentExecEnum.VarArray.RecreationKeyData = variableArray.RecreationKeyData; }
                 currentExecEnum.VarArray.FailedToRecreateObject = variableArray.FailedToRecreateObject;
 
                 // Attaching to current transaction.
@@ -317,5 +317,9 @@ namespace Starcounter.Query.Execution
         {
             return currentExecEnum.GetUniqueName(seqNumber);
         }
+    
+        public Boolean IsAtRecreatedKey { get { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } }
+        public Boolean StayAtOffsetkey { get { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } set { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } }
+        public Boolean UseOffsetkey { get { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } set { throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED); } }
     }
 }

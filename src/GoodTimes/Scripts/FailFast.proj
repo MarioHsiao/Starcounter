@@ -1,0 +1,13 @@
+﻿<Project DefaultTargets="FailFast" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <!--
+  The FailFast script is used on the build server to allow fast failures.
+  To fail a build fast, push a file named "failfast" in the same folder as
+  this script and the build server will fail the build.
+  -->
+  <PropertyGroup>
+    <FailFastFile>failfast</FailFastFile>
+  </PropertyGroup>
+  <Target Name="FailFast">
+    <Error Condition="Exists('$(FailFastFile)')" Text="Failed fast triggered because the failfast file was present."/>
+  </Target>
+</Project>

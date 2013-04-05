@@ -27,7 +27,7 @@ internal class VariableArray
     Int32 varsNum = 0; // Number of variables in the array.
     internal QueryFlags QueryFlags; // Flags describing whether the query includes literal, aggregation etc.
     internal Boolean FailedToRecreateObject = false; // During index position recreation: True if current object for some extent could not be recreated, otherwise false.
-    internal unsafe Byte* RecreationKeyData = null; // Pointer to recreation key data.
+    //internal unsafe Byte* RecreationKeyData = null; // Pointer to recreation key data.
 
     /// <summary>
     /// Constructor.
@@ -119,7 +119,7 @@ internal class VariableArray
     /// </summary>
     internal void Reset()
     {
-        unsafe { RecreationKeyData = null; }
+        //unsafe { RecreationKeyData = null; }
         FailedToRecreateObject = false;
     }
 

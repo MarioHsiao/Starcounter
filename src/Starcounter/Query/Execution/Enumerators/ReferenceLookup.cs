@@ -21,6 +21,11 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     IObjectExpression expression;
     ILogicalExpression condition;
 
+    Boolean stayAtOffsetkey = false;
+    public Boolean StayAtOffsetkey { get { return stayAtOffsetkey; } set { stayAtOffsetkey = value; } }
+    Boolean useOffsetkey = true;
+    public Boolean UseOffsetkey { get { return useOffsetkey; } set { useOffsetkey = value; } }
+
     internal ReferenceLookup(RowTypeBinding rowTypeBind,
         Int32 extNum,
         IObjectExpression expr,
@@ -174,6 +179,11 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
                 return false;
             }
 
+            if (useOffsetkey && !stayAtOffsetkey) {
+                currentObject = null;
+                return false;
+            }
+
             //// Instantiate expression.
             //IObjectExpression instExpression = expression.Instantiate(contextObject);
             //// Lookup object.
@@ -251,6 +261,15 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         contextObject = obj;
         currentObject = null;
         counter = 0;
+
+        if (obj == null) {
+            stayAtOffsetkey = false;
+            useOffsetkey = true;
+        }
+    }
+
+    public Boolean IsAtRecreatedKey {
+        get { return true; }
     }
 
     /// <summary>

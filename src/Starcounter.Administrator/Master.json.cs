@@ -9,6 +9,7 @@ using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.REST;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Specialized;
 using System.IO;
@@ -52,7 +53,6 @@ namespace Starcounter.Administrator {
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();
             Master.ServerInterface = Master.ServerEngine.Start();
-
 
             // Start Engine services
             StartListeningService();
@@ -114,6 +114,48 @@ namespace Starcounter.Administrator {
 
             #endregion
 
+            #region Command Status
+            GET("/command/{?}", (string commandId, Request req) => {
+
+                lock (Master.ServerInterface) {
+                    dynamic resultJson = new DynamicJson();
+                    resultJson.isCompleted = true;
+                    resultJson.exception = null;
+                    resultJson.message = null;
+                    resultJson.status = null;
+                    resultJson.errors = new object[] { };
+
+                    try {
+                        // Get command
+                        CommandInfo[] commandInfos = Master.ServerInterface.GetCommands();
+                        foreach (CommandInfo command in commandInfos) {
+                            if (command.Id.Value == commandId) {
+                                resultJson.isCompleted = command.IsCompleted;
+                                resultJson.message = command.Description;
+                                resultJson.status = command.Status.ToString();
+
+                                if (command.HasError) {
+                                    int index = 0;
+                                    foreach (ErrorInfo eInfo in command.Errors) {
+                                        ErrorMessage emsg = eInfo.ToErrorMessage();
+                                        resultJson.errors[index] = new { message = emsg.Message, helpLink = emsg.Helplink };
+                                        index++;
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                    }
+                    return resultJson.ToString();
+                }
+            });
+
+            #endregion
+
             #region Database(s)
 
             // Returns a list of databases
@@ -136,6 +178,49 @@ namespace Starcounter.Administrator {
 
             });
 
+            // Create a database
+            POST("/databases/{?}", (string databaseName, Request req) => {
+
+                dynamic resultJson = new DynamicJson();
+                resultJson.commandId = null;
+                resultJson.exception = null;
+
+                try {
+                    // Getting POST contents.
+                    String content = req.GetBodyStringUtf8_Slow();
+
+                    // TODO: Validation of values
+
+                    var json = DynamicJson.Parse(content);
+
+                    var createDb = new CreateDatabaseCommand(Master.ServerEngine, json.databaseName);
+
+                    createDb.SetupProperties.Configuration.Runtime.ChunksNumber = (int)json.chunksNumber;
+                    createDb.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = (ushort)json.defaultUserHttpPort;
+
+                    createDb.SetupProperties.Configuration.Runtime.DumpDirectory = json.dumpDirectory;
+                    createDb.SetupProperties.Configuration.Runtime.TempDirectory = json.tempDirectory;
+                    createDb.SetupProperties.Configuration.Runtime.ImageDirectory = json.imageDirectory;
+                    createDb.SetupProperties.Configuration.Runtime.TransactionLogDirectory = json.transactionLogDirectory;
+                    createDb.SetupProperties.Configuration.Runtime.SchedulerCount = (int)json.schedulerCount;
+                    createDb.SetupProperties.Configuration.Runtime.SqlAggregationSupport = (bool)json.sqlAggregationSupport;
+                    createDb.SetupProperties.Configuration.Runtime.SQLProcessPort = (ushort)json.sqlProcessPort;
+
+                    createDb.SetupProperties.StorageConfiguration.CollationFile = json.collationFile;
+                    createDb.SetupProperties.StorageConfiguration.MaxImageSize = (long)json.maxImageSize;
+                    createDb.SetupProperties.StorageConfiguration.SupportReplication = (bool)json.supportReplication;
+                    createDb.SetupProperties.StorageConfiguration.TransactionLogSize = (long)json.transactionLogSize;
+
+                    CommandInfo commandInfo = Master.ServerInterface.Execute(createDb);
+                    resultJson.commandId = commandInfo.Id.Value;
+                }
+                catch (Exception e) {
+                    resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                }
+                return resultJson.ToString();
+
+            });
+
 
             // Returns a database
             GET("/databases/{?}", (string databaseid, Request req) => {
@@ -154,6 +239,48 @@ namespace Starcounter.Administrator {
 
             });
 
+            #endregion
+
+            #region Get Default Settings
+            // Get default settings for a (type='database')
+            GET("/settings/default/{?}", (string type, Request req) => {
+
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+
+                    Starcounter.Configuration.DatabaseConfiguration d = new Starcounter.Configuration.DatabaseConfiguration();
+
+                    if ("database".Equals(type, StringComparison.CurrentCultureIgnoreCase)) {
+                        ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+
+                        dynamic json = new DynamicJson();
+                        json.databaseName = "myDatabase"; // TODO: Generate a unique default database name
+                        json.chunksNumber = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ChunksNumber;
+                        json.defaultUserHttpPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DefaultUserHttpPort;
+
+                        json.dumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory;
+                        json.tempDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TempDirectory;
+                        json.imageDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
+                        json.transactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
+
+                        json.schedulerCount = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SchedulerCount ?? 0;
+                        json.sqlAggregationSupport = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SqlAggregationSupport;
+                        json.sqlProcessPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SQLProcessPort;
+                        json.collationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
+                        json.maxImageSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.MaxImageSize ?? -1;
+                        json.supportReplication = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.SupportReplication;
+                        json.transactionLogSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.TransactionLogSize ?? -1;
+
+                        return json.ToString();
+                    }
+                    else {
+                        return HttpStatusCode.NotFound;
+                    }
+                }
+                else {
+                    return HttpStatusCode.NotAcceptable;
+                }
+
+            });
             #endregion
 
             #region Log
@@ -385,6 +512,9 @@ namespace Starcounter.Administrator {
                 Console.ResetColor();
             }
         }
+
+
     }
+
 
 }

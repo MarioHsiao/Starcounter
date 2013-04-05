@@ -843,9 +843,10 @@ namespace starcounter {
                                           if (client_interface_ptr) {
                                              //common_client_interface_ptr->increment_client_interfaces_to_clean_up();
                                              shared.common_client_interface().increment_client_interfaces_to_clean_up();
-                                             client_interface_ptr->database_cleanup_index() = cleanup_task_index;
-                                             ////std::cout << "monitor::wait_for_client_process_event(): " << client_interface_ptr << "->database_cleanup_index() = " << cleanup_task_index << std::endl;
-                                             // I think it is important that the increment above is done before
+
+                                             client_interface_ptr->set_database_cleanup_index(cleanup_task_index);
+                                             
+											 // I think it is important that the increment above is done before
                                              // marking for clean up below.
                                              _mm_mfence();
                                              _mm_lfence(); // serializes instructions
@@ -1248,6 +1249,8 @@ namespace starcounter {
                               ////std::cout << "release_client_number_res = " << release_client_number_res << std::endl;
 
                               shared.common_client_interface().decrement_client_interfaces_to_clean_up();
+
+							  the_monitor_interface_->erase_segment_name(segment_name_to_be_opened, ipc_monitor_cleanup_event_);
 
                               //std::cout << "client_interfaces_to_clean_up: "
                               //<< shared.common_client_interface().client_interfaces_to_clean_up()

@@ -78,8 +78,9 @@ namespace QueryProcessingTest {
             //HelpMethods.PrintQueryPlan("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?");
             using (var sqlEnum = Db.SQL("SELECT a FROM Account a ORDER BY a.accountid FETCH ? OFFSETKEY ?", 10, offsetKey).GetEnumerator()) {
                 for (Int32 i = 0; i < 10; i++) {
-                    sqlEnum.MoveNext();
-                    Trace.Assert(((Account)sqlEnum.Current).AccountId == i+4);
+                    Trace.Assert(sqlEnum.MoveNext());
+                    Account a = (Account)sqlEnum.Current;
+                    Trace.Assert(a.AccountId == i+5);
                 }
                 Trace.Assert(!sqlEnum.MoveNext());
             }

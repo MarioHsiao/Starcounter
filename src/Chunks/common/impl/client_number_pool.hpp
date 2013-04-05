@@ -118,7 +118,6 @@ smp::spinlock::milliseconds timeout) {
 				std::size_t i = item >> 6;
 				std::size_t bit = item & 63;
 				mask_[i] |= 1ULL << bit;
-				++size_;
 
 				// Successfully inserted.
 				return true;
@@ -144,7 +143,6 @@ smp::spinlock::milliseconds timeout) {
 				std::size_t i = item >> 6;
 				std::size_t bit = item & 63;
 				mask_[i] &= ~(1 << bit);
-				--size_;
 
 				// Successfully erased.
 				return true;
@@ -162,7 +160,7 @@ client_interface_type* client_interface_base, owner_id id,
 smp::spinlock::milliseconds timeout) {
 	smp::spinlock::scoped_lock lock(spinlock(), id.get(),
 	timeout -timeout.tick_count());
-
+	
 	if (lock.owns()) {
 		for (std::size_t i = 0; i < masks; ++i) {
 			for (mask_type mask = mask_[i]; mask; mask &= mask -1) {
@@ -175,7 +173,7 @@ smp::spinlock::milliseconds timeout) {
 					// > 1 = an allocated entry.
 					elem_[n] = id.get();
 					mask_[i] = mask & ~(1 << bit);
-					--size_;
+                    ++size_;
 					client_interface_base[n].set_owner_id(id);
 					*item = n;
 
@@ -207,7 +205,7 @@ smp::spinlock::milliseconds timeout) {
 			std::size_t i = item >> 6;
 			std::size_t bit = item & 63;
 			mask_[i] |= 1ULL << bit;
-			++size_;
+            --size_;
 
 			// Successfully released.
 			return true;

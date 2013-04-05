@@ -21,6 +21,9 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     IExecutionEnumerator rightEnumerator;
     Row contextObject;
 
+    private Boolean stayAtOffsetkey = false;
+    private Boolean useOffsetkey = true;
+
     internal Join(RowTypeBinding rowTypeBind,
         JoinType type,
         IExecutionEnumerator leftEnum,
@@ -55,6 +58,23 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         this.fetchOffsetExpr = fetchOffsetExpr;
 
         this.query = query;
+    }
+
+    public Boolean StayAtOffsetkey {
+        get { return stayAtOffsetkey; }
+        set {
+            stayAtOffsetkey = value;
+            rightEnumerator.StayAtOffsetkey = value;
+        }
+    }
+
+    public Boolean UseOffsetkey {
+        get { return useOffsetkey; }
+        set {
+            useOffsetkey = value;
+            leftEnumerator.UseOffsetkey = value;
+            rightEnumerator.UseOffsetkey = value;
+        }
     }
 
     /// <summary>
@@ -187,6 +207,14 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
 
         leftEnumerator.Reset(contextObject);
         rightEnumerator.Reset();
+        if (obj == null) { // On Dispose
+            stayAtOffsetkey = false;
+            useOffsetkey = true;
+            leftEnumerator.StayAtOffsetkey = true;
+            leftEnumerator.UseOffsetkey = true;
+            rightEnumerator.StayAtOffsetkey = false;
+            rightEnumerator.UseOffsetkey = true;
+        }
     }
 
     // TODO: Not create a new Row when not necessary.
@@ -243,10 +271,14 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
                 }
             }
 
+            leftEnumerator.StayAtOffsetkey = true;
             if (leftEnumerator.MoveNext())
             {
                 Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                 rightEnumerator.Reset(rightContext);
+                // Call to create enumerator on right one if left at recreated key
+                if (!leftEnumerator.IsAtRecreatedKey)
+                    rightEnumerator.UseOffsetkey = false;
             }
             else
             {
@@ -280,6 +312,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
                 if (leftEnumerator.MoveNext()) {
                     Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                     rightEnumerator.Reset(rightContext);
+                    rightEnumerator.UseOffsetkey = false;
                 } else {
                     currentObject = null;
                     return false;
@@ -290,6 +323,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
                 if (leftEnumerator.MoveNext()) {
                     Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
                     rightEnumerator.Reset(rightContext);
+                    rightEnumerator.UseOffsetkey = false;
                 } else {
                     currentObject = null;
                     return false;
@@ -430,5 +464,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
 
         return uniqueGenName;
     }
+
+    public Boolean IsAtRecreatedKey { get { return leftEnumerator.IsAtRecreatedKey && rightEnumerator.IsAtRecreatedKey; } }
 }
 }
