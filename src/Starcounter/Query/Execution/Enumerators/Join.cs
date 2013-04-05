@@ -22,9 +22,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     Row contextObject;
 
     private Boolean stayAtOffsetkey = false;
-    public Boolean StayAtOffsetkey { get { return stayAtOffsetkey; } set { stayAtOffsetkey = value; } }
     private Boolean useOffsetkey = true;
-    public Boolean UseOffsetkey { get { return useOffsetkey; } set { useOffsetkey = value; } }
 
     internal Join(RowTypeBinding rowTypeBind,
         JoinType type,
@@ -60,6 +58,23 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         this.fetchOffsetExpr = fetchOffsetExpr;
 
         this.query = query;
+    }
+
+    public Boolean StayAtOffsetkey {
+        get { return stayAtOffsetkey; }
+        set {
+            stayAtOffsetkey = value;
+            rightEnumerator.StayAtOffsetkey = value;
+        }
+    }
+
+    public Boolean UseOffsetkey {
+        get { return useOffsetkey; }
+        set {
+            useOffsetkey = value;
+            leftEnumerator.UseOffsetkey = value;
+            rightEnumerator.UseOffsetkey = value;
+        }
     }
 
     /// <summary>
