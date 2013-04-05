@@ -48,17 +48,20 @@
 
     </table>
 
+    <dl>
+        <dt>Console</dt>
+        <dd>
+            <!--            <div class="well well-small" ng-bind-html-unsafe="console"></div>-->
+        </dd>
+    </dl>
 
     <div class="btn-group">
         <button class="btn btn-primary span2" ng-disabled="isBusy == true" ng-click="btnClick_refresh_console()">Refresh</button>
     </div>
 
-    <dl>
-        <dt>Console</dt>
-        <dd>
-            <div class="well well-small" ng-bind-html-unsafe="console"></div>
-        </dd>
-    </dl>
+
+    <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html-unsafe="console" />
+
 
 
 </div>
