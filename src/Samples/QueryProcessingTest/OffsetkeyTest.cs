@@ -32,10 +32,10 @@ namespace QueryProcessingTest {
             });
             // Multiple joins
             TestDataModification("select a1 from account a1, Account a2, Account a3, User u " +
-                "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client and a2.client.userid = a3.client.userid and a1.amount = a3.amount", client);
+                "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.AccountId = a3.accountid and a2.client.userid = a3.client.userid and a1.Client = u and u = a2.client and a1.amount = a3.amount", client);
             Db.Transaction(delegate {
                 TestDataModification("select a1 from account a1, Account a2, Account a3, User u " +
-                    "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client and a2.client.userid = a3.client.userid and a1.amount = a3.amount", client);
+                    "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.AccountId = a3.accountid and a2.client.userid = a3.client.userid and a1.Client = u and u = a2.client and a1.amount = a3.amount", client);
             });
             // With operators
 #if false
