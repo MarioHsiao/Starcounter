@@ -583,6 +583,10 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         // Checking if URI matching code is generated.
         if (NULL == port_uris->get_latest_match_uri_func())
         {
+            // Checking if there are any port URIs registered,
+            if (port_uris->IsEmpty())
+                return SCERRREQUESTONUNREGISTEREDURI;
+
             // Entering global lock.
             gw->EnterGlobalLock();
 

@@ -149,6 +149,9 @@ public:
         sd_receive_clone_ = sd_clone;
     }
 
+    // Creating accepting sockets on all ports and for all databases.
+    uint32_t CheckAcceptingSocketsOnAllActivePortsAndDatabases();
+
     // Changes number of accepting sockets.
     int64_t ChangeNumAcceptingSockets(int32_t port_index, int64_t change_value)
     {

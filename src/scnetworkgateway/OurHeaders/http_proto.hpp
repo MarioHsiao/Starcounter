@@ -68,7 +68,7 @@ public:
         uint8_t* num_params)
     {
         // TODO: Make the investigation about same URI handlers.
-        GW_ASSERT(1 == handler_lists_.get_num_entries());
+        //GW_ASSERT(1 == handler_lists_.get_num_entries());
 
         HandlersList* handlers_list = handler_lists_[0];
 

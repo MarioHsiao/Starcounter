@@ -20,14 +20,17 @@ uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
     if (err_code)
         return err_code;
 
+    // First we need to reset chunk using request.
+    smc->get_request_chunk()->reset_offset();
+
     // Filling the chunk.
     smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
 
-    response_chunk_part *response = smc->get_response_chunk();
-    response->reset_offset();
+    response_chunk_part *resp_chunk = smc->get_response_chunk();
+    resp_chunk->reset_offset();
 
     // Writing handler information into chunk.
-    if (!WriteRegisteredPortHandler(response))
+    if (!WriteRegisteredPortHandler(resp_chunk))
         return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
 
     // Terminating last chunk.
@@ -53,6 +56,9 @@ uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
     uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
     if (err_code)
         return err_code;
+
+    // First we need to reset chunk using request.
+    smc->get_request_chunk()->reset_offset();
 
     // Filling the chunk.
     smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
@@ -87,6 +93,9 @@ uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
     uint32_t err_code = cm_acquire_shared_memory_chunk(&chunk_index, (uint8_t**)&smc);
     if (err_code)
         return err_code;
+
+    // First we need to reset chunk using request.
+    smc->get_request_chunk()->reset_offset();
 
     // Filling the chunk.
     smc->set_bmx_handler_info(BMX_MANAGEMENT_HANDLER_INFO);
