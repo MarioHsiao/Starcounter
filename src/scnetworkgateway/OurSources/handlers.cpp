@@ -295,20 +295,26 @@ PROCESS_SERVER_PORT:
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock, SUBPORT_BLOB_USER_DATA_OFFSET);
-    }
 
-    // NOTE: Registering a port handler for each database since each database
-    // when deleted, deletes its own port.
-
-    // Checking if port already contains handlers from this database.
-    if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
-    {
         // Adding new port outer handler.
         BMX_HANDLER_INDEX_TYPE new_handler_index;
         err_code = RegisterPortHandler(gw, port_num, 0, OuterSubportProcessData, db_index, new_handler_index);
         if (err_code)
             goto ERROR_HANDLING;
     }
+
+    // NOTE: Registering a port handler for each database since each database
+    // when deleted, deletes its own port.
+
+    // Checking if port already contains handlers from this database.
+    /*if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
+    {
+        // Adding new port outer handler.
+        BMX_HANDLER_INDEX_TYPE new_handler_index;
+        err_code = RegisterPortHandler(gw, port_num, 0, OuterSubportProcessData, db_index, new_handler_index);
+        if (err_code)
+            goto ERROR_HANDLING;
+    }*/
 
     return 0;
 
@@ -433,20 +439,26 @@ PROCESS_SERVER_PORT:
 
         // Adding new server port.
         server_port = g_gateway.AddServerPort(port_num, listening_sock, HTTP_BLOB_USER_DATA_OFFSET);
-    }
 
-    // NOTE: Registering a port handler for each database since each database
-    // when deleted, deletes its own port.
-
-    // Checking if port already contains handlers from this database.
-    if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
-    {
         // Adding new port outer handler.
         BMX_HANDLER_INDEX_TYPE new_handler_index;
         err_code = RegisterPortHandler(gw, port_num, 0, OuterUriProcessData, db_index, new_handler_index);
         if (err_code)
             goto ERROR_HANDLING;
     }
+
+    // NOTE: Registering a port handler for each database since each database
+    // when deleted, deletes its own port.
+
+    // Checking if port already contains handlers from this database.
+    /*if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
+    {
+        // Adding new port outer handler.
+        BMX_HANDLER_INDEX_TYPE new_handler_index;
+        err_code = RegisterPortHandler(gw, port_num, 0, OuterUriProcessData, db_index, new_handler_index);
+        if (err_code)
+            goto ERROR_HANDLING;
+    }*/
 
     return 0;
 
