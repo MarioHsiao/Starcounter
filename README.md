@@ -10,4 +10,4 @@ This repository is reserved for the public Starcounter bits.
 
 * [Wiki](http://www.github.com/starcounter/starcounter/wiki) 
 * [Starcounter home page](http://www.starcounter.com) 
-* [Contributors home page](http://www.starcounter.github.com) 
+* [Contributors home page](http://starcounter.github.com) 
