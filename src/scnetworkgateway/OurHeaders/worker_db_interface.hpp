@@ -254,7 +254,7 @@ public:
     uint32_t ReleaseToSharedChunkPool(int32_t num_chunks);
 
     // Scans all channels for any incoming chunks.
-    uint32_t ScanChannels(GatewayWorker *gw, bool* found_something);
+    uint32_t ScanChannels(GatewayWorker *gw, uint32_t& next_sleep_interval_ms);
 
     // Obtains chunk from a private pool if its not empty
     // (otherwise fetches from shared chunk pool).

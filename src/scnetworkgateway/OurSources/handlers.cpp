@@ -303,6 +303,19 @@ PROCESS_SERVER_PORT:
             goto ERROR_HANDLING;
     }
 
+    // NOTE: Registering a port handler for each database since each database
+    // when deleted, deletes its own port.
+
+    // Checking if port already contains handlers from this database.
+    /*if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
+    {
+        // Adding new port outer handler.
+        BMX_HANDLER_INDEX_TYPE new_handler_index;
+        err_code = RegisterPortHandler(gw, port_num, 0, OuterSubportProcessData, db_index, new_handler_index);
+        if (err_code)
+            goto ERROR_HANDLING;
+    }*/
+
     return 0;
 
     // Handling error.
@@ -433,6 +446,19 @@ PROCESS_SERVER_PORT:
         if (err_code)
             goto ERROR_HANDLING;
     }
+
+    // NOTE: Registering a port handler for each database since each database
+    // when deleted, deletes its own port.
+
+    // Checking if port already contains handlers from this database.
+    /*if (INVALID_INDEX == server_port->get_port_handlers()->GetEntryIndex(db_index))
+    {
+        // Adding new port outer handler.
+        BMX_HANDLER_INDEX_TYPE new_handler_index;
+        err_code = RegisterPortHandler(gw, port_num, 0, OuterUriProcessData, db_index, new_handler_index);
+        if (err_code)
+            goto ERROR_HANDLING;
+    }*/
 
     return 0;
 
