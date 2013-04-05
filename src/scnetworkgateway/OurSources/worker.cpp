@@ -1503,9 +1503,13 @@ uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
                     // Leaving global lock.
                     LeaveGlobalLock();
 
+#ifndef GW_LOOPED_TEST_MODE
+
                     // Creating accepting sockets on all ports and for all databases.
                     err_code = CheckAcceptingSocketsOnAllActivePortsAndDatabases();
                     GW_ERR_CHECK(err_code);
+
+#endif
                 }
                 else
                 {
