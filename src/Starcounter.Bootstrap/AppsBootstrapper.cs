@@ -124,10 +124,10 @@ namespace Starcounter.Internal {
                 if (!NewConfig.IsAdministratorApp)
                 {
                     // Putting port and full path to resources directory.
-                    String content = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
+                    String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", content, null, (Response resp) =>
+                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp) =>
                     {
                         String respString = resp.GetBodyStringUtf8_Slow();
 

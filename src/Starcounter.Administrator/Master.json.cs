@@ -88,7 +88,7 @@ namespace Starcounter.Administrator {
                 Response resp;
 
                 // Doing another request with original request attached.
-                Node.LocalhostSystemPortNode.GET("/index.html", req, out resp);
+                Node.LocalhostSystemPortNode.GET("/index.html", null, req, out resp);
 
                 if (resp == null)
                     throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
@@ -343,7 +343,12 @@ namespace Starcounter.Administrator {
                         Response response;
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        Node.LocalhostSystemPortNode.POST(string.Format("/__{0}/sql", databasename), bodyData, null, out response);
+                        Node.LocalhostSystemPortNode.POST(
+                            string.Format("/__{0}/sql", databasename),
+                            bodyData,
+                            "MyHeader1: 123\r\nMyHeader2: 456\r\n",
+                            null,
+                            out response);
 
                         if (response == null) {
                             return HttpStatusCode.ServiceUnavailable;
@@ -384,7 +389,7 @@ namespace Starcounter.Administrator {
                         Response response;
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", databaseid), null, out response);
+                        Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", databaseid), null, null, out response);
 
                         if (response == null) {
                             return HttpStatusCode.ServiceUnavailable;
