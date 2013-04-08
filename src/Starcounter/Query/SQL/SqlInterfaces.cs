@@ -41,6 +41,11 @@ namespace Starcounter
         Nullable<DbTypeCode> ProjectionTypeCode { get; }
 
         /// <summary>
+        /// If the project is a singleton, the the property of the singleton, otherwise null.
+        /// </summary>
+        IPropertyBinding PropertyBinding { get; }
+
+        /// <summary>
         /// Counts the number of returned objects.
         /// </summary>
         Int64 Counter { get; }
