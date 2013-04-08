@@ -112,16 +112,6 @@ public class CInstallationBase : CComponentBase
         StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String
     };
 
-    // Special firewall rules for each program.
-    static String[] FirewallSpecialParams =
-    {
-        "remoteip=127.0.0.1",
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort,
-        "protocol=TCP localport=" + StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort
-    };
-
     /// <summary>
     /// Adds/Removes Windows firewall exceptions.
     /// </summary>
@@ -130,6 +120,19 @@ public class CInstallationBase : CComponentBase
     {
         // Logging event.
         Utilities.ReportSetupEvent("Changing Windows Firewall exceptions for Starcounter components...");
+
+        String[] FirewallSpecialParams = null;
+        if (isAdding)
+        {
+            // Special firewall rules for each program.
+            FirewallSpecialParams = new String[FirewallExceptionPrograms.Length];
+
+            FirewallSpecialParams[0] = "remoteip=127.0.0.1";
+            FirewallSpecialParams[1] = "protocol=TCP localport=" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerUserHttpPort);
+            FirewallSpecialParams[2] = "protocol=TCP localport=" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort);
+            FirewallSpecialParams[3] = "protocol=TCP localport=" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerUserHttpPort);
+            FirewallSpecialParams[4] = "protocol=TCP localport=" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort);
+        }
 
         // Adding each executable as an exception.
         for (Int32 i = 0; i < FirewallExceptionPrograms.Length; i++)
