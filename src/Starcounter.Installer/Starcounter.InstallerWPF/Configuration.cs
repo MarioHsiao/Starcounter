@@ -369,31 +369,45 @@ namespace Starcounter.InstallerWPF
                 // Checking if its first time installation so we copy binaries.
                 if (!installationBase.IsInstalled)
                 {
-                    // Checking if there are any files in the target installation directory.
-                    if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath)))
+                    // Getting directory from where installer EXE is running.
+                    String currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+                    // Checking if we are in developer mode.
+                    if (File.Exists(Path.Combine(currentDirectory, ConstantsBank.SCInstallerEngine + ".dll")))
                     {
-                        // Setting normal attributes for all files and folders in installation directory.
-                        Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(installationPath));
-
-                        // Asking if user wants to delete installation path before proceeding.
-                        Utilities.MessageBoxEventArgs messageBoxEventArgs = new Utilities.MessageBoxEventArgs(
-                            "Installation path '" + installationPath + "' is occupied. Do you want to delete existing directory? ALL DATA IN THIS DIRECTORY WILL BE LOST!", "Installation path is occupied...",
-                            WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Exclamation, WpfMessageBoxResult.No);
-                        messageboxCallback(this, messageBoxEventArgs);
-
-                        // Obtaining user's decision.
-                        WpfMessageBoxResult result = messageBoxEventArgs.MessageBoxResult;
-
-                        // User confirmed to delete previous installation directory.
-                        if (result != WpfMessageBoxResult.Yes)
-                            throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "User has canceled file copy process.");
-
-                        // Removing directory.
-                        Utilities.ForceDeleteDirectory(new DirectoryInfo(installationPath));
+                        // Checking if we are not installing in the same directory as we run this installer from.
+                        if (!Utilities.EqualDirectories(installationPath, currentDirectory))
+                        {
+                            // Copying all files to destination.
+                            Utilities.CopyFilesRecursively(new DirectoryInfo(currentDirectory), new DirectoryInfo(installationPath));
+                        }
                     }
-
-                    try
+                    else
                     {
+                        // Checking if there are any files in the target installation directory.
+                        if ((Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath))) &&
+                            (!Utilities.EqualDirectories(installationPath, currentDirectory)))
+                        {
+                            // Setting normal attributes for all files and folders in installation directory.
+                            Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(installationPath));
+
+                            // Asking if user wants to delete installation path before proceeding.
+                            Utilities.MessageBoxEventArgs messageBoxEventArgs = new Utilities.MessageBoxEventArgs(
+                                "Installation path '" + installationPath + "' is occupied. Do you want to delete existing directory? ALL DATA IN THIS DIRECTORY WILL BE LOST!", "Installation path is occupied...",
+                                WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Exclamation, WpfMessageBoxResult.No);
+                            messageboxCallback(this, messageBoxEventArgs);
+
+                            // Obtaining user's decision.
+                            WpfMessageBoxResult result = messageBoxEventArgs.MessageBoxResult;
+
+                            // User confirmed to delete previous installation directory.
+                            if (result != WpfMessageBoxResult.Yes)
+                                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "User has canceled file copy process.");
+
+                            // Removing directory.
+                            Utilities.ForceDeleteDirectory(new DirectoryInfo(installationPath));
+                        }
+
                         // Extracting all files to installation directory, and overwriting old files.
                         using (ZipArchive zipArchive = new ZipArchive(ArchiveZipStream, ZipArchiveMode.Read))
                         {
@@ -402,27 +416,6 @@ namespace Starcounter.InstallerWPF
                             {
                                 entry.ExtractToFile(Path.Combine(installationPath, entry.FullName), true);
                             }*/
-                        } 
-                    }
-                    catch (Exception exc)
-                    {
-                        // Copying files to installation directory from current directory since there is no embedded archive.
-                        String currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                        if (File.Exists(Path.Combine(currentDirectory, ConstantsBank.SCInstallerEngine + ".dll")))
-                        {
-                            // Checking if we are not copying to the current running directory.
-                            if (String.Compare(Path.GetFullPath(installationPath).TrimEnd('\\'),
-                                               Path.GetFullPath(currentDirectory).TrimEnd('\\'),
-                                               StringComparison.InvariantCultureIgnoreCase) != 0)
-                            {
-                                // We checked that at least one necessary file exists in the current directory.
-                                Utilities.CopyFilesRecursively(new DirectoryInfo(currentDirectory), new DirectoryInfo(installationPath));
-                            }
-                        }
-                        else
-                        {
-                            // No files in current directory, re-throwing the exception.
-                            throw exc;
                         }
                     }
                 }
