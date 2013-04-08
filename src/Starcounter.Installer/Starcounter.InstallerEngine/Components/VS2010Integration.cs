@@ -64,11 +64,13 @@ public class CVS2010Integration : VSIntegration
         // Check if Visual Studio is running.
         CheckVStudioRunning();
 
+        // Cleaning up previous installations if any.
+        devEnv.InstallTemplates(false);
+
         String installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
 
         // Running Visual Studio setup (which includes installation of templates).
         VSInstaller.InstallVs2010(installPath.TrimEnd(new char[] { '\\' }));
-        devEnv.InstallTemplates(false);
 
         // Checking that Visual Studio has stopped working.
         WaitVStudioToFinish();
@@ -100,6 +102,7 @@ public class CVS2010Integration : VSIntegration
                     return;
 
                 // Checking if component can be removed.
+                // TODO: Sometimes fails by some reason.
                 if (!CanBeRemoved())
                     return;
             }
@@ -110,7 +113,7 @@ public class CVS2010Integration : VSIntegration
             return;
 
         // Logging event.
-        Utilities.ReportSetupEvent("Deleting Starcounter Visual Studio 2010 Starcounter integration...");
+        Utilities.ReportSetupEvent("Deleting Visual Studio 2010 Starcounter integration...");
 
         // Deleting Starcounter Visual Studio 2010 integration and templates on demand.
         // Checking if Visual Studio is running (that can lock certain libraries like MSBuild.dll).
@@ -120,7 +123,6 @@ public class CVS2010Integration : VSIntegration
         {
             // Running Visual Studio setup (which includes uninstallation of templates).
             VSInstaller.UninstallVs2010(InstallerMain.InstallationDir.TrimEnd(new char[] { '\\' }));
-            devEnv.InstallTemplates(false);
         }
         catch (Exception ex)
         {
@@ -145,6 +147,11 @@ public class CVS2010Integration : VSIntegration
 
             if (!ignoreException)
                 throw;
+        }
+        finally
+        {
+            // Cleaning up previous installations if any.
+            devEnv.InstallTemplates(false);
         }
 
         // Updating progress.
