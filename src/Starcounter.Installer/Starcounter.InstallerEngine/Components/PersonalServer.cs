@@ -174,7 +174,7 @@ public class CPersonalServer : CComponentBase
         {
             if (!Utilities.AskUserForDecision(
                 "Server directory already exists: " + serverDir + Environment.NewLine +
-                "Would you like to remove it? ALL DATA IN DIRECTORY WILL BE LOST!",
+                "Would you like to remove it? ALL DATA IN THIS DIRECTORY WILL BE LOST!",
                 "Server directory already exists..."))
             {
                 // TODO: Talk with Anders about catching this type of exception in GUI.
@@ -290,10 +290,13 @@ public class CPersonalServer : CComponentBase
         CreatePersonalServerShortcuts();
 
         // Creating Administrator database.
+        // TODO: Recover if in need of a database for Administrator.
+        /*
         InstallerMain.CreateDatabaseSynchronous(
             StarcounterEnvironment.ServerNames.PersonalServer,
             ComponentPath,
             ConstantsBank.SCAdminDatabaseName);
+        */
 
         // Starts personal server if demanded.
         StartPersonalServer();
