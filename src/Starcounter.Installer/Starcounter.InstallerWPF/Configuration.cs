@@ -389,7 +389,7 @@ namespace Starcounter.InstallerWPF
                             throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "User has canceled file copy process.");
 
                         // Removing directory.
-                        Directory.Delete(installationPath, true);
+                        Utilities.ForceDeleteDirectory(new DirectoryInfo(installationPath));
                     }
 
                     try
