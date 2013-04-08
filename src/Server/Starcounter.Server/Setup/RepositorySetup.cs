@@ -10,6 +10,7 @@ using System.IO;
 using System.Net;
 using Starcounter.Configuration;
 using Starcounter.Server;
+using Starcounter.Internal;
 
 namespace Starcounter.Server.Setup {
 
@@ -127,8 +128,8 @@ namespace Starcounter.Server.Setup {
                 ImageDirectory = Path.Combine(structure.DataDirectory, "[DatabaseName]"),
                 TransactionLogDirectory = Path.Combine(structure.DataDirectory, "[DatabaseName]"),
                 TempDirectory = Path.Combine(structure.TempDirectory, "[DatabaseName]"),
-                SQLProcessPort = (UInt16)(8066 + serverPortRange),
-                DefaultUserHttpPort = 8080,
+                SQLProcessPort = (UInt16)(StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort + serverPortRange),
+                DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort,
                 ChunksNumber = 4096,
             };
 

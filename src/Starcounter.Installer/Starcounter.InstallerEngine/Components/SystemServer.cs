@@ -158,6 +158,12 @@ public class CSystemServer : CComponentBase
         if (!CanBeInstalled())
             return;
 
+        // Server related directories.
+        String serverDir = ComponentPath;
+
+        // Checking for existing server directory.
+        CPersonalServer.CheckExistingServerDirectory(serverDir);
+
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for system server...");
 
@@ -175,19 +181,7 @@ public class CSystemServer : CComponentBase
         Utilities.ReportSetupEvent("Installing system server and service...");
 
         String serviceAccountName, serviceAccountPassword,
-               serverDir = ComponentPath,
                installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
-
-        // Creating the repository using server functionality.
-        if (Directory.Exists(serverDir))
-        {
-            if (!Utilities.AskUserForDecision("Server directory already exists: " + serverDir + Environment.NewLine +
-                            "Would you like to override it?",
-                            "Server directory already exists..."))
-            {
-                goto SKIP_SERVER_CREATION;
-            }
-        }
 
         // Creating new server repository.
         var setup = RepositorySetup.NewDefault(
@@ -196,11 +190,11 @@ public class CSystemServer : CComponentBase
 
         setup.Execute();
 
-SKIP_SERVER_CREATION:
+        String serverConfigPath = Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension);
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
-            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
+            serverConfigPath,
             StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerUserHttpPort)))
         {
@@ -216,6 +210,16 @@ SKIP_SERVER_CREATION:
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
                 "Can't replace Administrator TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
+        }
+
+        // Replacing default server parameters.
+        if (!Utilities.ReplaceXMLParameterInFile(
+            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
+            StarcounterConstants.BootstrapOptionNames.SQLProcessPort,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemPrologSqlProcessPort)))
+        {
+            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Can't replace Prolog SQL TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
         }
 
         // Creating server config.

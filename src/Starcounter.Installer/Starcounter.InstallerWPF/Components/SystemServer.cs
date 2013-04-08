@@ -102,6 +102,24 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
 
+        private UInt16 _DefaultPrologSqlProcessPort;
+        public UInt16 DefaultPrologSqlProcessPort
+        {
+            get
+            {
+                return _DefaultPrologSqlProcessPort;
+            }
+
+            set
+            {
+                if (_DefaultPrologSqlProcessPort == value)
+                    return;
+
+                this._DefaultPrologSqlProcessPort = value;
+                this.OnPropertyChanged("DefaultPrologSqlProcessPort");
+            }
+        }
+
         /// <summary>
         /// Gets a value indicating whether this instance can be installed by starcounter installer.
         /// </summary>
@@ -126,6 +144,7 @@ namespace Starcounter.InstallerWPF.Components
 
             this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort;
             this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort;
+            this.DefaultPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultSystemPrologSqlProcessPort;
 
             switch (this.Command)
             {

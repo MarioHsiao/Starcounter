@@ -178,30 +178,25 @@ namespace Starcounter.InstallerWPF.Pages
                 Configuration config = state as Configuration;
 
                 config.ExecuteSettings(
-                           delegate(object sender, Utilities.InstallerProgressEventArgs args)
-                           {
-                               this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                                                       new Action(delegate
-                                                       {
+                    delegate(object sender, Utilities.InstallerProgressEventArgs args)
+                    {
+                        this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                                                new Action(delegate
+                                                {
 
-                                                           this.Progress = args.Progress;
-                                                           this.ProgressText = args.Text;
-                                                       }
-                                                   ));
-                           },
-                             delegate(object sender, Utilities.MessageBoxEventArgs args)
-                             {
-                                 this._dispatcher.Invoke(new Action(() =>
-                                 {
-                                     args.MessageBoxResult = WpfMessageBox.Show(args.MessageBoxText, args.Caption, args.Button, args.Icon, args.DefaultResult);
-                                 }));
-                             }
-
-                           );
-//                ((Configuration)state).RunInstallerEngine(null, ConstantsBank.ScRemoveIniName);
-
-                // Removing installation directory.
-                //UninstallEngine.ForceDeleteDirectory(new DirectoryInfo(((Configuration) state).InstallationPath));
+                                                    this.Progress = args.Progress;
+                                                    this.ProgressText = args.Text;
+                                                }
+                                            ));
+                    },
+                        delegate(object sender, Utilities.MessageBoxEventArgs args)
+                        {
+                            this._dispatcher.Invoke(new Action(() =>
+                            {
+                                args.MessageBoxResult = WpfMessageBox.Show(args.MessageBoxText, args.Caption, args.Button, args.Icon, args.DefaultResult);
+                            }));
+                        }
+                    );
             }
             catch (Exception installException)
             {

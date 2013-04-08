@@ -165,6 +165,30 @@ public class CPersonalServer : CComponentBase
     }
 
     /// <summary>
+    /// Checks if server directory exists and asks user for its removal.
+    /// </summary>
+    /// <param name="serverDir"></param>
+    public static void CheckExistingServerDirectory(String serverDir)
+    {
+        if (Directory.Exists(serverDir))
+        {
+            if (!Utilities.AskUserForDecision(
+                "Server directory already exists: " + serverDir + Environment.NewLine +
+                "Would you like to remove it? ALL DATA IN DIRECTORY WILL BE LOST!",
+                "Server directory already exists..."))
+            {
+                // TODO: Talk with Anders about catching this type of exception in GUI.
+                //throw new InstallerAbortedException("User rejected removal of server directory: " + serverDir);
+            }
+            else
+            {
+                // Removing directory.
+                Directory.Delete(serverDir, true);
+            }
+        }
+    }
+
+    /// <summary>
     /// Installs component.
     /// </summary>
     public override void Install()
@@ -177,6 +201,12 @@ public class CPersonalServer : CComponentBase
         if (!CanBeInstalled())
             return;
 
+        // Server related directories.
+        String serverDir = ComponentPath;
+
+        // Checking for existing server directory.
+        CheckExistingServerDirectory(serverDir);
+
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for personal database engine...");
 
@@ -188,7 +218,6 @@ public class CPersonalServer : CComponentBase
 
         // Logging event.
         Utilities.ReportSetupEvent("Installing personal database engine...");
-        String serverDir = ComponentPath;
 
         // Checking that server path is in user's personal directory.
         if (!Utilities.ParentChildDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "\\..", serverDir))
@@ -204,17 +233,6 @@ public class CPersonalServer : CComponentBase
         // Logging event.
         Utilities.ReportSetupEvent("Creating structure for personal database engine...");
 
-        // Creating the repository using server functionality.
-        if (Directory.Exists(serverDir))
-        {
-            if (!Utilities.AskUserForDecision("Server directory already exists: " + serverDir + Environment.NewLine +
-                            "Would you like to override it?",
-                            "Server directory already exists..."))
-            {
-                goto SKIP_SERVER_CREATION;
-            }
-        }
-
         // Creating new server repository.
         var setup = RepositorySetup.NewDefault(
             Path.Combine(serverDir, ".."),
@@ -222,11 +240,11 @@ public class CPersonalServer : CComponentBase
 
         setup.Execute();
 
-SKIP_SERVER_CREATION:
+        String serverConfigPath = Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension);
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
-            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
+            serverConfigPath,
             StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerUserHttpPort)))
         {
@@ -242,6 +260,16 @@ SKIP_SERVER_CREATION:
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
                 "Can't replace Administrator TCP port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
+        }
+
+        // Replacing default server parameters.
+        if (!Utilities.ReplaceXMLParameterInFile(
+            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
+            StarcounterConstants.BootstrapOptionNames.SQLProcessPort,
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalPrologSqlProcessPort)))
+        {
+            throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Can't replace Prolog SQL TCP port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
         }
 
         // Creating server config.

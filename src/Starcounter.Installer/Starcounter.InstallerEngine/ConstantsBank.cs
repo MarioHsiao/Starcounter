@@ -28,10 +28,12 @@ namespace Starcounter.InstallerEngine
         public const String Setting_PersonalServerPath = "PersonalServerPath";
         public const String Setting_DefaultPersonalServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort_String;
         public const String Setting_DefaultPersonalServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort_String;
+        public const String Setting_DefaultPersonalPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort_String;
 
         public const String Setting_SystemServerPath = "SystemServerPath";
-        public const  String Setting_DefaultSystemServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort_String;
+        public const String Setting_DefaultSystemServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort_String;
         public const String Setting_DefaultSystemServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String;
+        public const String Setting_DefaultSystemPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultSystemPrologSqlProcessPort_String;
 
         public const String GatewayXmlStatisticsPort = "GatewayStatisticsPort";
 
@@ -46,10 +48,13 @@ namespace Starcounter.InstallerEngine
 
         // Other constants.
         public const String SCIconFilename = "sc.ico";
+        
+        public const String ParentArg = "YouHaveParent";
+        public const String SilentArg = "Silent";
         public const String DontCheckOtherInstancesArg = "DontCheckOtherInstances";
 
-        public const String ScGlobalSettingsIniName = "SetupSettings.xml";
-        public const String ScGUISetupIniName = "GUISetupSettings.xml";
+        public const String ScGlobalSettingsXmlName = "SetupSettings.xml";
+        public const String ScGUISetupXmlName = "GUISetupSettings.xml";
         public const String ScGatewayConfigName = "scnetworkgateway.xml";
 
         public static String ScPostSetupFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScPostSetupTemp.txt");
