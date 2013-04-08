@@ -183,7 +183,7 @@ public class CPersonalServer : CComponentBase
             else
             {
                 // Removing directory.
-                Directory.Delete(serverDir, true);
+                Utilities.ForceDeleteDirectory(new DirectoryInfo(serverDir));
             }
         }
     }
