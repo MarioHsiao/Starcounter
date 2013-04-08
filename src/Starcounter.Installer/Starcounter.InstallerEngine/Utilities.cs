@@ -872,6 +872,40 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
+        /// Adds permissions for the current user on directory.
+        /// </summary>
+        /// <param name="dirPath"></param>
+        public static void AddDirFullPermissionsForCurrentUser(String dirPath)
+        {
+            FileSystemRights accessRights;
+
+            // Getting current user account name.
+            String accountName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+
+            // Setting full control.
+            accessRights = FileSystemRights.FullControl;
+            bool modified;
+            InheritanceFlags none = new InheritanceFlags();
+            none = InheritanceFlags.None;
+
+            // Set on directory itself.
+            FileSystemAccessRule accessRule = new FileSystemAccessRule(accountName, accessRights, none, PropagationFlags.NoPropagateInherit, AccessControlType.Allow);
+            DirectoryInfo dInfo = new DirectoryInfo(dirPath);
+            DirectorySecurity dSecurity = dInfo.GetAccessControl();
+            dSecurity.ModifyAccessRule(AccessControlModification.Set, accessRule, out modified);
+
+            // Always allow objects to inherit on a directory.
+            InheritanceFlags iFlags = new InheritanceFlags();
+            iFlags = InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit;
+
+            // Add access rule for the inheritance.
+            FileSystemAccessRule accessRule2 = new FileSystemAccessRule(accountName, accessRights, iFlags, PropagationFlags.InheritOnly, AccessControlType.Allow);
+            dSecurity.ModifyAccessRule(AccessControlModification.Add, accessRule2, out modified);
+
+            dInfo.SetAccessControl(dSecurity);
+        }
+
+        /// <summary>
         /// Recursively adds specified access rights to a directory.
         /// </summary>
         /// <param name="fsi">Current file system information (directory or file)</param>
