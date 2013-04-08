@@ -289,6 +289,10 @@ public class CInstallationBase : CComponentBase
         }
 
         // Logging event.
+        Utilities.ReportSetupEvent("Setting rights for current user on installation directory...");
+        Utilities.AddDirFullPermissionsForCurrentUser(InstallerMain.InstallationDir);
+
+        // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for installation base...");
 
         // No matter what type of installation is it we need to create/overwrite
