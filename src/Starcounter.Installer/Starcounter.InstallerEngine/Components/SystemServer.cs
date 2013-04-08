@@ -249,10 +249,11 @@ public class CSystemServer : CComponentBase
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort));
 
         // Creating Administrator database.
-        InstallerMain.CreateDatabaseSynchronous(
+        // TODO: Recover if in need of a database for Administrator.
+        /*InstallerMain.CreateDatabaseSynchronous(
             StarcounterEnvironment.ServerNames.SystemServer,
             ComponentPath,
-            ConstantsBank.SCAdminDatabaseName);
+            ConstantsBank.SCAdminDatabaseName);*/
 
         // Calling external tool to create Administrator shortcut.
         Utilities.CreateShortcut(
