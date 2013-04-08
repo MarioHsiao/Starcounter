@@ -3,6 +3,7 @@ using System;
 using Starcounter.InstallerEngine.VsSetup;
 using Microsoft.Win32;
 using Starcounter;
+using System.Diagnostics;
 
 namespace Starcounter.InstallerEngine
 {
@@ -61,12 +62,13 @@ namespace Starcounter.InstallerEngine
             // Check if Visual Studio is running.
             CheckVStudioRunning();
 
+            // Starting visual studio once before installation.
+            devEnv.InstallTemplates(false);
+
             String installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
 
             // Running Visual Studio setup (which includes installation of templates).
             VSInstaller.InstallVs2012(installPath.TrimEnd(new char[] { '\\' }));
-            // TODO: Check with Per!
-            //devEnv.InstallTemplates(false);
 
             // Checking that Visual Studio has stopped working.
             WaitVStudioToFinish();
@@ -95,6 +97,7 @@ namespace Starcounter.InstallerEngine
                         return;
 
                     // Checking if component can be removed.
+                    // TODO: Sometimes fails by some reason.
                     if (!CanBeRemoved())
                         return;
                 }
@@ -105,7 +108,7 @@ namespace Starcounter.InstallerEngine
                 return;
 
             // Logging event.
-            Utilities.ReportSetupEvent("Deleting Starcounter Visual Studio 2012 Starcounter integration...");
+            Utilities.ReportSetupEvent("Deleting Visual Studio 2012 Starcounter integration...");
 
             // Deleting Starcounter Visual Studio 2012 integration and templates on demand.
             // Checking if Visual Studio is running (that can lock certain libraries like MSBuild.dll).
@@ -115,8 +118,6 @@ namespace Starcounter.InstallerEngine
             {
                 // Running Visual Studio setup (which includes uninstallation of templates).
                 VSInstaller.UninstallVs2012(InstallerMain.InstallationDir.TrimEnd(new char[] { '\\' }));
-                // TODO: Check with Per!
-                //devEnv.InstallTemplates(false);
             }
             catch (Exception ex)
             {
@@ -142,6 +143,11 @@ namespace Starcounter.InstallerEngine
                 if (!ignoreException)
                     throw;
             }
+            finally
+            {
+                // Starting visual studio once before installation.
+                devEnv.InstallTemplates(false);
+            }
 
             // Updating progress.
             InstallerMain.ProgressIncrement();
@@ -158,7 +164,10 @@ namespace Starcounter.InstallerEngine
 
             RegistryKey installedProductKey = Registry.CurrentUser.OpenSubKey(ConstantsBank.RegistryVS2012StarcounterInstalledProductKey);
             if (installedProductKey == null)
+            {
+                //Debugger.Launch();
                 return false;
+            }
 
             installedProductKey.Close();
             return true;
