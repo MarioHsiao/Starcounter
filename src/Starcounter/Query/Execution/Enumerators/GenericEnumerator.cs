@@ -93,6 +93,15 @@ namespace Starcounter {
             }
         }
 
+        public IPropertyBinding PropertyBinding {
+            get {
+                if (subEnumerator != null)
+                    return subEnumerator.PropertyBinding;
+                else
+                    throw new ObjectDisposedException("Enumerator");
+            }
+        }
+
         /// <summary>
         /// Counts the number of returned objects.
         /// </summary>
