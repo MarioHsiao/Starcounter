@@ -23,6 +23,7 @@ internal abstract class ExecutionEnumerator
     protected String query = null; // Original SQL query which this enumerator belongs to.
     protected RowTypeBinding rowTypeBinding = null; // Type binding for the enumerator.
     protected Nullable<DbTypeCode> projectionTypeCode = null; // If singleton projection, then the DbTypeCode of that singleton, otherwise null.
+    protected PropertyMapping propertyBinding = null; // If singleton projection, then the PropertyBinding of that singleton, otherwise null.
     protected UInt64 uniqueQueryID = 0; // Uniquely identifies query it belongs to.
     protected String uniqueGenName = null; // Uniquely identifies the scan during code generation.
     protected Boolean hasCodeGeneration = false; // Indicates if code generation is done for this enumerator.
@@ -49,7 +50,8 @@ internal abstract class ExecutionEnumerator
 
         if (varArray != null && (varArray.QueryFlags & QueryFlags.SingletonProjection) != 0)
         {
-            projectionTypeCode = rowTypeBinding.GetPropertyBinding(0).TypeCode;
+            propertyBinding = (PropertyMapping)rowTypeBinding.GetPropertyBinding(0);
+            projectionTypeCode = propertyBinding.TypeCode;
         }
     }
 
@@ -156,6 +158,12 @@ internal abstract class ExecutionEnumerator
         get
         {
             return projectionTypeCode;
+        }
+    }
+
+    public virtual IPropertyBinding PropertyBinding {
+        get {
+            return propertyBinding;
         }
     }
 

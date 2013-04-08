@@ -54,6 +54,9 @@ namespace QueryProcessingTest {
             Trace.Assert(nrs == 1);
             HelpMethods.LogEvent("Finished test queries with like");
             Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
+            HelpMethods.LogEvent("Start testing projections");
+            TestProjectionName();
+            HelpMethods.LogEvent("Finished testing projections");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -109,6 +112,23 @@ namespace QueryProcessingTest {
                 Trace.Assert(!sqlEnum.MoveNext());
             }
 #endif
+        }
+
+        public static void TestProjectionName() {
+            var q = Db.SlowSQL("select userid, useridnr from User u where useridnr <?", 2);
+            var e = q.GetEnumerator();
+            string n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0)).DisplayName;
+            Trace.Assert(n == "UserId");
+            Trace.Assert(((SqlEnumerator<object>)e).PropertyBinding == null);
+            q = Db.SlowSQL("select userid, FirstName||' '||LastName from User u where useridnr <?", 2);
+            e = q.GetEnumerator();
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).DisplayName;
+            Trace.Assert(n == "1");
+            Trace.Assert(((SqlEnumerator<object>)e).PropertyBinding == null);
+            q = Db.SlowSQL("select userid from User u where useridnr <?", 2);
+            e = q.GetEnumerator();
+            Trace.Assert(((SqlEnumerator<object>)e).TypeBinding == null);
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).PropertyBinding).DisplayName;
         }
 
     }
