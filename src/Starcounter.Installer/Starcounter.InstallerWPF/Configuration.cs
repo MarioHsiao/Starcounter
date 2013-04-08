@@ -376,7 +376,8 @@ namespace Starcounter.InstallerWPF
                         Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(installationPath));
 
                         // Asking if user wants to delete installation path before proceeding.
-                        Utilities.MessageBoxEventArgs messageBoxEventArgs = new Utilities.MessageBoxEventArgs("Installation path '" + installationPath + "' is occupied. Do you want to proceed overwriting existing files?", "Installation path is occupied...",
+                        Utilities.MessageBoxEventArgs messageBoxEventArgs = new Utilities.MessageBoxEventArgs(
+                            "Installation path '" + installationPath + "' is occupied. Do you want to delete existing directory? ALL DATA IN THIS DIRECTORY WILL BE LOST!", "Installation path is occupied...",
                             WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Exclamation, WpfMessageBoxResult.No);
                         messageboxCallback(this, messageBoxEventArgs);
 
@@ -386,6 +387,9 @@ namespace Starcounter.InstallerWPF
                         // User confirmed to delete previous installation directory.
                         if (result != WpfMessageBoxResult.Yes)
                             throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "User has canceled file copy process.");
+
+                        // Removing directory.
+                        Directory.Delete(installationPath, true);
                     }
 
                     try
