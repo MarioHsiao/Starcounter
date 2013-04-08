@@ -19,6 +19,7 @@ using Starcounter.InstallerEngine;
 using Starcounter.Internal;
 using System.IO.Compression;
 using System.Xml;
+using System.Diagnostics;
 
 namespace Starcounter.InstallerWPF
 {
@@ -175,7 +176,7 @@ namespace Starcounter.InstallerWPF
             return installing;
         }
 
-        private void GenerateSpecialIniFile()
+        private void GenerateSetupXmlFile()
         {
             // Checking if we are installing or adding components.
             bool installingOrAdding = InstallingOrAddingComponents();
@@ -189,7 +190,7 @@ namespace Starcounter.InstallerWPF
 
             // Getting installation path.
             String installationPath = installationBase.Path;
-            String configPath = Path.Combine(installationPath, ConstantsBank.ScGUISetupIniName);
+            String configPath = Path.Combine(installationPath, ConstantsBank.ScGUISetupXmlName);
 
             // Checking if previous installation GUI settings file exists.
             if (File.Exists(configPath))
@@ -225,6 +226,10 @@ namespace Starcounter.InstallerWPF
                 elem.InnerText = personalServer.DefaultSystemHttpPort.ToString();
                 subRootElem.AppendChild(elem);
 
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_DefaultPersonalPrologSqlProcessPort);
+                elem.InnerText = personalServer.DefaultPrologSqlProcessPort.ToString();
+                subRootElem.AppendChild(elem);
+
                 // Personal server Desktop shortcuts.
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_CreatePersonalServerShortcuts);
                 elem.InnerText = "True";
@@ -248,6 +253,10 @@ namespace Starcounter.InstallerWPF
                 elem.InnerText = systemServer.DefaultSystemHttpPort.ToString();
                 subRootElem.AppendChild(elem);
 
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_DefaultSystemPrologSqlProcessPort);
+                elem.InnerText = systemServer.DefaultPrologSqlProcessPort.ToString();
+                subRootElem.AppendChild(elem);
+
                 // VisualStudio2010
                 VisualStudio2010Integration visualStudio2010Integration = this.GetComponent(VisualStudio2010Integration.Identifier) as VisualStudio2010Integration;
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2010Integration);
@@ -259,22 +268,6 @@ namespace Starcounter.InstallerWPF
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2012Integration);
                 elem.InnerText = visualStudio2012Integration.ExecuteCommand.ToString();
                 subRootElem.AppendChild(elem);
-
-                /*
-                // We need to update servers installation paths in SetupSettings.xml in order to be able to fetch this later.
-                IniFileHandler origIniFile = new IniFileHandler(Path.Combine(installationPath, ConstantsBank.ScGlobalSettingsIniName));
-
-                if ((personalServer.Command == ComponentCommand.Install) || personalServer.ExecuteCommand)
-                {
-                    origIniFile.IniWriteValue(installSection, ConstantsBank.Setting_InstallPersonalServer, personalServer.ExecuteCommand.ToString());
-                    origIniFile.IniWriteValue(installSection, ConstantsBank.Setting_PersonalServerPath, personalServer.Path);
-                }
-
-                if ((systemServer.Command == ComponentCommand.Install) || systemServer.ExecuteCommand)
-                {
-                    origIniFile.IniWriteValue(installSection, ConstantsBank.Setting_InstallSystemServer, systemServer.ExecuteCommand.ToString());
-                    origIniFile.IniWriteValue(installSection, ConstantsBank.Setting_SystemServerPath, systemServer.Path);
-                }*/
             }
             else
             {
@@ -437,12 +430,12 @@ namespace Starcounter.InstallerWPF
             }
 
             // Creating new installation file.
-            //GenerateIniFile();  // TODO: Remove
-            GenerateSpecialIniFile();
+            GenerateSetupXmlFile();
+
+            String targetSetupXmlFile = Path.Combine(installationPath, ConstantsBank.ScGUISetupXmlName);
 
             // Running core setup function.
-            String targetSettingsINIFile = Path.Combine(installationPath, ConstantsBank.ScGUISetupIniName);
-            InstallerMain.StarcounterSetup(args, installationPath, targetSettingsINIFile, progressCallback, messageboxCallback);
+            InstallerMain.StarcounterSetup(args, installationPath, targetSetupXmlFile, progressCallback, messageboxCallback);
         }
 
         /// <summary>

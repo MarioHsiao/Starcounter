@@ -127,6 +127,26 @@ namespace Starcounter.Internal
             /// Default system port for System server.
             /// </summary>
             public const String DefaultSystemServerSystemHttpPort_String = "DefaultSystemServerSystemHttpPort";
+
+            /// <summary>
+            /// Default Prolog SQL TCP port.
+            /// </summary>
+            public const UInt16 DefaultPersonalPrologSqlProcessPort = 8066;
+
+            /// <summary>
+            /// Default Prolog SQL TCP port.
+            /// </summary>
+            public const String DefaultPersonalPrologSqlProcessPort_String = "DefaultPersonalPrologSqlProcessPort";
+
+            /// <summary>
+            /// Default Prolog SQL TCP port.
+            /// </summary>
+            public const UInt16 DefaultSystemPrologSqlProcessPort = 8067;
+
+            /// <summary>
+            /// Default Prolog SQL TCP port.
+            /// </summary>
+            public const String DefaultSystemPrologSqlProcessPort_String = "DefaultSystemPrologSqlProcessPort";
         }
 
         /// <summary>

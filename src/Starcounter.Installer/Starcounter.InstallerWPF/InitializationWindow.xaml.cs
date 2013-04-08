@@ -293,7 +293,11 @@ namespace Starcounter.InstallerWPF
         // First installer function that needs to be called.
         void InitInstaller()
         {
+            //System.Diagnostics.Debugger.Launch();
+
             // Setting the nice WPF message box.
+            // TODO: Ask Anders about correct loading of nice msg box.
+            /*
             InstallerMain.SetNiceWpfMessageBoxDelegate(
                 delegate(object sender, Utilities.MessageBoxEventArgs msgBoxArgs)
                 {
@@ -308,12 +312,10 @@ namespace Starcounter.InstallerWPF
                     }));
 
                 });
+            */
 
             // Attaching the console.
             AttachConsole(-1);
-
-            const String ParentArg = "YouHaveParent";
-            const String SilentArg = "Silent";
 
             // Flag stating if direct internal setup should be launched.
             Boolean internalMode = false;
@@ -325,25 +327,30 @@ namespace Starcounter.InstallerWPF
             String[] args = Environment.GetCommandLineArgs();
 
             // Checking if special parameters are supplied.
-            foreach (String param in args)
+            List<String> userArgs = new List<String>();
+            for (Int32 i = 1; i < args.Length; i++)
             {
-                if (param.EndsWith(SilentArg, StringComparison.InvariantCultureIgnoreCase))
+                String param = args[i];
+
+                if (param.StartsWith(ConstantsBank.SilentArg, StringComparison.InvariantCultureIgnoreCase))
+                {
                     silentMode = true;
-                else if (param.EndsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase))
+                    userArgs.Add(param);
+                }
+                else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase))
+                {
                     dontCheckOtherInstances = true;
-            }
-
-            // Checking if we are started from parent process.
-            if ((args.Length > 2) && (args[2] == ParentArg))
-            {
-                //System.Diagnostics.Debugger.Break();
-
-                parentPID = Int32.Parse(args[1]);
-                startedByParent = true;
-
-                // Checking if internal setup should be launched.
-                if (args.Length > 3)
+                }
+                else if (param.StartsWith(ConstantsBank.ParentArg, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    parentPID = Int32.Parse(param.Substring(ConstantsBank.ParentArg.Length + 1));
+                    startedByParent = true;
+                }
+                else
+                {
                     internalMode = true;
+                    userArgs.Add(param);
+                }
             }
 
             // Checking if any setup instances are running.
@@ -372,18 +379,12 @@ namespace Starcounter.InstallerWPF
                 // Checking if we need to run the internal setup directly.
                 if (internalMode)
                 {
-                    // Chopping arguments.
-                    String[] subArgs = null;
-                    Int32 subArgsNum = args.Length - 3;
-                    if (subArgsNum > 0)
-                    {
-                        subArgs = new String[subArgsNum];
-                        for (Int32 i = 3; i < args.Length; i++)
-                            subArgs[i - 3] = args[i];
-                    }
+                    String[] userArgsArray = null;
+                    if (userArgs.Count > 0)
+                        userArgsArray = userArgs.ToArray();
 
                     // Running internal setup.
-                    RunInternalSetup(subArgs);
+                    RunInternalSetup(userArgsArray);
 
                     // Have to throw general exception because of problems resolving Starcounter.Framework library.
                     throw new Exception(silentMsg, new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
@@ -418,21 +419,13 @@ namespace Starcounter.InstallerWPF
             }
             else
             {
-                //System.Diagnostics.Debugger.Break();
-
-                // Checking if we need to pass some arguments to child process.
-                String argsString = ParentArg;
-                if (args.Length > 1)
-                {
-                    for (Int32 i = 1; i < args.Length; i++)
-                        argsString += " " + args[i];
-                }
+                //System.Diagnostics.Debugger.Launch();
 
                 // Adding temp files cleanup event on parent installer process exit.
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => RemoveTempExtractedFiles();
 
                 // Starting child setup instance.
-                this.StartingTheElevatedInstaller(argsString);
+                this.StartingTheElevatedInstaller(args);
 
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
                 throw new Exception(silentMsg, new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
@@ -451,7 +444,7 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Starts child elevated installer instance and waits for its finish.
         /// </summary>
-        private void StartingTheElevatedInstaller(string argsString)
+        private void StartingTheElevatedInstaller(String[] args)
         {
             // Starting the elevated installer.
             Process scSetup = new Process();
@@ -460,7 +453,11 @@ namespace Starcounter.InstallerWPF
             scSetup.StartInfo.Verb = "runas";
 
             // Specifying what is the parent setup process ID.
-            scSetup.StartInfo.Arguments = Process.GetCurrentProcess().Id.ToString() + " " + argsString;
+            String oneStringArgs = ConstantsBank.ParentArg + "=" + Process.GetCurrentProcess().Id.ToString();
+            for (Int32 i = 1; i < args.Length; i++)
+                oneStringArgs += " " + args[i];
+
+            scSetup.StartInfo.Arguments = oneStringArgs;
 
             // Exit code of the child instance.
             Int32 exitCode = 1;

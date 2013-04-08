@@ -24,7 +24,7 @@ namespace Starcounter.InstallerWPF
     {
         public App()
         {
-            //System.Diagnostics.Debugger.Break();
+            //System.Diagnostics.Debugger.Launch();
 
             // Showing main setup window.
             InitializationWindow window = new InitializationWindow();

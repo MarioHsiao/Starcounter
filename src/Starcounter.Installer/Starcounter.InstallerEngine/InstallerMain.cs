@@ -322,13 +322,13 @@ namespace Starcounter.InstallerEngine
         // Creates database synchronously without creating separated thread.
         public static void CreateDatabaseSynchronous(
             String serverName,
-            String serverPath,
+            String serverDir,
             String databaseName)
         {
             Utilities.ReportSetupEvent("Creating database '" + databaseName + "' on server '" + serverName + "'...");
 
             // Creating server engine instance.
-            String serverConfigPath = serverPath + "\\" + serverName + ServerConfiguration.FileExtension;
+            String serverConfigPath = serverDir + "\\" + serverName + ServerConfiguration.FileExtension;
             ServerEngine serverEngine = new ServerEngine(serverConfigPath, InstallationDir);
             serverEngine.Setup();
 
@@ -355,33 +355,6 @@ namespace Starcounter.InstallerEngine
             // Waiting for the finish.
             iServerRuntime.Wait(cmdInfo);
             serverEngine.Stop();
-
-            /*
-            // Uploading client library.
-            ServerFile uploadedLibrary = server.UploadFile(clientLibraryPath);
-
-            // Database creation arguments.
-            DatabaseCreationArguments dbCreationArguments = new DatabaseCreationArguments()
-            {
-                MaxImageSize = imageSize,
-                TransactionLogSize = 256,
-                EnableReplication = false,
-                Collation = StarcounterEnvironment.NewDatabaseDefaults.CollationLibrary
-            };
-
-            // Waiting indefinitely until database creation has finished.
-            ServerActivity activity = server.CreateDatabase(databaseName, uploadedLibrary, dbCreationArguments).WaitOne();
-
-            // Throwing an exception if error occurred.
-            if (activity.Command.HasError)
-            {
-                String message = String.Empty;
-                foreach (ErrorInfo errorInfo in activity.Command.Errors)
-                {
-                    message += errorInfo.ToErrorMessage().ToString() + Environment.NewLine;
-                }
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, message);
-            }*/
         }
 
         /// <summary>
@@ -644,7 +617,7 @@ namespace Starcounter.InstallerEngine
             EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
             EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback)
         {
-            //System.Diagnostics.Debugger.Break();
+            //System.Diagnostics.Debugger.Launch();
 
             try
             {
@@ -733,7 +706,7 @@ namespace Starcounter.InstallerEngine
 
                     // Trying to load configuration settings.
                     if (setupConfigFile == null)
-                        setupConfigFile = Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName);
+                        setupConfigFile = Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsXmlName);
 
                     if (!cleanupFlag)
                     {
@@ -743,7 +716,7 @@ namespace Starcounter.InstallerEngine
                             UninstallEngine.LoadUninstallationSettings(Path.Combine(installationDir, setupConfigFile));
 
                             // Loading installation settings in order to get server paths, etc.
-                            InstallerMain.LoadInstallationSettings(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName));
+                            InstallerMain.LoadInstallationSettings(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsXmlName));
                         }
                         else
                         {
@@ -756,7 +729,7 @@ namespace Starcounter.InstallerEngine
                         // Trying to load settings files - if it fails, it fails..
 
                         // Loading installation settings in order to get server paths, etc.
-                        try { InstallerMain.LoadInstallationSettings(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsIniName)); }
+                        try { InstallerMain.LoadInstallationSettings(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsXmlName)); }
                         catch { }
                     }
                 }
