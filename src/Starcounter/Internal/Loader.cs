@@ -219,7 +219,7 @@ namespace Starcounter.Internal
                                  targetTypeName
                                  );
                             propertyDef.ColumnName = targetAttribute.Name;
-                            propertyDefs.Add(propertyDef);
+                            AddProperty(propertyDef, propertyDefs);
                         }
                         break;
                     case DatabaseAttributeKind.PersistentProperty:
@@ -231,7 +231,7 @@ namespace Starcounter.Internal
                                 targetTypeName
                                 );
                             propertyDef.ColumnName = databaseAttribute.PersistentProperty.AttributeFieldIndex;
-                            propertyDefs.Add(propertyDef);
+                            AddProperty(propertyDef, propertyDefs);
                         }
                         break;
                     case DatabaseAttributeKind.NotPersistentProperty:
@@ -249,11 +249,31 @@ namespace Starcounter.Internal
                                 columnName = backingField.Name;
                             }
                             propertyDef.ColumnName = columnName;
-
-                            propertyDefs.Add(propertyDef);
+                            AddProperty(propertyDef, propertyDefs);
                         }
                         break;
                 }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="properties"></param>
+        private static void AddProperty(PropertyDef property, List<PropertyDef> properties) {
+            int index = properties.FindIndex( (match) => {
+                if (property.Name.Equals(match.Name))
+                    return true;
+                return false;
+            });
+
+            if (index == -1) {
+                // New property, just add it last.
+                properties.Add(property);
+            } else {
+                // Property exist in baseclass. 
+                properties[index] = property;
             }
         }
 
