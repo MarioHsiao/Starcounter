@@ -28,9 +28,6 @@
     <ClInclude Include="chunk_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cpuid.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="bmx.def">

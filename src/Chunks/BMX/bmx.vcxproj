@@ -156,7 +156,6 @@
   <ItemGroup>
     <ClInclude Include="bmx.hpp" />
     <ClInclude Include="chunk_helper.h" />
-    <ClInclude Include="cpuid.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter.ErrorCodes\scerrres\scerrres.vcxproj">
