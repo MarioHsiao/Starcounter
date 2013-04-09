@@ -430,16 +430,14 @@ namespace Starcounter.InstallerEngine
             }
 
             // Checking processor features.
-            // TODO: Enable when decided.
-            /*
             Boolean popcntInstr = false;
             sc_check_cpu_features(ref popcntInstr);
             if (!popcntInstr)
             {
-                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
-                    "To run Starcounter you must have a processor that supports POPCNT instruction.");
+                Utilities.MessageBoxWarning(
+                    "Your CPU does not support POPCNT instruction, which is recommended to run Starcounter.",
+                    "Unavailable CPU feature..");
             }
-            */
         }
 
         /// <summary>
