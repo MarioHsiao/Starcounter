@@ -411,10 +411,10 @@ namespace Starcounter.InstallerEngine
             return false;
         }
 
-        /*[DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("Starcounter.InstallerNativeHelper.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static void sc_check_cpu_features(
             ref Boolean popcnt_instr
-        );*/
+        );
 
         /// <summary>
         /// Checks if current machine is one core.
@@ -430,13 +430,13 @@ namespace Starcounter.InstallerEngine
             }
 
             // Checking processor features.
-            /*Boolean popcntInstr = false;
+            Boolean popcntInstr = false;
             sc_check_cpu_features(ref popcntInstr);
             if (!popcntInstr)
             {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "To run Starcounter you must have a processor that supports POPCNT instruction.");
-            }*/
+            }
         }
 
         /// <summary>

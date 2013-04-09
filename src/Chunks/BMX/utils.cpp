@@ -1,6 +1,4 @@
-
 #include "bmx.hpp"
-#include "cpuid.hpp"
 
 // TODO:
 // Add checks for buffer sizes and null pointers.
@@ -395,16 +393,3 @@ EXTERN_C uint32_t __stdcall sc_bmx_release_linked_chunks(starcounter::core::chun
     return cm_release_linked_shared_memory_chunks(src_chunk_index);
 }
 
-// Checks for processor CPUID options.
-EXTERN_C void __stdcall sc_check_cpu_features(bool* popcnt_instr)
-{
-    CPUID cpu_id;
-
-    // Get Processor Info and Feature Bits.
-    cpu_id.load(1);
-
-    // http://en.wikipedia.org/wiki/CPUID
-    // http://msdn.microsoft.com/en-us/library/hskdteyh(v=vs.100).aspx
-    // POPCNT is in 23 bit of ECX.
-    *popcnt_instr = ((cpu_id.ECX() & 0x00800000) != 0);
-}
