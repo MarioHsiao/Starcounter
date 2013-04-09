@@ -1,3 +1,6 @@
+:: Checking cleanup variable.
+IF NOT "%SC_CLEAN_OUTPUT%"=="True" EXIT 0
+
 :: Checking if we are in Level1/bin/X.
 IF NOT EXIST "scnetworkgateway.exe" GOTO :EOF
 
