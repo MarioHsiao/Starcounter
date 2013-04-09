@@ -166,5 +166,12 @@ namespace Starcounter.Internal {
         ulong Advanced.IBindable.Identity {
             get { return __sc__this_id__; }
         }
+
+        /// <summary>
+        /// Returns numerical Object identity of the database object
+        /// </summary>
+        public virtual ulong ObjectNo {
+            get { return this.__sc__this_id__; }
+        }
     }
 }
