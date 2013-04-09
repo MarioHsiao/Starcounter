@@ -430,6 +430,8 @@ namespace Starcounter.InstallerEngine
             }
 
             // Checking processor features.
+            // TODO: Enable when decided.
+            /*
             Boolean popcntInstr = false;
             sc_check_cpu_features(ref popcntInstr);
             if (!popcntInstr)
@@ -437,6 +439,7 @@ namespace Starcounter.InstallerEngine
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "To run Starcounter you must have a processor that supports POPCNT instruction.");
             }
+            */
         }
 
         /// <summary>
