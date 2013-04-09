@@ -600,8 +600,10 @@ namespace starcounter {
                                                                       the_monitor_interface_
                                                                          ->set_owner_id(new_owner_id);
 
+#if defined (IPC_MONITOR_SHOW_ACTIVITY)
                                                                       active_segments_update_.push_front
                                                                          (the_monitor_interface_->get_segment_name());
+#endif //defined (IPC_MONITOR_SHOW_ACTIVITY)
 
                                                                       // Try to insert database name into
                                                                       // active_databases_, and notify the
@@ -845,7 +847,7 @@ namespace starcounter {
                                              shared.common_client_interface().increment_client_interfaces_to_clean_up();
 
                                              client_interface_ptr->set_database_cleanup_index(cleanup_task_index);
-                                             
+
 											 // I think it is important that the increment above is done before
                                              // marking for clean up below.
                                              _mm_mfence();
