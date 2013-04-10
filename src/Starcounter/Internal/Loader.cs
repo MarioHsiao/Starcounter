@@ -104,20 +104,13 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Adds ObjectNo code properties to a type.
+        /// Adds given object identity property to the type.
         /// </summary>
         /// <param name="propertyDefs">The list of all properties of the type.</param>
-        private static void AddObjectNoProperty(List<PropertyDef> propertyDefs) {
-            PropertyDef prop = new PropertyDef("ObjectNo", DbTypeCode.Int64, false);
-            propertyDefs.Add(prop);
-        }
-
-        /// <summary>
-        /// Adds ObjectID code properties to a type.
-        /// </summary>
-        /// <param name="propertyDefs">The list of all properties of the type.</param>
-        private static void AddObjectIDProperty(List<PropertyDef> propertyDefs) {
-            PropertyDef prop = new PropertyDef("ObjectID", DbTypeCode.Int64, false);
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="type">The type of the property.</param>
+        private static void AddObjectIdentityProperty(List<PropertyDef> propertyDefs, String propertyName, DbTypeCode type) {
+            PropertyDef prop = new PropertyDef(propertyName, type, false);
             propertyDefs.Add(prop);
         }
 
@@ -136,10 +129,11 @@ namespace Starcounter.Internal
 
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
             if (!isObjectNo)
-                AddObjectNoProperty(propertyDefs);
+                AddObjectIdentityProperty(propertyDefs, "ObjectNo", DbTypeCode.UInt64);
 #if false
+            AddObjectIdentityProperty(propertyDefs, "Identity", DbTypeCode.UInt64);
             if (!isObjectID)
-                AddObjectNoProperty(propertyDefs);
+                AddObjectIdentityProperty(propertyDefs, "ObjectID", DbTypeCode.String);
 #endif
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
