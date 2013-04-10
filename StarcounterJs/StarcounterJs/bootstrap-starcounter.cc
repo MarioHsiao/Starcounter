@@ -7,14 +7,7 @@
 // There is always one attached worker thread at any time in any single scheduler
 // Free threads. Non scheduled threads.
 
-#include <sccoredb.h>
-#include <sccoredbg.h>
-#include <sccoreerr.h>
-#include <sccorelib.h>
-#include <sccorelog.h>
-#include <memhelp4.h>
-#include <coalmine.h>
-#include <formaterr.h>
+#include <starcounter-host.h>
 
 
 #define _OUTPUT_DIRECTORY L"c:/temp/testapp1/data"
@@ -31,13 +24,6 @@
 extern void *_vm_commit(void *pmem, size_t size, int32_t except);
 
 
-struct _host
-{
-	uint64_t hmenv;
-	uint64_t hlogs;
-	void *hsched;
-	void *hevent;
-};
    
 
 static uint32_t __setup(struct _host **pphost);
@@ -45,42 +31,6 @@ static uint32_t __start(void *hsched);
 static uint32_t __stop(void *hsched);
 static uint32_t __cleanup();
 static void __log_critical(uint64_t hlogs, uint32_t r);
-
-
-int main()
-{
-	uint32_t r;
-	struct _host *phost;
-
-   wprintf(
-		L"%s.\n%s.\n\n",
-		L"Starcounter.Js",
-		L"Copyright (C) Starcounter AB 2003-2013. All rights reserved"
-		);
-
-   wprintf(L"Setting up host\n");
-	r = __setup(&phost);
-
-	if (!r) {
-      wprintf(L"Starting host\n");
-      r = __start(phost->hsched);
-   }
-
-	if (!r) {
-      wprintf(L"Waiting for task\n");
-      WaitForSingleObject(phost->hevent, -1);
-   }
-
-   wprintf(L"Shutting down\n");
-
-	if (!r) r = __stop(phost->hsched);
-	if (!r) r = __cleanup();
-
-	if (r) __log_critical(phost->hlogs, r);
-	
-	return (int)r;
-}
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -454,3 +404,36 @@ void __log_critical(uint64_t hlogs, uint32_t r)
 	sccorelog_kernel_write_to_logs(hlogs, SC_ENTRY_CRITICAL, r, buf);
 	sccorelog_flush_to_logs(hlogs);
 }
+
+_host* StarcounterJs_BootstrapStarcounter() 
+{
+	uint32_t r;
+	struct _host *phost;
+
+	r = __setup(&phost);
+
+	if (!r) {
+      r = __start(phost->hsched);
+   }
+   if (!r)
+      return phost;
+   return NULL;
+}
+
+
+int StarcounterJs_ShutdownStarcounter(_host* phost) 
+{
+
+   wprintf(L"Shutting down\n");
+
+	uint32_t error = __stop(phost->hsched);
+
+   if (!error)
+      error = __cleanup();
+
+	if (error)
+      __log_critical(phost->hlogs, error);
+	
+	return (int)error;
+}
+
