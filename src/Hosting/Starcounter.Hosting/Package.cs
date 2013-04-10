@@ -139,7 +139,8 @@ namespace Starcounter.Hosting {
 
                 // We want the entrypoint to be executed on another scheduler so we can 
                 // process more  packages directly and not wait for the usercode to finish.
-                ScheduleEntrypointExecution();
+//                ScheduleEntrypointExecution();
+                ExecuteEntryPoint();
             } finally {
                 OnProcessingCompleted();
                 processedEvent_.Set();
