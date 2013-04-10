@@ -128,9 +128,9 @@ namespace Starcounter.Internal
             Boolean isObjectNo = false;
 
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
-#if false
             if (!isObjectNo)
                 AddObjectIdentityProperty(propertyDefs, "ObjectNo", DbTypeCode.UInt64);
+#if false
             AddObjectIdentityProperty(propertyDefs, "Identity", DbTypeCode.UInt64);
             if (!isObjectID)
                 AddObjectIdentityProperty(propertyDefs, "ObjectID", DbTypeCode.String);
