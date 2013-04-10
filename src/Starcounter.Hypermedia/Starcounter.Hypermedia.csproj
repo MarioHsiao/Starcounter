@@ -69,6 +69,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HtmlMerger.cs" />
     <Compile Include="ScriptInjector.cs" />
     <Compile Include="ImageToDataUrl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
