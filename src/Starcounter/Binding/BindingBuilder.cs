@@ -797,6 +797,9 @@ namespace Starcounter.Binding
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
 
+            if (propertyInfo == null)
+                propertyInfo = typeof(IObjectProxy).GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+
             isNullable = propertyDef.IsNullable;
 
             Type implReturnType = nullableReturnType;
