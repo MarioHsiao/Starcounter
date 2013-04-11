@@ -286,7 +286,7 @@ namespace Starcounter.Server.Commands {
                     ErrorCode.TryGetCode(e, out code);
                     suppressLogging = this.SuppressLoggingForError(code);
                     if (!suppressLogging) {
-                        Log.LogError(e.Message);
+                        Log.LogException(e);
                     }
                     errorsWithCommandError.Add(ErrorInfo.FromException(e));
                 } else {
