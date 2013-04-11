@@ -134,7 +134,7 @@
 
                                         </Grid>
 
-                                        <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _user port"   />
+                                        <!--<Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _user port"   />
 
                                         <ComboBox x:Name="cb_PersonalServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
 
@@ -152,7 +152,7 @@
                                             <ComboBoxItem>
                                                 <TextBlock>9090</TextBlock>
                                             </ComboBoxItem>
-                                        </ComboBox>
+                                        </ComboBox>-->
 
                                         <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _system port"   />
 
@@ -174,7 +174,7 @@
                                             </ComboBoxItem>
                                         </ComboBox>
 
-                                        <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultPrologSqlProcessPort}" Margin="0,5,0,5"  Content="Default Prolog _SQL port"   />
+                                        <!--<Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultPrologSqlProcessPort}" Margin="0,5,0,5"  Content="Default Prolog _SQL port"   />
 
                                         <ComboBox x:Name="cb_PersonalServerDefaultPrologSqlProcessPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
 
@@ -192,7 +192,7 @@
                                             <ComboBoxItem>
                                                 <TextBlock>9066</TextBlock>
                                             </ComboBoxItem>
-                                        </ComboBox>
+                                        </ComboBox>-->
 
                                     </StackPanel>
 
@@ -270,7 +270,7 @@
 
                                         </Grid>
 
-                                        <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP user port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
+                                        <!--<Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP user port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
 
                                         <ComboBox x:Name="cb_SystemServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
                                             <ComboBox.Text>
@@ -287,7 +287,7 @@
                                             <ComboBoxItem>
                                                 <TextBlock>90</TextBlock>
                                             </ComboBoxItem>
-                                        </ComboBox>
+                                        </ComboBox>-->
 
                                         <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP system port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
 
@@ -308,7 +308,7 @@
                                             </ComboBoxItem>
                                         </ComboBox>
 
-                                        <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultPrologSqlProcessPort}" Margin="0,5,0,5"  Content="Default Prolog _SQL port"   />
+                                        <!--<Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultPrologSqlProcessPort}" Margin="0,5,0,5"  Content="Default Prolog _SQL port"   />
 
                                         <ComboBox x:Name="cb_SystemServerDefaultPrologSqlProcessPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
                                             <ComboBox.Text>
@@ -325,7 +325,7 @@
                                             <ComboBoxItem>
                                                 <TextBlock>9067</TextBlock>
                                             </ComboBoxItem>
-                                        </ComboBox>
+                                        </ComboBox>-->
 
                                     </StackPanel>
 
