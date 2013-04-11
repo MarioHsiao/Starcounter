@@ -33,40 +33,44 @@ VOID LogGatewayCrash(VOID *pc, LPCWSTR str)
 	LogWriteCritical(str);
 }
 
+VOID PrintCommandHelp() {
+    wprintf(L"scservice.exe [ServerName] [--logsteps]\n");
+	wprintf(L"Example: scservice.exe personal\n");
+	wprintf(L"When no ServerName argument is supplied 'personal' is used.\n\n");
+	wprintf(L"How it works:\n");
+	wprintf(L"scservice will load XML-file called [ServerName].xml\n");
+	wprintf(L"from the same directory as scservice.exe and\n");
+	wprintf(L"will fetch corresponding server directory from it.\n");
+	wprintf(L"From obtained directory it will load [ServerName].config.xml\n");
+	wprintf(L"to read server-related settings.\n");
+	wprintf(L"scservice will then start and monitor all required\n");
+	wprintf(L"Starcounter components, like scnetworkgateway, scipcmonitor, etc.\n");
+}
+
+
 
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
+    BOOL exit_code_is_scerr;
+    DWORD process_exit_code;
 	wchar_t logmessagebuffer[LOG_BUFFER_MESSAGE_SIZE];
 
 	// Catching all unhandled exceptions in this thread.
 	_SC_BEGIN_FUNC
-
-
-		// Setting the critical log handler.
-		_SetCriticalLogHandler(LogGatewayCrash, NULL);
+	_SetCriticalLogHandler(LogGatewayCrash, NULL);
 
 	uint32_t r;
-
 	const wchar_t *srv_name = L"PERSONAL";
 	const char *srv_name_ascii = "PERSONAL";
+
+    process_exit_code = 0;
 
 	if (argc > 1)
 	{
 		// Checking if help is needed.
 		if (argv[1][0] == L'?' || argc > 3)
 		{
-			wprintf(L"scservice.exe [ServerName] [--logsteps]\n");
-			wprintf(L"Example: scservice.exe personal\n");
-			wprintf(L"When no ServerName argument is supplied 'personal' is used.\n\n");
-			wprintf(L"How it works:\n");
-			wprintf(L"scservice will load XML-file called [ServerName].xml\n");
-			wprintf(L"from the same directory as scservice.exe and\n");
-			wprintf(L"will fetch corresponding server directory from it.\n");
-			wprintf(L"From obtained directory it will load [ServerName].config.xml\n");
-			wprintf(L"to read server-related settings.\n");
-			wprintf(L"scservice will then start and monitor all required\n");
-			wprintf(L"Starcounter components, like scnetworkgateway, scipcmonitor, etc.\n");
-
+			PrintCommandHelp();
 			return 0;
 		}
 
@@ -93,7 +97,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		if(( wcslen( argv[1]) > 0 && argv[1][0] != L'-') || (  wcslen( argv[1]) > 1 && argv[1][1] != L'-')    ) {
 			srv_name = argv[1];
 		}
-
 	}
 
 	if(logsteps != 0 ) { 
@@ -110,7 +113,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	wchar_t exe_dir[1024];
 	r = GetModuleFileName(NULL, exe_dir, 1024);
 	if ((r == 0) || (r >= 1024))
-		goto end;
+		goto log_winerr;
 
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Got the executable directory: %s", exe_dir);
@@ -133,7 +136,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		LogVerboseMessage(L"Setting the current directory");
 	}
 	if (!SetCurrentDirectory(exe_dir))
-		goto end;
+		goto log_winerr;
 
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Current directory set to %s", exe_dir);
@@ -161,7 +164,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	}
 
 	r = _read_service_config(srv_name, &server_dir);
-	if (r) goto end;
+	if (r) goto log_scerr;
 
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Config file %s read", srv_name);
@@ -264,7 +267,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		&system_http_port,
 		&default_user_http_port);
 
-	if (r) goto end;
+	if (r) goto log_scerr;
 
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Config file %s read", server_cfg_path);
@@ -278,7 +281,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	// Registering the logger.
 	r = OpenStarcounterLog(srv_name_ascii, server_logs_dir);
-	if (r) goto end;
+	if (r) goto log_winerr;
 
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Log opened");
@@ -312,7 +315,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	// Reading database configuration
 	r = _read_database_config(database_cfg_path, &database_logs_dir, &database_temp_dir, &database_image_dir, &database_scheduler_count);
-	if (r) goto end;
+	if (r) goto log_scerr;
 
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Config file %s read", database_cfg_path);
@@ -483,7 +486,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	}
 
 	r = _create_event(event_name, &hcontrol_event);
-	if (r) goto end;
+	if (r) goto log_winerr;
 
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Event listener %s created", event_name);
@@ -496,7 +499,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	}
 
 	if(_set_shutdown_event_handler(__shutdown_event_handler) == false ) {
-		goto end;
+		goto log_winerr;
 	}
 
 	if(logsteps != 0 ) { 
@@ -511,7 +514,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	}
 	// Start and register IPC monitor.
 	r = _exec(monitor_cmd, MONITOR_INHERIT_CONSOLE, (handles + 1));
-	if (r) goto end;
+	if (r) goto log_winerr;
 
 	if(logsteps != 0 ) { 
 		LogVerboseMessage(L"IPC monitor started");
@@ -523,7 +526,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	}
 	// Start and register network gateway.
 	r = _exec(gateway_cmd, GATEWAY_INHERIT_CONSOLE, (handles + 2));
-	if (r) goto end;
+	if (r) goto log_winerr;
 
 	if(logsteps != 0 ) { 
 		LogVerboseMessage(L"Network gateway started");
@@ -536,7 +539,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		LogVerboseMessage(logmessagebuffer);
 	}
 	r = _exec(scdata_cmd, SCDATA_INHERIT_CONSOLE, (handles + 4));
-	if (r) goto end;
+	if (r) goto log_scerr;
 
 	if(logsteps != 0 ) { 
 		LogVerboseMessage(L"Database started");
@@ -548,13 +551,13 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		LogVerboseMessage(logmessagebuffer);
 	}
 	r = _exec(sccode_cmd, SCCODE_INHERIT_CONSOLE, (handles + 3));
-	if (r) goto end;
+	if (r) goto log_winerr;
 
 	if(logsteps != 0 ) { 
 		LogVerboseMessage(L"sccode started");
 	}
-	// Wait for signal.
 
+	// Wait for signal.
 	for (;;)    
 	{
 		uint32_t signaled_index;
@@ -570,7 +573,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		}
 
 		r = _wait(handles, num_handles, &signaled_index);
-		if (r) goto end;
+		if (r) goto log_winerr;
 
 		if(logsteps != 0 ) { 
 			LogVerboseMessage(L"scservice got event signal");
@@ -585,24 +588,38 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 				LogVerboseMessage(L"scservice got shutdown signal");
 			}
 			goto end;
+
 		case 1:
 			// IPC monitor died. Kill the server.
 			if(logsteps != 0 ) { 
 				LogVerboseMessage(L"IPC monitor exited");
 			}
-			goto end;
+            GetExitCodeProcess(handles[1], &process_exit_code);
+            exit_code_is_scerr = false;
+            r = SCERRIPCMONITORTERMINATED;
+			goto log_scerr;
+
 		case 2:
 			// Gateway died. Kill the server. Kill the system.
 			if(logsteps != 0 ) { 
 				LogVerboseMessage(L"Network gateway exited");
 			}
-			goto end;
+            GetExitCodeProcess(handles[2], &process_exit_code);
+            exit_code_is_scerr = false;
+            r = SCERRNETWORKGATEWAYTERMINATED;
+			goto log_scerr;
+
 		case 3:
 			// sccode died. Kill the server. Kill the system.
 			if(logsteps != 0 ) { 
 				LogVerboseMessage(L"sccode exited");
 			}
-			goto end;
+
+            GetExitCodeProcess(handles[3], &process_exit_code);
+            exit_code_is_scerr = true;
+            r = SCERRDATABASEENGINETERMINATED;
+			goto log_scerr;
+
 #ifdef WITH_DATABASE
 		case 4:
 
@@ -619,17 +636,42 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 err_nomem:
 	r = SCERROUTOFMEMORY;
-	goto end;
-
-end:
-	// Terminating.
+	
+log_scerr:
 	if (r)
 	{
-		wchar_t* error_msg_buf = new wchar_t[4096];
+        wchar_t* error_msg_buf = new wchar_t[4096];
 		FormatStarcounterErrorMessage(r, error_msg_buf, 4096);
+        
+		// Logging this error.
+		wprintf(L"Error: %s\n", error_msg_buf);
+
+		if (g_sc_log_handle_)
+		{
+			wprintf(L"Please review server log in: %s\n", server_logs_dir);
+
+			// Logging to log file.
+			LogWriteError(error_msg_buf);
+
+            if ((process_exit_code > 0) && (process_exit_code != MAXDWORD)) {
+                if (exit_code_is_scerr && process_exit_code > 1) 
+                    FormatStarcounterErrorMessage(process_exit_code, error_msg_buf, 4096);
+                else 
+                    swprintf(error_msg_buf, 100, L"Process exitcode: %i", process_exit_code);
+                LogWriteError(error_msg_buf);
+            }
+		}
+	}
+    goto end;
+
+log_winerr:
+	if (r)
+	{
+        wchar_t* error_msg_buf = new wchar_t[512];
+		wsprintf(error_msg_buf, L"Error: process exited with error code: %s\n", r);
 
 		// Logging this error.
-		wprintf(L"Exited with error code: %s\n", error_msg_buf);
+		wprintf(error_msg_buf);
 
 		if (g_sc_log_handle_)
 		{
@@ -640,6 +682,7 @@ end:
 		}
 	}
 
+end:
 #ifdef WITH_DATABASE
 	if (handles[4]) _kill_and_cleanup(handles[4]);	// SCDATA
 #endif
