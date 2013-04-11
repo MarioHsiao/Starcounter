@@ -1,4 +1,3 @@
-
 #include "bmx.hpp"
 
 // TODO:
@@ -393,3 +392,4 @@ EXTERN_C uint32_t __stdcall sc_bmx_release_linked_chunks(starcounter::core::chun
 {
     return cm_release_linked_shared_memory_chunks(src_chunk_index);
 }
+

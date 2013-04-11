@@ -1,0 +1,6 @@
+
+LIBRARY	"Starcounter.InstallerNativeHelper"
+
+EXPORTS
+    sc_check_cpu_features
+

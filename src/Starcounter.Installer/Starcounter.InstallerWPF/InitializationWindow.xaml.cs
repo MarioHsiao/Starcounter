@@ -252,12 +252,12 @@ namespace Starcounter.InstallerWPF
         // This thread in turn links to the MS bug thread.
         static String[] staticInstallerDependencies =
         { 
-            //"Starcounter.Internal.dll"
+            "Starcounter.InstallerNativeHelper.dll"
         };
 
         static String[] TempExtractedFiles =
         {
-            //"Starcounter.Internal.dll"
+            "Starcounter.InstallerNativeHelper.dll"
         };
 
         // Tries to remove temporary extracted files.
@@ -560,7 +560,10 @@ namespace Starcounter.InstallerWPF
                         // Checking if file name is the same.
                         if (0 == String.Compare(entry.Name, dependentBinary, true))
                         {
-                            entry.ExtractToFile(System.IO.Path.Combine(targetDirectory, entry.FullName), true);
+                            String pathToExtractedFile = System.IO.Path.Combine(targetDirectory, entry.FullName);
+                            entry.ExtractToFile(pathToExtractedFile, true);
+                            File.SetAttributes(pathToExtractedFile, FileAttributes.Hidden);
+
                             break;
                         }
                     }
