@@ -142,9 +142,9 @@ namespace StarcounterInternal.Bootstrap
 
                 // Initializing package loader.
                 Package.InitPackage(() => InternalHandlers.Register(
-                    configuration.DefaultUserHttpPort,
-                    configuration.DefaultSystemHttpPort)
-                );
+                                            configuration.DefaultUserHttpPort,
+                                            configuration.DefaultSystemHttpPort),
+                                       schedulerCount);
             }
 
             // Initializing REST.
