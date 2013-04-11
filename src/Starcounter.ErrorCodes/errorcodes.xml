@@ -3710,6 +3710,19 @@
         Unable to communicate with the administrator server.
       </message>
     </code>
+    <code hex="0015" severity="Error" name="ScErrNetworkGatewayTerminated">
+      <message>
+        The server detected that the network gateway executable (scnetworkgateway.exe)
+        unexpectedly terminated.
+      </message>
+    </code>
+    <code hex="0016" severity="Error" name="ScErrIPCMonitorTerminated">
+      <message>
+        The server detected that the interprocess monitor executable (scipcmonitor.exe)
+        unexpectedly terminated.
+      </message>
+    </code>
+
   </facility>
 
   <!-- Error codes related to setup installer -->
