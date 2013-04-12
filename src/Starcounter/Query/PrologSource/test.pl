@@ -1,4 +1,5 @@
 
+
 /* Test, Peter Idestam-Almquist, Starcounter, 2012-10-31. */
 
 :- module(test,[test/1,testfile/0]).
@@ -11,29 +12,29 @@
 /*===== Test predicates. =====*/
 
 test(ok):- 
-	sql_example(Type,Query),
-	test_output(user_output,Type,Query).
+	sql_example(Type,Database,Query),
+	test_output(user_output,Type,Database,Query).
 
 testfile:- 
 	open('C:/Users/peteria/Documents/_Working/Prolog/Dev/output.txt',write,Out), 
 	testfile2(Out), !.
 
 testfile2(Out):- 
-	sql_example(Type,Query),
-	test_output(Out,Type,Query), 
+	sql_example(Type,Database,Query),
+	test_output(Out,Type,Database,Query), 
 	fail.
 testfile2(Out):- 
 	close(Out), !.
 
-test_output(Out,Type,Query):- 
+test_output(Out,Type,Database,Query):- 
 	statistics(runtime,_), 
-	sql:sql2(Query,Tokens,Parse,Tree1,Tree2,Tree3,Tree4,TypeDef1,TypeDef2,VarNum,ErrList), 
+	sql:sql2(Database,Query,Tokens,Parse,Tree1,Tree2,Tree3,Tree4,TypeDef1,TypeDef2,VarNum,ErrList), 
 	statistics(runtime,[_,Runtime]), 
 	nl(Out), 
 	write(Out,'Runtime: '), 
 	write(Out,Runtime), 
 	nl(Out), 
-	write_query(Out,Type,Query), 
+	write_query(Out,Type,Database,Query), 
 	write_tokens(Out,Tokens), 
 	write_output(Out,'Parse tree: ',Parse), 
 	write_output(Out,'Rewritten tree 1: ',Tree1), 
@@ -48,9 +49,12 @@ test_output(Out,Type,Query):-
 
 /*===== Present output. =====*/
 
-write_query(Out,Type,Query):- 
+write_query(Out,Type,Database,Query):- 
 	write(Out,'Type: '), 
 	write(Out,Type), 
+	nl(Out), 
+	write(Out,'Database: '), 
+	write(Out,Database), 
 	nl(Out), 
 	write(Out,'Query: '), 
 	nl(Out), 

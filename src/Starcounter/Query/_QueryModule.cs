@@ -23,12 +23,14 @@ namespace Starcounter.Query
         // Configuration of query module.
         internal static String ProcessFolder = AppDomain.CurrentDomain.BaseDirectory + "32BitComponents\\";
         internal const String ProcessFileName = StarcounterConstants.ProgramNames.ScSqlParser + ".exe";
-        internal const String ProcessVersion = "130129";
+        internal const String ProcessVersion = "130412";
         internal static Int32 ProcessPort = 0;
         internal const Int32 MaxQueryLength = 3000;
         internal const Int32 MaxQueryRetries = 10;
         internal const Int32 MaxVerifyRetries = 100;
         internal const Int32 TimeBetweenVerifyRetries = 100; // [ms]
+        //Temporary constant
+        internal const String DatabaseId = "MyDB";
 
         /// <summary>
         /// Initiates query module. Called during start-up.
