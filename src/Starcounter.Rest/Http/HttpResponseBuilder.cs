@@ -4,7 +4,6 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Advanced;
 using Starcounter.Internal.REST;
 using System;
 using System.Collections.Generic;
@@ -304,39 +303,17 @@ namespace Starcounter.Internal.Web
     //       return FromText(text, SessionID.NullSession);
     //    }
 
-    static readonly Byte[] AcceptHeaderBytes = Encoding.ASCII.GetBytes("Accept");
 
     /// <summary>
-    /// From the text.
+    /// Froms the text.
     /// </summary>
     /// <param name="text">The text.</param>
     /// <returns>System.Byte[][].</returns>
-    public static byte[] FromText(Request req, string text) {
+    public static byte[] FromText(string text) {
         byte[] contentBytes = Encoding.UTF8.GetBytes(text);
-
-        // Checking Accept header.
-        String encodingType = "text/plain";
-        // TODO: Fix support.
-        /*unsafe
-        {
-            String acceptHeader = req["Accept"];
-            if (acceptHeader != null)
-            {
-                // Searching for types.
-                if (acceptHeader.Contains("text/html"))
-                {
-                    encodingType = "text/html";
-                }
-                else if (acceptHeader.Contains("application/json"))
-                {
-                    encodingType = "application/json";
-                }
-            }
-        }*/
           
         String responseStr = "HTTP/1.1 200 OK" + CRLF + "Server: SC" + CRLF + "Connection: close" + CRLF +
         "Content-Length: " + contentBytes.Length + CRLF +
-        "Content-Encoding: " + encodingType + CRLF +
         "Content-Type: text/plain;charset=UTF-8" + CRLFCRLF;
 
         byte[] headersBytes = Encoding.ASCII.GetBytes(responseStr);
