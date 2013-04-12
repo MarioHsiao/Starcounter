@@ -22,6 +22,7 @@ extern void _set_event(void *handle);
 extern uint32_t _exec(wchar_t *command_line, int32_t inherit_console, void **phandle);
 extern uint32_t _wait(void **handles, uint32_t count, uint32_t *psignaled_index);
 extern void _kill_and_cleanup(void *handle);
+extern void _kill_and_cleanup_orphaned_children(int32_t logsteps);
 
 extern uint32_t _read_service_config(
     const wchar_t *name,
