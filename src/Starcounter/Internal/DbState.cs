@@ -1354,7 +1354,7 @@ namespace Starcounter.Internal
         /// <param name="address"></param>
         /// <param name="index"></param>
         internal static void WriteNull(ulong oid, ulong address, Int32 index) {
-            var r = sccoredb.sccoredb_put_undef(oid, address, index);
+            var r = sccoredb.sccoredb_put_default(oid, address, index);
             if (r == 0) return;
             throw ErrorCode.ToException(r);
         }
