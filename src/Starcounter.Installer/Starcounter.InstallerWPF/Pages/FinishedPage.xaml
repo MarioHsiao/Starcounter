@@ -243,6 +243,17 @@
 
                     </Grid>
 
+                    <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}" >
+
+                        <TextBlock TextWrapping="Wrap" Style="{DynamicResource PageWelcomeHeaderStyle}">
+                            To continue visit our wiki.
+                            <LineBreak/>
+                            <Hyperlink CommandParameter="http://www.starcounter.com/wiki" Command="NavigationCommands.GoToPage">Getting Started</Hyperlink>
+                            
+                        </TextBlock>
+
+                    </Grid>
+
 
                 </Grid>
 

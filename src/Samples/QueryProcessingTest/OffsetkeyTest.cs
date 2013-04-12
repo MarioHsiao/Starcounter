@@ -285,7 +285,11 @@ namespace QueryProcessingTest {
                     a.Delete();
                     nrs++;
                 }
-                client.Delete();
+                Trace.Assert(client.GetObjectID() == Db.SlowSQL<User>("select u from user u where firstname = 'Test'").First.GetObjectID());
+                Trace.Assert(client.Equals(Db.SlowSQL<User>("select u from user u where firstname = 'Test'").First));
+                Trace.Assert(client != Db.SlowSQL<User>("select u from user u where firstname = 'Test'").First);
+                Db.SlowSQL("delete from user where firstname = 'Test'");
+                //Trace.Assert(client == null);
                 Trace.Assert(nrs == 6);
                 Trace.Assert(Db.SQL<Account>("select a from account a order by accountid desc").First.AccountId == AccountIdLast);
                 Trace.Assert(Db.SlowSQL<long>("select count(u) from user u").First == 10000);
