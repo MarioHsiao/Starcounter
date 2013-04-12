@@ -102,6 +102,7 @@ namespace Starcounter {
         internal string GetDataLocation() {
             if (root == null)
                 return null;
+
             return dataLocationUri + SessionIdString;
         }
 
@@ -125,9 +126,9 @@ namespace Starcounter {
         /// 
         /// </summary>
         internal static void End() {
-            var s = Current;
-            if (s != null) {
-                s.changeLog.Clear();
+            if (current != null)
+            {
+                current.changeLog.Clear();
                 Session.current = null;
                 ChangeLog.CurrentOnThread = null;
                 if (StarcounterBase._DB.GetCurrentTransaction() != null)
