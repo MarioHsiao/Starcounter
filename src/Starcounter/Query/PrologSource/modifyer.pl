@@ -1,4 +1,5 @@
 
+
 /* Modifyer, Peter Idestam-Almquist, Starcounter, 2011-11-30. */
 
 /* 11-11-30: Added fetch specification; modified select2, select3. */

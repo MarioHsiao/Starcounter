@@ -45,7 +45,7 @@
 #include <boost/timer.hpp>
 #if defined(_MSC_VER)
 # define WIN32_LEAN_AND_MEAN
-# include <windows.h> /// TODO: thread_primitives.hpp might replace this include
+# include <windows.h>
 //# include <intrin.h>
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
@@ -57,18 +57,11 @@
 #include "../common/monitor_interface.hpp"
 #include "../common/shared_interface.hpp"
 #include "../common/bounded_buffer.hpp"
-//#include "event.hpp"
 #include "bounded_message_buffer.hpp"
 #include "process_info.hpp"
 #include "../common/log.hpp"
 #include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
-
-//extern "C" LONG __cdecl _InterlockedIncrement(LONG volatile*);
-//extern "C" LONG __cdecl _InterlockedDecrement(LONG volatile*);
-//extern "C" LONG __cdecl _InterlockedCompareExchange(LPLONG volatile, LONG, LONG);
-//extern "C" LONG __cdecl _InterlockedExchange(LPLONG volatile, LONG);
-//extern "C" LONG __cdecl _InterlockedExchangeAdd(LPLONG volatile, LONG);
 
 #pragma intrinsic(_InterlockedIncrement)
 #pragma intrinsic(_InterlockedDecrement)
@@ -126,7 +119,7 @@ public:
 	enum {
 		max_number_of_monitored_database_processes = max_number_of_databases,
 
-		max_number_of_clients_per_database = 256,
+		max_number_of_clients_per_database = max_number_of_clients,
 
 		max_number_of_monitored_client_processes
 		= max_number_of_monitored_database_processes
@@ -177,47 +170,6 @@ public:
 	 *		group has up to 64 client process events.
 	 */
 	void wait_for_client_process_event(std::size_t group);
-	
-	//--------------------------------------------------------------------------
-	/// Register a database process for surveillance by the monitor.
-	/// It is a "timed" function that can fail.
-	// TODO: Implement timeout_milliseconds!
-	/**
-	 * @param pid Is the process id of the registering process.
-	 * @param oid Is the owner_id that the registering process receives.
-	 *		Upon failure, the owner_id is set to owner_id::none.
-	 * @param timeout_milliseconds The number of milliseconds to wait before
-	 *		a timeout may occur. NOT IMPLEMENTED YET!
-	 * @return false if the call is returning because the registration of the
-	 *		database process failed, or the time period specified by
-	 *		timeout_milliseconds has elapsed, true otherwise.
-	 */
-	bool register_database_process(pid_type pid, owner_id& oid, unsigned int
-	timeout_milliseconds);
-	
-	//--------------------------------------------------------------------------
-	/// Unregister a database process, when preparing for a graceful shutdown of
-	/// the system. It is a "timed" function that can fail.
-	// TODO: Implement timeout_milliseconds!
-	/**
-	 * @param pid Is the process id of the unregistering process.
-	 * @param oid Is the owner_id that the unregistering process receives.
-	 *		If successful, the owner_id is set to owner_id::none.
-	 * @param timeout_milliseconds The number of milliseconds to wait before
-	 *		a timeout may occur. NOT IMPLEMENTED YET!
-	 * @return false if the call is returning because the unregistration of the
-	 *		database process failed, or the time period specified by
-	 *		timeout_milliseconds has elapsed, true otherwise.
-	 */
-	bool unregister_database_process(pid_type pid, owner_id& oid, unsigned int
-	timeout_milliseconds);
-#if 0
-	bool register_client_process(pid_type pid, owner_id& oid, unsigned int
-	timeout_milliseconds);
-	
-	bool unregister_client_process(pid_type pid, owner_id& oid, unsigned int
-	timeout_milliseconds);
-#endif
 	
 #if 0 // idea
 	// Methods for updating the process_register_.

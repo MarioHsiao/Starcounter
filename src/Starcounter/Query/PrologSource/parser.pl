@@ -1,4 +1,5 @@
 
+
 /* Parser, Peter Idestam-Almquist, Starcounter, 2013-02-07. */
 
 /* A parser for SQL following SQL92. The numbers of the sections below refer to the chapters in 

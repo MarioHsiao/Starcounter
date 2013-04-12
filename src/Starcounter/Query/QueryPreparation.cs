@@ -28,7 +28,7 @@ namespace Starcounter.Query {
             // Call Prolog and get answer
             se.sics.prologbeans.QueryAnswer answer = null;
             try {
-                answer = PrologManager.CallProlog(query);
+                answer = PrologManager.CallProlog(QueryModule.DatabaseId, query);
             } catch (SqlException e) {
                 prologException = e;
             }

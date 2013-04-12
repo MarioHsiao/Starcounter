@@ -4,6 +4,12 @@
  */
 var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap', 'uiHandsontable'], function ($routeProvider, $locationProvider) {
 
+
+    $routeProvider.when('/main', {
+        templateUrl: '/partials/main.html',
+        controller: MainCtrl
+    });
+
     $routeProvider.when('/databases/:databaseId', {
         templateUrl: '/partials/database.html',
         controller: DatabaseCtrl,
@@ -17,10 +23,20 @@ var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap', 
         }
     });
 
+    $routeProvider.when('/apps', {
+        templateUrl: '/partials/apps.html',
+        controller: AppsCtrl
+    });
     $routeProvider.when('/server', {
         templateUrl: '/partials/server.html',
         controller: ServerCtrl
     });
+
+    $routeProvider.when('/gateway', {
+        templateUrl: '/partials/gateway.html',
+        controller: GatewayCtrl
+    });
+
 
     $routeProvider.when('/databases', {
         templateUrl: '/partials/databases.html',
@@ -41,7 +57,7 @@ var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap', 
         templateUrl: '/partials/create_database.html',
         controller: CreateDatabaseCtrl
     });
-    //    $routeProvider.otherwise({redirectTo: '/index.html'});
+    $routeProvider.otherwise({ redirectTo: '/main' });
 
     //$locationProvider.html5Mode(true);
 });
@@ -60,12 +76,13 @@ myApp.value('ui.config', {
 
 
 /**
- * Main Controller
+ * App Controller
  */
-function MainCtrl($scope, $location, $rootScope, $dialog) {
+function HeadCtrl($scope, $location, $rootScope, $http, $dialog, App, Database) {
 
     $rootScope.alerts = [];
-
+    $rootScope.databases = [];
+    $rootScope.apps = [];
 
     // Handles the active navbar item
     $scope.isActiveUrl = function (path) {
@@ -93,25 +110,19 @@ function MainCtrl($scope, $location, $rootScope, $dialog) {
         d.open();
     }
 
-}
+    // Retrive all databases
+    $rootScope.getDatabases = function () {
 
+        Database.query(function (result) {
+            $scope.databases = result.DatabaseList;
 
-/**
- * Server Controller
- */
-function ServerCtrl($scope, $dialog, Server, $http) {
+            if (result.exception != null) {
+                $scope.showException(result.exception.message, result.exception.helpLink, result.exception.stackTrace);
+            }
 
-    $scope.isBusy = false;
-
-    // Retrive server information
-    $scope.getServer = function () {
-
-        Server.get({}, function (server) {
-            // Success
-            $scope.server = server;
         }, function (response) {
             // Error, Can not retrive list of databases
-            var message = "Can not retrive the server properties";
+            var message = "Can not retrive the database list";
 
             // 500 Internal Server Error
             if (response.status === 500) {
@@ -121,16 +132,34 @@ function ServerCtrl($scope, $dialog, Server, $http) {
                 $scope.alerts.push({ type: 'error', msg: message });
             }
         });
-
     }
 
-    // User clicked the "Refresh" button
-    $scope.btnClick_refresh_gwateway_stats = function () {
-        $scope.getGatewayStats();
+    // Retrive all databases
+    $rootScope.getApps = function () {
+
+        App.query(function (result) {
+            $scope.apps = result.apps;
+
+            if (result.exception != null) {
+                $scope.showException(result.exception.message, result.exception.helpLink, result.exception.stackTrace);
+            }
+
+        }, function (response) {
+            // Error, Can not retrive list of databases
+            var message = "Can not retrive the list of applications";
+
+            // 500 Internal Server Error
+            if (response.status === 500) {
+                $scope.showException(message, null, response.data);
+            }
+            else {
+                $scope.alerts.push({ type: 'error', msg: message });
+            }
+        });
     }
 
     // Get Gateway information
-    $scope.getGatewayStats = function () {
+    $rootScope.getGatewayStats = function () {
 
         $scope.alerts.length = 0;
         $scope.isBusy = true;
@@ -157,7 +186,40 @@ function ServerCtrl($scope, $dialog, Server, $http) {
     }
 
 
-    $scope.getServer();
+    // Load databases
+    $rootScope.getDatabases();
+
+    $rootScope.getApps();
+
+}
+
+
+
+
+/**
+ * Main Controller
+ */
+function MainCtrl($scope, Database) {
+
+    $scope.btn_click_refresh_databases = function () {
+        $scope.getDatabases();
+    }
+
+    $scope.btn_click_refresh_apps = function () {
+        $scope.getApps();
+    }
+}
+
+/**
+ * Gateway Controller
+ */
+function GatewayCtrl($scope, $dialog) {
+
+
+    // User clicked the "Refresh" button
+    $scope.btnClick_refresh_gwateway_stats = function () {
+        $scope.getGatewayStats();
+    }
 
     $scope.getGatewayStats();
 
@@ -165,18 +227,30 @@ function ServerCtrl($scope, $dialog, Server, $http) {
 
 
 /**
- * Databases Controller
+ * Apps Controller
  */
-function DatabasesCtrl($scope, $dialog, Database) {
+function AppsCtrl($scope, $location, $rootScope, $dialog) {
 
-    // Retrive all databases
-    $scope.getDatabases = function () {
+    $scope.btn_click_refresh_apps = function () {
+        $scope.getApps();
+    }
+}
 
-        Database.query(function (databases) {
-            $scope.databases = databases.DatabaseList;
+/**
+ * Server Controller
+ */
+function ServerCtrl($scope, $dialog, Server, $http) {
+
+
+    // Retrive server information
+    $scope.getServer = function () {
+
+        Server.get({}, function (server) {
+            // Success
+            $scope.server = server;
         }, function (response) {
             // Error, Can not retrive list of databases
-            var message = "Can not retrive the database list";
+            var message = "Can not retrive the server properties";
 
             // 500 Internal Server Error
             if (response.status === 500) {
@@ -186,9 +260,24 @@ function DatabasesCtrl($scope, $dialog, Database) {
                 $scope.alerts.push({ type: 'error', msg: message });
             }
         });
+
     }
 
-    $scope.getDatabases();
+    $scope.getServer();
+
+}
+
+
+/**
+ * Databases Controller
+ */
+function DatabasesCtrl($scope, $dialog) {
+
+
+    $scope.btn_click_refresh_databases = function () {
+        $scope.getDatabases();
+    }
+
 
 }
 
@@ -198,7 +287,23 @@ function DatabasesCtrl($scope, $dialog, Database) {
  */
 function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, patchService) {
 
+    $scope.selectedDatabaseId = $routeParams.databaseId;
     $scope.apps = [];
+
+    console.log("DatabaseCtrl");
+    // Watch for changes in the filer
+    $scope.$watch('selectedDatabaseId', function () {
+
+        console.log("selectedDatabaseId:" + $scope.selectedDatabaseId);
+        angular.forEach($scope.databases,
+            function (item, key) {
+                if ($scope.selectedDatabaseId === item.DatabaseId) {
+                    $scope.getDatabase(item.DatabaseId);
+                    // forEach dosent support 'break' :-(
+                }
+            });
+
+    }, true);
 
     // Retrive the console output for a specific database
     $scope.getConsole = function (databaseName) {
@@ -246,8 +351,9 @@ function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, p
             $scope.database = database;
             // Get location from the response header
             //$scope.location = headers('Location');
+            $scope.selectedDatabaseId = $scope.database.DatabaseId;
 
-//            $scope.getConsole(database.DatabaseName);
+            //            $scope.getConsole(database.DatabaseName);
             // Observe the model
             /*
                     var observer = jsonpatch.observe($scope.database, function (patches) {
@@ -330,7 +436,7 @@ function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, p
 
 
     // Retrive database information
-    $scope.getDatabase($routeParams.databaseId);
+    //    $scope.getDatabase($routeParams.databaseId);
 
 }
 
@@ -544,7 +650,7 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
     });
 
     $scope.calcHeight = function () {
-        var border = 12;
+        var border = 12 + 60;
         var topOffset = $("#handsontable").offset().top;
         var height = winHeight - topOffset - 2 * border;
         if (height < 50) {
