@@ -1,4 +1,5 @@
 
+
 /* Test, Peter Idestam-Almquist, Starcounter, 2012-10-31. */
 
 :- module(test,[test/1,testfile/0]).

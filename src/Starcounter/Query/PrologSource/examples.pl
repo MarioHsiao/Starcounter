@@ -1,10 +1,4 @@
 
-sql_example(neg,'MyDB',"select max(null) from example.employee").
-
-
-/***/
-
-
 
 sql_example(pos,'MyDB',"select E from Employee e where E.Manager = ?").
 sql_example(pos,'MyDB',"select e from Employee e where e.Manager = ?").

@@ -1,6 +1,172 @@
 
+
 Runtime: 0
 Type: pos
+Database: MyDB
+Query: 
+select E from Employee e where E.Manager = ?
+
+Tokens: 
+[<SELECT>][E][<FROM>][Employee][e][<WHERE>][E][.][Manager][=][?][0]
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,E)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,e)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,E),property(any,Manager)])
+        variable(any,0)
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,Manager)])
+        variable(any,0)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,Manager)])
+        variable(any,0)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        object(Example.Employee)
+        equal
+        path(object(Example.Employee),[extent(0,Example.Employee),property(object(Example.Employee),Manager)])
+        variable(object(Example.Employee),0)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        object(Example.Employee)
+        equal
+        path(object(Example.Employee),[extent(0,Example.Employee),property(object(Example.Employee),Manager)])
+        variable(object(Example.Employee),0)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Number of variables: 
+1
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
 Query: 
 select e from Employee e where e.Manager = ?
 
@@ -162,8 +328,9 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 16
 Type: pos
+Database: MyDB
 Query: 
 select p from Example.Person p where p is Employee
 
@@ -302,6 +469,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p from Example.Person p where p is ?
 
@@ -440,6 +608,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p from Example.Person p where p is not ?
 
@@ -578,6 +747,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p from Example.Person p where p is Employee
 
@@ -716,6 +886,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p from Example.Person p where p is not Employee
 
@@ -854,6 +1025,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select p from Example.Person p where ? is Employee
 
@@ -892,6 +1064,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select p from Example.Person p where p is String
 
@@ -1031,6 +1204,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location fetch 10 offsetkey binary 'fff'
 
@@ -1201,6 +1375,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location fetch ? offsetkey ?
 
@@ -1371,6 +1546,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location fetch 10 offset 20
 
@@ -1541,6 +1717,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location fetch ? offset ?
 
@@ -1711,6 +1888,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.lastname from example.employee e where e.firstname = ? and e.commission = ? and e.hiredate = ? and e.salaryint16 = ? and e.manager = ?
 
@@ -2076,6 +2254,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select ((3 - 2) - 8) from Employee
 
@@ -2284,6 +2463,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select (3 * ((6 - 8) / (4 - 8)) * 0) from Employee
 
@@ -2598,6 +2778,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select (3 * 6 - 8 / 4 - 8 * 0) from Employee
 
@@ -2912,6 +3093,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select (3 - 2 - 8) from Employee
 
@@ -3120,6 +3302,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select (3 - (2 - 8)) from Employee
 
@@ -3328,6 +3511,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location fetch 10 offsetkey binary 'fff'
 
@@ -3498,6 +3682,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location fetch ? offsetkey ?
 
@@ -3668,6 +3853,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location fetch 10 offset 20
 
@@ -3838,6 +4024,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location fetch ? offset ?
 
@@ -4008,6 +4195,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select * from location fetch '10' offset 'fff'
 
@@ -4180,6 +4368,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select * from location fetch 10.1 offsetkey 'fff'
 
@@ -4352,6 +4541,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select cast(p.father as string) from example.person p
 
@@ -4490,6 +4680,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select nonexistingmethod<myperson>() from example.person
 
@@ -4628,6 +4819,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select firstname from employee where nonexistingmethod(manager) = true
 
@@ -4791,6 +4983,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.lastname from example.employee e where e.firstname = ? and e.commission = ? and e.hiredate = ? and e.salaryint16 = ? and e.manager = ?
 
@@ -5156,6 +5349,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.commission from example.employee e where e.firstname starts with ?
 
@@ -5390,6 +5584,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where ? is null
 
@@ -5553,6 +5748,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select d.name deptname, d.idbinary id from example.department d where d.idbinary = ?
 
@@ -5745,6 +5941,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e, d from example.employee e, example.department d where e.department = d
 
@@ -5964,6 +6161,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e0, e1, e2, e3 from example.employee e0, example.employee e1, example.employee e2, example.employee e3 where e0 = e1 and e1 = e2 and e2 = e3
 
@@ -6394,6 +6592,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e, example.employee f where e.manager.manager = f
 
@@ -6600,6 +6799,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where e.department.location = e.manager.department.location
 
@@ -6809,6 +7009,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where e.manager.department.location is null
 
@@ -6973,6 +7174,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where ? = e.manager.department.location
 
@@ -7167,6 +7369,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where e.manager.department.location = ?
 
@@ -7361,6 +7564,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where ? = e.department.location
 
@@ -7540,6 +7744,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where e.department.location = ?
 
@@ -7719,6 +7924,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p, d from example.person p, example.department d where cast(p.father as employee).department = d
 
@@ -7953,6 +8159,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select sum(e.salaryint32) from employee e where e.manager.firstname = ?
 
@@ -8169,6 +8376,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select l.* from example.location l
 
@@ -8339,6 +8547,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select l.*, d.* from example.location l join example.department d
 
@@ -8613,6 +8822,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location
 
@@ -8783,6 +8993,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select * from location join department
 
@@ -9044,6 +9255,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p.father.father.* from example.person p
 
@@ -9262,6 +9474,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select cast(p.father.father as example.location).* from example.person p
 
@@ -9433,6 +9646,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select e.* as name from employee e
 
@@ -9471,6 +9685,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select cast(p.father.father.* as example.location) from example.person p
 
@@ -9510,6 +9725,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select firstname, name from employee join department
 
@@ -9703,6 +9919,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select cast(father as employee).manager from example.person
 
@@ -9841,6 +10058,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select getextension<myperson>() from example.person
 
@@ -9979,6 +10197,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select cast(getextension<myperson>() as employee) from example.person
 
@@ -10116,8 +10335,9 @@ Errors:
 ]
 
 
-Runtime: 16
+Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select e.firstname from employee
 
@@ -10257,6 +10477,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select name from location join department
 
@@ -10423,6 +10644,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select getextension<myperson>() from example.person join employee
 
@@ -10589,6 +10811,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from employee e
 
@@ -10727,6 +10950,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.getextension<myperson>() from employee e
 
@@ -10865,6 +11089,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select p from person p
 
@@ -11002,8 +11227,9 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 15
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.firstname starts with 'st'
 
@@ -11238,6 +11464,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.firstname starts with ?
 
@@ -11472,6 +11699,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select cast(p as example.employee) from example.person p
 
@@ -11610,6 +11838,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select cast(p as example.employee).manager from example.person p
 
@@ -11749,6 +11978,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select cast(p.father as example.employee).manager from example.person p
 
@@ -11888,6 +12118,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select cast(cast(p as example.employee).manager as example.person).father from example.person p
 
@@ -12027,6 +12258,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select cast(p.getextension<example.myperson>() as example.employee).manager from example.person p
 
@@ -12166,6 +12398,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select cast(q as example.employee) from example.person p
 
@@ -12305,6 +12538,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select cast(p as example.nonexistingclass) from example.person p
 
@@ -12444,6 +12678,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select cast(p.father as string) from example.person p
 
@@ -12582,6 +12817,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select cast(p.equalsorisderivedfrom(p) as example.employee).manager from example.person p
 
@@ -12722,6 +12958,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e = object 123
 
@@ -12885,6 +13122,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.employee e join example.department d on e.department = d where e = object 123
 
@@ -13144,6 +13382,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select d from department d where d.idbinary = binary 'ffff'
 
@@ -13307,6 +13546,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.department d join example.employee e where e.firstname <= 'peter' and e.department.name = d.name and e.firstname >'b' option join order (e,d)
 
@@ -13648,6 +13888,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.department d join example.employee e join example.location l where e.firstname <= 'peter' and l.name = 'stockholm' and e.department.name = d.name and d.location = l and e.firstname >'b' option join order (e,d,l)
 
@@ -14117,6 +14358,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.firstname <= 'peter' and e.lastname >'b' option index (e myindex)
 
@@ -14336,6 +14578,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.firstname = 'peter' order by e.lastname desc option index(e myindex)
 
@@ -14530,6 +14773,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.employee e join example.department d on e.department = d where e.firstname = 'peter' order by d.name desc option index(e myindex)
 
@@ -14820,6 +15064,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.employee e right join example.department d on e.department = d option join order fixed
 
@@ -14859,6 +15104,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select e, m, d, l from example.department d join example.employee e left join (example.employee m join example.location l) option join order fixed
 
@@ -14899,6 +15145,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p._temp from example.person p
 
@@ -15037,6 +15284,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.manager.manager.department.location.name from example.employee e
 
@@ -15176,6 +15424,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 
 
@@ -15213,6 +15462,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select example.employee.department.name from example.employee where example.employee.firstname = 'peter'
 
@@ -15378,6 +15628,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select e.firstname name, e.lastname name from employee e
 
@@ -15545,6 +15796,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, f.firstname from example.employee e join example.employee f where e.equalsorisderivedfrom(f) = true
 
@@ -15764,6 +16016,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, f.firstname from example.employee e join example.employee f where e.manager.equalsorisderivedfrom(f.manager) = true
 
@@ -15997,8 +16250,9 @@ Errors:
 ]
 
 
-Runtime: 16
+Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.getextension<example.myperson>() from example.employee e
 
@@ -16138,6 +16392,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.getextension<example.myperson>().myid from example.employee e
 
@@ -16277,6 +16532,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, e.hiredate from example.employee e where e.hiredate = date '2006-10-30'
 
@@ -16469,6 +16725,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.manager = e.department
 
@@ -16633,6 +16890,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where e.commission = true
 
@@ -16796,6 +17054,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where e.firstname is null and e.manager = null and e.hiredate > null
 
@@ -17060,6 +17319,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where null is null order by e.manager desc
 
@@ -17249,6 +17509,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.firstname like 'p%et_er'
 
@@ -17417,6 +17678,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.firstname like 'p7_te7%' escape '7'
 
@@ -17586,6 +17848,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.firstname in ('peter','erik')
 
@@ -17756,6 +18019,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.department.name || ' ' || e.firstname, e.salarysingle * 2 / -1 from example.employee e where e.salarydecimal * + +1.25 = - +2e+3 - e.salaryuint16 and e.manager = e
 
@@ -18230,6 +18494,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select -(-(-e.salaryint64)) * 3 from example.employee e
 
@@ -18488,6 +18753,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select sum(e.salaryint32) * (2 + 'b') from example.employee e
 
@@ -18750,6 +19016,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname fname from example.employee e order by random
 
@@ -18893,6 +19160,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e order by e.department.name, e.firstname, e.lastname
 
@@ -19107,6 +19375,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p from example.person p order by p
 
@@ -19270,6 +19539,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select p.firstname fname from example.person p order by p.firstname
 
@@ -19433,6 +19703,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.employee e join example.department d on e.department = d
 
@@ -19652,6 +19923,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.employee e join example.department d where e.department = d
 
@@ -19871,6 +20143,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.employee e join example.department d on e = d
 
@@ -20090,6 +20363,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, d.name from example.employee e cross join example.department d
 
@@ -20282,8 +20556,9 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 15
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, f.firstname from example.employee e left outer join example.employee f where e.manager = f
 
@@ -20503,6 +20778,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e0.firstname, e1.firstname, e2.firstname, e3.firstname from example.employee e0 join example.employee e1 join (example.employee e2 join example.employee e3) where e0 = e1 and e1 = e2 and e2 = e3
 
@@ -20934,6 +21210,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname, f.firstname from example.employee f right outer join example.employee e where e.manager = f
 
@@ -21153,6 +21430,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e join example.employee f where e.manager.manager = f
 
@@ -21357,8 +21635,9 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 16
 Type: pos
+Database: MyDB
 Query: 
 select count(*), sum(e.salaryint32) from example.employee e
 
@@ -21604,6 +21883,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.department.name, sum(e.salaryint16 * 2) * 3 from example.employee e group by e.department having sum(e.salaryint32) > 0 order by e.department
 
@@ -21973,6 +22253,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select d.name, sum(e.salaryint16) from example.employee e join example.department d where e.department = d group by d having sum(e.salaryint32) > 0 order by d.name
 
@@ -22334,6 +22615,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select d.name, sum(e.salaryint32) from example.department d join example.employee e on d = e.department group by d.name
 
@@ -22617,8 +22899,9 @@ Errors:
 ]
 
 
-Runtime: 16
+Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.department, e.department.name, sum(e.salarydouble), avg(e.salarydecimal), min(e.salaryuint64), max(e.salarysingle) from example.employee e group by e.department, e.commission
 
@@ -23056,6 +23339,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select sum(e.salaryint64), avg(e.salarysingle) from example.employee e group by e.commission, e.hiredate, e.manager, e.salaryint32, e.salaryuint32, e.salarydouble, e.salarydecimal
 
@@ -23394,6 +23678,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select max(null) from example.employee
 
@@ -23584,6 +23869,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select f.loc.name, f.sum1 + h.sum2 from (select e.department.location loc, sum(all e.salaryint32) sum1 from example.employee e where e.firstname <> 'peter' group by e.department.location) f join (select sum(g.salaryint32) sum2 from example.employee g group by g.department having sum(g.salaryint32) > 1) h
 
@@ -23625,8 +23911,9 @@ Errors:
 ]
 
 
-Runtime: 15
+Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select sum(e.salaryint64) * 3, max(e.manager), min(e) from example.employee e
 
@@ -23963,6 +24250,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select e.department.name dname, min(e.manager) from example.employee e group by e.department
 
@@ -24196,6 +24484,7 @@ Errors:
 
 Runtime: 0
 Type: neg
+Database: MyDB
 Query: 
 select e.department.name, e.firstname, sum(e.salaryint16) from example.employee e group by e.department having sum(e.salaryint32) > 0 order by e.lastname
 
@@ -24535,6 +24824,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.commission = true
 
@@ -24698,6 +24988,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.department.name from example.employee e where e.lastname = 'idestam' and e.firstname > 'bertil' order by e.firstname
 
@@ -24937,6 +25228,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.lastname from example.employee e where e.lastname = 'idestam' and e.lastname <= 'samuelsson'
 
@@ -25151,6 +25443,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e1.firstname, e2.firstname, e3.firstname, e4.firstname from example.employee e1 join example.employee e2 on e1.firstname = e2.firstname join example.employee e3 on e2.firstname = e3.firstname join example.employee e4 on e3.firstname = e4.firstname where e1.firstname = 'peter' and e2.firstname = 'per' and e3.firstname = 'erik' and e4.firstname = 'christian'
 
@@ -25754,6 +26047,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.firstname >= e.lastname and e.manager = e and e.firstname > 'erik' and (e.salaryint16 = e.salaryint64 or e.salaryint16 = e.salaryuint64 or e.salaryint16 = e.salarysingle)
 
@@ -26170,6 +26464,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e.firstname from example.employee e where e.lastname is not null and e.firstname is not null
 
@@ -26384,6 +26679,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where e.getextension<example.myperson>().myname = 'peter2'
 
@@ -26548,6 +26844,7 @@ Errors:
 
 Runtime: 0
 Type: pos
+Database: MyDB
 Query: 
 select e from example.employee e where e.getextension<example.myperson>().myname = 'peter2' option index(e myindex)
 
