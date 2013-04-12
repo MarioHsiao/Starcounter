@@ -39,7 +39,7 @@ namespace Starcounter.Query.Sql
             startProcessLock = new Object();
 
             //schemaFolderExternal = schemaFolder.Replace("\\", "/").Replace(' ', '?'); // TODO: Use some appropriate standard encoding?
-            schemaFolderExternal = schemaFolder.Replace("\\", "/");
+            schemaFolderExternal = "C:/Users/peteria/GIT/Level1/bin/Debug/" + schemaFolder.Replace("\\", "/");
             
             // Establish an SQL process without any schema information.
             EstablishSqlProcess(0);
@@ -92,7 +92,7 @@ namespace Starcounter.Query.Sql
             String schemaFilePath = schemaFolderExternal + "/schema" + DateTime.Now.ToString("yyMMddHHmmssfff") + ".pl";
             try
             {
-                WriteSchemaInfoToFile(schemaFilePath, typeDefArray);
+                WriteSchemaInfoToFile(QueryModule.DatabaseId, schemaFilePath, typeDefArray);
             }
             catch (Exception exception)
             {
@@ -676,7 +676,7 @@ namespace Starcounter.Query.Sql
             LeaveConnectedSession(session, scheduler);
         }
 
-        private static void WriteSchemaInfoToFile(String schemaFilePath, TypeDef[] typeDefArray)
+        private static void WriteSchemaInfoToFile(String databaseId, String schemaFilePath, TypeDef[] typeDefArray)
         {
             StreamWriter streamWriter = null;
             //IEnumerator<ExtensionBinding> extEnumerator = null;
@@ -691,13 +691,13 @@ namespace Starcounter.Query.Sql
 
                 // Set meta-info of the current schema export.
                 streamWriter.WriteLine("/* THIS FILE WAS AUTO-GENERATED. DO NOT EDIT! */");
-                streamWriter.WriteLine(":- multifile schemafile/1, class/3, extension/3, property/4, method/5, gmethod/6.");
-                streamWriter.WriteLine(":- dynamic schemafile/1, class/3, extension/3, property/4, method/5, gmethod/6.");
-                streamWriter.WriteLine(":- assert(schemafile('" + schemaFilePath + "')).");
+                streamWriter.WriteLine(":- multifile schemafile/2, class/4, extension/4, property/5, method/6, gmethod/7.");
+                streamWriter.WriteLine(":- dynamic schemafile/2, class/4, extension/4, property/5, method/6, gmethod/7.");
+                streamWriter.WriteLine(":- assert(schemafile('" + databaseId + "','" + schemaFilePath + "')).");
 
                 // Export information about classes (tables).
-                streamWriter.WriteLine("/* class(fullClassNameUpper,fullClassName,baseClassName). */");
-                streamWriter.WriteLine("/* class(shortClassNameUpper,fullClassName,baseClassName). */");
+                streamWriter.WriteLine("/* class(databaseId,fullClassNameUpper,fullClassName,baseClassName). */");
+                streamWriter.WriteLine("/* class(databaseId,shortClassNameUpper,fullClassName,baseClassName). */");
                 String fullClassNameUpper = null;
                 String shortClassNameUpper = null;
                 for (Int32 i = 0; i < typeDefArray.Length; i++)
@@ -707,21 +707,21 @@ namespace Starcounter.Query.Sql
                     shortClassNameUpper = GetShortName(typeDef.Name).ToUpperInvariant();
                     if (typeDef.BaseName != null)
                     {
-                        streamWriter.WriteLine(":- assert(class('" + fullClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+                        streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
                         if (shortClassNameUpper != fullClassNameUpper)
-                            streamWriter.WriteLine(":- assert(class('" + shortClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+                            streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
                     }
                     else
                     {
-                        streamWriter.WriteLine(":- assert(class('" + fullClassNameUpper + "','" + typeDef.Name + "','none')).");
+                        streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','none')).");
                         if (shortClassNameUpper != fullClassNameUpper)
-                            streamWriter.WriteLine(":- assert(class('" + shortClassNameUpper + "','" + typeDef.Name + "','none')).");
+                            streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','none')).");
                     }
                 }
 
                 //// Export information about extensions.
-                //streamWriter.WriteLine("/* extension(fullClassName,fullExtensionNameUpper,fullExtensionName). */");
-                //streamWriter.WriteLine("/* extension(fullClassName,shortExtensionNameUpper,fullExtensionName). */");
+                //streamWriter.WriteLine("/* extension(databaseId,fullClassName,fullExtensionNameUpper,fullExtensionName). */");
+                //streamWriter.WriteLine("/* extension(databaseId,fullClassName,shortExtensionNameUpper,fullExtensionName). */");
                 //String fullExtensionNameUpper = null;
                 //String shortExtensionNameUpper = null;
                 //typeEnumerator.Reset();
@@ -736,15 +736,15 @@ namespace Starcounter.Query.Sql
                 //            extBind = extEnumerator.Current;
                 //            fullExtensionNameUpper = extBind.Name.ToUpperInvariant();
                 //            shortExtensionNameUpper = GetShortName(extBind.Name).ToUpperInvariant();
-                //            streamWriter.WriteLine(":- assert(extension('" + typeDef.Name + "','" + fullExtensionNameUpper + "','" + extBind.Name + "')).");
+                //            streamWriter.WriteLine(":- assert(extension('" + databaseId + "','" + typeDef.Name + "','" + fullExtensionNameUpper + "','" + extBind.Name + "')).");
                 //            if (shortExtensionNameUpper != fullExtensionNameUpper)
-                //                streamWriter.WriteLine(":- assert(extension('" + typeDef.Name + "','" + shortExtensionNameUpper + "','" + extBind.Name + "')).");
+                //                streamWriter.WriteLine(":- assert(extension('" + databaseId + "','" + typeDef.Name + "','" + shortExtensionNameUpper + "','" + extBind.Name + "')).");
                 //        }
                 //    }
                 //}
 
                 // Export information about properties (columns).
-                streamWriter.WriteLine("/* property(fullClassName,propertyNameUpper,propertyName,propertyType). */");
+                streamWriter.WriteLine("/* property(databaseId,fullClassName,propertyNameUpper,propertyName,propertyType). */");
                 for (Int32 i = 0; i < typeDefArray.Length; i++)
                 {
                     typeDef = typeDefArray[i];
@@ -755,7 +755,7 @@ namespace Starcounter.Query.Sql
                         {
                             if (propDef.TargetTypeName != null)
                             {
-                                streamWriter.WriteLine(":- assert(property('" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                                streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
                                     propDef.Name + "','" + propDef.TargetTypeName + "')).");
                             }
                             else
@@ -765,7 +765,7 @@ namespace Starcounter.Query.Sql
                         }
                         else
                         {
-                            streamWriter.WriteLine(":- assert(property('" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                            streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
                                 propDef.Name + "','" + propDef.Type.ToString() + "')).");
                         }
                     }
@@ -789,7 +789,7 @@ namespace Starcounter.Query.Sql
                 //                {
                 //                    if (propDef.TypeBinding != null)
                 //                    {
-                //                        streamWriter.WriteLine(":- assert(property('" + extBind.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                //                        streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + extBind.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
                 //                            propDef.Name + "','" + propDef.TypeBinding.Name + "')).");
                 //                    }
                 //                    else
@@ -799,7 +799,7 @@ namespace Starcounter.Query.Sql
                 //                }
                 //                else
                 //                {
-                //                    streamWriter.WriteLine(":- assert(property('" + extBind.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                //                    streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + extBind.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
                 //                        propDef.Name + "','" + propDef.TypeCode.ToString() + "')).");
                 //                }
                 //            }
@@ -808,16 +808,16 @@ namespace Starcounter.Query.Sql
                 //}
 
                 //// Export information about method EqualsOrIsDerivedFrom(Object).
-                //streamWriter.WriteLine("/* method(fullClassName,methodNameUpper,methodName,argumentTypes,returnType). */");
+                //streamWriter.WriteLine("/* method(databaseId,fullClassName,methodNameUpper,methodName,argumentTypes,returnType). */");
                 //typeEnumerator.Reset();
                 //while (typeEnumerator.MoveNext())
                 //{
                 //    typeDef = typeEnumerator.Current;
-                //    streamWriter.WriteLine(":- assert(method('" + typeDef.Name + "','EQUALSORISDERIVEDFROM','EqualsOrIsDerivedFrom',['Starcounter.IObjectView'],'Boolean')).");
+                //    streamWriter.WriteLine(":- assert(method('" + databaseId + "','" + typeDef.Name + "','EQUALSORISDERIVEDFROM','EqualsOrIsDerivedFrom',['Starcounter.IObjectView'],'Boolean')).");
                 //}
 
                 //// Export information about generic method GetExtension<Type>().
-                //streamWriter.WriteLine("/* gmethod(fullClassName,methodNameUpper,methodName,typeParameters,argumentTypes,returnType)). */");
+                //streamWriter.WriteLine("/* gmethod(databaseId,fullClassName,methodNameUpper,methodName,typeParameters,argumentTypes,returnType)). */");
                 //typeEnumerator.Reset();
                 //while (typeEnumerator.MoveNext())
                 //{
@@ -826,14 +826,14 @@ namespace Starcounter.Query.Sql
                 //    while (extEnumerator.MoveNext())
                 //    {
                 //        extBind = extEnumerator.Current;
-                //        streamWriter.WriteLine(":- assert(gmethod('" + typeDef.Name + "','GETEXTENSION','GetExtension',['" +
+                //        streamWriter.WriteLine(":- assert(gmethod('" + databaseId + "','" + typeDef.Name + "','GETEXTENSION','GetExtension',['" +
                 //            extBind.Name + "'],[],'" + extBind.Name + "')).");
                 //    }
                 //}
 
                 tickCount = Environment.TickCount - tickCount;
-                logSource.Debug("Exported SQL schema to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
-                //logSource.LogNotice("Exported SQL schema info to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
+                logSource.Debug("Exported SQL schema info for " + databaseId + " to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
+                //logSource.LogNotice("Exported SQL schema info for " + databaseId + " to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
             }
             finally
             {
@@ -899,7 +899,7 @@ namespace Starcounter.Query.Sql
                     loopCount++;
                     if (loopCount < QueryModule.MaxQueryRetries)
                     {
-                        logSource.LogWarning("Failed once to verify schema.", exception);
+                        logSource.LogWarning("Failed to get current schema files.", exception);
                     }
                     else
                     {
@@ -935,7 +935,7 @@ namespace Starcounter.Query.Sql
         }
 
         [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
-        internal static QueryAnswer CallProlog(String query)
+        internal static QueryAnswer CallProlog(String databaseId, String query)
         {
             // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
@@ -968,7 +968,8 @@ namespace Starcounter.Query.Sql
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("Query", query);
-                    answer = session.executeQuery("sql_prolog(Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
+                    bindings.bind("DatabaseId", databaseId);
+                    answer = session.executeQuery("sql_prolog(DatabaseId,Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
                     CheckQueryAnswerForError(answer);
                     loopCount = QueryModule.MaxQueryRetries;
                 }
