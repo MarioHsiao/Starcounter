@@ -39,7 +39,7 @@ namespace Starcounter.Query.Sql
             startProcessLock = new Object();
 
             //schemaFolderExternal = schemaFolder.Replace("\\", "/").Replace(' ', '?'); // TODO: Use some appropriate standard encoding?
-            schemaFolderExternal = "C:/Users/peteria/GIT/Level1/bin/Debug/" + schemaFolder.Replace("\\", "/");
+            schemaFolderExternal = schemaFolder.Replace("\\", "/");
             
             // Establish an SQL process without any schema information.
             EstablishSqlProcess(0);
