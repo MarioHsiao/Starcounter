@@ -3,6 +3,7 @@
 
 /* Platform dependent configuration. */
 
+/* 13-04-12: Added new types to dbtype_to_sqltype/2. */
 /* 13-03-08: Changed return types of some arithmetic operations and set-functions. */
 /* 10-05-24: Modifications of the configuration of comparison types. */
 /* 10-05-10: New representation of variable by '?' (Type 'null' replaced by type 'any', and new type 'numerical'.) */
@@ -36,19 +37,33 @@ sqltype(uinteger).
 */
 dbtype_to_sqltype('Binary',binary):- !.
 dbtype_to_sqltype('Boolean',boolean):- !.
+dbtype_to_sqltype(bool,boolean):- !.
 dbtype_to_sqltype('Byte',uinteger):- !.
+dbtype_to_sqltype(byte,uinteger):- !.
 dbtype_to_sqltype('DateTime',datetime):- !.
+dbtype_to_sqltype(datetime,datetime):- !.
 dbtype_to_sqltype('Decimal',decimal):- !.
+dbtype_to_sqltype(decimal,decimal):- !.
 dbtype_to_sqltype('Double',double):- !.
+dbtype_to_sqltype(double,double):- !.
 dbtype_to_sqltype('Int16',integer):- !.
+dbtype_to_sqltype(short,integer):- !.
 dbtype_to_sqltype('Int32',integer):- !.
+dbtype_to_sqltype(int,integer):- !.
 dbtype_to_sqltype('Int64',integer):- !.
+dbtype_to_sqltype(long,integer):- !.
 dbtype_to_sqltype('SByte',integer):- !.
+dbtype_to_sqltype(sbyte,integer):- !.
 dbtype_to_sqltype('Single',double):- !.
+dbtype_to_sqltype(float,double):- !.
 dbtype_to_sqltype('String',string):- !.
+dbtype_to_sqltype(string,string):- !.
 dbtype_to_sqltype('UInt16',uinteger):- !.
+dbtype_to_sqltype(ushort,uinteger):- !.
 dbtype_to_sqltype('UInt32',uinteger):- !.
+dbtype_to_sqltype(uint,uinteger):- !.
 dbtype_to_sqltype('UInt64',uinteger):- !.
+dbtype_to_sqltype(ulong,uinteger):- !.
 dbtype_to_sqltype('Starcounter.Binary',binary):- !.
 dbtype_to_sqltype('System.Boolean',boolean):- !.
 dbtype_to_sqltype('System.Byte',uinteger):- !.
