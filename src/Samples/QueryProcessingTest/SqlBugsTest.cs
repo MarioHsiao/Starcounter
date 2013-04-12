@@ -134,6 +134,8 @@ namespace QueryProcessingTest {
             e = q.GetEnumerator();
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).DisplayName;
             Trace.Assert(n == "Name");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).Name;
+            Trace.Assert(n == "Name");
             Trace.Assert(((SqlEnumerator<object>)e).PropertyBinding == null);
             q = Db.SlowSQL("select userid, Name from User u where useridnr < ?", 2);
             e = q.GetEnumerator();
@@ -145,6 +147,8 @@ namespace QueryProcessingTest {
             Trace.Assert(((SqlEnumerator<object>)e).TypeBinding == null);
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).PropertyBinding).DisplayName;
             Trace.Assert(n == "Name");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).PropertyBinding).Name;
+            Trace.Assert(n == "0");
         }
 
     }
