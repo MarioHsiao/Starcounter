@@ -9,21 +9,22 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
-
 _STATIC_ASSERT(sizeof(HANDLE) == sizeof(void *));
 
+#define NETWORKGATEWAY_PROCESS_NAME L"scnetworkgateway.exe"
+#define IPCMONITOR__PROCESS_NAME L"scipcmonitor.exe"
+#define CODEHOST_PROCESS_NAME L"sccode.exe"
 
 static void (*__shutdown_event_handler)();
 
 static BOOL WINAPI __console_handler(DWORD console_event);
-
+static void __kill_and_cleanup_children(DWORD process_id);
 
 BOOL _set_shutdown_event_handler(void (*shutdown_event_handler)())
 {
     __shutdown_event_handler = shutdown_event_handler;
     return SetConsoleCtrlHandler(__console_handler, TRUE);
 }
-
 
 BOOL WINAPI __console_handler(DWORD console_event)
 {
@@ -121,10 +122,6 @@ uint32_t _wait(void **handles, uint32_t count, uint32_t *psignaled_index)
     return (uint32_t)dr;
 }
 
-
-static void __kill_and_cleanup_children(DWORD process_id);
-
-
 void _kill_and_cleanup(void *handle)
 {
     HANDLE hprocess;
@@ -164,7 +161,6 @@ void _kill_and_cleanup(void *handle)
     br = CloseHandle(hprocess);
 }
 
-
 void __kill_and_cleanup_children(DWORD process_id)
 {
     HANDLE hsnapshot;
@@ -202,5 +198,84 @@ void __kill_and_cleanup_children(DWORD process_id)
             }
         }
         while (Process32Next(hsnapshot, &pe));
+    }
+}
+
+void _kill_and_cleanup_orphaned_children(int32_t logsteps)
+{
+    HANDLE hsnapshot;
+    PROCESSENTRY32 pe;
+    HANDLE hparent_proc;
+    HANDLE hchild_proc;
+    BOOL process_found;
+    DWORD parent_pid;
+    wchar_t logmessagebuffer[1024];
+
+    if (logsteps) {
+        LogVerboseMessage(L"Checking for orphaned starcounter processes.");
+    }
+
+    hsnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+    memset(&pe, 0, sizeof(PROCESSENTRY32));
+    pe.dwSize = sizeof(PROCESSENTRY32);
+
+    parent_pid = 0;
+    hparent_proc = 0;
+    if (Process32First(hsnapshot, &pe))
+    {
+        do
+        {
+            process_found = false;
+            if (pe.szExeFile[0] == 's' && pe.szExeFile[1] == 'c')
+            {
+                if (lstrcmpi(pe.szExeFile, NETWORKGATEWAY_PROCESS_NAME) == 0
+                        || lstrcmpi(pe.szExeFile, IPCMONITOR__PROCESS_NAME) == 0
+                        || lstrcmpi(pe.szExeFile, CODEHOST_PROCESS_NAME) == 0)
+                {
+                    process_found = true;
+                }
+            }
+
+            if (process_found)
+            {
+                // This is a starcounter process. Lets check the parent. If we have a parent set 
+                // that is not running we have a process we need to terminate.
+
+                if (pe.th32ParentProcessID != 0) {
+                    if (parent_pid != pe.th32ParentProcessID) {
+                        if (hparent_proc) {
+                            CloseHandle(hparent_proc);
+                        }
+
+                        parent_pid = pe.th32ParentProcessID;
+                        hparent_proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe.th32ParentProcessID);
+                    }
+
+                    if (hparent_proc) {
+                        // The parent is still alive. No need to do anything more.
+                        continue;
+                    } else {
+                        // Parent process is terminated. Lets kill the process.
+                        if (logsteps) {
+                            _snwprintf_s(logmessagebuffer, 1024, L"Terminating process '%s' with parent pid %d", pe.szExeFile, parent_pid);
+                            LogVerboseMessage(logmessagebuffer);
+                        }
+		            
+                        hchild_proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe.th32ProcessID);
+                        if (hchild_proc) {
+                            _kill_and_cleanup(hchild_proc);
+                        }
+                    }
+                } else {
+                    // No parent. Do we kill those as well?
+                }
+            }
+        }
+        while (Process32Next(hsnapshot, &pe));
+
+        if (hparent_proc) {
+            CloseHandle(hparent_proc);
+        }
     }
 }
