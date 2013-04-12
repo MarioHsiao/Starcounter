@@ -7,6 +7,9 @@ IF NOT EXIST "scnetworkgateway.exe" GOTO :EOF
 :: Killing Starcounter-related processes (including build processes) if any are running.
 CALL "kill_all.bat"
 
+:: Sleeping some time using ping.
+ping -n 10 127.0.0.1 > nul
+
 :: Removing disturbing directories.
 RMDIR ".db" /S /Q
 RMDIR ".db.output" /S /Q

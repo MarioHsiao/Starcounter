@@ -47,8 +47,6 @@ VOID PrintCommandHelp() {
 	wprintf(L"Starcounter components, like scnetworkgateway, scipcmonitor, etc.\n");
 }
 
-
-
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
     BOOL exit_code_is_scerr;
@@ -288,6 +286,10 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		LogVerboseMessage(logmessagebuffer);
 	}
 
+    // Check if there is any starcounter processes still running without an existing 
+    // parent. This can happen for example if scservice.exe was closed down manually.
+    _kill_and_cleanup_orphaned_children(logsteps);
+    
 	// Creating path to the database configuration file.
 	str_template = L"%s\\%s\\%s.db.config";
 	str_num_chars =
