@@ -19,8 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="memory.cpp" />
+    <ClCompile Include="bootstrap-starcounter.cc" />
+    <ClCompile Include="main.cc" />
+    <ClCompile Include="bootstrap.cc" />
+    <ClCompile Include="memory.cc" />
+    <ClCompile Include="interactive-shell.cc" />
+    <ClCompile Include="bootstrap-v8.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="starcounter-host.h" />
+    <ClInclude Include="v8-host.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F78ED9F0-83C3-41E3-A956-91BF61F78CF2}</ProjectGuid>
@@ -100,15 +108,15 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;ENABLE_DEBUGGER_SUPPORT;V8_TARGET_ARCH_X64;WIN32;DEBUG;ENABLE_DISASSEMBLER;V8_ENABLE_CHECKS;OBJECT_PRINT;VERIFY_HEAP;ENABLE_EXTRA_CHECKS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\level0\src\include;..\..\..\level0\src\libs\formaterr;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\..\level0\src\include;..\..\..\level0\src\libs\formaterr;..\..\..\v8\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\..\level0\src\x64\debug;..\..\..\level0\src\libs\formaterr\x64\debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>coalmine.lib;formaterr.lib;sccoredb.lib;sccorelib.lib;sccorelog.lib;sunflower.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\level0\src\x64\debug;..\..\..\level0\src\libs\formaterr\x64\debug;C:\sc\v8\build\Debug\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>coalmine.lib;formaterr.lib;sccoredb.lib;sccorelib.lib;sccorelog.lib;sunflower.lib;v8_base.lib;v8_snapshot.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
