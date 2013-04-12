@@ -23,21 +23,19 @@ using Starcounter.InstallerWPF.DemoSequence;
 using Starcounter.InstallerEngine;
 using System.IO.Compression;
 using Starcounter.Internal;
+using System.Windows.Interop;
 
-namespace Starcounter.InstallerWPF
-{
+namespace Starcounter.InstallerWPF {
     /// <summary>
     /// Interaction logic for InitializationWindow.xaml
     /// </summary>
-    public partial class InitializationWindow : Window
-    {
+    public partial class InitializationWindow : Window {
         Dispatcher _dispatcher;
         bool canClose = false;
         /// <summary>
         /// Entry point for installer.
         /// </summary>
-        public InitializationWindow()
-        {
+        public InitializationWindow() {
             // Setting library-resolving hooks.
             SetLibraryHooks();
 
@@ -47,10 +45,8 @@ namespace Starcounter.InstallerWPF
             InitializeComponent();
         }
 
-        void InitializationWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            if (canClose == false)
-            {
+        void InitializationWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
+            if (canClose == false) {
                 e.Cancel = true;
             }
         }
@@ -62,26 +58,22 @@ namespace Starcounter.InstallerWPF
         /// Runs the internal setup.
         /// </summary>
         [MethodImplAttribute(MethodImplOptions.NoInlining)]
-        void RunInternalSetup(String[] args)
-        {
+        void RunInternalSetup(String[] args) {
             InstallerMain.StarcounterSetup(args, null, null, null, null);
         }
 
-        private void StartAnimation()
-        {
+        private void StartAnimation() {
             Storyboard Element_Storyboard = this.PART_Canvas.FindResource("canvasAnimation") as Storyboard;
             Element_Storyboard.Begin(this.PART_Canvas, true);
         }
 
-        private void StopAnimation()
-        {
+        private void StopAnimation() {
             Storyboard Element_Storyboard = this.PART_Canvas.FindResource("canvasAnimation") as Storyboard;
             Element_Storyboard.Stop(this.PART_Canvas);
         }
 
 
-        void InitializationWindow_Loaded(object sender, RoutedEventArgs e)
-        {
+        void InitializationWindow_Loaded(object sender, RoutedEventArgs e) {
             this.Visibility = Visibility.Hidden;
             ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper);
         }
@@ -89,10 +81,8 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Wraps the installer initialization function.
         /// </summary>
-        private void InitInstallerWrapper(object state)
-        {
-            try
-            {
+        private void InitInstallerWrapper(object state) {
+            try {
 #if SIMULATE_INSTALLATION
 #else
                 this.InitInstaller();
@@ -100,29 +90,24 @@ namespace Starcounter.InstallerWPF
 
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                    new Action(delegate
-                    {
-                        this.OnSuccess();
-                    }
+                    new Action(delegate {
+                    this.OnSuccess();
+                }
                 ));
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 // Error / Message
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                    new Action(delegate
-                    {
-                        this.OnError(e);
-                    }
+                    new Action(delegate {
+                    this.OnError(e);
+                }
                 ));
             }
         }
 
-        private void OnSuccess()
-        {
+        private void OnSuccess() {
             bool bWaitWindowGotFocus = false;
-            if (this.IsFocused || this.IsKeyboardFocused)
-            {
+            if (this.IsFocused || this.IsKeyboardFocused) {
                 bWaitWindowGotFocus = true;
             }
 
@@ -132,31 +117,32 @@ namespace Starcounter.InstallerWPF
             App.Current.MainWindow = mainWindow;
             this.CloseWindow();
 
-            mainWindow.Left = (screen.Bounds.Location.X + (screen.Bounds.Width / 2)) - (mainWindow.Width / 2);
-            mainWindow.Top = (screen.Bounds.Location.Y + (screen.Bounds.Height / 2)) - (mainWindow.Height / 2);
+            using (HwndSource source = new HwndSource(new HwndSourceParameters())) {
+
+                Matrix m = source.CompositionTarget.TransformFromDevice;
+                Point position = m.Transform(new Point(screen.Bounds.Location.X + (screen.Bounds.Width / 2), screen.Bounds.Location.Y + (screen.Bounds.Height / 2)));
+                mainWindow.Left = position.X - (mainWindow.Width / 2);
+                mainWindow.Top = position.Y - (mainWindow.Height / 2);
+            }
+
             mainWindow.Show();
 
             // Move focus from WaitWindow to MainWindow
-            if (bWaitWindowGotFocus)
-            {
+            if (bWaitWindowGotFocus) {
                 //mainWindow.Focus();
                 mainWindow.Activate();
             }
         }
 
-        private System.Windows.Forms.Screen GetCurrentScreen()
-        {
+        private System.Windows.Forms.Screen GetCurrentScreen() {
             double waitWindowCenter_X = this.ActualWidth / 2;
             double waitWindowCenter_Y = this.ActualHeight / 2;
 
             Point centerPoint = this.PointToScreen(new Point(waitWindowCenter_X, waitWindowCenter_Y));
 
-            foreach (System.Windows.Forms.Screen screen in System.Windows.Forms.Screen.AllScreens)
-            {
-                if (centerPoint.X >= screen.Bounds.Location.X && centerPoint.X <= (screen.Bounds.Location.X + screen.Bounds.Width))
-                {
-                    if (centerPoint.Y >= screen.Bounds.Location.Y && centerPoint.Y <= (screen.Bounds.Location.Y + screen.Bounds.Height))
-                    {
+            foreach (System.Windows.Forms.Screen screen in System.Windows.Forms.Screen.AllScreens) {
+                if (centerPoint.X >= screen.Bounds.Location.X && centerPoint.X <= (screen.Bounds.Location.X + screen.Bounds.Width)) {
+                    if (centerPoint.Y >= screen.Bounds.Location.Y && centerPoint.Y <= (screen.Bounds.Location.Y + screen.Bounds.Height)) {
                         return screen;
                     }
                 }
@@ -164,23 +150,18 @@ namespace Starcounter.InstallerWPF
             return System.Windows.Forms.Screen.PrimaryScreen;
         }
 
-        private void CloseWindow()
-        {
+        private void CloseWindow() {
             canClose = true;
             Close();
         }
 
-        private void OnError(Exception e)
-        {
+        private void OnError(Exception e) {
             // Checking if we are in silent mode.
-            if (silentMode)
-            {
+            if (silentMode) {
                 // Checking if its a quiet exit message.
-                if ((e.InnerException != null) && (e.InnerException is InstallerException))
-                {
+                if ((e.InnerException != null) && (e.InnerException is InstallerException)) {
                     InstallerException installerException = e.InnerException as InstallerException;
-                    if (installerException.ErrorCode == InstallerErrorCode.QuietExit)
-                    {
+                    if (installerException.ErrorCode == InstallerErrorCode.QuietExit) {
                         this.CloseWindow();
                         return;
                     }
@@ -194,36 +175,30 @@ namespace Starcounter.InstallerWPF
             }
 
             // Checking different types of exception.
-            if ((e.InnerException != null) && (e.InnerException is InstallerException))
-            {
+            if ((e.InnerException != null) && (e.InnerException is InstallerException)) {
                 InstallerException installerException = e.InnerException as InstallerException;
 
-                switch (installerException.ErrorCode)
-                {
-                    case InstallerErrorCode.CanNotElevate:
-                    {
-                        WpfMessageBox.Show(e.Message, "Starcounter Installer.");
-                        this.CloseWindow();
-                        return;
-                    }
+                switch (installerException.ErrorCode) {
+                    case InstallerErrorCode.CanNotElevate: {
+                            WpfMessageBox.Show(e.Message, "Starcounter Installer.");
+                            this.CloseWindow();
+                            return;
+                        }
 
-                    case InstallerErrorCode.ExistingInstance:
-                    {
-                        WpfMessageBox.Show(e.Message, "Starcounter Installer.");
-                        this.CloseWindow();
-                        return;
-                    }
+                    case InstallerErrorCode.ExistingInstance: {
+                            WpfMessageBox.Show(e.Message, "Starcounter Installer.");
+                            this.CloseWindow();
+                            return;
+                        }
 
-                    case InstallerErrorCode.QuietExit:
-                    {
-                        this.CloseWindow();
-                        return;
-                    }
+                    case InstallerErrorCode.QuietExit: {
+                            this.CloseWindow();
+                            return;
+                        }
 
-                    case InstallerErrorCode.Unknown:
-                    {
-                        break;
-                    }
+                    case InstallerErrorCode.Unknown: {
+                            break;
+                        }
                 }
             }
 
@@ -261,18 +236,14 @@ namespace Starcounter.InstallerWPF
         };
 
         // Tries to remove temporary extracted files.
-        static void RemoveTempExtractedFiles()
-        {
+        static void RemoveTempExtractedFiles() {
             String current_directory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
             // Checking that we don't remove files if setup is running from installation directory.
-            if (!File.Exists(System.IO.Path.Combine(current_directory, StarcounterConstants.ProgramNames.ScCode + ".exe")))
-            {
-                foreach (String temp_file_name in TempExtractedFiles)
-                {
+            if (!File.Exists(System.IO.Path.Combine(current_directory, StarcounterConstants.ProgramNames.ScCode + ".exe"))) {
+                foreach (String temp_file_name in TempExtractedFiles) {
                     String temp_file_path = System.IO.Path.Combine(current_directory, temp_file_name);
-                    if (File.Exists(temp_file_path))
-                    {
+                    if (File.Exists(temp_file_path)) {
                         try { File.Delete(temp_file_path); }
                         catch { }
                     }
@@ -291,8 +262,7 @@ namespace Starcounter.InstallerWPF
 
         internal static String ScEnvVarName = "StarcounterBin";
         // First installer function that needs to be called.
-        void InitInstaller()
-        {
+        void InitInstaller() {
             //System.Diagnostics.Debugger.Launch();
 
             // Setting the nice WPF message box.
@@ -328,34 +298,28 @@ namespace Starcounter.InstallerWPF
 
             // Checking if special parameters are supplied.
             List<String> userArgs = new List<String>();
-            for (Int32 i = 1; i < args.Length; i++)
-            {
+            for (Int32 i = 1; i < args.Length; i++) {
                 String param = args[i];
 
-                if (param.StartsWith(ConstantsBank.SilentArg, StringComparison.InvariantCultureIgnoreCase))
-                {
+                if (param.StartsWith(ConstantsBank.SilentArg, StringComparison.InvariantCultureIgnoreCase)) {
                     silentMode = true;
                     userArgs.Add(param);
                 }
-                else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase))
-                {
+                else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase)) {
                     dontCheckOtherInstances = true;
                 }
-                else if (param.StartsWith(ConstantsBank.ParentArg, StringComparison.InvariantCultureIgnoreCase))
-                {
+                else if (param.StartsWith(ConstantsBank.ParentArg, StringComparison.InvariantCultureIgnoreCase)) {
                     parentPID = Int32.Parse(param.Substring(ConstantsBank.ParentArg.Length + 1));
                     startedByParent = true;
                 }
-                else
-                {
+                else {
                     internalMode = true;
                     userArgs.Add(param);
                 }
             }
 
             // Checking if any setup instances are running.
-            if ((!dontCheckOtherInstances) && AnotherSetupRunning())
-            {
+            if ((!dontCheckOtherInstances) && AnotherSetupRunning()) {
                 String errMsg = "Please finish working with the previous instance before running this setup.";
 
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
@@ -374,11 +338,9 @@ namespace Starcounter.InstallerWPF
             String silentMsg = "Silently ending installer process.";
 
             // Checking if parent process started us.
-            if (startedByParent)
-            {
+            if (startedByParent) {
                 // Checking if we need to run the internal setup directly.
-                if (internalMode)
-                {
+                if (internalMode) {
                     String[] userArgsArray = null;
                     if (userArgs.Count > 0)
                         userArgsArray = userArgs.ToArray();
@@ -392,16 +354,15 @@ namespace Starcounter.InstallerWPF
 
                 // Starting animation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                    new Action(delegate
-                    {
-                        // Show window
-                        this.StartAnimation();
-                        this.Visibility = System.Windows.Visibility.Visible;
+                    new Action(delegate {
+                    // Show window
+                    this.StartAnimation();
+                    this.Visibility = System.Windows.Visibility.Visible;
 
-                        //this.Focus();
-                        this.Activate();
+                    //this.Focus();
+                    this.Activate();
 
-                    }
+                }
                 ));
 
                 // Checking system requirements (calling using function
@@ -410,15 +371,13 @@ namespace Starcounter.InstallerWPF
 
                 // Stopping animation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                          new Action(delegate
-                          {
-                              // Show window
-                              this.StopAnimation();
-                          }
+                          new Action(delegate {
+                    // Show window
+                    this.StopAnimation();
+                }
                       ));
             }
-            else
-            {
+            else {
                 //System.Diagnostics.Debugger.Launch();
 
                 // Adding temp files cleanup event on parent installer process exit.
@@ -435,8 +394,7 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Sets necessary library hooks.
         /// </summary>
-        public void SetLibraryHooks()
-        {
+        public void SetLibraryHooks() {
             // Install hook to load dynamic bound dependencies from the embedded archive
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(PackagedLibrariesLoadHook);
         }
@@ -444,8 +402,7 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Starts child elevated installer instance and waits for its finish.
         /// </summary>
-        private void StartingTheElevatedInstaller(String[] args)
-        {
+        private void StartingTheElevatedInstaller(String[] args) {
             // Starting the elevated installer.
             Process scSetup = new Process();
             scSetup.StartInfo.FileName = Assembly.GetExecutingAssembly().Location;
@@ -461,8 +418,7 @@ namespace Starcounter.InstallerWPF
 
             // Exit code of the child instance.
             Int32 exitCode = 1;
-            try
-            {
+            try {
                 // Starting elevated installer.
                 scSetup.Start();
 
@@ -476,8 +432,7 @@ namespace Starcounter.InstallerWPF
                 exitCode = scSetup.ExitCode;
                 scSetup.Close();
             }
-            catch
-            {
+            catch {
                 // This can occur when user answers 'No' on elevating setup process.
                 // In this case we silently exiting the instance.
                 String errMsg = "Problems running child setup instance (e.g. elevation canceled).";
@@ -487,8 +442,7 @@ namespace Starcounter.InstallerWPF
             }
 
             // Checking for the child error code explicitly.
-            if (exitCode != 0)
-            {
+            if (exitCode != 0) {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "Setup instance terminated with error.");
             }
@@ -496,26 +450,21 @@ namespace Starcounter.InstallerWPF
 
         // Wrapper for extracting library static dependencies.
         [MethodImplAttribute(MethodImplOptions.NoInlining)]
-        void ExtractInstallerDependencies()
-        {
+        void ExtractInstallerDependencies() {
             ExtractInstallerDependenciesFromZip();
         }
 
         /// <summary>
         /// Check if another instance of setup is running.
         /// </summary>
-        Boolean AnotherSetupRunning()
-        {
+        Boolean AnotherSetupRunning() {
             // Trying to find through all processes.
             Process[] processeslist = Process.GetProcesses();
-            foreach (Process process in processeslist)
-            {
+            foreach (Process process in processeslist) {
                 if (process.ProcessName.StartsWith("Starcounter", StringComparison.CurrentCultureIgnoreCase) &&
-                    process.ProcessName.EndsWith("Setup", StringComparison.CurrentCultureIgnoreCase))
-                {
+                    process.ProcessName.EndsWith("Setup", StringComparison.CurrentCultureIgnoreCase)) {
                     // Checking process IDs.
-                    if (Process.GetCurrentProcess().Id != process.Id)
-                    {
+                    if (Process.GetCurrentProcess().Id != process.Id) {
                         // Checking if its also not a parent process.
                         if (process.Id != parentPID)
                             return true;
@@ -527,8 +476,7 @@ namespace Starcounter.InstallerWPF
 
         // Extracts library static dependencies.
         [MethodImplAttribute(MethodImplOptions.NoInlining)]
-        void ExtractInstallerDependenciesFromZip()
-        {
+        void ExtractInstallerDependenciesFromZip() {
             // Checking if archive is fake (developer-compiled installer).
             if (Configuration.ArchiveZipStream.Length < 128)
                 return;
@@ -537,12 +485,10 @@ namespace Starcounter.InstallerWPF
             string targetDirectory;
 
             targetDirectory = System.IO.Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-            try
-            {
+            try {
                 zipArchive = new ZipArchive(Configuration.ArchiveZipStream, ZipArchiveMode.Read);
             }
-            catch
-            {
+            catch {
                 // We try to open a reader on the archive data, but if we fail,
                 // we silently return, assuming we install in a development-ish
                 // environment, where the embedded archive is just a placeholder.
@@ -551,15 +497,11 @@ namespace Starcounter.InstallerWPF
             }
 
             // Extracting first-level dependencies from archive.
-            using (zipArchive)
-            {
-                foreach (var dependentBinary in staticInstallerDependencies)
-                {
-                    foreach (ZipArchiveEntry entry in zipArchive.Entries)
-                    {
+            using (zipArchive) {
+                foreach (var dependentBinary in staticInstallerDependencies) {
+                    foreach (ZipArchiveEntry entry in zipArchive.Entries) {
                         // Checking if file name is the same.
-                        if (0 == String.Compare(entry.Name, dependentBinary, true))
-                        {
+                        if (0 == String.Compare(entry.Name, dependentBinary, true)) {
                             String pathToExtractedFile = System.IO.Path.Combine(targetDirectory, entry.FullName);
                             entry.ExtractToFile(pathToExtractedFile, true);
                             File.SetAttributes(pathToExtractedFile, FileAttributes.Hidden);
@@ -573,12 +515,10 @@ namespace Starcounter.InstallerWPF
 
         // Wrapper for checking installation requirements.
         [MethodImplAttribute(MethodImplOptions.NoInlining)]
-        void CheckInstallationRequirements()
-        {
+        void CheckInstallationRequirements() {
             Utilities.CheckInstallationRequirements();
 
-            if (Utilities.IsAnotherVersionInstalled())
-            {
+            if (Utilities.IsAnotherVersionInstalled()) {
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
                 throw new Exception("Starting previous uninstaller.",
                     new InstallerException("Starting previous uninstaller.", InstallerErrorCode.QuietExit));
@@ -586,14 +526,12 @@ namespace Starcounter.InstallerWPF
         }
 
         // Callback that is used to help resolving archived libraries.
-        public Assembly PackagedLibrariesLoadHook(Object sender, ResolveEventArgs args)
-        {
+        public Assembly PackagedLibrariesLoadHook(Object sender, ResolveEventArgs args) {
             // Name of the library that should be resolved.
             AssemblyName asmName = new AssemblyName(args.Name);
             //MessageBox.Show(asmName.Name);
 
-            if (asmName.Name.EndsWith(".resources"))
-            {
+            if (asmName.Name.EndsWith(".resources")) {
                 // For some reason .Net 4.0 calls AssemblyResolve for resources as well.
                 // As a workaround we ignore these calls.
                 // https://connect.microsoft.com/VisualStudio/feedback/details/526836/wpf-appdomain-assemblyresolve-being-called-when-it-shouldnt
@@ -610,27 +548,21 @@ namespace Starcounter.InstallerWPF
             // we expect to be statically linked; if it is, we don't try to resolve
             // it because it will break something else
 
-            bool shouldBeStaticallyResolved = staticInstallerDependencies.Any<string>(delegate(string candidate)
-            {
+            bool shouldBeStaticallyResolved = staticInstallerDependencies.Any<string>(delegate(string candidate) {
                 return candidate.Equals(asmName.Name, StringComparison.InvariantCultureIgnoreCase);
             });
             if (shouldBeStaticallyResolved)
                 return null;
 
-            try
-            {
+            try {
                 // Extracting one needed DLL.
                 ZipArchive zipArchive = new ZipArchive(Configuration.ArchiveZipStream, ZipArchiveMode.Read);
-                using (zipArchive)
-                {
+                using (zipArchive) {
                     // Searching for the needed entry.
-                    foreach (ZipArchiveEntry entry in zipArchive.Entries)
-                    {
+                    foreach (ZipArchiveEntry entry in zipArchive.Entries) {
                         // Checking if file name is the same.
-                        if (0 == String.Compare(entry.Name, asmName.Name, true))
-                        {
-                            using (Stream memStream = entry.Open())
-                            {
+                        if (0 == String.Compare(entry.Name, asmName.Name, true)) {
+                            using (Stream memStream = entry.Open()) {
                                 // Reading from stream into byte array.
                                 assemblyData = new Byte[entry.Length];
                                 memStream.Read(assemblyData, 0, assemblyData.Length);
@@ -640,12 +572,10 @@ namespace Starcounter.InstallerWPF
                     }
                 }
             }
-            catch
-            {
+            catch {
                 // Obtaining current installation path with all needed binaries.
                 String binariesFolder = Environment.GetEnvironmentVariable(InitializationWindow.ScEnvVarName, EnvironmentVariableTarget.User);
-                if (binariesFolder == null)
-                {
+                if (binariesFolder == null) {
                     binariesFolder = Environment.GetEnvironmentVariable(InitializationWindow.ScEnvVarName, EnvironmentVariableTarget.Machine);
 
                     if (binariesFolder == null)
@@ -663,40 +593,33 @@ namespace Starcounter.InstallerWPF
             return null;
         }
 
-        void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
+        void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e) {
             App.Current.Dispatcher.Invoke(DispatcherPriority.Send,
-                                          new Action(delegate
-                                          {
-                                              this.ShowError((Exception)e.ExceptionObject);
-                                          }));
+                                          new Action(delegate {
+                this.ShowError((Exception)e.ExceptionObject);
+            }));
         }
 
-        void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
-        {
+        void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e) {
             e.Handled = true;
             this.ShowError(e.Exception);
         }
 
-        private void ShowError(Exception e)
-        {
-            if (Application.Current.MainWindow is MainWindow)
-            {
+        private void ShowError(Exception e) {
+            if (Application.Current.MainWindow is MainWindow) {
                 ((MainWindow)Application.Current.MainWindow).OnError(e);
 
                 // The layout will not be updated after an exception, i don't know why!. this is a workaround for that
                 ((MainWindow)Application.Current.MainWindow).UpdateLayout();
             }
-            else
-            {
+            else {
                 MessageBox.Show(e.ToString(), "Starcounter Installer", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         // Wrapper for starting post-setup processes.
         [MethodImplAttribute(MethodImplOptions.NoInlining)]
-        void StartPostSetupProcesses()
-        {
+        void StartPostSetupProcesses() {
             // Setting Starcounter variables for current process (so that subsequently
             // started processes can find the installation path).
             Environment.SetEnvironmentVariable(
@@ -723,29 +646,25 @@ namespace Starcounter.InstallerWPF
                 }));
             }
             */
-       }
+        }
 
-        private void StartDemoSequence()
-        {
+        private void StartDemoSequence() {
             string startDemoArgumentsFile = ConstantsBank.ScStartDemosTemp;
 
-            if (File.Exists(startDemoArgumentsFile))
-            {
+            if (File.Exists(startDemoArgumentsFile)) {
                 string[] lines = File.ReadAllLines(startDemoArgumentsFile);
 
                 // Consume the file.
                 FileAttributes attr = File.GetAttributes(startDemoArgumentsFile);
                 bool isReadOnly = ((attr & FileAttributes.ReadOnly) == FileAttributes.ReadOnly);
-                if (isReadOnly)
-                {
+                if (isReadOnly) {
                     // Remove readonly flag
                     attr ^= FileAttributes.ReadOnly;
                     File.SetAttributes(startDemoArgumentsFile, attr);
                 }
                 File.Delete(startDemoArgumentsFile);
 
-                if (lines != null && lines.Length > 1)
-                {
+                if (lines != null && lines.Length > 1) {
                     // Checking if there is no demo starting.
                     if (String.IsNullOrEmpty(lines[1]))
                         return;
@@ -771,27 +690,23 @@ namespace Starcounter.InstallerWPF
         #endregion
     }
 
-    public enum InstallerErrorCode
-    {
+    public enum InstallerErrorCode {
         Unknown = 0,
         ExistingInstance = 1,
         CanNotElevate = 2,
         QuietExit = 3
     }
 
-    public class InstallerException : Exception
-    {
+    public class InstallerException : Exception {
         public InstallerErrorCode ErrorCode { get; protected set; }
 
         public InstallerException(string message, Exception innerException, InstallerErrorCode errorCode)
-            : base(message, innerException)
-        {
+            : base(message, innerException) {
             this.ErrorCode = errorCode;
         }
 
         public InstallerException(string message, InstallerErrorCode errorCode)
-            : base(message)
-        {
+            : base(message) {
             this.ErrorCode = errorCode;
         }
     }
