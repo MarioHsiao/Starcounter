@@ -19,12 +19,7 @@ namespace Starcounter.Internal {
     /// </remarks>
     public static class AppsBootstrapper {
 
-        private static HttpAppServer AppServer_;
-        public static HttpAppServer AppServer
-        {
-            get { return AppServer_; }
-        }
-
+        private static HttpAppServer appServer;
         private static Timer sessionCleanupTimer;
 
         // private static StaticWebServer fileServer;
@@ -50,13 +45,12 @@ namespace Starcounter.Internal {
             StarcounterBase._DB = new DbImpl();
 
             // Setting the response handler.
-            Node.SetHandleResponse(AppServer_.HandleResponse);
+            Node.SetHandleResponse(appServer.HandleResponse);
 
             // Giving REST needed delegates.
             UserHandlerCodegen.Setup(
                 GatewayHandlers.RegisterUriHandler,
-                OnHttpMessageRoot,
-                AppServer_.HandleRequest);
+                OnHttpMessageRoot);
 
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(numSchedulers);
@@ -81,7 +75,7 @@ namespace Starcounter.Internal {
         /// </summary>
         static AppsBootstrapper() {
             var fileServer = new StaticWebServer();
-            AppServer_ = new HttpAppServer(fileServer);
+            appServer = new HttpAppServer(fileServer);
             StarcounterBase.Fileserver = fileServer;
 
             // Checking if we are inside the database worker process.
@@ -152,7 +146,7 @@ namespace Starcounter.Internal {
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
         private static Boolean OnHttpMessageRoot(Request request) {
-            var result = (Response)AppServer_.HandleRequest(request);
+            var result = (Response)appServer.Handle(request);
 
             if (result != null)
                 request.SendResponse(result.Uncompressed, 0, result.Uncompressed.Length);
