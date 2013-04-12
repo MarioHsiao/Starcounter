@@ -8,16 +8,63 @@ using System.Runtime.InteropServices;
 using System.Text;
 namespace Starcounter.Advanced
 {
+    public class ResponseSchedulerStore
+    {
+        LinkedList<Response> cachedResponses_ = new LinkedList<Response>();
+
+        public Response GetNewInstance()
+        {
+            if (cachedResponses_.Count > 0)
+            {
+                LinkedListNode<Response> respNode = cachedResponses_.Last;
+                cachedResponses_.RemoveLast();
+                return respNode.Value;
+            }
+
+            Response resp = new Response();
+            resp.AttachToCache(cachedResponses_);
+            return resp;
+        }
+    }
+
     /// <summary>
     /// The Starcounter Web Server caches resources as complete http responses.
     /// As the exact same response can often not be used, the cashed response also
     /// include useful offsets and injection points to facilitate fast transitions
     /// to individual http responses. The cached response is also used to cache resources
-    /// (compressed or uncompressed content) even if the consumer wants to embedd the content
+    /// (compressed or uncompressed content) even if the consumer wants to embed the content
     /// in a new http response.
     /// </summary>
     public class Response
     {
+        // From which cache list this response came from.
+        protected LinkedList<Response> responseCacheListFrom_ = null;
+
+        // Node with this response.
+        protected LinkedListNode<Response> responseListNode_ = null;
+
+        /// <summary>
+        /// Returns the enumerator back to the cache.
+        /// </summary>
+        internal void ReturnToCache()
+        {
+            // Returning this enumerator back to the cache.
+            responseCacheListFrom_.AddLast(responseListNode_);
+        }
+
+        /// <summary>
+        /// Should be called when attached to a cache.
+        /// </summary>
+        /// <param name="fromCache">Cache where this enumerator should be returned.</param>
+        internal void AttachToCache(LinkedList<Response> fromCache)
+        {
+            // Attaching to the specified cache.
+            responseCacheListFrom_ = fromCache;
+
+            // Creating cache node from this response.
+            responseListNode_ = new LinkedListNode<Response>(this);
+        }
+
         /// <summary>
         /// The _ uncompressed
         /// </summary>
@@ -377,11 +424,20 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Response" /> class.
+        /// Parses the HTTP response from uncompressed buffer.
         /// </summary>
-        /// <param name="buf">The buf.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public Response(Byte[] buf, Int32 lenBytes, Request httpRequest = null)
+        public void ParseResponseFromUncompressed()
+        {
+            if (UncompressedResponse_ != null)
+                ParseResponse(UncompressedResponse_, UncompressedResponse_.Length);
+        }
+
+        /// <summary>
+        /// Parses HTTP response from buffer.
+        /// </summary>
+        /// <param name="buf"></param>
+        /// <param name="lenBytes"></param>
+        public void ParseResponse(Byte[] buf, Int32 lenBytes)
         {
             UInt32 err_code;
             unsafe
@@ -436,6 +492,20 @@ namespace Starcounter.Advanced
 
                     throw ErrorCode.ToException(err_code);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Response" /> class.
+        /// </summary>
+        /// <param name="buf">The buf.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public Response(Byte[] buf, Int32 lenBytes, Request httpRequest = null)
+        {
+            unsafe
+            {
+                // Parsing given buffer.
+                ParseResponse(buf, lenBytes);
 
                 // Setting corresponding HTTP request.
                 httpRequest_ = httpRequest;
