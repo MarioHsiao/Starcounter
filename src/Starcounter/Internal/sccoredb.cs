@@ -1058,7 +1058,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_set_null(
+        public extern static uint sccoredb_put_default(
             ulong record_id,
             ulong record_addr,
             int index
