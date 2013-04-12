@@ -252,7 +252,7 @@ namespace starcounter {
             // Get the address of the mapped region and construct the shared memory
             // object in shared memory.
             the_monitor_interface_ = new(monitor_interface_region_.get_address())
-               monitor_interface;
+            monitor_interface;
 
             // Notify all waiting threads in other processes that the monitor_interface
             // is ready to be used.
@@ -447,10 +447,10 @@ namespace starcounter {
                                     // shared memory segment that this database
                                     // process had created.
 
-                                    // Erase the segment name from the cleanup_task table.
+                                    // Erase the segment name from the cleanup_task table if it exists.
                                     the_monitor_interface_->erase_segment_name
-                                       (process_register_it_2->second.get_segment_name().c_str(),
-                                       ipc_monitor_cleanup_event_);
+                                    (process_register_it_2->second.get_segment_name().c_str(),
+                                    ipc_monitor_cleanup_event_);
 
                                     try {
                                        // Try open the segment.
@@ -503,14 +503,14 @@ namespace starcounter {
                                        // Try to erase database name from
                                        // active_databases_, and notify the
                                        // active_databases_file_updater_thread_.
-                                       if (!erase_database_name
+
+										if (!erase_database_name
                                           (segment_name_to_database_name
                                           (process_register_it_2->second
                                           .get_segment_name()))) {
                                              // Failed to erase the database name.
                                              log().error(SCERRIPCMONITORERASEDATABASENAME);
                                        }
-
                                        // Remove from the process_register.
                                        process_register_.erase
                                           (process_register_it_2);
@@ -913,8 +913,10 @@ namespace starcounter {
                            }
                            catch (shared_interface_exception&) {
                               // Failed to open the database shared memory segment and
-                              // is unable to notify the clients.
-                              log().error(SCERROPENDBSHMSEGTONOTIFYCLIENTS);
+                              // is unable to notify the clients. This event is not interesting,
+							  // it just means there are no clients (or any other process) attached
+							  // to the segment so there is nobody to notify. This is natural.
+                              //log().error(SCERROPENDBSHMSEGTONOTIFYCLIENTS);
                            }
                            catch (boost::interprocess::interprocess_exception&) {
                               log().error(SCERRBOOSTINTERPROCESSEXCEPTION);
@@ -954,6 +956,7 @@ namespace starcounter {
                   // apc_function() was called and returned instantly.
                   switch (the_monitor_interface_->get_operation()) {
                   case monitor_interface::registration_request: {
+
                      // Store info about the registering client process,
                      // if not already registered.
                      /// TODO: Handle the case if the pid exists already.
