@@ -1,3 +1,4 @@
+
 :- multifile schemafile/2, class/4, extension/4, property/5, method/6, gmethod/7.
 :- dynamic schemafile/2, class/4, extension/4, property/5, method/6, gmethod/7.
 :- assert(schemafile('MyDB','schema.pl')).

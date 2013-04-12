@@ -1,4 +1,5 @@
 
+
 /* Tokenizer, Peter Idestam-Almquist, Starcounter, 2011-11-30. */
 
 /* A tokenizer for SQL following SQL92. */

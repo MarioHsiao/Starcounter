@@ -1,5 +1,6 @@
 
-/* Platform, Peter Idestam-Almquist, Starcounter, 2013-03-08. */
+
+/* Platform, Peter Idestam-Almquist, Starcounter, 2013-04-12. */
 
 /* Platform dependent configuration. */
 
