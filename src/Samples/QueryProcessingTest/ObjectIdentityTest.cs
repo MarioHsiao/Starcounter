@@ -8,7 +8,6 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Test object identities in SQL");
             ulong n = Db.SQL<ulong>("select objectno from account").First;
             Trace.Assert(n > 0);
-            Console.WriteLine("Object Identity is " + n);
             HelpMethods.LogEvent("Finished testing object identities in SQL");
         }
     }

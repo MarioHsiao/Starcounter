@@ -48,7 +48,7 @@ namespace QueryProcessingTest {
 
         public static void DeleteAccounts() {
             Db.Transaction(delegate {
-                Db.SlowSQL("DELETE FROM Account");
+                Db.SlowSQL("DELETE FROM Account where Accountid >= 0");
                 Db.SlowSQL("DELETE FROM QueryProcessingTest.User");
             });
         }
