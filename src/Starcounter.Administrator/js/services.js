@@ -39,6 +39,15 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
     });
 
+    $provide.factory('App', function ($resource) {
+
+        return $resource('/apps/:appID', { appID: '@appID' }, {
+            query: { method: 'GET', isArray: false },
+        });
+
+    });
+
+
     $provide.factory('Log', function ($resource) {
 
         return $resource('/log', {}, {

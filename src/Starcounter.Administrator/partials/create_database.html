@@ -1,5 +1,9 @@
-﻿<legend>Create Database</legend>
-<form class="form-horizontal" >
+﻿
+
+
+<form class="form-horizontal  well well-small" >
+
+<legend>Create Database</legend>
 
     <div class="control-group">
         <label class="control-label" for="chunksNumber">Name</label>
@@ -36,7 +40,6 @@
             <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="imageDirectory" placeholder="imageDirectory" ng-model="settings.imageDirectory">
         </div>
     </div>
-
 
     <div class="control-group">
         <label class="control-label" for="tempDirectory">Temp Directory</label>
@@ -102,9 +105,10 @@
     </div>
 
     <div class="form-actions">
-        <button type="submit"  ng-disabled="isBusy == true" class="btn btn-primary" ng-click="btnClick_createDatabase()">Create Database</button>
+        <button type="submit"  ng-disabled="isBusy == true" class="btn btn-success" ng-click="btnClick_createDatabase()">Create Database</button>
         <!--<a class="btn" href="#/databases">Cancel</a>-->
         {{status}}
     </div>
+
 </form>
 
