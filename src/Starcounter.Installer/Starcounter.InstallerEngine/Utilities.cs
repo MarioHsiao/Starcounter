@@ -411,16 +411,33 @@ namespace Starcounter.InstallerEngine
             return false;
         }
 
+        [DllImport("Starcounter.InstallerNativeHelper.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static void sc_check_cpu_features(
+            ref Boolean popcnt_instr
+        );
+
         /// <summary>
         /// Checks if current machine is one core.
         /// </summary>
         /// <returns>True if one core.</returns>
-        public static Boolean OneCoreMachine()
+        public static void CheckProcessorRequirements()
         {
+            // Checking number of cores.
             if (Environment.ProcessorCount <= 1)
-                return true;
+            {
+                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
+                    "To run Starcounter you must have more than one logical core on the machine.");
+            }
 
-            return false;
+            // Checking processor features.
+            Boolean popcntInstr = false;
+            sc_check_cpu_features(ref popcntInstr);
+            if (!popcntInstr)
+            {
+                Utilities.MessageBoxWarning(
+                    "Your CPU does not support POPCNT instruction, which is recommended to run Starcounter.",
+                    "Unavailable CPU feature..");
+            }
         }
 
         /// <summary>
@@ -557,12 +574,8 @@ namespace Starcounter.InstallerEngine
                     "Starcounter requires 64-bit operating system to be installed and run on.");
             }
 
-            // Checking if its one core machine.
-            if (Utilities.OneCoreMachine())
-            {
-                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
-                    "To run Starcounter you must have more than one logical core on the machine.");
-            }
+            // Checking for processor features.
+            Utilities.CheckProcessorRequirements();
 
             // Checking who is running this setup.
             if (!Utilities.RunsAsAdministrator)

@@ -43,10 +43,12 @@
                         <!-- Welcome text -->
                         <Grid Margin="0,7.5,0,7.5">
                             <TextBlock TextWrapping="Wrap" Style="{DynamicResource PageWelcomeHeaderStyle}">
-                                Starcounter is the world's fastest concurrent ACID database engine. It is designed to be the number one choice for modern .NET applications.
+                                Starcounter is the worlds fastest concurrent ACID database engine.
                                 <LineBreak/>
                                 <LineBreak/>                               
-                                Starcounter offers extreme performance by its memory-centric model using RAM as it main medium while maintaining full data security such as transaction logging and database images on disk.
+                                Starcounter offers extreme performance using a unique memory-centric design. 
+                                <LineBreak/> 
+                                It uses RAM as the main medium while maintaining enterprise level durability using transaction logging and database images on disk.
                                 <LineBreak/>
                                 <LineBreak/>
                                 Please check our 
