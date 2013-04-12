@@ -109,9 +109,16 @@ namespace Starcounter.Internal
         /// <param name="propertyDefs">The list of all properties of the type.</param>
         /// <param name="propertyName">The name of the property.</param>
         /// <param name="type">The type of the property.</param>
-        private static void AddObjectIdentityProperty(List<PropertyDef> propertyDefs, String propertyName, DbTypeCode type) {
-            PropertyDef prop = new PropertyDef(propertyName, type, false);
-            propertyDefs.Add(prop);
+        private static void AddObjectIdentityProperty(List<PropertyDef> propertyDefs, String propertyName, DbTypeCode type, ref bool isObjectID, ref bool isObjectNo) {
+            PropertyDef propertyDef = new PropertyDef(propertyName, type, false);
+
+            string columnName = null;
+            //var backingField = databaseAttribute.BackingField;
+            //if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField) {
+            //    columnName = backingField.Name;
+            //}
+            propertyDef.ColumnName = columnName;
+            AddProperty(propertyDef, propertyDefs, ref isObjectID, ref isObjectNo);
         }
 
         /// <summary>
@@ -128,13 +135,6 @@ namespace Starcounter.Internal
             Boolean isObjectNo = false;
 
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
-            if (!isObjectNo)
-                AddObjectIdentityProperty(propertyDefs, "ObjectNo", DbTypeCode.UInt64);
-#if false
-            AddObjectIdentityProperty(propertyDefs, "Identity", DbTypeCode.UInt64);
-            if (!isObjectID)
-                AddObjectIdentityProperty(propertyDefs, "ObjectID", DbTypeCode.String);
-#endif
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
             LoaderHelper.MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray);
@@ -277,6 +277,12 @@ namespace Starcounter.Internal
                         break;
                 }
             }
+            if (!isObjectNo)
+                AddObjectIdentityProperty(propertyDefs, "ObjectNo", DbTypeCode.UInt64, ref isObjectID, ref isObjectNo);
+#if false
+            if (!isObjectID)
+                AddObjectIdentityProperty(propertyDefs, "ObjectID", DbTypeCode.String);
+#endif
         }
 
         /// <summary>
