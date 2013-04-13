@@ -112,6 +112,7 @@ namespace Starcounter.Advanced {
 
                 // Setting the request data pointer.
                 http_request_struct_->socket_data_ = request_native_buf;
+                http_request_struct_->params_info_ptr_ = IntPtr.Zero;
 
                 // Indicating that we internally constructing Request.
                 isInternalRequest = true;
@@ -149,6 +150,14 @@ namespace Starcounter.Advanced {
                 if (isInternalRequest) {
                     // Releasing internal resources here.
                     BitsAndBytes.Free((IntPtr)http_request_struct_->socket_data_);
+                    http_request_struct_->socket_data_ = (Byte*)0;
+
+                    if (http_request_struct_->params_info_ptr_ != IntPtr.Zero)
+                    {
+                        BitsAndBytes.Free(http_request_struct_->params_info_ptr_);
+                        http_request_struct_->params_info_ptr_ = IntPtr.Zero;
+                    }
+
                 }
                 else {
                     // Releasing data stream resources like chunks, etc.
@@ -195,10 +204,12 @@ namespace Starcounter.Advanced {
             UInt16 handler_id,
             Byte* http_request_begin,
             Byte* socket_data,
-            INetworkDataStream data_stream) {
+            INetworkDataStream data_stream)
+        {
             http_request_struct_ = (HttpRequestInternal*)http_request_begin;
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
             http_request_struct_->socket_data_ = socket_data;
+            http_request_struct_->params_info_ptr_ = IntPtr.Zero;
             data_stream_ = data_stream;
             data_stream_.Init(chunk_data, single_chunk, chunk_index);
             handlerId_ = handler_id;
@@ -236,6 +247,18 @@ namespace Starcounter.Advanced {
         {
             get { return handlerId_; }
             set { handlerId_ = value; } 
+        }
+
+        /// <summary>
+        /// Setting parameters info pointer.
+        /// </summary>
+        /// <param name="ptr"></param>
+        public void SetParamsInfoPtr(IntPtr ptr)
+        {
+            unsafe
+            {
+                http_request_struct_->params_info_ptr_ = ptr;
+            }
         }
 
         // TODO
@@ -467,9 +490,14 @@ namespace Starcounter.Advanced {
         /// Checks if HTTP request already has session.
         /// </summary>
         public Boolean HasSession {
-            get {
-                unsafe {
-                    return INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
+            get
+            {
+                unsafe
+                {
+                    if (session_ != null)
+                        return INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
+
+                    return false;
                 }
             }
         }
@@ -751,6 +779,11 @@ namespace Starcounter.Advanced {
         public unsafe Byte* socket_data_;
 
         /// <summary>
+        /// Pointer to parameters structure.
+        /// </summary>
+        public IntPtr params_info_ptr_;
+
+        /// <summary>
         /// Gets the raw request.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
@@ -767,7 +800,10 @@ namespace Starcounter.Advanced {
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
         public IntPtr GetRawParametersInfo() {
-            return (IntPtr)(socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
+            if (params_info_ptr_ == IntPtr.Zero)
+                return (IntPtr)(socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
+
+            return params_info_ptr_;
         }
 
         /// <summary>
