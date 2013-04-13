@@ -32,34 +32,33 @@ namespace Starcounter.Internal
         /// </summary>
         public const ulong INVALID_RECORD_ADDR = 0xFFFFFFFFFF;
 
-
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_UINT64 = 0x01;
+        public const byte SC_BASETYPE_STRING = 0x01;
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_SINT64 = 0x02;
+        public const byte SC_BASETYPE_UINT64 = 0x02;
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_SINGLE = 0x03;
+        public const byte SC_BASETYPE_BINARY = 0x03;
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_DOUBLE = 0x04;
+        public const byte SC_BASETYPE_SINT64 = 0x04;
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_BINARY = 0x05;
+        public const byte SC_BASETYPE_LBINARY = 0x05;
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_STRING = 0x06;
-        /// <summary>
-        /// </summary>
-        public const byte SC_BASETYPE_DECIMAL = 0x07;
+        public const byte SC_BASETYPE_DECIMAL = 0x06;
         /// <summary>
         /// </summary>
         public const byte SC_BASETYPE_OBJREF = 0x08;
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_LBINARY = 0x09;
+        public const byte SC_BASETYPE_SINGLE = 0x0A;
+        /// <summary>
+        /// </summary>
+        public const byte SC_BASETYPE_DOUBLE = 0x0C;
 
         /// <summary>
         /// </summary>
