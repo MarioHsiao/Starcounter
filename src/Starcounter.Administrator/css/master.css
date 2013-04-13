@@ -1,5 +1,12 @@
-﻿body { padding-top: 45px; }
+﻿/*body { padding-top: 45px; }*/
 
+/* APP STATUS */
+
+.Running {
+    color: #00a100;
+}
+
+/* LOG TYPE */
 .Debug {
 }
 
@@ -45,8 +52,55 @@
 .console {
     background-color: #000000;
     color: white;
-    padding:5px;
-    margin-top:10px;
-    font-size:90%;
-    font-family:"Courier New", Courier, monospace;
+    padding: 5px;
+    margin-top: 10px;
+    font-size: 90%;
+    font-family: "Courier New", Courier, monospace;
+}
+
+
+.navbar-inner {
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+}
+
+.navbar {
+    margin-bottom: 0px;
+}
+
+
+
+
+.toplinks, navbar-inner {
+    padding-top: 5px;
+    padding-right: 20px;
+    padding-left: 20px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+    border-left: 1px solid #d4d4d4;
+    border-right: 1px solid #d4d4d4;
+    border-bottom: 1px solid #d4d4d4;
+  background-image: -moz-linear-gradient(top, #ffffff, #f2f2f2);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f2f2f2), to(#f2f2f2));
+  background-image: -webkit-linear-gradient(top, #f2f2f2, #f2f2f2);
+  background-image: -o-linear-gradient(top, #f2f2f2, #f2f2f2);
+  background-image: linear-gradient(to bottom, #fefefe, #fefefe);
+
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.065);
+     -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.065);
+          box-shadow: 0px 4px 2px rgba(0, 0, 0, 0.05);
+
+}
+
+
+.toplinks .nav-pills {
+    margin-bottom: 5px;
+}
+
+
+
+.fix-word-wrap-table {
+    table-layout: fixed;
+    word-wrap: break-word;
 }

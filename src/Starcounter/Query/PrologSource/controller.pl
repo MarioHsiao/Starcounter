@@ -1,10 +1,12 @@
 
-/* Controller, Peter Idestam-Almquist, Starcounter, 2013-02-06. */
+
+/* Controller, Peter Idestam-Almquist, Starcounter, 2013-04-12. */
 
 /* TODO: Control HintSpec in control_aggregation_hintspec/3? */
 /* TODO: Separate between likeStatic when pattern is strLiteral and likeDynamic otherwise. */
 /* TODO: The first matching method (w.r.t. arguments) is chosen not the best matching method. */
 
+/* 13-04-12: Added Database to schema info. */
 /* 13-02-06: Fixed bug regarding istype_predicate/3. */
 /* 13-01-28: Added support of is-type comparison by adding istype_predicate/3. */
 /* 11-12-08: Changed fetch number and offset types to numerical (from integer). */
@@ -43,17 +45,17 @@
 
 /*===== Main. =====*/
 
-/* control(+Tree1,+Tables,-Tree2,-TypeDef,-ErrHead,-ErrTail):- 
-*	Controls that all referenced tables and columns exist, and that all operands are 
-*	of appropriate types.
+/* control(+Database,+Tree1,+Tables,-Tree2,-TypeDef,-ErrHead,-ErrTail):- 
+*	Controls that all referenced tables and columns exist in the database schema, 
+* 	and that all operands are of appropriate types.
 *	Also returns a difference list ErrHead-ErrTail of errors.
 */
-control(noTree,[],noTree,noTypeDef,Err,Err):- !.
-control(Tree1,Tables,Tree2,TypeDef,Err1,Err4):- 
+control(_,noTree,[],noTree,noTypeDef,Err,Err):- !.
+control(Database,Tree1,Tables,Tree2,TypeDef,Err1,Err4):- 
 	control_aggregation_select(Tree1,Err1,Err2), 
-	control_select(Tree1,Tree2,Err2,Err3), 
-	create_type_definition(Tree2,Tables,TypeDef,Err3,Err4), !.
-control(_,_,noTree,noTree,['Unknown error in module controller.'|Err],Err):- !.
+	control_select(Database,Tree1,Tree2,Err2,Err3), 
+	create_type_definition(Database,Tree2,Tables,TypeDef,Err3,Err4), !.
+control(_,_,_,noTree,noTree,['Unknown error in module controller.'|Err],Err):- !.
 
 
 /*===== Control aggregation. =====*/
@@ -158,27 +160,27 @@ control_aggregation_valueexpr(tmpPath(_,_),Err,Err):- !.
 
 /* Traverse select. */
 
-control_select(select2(Quant,Columns1,From1,Where1,SortSpec1,FetchSpec1,Hints1),Tree,Err1,Err8):-  
+control_select(Database,select2(Quant,Columns1,From1,Where1,SortSpec1,FetchSpec1,Hints1),Tree,Err1,Err8):-  
 	control_select_quantifier(Quant,Err1,Err2), 
-	control_column_list(Columns1,Columns2,[],Err2,Err3), 
-	control_tableref(From1,From2,Err3,Err4), 
-	control_condition(Where1,Where2,Err4,Err5), 
-	control_sortspec_list(SortSpec1,SortSpec2,Err5,Err6), 
+	control_column_list(Database,Columns1,Columns2,[],Err2,Err3), 
+	control_tableref(Database,From1,From2,Err3,Err4), 
+	control_condition(Database,Where1,Where2,Err4,Err5), 
+	control_sortspec_list(Database,SortSpec1,SortSpec2,Err5,Err6), 
 	control_fetchspec(FetchSpec1,FetchSpec2,Err6,Err7), 
-	control_hint_list(Hints1,Hints2,Err7,Err8), 
+	control_hint_list(Database,Hints1,Hints2,Err7,Err8), 
 	Tree = select2(Quant,Columns2,From2,Where2,SortSpec2,FetchSpec2,Hints2), !.
 
-control_select(select3(Quant,Columns1,From1,Where1,GroupBy1,SetFuncs1,Having1,TempExtent,SortSpec1,FetchSpec1,Hints1),Tree,Err1,Err11):- 
+control_select(Database,select3(Quant,Columns1,From1,Where1,GroupBy1,SetFuncs1,Having1,TempExtent,SortSpec1,FetchSpec1,Hints1),Tree,Err1,Err11):- 
 	control_select_quantifier(Quant,Err1,Err2), 
-	control_column_list(Columns1,Columns2,[],Err2,Err3), 
-	control_tableref(From1,From2,Err3,Err4), 
-	control_condition(Where1,Where2,Err4,Err5), 
-	control_valueexpr_list(GroupBy1,GroupBy2,_,Err5,Err6), 
-	control_valueexpr_list(SetFuncs1,SetFuncs2,_,Err6,Err7), 
-	control_condition(Having1,Having2,Err7,Err8), 
-	control_sortspec_list(SortSpec1,SortSpec2,Err8,Err9), 
+	control_column_list(Database,Columns1,Columns2,[],Err2,Err3), 
+	control_tableref(Database,From1,From2,Err3,Err4), 
+	control_condition(Database,Where1,Where2,Err4,Err5), 
+	control_valueexpr_list(Database,GroupBy1,GroupBy2,_,Err5,Err6), 
+	control_valueexpr_list(Database,SetFuncs1,SetFuncs2,_,Err6,Err7), 
+	control_condition(Database,Having1,Having2,Err7,Err8), 
+	control_sortspec_list(Database,SortSpec1,SortSpec2,Err8,Err9), 
 	control_fetchspec(FetchSpec1,FetchSpec2,Err9,Err10), 
-	control_hint_list(Hints1,Hints2,Err10,Err11), 
+	control_hint_list(Database,Hints1,Hints2,Err10,Err11), 
 	create_sortspec_list(GroupBy2,GroupBy3),
 	Tree = select3(Quant,Columns2,From2,Where2,GroupBy3,SetFuncs2,Having2,TempExtent,SortSpec2,FetchSpec2,Hints2), !.
 
@@ -205,209 +207,189 @@ control_fetchspec_offset(Literal,Literal,['The fetch offset must be of type inte
 
 /* Traverse hintlist. */
 
-control_hint_list(Hints1,Hints3,['More than one join-order hint is not allowed.'|Err1],Err2):- 
+control_hint_list(Database,Hints1,Hints3,['More than one join-order hint is not allowed.'|Err1],Err2):- 
 	lists:select(joinOrderHint(_),Hints1,Hints2), 
 	lists:select(joinOrderHint(_),Hints2,_), !, 
-	control_hint_list2(Hints1,Hints3,Err1,Err2), !.
-control_hint_list(Hints1,Hints2,Err1,Err2):- 
-	control_hint_list2(Hints1,Hints2,Err1,Err2), !.
+	control_hint_list2(Database,Hints1,Hints3,Err1,Err2), !.
+control_hint_list(Database,Hints1,Hints2,Err1,Err2):- 
+	control_hint_list2(Database,Hints1,Hints2,Err1,Err2), !.
 
-control_hint_list2([Hint1|Hs1],[Hint2|Hs2],Err1,Err3):- 
-	control_hint(Hint1,Hint2,Err1,Err2), 
-	control_hint_list2(Hs1,Hs2,Err2,Err3), !.
-control_hint_list2([],[],Err,Err):- !.
+control_hint_list2(Database,[Hint1|Hs1],[Hint2|Hs2],Err1,Err3):- 
+	control_hint(Database,Hint1,Hint2,Err1,Err2), 
+	control_hint_list2(Database,Hs1,Hs2,Err2,Err3), !.
+control_hint_list2(_,[],[],Err,Err):- !.
 
 /* Traverse hint. */
 
-control_hint(indexHint(Extent1,indexName(Name)),indexHint(Extent2,indexName(Name)),Err1,Err2):- 
-	control_path([Extent1],[Extent2],_,Err1,Err2), !.
-control_hint(joinOrderHint(fixed),joinOrderHint(fixed),Err,Err):- !.
-control_hint(joinOrderHint(ExtentList1),joinOrderHint(ExtentList2),Err1,Err2):- 
-	control_extent_list(ExtentList1,ExtentList2,Err1,Err2), !.
+control_hint(Database,indexHint(Extent1,indexName(Name)),indexHint(Extent2,indexName(Name)),Err1,Err2):- 
+	control_path(Database,[Extent1],[Extent2],_,Err1,Err2), !.
+control_hint(_,joinOrderHint(fixed),joinOrderHint(fixed),Err,Err):- !.
+control_hint(Database,joinOrderHint(ExtentList1),joinOrderHint(ExtentList2),Err1,Err2):- 
+	control_extent_list(Database,ExtentList1,ExtentList2,Err1,Err2), !.
 
 /* Traverse extent_list. */
 
-control_extent_list([Extent1|Es1],[Extent2|Es2],Err1,Err3):- 
-	control_path([Extent1],[Extent2],_,Err1,Err2), 
-	control_extent_list(Es1,Es2,Err2,Err3), !.
-control_extent_list([],[],Err,Err):- !.
+control_extent_list(Database,[Extent1|Es1],[Extent2|Es2],Err1,Err3):- 
+	control_path(Database,[Extent1],[Extent2],_,Err1,Err2), 
+	control_extent_list(Database,Es1,Es2,Err2,Err3), !.
+control_extent_list(_,[],[],Err,Err):- !.
 
 /* Traverse sortspec_list. */
 
-control_sortspec_list([SortSpec1|SSs1],[SortSpec2|SSs2],Err1,Err3):- 
-	control_sortspec(SortSpec1,SortSpec2,Err1,Err2), 
-	control_sortspec_list(SSs1,SSs2,Err2,Err3), !.
-control_sortspec_list([],[],Err,Err):- !.
+control_sortspec_list(Database,[SortSpec1|SSs1],[SortSpec2|SSs2],Err1,Err3):- 
+	control_sortspec(Database,SortSpec1,SortSpec2,Err1,Err2), 
+	control_sortspec_list(Database,SSs1,SSs2,Err2,Err3), !.
+control_sortspec_list(_,[],[],Err,Err):- !.
 
 /* Traverse sortspec. */
 
-control_sortspec(sortSpec(any,Expr1,SortOrder),SortSpecStruct,Err1,Err2):- 
-	control_valueexpr(Expr1,Expr2,Type,Err1,Err2), 
+control_sortspec(Database,sortSpec(any,Expr1,SortOrder),SortSpecStruct,Err1,Err2):- 
+	control_valueexpr(Database,Expr1,Expr2,Type,Err1,Err2), 
 	create_sortspec_struct(Type,Expr2,SortOrder,SortSpecStruct), !.
-control_sortspec(random,random,Err,Err):- !.
+control_sortspec(_,random,random,Err,Err):- !.
 
 /* Traverse column_list. */
 
-/* control_column_list(+ColumnList,-ColumnsHead,-ColumnsTail,-ErrHead,-ErrTail) */
-/***090223
-control_column_list([Column|Cs1],Cs4,Err1,Err3):- 
-	control_column(Column,Cs2,Err1,Err2), 
-	control_column_list(Cs1,Cs3,Err2,Err3), 
-	lists:append(Cs2,Cs3,Cs4), !.
-control_column_list([],[],Err,Err):- !.
-***/
-control_column_list([Column|Cs1],Cs2,Cs4,Err1,Err3):- 
-	control_column(Column,Cs2,Cs3,Err1,Err2), 
-	control_column_list(Cs1,Cs3,Cs4,Err2,Err3), !.
-control_column_list([],Cs,Cs,Err,Err):- !.
+/* control_column_list(+Database,+ColumnList,-ColumnsHead,-ColumnsTail,-ErrHead,-ErrTail) */
+control_column_list(Database,[Column|Cs1],Cs2,Cs4,Err1,Err3):- 
+	control_column(Database,Column,Cs2,Cs3,Err1,Err2), 
+	control_column_list(Database,Cs1,Cs3,Cs4,Err2,Err3), !.
+control_column_list(_,[],Cs,Cs,Err,Err):- !.
 
 /* Traverse column. */
 
-/***090223
-control_column(as(path(many,Path),name(noName)),ColumnList,Err1,Err2):- !, 
-	control_path_asterisk(Path,ColumnList,Err1,Err2), !.
-control_column(as(Expr1,Name),[as(Expr2,Name)],Err1,Err2):- !, 
-	control_valueexpr(Expr1,Expr2,_,Err1,Err2), !.
-control_column(Expr1,[Expr2],Err1,Err2):- 
-	control_valueexpr(Expr1,Expr2,_,Err1,Err2), !.
-***/
-control_column(as(path(many,Path),name(noName)),Cs1,Cs2,Err1,Err2):- !, 
-	control_path_asterisk(Path,Cs1,Cs2,Err1,Err2), !.
-control_column(as(Expr1,Name),[as(Expr2,Name)|Cs],Cs,Err1,Err2):- !, 
-	control_valueexpr(Expr1,Expr2,_,Err1,Err2), !.
-control_column(Expr1,[Expr2|Cs],Cs,Err1,Err2):- 
-	control_valueexpr(Expr1,Expr2,_,Err1,Err2), !.
+control_column(Database,as(path(many,Path),name(noName)),Cs1,Cs2,Err1,Err2):- !, 
+	control_path_asterisk(Database,Path,Cs1,Cs2,Err1,Err2), !.
+control_column(Database,as(Expr1,Name),[as(Expr2,Name)|Cs],Cs,Err1,Err2):- !, 
+	control_valueexpr(Database,Expr1,Expr2,_,Err1,Err2), !.
+control_column(Database,Expr1,[Expr2|Cs],Cs,Err1,Err2):- 
+	control_valueexpr(Database,Expr1,Expr2,_,Err1,Err2), !.
 
 /* Traverse tableref. */
 
-control_tableref(extent(Num,Id1),extent(Num,Id2),Err1,Err2):- !, 
-	control_table(Id1,Id2,Err1,Err2), !.
-control_tableref(join2(Type,Table1,Table2),join2(Type,Table3,Table4),Err1,Err4):- !, 
+control_tableref(Database,extent(Num,Id1),extent(Num,Id2),Err1,Err2):- !, 
+	control_table(Database,Id1,Id2,Err1,Err2), !.
+control_tableref(Database,join2(Type,Table1,Table2),join2(Type,Table3,Table4),Err1,Err4):- !, 
 	control_jointype(Type,Err1,Err2), 
-	control_tableref(Table1,Table3,Err2,Err3), 
-	control_tableref(Table2,Table4,Err3,Err4), !.
-control_tableref(QuerySpec1,QuerySpec2,Err1,Err2):- 
-	control_queryspec(QuerySpec1,QuerySpec2,_,Err1,Err2), !.
+	control_tableref(Database,Table1,Table3,Err2,Err3), 
+	control_tableref(Database,Table2,Table4,Err3,Err4), !.
+control_tableref(Database,QuerySpec1,QuerySpec2,Err1,Err2):- 
+	control_queryspec(Database,QuerySpec1,QuerySpec2,_,Err1,Err2), !.
 
 
 /* Traverse condition. */
 
-control_condition(literal(logical,Value),literal(logical,Value),Err,Err):- !.
-control_condition(operation(logical,Operator,Cond1,Cond2),operation(logical,Operator,Cond3,Cond4),Err1,Err3):- 
-	control_condition(Cond1,Cond3,Err1,Err2), 
-	control_condition(Cond2,Cond4,Err2,Err3), !.
-control_condition(operation(logical,Operator,Cond1),operation(logical,Operator,Cond2),Err1,Err2):- 
-	control_condition(Cond1,Cond2,Err1,Err2), !.
-control_condition(comparison(any,Operator,Expr1,Expr2),CompStruct,Err1,Err4):- 
-	control_valueexpr(Expr1,Expr3,Type1,Err1,Err2), 
-	control_valueexpr(Expr2,Expr4,Type2,Err2,Err3), 
+control_condition(_,literal(logical,Value),literal(logical,Value),Err,Err):- !.
+control_condition(Database,operation(logical,Operator,Cond1,Cond2),operation(logical,Operator,Cond3,Cond4),Err1,Err3):- 
+	control_condition(Database,Cond1,Cond3,Err1,Err2), 
+	control_condition(Database,Cond2,Cond4,Err2,Err3), !.
+control_condition(Database,operation(logical,Operator,Cond1),operation(logical,Operator,Cond2),Err1,Err2):- 
+	control_condition(Database,Cond1,Cond2,Err1,Err2), !.
+control_condition(Database,comparison(any,Operator,Expr1,Expr2),CompStruct,Err1,Err4):- 
+	control_valueexpr(Database,Expr1,Expr3,Type1,Err1,Err2), 
+	control_valueexpr(Database,Expr2,Expr4,Type2,Err2,Err3), 
 	control_comparison_types(Operator,Type1,Type2,Type3,Err3,Err4), 
 	create_comparison_struct(Type3,Operator,Expr3,Expr4,CompStruct), !.
-control_condition(comparison(any,Operator,Expr1,Expr2,Expr3),CompStruct,Err1,Err5):- 
-	control_valueexpr(Expr1,Expr4,Type1,Err1,Err2), 
-	control_valueexpr(Expr2,Expr5,Type2,Err2,Err3), 
-	control_valueexpr(Expr3,Expr6,Type3,Err3,Err4), 
+control_condition(Database,comparison(any,Operator,Expr1,Expr2,Expr3),CompStruct,Err1,Err5):- 
+	control_valueexpr(Database,Expr1,Expr4,Type1,Err1,Err2), 
+	control_valueexpr(Database,Expr2,Expr5,Type2,Err2,Err3), 
+	control_valueexpr(Database,Expr3,Expr6,Type3,Err3,Err4), 
 	control_comparison_types(Operator,Type1,Type2,Type3,Type4,Err4,Err5), 
 	create_comparison_struct(Type4,Operator,Expr4,Expr5,Expr6,CompStruct), !.
-/*** 100923
-control_condition(inPredicate(Expr1,ValueList1),inPredicate(Expr2,ValueList2),Err1,Err4):- 
-	control_valueexpr(Expr1,Expr2,Type,Err1,Err2), 
-	control_inpredicate(ValueList1,ValueList2,Types,Err2,Err3), 
-	control_in_types(Type,Types,Err3,Err4), !.
-***/
-control_condition(inPredicate(Expr,ValueList),inPredicate(Expr,ValueList),Err1,Err2):- 
+control_condition(_,inPredicate(Expr,ValueList),inPredicate(Expr,ValueList),Err1,Err2):- 
 	Err1 = ['The in-predicate is not supported.'|Err2], !.
-control_condition(isTypePredicate(Op,Expr1,TypeExpr1),isTypePredicate(Op,Expr3,TypeExpr2),Err1,Err3):- 
-	control_valueexpr(Expr1,Expr2,_,Err1,Err2), 
-	control_typeexpr(TypeExpr1,TypeExpr2,Err2,Err3), 
+control_condition(Database,isTypePredicate(Op,Expr1,TypeExpr1),isTypePredicate(Op,Expr3,TypeExpr2),Err1,Err3):- 
+	control_valueexpr(Database,Expr1,Expr2,_,Err1,Err2), 
+	control_typeexpr(Database,TypeExpr1,TypeExpr2,Err2,Err3), 
 	type_any(Expr2,object('Starcounter.Entity'),Expr3), !.
 
 /* Traverse inpredicate. */
 
-control_inpredicate(ValueList1,ValueList2,Types,Err1,Err2):- 
-	control_valueexpr_list(ValueList1,ValueList2,Types,Err1,Err2), !.
-control_inpredicate(ValueList1,ValueList2,Types,Err1,Err3):- 
-	control_queryspec(ValueList1,ValueList2,Types,Err1,Err2), 
+control_inpredicate(Database,ValueList1,ValueList2,Types,Err1,Err2):- 
+	control_valueexpr_list(Database,ValueList1,ValueList2,Types,Err1,Err2), !.
+control_inpredicate(Database,ValueList1,ValueList2,Types,Err1,Err3):- 
+	control_queryspec(Database,ValueList1,ValueList2,Types,Err1,Err2), 
 	control_in_query(Types,Err2,Err3), !.
 
 /* Traverse type expression. */
 
-control_typeexpr(variable(any,Num),variable(type,Num),Err,Err):- !.
-control_typeexpr(literal(type,Type1),literal(type,Type2),Err1,Err2):- 
-	control_table(Type1,Type2,Err1,Err2), !.
+control_typeexpr(_,variable(any,Num),variable(type,Num),Err,Err):- !.
+control_typeexpr(Database,literal(type,Type1),literal(type,Type2),Err1,Err2):- 
+	control_table(Database,Type1,Type2,Err1,Err2), !.
 
 /* Traverse valueexpr_list. */
 
-control_valueexpr_list([Expr1|Es1],[Expr2|Es2],[Type|Ts],Err1,Err3):- 
-	control_valueexpr(Expr1,Expr2,Type,Err1,Err2), 
-	control_valueexpr_list(Es1,Es2,Ts,Err2,Err3), !.
-control_valueexpr_list([],[],[],Err,Err):- !.
+control_valueexpr_list(Database,[Expr1|Es1],[Expr2|Es2],[Type|Ts],Err1,Err3):- 
+	control_valueexpr(Database,Expr1,Expr2,Type,Err1,Err2), 
+	control_valueexpr_list(Database,Es1,Es2,Ts,Err2,Err3), !.
+control_valueexpr_list(_,[],[],[],Err,Err):- !.
 
-/* control_valueexpr(+Expr1,-Expr2,-Type,-ErrHead,-ErrTail):- 
+/* control_valueexpr(+Database,+Expr1,-Expr2,-Type,-ErrHead,-ErrTail):- 
 *	Controls identifiers and types in value expression Expr1, 
 *	replaces some general structures to more specific ones obtaining value expression Expr2, 
 *	and returns the type Type of the value expression. 
 *	Also returns a difference list ErrHead-ErrTail of errors.
 */
-control_valueexpr(operation(numerical,Operator,Expr1,Expr2),NumOpStruct,Type3,Err1,Err4):- 
-	control_valueexpr(Expr1,Expr3,Type1,Err1,Err2),
-	control_valueexpr(Expr2,Expr4,Type2,Err2,Err3),
+control_valueexpr(Database,operation(numerical,Operator,Expr1,Expr2),NumOpStruct,Type3,Err1,Err4):- 
+	control_valueexpr(Database,Expr1,Expr3,Type1,Err1,Err2),
+	control_valueexpr(Database,Expr2,Expr4,Type2,Err2,Err3),
 	control_operation_types(Operator,Type1,Type2,Type3,Err3,Err4), 
 	create_numoperation_struct(Type3,Operator,Expr3,Expr4,NumOpStruct), !.
-control_valueexpr(operation(numerical,Operator,Expr1),NumOpStruct,Type2,Err1,Err3):- 
-	control_valueexpr(Expr1,Expr2,Type1,Err1,Err2),
+control_valueexpr(Database,operation(numerical,Operator,Expr1),NumOpStruct,Type2,Err1,Err3):- 
+	control_valueexpr(Database,Expr1,Expr2,Type1,Err1,Err2),
 	control_operation_types(Operator,Type1,Type2,Err2,Err3), 
 	create_numoperation_struct(Type2,Operator,Expr2,NumOpStruct), !.
-control_valueexpr(operation(string,Operator,Expr1,Expr2),StrOpStruct,Type3,Err1,Err4):- 
-	control_valueexpr(Expr1,Expr3,Type1,Err1,Err2),
-	control_valueexpr(Expr2,Expr4,Type2,Err2,Err3),
+control_valueexpr(Database,operation(string,Operator,Expr1,Expr2),StrOpStruct,Type3,Err1,Err4):- 
+	control_valueexpr(Database,Expr1,Expr3,Type1,Err1,Err2),
+	control_valueexpr(Database,Expr2,Expr4,Type2,Err2,Err3),
 	control_operation_types(Operator,Type1,Type2,Type3,Err3,Err4), 
 	create_stringoperation_struct(Type3,Operator,Expr3,Expr4,StrOpStruct), !.
-control_valueexpr(operation(string,Operator,Expr1),StrOpStruct,Type2,Err1,Err3):- 
-	control_valueexpr(Expr1,Expr2,Type1,Err1,Err2),
+control_valueexpr(Database,operation(string,Operator,Expr1),StrOpStruct,Type2,Err1,Err3):- 
+	control_valueexpr(Database,Expr1,Expr2,Type1,Err1,Err2),
 	control_operation_types(Operator,Type1,Type2,Err2,Err3), 
 	create_stringoperation_struct(Type2,Operator,Expr2,StrOpStruct), !.
-control_valueexpr(setFunction(Function,Quant,Expr1),SetFuncStruct,Type2,Err1,Err3):- 
-	control_valueexpr(Expr1,Expr2,Type1,Err1,Err2),
+control_valueexpr(Database,setFunction(Function,Quant,Expr1),SetFuncStruct,Type2,Err1,Err3):- 
+	control_valueexpr(Database,Expr1,Expr2,Type1,Err1,Err2),
 	control_setfunction_types(Function,Type1,Type2,Err2,Err3), 
 	create_setfunction_struct(Type2,Function,Quant,Expr2,SetFuncStruct), !.
-control_valueexpr(path(any,Path1),PathStruct,Type,Err1,Err2):- 
-	control_path(Path1,Path2,Type,Err1,Err2), 
+control_valueexpr(Database,path(any,Path1),PathStruct,Type,Err1,Err2):- 
+	control_path(Database,Path1,Path2,Type,Err1,Err2), 
 	create_path_struct(Path2,Type,PathStruct), !.
-control_valueexpr(tmpPath(TmpPath1,path(any,Path1)),PathStruct,Type2,Err1,Err2):- !, 
+control_valueexpr(Database,tmpPath(TmpPath1,path(any,Path1)),PathStruct,Type2,Err1,Err2):- !, 
 	TmpPath1 = [extent(Num,temp),property(any,Id)|TmpRest1], 
 	lists:append(PrePath1,TmpRest1,Path1), 
-	control_path(PrePath1,PrePath2,Type1,_,[]), 
-	control_path(Path1,Path2,Type2,Err1,Err2), 
+	control_path(Database,PrePath1,PrePath2,Type1,_,[]), 
+	control_path(Database,Path1,Path2,Type2,Err1,Err2), 
 	lists:append(PrePath2,TmpRest2,Path2), 
 	lists:append([extent(Num,temp),property(Type1,Id)],TmpRest2,TmpPath2), 
 	create_path_struct(TmpPath2,Type2,PathStruct), !.
-control_valueexpr(tmpPath([extent(Num,temp),property(any,Id)],SetFunc),PathStruct,Type,Err1,Err2):- 
-	control_valueexpr(SetFunc,_,Type,Err1,Err2), 
+control_valueexpr(Database,tmpPath([extent(Num,temp),property(any,Id)],SetFunc),PathStruct,Type,Err1,Err2):- 
+	control_valueexpr(Database,SetFunc,_,Type,Err1,Err2), 
 	create_path_struct([extent(Num,temp),property(Type,Id)],Type,PathStruct), !.
-control_valueexpr(literal(any,null),literal(any,null),any,Err,Err):- !.
-control_valueexpr(literal(Type,Literal),literal(Type,Literal),Type,Err,Err):- 
+control_valueexpr(_,literal(any,null),literal(any,null),any,Err,Err):- !.
+control_valueexpr(_,literal(Type,Literal),literal(Type,Literal),Type,Err,Err):- 
 	platform:sqltype(Type), !.
-control_valueexpr(variable(any,Num),variable(any,Num),any,Err,Err):- !.
+control_valueexpr(_,variable(any,Num),variable(any,Num),any,Err,Err):- !.
 
-/* control_table(+TableName,-FullTableName,-ErrHead,-ErrTail):- 
-*	Returns an error if the table identifier TableName is not included in the schema or if it is ambiguous.
-*	The predicate class/3 is specified in separate schema info. 
+/* control_table(+Database,+TableName,-FullTableName,-ErrHead,-ErrTail):- 
+*	Returns an error if the table identifier TableName is not included in the schema of the database Database,
+*	or if it is ambiguous.
+*	The predicate class/4 is specified in separate schema info. 
 */
 
-control_table(Table1,Table2,Err,Err):- 
-	get_tablename(Table1,Table2), !.
-control_table(Table,Table,[Error|Es],Es):- 
-	get_tablename_alternatives(Table,[_,_|_]), 
+control_table(Database,Table1,Table2,Err,Err):- 
+	get_tablename(Database,Table1,Table2), !.
+control_table(Database,Table,Table,[Error|Es],Es):- 
+	get_tablename_alternatives(Database,Table,[_,_|_]), 
 	list_to_atom(['Ambiguous class ',Table,'.'],Error), !.
-control_table(Table,Table,[Error|Es],Es):- 
+control_table(_,Table,Table,[Error|Es],Es):- 
 	list_to_atom(['Unknown class ',Table,'.'],Error), !.
 
-get_tablename(Table1,Table2):- 
-	get_tablename_alternatives(Table1,[Table2]), !.
+get_tablename(Database,Table1,Table2):- 
+	get_tablename_alternatives(Database,Table1,[Table2]), !.
 
-get_tablename_alternatives(Table1,TableList):-
-	findall(Table3,(to_upper(Table1,Table2),sql:class(Table2,Table3,_)),TableList), !.
+get_tablename_alternatives(Database,Table1,TableList):-
+	findall(Table3,(to_upper(Table1,Table2),sql:class(Database,Table2,Table3,_)),TableList), !.
 
 
 /* control_jointype(+Type,-ErrHead,-ErrTail):- 
@@ -421,23 +403,23 @@ control_jointype(right,Err,Err):- !.
 control_jointype(Type,[Error|Es],Es):- 
 	list_to_atom(['Unsupported join type ',Type,'.'],Error), !.
 
-/* control_path_asterisk(+Path,-ColumnsHead,-ColumnsTail,-ErrHead,-ErrTail):- 
+/* control_path_asterisk(+Database,+Path,-ColumnsHead,-ColumnsTail,-ErrHead,-ErrTail):- 
 *	Handle the case where the path Path ends with an asterisk.
 */
 /* Unqualified asterisk ("SELECT * FROM Extent"). */
-control_path_asterisk([extent(unspec,ExtentList),property(many,'*')],Cs1,Cs2,Err1,Err2):- !, 
-	control_path_asterisk2(ExtentList,Cs1,Cs2,Err1,Err2), !.	
+control_path_asterisk(Database,[extent(unspec,ExtentList),property(many,'*')],Cs1,Cs2,Err1,Err2):- !, 
+	control_path_asterisk2(Database,ExtentList,Cs1,Cs2,Err1,Err2), !.	
 /* Qualified asterisk ("SELECT e.* FROM Extent"). */
-control_path_asterisk(Path,Cs1,Cs2,Err1,Err2):- 
-	control_path_asterisk3(Path,Cs1,Cs2,Err1,Err2), !. 
+control_path_asterisk(Database,Path,Cs1,Cs2,Err1,Err2):- 
+	control_path_asterisk3(Database,Path,Cs1,Cs2,Err1,Err2), !. 
 
-control_path_asterisk2([Extent|Es],Cs1,Cs3,Err1,Err3):- 
-	control_path_asterisk3([Extent,property(many,'*')],Cs1,Cs2,Err1,Err2), 
-	control_path_asterisk2(Es,Cs2,Cs3,Err2,Err3), !.
-control_path_asterisk2([],Cs,Cs,Err,Err):- !.
+control_path_asterisk2(Database,[Extent|Es],Cs1,Cs3,Err1,Err3):- 
+	control_path_asterisk3(Database,[Extent,property(many,'*')],Cs1,Cs2,Err1,Err2), 
+	control_path_asterisk2(Database,Es,Cs2,Cs3,Err2,Err3), !.
+control_path_asterisk2(_,[],Cs,Cs,Err,Err):- !.
 
-control_path_asterisk3(Path,Cs1,Cs2,Err1,Err2):- 
-	control_path(Path,MultiPath,Type,Err1,Err2), 
+control_path_asterisk3(Database,Path,Cs1,Cs2,Err1,Err2):- 
+	control_path(Database,Path,MultiPath,Type,Err1,Err2), 
 	control_path_asterisk4(Type,MultiPath,Cs1,Cs2), !.
 
 control_path_asterisk4(unknown,Path,[as(path(unknown,Path),name(noName))|Cs],Cs):- !.
@@ -464,61 +446,61 @@ add_struct_to_all([[Type|Path]|Ps],[as(path(Type,Path),name(noName))|Cs1],Cs2):-
 add_struct_to_all([],Cs,Cs):- !.
 
 
-/* control_path(+Path1,-Path2,-Type,-ErrHead,-ErrTail):- 
+/* control_path(+Database,+Path1,-Path2,-Type,-ErrHead,-ErrTail):- 
 *	Returns an error if the path Path1 includes some identifier not included in the schema. 
 *	Also returns an updated path Path2 and the type Type of the path.
 */
 
 /* Unqualified path. */
-control_path([extent(unspec,ExtentList),cast(Element1,Type2)|Path1],[Extent,cast(Element2,SqlType2)|Path2],Type4,Err1,Err4):- !, 
-	control_path_unspec(Element1,ExtentList,Extent,Element2,Type1,Err1,Err2), 
-	get_tablename(Type2,Type3), !, 
+control_path(Database,[extent(unspec,ExtentList),cast(Element1,Type2)|Path1],[Extent,cast(Element2,SqlType2)|Path2],Type4,Err1,Err4):- !, 
+	control_path_unspec(Database,Element1,ExtentList,Extent,Element2,Type1,Err1,Err2), 
+	get_tablename(Database,Type2,Type3), !, 
 	platform:dbtype_to_sqltype(Type1,SqlType1), 
 	platform:dbtype_to_sqltype(Type3,SqlType2), 
 	control_cast(SqlType1,SqlType2,Err2,Err3), 
-	control_path2(Path1,Path2,Type3,Type4,Err3,Err4), !.	
-control_path([extent(unspec,ExtentList),Element1|Path1],[Extent,Element2|Path2],Type2,Err1,Err3):- !, 
-	control_path_unspec(Element1,ExtentList,Extent,Element2,Type1,Err1,Err2), 
-	control_path2(Path1,Path2,Type1,Type2,Err2,Err3), !.
+	control_path2(Database,Path1,Path2,Type3,Type4,Err3,Err4), !.	
+control_path(Database,[extent(unspec,ExtentList),Element1|Path1],[Extent,Element2|Path2],Type2,Err1,Err3):- !, 
+	control_path_unspec(Database,Element1,ExtentList,Extent,Element2,Type1,Err1,Err2), 
+	control_path2(Database,Path1,Path2,Type1,Type2,Err2,Err3), !.
 
 /* Qualified path. */
-control_path([Extent1|Path1],[Extent2|Path2],Type2,Err1,Err3):- 
-	control_path_extent(Extent1,Extent2,Type1,Err1,Err2), 
-	control_path2(Path1,Path2,Type1,Type2,Err2,Err3), !.
+control_path(Database,[Extent1|Path1],[Extent2|Path2],Type2,Err1,Err3):- 
+	control_path_extent(Database,Extent1,Extent2,Type1,Err1,Err2), 
+	control_path2(Database,Path1,Path2,Type1,Type2,Err2,Err3), !.
 
-control_path2(Path,Path,unknown,unknown,Err,Err):- !.
-control_path2([],[],many,many,Err,Err):- !.
-control_path2([],[],Type1,Type2,Err,Err):- 
+control_path2(_,Path,Path,unknown,unknown,Err,Err):- !.
+control_path2(_,[],[],many,many,Err,Err):- !.
+control_path2(_,[],[],Type1,Type2,Err,Err):- 
 	platform:dbtype_to_sqltype(Type1,Type2), !.
-control_path2([Element1|Path1],[Element2|Path2],Type1,Type3,Err1,Err3):- 
-	control_path_element(Element1,Element2,Type1,Type2,Err1,Err2), 
-	control_path2(Path1,Path2,Type2,Type3,Err2,Err3), !.
+control_path2(Database,[Element1|Path1],[Element2|Path2],Type1,Type3,Err1,Err3):- 
+	control_path_element(Database,Element1,Element2,Type1,Type2,Err1,Err2), 
+	control_path2(Database,Path1,Path2,Type2,Type3,Err2,Err3), !.
 
 
-control_path_unspec(property(any,Name1),ExtentList,Extent2,property(SqlType2,Name3),Type2,Err1,Err2):- 
+control_path_unspec(Database,property(any,Name1),ExtentList,Extent2,property(SqlType2,Name3),Type2,Err1,Err2):- 
 	findall((Extent1,Name2,SqlType1,Type1),
-		control_path_unspec_property(Name1,ExtentList,Extent1,Name2,SqlType1,Type1),
+		control_path_unspec_property(Database,Name1,ExtentList,Extent1,Name2,SqlType1,Type1),
 		Bag), 
 	control_path_unspec_property_bag(Bag,Name1,Extent2,Name3,SqlType2,Type2,Err1,Err2), !.
 
-control_path_unspec(gmethod(any,Name1,TParams1,Args1),ExtentList,Extent2,gmethod(SqlType2,Name3,TParams3,Args3),Type2,Err3,Err4):- 
+control_path_unspec(Database,gmethod(any,Name1,TParams1,Args1),ExtentList,Extent2,gmethod(SqlType2,Name3,TParams3,Args3),Type2,Err3,Err4):- 
 	findall((Extent1,Name2,SqlType1,TParams2,Args2,Type1,Err1,Err2),
-		control_path_unspec_gmethod(Name1,TParams1,Args1,ExtentList,Extent1,Name2,SqlType1,TParams2,Args2,Type1,Err1,Err2),
+		control_path_unspec_gmethod(Database,Name1,TParams1,Args1,ExtentList,Extent1,Name2,SqlType1,TParams2,Args2,Type1,Err1,Err2),
 		Bag), 
-	control_path_unspec_gmethod_bag(Bag,Name1,TParams1,Args1,Extent2,Name3,SqlType2,TParams3,Args3,Type2,Err3,Err4), !. 
+	control_path_unspec_gmethod_bag(Database,Bag,Name1,TParams1,Args1,Extent2,Name3,SqlType2,TParams3,Args3,Type2,Err3,Err4), !. 
 
-control_path_unspec(method(any,Name1,Args1),ExtentList,Extent2,method(SqlType2,Name3,Args3),Type2,Err3,Err4):- 
+control_path_unspec(Database,method(any,Name1,Args1),ExtentList,Extent2,method(SqlType2,Name3,Args3),Type2,Err3,Err4):- 
 	findall((Extent1,Name2,SqlType1,Args2,Type1,Err1,Err2),
-		control_path_unspec_method(Name1,Args1,ExtentList,Extent1,Name2,SqlType1,Args2,Type1,Err1,Err2),
+		control_path_unspec_method(Database,Name1,Args1,ExtentList,Extent1,Name2,SqlType1,Args2,Type1,Err1,Err2),
 		Bag), 
-	control_path_unspec_method_bag(Bag,Name1,Args1,Extent2,Name3,SqlType2,Args3,Type2,Err3,Err4), !. 
+	control_path_unspec_method_bag(Database,Bag,Name1,Args1,Extent2,Name3,SqlType2,Args3,Type2,Err3,Err4), !. 
 
 
-control_path_unspec_property(Name1,ExtentList,extent(Num,Type1),Name3,SqlType,Type2):- 
+control_path_unspec_property(Database,Name1,ExtentList,extent(Num,Type1),Name3,SqlType,Type2):- 
 	lists:select(extent(Num,Id),ExtentList,_), 
-	get_tablename(Id,Type1), 
+	get_tablename(Database,Id,Type1), 
 	to_upper(Name1,Name2), 
-	sql:property(Type1,Name2,Name3,Type2), 
+	sql:property(Database,Type1,Name2,Name3,Type2), 
 	platform:dbtype_to_sqltype(Type2,SqlType).
 
 control_path_unspec_property_bag([(Extent,Name,SqlType,Type)],_,Extent,Name,SqlType,Type,Err,Err):- !.
@@ -528,30 +510,29 @@ control_path_unspec_property_bag([],Name,extent(unspec,unknown),Name,unknown,unk
 	list_to_atom(['Unknown property or alias ',Name,'.'],Error), !.
 
 
-control_path_unspec_gmethod(Name1,TParams1,Args1,ExtentList,extent(Num,Type1),Name2,SqlType,TParams2,Args2,Type2,Err1,Err3):- 
+control_path_unspec_gmethod(Database,Name1,TParams1,Args1,ExtentList,extent(Num,Type1),Name2,SqlType,TParams2,Args2,Type2,Err1,Err3):- 
 	lists:select(extent(Num,Id),ExtentList,_), 
-	get_tablename(Id,Type1), 
-	control_typeparam_list(Type1,TParams1,TParams2,Err1,Err2), 
-	control_valueexpr_list(Args1,Args2,ArgTypes1,Err2,Err3), 
-	control_path_unspec_gmethod2(Type1,Name1,TParams2,ArgTypes1,Name2,Type2,SqlType).
+	get_tablename(Database,Id,Type1), 
+	control_typeparam_list(Database,Type1,TParams1,TParams2,Err1,Err2), 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes1,Err2,Err3), 
+	control_path_unspec_gmethod2(Database,Type1,Name1,TParams2,ArgTypes1,Name2,Type2,SqlType).
 
-control_path_unspec_gmethod2(Type1,Name1,TParams,ArgTypes1,Name3,Type2,SqlType):- 
+control_path_unspec_gmethod2(Database,Type1,Name1,TParams,ArgTypes1,Name3,Type2,SqlType):- 
 	to_upper(Name1,Name2), 
-	sql:gmethod(Type1,Name2,Name3,TParams,ArgTypes2,Type2), 
+	sql:gmethod(Database,Type1,Name2,Name3,TParams,ArgTypes2,Type2), 
 	control_method_argument_types(ArgTypes1,ArgTypes2), 
 	platform:dbtype_to_sqltype(Type2,SqlType), !.
-control_path_unspec_gmethod2(_,Name,_,_,Name,unknown,unknown):- !.
 
-control_path_unspec_gmethod_bag([(Extent,Name,SqlType,TParams,Args,Type,Err1,Err2)],_,_,_,Extent,Name,SqlType,TParams,Args,Type,Err1,Err2):- !. 
-control_path_unspec_gmethod_bag([_,_|_],Name,TParams,Args1,extent(unspec,unknown),Name,unknown,TParams,Args2,unknown,[Error|Err1],Err2):- 
-	control_valueexpr_list(Args1,Args2,ArgTypes,Err1,Err2), 
+control_path_unspec_gmethod_bag(_,[(Extent,Name,SqlType,TParams,Args,Type,Err1,Err2)],_,_,_,Extent,Name,SqlType,TParams,Args,Type,Err1,Err2):- !. 
+control_path_unspec_gmethod_bag(Database,[_,_|_],Name,TParams,Args1,extent(unspec,unknown),Name,unknown,TParams,Args2,unknown,[Error|Err1],Err2):- 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes,Err1,Err2), 
 	create_typeparam_list(TParams,TPList), 
 	create_argument_list(ArgTypes,ArgList), 
 	lists:append([Name|TPList],ArgList,MethodList), 
 	list_to_atom(MethodList,MethodAtom), 
 	list_to_atom(['Ambiguous method ',MethodAtom,'.'],Error), !.
-control_path_unspec_gmethod_bag([],Name,TParams,Args1,extent(unspec,unknown),Name,unknown,TParams,Args2,unknown,[Error|Err1],Err2):- 
-	control_valueexpr_list(Args1,Args2,ArgTypes,Err1,Err2), 
+control_path_unspec_gmethod_bag(Database,[],Name,TParams,Args1,extent(unspec,unknown),Name,unknown,TParams,Args2,unknown,[Error|Err1],Err2):- 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes,Err1,Err2), 
 	create_typeparam_list(TParams,TPList), 
 	create_argument_list(ArgTypes,ArgList), 
 	lists:append([Name|TPList],ArgList,MethodList), 
@@ -559,96 +540,95 @@ control_path_unspec_gmethod_bag([],Name,TParams,Args1,extent(unspec,unknown),Nam
 	list_to_atom(['Unknown method ',MethodAtom,'.'],Error), !.
 
 
-control_path_unspec_method(Name1,Args1,ExtentList,extent(Num,Type1),Name2,SqlType,Args2,Type2,Err1,Err2):- 
+control_path_unspec_method(Database,Name1,Args1,ExtentList,extent(Num,Type1),Name2,SqlType,Args2,Type2,Err1,Err2):- 
 	lists:select(extent(Num,Id),ExtentList,_), 
-	get_tablename(Id,Type1), 
-	control_valueexpr_list(Args1,Args2,ArgTypes1,Err1,Err2), 
-	control_path_unspec_method2(Type1,Name1,ArgTypes1,Name2,Type2,SqlType).
+	get_tablename(Database,Id,Type1), 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes1,Err1,Err2), 
+	control_path_unspec_method2(Database,Type1,Name1,ArgTypes1,Name2,Type2,SqlType).
 
-control_path_unspec_method2(Type1,Name1,ArgTypes1,Name3,Type2,SqlType):- 
+control_path_unspec_method2(Database,Type1,Name1,ArgTypes1,Name3,Type2,SqlType):- 
 	to_upper(Name1,Name2), 
-	sql:method(Type1,Name2,Name3,ArgTypes2,Type2), 
+	sql:method(Database,Type1,Name2,Name3,ArgTypes2,Type2), 
 	control_method_argument_types(ArgTypes1,ArgTypes2), 
 	platform:dbtype_to_sqltype(Type2,SqlType), !.
-control_path_unspec_method2(_,Name,_,Name,unknown,unknown):- !.
 
-control_path_unspec_method_bag([(Extent,Name,SqlType,Args,Type,Err1,Err2)],_,_,Extent,Name,SqlType,Args,Type,Err1,Err2):- !. 
-control_path_unspec_method_bag([_,_|_],Name,Args1,extent(unspec,unknown),Name,unknown,Args2,unknown,[Error|Err1],Err2):- 
-	control_valueexpr_list(Args1,Args2,ArgTypes,Err1,Err2), 
+control_path_unspec_method_bag(_,[(Extent,Name,SqlType,Args,Type,Err1,Err2)],_,_,Extent,Name,SqlType,Args,Type,Err1,Err2):- !. 
+control_path_unspec_method_bag(Database,[_,_|_],Name,Args1,extent(unspec,unknown),Name,unknown,Args2,unknown,[Error|Err1],Err2):- 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes,Err1,Err2), 
 	create_argument_list(ArgTypes,ArgList), 
 	list_to_atom([Name|ArgList],MethodAtom), 
 	list_to_atom(['Ambiguous method ',MethodAtom,'.'],Error), !.
-control_path_unspec_method_bag([],Name,Args1,extent(unspec,unknown),Name,unknown,Args2,unknown,[Error|Err1],Err2):- 
-	control_valueexpr_list(Args1,Args2,ArgTypes,Err1,Err2), 
+control_path_unspec_method_bag(Database,[],Name,Args1,extent(unspec,unknown),Name,unknown,Args2,unknown,[Error|Err1],Err2):- 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes,Err1,Err2), 
 	create_argument_list(ArgTypes,ArgList), 
 	list_to_atom([Name|ArgList],MethodAtom), 
 	list_to_atom(['Unknown method ',MethodAtom,'.'],Error), !.
 
 
-control_path_extent(cast(Extent1,_),cast(Extent2,unknown),unknown,Err1,Err2):- 
-	control_path_extent(Extent1,Extent2,Type,Err1,Err2), 
+control_path_extent(Database,cast(Extent1,_),cast(Extent2,unknown),unknown,Err1,Err2):- 
+	control_path_extent(Database,Extent1,Extent2,Type,Err1,Err2), 
 	Type = unknown, !.
-control_path_extent(cast(Extent1,Type2),cast(Extent2,SqlType2),Type3,Err1,Err3):- 
-	control_path_extent(Extent1,Extent2,Type1,Err1,Err2), 
-	get_tablename(Type2,Type3), !, 
+control_path_extent(Database,cast(Extent1,Type2),cast(Extent2,SqlType2),Type3,Err1,Err3):- 
+	control_path_extent(Database,Extent1,Extent2,Type1,Err1,Err2), 
+	get_tablename(Database,Type2,Type3), !, 
 	platform:dbtype_to_sqltype(Type1,SqlType1), 
 	platform:dbtype_to_sqltype(Type3,SqlType2), 
 	control_cast(SqlType1,SqlType2,Err2,Err3), !.
-control_path_extent(cast(Extent,Type),cast(Extent,unknown),unknown,[Error|Err],Err):- 
+control_path_extent(_,cast(Extent,Type),cast(Extent,unknown),unknown,[Error|Err],Err):- 
 	list_to_atom(['Cast to unknown class ',Type,'.'],Error), !.
-control_path_extent(extent(Num,Type1),extent(Num,Type2),Type2,Err1,Err2):- 
-	control_table(Type1,Type2,Err1,Err2), !.
-control_path_extent(extent(Num,Type),extent(Num,Type),unknown,[Error|Err],Err):- 
+control_path_extent(Database,extent(Num,Type1),extent(Num,Type2),Type2,Err1,Err2):- 
+	control_table(Database,Type1,Type2,Err1,Err2), !.
+control_path_extent(_,extent(Num,Type),extent(Num,Type),unknown,[Error|Err],Err):- 
 	list_to_atom(['Unknown class ',Type,'.'],Error), !.
-control_path_extent(alias(Type,Id),alias(Type,Id),unknown,[Error|Err],Err):- 
+control_path_extent(_,alias(Type,Id),alias(Type,Id),unknown,[Error|Err],Err):- 
 	list_to_atom(['Unable to resolve alias ',Id,'.'],Error), !.
 
 
-control_path_element(cast(Element1,_),cast(Element2,unknown),Type1,unknown,Err1,Err2):- 
-	control_path_element(Element1,Element2,Type1,Type2,Err1,Err2), 
+control_path_element(Database,cast(Element1,_),cast(Element2,unknown),Type1,unknown,Err1,Err2):- 
+	control_path_element(Database,Element1,Element2,Type1,Type2,Err1,Err2), 
 	Type2 = unknown, !.
-control_path_element(cast(Element1,Type3),cast(Element2,SqlType2),Type1,Type4,Err1,Err3):- 
-	control_path_element(Element1,Element2,Type1,Type2,Err1,Err2), 
-	get_tablename(Type3,Type4), !, 
+control_path_element(Database,cast(Element1,Type3),cast(Element2,SqlType2),Type1,Type4,Err1,Err3):- 
+	control_path_element(Database,Element1,Element2,Type1,Type2,Err1,Err2), 
+	get_tablename(Database,Type3,Type4), !, 
 	platform:dbtype_to_sqltype(Type2,SqlType1), 
 	platform:dbtype_to_sqltype(Type4,SqlType2), 
 	control_cast(SqlType1,SqlType2,Err2,Err3), !.
-control_path_element(cast(Element1,Type3),cast(Element2,unknown),Type1,unknown,Err1,Err3):- 
-	control_path_element(Element1,Element2,Type1,Type2,Err1,Err2), 
+control_path_element(Database,cast(Element1,Type3),cast(Element2,unknown),Type1,unknown,Err1,Err3):- 
+	control_path_element(Database,Element1,Element2,Type1,Type2,Err1,Err2), 
 	platform:dbtype_to_sqltype(Type2,SqlType1), 
 	platform:dbtype_to_sqltype(Type3,SqlType2), 
 	control_cast(SqlType1,SqlType2,Err2,Err3), !.
-control_path_element(property(any,Name1),property(SqlType,Name3),Type1,Type2,Err,Err):- 
+control_path_element(Database,property(any,Name1),property(SqlType,Name3),Type1,Type2,Err,Err):- 
 	to_upper(Name1,Name2), 
-	sql:property(Type1,Name2,Name3,Type2), !, 
+	sql:property(Database,Type1,Name2,Name3,Type2), !, 
 	platform:dbtype_to_sqltype(Type2,SqlType), !.
-control_path_element(property(many,'*'),PropertyBag,Type1,many,Err,Err):- 
+control_path_element(Database,property(many,'*'),PropertyBag,Type1,many,Err,Err):- 
 	findall(property(SqlType,Name),
-		(sql:property(Type1,_,Name,Type2),platform:dbtype_to_sqltype(Type2,SqlType)), 
+		(sql:property(Database,Type1,_,Name,Type2),platform:dbtype_to_sqltype(Type2,SqlType)), 
 		PropertyBag), !.
-control_path_element(property(any,Name),property(unknown,Name),Type,unknown,[Error|Err],Err):- 
+control_path_element(_,property(any,Name),property(unknown,Name),Type,unknown,[Error|Err],Err):- 
 	list_to_atom(['Unknown property ',Name,' of class ',Type,'.'],Error), !.
-control_path_element(method(any,Name1,Args1),method(SqlType,Name3,Args2),Type1,Type2,Err1,Err2):- 
-	control_valueexpr_list(Args1,Args2,ArgTypes1,Err1,Err2), 
+control_path_element(Database,method(any,Name1,Args1),method(SqlType,Name3,Args2),Type1,Type2,Err1,Err2):- 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes1,Err1,Err2), 
 	to_upper(Name1,Name2), 
-	sql:method(Type1,Name2,Name3,ArgTypes2,Type2), 
+	sql:method(Database,Type1,Name2,Name3,ArgTypes2,Type2), 
 	control_method_argument_types(ArgTypes1,ArgTypes2), !, 
 	platform:dbtype_to_sqltype(Type2,SqlType), !.
-control_path_element(method(any,Name,Args1),method(unknown,Name,Args2),Type,unknown,[Error|Err1],Err2):- 
-	control_valueexpr_list(Args1,Args2,ArgTypes,Err1,Err2), 
+control_path_element(Database,method(any,Name,Args1),method(unknown,Name,Args2),Type,unknown,[Error|Err1],Err2):- 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes,Err1,Err2), 
 	create_argument_list(ArgTypes,ArgList), 
 	list_to_atom([Name|ArgList],MethodAtom), 
 	list_to_atom(['Unknown method ',MethodAtom,' of class ',Type,'.'],Error), !.
-control_path_element(gmethod(any,Name1,TParams1,Args1),gmethod(SqlType,Name3,TParams2,Args2),Type1,Type2,Err1,Err3):- 
-	control_typeparam_list(Type1,TParams1,TParams2,Err1,Err2), 
-	control_valueexpr_list(Args1,Args2,ArgTypes1,Err2,Err3), 
+control_path_element(Database,gmethod(any,Name1,TParams1,Args1),gmethod(SqlType,Name3,TParams2,Args2),Type1,Type2,Err1,Err3):- 
+	control_typeparam_list(Database,Type1,TParams1,TParams2,Err1,Err2), 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes1,Err2,Err3), 
 	to_upper(Name1,Name2), 
-	sql:gmethod(Type1,Name2,Name3,TParams2,ArgTypes2,Type2), 
+	sql:gmethod(Database,Type1,Name2,Name3,TParams2,ArgTypes2,Type2), 
 	control_method_argument_types(ArgTypes1,ArgTypes2), !, 
 	platform:dbtype_to_sqltype(Type2,SqlType), !.
-control_path_element(gmethod(any,Name,TParams1,Args1),gmethod(unknown,Name,TParams2,Args2),Type,unknown,[Error|Err1],Err3):- 
-	control_typeparam_list(Type,TParams1,TParams2,Err1,Err2), 
-	control_valueexpr_list(Args1,Args2,ArgTypes,Err2,Err3), 
+control_path_element(Database,gmethod(any,Name,TParams1,Args1),gmethod(unknown,Name,TParams2,Args2),Type,unknown,[Error|Err1],Err3):- 
+	control_typeparam_list(Database,Type,TParams1,TParams2,Err1,Err2), 
+	control_valueexpr_list(Database,Args1,Args2,ArgTypes,Err2,Err3), 
 	create_typeparam_list(TParams2,TPList), 
 	create_argument_list(ArgTypes,ArgList), 
 	lists:append([Name|TPList],ArgList,MethodList), 
@@ -657,18 +637,18 @@ control_path_element(gmethod(any,Name,TParams1,Args1),gmethod(unknown,Name,TPara
 
 
 /* Control type parameters for the only supported generic method GetExtension<T>(). */
-control_typeparam_list(_,[],[],Err,Err):- !.
-control_typeparam_list(Type,[TParam1|TPs1],[TParam2|TPs2],Err1,Err3):- 
-	control_typeparam_list2(Type,TParam1,TParam2,Err1,Err2), 
-	control_typeparam_list(Type,TPs1,TPs2,Err2,Err3), !.
+control_typeparam_list(_,_,[],[],Err,Err):- !.
+control_typeparam_list(Database,Type,[TParam1|TPs1],[TParam2|TPs2],Err1,Err3):- 
+	control_typeparam_list2(Database,Type,TParam1,TParam2,Err1,Err2), 
+	control_typeparam_list(Database,Type,TPs1,TPs2,Err2,Err3), !.
 
-control_typeparam_list2(Type,TParam1,TParam4,Err,Err):- 
-	findall(TParam3,(to_upper(TParam1,TParam2),sql:extension(Type,TParam2,TParam3)),[TParam4]), !.
-control_typeparam_list2(Type,TParam1,TParam1,[Error|Err],Err):- 
-	findall(1,(to_upper(TParam1,TParam2),sql:extension(Type,TParam2,_)),[_,_|_]), 
+control_typeparam_list2(Database,Type,TParam1,TParam4,Err,Err):- 
+	findall(TParam3,(to_upper(TParam1,TParam2),sql:extension(Database,Type,TParam2,TParam3)),[TParam4]), !.
+control_typeparam_list2(Database,Type,TParam1,TParam1,[Error|Err],Err):- 
+	findall(1,(to_upper(TParam1,TParam2),sql:extension(Database,Type,TParam2,_)),[_,_|_]), 
 	list_to_atom(['Ambiguous type parameter ',TParam1,'.'],Error), !.
-control_typeparam_list2(Type,TParam1,TParam1,[Error|Err],Err):- 
-	findall(1,(to_upper(TParam1,TParam2),sql:extension(Type,TParam2,_)),[]), 
+control_typeparam_list2(Database,Type,TParam1,TParam1,[Error|Err],Err):- 
+	findall(1,(to_upper(TParam1,TParam2),sql:extension(Database,Type,TParam2,_)),[]), 
 	list_to_atom(['Unknown type parameter ',TParam1,'.'],Error), !.
 
 
@@ -852,25 +832,25 @@ create_path_struct(Path,Type,path(Type,Path)):- !.
 
 /*===== Create type definition. =====*/
 
-create_type_definition(Tree,Tables1,typeDef(Tables2,Mappings),Err1,Err2):- 
-	create_tablespec(Tables1,Tables2), 
+create_type_definition(Database,Tree,Tables1,typeDef(Tables2,Mappings),Err1,Err2):- 
+	create_tablespec(Database,Tables1,Tables2), 
 	create_mappings(Tree,Mappings), 
 	control_mappings(Mappings,Err1,Err2), !. 
 
-create_tablespec([extent(Num,Expr1)|Ts1],[extent(Num,Expr2)|Ts2]):- 
-	create_tablespec2(Expr1,Expr2), 
-	create_tablespec(Ts1,Ts2), !.
-create_tablespec([],[]):- !.
+create_tablespec(Database,[extent(Num,Expr1)|Ts1],[extent(Num,Expr2)|Ts2]):- 
+	create_tablespec2(Database,Expr1,Expr2), 
+	create_tablespec(Database,Ts1,Ts2), !.
+create_tablespec(_,[],[]):- !.
 
-create_tablespec2([Column1|Cs1],[Column2|Cs2]):- !, 
-	create_tablespec3(Column1,Column2), 
-	create_tablespec2(Cs1,Cs2), !.
-create_tablespec2([],[]):- !.
-create_tablespec2(TableName1,TableName2):- 
-	control_table(TableName1,TableName2,_,_), !.
+create_tablespec2(Database,[Column1|Cs1],[Column2|Cs2]):- !, 
+	create_tablespec3(Database,Column1,Column2), 
+	create_tablespec2(Database,Cs1,Cs2), !.
+create_tablespec2(_,[],[]):- !.
+create_tablespec2(Database,TableName1,TableName2):- 
+	control_table(Database,TableName1,TableName2,_,_), !.
 
-create_tablespec3(property(_,Expr),Type):- 
-	control_valueexpr(Expr,_,Type,_,[]), !.
+create_tablespec3(Database,property(_,Expr),Type):- 
+	control_valueexpr(Database,Expr,_,Type,_,[]), !.
 
 
 create_mappings(select2(_,Columns,_,_,_,_,_),Mappings):- 

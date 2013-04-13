@@ -196,28 +196,28 @@ namespace Starcounter.Server.Commands {
                     // process is still alive. If not, it might have crashed.
                     // Else, we should indicate that the timeout time can be adjusted
                     // by means of config?
-
                     codeHostProcess.Refresh();
                     if (codeHostProcess.HasExited) {
                         // The code host has exited, most likely because something
                         // in the bootstrap sequence or in the exec handler has gone
-                        // wrong. We count on the code host logging the exact reason,
+                        // wrong. 
+                        // We count on the code host logging the exact reason,
                         // but just in case it fails to do so, we log this from the
-                        // perspective of the server, including the exit code.
-                        //   We also don't try to amend this right now, since we don't
+                        // perspective of the server, including the exit code which 
+                        // should be a proper starcounter errorcode.
+                        // We also don't try to amend this right now, since we don't
                         // have any good strategy figured out. We start with just
                         // logging it and nothing else.
 
-                        Log.LogError(
-                            ErrorCode.ToMessage(Error.SCERRDATABASEENGINETERMINATED,
-                            DatabaseEngine.FormatCodeHostProcessInfoString(database, codeHostProcess, true))
-                            );
+                        Exception inner = null;
+                        uint processExitCode = (uint)codeHostProcess.ExitCode;
+                        string errorPostPrefix = DatabaseEngine.FormatCodeHostProcessInfoString(database, codeHostProcess, true);
+
+                        if (processExitCode > 1) { // 1 is the default return value if process is killed manually.
+                            inner = ErrorCode.ToException(processExitCode);
+                        }
+                        throw ErrorCode.ToException(Error.SCERRDATABASEENGINETERMINATED, inner, errorPostPrefix);
                     }
-
-                    // We always rethrow the timeout exception, since we really can't
-                    // handle it on this level - we let the server decide how to go
-                    // further.
-
                     throw timeout;
                 }
             });

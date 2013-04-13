@@ -1,9 +1,11 @@
 
-/* Rewriter, Peter Idestam-Almquist, Starcounter, 2013-01-28. */
+
+/* Rewriter, Peter Idestam-Almquist, Starcounter, 2013-04-11. */
 
 /* TODO: Rewrite replace_aliases_xxx? (replace_extent_aliases_xxx and replace_aggr_aliases_xxx) */
 /* TODO: Modify HintSpec in replace_derived_table_aliases_hintspec/2? */
 
+/* 13-04-11: Fixed alias bug (problem with different cases). */
 /* 13-01-28: Added support of is-type comparison by adding istype_predicate/3. */
 /* 11-11-30: Added fetch specification; modified select1, select2, select3. */
 /* 10-05-10: New representation of variable by '?'. */
@@ -193,8 +195,9 @@ replace_table_aliases_select(select3(Quant,Columns1,From1,Where1,GroupBy1,SetFun
 get_table_aliases(join1(Type,Table1,Table2,Cond),join1(Type,Table3,Table4,Cond),Aliases1,Aliases3):- 
 	get_table_aliases(Table2,Table4,Aliases1,Aliases2), 
 	get_table_aliases(Table1,Table3,Aliases2,Aliases3), !.
-get_table_aliases(as(extent(Num,IdAtom),alias(any,Name)),extent(Num,IdAtom),Aliases,[Alias|Aliases]):- 
-	Alias = as(extent(Num,IdAtom),alias(any,Name)), !.
+get_table_aliases(as(extent(Num,IdAtom),alias(any,Name1)),extent(Num,IdAtom),Aliases,[Alias|Aliases]):- 
+	controller:to_upper(Name1,Name2), 
+	Alias = as(extent(Num,IdAtom),alias(any,Name2)), !.
 
 
 /*===== Replace aggregation aliases. =====*/
@@ -406,8 +409,10 @@ do_replace_aliases_path(Aliases,aggr,Path,Expr):-
 	do_replace_aliases_path_aggr(Aliases,Path,Expr), !.
 
 
-do_replace_aliases_path_extent([as(extent(Num,IdAtom),alias(any,Name))|_],_,path(Type,[property(any,Name)|Path]),path(Type,[extent(Num,IdAtom)|Path])):- !.
-do_replace_aliases_path_extent([as(extent(Num,IdAtom),alias(any,Name))|_],_,path(Type1,[cast(property(any,Name),Type2)|Path]),path(Type1,[cast(extent(Num,IdAtom),Type2)|Path])):- !.
+do_replace_aliases_path_extent([as(extent(Num,IdAtom),alias(any,Name1))|_],_,path(Type,[property(any,Name2)|Path]),path(Type,[extent(Num,IdAtom)|Path])):- 
+	controller:to_upper(Name2,Name3), Name1 = Name3, !.
+do_replace_aliases_path_extent([as(extent(Num,IdAtom),alias(any,Name1))|_],_,path(Type1,[cast(property(any,Name2),Type2)|Path]),path(Type1,[cast(extent(Num,IdAtom),Type2)|Path])):- 
+	controller:to_upper(Name2,Name3), Name1 = Name3, !.
 do_replace_aliases_path_extent([_|Aliases1],Aliases2,Path1,Path2):- 
 	do_replace_aliases_path_extent(Aliases1,Aliases2,Path1,Path2), !.
 do_replace_aliases_path_extent([],Aliases,path(Type1,[property(Type2,Name)|Path]),path(Type1,[extent(unspec,Extents),property(Type2,Name)|Path])):- 
@@ -448,7 +453,8 @@ do_replace_aliases_setfunction([],Expr,Expr):- !.
 /* do_replace_aliases_extentalias(+Aliases,+Id,-Extent):- 
 *	Replaces the input extent-alias Id (alias(any,Name)) with an extent reference Extent (extent(Num,IdAtom)) according to applicable alias in Aliases.
 */
-do_replace_aliases_extentalias([as(extent(Num,IdAtom),alias(any,Name))|_],alias(any,Name),extent(Num,IdAtom)):- !.
+do_replace_aliases_extentalias([as(extent(Num,IdAtom),alias(any,Name1))|_],alias(any,Name2),extent(Num,IdAtom)):- 
+	controller:to_upper(Name2,Name3), Name1 = Name3, !.
 do_replace_aliases_extentalias([_|Aliases],Id,Extent):- 
 	do_replace_aliases_extentalias(Aliases,Id,Extent), !.
 do_replace_aliases_extentalias([],Id,Id):- !.
