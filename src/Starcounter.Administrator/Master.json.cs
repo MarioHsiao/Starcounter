@@ -47,8 +47,11 @@ namespace Starcounter.Administrator {
 
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
+#if ANDWAH
+            AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+#else
             AppsBootstrapper.Bootstrap(adminPort, "scadmin");
-            //AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+#endif
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Master.ServerEngine.Setup();
@@ -153,6 +156,48 @@ namespace Starcounter.Administrator {
                     return resultJson.ToString();
                 }
             });
+
+            #endregion
+
+            #region Application(s)
+
+            // Returns a list of databases
+            GET("/apps", (Request req) => {
+
+                dynamic resultJson = new DynamicJson();
+                resultJson.apps = new object[] { };
+                resultJson.exception = null;
+
+                try {
+
+                    if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+                        DatabaseInfo[] databases = Master.ServerInterface.GetDatabases();
+                        foreach (var database in databases) {
+                            for (int i = 0; i < database.HostedApps.Length; i++) {
+
+                                resultJson.apps[i] = new {
+                                    status = "Running",
+                                    name = Path.GetFileNameWithoutExtension(database.HostedApps[i].ExecutablePath),
+                                    path = database.HostedApps[i].ExecutablePath,
+                                    folder = database.HostedApps[i].WorkingDirectory,
+                                    databaseName = database.Name,
+                                    databaseID = Master.EncodeTo64(database.Uri)
+                                };
+                            }
+                        }
+                    }
+                    else {
+                        return HttpStatusCode.NotAcceptable;
+                    }
+                }
+                catch (Exception e) {
+                    resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                }
+
+                return resultJson.ToString();
+
+            });
+
 
             #endregion
 

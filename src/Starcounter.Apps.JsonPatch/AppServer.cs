@@ -121,7 +121,7 @@ namespace Starcounter.Internal.Web {
                     } else if (x is Response) {
                         response = x as Response;
                     } else if (x is string) {
-                        response = new Response() { Uncompressed = HttpResponseBuilder.FromText((string)x/*, sid*/) };
+                        response = new Response() { Uncompressed = HttpResponseBuilder.FromText(request, (string)x/*, sid*/) };
                     } else {
                         throw new NotImplementedException();
                     }
@@ -152,7 +152,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override Response Handle(Request request) {
+        public override Response HandleRequest(Request request) {
             object x;
 
             try {

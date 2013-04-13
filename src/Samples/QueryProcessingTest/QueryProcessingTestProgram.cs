@@ -17,6 +17,7 @@ namespace QueryProcessingTest {
                 CodePropertiesTesting.TestCodeProperties();
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
                 OffsetkeyTest.Master();
+                ObjectIdentityTest.TestObjectIdentityInSQL();
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
                 HelpMethods.LogEvent(e.ToString());
