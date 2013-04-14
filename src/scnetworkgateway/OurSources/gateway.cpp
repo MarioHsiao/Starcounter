@@ -969,6 +969,13 @@ void __stdcall EmptyApcFunction(ULONG_PTR arg) {
     // Does nothing.
 }
 
+// Waking up a thread using APC.
+void WakeUpThreadUsingAPC(HANDLE thread_handle)
+{
+    // Waking up the worker thread with APC.
+    QueueUserAPC(EmptyApcFunction, thread_handle, 0);
+}
+
 // Database channels events monitor thread.
 uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 {
@@ -998,7 +1005,7 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 		worker_thread_handle[worker_id] = g_gateway.get_worker_thread_handle(worker_id);
         
 		// Waking up the worker thread with APC.
-		QueueUserAPC(EmptyApcFunction, worker_thread_handle[worker_id], 0);
+        WakeUpThreadUsingAPC(worker_thread_handle[worker_id]);
 	}
 
     // Obtaining client interface.
@@ -1011,7 +1018,7 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
         client_int.wait_for_work(work_event_index, work_events, g_gateway.setting_num_workers());
 
         // Waking up the worker thread with APC.
-        QueueUserAPC(EmptyApcFunction, worker_thread_handle[work_event_index], 0);
+        WakeUpThreadUsingAPC(worker_thread_handle[work_event_index]);
     }
 
     return 0;
@@ -2014,7 +2021,7 @@ void Gateway::WakeUpAllWorkers()
         HANDLE worker_thread_handle = g_gateway.get_worker_thread_handle(i);
 
         // Waking up the worker with APC.
-        QueueUserAPC(EmptyApcFunction, worker_thread_handle, 0);
+        WakeUpThreadUsingAPC(worker_thread_handle);
     }
 }
 
@@ -2377,7 +2384,7 @@ uint32_t Gateway::CollectInactiveSessions()
     if (num_active_sessions_unsafe_)
     {
         // Waking up the worker 0 thread with APC.
-        QueueUserAPC(EmptyApcFunction, worker_thread_handles_[0], 0);
+        WakeUpThreadUsingAPC(worker_thread_handles_[0]);
     }
 
     return 0;
@@ -2493,7 +2500,7 @@ uint32_t Gateway::GatewayMonitor()
         for (int32_t i = 0; i < setting_num_workers_; i++)
         {
             // Waking up the worker thread with APC.
-            QueueUserAPC(EmptyApcFunction, g_gateway.get_worker_thread_handle(i), 0);
+            WakeUpThreadUsingAPC(g_gateway.get_worker_thread_handle(i));
 
             // Checking if alive.
             if (!WaitForSingleObject(worker_thread_handles_[i], 0))

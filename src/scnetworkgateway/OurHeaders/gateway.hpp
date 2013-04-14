@@ -495,6 +495,9 @@ uint32_t GatewayUriProcessProxy(
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
+// Waking up a thread using APC.
+void WakeUpThreadUsingAPC(HANDLE thread_handle);
+
 extern std::string GetOperTypeString(SocketOperType typeOfOper);
 
 // Pointers to extended WinSock functions.
