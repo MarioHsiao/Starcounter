@@ -59,6 +59,13 @@ namespace Starcounter.Advanced {
         /// </summary>
         public INetworkDataStream data_stream_;
 
+        UInt16 portNumber_ = 0;
+        public UInt16 PortNumber
+        {
+            get { return portNumber_; }
+            set { portNumber_ = value; }
+        }
+
         /// <summary>
         /// Indicates if this Request is internally constructed from Apps.
         /// </summary>
