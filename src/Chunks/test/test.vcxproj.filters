@@ -36,5 +36,11 @@
     <ClInclude Include="impl\test.hpp">
       <Filter>src\impl</Filter>
     </ClInclude>
+    <ClInclude Include="macro_definitions.hpp" />
+    <ClInclude Include="tiny_tuple\tiny_tuple.hpp" />
+    <ClInclude Include="tiny_tuple\impl\tiny_tuple.hpp" />
+    <ClInclude Include="tiny_tuple\macro_definitions.hpp" />
+    <ClInclude Include="tiny_tuple\test.hpp" />
+    <ClInclude Include="tiny_tuple\impl\test.hpp" />
   </ItemGroup>
 </Project>

@@ -25,8 +25,26 @@
 #include "../common/config_param.hpp"
 #include "test.hpp"
 
+// For testing tiny tuple
+#include "tiny_tuple/test.hpp"
+
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
+	try {
+		// Start the tiny_tuple_test application.
+		boost::scoped_ptr<starcounter::core::tiny_tuple::test> app
+		(new starcounter::core::tiny_tuple::test(argc, argv));
+
+		app->run();
+	}
+	catch (...) {
+		// An unknown exception was caught.
+		std::cout << "error: unknown exception caught" << std::endl;
+	}
+	return 0;
+
+	///=========================================================================
+	
 	// Start the interprocess_communication test application.
 	boost::scoped_ptr<starcounter::interprocess_communication::test> app
 	(new starcounter::interprocess_communication::test(argc, argv));
