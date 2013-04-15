@@ -29,10 +29,14 @@ namespace Starcounter.Internal.Web {
        /// be added in priority order with the most prioritised path first.
        /// </summary>
        /// <param name="path">The file path for the directory to add</param>
-      public override void UserAddedLocalFileDirectoryWithStaticContent(string path) {
-         Console.WriteLine("Adding path to static web server " + path);
-         WorkingDirectories.Add(path);
-      }
+       public override void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
+       {
+            Console.WriteLine("Adding path to static web server \"" + path + "\"");
+
+            // Adding only if does not contain this path already.
+            if (!WorkingDirectories.Contains(path))
+                WorkingDirectories.Add(path);
+       }
 
       /// <summary>
       /// Http response cache keyed on URI

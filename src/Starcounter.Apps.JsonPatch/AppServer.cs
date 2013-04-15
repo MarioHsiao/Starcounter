@@ -13,6 +13,7 @@ using Starcounter.Advanced;
 using System.Net;
 using Codeplex.Data;
 using Starcounter.Internal.JsonPatch;
+using System.Collections.Generic;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -31,14 +32,14 @@ namespace Starcounter.Internal.Web {
         /// If the URI does not point to a App view model or a user implemented
         /// handler, this is where the request will go.
         /// </summary>
-        private StaticWebServer StaticFileServer;
+        private Dictionary<UInt16, StaticWebServer> StaticFileServers;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpAppServer" /> class.
         /// </summary>
         /// <param name="staticFileServer">The static file server.</param>
-        public HttpAppServer(StaticWebServer staticFileServer) {
-            StaticFileServer = staticFileServer;
+        public HttpAppServer(Dictionary<UInt16, StaticWebServer> staticFileServer) {
+            StaticFileServers = staticFileServer;
         }
 
         /// <summary>
@@ -164,7 +165,7 @@ namespace Starcounter.Internal.Web {
 #if GW_URI_MATCHING_CODEGEN
                 UserHandlerCodegen.HandlersManager.RunDelegate(request, out x);
 #else
-            RequestHandler.RequestProcessor.Invoke(request, out x);
+                RequestHandler.RequestProcessor.Invoke(request, out x);
 #endif
                 // Handling and returning the HTTP response.
                 return HandleResponse(request, x);
@@ -186,16 +187,25 @@ namespace Starcounter.Internal.Web {
         /// <remarks>To save an additional http request, in the event of a html resource request,
         /// the Starcounter App view model is embedded in a script tag.</remarks>
         private byte[] ResolveAndPrepareFile(string relativeUri, Request request) {
-            Response ri = StaticFileServer.GetStatic(relativeUri, request);
-            byte[] original = ri.GetBytes(request);
-            if (request.NeedsScriptInjection) {
-                request.Debug(" (injecting script)");
-                byte[] script = Encoding.UTF8.GetBytes("<script>window.__elim_req=" + Encoding.UTF8.GetString(request.ViewModel) + "</script>");
+            StaticWebServer staticWebServer;
 
-                return ScriptInjector.Inject(original, script, ri.HeadersLength, ri.ContentLength, ri.ContentLengthLength, ri.ContentLengthInjectionPoint, ri.ScriptInjectionPoint);
+            // Trying to fetch resource for this port.
+            if (StaticFileServers.TryGetValue(request.PortNumber, out staticWebServer))
+            {
+                Response ri = staticWebServer.GetStatic(relativeUri, request);
+                byte[] original = ri.GetBytes(request);
+                if (request.NeedsScriptInjection)
+                {
+                    request.Debug(" (injecting script)");
+                    byte[] script = Encoding.UTF8.GetBytes("<script>window.__elim_req=" + Encoding.UTF8.GetString(request.ViewModel) + "</script>");
+
+                    return ScriptInjector.Inject(original, script, ri.HeadersLength, ri.ContentLength, ri.ContentLengthLength, ri.ContentLengthInjectionPoint, ri.ScriptInjectionPoint);
+                }
+
+                return original;
             }
 
-            return original;
+            return null;
         }
 
         /// <summary>
@@ -227,16 +237,40 @@ namespace Starcounter.Internal.Web {
         /// <remarks>There is no need to add the directory to the static resolver as the static resolver
         /// will already be bootstrapped as a lower priority handler for stuff that this
         /// AppServer does not handle.</remarks>
-        public override void UserAddedLocalFileDirectoryWithStaticContent(string path) {
-            StaticFileServer.UserAddedLocalFileDirectoryWithStaticContent(path);
+        public override void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
+        {
+            lock (StaticFileServers)
+            {
+                StaticWebServer staticWebServer;
+
+                // Try to fetch static web server.
+                if (StaticFileServers.TryGetValue(port, out staticWebServer))
+                {
+                    staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
+                }
+                else
+                {
+                    staticWebServer = new StaticWebServer();
+                    StaticFileServers.Add(port, staticWebServer);
+                    staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
+                }
+            }
         }
 
         /// <summary>
         /// Housekeeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
-        public override int Housekeep() {
-            return StaticFileServer.Housekeep();
+        public override int Housekeep()
+        {
+            lock (StaticFileServers)
+            {
+                // Doing house keeping for each port.
+                foreach (KeyValuePair<UInt16, StaticWebServer> s in StaticFileServers)
+                    s.Value.Housekeep();
+
+                return 0;
+            }
         }
     }
 
