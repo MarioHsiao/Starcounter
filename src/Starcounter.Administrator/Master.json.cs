@@ -469,11 +469,13 @@ namespace Starcounter.Administrator {
                 // Splitting contents.
                 String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
 
-                UInt16 port;
-                try {
-                    // Getting port of the resource.
-                    port = UInt16.Parse(settings[0]);
+                // Getting port of the resource.
+                UInt16 port = UInt16.Parse(settings[0]);
 
+                // Adding static files serving directory.
+                AppsBootstrapper.AddFileServingDirectory(port, settings[1]);
+
+                try {
                     // Registering static handler on given port.
                     GET(port, "/{?}", (string res) =>
                     {
@@ -490,9 +492,6 @@ namespace Starcounter.Administrator {
                     }
                     throw exc;
                 }
-
-                // Adding static files serving directory.
-                AppsBootstrapper.AddFileServingDirectory(port, settings[1]);
 
                 return "Success!";
             });
