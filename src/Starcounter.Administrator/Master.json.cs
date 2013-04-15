@@ -48,9 +48,9 @@ namespace Starcounter.Administrator {
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
 #if ANDWAH
-            AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+            AppsBootstrapper.Bootstrap(@"c:\github\Level1\src\Starcounter.Administrator", adminPort);   // TODO:REMOVE
 #else
-            AppsBootstrapper.Bootstrap(adminPort, "scadmin");
+            AppsBootstrapper.Bootstrap("scadmin", adminPort);
 #endif
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
@@ -469,9 +469,16 @@ namespace Starcounter.Administrator {
                 // Splitting contents.
                 String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
 
+                // Getting port of the resource.
+                UInt16 port = UInt16.Parse(settings[0]);
+
+                // Adding static files serving directory.
+                AppsBootstrapper.AddFileServingDirectory(port, settings[1]);
+
                 try {
                     // Registering static handler on given port.
-                    GET(UInt16.Parse(settings[0]), "/{?}", (string res) => {
+                    GET(port, "/{?}", (string res) =>
+                    {
                         return null;
                     });
                 }
@@ -485,9 +492,6 @@ namespace Starcounter.Administrator {
                     }
                     throw exc;
                 }
-
-                // Adding static files serving directory.
-                AppsBootstrapper.AddFileServingDirectory(settings[1]);
 
                 return "Success!";
             });

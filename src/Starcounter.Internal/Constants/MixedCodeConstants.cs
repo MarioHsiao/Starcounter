@@ -179,7 +179,7 @@ namespace Starcounter.Internal
             public UInt32 original_uri_info_len_chars;
             public unsafe IntPtr processed_uri_info_string;
             public UInt32 processed_uri_info_len_chars;
-            public Int32 handler_index;
+            public Int32 handler_id;
             public fixed Byte param_types[MixedCodeConstants.MAX_URI_CALLBACK_PARAMS];
             public Byte num_params;
         };
