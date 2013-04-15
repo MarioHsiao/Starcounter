@@ -36,7 +36,7 @@ namespace Weaver {
             // the about-to-be-weaved assembly will have proper references to the
             // needed assemblies.
 
-            appsInitializerMethod = typeof(AppsBootstrapper).GetMethod("Bootstrap", new Type[] { typeof(UInt16), typeof(String) });
+            appsInitializerMethod = typeof(AppsBootstrapper).GetMethod("Bootstrap", new Type[] { typeof(String), typeof(UInt16) });
             appsInitializerMethRef = assembly.MainModule.Import(appsInitializerMethod);
             appsShellBootstrapper = typeof(Starcounter.Apps.Bootstrap.AppProcess).GetMethod("AssertInDatabaseOrSendStartRequest");
             appsShellBootstrapMethRef = assembly.MainModule.Import(appsShellBootstrapper);
@@ -54,8 +54,8 @@ namespace Weaver {
             var ilWriter = generatedAppsInitializer.Body.GetILProcessor();
             generatedAppsInitializer.Body.MaxStackSize = 8;
             ilWriter.Emit(OpCodes.Nop);
-            ilWriter.Emit(OpCodes.Ldc_I4_0);
             ilWriter.Emit(OpCodes.Ldarg_0);
+            ilWriter.Emit(OpCodes.Ldc_I4_0);
             ilWriter.Emit(OpCodes.Call, appsInitializerMethRef);
             ilWriter.Emit(OpCodes.Nop);
             ilWriter.Emit(OpCodes.Ret);
