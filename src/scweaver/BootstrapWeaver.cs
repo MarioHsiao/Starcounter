@@ -36,7 +36,7 @@ namespace Weaver {
             // the about-to-be-weaved assembly will have proper references to the
             // needed assemblies.
 
-            appsInitializerMethod = typeof(AppsBootstrapper).GetMethod("Bootstrap", new Type[] { typeof(UInt16), typeof(String) });
+            appsInitializerMethod = typeof(AppsBootstrapper).GetMethod("Bootstrap", new Type[] { typeof(String), typeof(UInt16) });
             appsInitializerMethRef = assembly.MainModule.Import(appsInitializerMethod);
             appsShellBootstrapper = typeof(Starcounter.Apps.Bootstrap.AppProcess).GetMethod("AssertInDatabaseOrSendStartRequest");
             appsShellBootstrapMethRef = assembly.MainModule.Import(appsShellBootstrapper);
