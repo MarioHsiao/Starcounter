@@ -33,6 +33,9 @@ namespace Starcounter.Internal.Web {
        {
             Console.WriteLine("Adding path to static web server \"" + path + "\"");
 
+            // Always clearing cache when adding new directory on this port.
+            ClearCache();
+
             // Adding only if does not contain this path already.
             if (!WorkingDirectories.Contains(path))
                 WorkingDirectories.Add(path);
