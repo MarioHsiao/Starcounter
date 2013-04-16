@@ -44,6 +44,11 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             private set;
         }
 
+        public IField ThisIdentityString {
+            get;
+            private set;
+        }
+
         public IField ThisBinding {
             get;
             private set;
@@ -103,6 +108,14 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
                 typeDef.Fields.Add(thisId);
                 this.ThisIdentity = thisId;
 
+                var thisIdString = new FieldDefDeclaration {
+                    Name = TypeSpecification.ThisIdStringName,
+                    Attributes = FieldAttributes.Family,
+                    FieldType = assemblySpec.UInt64Type
+                };
+                typeDef.Fields.Add(thisIdString);
+                this.ThisIdentityString = thisIdString;
+
                 var thisBinding = new FieldDefDeclaration {
                     Name = TypeSpecification.ThisBindingName,
                     Attributes = FieldAttributes.Family,
@@ -156,6 +169,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             this.ThisHandle = typeDef.FindField(TypeSpecification.ThisHandleName).Field.Translate(typeDef.Module);
             this.ThisBinding = typeDef.FindField(TypeSpecification.ThisBindingName).Field.Translate(typeDef.Module);
             this.ThisIdentity = typeDef.FindField(TypeSpecification.ThisIdName).Field.Translate(typeDef.Module);
+            this.ThisIdentity = typeDef.FindField(TypeSpecification.ThisIdStringName).Field.Translate(typeDef.Module);
         }
 
 

@@ -54,6 +54,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         FieldDefDeclaration thisHandleField;
         FieldDefDeclaration thisIdentityField;
         FieldDefDeclaration thisObjectNoField;
+        FieldDefDeclaration thisObjectIdField;
         FieldDefDeclaration thisBindingField;
         DbStateMethodProvider.ViewAccessors viewAccessLayer;
 
@@ -82,6 +83,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             targets.Add("get_ThisHandle", GetThisHandle);
             targets.Add("get_Identity", GetThisIdentity);
             targets.Add("get_ObjectNo", GetThisObjectNo);
+            targets.Add("get_ObjectID", GetThisObjectID);
             targets.Add("GetBoolean", GetBoolean);
             targets.Add("GetByte", GetByte);
             targets.Add("GetBinary", GetBinary);
@@ -111,6 +113,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             thisHandleField = typeDef.Fields.GetByName(TypeSpecification.ThisHandleName);
             thisIdentityField = typeDef.Fields.GetByName(TypeSpecification.ThisIdName);
             thisObjectNoField = typeDef.Fields.GetByName(TypeSpecification.ThisIdName);
+            thisObjectIdField = typeDef.Fields.GetByName(TypeSpecification.ThisIdStringName);
             thisBindingField = typeDef.Fields.GetByName(TypeSpecification.ThisBindingName);
 
             typeDef.InterfaceImplementations.Add(bindableTypeSignature);
@@ -341,6 +344,26 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 impl.MethodBody.MaxStack = 8;
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
                 w.EmitInstructionField(OpCodeNumber.Ldfld, thisObjectNoField);
+                w.EmitInstruction(OpCodeNumber.Ret);
+            }
+        }
+
+        void GetThisObjectID(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            // string IObjectProxy.get_ObjectID()
+            impl.Attributes |= MethodAttributes.SpecialName;
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = module.Cache.GetIntrinsic(IntrinsicType.String)
+            };
+            var propertyName = proxyNETType.FullName + "." + "ObjectID";
+            var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
+            getter.Method = impl;
+
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                var w = attached.Writer;
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionField(OpCodeNumber.Ldfld, thisObjectIdField);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
         }

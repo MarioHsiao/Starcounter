@@ -30,6 +30,8 @@ namespace Starcounter.Internal {
 #pragma warning disable 0628, 0169
         #endregion
 
+        protected string this_id_web_string = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Entity" /> class.
         /// </summary>
@@ -172,6 +174,17 @@ namespace Starcounter.Internal {
         /// </summary>
         public ulong ObjectNo {
             get { return this.__sc__this_id__; }
+        }
+
+        /// <summary>
+        /// Returns Web friendly string representing object identity of the database object
+        /// </summary>
+        public String ObjectID {
+            get {
+                if (this_id_web_string == null)
+                    this_id_web_string = Starcounter.Query.ObjectIdentityHelpMethods.Base64ForUrlEncode(this.__sc__this_id__);
+                return this_id_web_string;
+            }
         }
     }
 }
