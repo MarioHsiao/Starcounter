@@ -96,9 +96,9 @@ namespace star {
                 var comp = StringComparison.InvariantCultureIgnoreCase;
 
                 if (serverName.Equals(StarcounterEnvironment.ServerNames.PersonalServer, comp)) {
-                    port = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+                    port = NewConfig.Default.SystemHttpPort;
                 } else if (serverName.Equals(StarcounterEnvironment.ServerNames.SystemServer, comp)) {
-                    port = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort;
+                    port = NewConfig.Default.SystemHttpPort;
                 } else {
                     throw ErrorCode.ToException(
                         Error.SCERRUNSPECIFIED,

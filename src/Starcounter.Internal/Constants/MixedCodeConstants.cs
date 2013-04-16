@@ -130,6 +130,11 @@ namespace Starcounter.Internal
         public const int MAX_URI_CALLBACK_PARAMS = 16;
 
         /// <summary>
+        /// Parameters info max size bytes.
+        /// </summary>
+        public const int PARAMS_INFO_MAX_SIZE_BYTES = 64;
+
+        /// <summary>
         /// Shared memory chunk size.
         /// </summary>
         public const int SHM_CHUNK_SIZE = 1 << 12; // 4K chunks.
