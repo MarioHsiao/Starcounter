@@ -50,9 +50,20 @@ namespace star {
 
         static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
             string givenPort;
+            int personalDefault;
+            int systemDefault;
 
-            // Use proper error code / message for unresolved server
-            // TODO:
+            GetEnvironmentIntOrDefault(
+                StarcounterEnvironment.VariableNames.DefaultServerPersonalPort,
+                out personalDefault,
+                StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort
+                );
+
+            GetEnvironmentIntOrDefault(
+                StarcounterEnvironment.VariableNames.DefaultServerSystemPort,
+                out systemDefault,
+                StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort
+                );
 
             if (args.TryGetProperty(Option.Serverport, out givenPort)) {
                 port = int.Parse(givenPort);
@@ -67,7 +78,11 @@ namespace star {
                 //   4) Using a const string (e.g. "N/A")
 
                 if (!args.TryGetProperty(Option.Server, out serverName)) {
-                    if (port == StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort) {
+                    if (port == personalDefault) {
+                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
+                    } else if (port == systemDefault) {
+                        serverName = StarcounterEnvironment.ServerNames.SystemServer;
+                    } else if (port == StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort) {
                         serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     } else if (port == StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort) {
                         serverName = StarcounterEnvironment.ServerNames.SystemServer;
@@ -99,16 +114,16 @@ namespace star {
                 var comp = StringComparison.InvariantCultureIgnoreCase;
 
                 if (serverName.Equals(StarcounterEnvironment.ServerNames.PersonalServer, comp)) {
-                    port = NewConfig.Default.SystemHttpPort;
+                    port = personalDefault;
                 } else if (serverName.Equals(StarcounterEnvironment.ServerNames.SystemServer, comp)) {
-                    port = NewConfig.Default.SystemHttpPort;
+                    port = systemDefault;
                 } else {
                     throw ErrorCode.ToException(
                         Error.SCERRUNSPECIFIED,
                         string.Format("Unknown server name: {0}. Please specify the port using '{1}'.", 
-                        serverName, 
+                        serverName,
                         Option.Serverport));
-                }                
+                }
             }
         }
        
