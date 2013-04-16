@@ -102,17 +102,105 @@ namespace Starcounter.Administrator {
 
             #region Server
             // Accept "", text/html, OR application/json. Otherwise, 406.
-            GET("/server", () => {
+            GET("/server", (Request req) => {
 
-                ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
-                ServerApp serverApp = new ServerApp();
-                serverApp.SystemHttpPort = serverInfo.Configuration.SystemHttpPort;
-                serverApp.DatabaseDirectory = serverInfo.Configuration.DatabaseDirectory;
-                serverApp.LogDirectory = serverInfo.Configuration.LogDirectory;
-                serverApp.TempDirectory = serverInfo.Configuration.TempDirectory;
-                serverApp.ServerName = serverInfo.Configuration.Name;
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+                    dynamic resultJson = new DynamicJson();
+                    resultJson.server = null;
+                    resultJson.exception = null;
 
-                return serverApp;
+                    try {
+                        ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+
+                        if (serverInfo != null) {
+                            resultJson.server = new {
+                                id = Master.EncodeTo64(serverInfo.Uri),
+                                name = serverInfo.Configuration.Name,
+                                httpPort = serverInfo.Configuration.SystemHttpPort
+                            };
+                        }
+                    }
+                    catch (Exception e) {
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                    }
+                    return resultJson.ToString();
+                }
+                return HttpStatusCode.NotAcceptable;
+
+
+                //ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
+                //ServerApp serverApp = new ServerApp();
+                //serverApp.SystemHttpPort = serverInfo.Configuration.SystemHttpPort;
+                //serverApp.DatabaseDirectory = serverInfo.Configuration.DatabaseDirectory;
+                //serverApp.LogDirectory = serverInfo.Configuration.LogDirectory;
+                //serverApp.TempDirectory = serverInfo.Configuration.TempDirectory;
+                //serverApp.ServerName = serverInfo.Configuration.Name;
+
+                //return serverApp;
+            });
+
+
+            PUT("/server", (Request req) => {
+
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+                    dynamic resultJson = new DynamicJson();
+                    resultJson.server = null;
+                    resultJson.exception = null;
+                    resultJson.message = null;
+                    resultJson.validationErrors = new object[] { };
+
+                    try {
+
+                        String content = req.GetBodyStringUtf8_Slow();
+
+                        dynamic incomingJson = DynamicJson.Parse(content);
+
+                        ServerInfo server = Master.ServerInterface.GetServerInfo();
+
+                        if (server != null) {
+
+                            // Validate settings
+                            int validationErrors = 0;
+
+                            // Port number
+                            ushort port;
+                            if (ushort.TryParse(incomingJson.httpPort.ToString(), out port) && port >= IPEndPoint.MinPort && port <= IPEndPoint.MaxPort) {
+                                server.Configuration.SystemHttpPort = port;
+                            }
+                            else {
+                                resultJson.validationErrors[validationErrors++] = new { property = "httpPort", message = "invalid port number" };
+                            }
+
+                            if (validationErrors == 0) {
+                                // Validation OK
+                                server.Configuration.Save(server.ServerConfigurationPath);
+                                resultJson.message = "Settings saved. The new settings will be used at the next start of the server";
+
+                                // Get new database settings
+                                server = Master.ServerInterface.GetServerInfo();
+
+                                if (server != null) {
+                                    resultJson.server = new {
+                                        id = Master.EncodeTo64(server.Uri),
+                                        name = server.Configuration.Name,
+                                        httpPort = server.Configuration.SystemHttpPort
+                                    };
+                                }
+
+                            }
+                            else {
+                                // Validation Errors
+                            }
+
+                        }
+                    }
+                    catch (Exception e) {
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                    }
+                    return resultJson.ToString();
+                }
+                return HttpStatusCode.NotAcceptable;
+
             });
 
             #endregion
@@ -207,15 +295,26 @@ namespace Starcounter.Administrator {
             GET("/databases", (Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+                    dynamic resultJson = new DynamicJson();
+                    resultJson.databases = new object[] { };
+                    resultJson.exception = null;
 
-                    DatabaseInfo[] databases = Master.ServerInterface.GetDatabases();
-                    DatabasesApp databaseList = new DatabasesApp();
-                    foreach (var database in databases) {
-                        DatabaseApp databaseApp = new DatabaseApp();
-                        databaseApp.SetDatabaseInfo(database);
-                        databaseList.DatabaseList.Add(databaseApp);
+                    try {
+                        DatabaseInfo[] databases = Master.ServerInterface.GetDatabases();
+                        for (int i = 0; i < databases.Length; i++) {
+                            resultJson.databases[i] = new {
+                                id = Master.EncodeTo64(databases[i].Uri),
+                                name = databases[i].Name,
+                                status = databases[i].HostProcessId,
+                                httpPort = databases[i].Configuration.Runtime.DefaultUserHttpPort,
+                                schedulerCount = databases[i].Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount
+                            };
+                        }
                     }
-                    return databaseList;
+                    catch (Exception e) {
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                    }
+                    return resultJson.ToString();
                 }
                 else {
                     return HttpStatusCode.NotAcceptable;
@@ -223,41 +322,93 @@ namespace Starcounter.Administrator {
 
             });
 
+
+            // Returns a database
+            GET("/databases/{?}", (string id, Request req) => {
+
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+                    dynamic resultJson = new DynamicJson();
+                    resultJson.database = null;
+                    resultJson.exception = null;
+
+                    try {
+                        DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+                        if (database != null) {
+                            resultJson.database = new {
+                                id = Master.EncodeTo64(database.Uri),
+                                name = database.Name,
+                                status = database.HostProcessId,
+                                httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
+                                schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount
+                            };
+                        }
+                    }
+                    catch (Exception e) {
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                    }
+                    return resultJson.ToString();
+                }
+                return HttpStatusCode.NotAcceptable;
+            });
+
             // Create a database
-            POST("/databases/{?}", (string databaseName, Request req) => {
+            POST("/databases", (Request req) => {
 
                 dynamic resultJson = new DynamicJson();
                 resultJson.commandId = null;
                 resultJson.exception = null;
+                resultJson.validationErrors = new object[] { };
 
                 try {
+                    // Validate settings
+                    int validationErrors = 0;
+
                     // Getting POST contents.
                     String content = req.GetBodyStringUtf8_Slow();
 
                     // TODO: Validation of values
 
-                    var json = DynamicJson.Parse(content);
+                    var incomingJson = DynamicJson.Parse(content);
 
-                    var createDb = new CreateDatabaseCommand(Master.ServerEngine, json.databaseName);
+                    // Port number
+                    if (string.IsNullOrEmpty(incomingJson.name)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "name", message = "invalid database name" };
+                    }
 
-                    createDb.SetupProperties.Configuration.Runtime.ChunksNumber = (int)json.chunksNumber;
-                    createDb.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = (ushort)json.defaultUserHttpPort;
+                    // Port number
+                    ushort port;
+                    if (!ushort.TryParse(incomingJson.httpPort.ToString(), out port) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "httpPort", message = "invalid port number" };
+                    }
 
-                    createDb.SetupProperties.Configuration.Runtime.DumpDirectory = json.dumpDirectory;
-                    createDb.SetupProperties.Configuration.Runtime.TempDirectory = json.tempDirectory;
-                    createDb.SetupProperties.Configuration.Runtime.ImageDirectory = json.imageDirectory;
-                    createDb.SetupProperties.Configuration.Runtime.TransactionLogDirectory = json.transactionLogDirectory;
-                    createDb.SetupProperties.Configuration.Runtime.SchedulerCount = (int)json.schedulerCount;
-                    createDb.SetupProperties.Configuration.Runtime.SqlAggregationSupport = (bool)json.sqlAggregationSupport;
-                    createDb.SetupProperties.Configuration.Runtime.SQLProcessPort = (ushort)json.sqlProcessPort;
+                    // Scheduler Count
+                    int schedulerCount;
+                    if (!int.TryParse(incomingJson.schedulerCount.ToString(), out schedulerCount)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "schedulerCount", message = "invalid scheduler count" };
+                    }
 
-                    createDb.SetupProperties.StorageConfiguration.CollationFile = json.collationFile;
-                    createDb.SetupProperties.StorageConfiguration.MaxImageSize = (long)json.maxImageSize;
-                    createDb.SetupProperties.StorageConfiguration.SupportReplication = (bool)json.supportReplication;
-                    createDb.SetupProperties.StorageConfiguration.TransactionLogSize = (long)json.transactionLogSize;
+                    if (validationErrors == 0) {
 
-                    CommandInfo commandInfo = Master.ServerInterface.Execute(createDb);
-                    resultJson.commandId = commandInfo.Id.Value;
+                        var command = new CreateDatabaseCommand(Master.ServerEngine, incomingJson.name);
+                        command.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = port;
+                        command.SetupProperties.Configuration.Runtime.SchedulerCount = schedulerCount;
+
+                        command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)incomingJson.chunksNumber;
+                        command.SetupProperties.Configuration.Runtime.DumpDirectory = incomingJson.dumpDirectory;
+                        command.SetupProperties.Configuration.Runtime.TempDirectory = incomingJson.tempDirectory;
+                        command.SetupProperties.Configuration.Runtime.ImageDirectory = incomingJson.imageDirectory;
+                        command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = incomingJson.transactionLogDirectory;
+                        command.SetupProperties.Configuration.Runtime.SqlAggregationSupport = (bool)incomingJson.sqlAggregationSupport;
+                        command.SetupProperties.Configuration.Runtime.SQLProcessPort = (ushort)incomingJson.sqlProcessPort;
+
+                        command.SetupProperties.StorageConfiguration.CollationFile = incomingJson.collationFile;
+                        command.SetupProperties.StorageConfiguration.MaxImageSize = (long)incomingJson.maxImageSize;
+                        command.SetupProperties.StorageConfiguration.SupportReplication = (bool)incomingJson.supportReplication;
+                        command.SetupProperties.StorageConfiguration.TransactionLogSize = (long)incomingJson.transactionLogSize;
+
+                        CommandInfo commandInfo = Master.ServerInterface.Execute(command);
+                        resultJson.commandId = commandInfo.Id.Value;
+                    }
                 }
                 catch (Exception e) {
                     resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
@@ -266,23 +417,85 @@ namespace Starcounter.Administrator {
 
             });
 
+            PUT("/databases/{?}", (string id, Request req) => {
 
-            // Returns a database
-            GET("/databases/{?}", (string databaseid, Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
-                    DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(databaseid));
-                    if (database != null) {
-                        DatabaseApp databaseApp = new DatabaseApp();
-                        databaseApp.SetDatabaseInfo(database);
-                        //Session.Data = databaseApp;
-                        return databaseApp;
+                    dynamic resultJson = new DynamicJson();
+                    resultJson.database = null;
+                    resultJson.exception = null;
+                    resultJson.message = null;
+                    resultJson.validationErrors = new object[] { };
+
+                    try {
+
+                        String content = req.GetBodyStringUtf8_Slow();
+
+                        dynamic incomingJson = DynamicJson.Parse(content);
+
+                        DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+
+
+                        if (database != null) {
+
+                            // Validate settings
+                            int validationErrors = 0;
+
+                            // Port number
+                            ushort port;
+                            if (ushort.TryParse(incomingJson.httpPort.ToString(), out port) && port >= IPEndPoint.MinPort && port <= IPEndPoint.MaxPort) {
+                                database.Configuration.Runtime.DefaultUserHttpPort = port;
+                            }
+                            else {
+                                resultJson.validationErrors[validationErrors++] = new { property = "httpPort", message = "invalid port number" };
+                            }
+
+                            // Scheduler Count
+                            int schedulerCount;
+                            if (int.TryParse(incomingJson.schedulerCount.ToString(), out schedulerCount)) {
+                                database.Configuration.Runtime.SchedulerCount = schedulerCount;
+                            }
+                            else {
+                                resultJson.validationErrors[validationErrors++] = new { property = "schedulerCount", message = "invalid scheduler count" };
+                            }
+
+                            if (validationErrors == 0) {
+                                // Validation OK
+                                database.Configuration.Save();
+                                resultJson.message = "Settings saved. The new settings will be used at the next start of the database";
+
+                                // Get new database settings
+                                database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+
+                                // Return the database
+                                if (database != null) {
+                                    resultJson.database = new {
+                                        id = Master.EncodeTo64(database.Uri),
+                                        name = database.Name,
+                                        status = database.HostProcessId,
+                                        httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
+                                        schedulerCount = database.Configuration.Runtime.SchedulerCount
+                                    };
+                                }
+
+                            }
+                            else {
+                                // Validation Errors
+                            }
+
+                        }
                     }
-                    return HttpStatusCode.NotFound;
+                    catch (Exception e) {
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                    }
+                    return resultJson.ToString();
                 }
                 return HttpStatusCode.NotAcceptable;
 
             });
+
+
+
 
             #endregion
 
@@ -298,16 +511,17 @@ namespace Starcounter.Administrator {
                         ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
 
                         dynamic json = new DynamicJson();
-                        json.databaseName = "myDatabase"; // TODO: Generate a unique default database name
+                        json.name = "myDatabase"; // TODO: Generate a unique default database name
+                        json.httpPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DefaultUserHttpPort;
+                        json.schedulerCount = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SchedulerCount ?? Environment.ProcessorCount;
+
                         json.chunksNumber = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ChunksNumber;
-                        json.defaultUserHttpPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DefaultUserHttpPort;
 
                         json.dumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory;
                         json.tempDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TempDirectory;
                         json.imageDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
                         json.transactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
 
-                        json.schedulerCount = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SchedulerCount ?? 0;
                         json.sqlAggregationSupport = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SqlAggregationSupport;
                         json.sqlProcessPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SQLProcessPort;
                         json.collationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
@@ -381,15 +595,18 @@ namespace Starcounter.Administrator {
 
             #region SQL
 
-            POST("/sql/{?}", (string databasename, Request req) => {
+            POST("/sql/{?}", (string id, Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     try {
                         Response response;
+
+                        DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
                         Node.LocalhostSystemPortNode.POST(
-                            string.Format("/__{0}/sql", databasename),
+                            string.Format("/__{0}/sql", database.Name),
                             bodyData,
                             "MyHeader1: 123\r\nMyHeader2: 456\r\n",
                             null,

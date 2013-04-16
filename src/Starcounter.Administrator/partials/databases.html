@@ -1,8 +1,13 @@
-﻿<div>
+﻿<div ng-show='databases == null' class="progress progress-striped active">
+    <div class="bar" style="width: 100%;"></div>
+</div>
 
-    <button class="btn pull-right" ng-click="btn_click_refresh_databases()"><i class="icon-repeat"></i></button>
 
-    <table class="table table-striped table-bordered">
+<div ng-hide='databases == null'>
+
+    <button class="btn pull-right" ng-click="btnClick_refreshDatabases()"><i class="icon-repeat"></i></button>
+
+    <table class="table table-striped table-bordered" ng-hide="databases == null || databases.length == 0">
         <thead>
             <tr>
                 <th></th>
@@ -17,29 +22,32 @@
 
                 <td>
                     <div class="btn-group">
-                        <a ng-disabled="true" class="btn" ><i class="icon-repeat"></i></a>
-                        <a ng-disabled="true" class="btn" ><i class="icon-play"></i></a>
-                        <a ng-disabled="true" class="btn" ><i class="icon-stop "></i></a>
+                        <a ng-click="btnClick_restart()" class="btn"><i class="icon-repeat"></i></a>
+                        <a ng-click="btnClick_start()" class="btn"><i class="icon-play"></i></a>
+                        <a ng-click="btnClick_stop()" class="btn"><i class="icon-stop "></i></a>
                     </div>
                 </td>
 
                 <td>
-                    <a href="#/databases/{{database.DatabaseId}}">{{database.DatabaseName}}</a>
+                    <a href="#/databases/{{database.id}}">{{database.name}}</a>
                 </td>
 
-                <td>{{database.HostProcessId}}
+                <td>{{database.status}}
                 </td>
                 <td>
-                    <button class="close">&times;</button>
+                    <button ng-click="btnClick_delete(database.id)" class="close">&times;</button>
+
                 </td>
             </tr>
 
         </tbody>
-
-
     </table>
 
-    <a class="btn btn-primary" href="#/create_database">Create database...</a>
+    <div ng-show="databases == null || databases.length == 0">
+        <p>There are no databases.</p>
+    </div>
+
+    <a class="btn btn-primary" href="#/create_database">Create database</a>
 
 
 </div>
