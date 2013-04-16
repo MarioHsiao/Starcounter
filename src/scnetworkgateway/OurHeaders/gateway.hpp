@@ -171,9 +171,6 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 // Maximum number of URI handlers per port.
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
-// Length of accepting data structure.
-const int32_t ACCEPT_DATA_SIZE_BYTES = 64;
-
 // Maximum number of chunks to pop at once.
 const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 128;
 

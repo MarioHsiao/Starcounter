@@ -338,14 +338,11 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	swprintf(monitor_cmd, str_num_chars, str_template, srv_name_upr, server_logs_dir);
 
-	// TODO:
-	// Gateway configuration directory where? Currently set to installation
-	// directory.
-
-	str_template = L"scnetworkgateway.exe \"%s\" \"scnetworkgateway.xml\" \"%s\"";
+	str_template = L"scnetworkgateway.exe \"%s\" \"%s\\scnetworkgateway.xml\" \"%s\"";
 	str_num_chars =
 		wcslen(str_template) +
 		wcslen(srv_name_upr) +
+        wcslen(server_dir) +
 		wcslen(server_logs_dir) +
 		1;
 
@@ -353,7 +350,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	gateway_cmd = (wchar_t *)malloc(str_size_bytes);
 	if (!gateway_cmd) goto err_nomem;
 
-	swprintf(gateway_cmd, str_num_chars, str_template, srv_name_upr, server_logs_dir);
+	swprintf(gateway_cmd, str_num_chars, str_template, srv_name_upr, server_dir, server_logs_dir);
 
 	// Creating Admin exepath
 	str_template = L"scadmin\\Administrator.exe";
@@ -441,7 +438,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		database_scheduler_count);
 
 #else
-	str_template = L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultUserHttpPort=%s --FLAG:NoDb %s";
+	str_template = L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" --WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --FLAG:NoDb %s";
 
 	str_num_chars +=
 		wcslen(str_template) + 
@@ -452,8 +449,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		wcslen(mingw) +						// CompilerPath
 		wcslen(admin_exe_path) +			// AutoStartExePath
 		wcslen(server_cfg_path) +			// UserArguments
-		wcslen(system_http_port) +			// UserArguments
 		wcslen(admin_working_dir) +			// WorkingDir
+        wcslen(system_http_port) +	        // DefaultSystemHttpPort
 		wcslen(default_user_http_port) +	// DefaultUserHttpPort
 		wcslen(admin_logsteps_flag) +		// --LogSteps (or "" if not set)
 		1;
@@ -473,8 +470,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		mingw,
 		admin_exe_path,
 		server_cfg_path,
-		system_http_port,
 		admin_working_dir,
+        system_http_port,
 		default_user_http_port,
 		admin_logsteps_flag);
 #endif
