@@ -29,8 +29,10 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     });
 
     $provide.factory('Database', function ($resource) {
-        return $resource('/databases/:id', { id: '@id' }, {
+        return $resource('/databases/:name', { name: '@name' }, {
             create: { method: 'POST', isArray: false },     // Create new database
+            start: { method: 'POST', params: { action: 'start' }, isArray: false },
+            stop: { method: 'POST', params: { action: 'stop' }, isArray: false },
             query: { method: 'GET', isArray: false },       // Get all databases
             get: { method: 'GET', isArray: false },         // Get one database
             save: { method: 'PUT', isArray: false },        // Save
@@ -74,7 +76,7 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
     $provide.factory('SqlQuery', function ($resource) {
 
-        return $resource('/sql/:id', { id: '@id' }, {
+        return $resource('/sql/:name', { name: '@name' }, {
             send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
         });
 
@@ -85,7 +87,7 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     });
 
     $provide.factory('Console', function ($resource) {
-        return $resource('/databases/:id/console', { id: '@id' }, {
+        return $resource('/databases/:name/console', { name: '@name' }, {
             query: { method: 'GET', isArray: false }
         });
     });

@@ -213,6 +213,7 @@ namespace Starcounter.Administrator {
                     resultJson.isCompleted = true;
                     resultJson.exception = null;
                     resultJson.message = null;
+                    resultJson.progressText = "";
                     resultJson.status = null;
                     resultJson.errors = new object[] { };
 
@@ -225,6 +226,14 @@ namespace Starcounter.Administrator {
                                 resultJson.message = command.Description;
                                 resultJson.status = command.Status.ToString();
 
+                                if (command.HasProgress) {
+                                    foreach (ProgressInfo progressInfo in command.Progress) {
+                                        if (!progressInfo.IsCompleted) {
+                                            resultJson.progressText = progressInfo.Text;
+                                        }
+                                    }
+                                }
+
                                 if (command.HasError) {
                                     int index = 0;
                                     foreach (ErrorInfo eInfo in command.Errors) {
@@ -233,7 +242,6 @@ namespace Starcounter.Administrator {
                                         index++;
                                     }
                                 }
-
                                 break;
                             }
                         }
@@ -322,9 +330,69 @@ namespace Starcounter.Administrator {
 
             });
 
+            //POST("/databases/{?}?{?}", (string id, string parameters) => {
+            //    return "hello world";
+            //});
+            // Start   /database/mydatabas?action=start
+            POST("/databases/{?}?action=start", (string name, Request req) => {
+
+                if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+
+                    dynamic resultJson = new DynamicJson();
+                    resultJson.commandId = null;
+                    resultJson.exception = null;
+
+                    try {
+
+                        DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
+                        // TODO: Check for null value of database
+
+                        StartDatabaseCommand command = new StartDatabaseCommand(Master.ServerEngine, database.Name);
+                        CommandInfo commandInfo = Master.ServerInterface.Execute(command);
+                        resultJson.commandId = commandInfo.Id.Value;
+                    }
+                    catch (Exception e) {
+                        resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+                    }
+                    return resultJson.ToString();
+                }
+                else {
+                    return HttpStatusCode.NotAcceptable;
+                }
+            });
+
+            // Stop   /database/mydatabas?action=stop
+            //POST("/databases/{?}?action=stop", (string id, Request req) => {
+
+
+            //    if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
+
+            //        dynamic resultJson = new DynamicJson();
+            //        resultJson.commandId = null;
+            //        resultJson.exception = null;
+
+            //        try {
+
+            //            DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+            //            // TODO: Check for null value of database
+
+            //            StopDatabaseCommand command = new StopDatabaseCommand(Master.ServerEngine, database.Name);
+            //            CommandInfo commandInfo = Master.ServerInterface.Execute(command);
+            //            resultJson.commandId = commandInfo.Id.Value;
+            //        }
+            //        catch (Exception e) {
+            //            resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
+            //        }
+            //        return resultJson.ToString();
+            //    }
+            //    else {
+            //        return HttpStatusCode.NotAcceptable;
+            //    }
+            //});
+
 
             // Returns a database
-            GET("/databases/{?}", (string id, Request req) => {
+            GET("/databases/{?}", (string name, Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     dynamic resultJson = new DynamicJson();
@@ -332,7 +400,7 @@ namespace Starcounter.Administrator {
                     resultJson.exception = null;
 
                     try {
-                        DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+                        DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
                         if (database != null) {
                             resultJson.database = new {
                                 id = Master.EncodeTo64(database.Uri),
@@ -417,7 +485,8 @@ namespace Starcounter.Administrator {
 
             });
 
-            PUT("/databases/{?}", (string id, Request req) => {
+
+            PUT("/databases/{?}", (string name, Request req) => {
 
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
@@ -433,7 +502,7 @@ namespace Starcounter.Administrator {
 
                         dynamic incomingJson = DynamicJson.Parse(content);
 
-                        DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+                        DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
 
 
                         if (database != null) {
@@ -465,7 +534,7 @@ namespace Starcounter.Administrator {
                                 resultJson.message = "Settings saved. The new settings will be used at the next start of the database";
 
                                 // Get new database settings
-                                database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+                                database = Master.ServerInterface.GetDatabaseByName(database.Name);
 
                                 // Return the database
                                 if (database != null) {
@@ -595,13 +664,13 @@ namespace Starcounter.Administrator {
 
             #region SQL
 
-            POST("/sql/{?}", (string id, Request req) => {
+            POST("/sql/{?}", (string name, Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     try {
                         Response response;
 
-                        DatabaseInfo database = Master.ServerInterface.GetDatabase(Master.DecodeFrom64(id));
+                        DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
 
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
@@ -619,6 +688,7 @@ namespace Starcounter.Administrator {
                             return response.GetBodyStringUtf8_Slow();
                         }
 
+                        // TODO: Do not return error code. return a more user friendly message
                         return (int)response.StatusCode;
                     }
                     catch (Exception e) {
@@ -640,7 +710,7 @@ namespace Starcounter.Administrator {
 
             #region Get Console output from database
             // Returns the log
-            GET("/databases/{?}/console", (string databaseid, Request req) => {
+            GET("/databases/{?}/console", (string name, Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     dynamic resultJson = new DynamicJson();
@@ -651,7 +721,7 @@ namespace Starcounter.Administrator {
                         Response response;
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", databaseid), null, null, out response);
+                        Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", name), null, null, out response);
 
                         if (response == null) {
                             return HttpStatusCode.ServiceUnavailable;
