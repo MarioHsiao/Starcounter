@@ -41,6 +41,13 @@ namespace star {
             public const string AttatchCodeHostDebugger = "debug";
         }
 
+        static void GetEnvironmentIntOrDefault(string variable, out int result, int fallback = -1) {
+            var x = Environment.GetEnvironmentVariable(variable);
+            if (x == null || !int.TryParse(x, out result)) {
+                result = fallback;
+            }
+        }
+
         static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
             string givenPort;
 
