@@ -77,6 +77,8 @@ namespace Starcounter.InstallerEngine
         internal static String SCServiceExeName { get { return StarcounterConstants.ProgramNames.ScService + ".exe"; } }
         public static String SCEnvVariableName { get { return StarcounterEnvironment.VariableNames.InstallationDirectory; } }
         public static String SCEnvVariableDefaultServer { get { return StarcounterEnvironment.VariableNames.DefaultServer; } }
+        public static String SCEnvVariableDefaultPersonalPort { get { return StarcounterEnvironment.VariableNames.DefaultServerPersonalPort; } }
+        public static String SCEnvVariableDefaultSystemPort { get { return StarcounterEnvironment.VariableNames.DefaultServerSystemPort; } }
         public static String SCPersonalDatabasesName { get { return StarcounterEnvironment.ServerNames.PersonalServer; } }
         public static String SCSystemDatabasesName { get { return StarcounterEnvironment.ServerNames.SystemServer; } }
 
