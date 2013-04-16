@@ -527,7 +527,10 @@ namespace star {
                 Console.WriteLine();
             }
             Console.WriteLine("Environment variables:");
-            Console.WriteLine("{0}\t{1,8}", StarcounterEnvironment.VariableNames.DefaultServer, "Sets the server to use by default.");
+            formatting = "{0,-30}{1,25}";
+            Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServer, "Holds the server to use by default.");
+            Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerPersonalPort, "Personal server port used by default.");
+            Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerSystemPort, "System server port used by default.");
             Console.WriteLine();
             Console.WriteLine("For complete help, see http://www.starcounter.com/wiki/star.exe");
         }
