@@ -116,6 +116,14 @@ namespace Starcounter.Internal.Test
             TestInfo testInfos46 = new TestInfo("GET /s@w", "/sHej!", "/s{?}");
             TestInfo testInfos47 = new TestInfo("GET /@s/static/@w", "/Hej!/static/Hop!", "/{?}/static/{?}");
 
+            TestInfo testInfos48 = new TestInfo("GET /databases/@w", "/databases/someanother", "/databases/{?}");
+            TestInfo testInfos49 = new TestInfo("GET /databases/@s?@w", "/databases/some?another", "/databases/{?}?{?}");
+            TestInfo testInfos50 = new TestInfo("GET /databases", "/databases", "/databases");
+            TestInfo testInfos51 = new TestInfo("GET /databases/@s/ending", "/databases/some/ending", "/databases/{?}/ending");
+            TestInfo testInfos52 = new TestInfo("GET /databases/@s/else", "/databases/some2/else", "/databases/{?}/else");
+            TestInfo testInfos53 = new TestInfo("POST /databases", "/databases", "/databases");
+            TestInfo testInfos54 = new TestInfo("POST /databases/@w", "/databases/somestuff", "/databases/{?}");
+
             Response resp;
 
             ///////////////////////////////////////////
@@ -691,6 +699,84 @@ namespace Starcounter.Internal.Test
 
             ///////////////////////////////////////////
 
+            Handle.GET(testInfos48.TemplateUri, (string p1) =>
+            {
+                Assert.AreEqual("someanother", p1);
+
+                return testInfos48.ReturnStr;
+            });
+
+            localNode.GET(testInfos48.TestUri, null, null, out resp);
+            Assert.IsTrue(testInfos48.ReturnStr == resp.GetBodyStringUtf8_Slow());
+
+            ///////////////////////////////////////////
+
+            Handle.GET(testInfos49.TemplateUri, (string p1, string p2) =>
+            {
+                Assert.AreEqual("some", p1);
+                Assert.AreEqual("another", p2);
+
+                return testInfos49.ReturnStr;
+            });
+
+            localNode.GET(testInfos49.TestUri, null, null, out resp);
+            Assert.IsTrue(testInfos49.ReturnStr == resp.GetBodyStringUtf8_Slow());
+
+            ///////////////////////////////////////////
+
+            Handle.GET(testInfos50.TemplateUri, (Request r) =>
+            {
+                return testInfos50.ReturnStr;
+            });
+
+            localNode.GET(testInfos50.TestUri, null, null, out resp);
+            Assert.IsTrue(testInfos50.ReturnStr == resp.GetBodyStringUtf8_Slow());
+
+            ///////////////////////////////////////////
+
+            Handle.GET(testInfos51.TemplateUri, (string p1) =>
+            {
+                Assert.AreEqual("some", p1);
+
+                return testInfos51.ReturnStr;
+            });
+
+            localNode.GET(testInfos51.TestUri, null, null, out resp);
+            Assert.IsTrue(testInfos51.ReturnStr == resp.GetBodyStringUtf8_Slow());
+
+            ///////////////////////////////////////////
+
+            Handle.GET(testInfos52.TemplateUri, (string p1) =>
+            {
+                Assert.AreEqual("some2", p1);
+
+                return testInfos52.ReturnStr;
+            });
+
+            localNode.GET(testInfos52.TestUri, null, null, out resp);
+            Assert.IsTrue(testInfos52.ReturnStr == resp.GetBodyStringUtf8_Slow());
+
+            ///////////////////////////////////////////
+
+            Handle.POST(testInfos53.TemplateUri, () =>
+            {
+                return testInfos53.ReturnStr;
+            });
+
+            localNode.POST(testInfos53.TestUri, null, null, null, out resp);
+            Assert.IsTrue(testInfos53.ReturnStr == resp.GetBodyStringUtf8_Slow());
+
+            ///////////////////////////////////////////
+
+            Handle.POST(testInfos54.TemplateUri, (string p1) =>
+            {
+                Assert.AreEqual("somestuff", p1);
+
+                return testInfos54.ReturnStr;
+            });
+
+            localNode.POST(testInfos54.TestUri, null, null, null, out resp);
+            Assert.IsTrue(testInfos54.ReturnStr == resp.GetBodyStringUtf8_Slow());
         }
     }
 }

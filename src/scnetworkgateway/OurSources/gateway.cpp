@@ -618,7 +618,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     config_file_stream.open(configFilePath);
     if (!config_file_stream.is_open())
     {
-        config_file_stream.open("scnetworkgateway.xml");
+        config_file_stream.open(GW_DEFAULT_CONFIG_NAME);
         if (!config_file_stream.is_open())
         {
             return SCERRGWCANTLOADXMLSETTINGS;
