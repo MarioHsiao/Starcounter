@@ -63,16 +63,19 @@
     <ClCompile Include="..\common\mapped_region.cpp" />
     <ClCompile Include="..\common\shared_memory_object.cpp" />
     <ClCompile Include="test.cpp" />
+    <ClCompile Include="tiny_tuple\benchmark.cpp" />
+    <ClCompile Include="tiny_tuple\record_data.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="macro_definitions.hpp" />
     <ClInclude Include="test.hpp" />
     <ClInclude Include="impl\test.hpp" />
     <ClInclude Include="impl\worker.hpp" />
     <ClInclude Include="random.hpp" />
+    <ClInclude Include="tiny_tuple\bit_operations.hpp" />
     <ClInclude Include="tiny_tuple\impl\test.hpp" />
     <ClInclude Include="tiny_tuple\impl\tiny_tuple.hpp" />
     <ClInclude Include="tiny_tuple\macro_definitions.hpp" />
+    <ClInclude Include="tiny_tuple\record_data.hpp" />
     <ClInclude Include="tiny_tuple\test.hpp" />
     <ClInclude Include="tiny_tuple\tiny_tuple.hpp" />
     <ClInclude Include="worker.hpp" />

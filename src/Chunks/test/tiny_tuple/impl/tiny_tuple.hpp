@@ -14,13 +14,12 @@
 namespace starcounter {
 namespace core {
 namespace tiny_tuple {
+namespace record {
 
-// uint8_t* vp = get_pointer_to_value((uint64_t*) addr, index);
-
-//value_pointer get_pointer_to_value(data_header_pointer RESTRICT data_header,
-//index_type index, size_type* RESTRICT size) {
-value_pointer get_pointer_to_value(data_header_pointer data_header,
-index_type index, size_type* size) {
+defined_column_value::pointer get_pointer_to_value(
+data_header::pointer /* RESTRICT */ data_header,
+data_header::index_type index,
+defined_column_value::size_type* /* RESTRICT */ size) {
 	uint64_t word_offset = (index +data_header_static_field_size) >> 6;
 	
 	// Loading a word that most likely is not cached. This will take around
@@ -203,6 +202,15 @@ index_type index, size_type* size) {
 	return 0;
 }
 
+FORCE_INLINE data_header::columns_type number_of_columns(data_header::pointer data_header) {
+	return *((uint8_t*) data_header);
+}
+
+FORCE_INLINE data_header::offset_type offset_size(data_header::pointer data_header) {
+	return (*((uint8_t*) data_header +1) & 7) +5;
+}
+
+} // namespace record
 } // namespace tiny_tuple
 } // namespace core
 } // namespace starcounter

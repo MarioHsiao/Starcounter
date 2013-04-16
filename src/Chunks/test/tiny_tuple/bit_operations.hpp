@@ -1,8 +1,8 @@
 //
 // bit_operations.hpp
 //
-// Copyright Â© 2006-2013 Starcounter AB. All rights reserved.
-// StarcounterÂ® is a registered trademark of Starcounter AB.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
+// Starcounter® is a registered trademark of Starcounter AB.
 //
 
 #ifndef STARCOUNTER_CORE_BIT_OPERATIONS_HPP
