@@ -130,11 +130,17 @@ namespace QueryProcessingTest {
             Trace.Assert(((SqlEnumerator<object>)e).TypeBinding == null);
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).PropertyBinding).DisplayName;
             Trace.Assert(n == "UserId");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).PropertyBinding).Name;
+            Trace.Assert(n == "0");
+            n = ((SqlEnumerator<object>)e).PropertyBinding.Name;
+            Trace.Assert(n == "UserId");
             q = Db.SlowSQL("select userid, FirstName||' '||LastName as Name from User u where useridnr <?", 2);
             e = q.GetEnumerator();
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).DisplayName;
             Trace.Assert(n == "Name");
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).Name;
+            Trace.Assert(n == "Name");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1).Name;
             Trace.Assert(n == "Name");
             Trace.Assert(((SqlEnumerator<object>)e).PropertyBinding == null);
             q = Db.SlowSQL("select userid, Name from User u where useridnr < ?", 2);
@@ -149,6 +155,40 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "Name");
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).PropertyBinding).Name;
             Trace.Assert(n == "0");
+            n = ((SqlEnumerator<object>)e).PropertyBinding.Name;
+            Trace.Assert(n == "Name");
+            q = Db.SlowSQL("select name as FullName from User u where useridnr <?", 2);
+            e = q.GetEnumerator();
+            Trace.Assert(((SqlEnumerator<object>)e).TypeBinding == null);
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).PropertyBinding).DisplayName;
+            Trace.Assert(n == "FullName");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).PropertyBinding).Name;
+            Trace.Assert(n == "FullName");
+            q = Db.SlowSQL("select name,firstname from User u where useridnr <?", 2);
+            e = q.GetEnumerator();
+            Trace.Assert(((SqlEnumerator<object>)e).PropertyBinding == null);
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0)).DisplayName;
+            Trace.Assert(n == "Name");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0)).Name;
+            Trace.Assert(n == "0");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).DisplayName;
+            Trace.Assert(n == "FirstName");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).Name;
+            Trace.Assert(n == "1");
+            q = Db.SlowSQL("select * from User u where useridnr <?", 2);
+            e = q.GetEnumerator();
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0)).DisplayName;
+            Trace.Assert(n == "UserId");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0)).Name;
+            Trace.Assert(n == "0");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0).Name;
+            Trace.Assert(n == "UserId");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5)).DisplayName;
+            Trace.Assert(n == "Name");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5)).Name;
+            Trace.Assert(n == "5");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5).Name;
+            Trace.Assert(n == "Name");
         }
 
     }
