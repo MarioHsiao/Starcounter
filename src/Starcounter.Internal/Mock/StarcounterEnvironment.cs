@@ -140,6 +140,20 @@ namespace Starcounter.Internal
             /// default server on the current machine.
             /// </summary>
             public const string DefaultServer = "StarcounterServer";
+
+            /// <summary>
+            /// Provides the name of the environment variable key used to
+            /// store the default personal server port for processes, users
+            /// and/or machines.
+            /// </summary>
+            public const string DefaultServerPersonalPort = "StarcounterServerPersonalPort";
+
+            /// <summary>
+            /// Provides the name of the environment variable key used to
+            /// store the default system server port for processes, users
+            /// and/or machines.
+            /// </summary>
+            public const string DefaultServerSystemPort = "StarcounterServerSystemPort";
         }
 
         /// <summary>
