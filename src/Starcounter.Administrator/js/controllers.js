@@ -365,14 +365,14 @@ function MainCtrl($scope, Database) {
 
     $scope.btnClick_start = function (database) {
         $scope.alerts.length = 0;
-        $scope.startDatabase(database.name);
-        //$scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        //$scope.startDatabase(database.name);
     }
 
     $scope.btnClick_stop = function (database) {
         $scope.alerts.length = 0;
-        $scope.stopDatabase(database.name);
-        //        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+//        $scope.stopDatabase(database.name);
     }
 
     $scope.btnClick_delete = function (database) {
@@ -537,22 +537,24 @@ function DatabasesCtrl($scope, $dialog) {
     }
 
 
-    $scope.btnClick_restart = function () {
+    $scope.btnClick_restart = function (database) {
         $scope.alerts.length = 0;
         $scope.alerts.push({ type: 'info', msg: "Not implemented" });
     }
 
-    $scope.btnClick_start = function () {
+    $scope.btnClick_start = function (database) {
         $scope.alerts.length = 0;
         $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        //$scope.startDatabase(database.name);
     }
 
-    $scope.btnClick_stop = function () {
+    $scope.btnClick_stop = function (database) {
         $scope.alerts.length = 0;
         $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        //$scope.stopDatabase(database.name);
     }
 
-    $scope.btnClick_delete = function () {
+    $scope.btnClick_delete = function (database) {
         $scope.alerts.length = 0;
         $scope.alerts.push({ type: 'info', msg: "Not implemented:" });
     }
@@ -568,8 +570,6 @@ function DatabaseCtrl($scope, $location, $routeParams, $dialog, $http, Database,
     //$scope.selectedDatabaseId = $routeParams.databaseId;
     $scope.apps = [];
     $scope.alerts.length = 0;
-
-    console.log("$routeParams:" + $routeParams);
 
     //    $scope.email = "bad@domain.co";
     //    $scope.site = "dd";
@@ -777,12 +777,14 @@ function DatabaseCtrl($scope, $location, $routeParams, $dialog, $http, Database,
     $scope.btnClick_start = function () {
         $scope.alerts.length = 0;
         $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        //$scope.startDatabase( $scope.database.name);
     }
 
     // User clicked the "Stop" button
     $scope.btnClick_stop = function () {
         $scope.alerts.length = 0;
         $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        //$scope.stopDatabase( $scope.database.name);
     }
 
     // Handsontable (fixed the height)
