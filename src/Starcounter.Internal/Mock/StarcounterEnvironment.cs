@@ -128,15 +128,6 @@ namespace Starcounter.Internal
         public static class VariableNames
         {
             /// <summary>
-            /// Defines the internal prefix used to decorate and distinguish
-            /// environment variables considered Starcounter "properties", i.e.
-            /// those customizable by the user and commonly used by utility
-            /// programs to default parameters not supplied on the command
-            /// line.
-            /// </summary>
-            const string StarcounterDefaultProperyPrefix = "StarcounterDefault__";
-
-            /// <summary>
             /// Holds a constant read-only value representing the name
             /// of the environment variable containing the path to the
             /// directory where Starcounter is installed.
@@ -148,7 +139,7 @@ namespace Starcounter.Internal
             /// of the environment variable containing the name of the
             /// default server on the current machine.
             /// </summary>
-            public const string DefaultServer = StarcounterDefaultProperyPrefix + "Server";
+            public const string DefaultServer = "StarcounterServer";
         }
 
         /// <summary>
