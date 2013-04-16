@@ -56,22 +56,29 @@
 #endif // defined(_MSC_VER)
 
 // Restrict is a compiler directive that helps avoid load-hit-store stalls.
+//
 // One pointer is said to alias another pointer when both refer to the same
 // location or object.
-// restrict on a pointer promises the compiler that it has no aliases: nothing
+//
+// Restrict on a pointer promises the compiler that it has no aliases: nothing
 // else in the function points to that same data. Thus the compiler knows that
 // if it writes data to a pointer, it doesn’t need to read it back into a
 // register later on because nothing else could have written to that address.
+//
 // Without restrict, the compiler is forced to read data from every pointer
 // every time it is used, because another pointer may have aliased x.
+//
 // It bears repeating that restrict is a promise you make to your compiler:
 // "I promise that the pointer declared along with the restrict qualifier is not
 // aliased. I certify that writes through this pointer will not affect the
 // values read through any other pointer available in the same context which is
 // also declared as restricted."
+//
 // If you break your promise, you can get incorrect results.
+//
 // A restrict-qualified pointer can grant access to a non-restrict pointer.
 // However, two restrict-qualified pointers are trivially non-aliasing.
+//
 // Restrict enables SIMD optimizations.
 
 #if defined(__clang__)
