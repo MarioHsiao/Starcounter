@@ -106,6 +106,16 @@ namespace Starcounter.Server.PublicModel {
         DatabaseInfo GetDatabase(string uri);
 
         /// <summary>
+        /// Gets a database, represented by a <see cref="DatabaseInfo"/>,
+        /// by it's name.
+        /// </summary>
+        /// <param name="name">The name of the database to retreive.</param>
+        /// <returns>A <see cref="DatabaseInfo"/> representing a snapshot
+        /// of the databases current state.</returns>
+        DatabaseInfo GetDatabaseByName(string name);
+
+
+        /// <summary>
         /// Gets all databases, represented by their <see cref="DatabaseInfo"/>,
         /// from the executing server.
         /// </summary>
