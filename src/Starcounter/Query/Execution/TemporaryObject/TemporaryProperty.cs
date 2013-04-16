@@ -71,6 +71,8 @@ internal class TemporaryProperty : IPropertyBinding
         }
     }
 
+    public String DisplayName { get { return propName; } }
+
     public ITypeBinding TypeBinding
     {
         get
