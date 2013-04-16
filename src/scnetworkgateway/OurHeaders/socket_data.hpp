@@ -93,7 +93,7 @@ class SocketDataChunk
     HttpWsProto http_ws_proto_;
 
     // Accept data.
-    uint8_t accept_data_or_params_[ACCEPT_DATA_SIZE_BYTES];
+    uint8_t accept_data_or_params_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
 
     // Blob buffer itself.
     uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];

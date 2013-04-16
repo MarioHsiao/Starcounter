@@ -32,6 +32,11 @@ namespace Starcounter.Binding
         String Name { get; }
 
         /// <summary>
+        /// Gets name friendly for displaying
+        /// </summary>
+        String DisplayName { get; }
+
+        /// <summary>
         /// Binding used by the property type if any.
         /// </summary>
         /// <value>The type binding.</value>
