@@ -48,6 +48,11 @@ namespace Starcounter.Binding
         public String Name { get { return _name; } }
 
         /// <summary>
+        /// Gets property name friendly to display.
+        /// </summary>
+        public String DisplayName { get { return _name; } }
+
+        /// <summary>
         /// Gets the name of the upper.
         /// </summary>
         /// <value>The name of the upper.</value>

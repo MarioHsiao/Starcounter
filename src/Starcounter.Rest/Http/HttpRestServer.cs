@@ -31,7 +31,8 @@ namespace Starcounter.Internal.REST {
       /// a single location.
       /// </summary>
       /// <param name="path">The path to add to the list of paths used by the web server to find content.</param>
-      public virtual void UserAddedLocalFileDirectoryWithStaticContent(string path) {
+      public virtual void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
+      {
       }
 
       /// <summary>

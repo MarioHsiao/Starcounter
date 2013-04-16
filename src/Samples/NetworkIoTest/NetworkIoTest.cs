@@ -331,7 +331,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_US_WEBSITE:
                 {
-                    AppsBootstrapper.Bootstrap(port_number, "c:\\ScOnScWeb\\sc\\www.starcounter.com");
+                    AppsBootstrapper.Bootstrap("c:\\ScOnScWeb\\sc\\www.starcounter.com", port_number);
                     RequestHandler.GET("/", null);
 
                     break;
@@ -365,7 +365,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_APPS_URIS:
                 {
                     AppsBootstrapper.Bootstrap(
-                        StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "c:\\pics");
+                        "c:\\pics", StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort);
 
                     AppsClass.InitAppHandlers();
 

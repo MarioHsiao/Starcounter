@@ -39,18 +39,13 @@ namespace Starcounter.Administrator {
             }
 
             // Administrator port.
-            UInt16 adminPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
-            if (UInt16.TryParse(args[1], out adminPort) == false) {
-                Console.WriteLine("Starcounter Administrator: Invalid port number {0}", args[1]);
-                return;
-            };
-
+            UInt16 adminPort = NewConfig.Default.SystemHttpPort;
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
 #if ANDWAH
-            AppsBootstrapper.Bootstrap(adminPort, @"c:\github\Level1\src\Starcounter.Administrator");   // TODO:REMOVE
+            AppsBootstrapper.Bootstrap(@"c:\github\Level1\src\Starcounter.Administrator", adminPort);   // TODO:REMOVE
 #else
-            AppsBootstrapper.Bootstrap(adminPort, "scadmin");
+            AppsBootstrapper.Bootstrap("scadmin", adminPort);
 #endif
 
             Master.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
@@ -72,14 +67,15 @@ namespace Starcounter.Administrator {
                 Master.ServerInterface
             );
 
-            RegisterHandlers(serverInfo.Configuration.SystemHttpPort);
+            // Registering Administrator handlers.
+            RegisterHandlers();
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="sytemHttpPort">Port for doing SQL queries</param>
-        static void RegisterHandlers(ushort sytemHttpPort) {
+        static void RegisterHandlers() {
 
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {
@@ -756,9 +752,16 @@ namespace Starcounter.Administrator {
                 // Splitting contents.
                 String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
 
+                // Getting port of the resource.
+                UInt16 port = UInt16.Parse(settings[0]);
+
+                // Adding static files serving directory.
+                AppsBootstrapper.AddFileServingDirectory(port, settings[1]);
+
                 try {
                     // Registering static handler on given port.
-                    GET(UInt16.Parse(settings[0]), "/{?}", (string res) => {
+                    GET(port, "/{?}", (string res) =>
+                    {
                         return null;
                     });
                 }
@@ -772,9 +775,6 @@ namespace Starcounter.Administrator {
                     }
                     throw exc;
                 }
-
-                // Adding static files serving directory.
-                AppsBootstrapper.AddFileServingDirectory(settings[1]);
 
                 return "Success!";
             });

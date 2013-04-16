@@ -171,9 +171,6 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 // Maximum number of URI handlers per port.
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
-// Length of accepting data structure.
-const int32_t ACCEPT_DATA_SIZE_BYTES = 64;
-
 // Maximum number of chunks to pop at once.
 const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 128;
 
@@ -494,6 +491,9 @@ uint32_t GatewayUriProcessProxy(
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
+
+// Waking up a thread using APC.
+void WakeUpThreadUsingAPC(HANDLE thread_handle);
 
 extern std::string GetOperTypeString(SocketOperType typeOfOper);
 
@@ -1479,12 +1479,6 @@ class Gateway
 
     // Monitor shared interface.
     core::monitor_interface_ptr shm_monitor_interface_;
-
-    // Gateway pid.
-    core::pid_type gateway_pid_;
-
-    // Gateway owner id.
-    core::owner_id gateway_owner_id_;
 
     // Shared memory monitor interface name.
     std::string shm_monitor_int_name_;

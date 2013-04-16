@@ -130,6 +130,11 @@ namespace Starcounter.Internal
         public const int MAX_URI_CALLBACK_PARAMS = 16;
 
         /// <summary>
+        /// Parameters info max size bytes.
+        /// </summary>
+        public const int PARAMS_INFO_MAX_SIZE_BYTES = 64;
+
+        /// <summary>
         /// Shared memory chunk size.
         /// </summary>
         public const int SHM_CHUNK_SIZE = 1 << 12; // 4K chunks.
@@ -179,7 +184,7 @@ namespace Starcounter.Internal
             public UInt32 original_uri_info_len_chars;
             public unsafe IntPtr processed_uri_info_string;
             public UInt32 processed_uri_info_len_chars;
-            public Int32 handler_index;
+            public Int32 handler_id;
             public fixed Byte param_types[MixedCodeConstants.MAX_URI_CALLBACK_PARAMS];
             public Byte num_params;
         };
