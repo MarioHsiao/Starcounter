@@ -41,10 +41,6 @@ namespace star {
             public const string AttatchCodeHostDebugger = "debug";
         }
 
-        static class EnvironmentVariable {
-            public const string ServerName = "STAR_SERVER";
-        }
-
         static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
             string givenPort;
 
@@ -69,7 +65,7 @@ namespace star {
                     } else if (port == StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort) {
                         serverName = StarcounterEnvironment.ServerNames.SystemServer;
                     } else {
-                        serverName = Environment.GetEnvironmentVariable(EnvironmentVariable.ServerName);
+                        serverName = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.DefaultServer);
                         if (string.IsNullOrEmpty(serverName)) {
                             serverName = UnresolvedServerName;
                         }
@@ -87,7 +83,7 @@ namespace star {
                 // environment, we'll assume personal and the default port for that.
 
                 if (!args.TryGetProperty(Option.Server, out serverName)) {
-                    serverName = Environment.GetEnvironmentVariable(EnvironmentVariable.ServerName);
+                    serverName = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.DefaultServer);
                     if (string.IsNullOrEmpty(serverName)) {
                         serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     }
@@ -531,7 +527,7 @@ namespace star {
                 Console.WriteLine();
             }
             Console.WriteLine("Environment variables:");
-            Console.WriteLine("{0}\t{1,8}", EnvironmentVariable.ServerName, "Sets the server to use by default.");
+            Console.WriteLine("{0}\t{1,8}", StarcounterEnvironment.VariableNames.DefaultServer, "Sets the server to use by default.");
             Console.WriteLine();
             Console.WriteLine("For complete help, see http://www.starcounter.com/wiki/star.exe");
         }
