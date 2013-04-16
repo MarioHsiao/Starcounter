@@ -371,6 +371,12 @@ public class CPersonalServer : CComponentBase
             null,
             EnvironmentVariableTarget.User);
 
+        Environment.SetEnvironmentVariable(
+            ConstantsBank.SCEnvVariableDefaultPersonalPort,
+            null,
+            EnvironmentVariableTarget.User);
+
+
         // Logging event.
         Utilities.ReportSetupEvent("Deleting personal database server registry entries...");
 
