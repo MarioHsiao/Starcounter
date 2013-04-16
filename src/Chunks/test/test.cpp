@@ -27,10 +27,47 @@
 
 // For testing tiny tuple
 #include "tiny_tuple/test.hpp"
+#include "tiny_tuple/tiny_tuple.hpp"
+#include "tiny_tuple/record_data.hpp"
+
+//extern void starcounter::core::tiny_tuple::benchmark();
 
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
+	///=========================================================================
+	/// Tiny tuple test:
+	///=========================================================================
+
 	try {
+		using namespace starcounter::core::tiny_tuple::record;
+
+		// Pretend that the RECORD HEADER size is 3 bytes.
+		uint32_t record_header_size = 3;
+
+		// Get a pointer to the DATA HEADER in the record.
+		data_header::pointer data_header
+		= data_header::pointer(get_pointer_to_record_data(record_header_size));
+
+		std::cout << "DATA HEADER ADDRESS: " << data_header << std::endl;
+
+		// Read the COLUMNS value from the DATA HEADER.
+		uint32_t columns = number_of_columns(data_header);
+		std::cout << "COLUMNS: " << columns << std::endl;
+
+		// Read the OFFSET SIZE value from the DATA HEADER.
+		uint32_t osize = offset_size(data_header);
+		std::cout << "OFFSET SIZE: " << osize << std::endl;
+
+		defined_column_value::pointer p = get_pointer_to_record_data(28);
+		data_header::index_type index = 0;
+		defined_column_value::size_type sz = 0;
+
+		// Get value to DEFINED COLUMN VALUE at index, or 0 if not defined.
+		p = get_pointer_to_value(data_header, index, &sz);
+		
+		std::cout << "DEFINED COLUMN VALUE POINTER: " << (void*) p << std::endl;
+		std::cout << "DEFINED COLUMN VALUE SIZE: " << sz << std::endl;
+
 		// Start the tiny_tuple_test application.
 		boost::scoped_ptr<starcounter::core::tiny_tuple::test> app
 		(new starcounter::core::tiny_tuple::test(argc, argv));

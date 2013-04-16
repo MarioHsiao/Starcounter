@@ -25,13 +25,14 @@
 namespace starcounter {
 namespace core {
 namespace tiny_tuple {
+namespace record {
 
 // A tiny tuple record consists of three parts:
 // RECORD HEADER
 // DATA HEADER
 // DEFINED COLUMN VALUES
 
-// The layout is:
+//==============================================================================
 
 // RECORD HEADER (revision 8):
 // +-------------------------------------------------+  <== Byte aligned
@@ -49,6 +50,21 @@ namespace tiny_tuple {
 // +-------------------------------------------------+  <== Byte aligned
 // : DATA HEADER. . .                                :
 
+namespace record_header {
+
+enum {
+	// Flags
+	is_primary_slot = 1 << 0,
+	has_tail = 1 << 1,
+	is_deleted = 1 << 2,
+	is_hidden = 1 << 3
+};
+
+typedef uint64_t* pointer;
+
+} // namespace record_header
+
+//==============================================================================
 
 // DATA HEADER (revision 8):
 // +-------------------------------------------------+  <== Byte aligned
@@ -77,6 +93,16 @@ namespace tiny_tuple {
 // +-------------------------------------------------+  <== Byte aligned
 // : DEFINED COLUMN VALUES:                          :
 
+namespace data_header {
+
+typedef uint64_t* pointer;
+typedef uint32_t columns_type;
+typedef uint32_t offset_type;
+typedef uint32_t index_type;
+
+} // namespace data_header
+
+//==============================================================================
 
 // DEFINED COLUMN VALUES (revision 8):
 // +-------------------------------------------------+
@@ -94,9 +120,14 @@ namespace tiny_tuple {
 // +-------------------------------------------------+  <== Byte aligned
 // : Next record. . .                                :
 
+namespace defined_column_value {
 
+typedef uint8_t* pointer;
+typedef uint32_t size_type;
 
+} // namespace defined_column_value
 
+//==============================================================================
 
 // Minimal DATA HEADER with one column value that is not defined require 24 bits
 // and the record is thus minimum 24-bits. The first 64-bits will be read anyway:
@@ -176,13 +207,6 @@ namespace tiny_tuple {
 // |               |n n n n n n n n|x x|0 0 1 0 0|0 0 0 1 1|1|0 0 0|
 // +---------------+---------------+---+---------+---------+-+-----+
 
-
-// Types.
-typedef uint64_t* data_header_pointer;
-typedef uint32_t index_type;
-typedef uint32_t size_type;
-typedef uint8_t* value_pointer;
-
 enum {
 	// Field sizes:
 	columns_bits = 8,
@@ -206,11 +230,29 @@ enum {
  *		value is not defined, size is not changed.
  * @return A pointer to the value if it is defined, or 0 if not defined.
  */
-//value_pointer get_pointer_to_value(data_header_pointer RESTRICT data_header,
-//index_type index, size_type* RESTRICT size);
-value_pointer get_pointer_to_value(data_header_pointer data_header,
-index_type index, size_type* size);
+defined_column_value::pointer get_pointer_to_value(
+data_header::pointer /* RESTRICT */ data_header,
+data_header::index_type index,
+defined_column_value::size_type* /* RESTRICT */ size);
 
+/// number_of_columns() returns number of columns value, 0 to 255.
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @return The number of columns value, 0 to 255.
+ */
+FORCE_INLINE data_header::columns_type number_of_columns(data_header::pointer data_header);
+
+/// offset_size() returns the offset size, 5 to 12.
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @return The offset size, 5 to 12.
+ */
+FORCE_INLINE data_header::offset_type offset_size(data_header::pointer data_header);
+
+// Inserts
+// Updates
+
+} // namespace record
 } // namespace tiny_tuple
 } // namespace core
 } // namespace starcounter
