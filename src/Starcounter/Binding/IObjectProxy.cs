@@ -21,6 +21,7 @@ namespace Starcounter.Binding {
         /// </remarks>
         ulong ThisHandle { get; }
 
+#if false
         /// <summary>
         /// Returns numerical Object identity of the database object
         /// </summary>
@@ -30,6 +31,7 @@ namespace Starcounter.Binding {
         /// Returns Web friendly string representing object identity of the database object
         /// </summary>
         String ObjectID { get; }
+#endif
 
         /// <summary>
         /// Binds the underlying object to the given address, object id

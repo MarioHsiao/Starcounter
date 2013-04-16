@@ -53,12 +53,6 @@ namespace Starcounter.Hosting {
         public const string ThisIdName = "__sc__this_id__";
 
         /// <summary>
-        /// Provides the anem of the "this web friendly identity" field,
-        /// part of the database class itself.
-        /// </summary>
-        public const string ThisIdStringName = "this_id_web_string";
-
-        /// <summary>
         /// Provides the name of the "this binding" field, part of
         /// the database class itself.
         /// </summary>
