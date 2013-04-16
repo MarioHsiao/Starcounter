@@ -279,10 +279,8 @@ namespace Starcounter.Internal
             }
             if (!isObjectNo)
                 AddObjectIdentityProperty(propertyDefs, "ObjectNo", DbTypeCode.UInt64, ref isObjectID, ref isObjectNo);
-#if false
             if (!isObjectID)
-                AddObjectIdentityProperty(propertyDefs, "ObjectID", DbTypeCode.String);
-#endif
+                AddObjectIdentityProperty(propertyDefs, "ObjectID", DbTypeCode.String, ref isObjectID, ref isObjectNo);
         }
 
         /// <summary>

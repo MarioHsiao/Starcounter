@@ -27,6 +27,11 @@ namespace Starcounter.Binding {
         UInt64 ObjectNo { get; }
 
         /// <summary>
+        /// Returns Web friendly string representing object identity of the database object
+        /// </summary>
+        String ObjectID { get; }
+
+        /// <summary>
         /// Binds the underlying object to the given address, object id
         /// and type binding.
         /// </summary>

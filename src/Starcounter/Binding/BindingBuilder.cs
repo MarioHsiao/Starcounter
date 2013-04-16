@@ -927,6 +927,11 @@ namespace Starcounter.Binding
             Type propBindingType;
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            if (propertyInfo == null) {
+                thisType = typeof(IObjectProxy);
+                propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            }
+
             VerifyProperty(propertyInfo, returnType);
 
             propBindingTypeName = String.Concat(
