@@ -314,6 +314,8 @@ namespace Starcounter.Internal.JsonPatch {
                 set;
             }
 
+            public string DisplayName { get; set; }
+
             public ITypeBinding TypeBinding {
                 get { return null; }
             }
