@@ -5,6 +5,7 @@ using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -80,9 +81,8 @@ namespace Starcounter.Internal {
         /// 
         /// </summary>
         static AppsBootstrapper() {
-            var fileServer = new StaticWebServer();
+            Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppServer_ = new HttpAppServer(fileServer);
-            StarcounterBase.Fileserver = fileServer;
 
             // Checking if we are inside the database worker process.
             AppProcess.AssertInDatabaseOrSendStartRequest();
@@ -93,8 +93,8 @@ namespace Starcounter.Internal {
         /// resolve GET requests for static content.
         /// </summary>
         /// <param name="path">The directory to include</param>
-        public static void AddFileServingDirectory(string path) {
-            StarcounterBase.Fileserver.UserAddedLocalFileDirectoryWithStaticContent(path);
+        public static void AddFileServingDirectory(UInt16 port, String path) {
+            AppServer_.UserAddedLocalFileDirectoryWithStaticContent(port, path);
         }
 
         /// <summary>
@@ -104,20 +104,23 @@ namespace Starcounter.Internal {
         /// <param name="port">Listens for http traffic on the given port. </param>
         /// <param name="resourceResolvePath">Adds a directory path to the list of paths used when resolving a request for a static REST (web) resource</param>
         public static void Bootstrap(
-            UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
-            string resourceResolvePath = null)
+            string resourceResolvePath = null,
+            UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort
+            )
         {
             // Checking for the port.
             if (port == StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
-                port = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
-
-            // Setting default user port.
-            NewConfig.Default.UserHttpPort = port;
+            {
+                port = NewConfig.Default.UserHttpPort;
+            }
+            else
+            {
+                // Setting default user port.
+                NewConfig.Default.UserHttpPort = port;
+            }
 
             if (resourceResolvePath != null)
             {
-                AddFileServingDirectory(resourceResolvePath);
-
                 // Registering static content directory with Administrator.
 
                 // Getting bytes from string.
@@ -142,6 +145,11 @@ namespace Starcounter.Internal {
 
                         return "Success!";
                     });
+                }
+                else
+                {
+                    // Administrator registers itself.
+                    AddFileServingDirectory(port, resourceResolvePath);
                 }
             }
         }

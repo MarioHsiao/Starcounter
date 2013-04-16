@@ -1463,7 +1463,6 @@ uint32_t GatewayWorker::CheckAcceptingSocketsOnAllActivePortsAndDatabases()
 }
 
 // Scans all channels for any incoming chunks.
-void __stdcall EmptyApcFunction(ULONG_PTR arg);
 uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 {
     uint32_t err_code;

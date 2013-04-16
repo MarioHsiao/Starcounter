@@ -150,6 +150,15 @@ public:
     }
 
     /// <summary>
+    /// Gets profiling results when specified timer reaches certain start count.
+    /// </summary>
+    void DrawResults(int32_t timerId, int32_t startCount)
+    {
+        if (stopwatches_[timerId].start_count() >= startCount)
+            std::cout << GetResults();
+    }
+
+    /// <summary>
     /// Prints profiler results to the console.
     /// </summary>
     void DrawResults()

@@ -297,6 +297,12 @@ public:
     {
     }
 
+    // Gets a worker profiler reference.
+    Profiler& get_profiler()
+    {
+        return profiler_;
+    }
+
     // Destructor.
     ~GatewayWorker()
     {

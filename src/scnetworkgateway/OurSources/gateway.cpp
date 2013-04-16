@@ -258,10 +258,6 @@ Gateway::Gateway()
     // Init unique sequence number.
     db_seq_num_ = 0;
 
-    // Reset gateway owner id and pid.
-    gateway_owner_id_ = 0;
-    gateway_pid_ = 0;
-
     // No reverse proxies by default.
     num_reversed_proxies_ = 0;
 
@@ -973,6 +969,13 @@ void __stdcall EmptyApcFunction(ULONG_PTR arg) {
     // Does nothing.
 }
 
+// Waking up a thread using APC.
+void WakeUpThreadUsingAPC(HANDLE thread_handle)
+{
+    // Waking up the worker thread with APC.
+    QueueUserAPC(EmptyApcFunction, thread_handle, 0);
+}
+
 // Database channels events monitor thread.
 uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 {
@@ -1002,7 +1005,7 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 		worker_thread_handle[worker_id] = g_gateway.get_worker_thread_handle(worker_id);
         
 		// Waking up the worker thread with APC.
-		QueueUserAPC(EmptyApcFunction, worker_thread_handle[worker_id], 0);
+        WakeUpThreadUsingAPC(worker_thread_handle[worker_id]);
 	}
 
     // Obtaining client interface.
@@ -1015,7 +1018,7 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
         client_int.wait_for_work(work_event_index, work_events, g_gateway.setting_num_workers());
 
         // Waking up the worker thread with APC.
-        QueueUserAPC(EmptyApcFunction, worker_thread_handle[work_event_index], 0);
+        WakeUpThreadUsingAPC(worker_thread_handle[work_event_index]);
     }
 
     return 0;
@@ -1622,18 +1625,9 @@ uint32_t Gateway::Init()
     // Waiting until we can open shared memory monitor interface.
     GW_COUT << "Opening scipcmonitor interface: ";
 
-    // Send registration request to the monitor and try to acquire an owner_id.
-    // Without an owner_id we can not proceed and have to exit.
-    // Get process id and store it in the monitor_interface.
-    gateway_pid_.set_current();
-
     // Get monitor_interface_ptr for monitor_interface_name.
     shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
     GW_COUT << "opened!" << GW_ENDL;
-
-    // Try to register gateway process pid. Wait up to 10000 ms.
-    uint32_t err_code = shm_monitor_interface_->register_client_process(gateway_pid_, gateway_owner_id_, 10000/*ms*/);
-    GW_ASSERT(0 == err_code);
 
     // Indicating that network gateway is ready
     // (should be first line of the output).
@@ -1664,6 +1658,23 @@ uint32_t Gateway::InitSharedMemory(
     // the shared structure.
     database_shared_memory_parameters_ptr db_shm_params(shm_params_name.c_str());
 
+    // Send registration request to the monitor and try to acquire an owner_id.
+    // Without an owner_id we can not proceed and have to exit.
+    // Get process id and store it in the monitor_interface.
+    pid_type pid;
+    pid.set_current();
+    owner_id the_owner_id;
+    uint32_t error_code;
+
+    // Try to register this client process pid. Wait up to 10000 ms.
+    if ((error_code = shm_monitor_interface_->register_client_process(pid,
+        the_owner_id, 10000/*ms*/)) != 0)
+    {
+        // Failed to register this client process pid.
+        GW_COUT << "Can't register client process, error code: " << error_code << GW_ENDL;
+        return error_code;
+    }
+
     // Open the database shared memory segment.
     if (db_shm_params->get_sequence_number() == 0)
     {
@@ -1683,7 +1694,7 @@ uint32_t Gateway::InitSharedMemory(
     // Construct a shared_interface.
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
-        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), gateway_pid_, gateway_owner_id_);
+        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), pid, the_owner_id);
     }
 
     return 0;
@@ -2010,7 +2021,7 @@ void Gateway::WakeUpAllWorkers()
         HANDLE worker_thread_handle = g_gateway.get_worker_thread_handle(i);
 
         // Waking up the worker with APC.
-        QueueUserAPC(EmptyApcFunction, worker_thread_handle, 0);
+        WakeUpThreadUsingAPC(worker_thread_handle);
     }
 }
 
@@ -2373,7 +2384,7 @@ uint32_t Gateway::CollectInactiveSessions()
     if (num_active_sessions_unsafe_)
     {
         // Waking up the worker 0 thread with APC.
-        QueueUserAPC(EmptyApcFunction, worker_thread_handles_[0], 0);
+        WakeUpThreadUsingAPC(worker_thread_handles_[0]);
     }
 
     return 0;
@@ -2489,7 +2500,7 @@ uint32_t Gateway::GatewayMonitor()
         for (int32_t i = 0; i < setting_num_workers_; i++)
         {
             // Waking up the worker thread with APC.
-            QueueUserAPC(EmptyApcFunction, g_gateway.get_worker_thread_handle(i), 0);
+            WakeUpThreadUsingAPC(g_gateway.get_worker_thread_handle(i));
 
             // Checking if alive.
             if (!WaitForSingleObject(worker_thread_handles_[i], 0))
