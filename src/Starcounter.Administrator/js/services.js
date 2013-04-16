@@ -22,22 +22,30 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     });
 
     $provide.factory('Server', function ($resource) {
-
         return $resource('/server', {}, {
-            query: { method: 'GET', isArray: false }    // We need to override this (the return type is not an array)
+            query: { method: 'GET', isArray: false },       //
+            save: { method: 'PUT', isArray: false }         // Save
         });
-
     });
 
     $provide.factory('Database', function ($resource) {
-
-        return $resource('/databases/:databaseId', { databaseId: '@databaseId' }, {
-            query: { method: 'GET', isArray: false },
-            save: { method: 'POST', isArray: false }
-            //get: { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+        return $resource('/databases/:id', { id: '@id' }, {
+            create: { method: 'POST', isArray: false },     // Create new database
+            query: { method: 'GET', isArray: false },       // Get all databases
+            get: { method: 'GET', isArray: false },         // Get one database
+            save: { method: 'PUT', isArray: false },        // Save
         });
-
     });
+
+    //$provide.factory('Database', function ($resource) {
+
+    //    return $resource('/databases/:databaseId', { databaseId: '@databaseId' }, {
+    //        query: { method: 'GET', isArray: false },
+    //        save: { method: 'POST', isArray: false }
+    //        //get: { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+    //    });
+
+    //});
 
     $provide.factory('App', function ($resource) {
 
@@ -51,7 +59,7 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     $provide.factory('Log', function ($resource) {
 
         return $resource('/log', {}, {
-            query: { method: 'GET', isArray: false }   
+            query: { method: 'GET', isArray: false }
         });
 
     });
@@ -59,14 +67,14 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     $provide.factory('Sql', function ($resource) {
 
         return $resource('/sql', {}, {
-            query: { method: 'GET', isArray: false }    
+            query: { method: 'GET', isArray: false }
         });
 
     });
 
     $provide.factory('SqlQuery', function ($resource) {
 
-        return $resource('/sql/:databaseName', { databaseName: '@databaseName' }, {
+        return $resource('/sql/:id', { id: '@id' }, {
             send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
         });
 
@@ -77,8 +85,8 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
     });
 
     $provide.factory('Console', function ($resource) {
-        return $resource('/databases/:databaseName/console', { databaseName: '@databaseName' }, {
-            query: { method: 'GET', isArray: false }    
+        return $resource('/databases/:id/console', { id: '@id' }, {
+            query: { method: 'GET', isArray: false }
         });
     });
 
@@ -102,5 +110,5 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
 
 
- });
+});
 

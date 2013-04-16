@@ -10,31 +10,14 @@ var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap', 
         controller: MainCtrl
     });
 
-    $routeProvider.when('/databases/:databaseId', {
-        templateUrl: '/partials/database.html',
-        controller: DatabaseCtrl,
-        resolve: {
-            // I will cause a 1 second delay
-            delay: function ($q, $timeout) {
-                var delay = $q.defer();
-                $timeout(delay.resolve, 1000);
-                return delay.promise;
-            }
-        }
-    });
-
-    $routeProvider.when('/apps', {
-        templateUrl: '/partials/apps.html',
-        controller: AppsCtrl
-    });
     $routeProvider.when('/server', {
         templateUrl: '/partials/server.html',
         controller: ServerCtrl
     });
 
-    $routeProvider.when('/gateway', {
-        templateUrl: '/partials/gateway.html',
-        controller: GatewayCtrl
+    $routeProvider.when('/server/edit', {
+        templateUrl: '/partials/edit_server.html',
+        controller: ServerCtrl
     });
 
 
@@ -42,6 +25,33 @@ var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap', 
         templateUrl: '/partials/databases.html',
         controller: DatabasesCtrl
     });
+
+    $routeProvider.when('/databases/:id', {
+        templateUrl: '/partials/database.html',
+        controller: DatabaseCtrl
+    });
+
+    $routeProvider.when('/databases/:id/edit', {
+        templateUrl: '/partials/edit_database.html',
+        controller: DatabaseCtrl
+    });
+
+
+    $routeProvider.when('/create_database', {
+        templateUrl: '/partials/create_database.html',
+        controller: CreateDatabaseCtrl
+    })
+
+    $routeProvider.when('/apps', {
+        templateUrl: '/partials/apps.html',
+        controller: AppsCtrl
+    });
+
+    $routeProvider.when('/gateway', {
+        templateUrl: '/partials/gateway.html',
+        controller: GatewayCtrl
+    });
+
 
     $routeProvider.when('/log', {
         templateUrl: '/partials/log.html',
@@ -53,10 +63,7 @@ var myApp = angular.module('scadmin', ['scadminServices', 'ui', 'ui.bootstrap', 
         controller: SqlCtrl
     });
 
-    $routeProvider.when('/create_database', {
-        templateUrl: '/partials/create_database.html',
-        controller: CreateDatabaseCtrl
-    });
+
     $routeProvider.otherwise({ redirectTo: '/main' });
 
     //$locationProvider.html5Mode(true);
@@ -114,7 +121,7 @@ function HeadCtrl($scope, $location, $rootScope, $http, $dialog, App, Database) 
     $rootScope.getDatabases = function () {
 
         Database.query(function (result) {
-            $scope.databases = result.DatabaseList;
+            $scope.databases = result.databases;
 
             if (result.exception != null) {
                 $scope.showException(result.exception.message, result.exception.helpLink, result.exception.stackTrace);
@@ -173,11 +180,15 @@ function HeadCtrl($scope, $location, $rootScope, $http, $dialog, App, Database) 
               $scope.isBusy = false;
               $scope.gwStats = "";
 
-              var message = "Can not retrive the gateway statistics";
+              var message = "Can not retrive the gateway statistics.";
+              message += ", " + data;
+              if (status != null) {
+                  message += " " + "Status code:" + status;
+              }
 
               // 500 Internal Server Error
-              if (response.status === 500) {
-                  $scope.showException(message, null, response.data);
+              if (status === 500) {
+                  $scope.showException(message, null, null);
               }
               else {
                   $scope.alerts.push({ type: 'error', msg: message });
@@ -194,27 +205,50 @@ function HeadCtrl($scope, $location, $rootScope, $http, $dialog, App, Database) 
 }
 
 
-
-
 /**
  * Main Controller
  */
-function MainCtrl($scope, Database) {
+function MainCtrl($scope) {
 
-    $scope.btn_click_refresh_databases = function () {
+    $scope.alerts.length = 0;
+
+    $scope.btnClick_refreshDatabases = function () {
         $scope.getDatabases();
     }
 
-    $scope.btn_click_refresh_apps = function () {
+    $scope.btnClick_refreshApps = function () {
         $scope.getApps();
     }
+
+
+    $scope.btnClick_restart = function () {
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+    }
+
+    $scope.btnClick_start = function () {
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+    }
+
+    $scope.btnClick_stop = function () {
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+    }
+
+    $scope.btnClick_delete = function (id) {
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented:" });
+    }
 }
+
 
 /**
  * Gateway Controller
  */
 function GatewayCtrl($scope, $dialog) {
 
+    $scope.alerts.length = 0;
 
     // User clicked the "Refresh" button
     $scope.btnClick_refresh_gwateway_stats = function () {
@@ -231,26 +265,46 @@ function GatewayCtrl($scope, $dialog) {
  */
 function AppsCtrl($scope, $location, $rootScope, $dialog) {
 
-    $scope.btn_click_refresh_apps = function () {
+    $scope.alerts.length = 0;
+
+    $scope.btnClick_refreshApps = function () {
         $scope.getApps();
     }
 }
+
 
 /**
  * Server Controller
  */
 function ServerCtrl($scope, $dialog, Server, $http) {
 
+    $scope.isBusy = true;
+    $scope.alerts.length = 0;
 
     // Retrive server information
     $scope.getServer = function () {
 
-        Server.get({}, function (server) {
+        Server.get(function (response) {
+            $scope.isBusy = false;
             // Success
-            $scope.server = server;
+            $scope.server = response.server;
+
+            if (response.server == null) {
+                $scope.alerts.push({ type: 'error', msg: "Can not retrive server information" });
+            }
+
+            if (response.exception != null) {
+                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
+            }
+
+
         }, function (response) {
+            $scope.isBusy = false;
             // Error, Can not retrive list of databases
-            var message = "Can not retrive the server properties";
+            var message = "Can not retrive the server information.";
+            if (response.status != null) {
+                message += " " + "Status code:" + response.status;
+            }
 
             // 500 Internal Server Error
             if (response.status === 500) {
@@ -263,6 +317,70 @@ function ServerCtrl($scope, $dialog, Server, $http) {
 
     }
 
+    // Retrive database information
+    $scope.saveSettings = function () {
+        $scope.isBusy = true;
+
+        // Save server settings
+        Server.save($scope.server, function (response, headers) {
+            $scope.isBusy = false;
+
+            if (response.message != null) {
+                $scope.alerts.push({ type: 'success', msg: response.message });
+            }
+
+            if (response.validationErrors != null && response.validationErrors.length > 0) {
+
+                for (var i = 0; i < response.validationErrors.length; i++) {
+                    $scope.alerts.push({ type: 'error', msg: response.validationErrors[i].message });
+                    $scope.myForm[response.validationErrors[i].property].$setValidity("validationError", false);
+                    var id = response.validationErrors[i].property;
+                    var unregister = $scope.$watch("server." + response.validationErrors[i].property, function (newValue, oldValue) {
+                        if (newValue == oldValue) return;
+                        $scope.myForm[id].$setValidity("validationError", true);
+                        unregister();
+                    }, false);
+
+                }
+            } else if (response.server == null) {
+                $scope.alerts.push({ type: 'error', msg: "Can not save configuration to server " + $scope.server.name });
+            }
+
+            if (response.exception != null) {
+                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
+            }
+
+            if (response.server != null && response.exception == null) {
+                // Success
+                $scope.server = response.server;
+                $scope.myForm.$setPristine();
+            }
+
+        }, function (response) {
+
+            $scope.isBusy = false;
+            var message = "Can not save configuration to server " + $scope.server.name + ".";
+            if (response.status != null) {
+                message += " " + "Status code:" + response.status;
+            }
+
+            // 500 Internal Server Error
+            if (response.status === 500) {
+                $scope.showException(message, null, response.data);
+            }
+            else {
+                $scope.alerts.push({ type: 'error', msg: message });
+            }
+
+        });
+
+    }
+
+    $scope.btnClick_saveSettings = function () {
+        $scope.alerts.length = 0;
+        $scope.saveSettings();
+    }
+
     $scope.getServer();
 
 }
@@ -272,12 +390,33 @@ function ServerCtrl($scope, $dialog, Server, $http) {
  * Databases Controller
  */
 function DatabasesCtrl($scope, $dialog) {
+    $scope.alerts.length = 0;
 
 
-    $scope.btn_click_refresh_databases = function () {
+    $scope.btnClick_refreshDatabases = function () {
         $scope.getDatabases();
     }
 
+
+    $scope.btnClick_restart = function () {
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+    }
+
+    $scope.btnClick_start = function () {
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+    }
+
+    $scope.btnClick_stop = function () {
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+    }
+
+    $scope.btnClick_delete = function (id) {
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented:" });
+    }
 
 }
 
@@ -285,40 +424,45 @@ function DatabasesCtrl($scope, $dialog) {
 /**
  * Database Controller
  */
-function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, patchService) {
+function DatabaseCtrl($scope, $location, $routeParams, $dialog, $http, Database, Console, patchService) {
 
-    $scope.selectedDatabaseId = $routeParams.databaseId;
+    //$scope.selectedDatabaseId = $routeParams.databaseId;
     $scope.apps = [];
+    $scope.alerts.length = 0;
 
-    console.log("DatabaseCtrl");
+    console.log("$routeParams:" + $routeParams);
+
+    //    $scope.email = "bad@domain.co";
+    //    $scope.site = "dd";
+    //    console.log("DatabaseCtrl");
     // Watch for changes in the filer
-    $scope.$watch('selectedDatabaseId', function () {
+    //$scope.$watch('selectedDatabaseId', function () {
 
-        console.log("selectedDatabaseId:" + $scope.selectedDatabaseId);
-        angular.forEach($scope.databases,
-            function (item, key) {
-                if ($scope.selectedDatabaseId === item.DatabaseId) {
-                    $scope.getDatabase(item.DatabaseId);
-                    // forEach dosent support 'break' :-(
-                }
-            });
+    //    console.log("selectedDatabaseId:" + $scope.selectedDatabaseId);
+    //    angular.forEach($scope.databases,
+    //        function (item, key) {
+    //            if ($scope.selectedDatabaseId === item.id) {
+    //                $scope.getDatabase(item.id);
+    //                // forEach dosent support 'break' :-(
+    //            }
+    //        });
 
-    }, true);
+    //}, true);
 
     // Retrive the console output for a specific database
-    $scope.getConsole = function (databaseName) {
+    $scope.getConsole = function (id) {
 
         var message = "Can not retrive the console output from the database.";
         $scope.isBusy = true;
-        Console.get({ databaseName: databaseName }, function (result) {
+        Console.get({ id: id }, function (response) {
             // Success
             $scope.isBusy = false;
 
-            $scope.console = result.console.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
+            $scope.console = response.console.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
             $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
-            if (result.exception != null) {
+            if (response.exception != null) {
                 // Show Exception
-                $scope.showException(result.exception.message, result.exception.helpLink, result.exception.stackTrace);
+                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
             }
 
         }, function (response) {
@@ -342,18 +486,25 @@ function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, p
     }
 
     // Retrive database information
-    $scope.getDatabase = function (databaseId) {
+    $scope.getDatabase = function (id) {
         $scope.isBusy = true;
 
         // Get a database
-        Database.get({ databaseId: databaseId }, function (database, headers) {
+        Database.get({ id: id }, function (result, headers) {
             $scope.isBusy = false;
-            $scope.database = database;
+            $scope.database = result.database;
+
+            if (result.database == null) {
+                $scope.alerts.push({ type: 'error', msg: "Can not retrive database information" });
+            }
+
+            if (result.exception != null) {
+                $scope.showException(result.exception.message, result.exception.helpLink, result.exception.stackTrace);
+            }
+
+
             // Get location from the response header
             //$scope.location = headers('Location');
-            $scope.selectedDatabaseId = $scope.database.DatabaseId;
-
-            //            $scope.getConsole(database.DatabaseName);
             // Observe the model
             /*
                     var observer = jsonpatch.observe($scope.database, function (patches) {
@@ -364,7 +515,10 @@ function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, p
         }, function (response) {
             // Error, Can not retrive list of databases
             $scope.isBusy = false;
-            var message = "Can not retrive the database information";
+            var message = "Can not retrive the database information.";
+            if (response.status != null) {
+                message += " " + "Status code:" + response.status;
+            }
 
             // 500 Internal Server Error
             if (response.status === 500) {
@@ -378,22 +532,118 @@ function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, p
 
     }
 
-    // User clicked the "Refresh" button
-    $scope.btnClick_refresh_console = function () {
-        $scope.alerts.length = 0;
-        $scope.getConsole($scope.database.DatabaseName);
+    // Retrive database information
+    $scope.saveSettings = function (id) {
+        $scope.isBusy = true;
+
+        // Get a database
+        Database.save({ id: id }, $scope.database, function (result, headers) {
+            $scope.isBusy = false;
+
+            if (result.message != null) {
+                $scope.alerts.push({ type: 'success', msg: result.message });
+            }
+
+            if (result.validationErrors != null && result.validationErrors.length > 0) {
+
+                for (var i = 0; i < result.validationErrors.length; i++) {
+                    $scope.alerts.push({ type: 'error', msg: result.validationErrors[i].message });
+                    $scope.myForm[result.validationErrors[i].property].$setValidity("validationError", false);
+                    var id = result.validationErrors[i].property;
+                    var unregister = $scope.$watch("database." + result.validationErrors[i].property, function (newValue, oldValue) {
+                        if (newValue == oldValue) return;
+                        $scope.myForm[id].$setValidity("validationError", true);
+                        unregister();
+                    }, false);
+
+                }
+            } else if (result.database == null) {
+                $scope.alerts.push({ type: 'error', msg: "Can not save configuration to database " + $scope.database.name });
+            }
+
+            if (result.exception != null) {
+                $scope.showException(result.exception.message, result.exception.helpLink, result.exception.stackTrace);
+            }
+
+            if (result.database != null && result.exception == null) {
+                // Success
+                $scope.database = result.database;
+                $scope.myForm.$setPristine();
+            }
+
+        }, function (response) {
+            // Error, Can not retrive list of databases
+            $scope.isBusy = false;
+            var message = "Can not save configuration to database " + $scope.database.name + ".";
+            if (response.status != null) {
+                message += " " + "Status code:" + response.status;
+            }
+
+            // 500 Internal Server Error
+            if (response.status === 500) {
+                $scope.showException(message, null, response.data);
+            }
+            else {
+                $scope.alerts.push({ type: 'error', msg: message });
+            }
+
+        });
+
     }
+
+    // Form validation
+    //$scope.blackList = ['bad@domain.com', 'verybad@domain.com'];
+    //$scope.notBlackListed = function (value) {
+
+    //    return $scope.blackList.indexOf(value) === -1;
+
+    //};
+
+    //$scope.test2Validate = function (value) {
+
+    //    return true;
+
+    //};
+
+    //$scope.testValidate = function (value) {
+
+    //    if (value == null) return false;
+    //    return value.length === 2;
+
+    //};
+
+
+
+
+    //$scope.notBlackListed = function (value) {
+    //    var blacklist = ['bad@domain.com', 'verybad@domain.com'];
+    //    return blacklist.indexOf(value) === -1;
+    //}
+
+
+
+    // User clicked the "Refresh" button
+    $scope.btnClick_refreshConsole = function () {
+        $scope.alerts.length = 0;
+        $scope.getConsole($scope.database.id);
+    }
+
+    $scope.btnClick_saveSettings = function () {
+        $scope.alerts.length = 0;
+        $scope.saveSettings($scope.database.id);
+    }
+
 
     // User clicked the "Start" button
     $scope.btnClick_start = function () {
-        console.log("btnClick_start");
-        $scope.database.Start$ = !$scope.database.Start$;
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
     }
 
     // User clicked the "Stop" button
     $scope.btnClick_stop = function () {
-        console.log("btnClick_stop");
-        $scope.database.Stop$ = !$scope.database.Stop$;
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
     }
 
     // Handsontable (fixed the height)
@@ -433,10 +683,8 @@ function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, p
         return width;
     };
 
-
-
     // Retrive database information
-    //    $scope.getDatabase($routeParams.databaseId);
+    $scope.getDatabase($routeParams.id);
 
 }
 
@@ -447,6 +695,7 @@ function DatabaseCtrl($scope, $routeParams, $dialog, $http, Database, Console, p
 function LogCtrl($scope, $dialog, Log) {
 
     $scope.isBusy = false;
+    $scope.alerts.length = 0;
 
     $scope.log = {};
     $scope.log.LogEntries = [];
@@ -479,6 +728,9 @@ function LogCtrl($scope, $dialog, Log) {
             $scope.isBusy = false;
 
             var message = "Can not retrive the log";
+            if (response.status != null) {
+                message += " " + "Status code:" + response.status;
+            }
 
             // 500 Internal Server Error
             if (response.status === 500) {
@@ -537,12 +789,14 @@ function LogCtrl($scope, $dialog, Log) {
  */
 function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 
+    $scope.isBusy = false;
+    $scope.alerts.length = 0;
+
     $scope.selectedDatabase = null;
     $scope.sqlQuery = "";
     $scope.columns = [];
     $scope.rows = [];
 
-    $scope.isBusy = false;
     $scope.executeButtonTitle = function () {
         if ($scope.isBusy) {
             return "Executing...";
@@ -552,32 +806,32 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
         }
     }
 
-    $scope.getDatabases = function () {
+    //$scope.getDatabases = function () {
 
-        $scope.alerts.length = 0;
-        $scope.selectedDatabase = null;
+    //    $scope.alerts.length = 0;
+    //    $scope.selectedDatabase = null;
 
-        // Retrive database list
-        Database.query(function (databases, headers) {
-            $scope.databases = databases.DatabaseList;
-            if ($scope.databases.length > 0) {
-                $scope.selectedDatabase = $scope.databases[0];
-            }
+    //    // Retrive database list
+    //    Database.query(function (databases, headers) {
+    //        $scope.databases = databases.DatabaseList;
+    //        if ($scope.databases.length > 0) {
+    //            $scope.selectedDatabase = $scope.databases[0];
+    //        }
 
-        }, function (response) {
-            // Error, Can not retrive a list of databases
-            var message = "Can not retrive the database list";
+    //    }, function (response) {
+    //        // Error, Can not retrive a list of databases
+    //        var message = "Can not retrive the database list";
 
-            // 500 Internal Server Error
-            if (response.status === 500) {
-                $scope.showException(message, null, response.data);
-            }
-            else {
-                $scope.alerts.push({ type: 'error', msg: message });
-            }
+    //        // 500 Internal Server Error
+    //        if (response.status === 500) {
+    //            $scope.showException(message, null, response.data);
+    //        }
+    //        else {
+    //            $scope.alerts.push({ type: 'error', msg: message });
+    //        }
 
-        });
-    }
+    //    });
+    //}
 
 
     $scope.executeQuery = function () {
@@ -588,15 +842,15 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
         $scope.columns = [];
         $scope.rows = [];
 
-        SqlQuery.send({ databaseName: $scope.selectedDatabase.DatabaseName }, $scope.sqlQuery, function (result, headers) {
+        SqlQuery.send({ id: $scope.selectedDatabase.id }, $scope.sqlQuery, function (response, headers) {
 
             $scope.isBusy = false;
 
             // Success
-            $scope.columns = result.columns;
-            $scope.rows = result.rows;
+            $scope.columns = response.columns;
+            $scope.rows = response.rows;
 
-            if (result.sqlException != null) {
+            if (response.sqlException != null) {
                 // Show message
                 //$scope.sqlException.beginPosition
                 //$scope.sqlException.endPosition
@@ -607,19 +861,21 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
                 //$scope.sqlException.token
                 //$scope.sqlException.stackTrace
 
-                $scope.alerts.push({ type: 'error', msg: result.sqlException.message, helpLink: result.sqlException.helpLink });
+                $scope.alerts.push({ type: 'error', msg: response.sqlException.message, helpLink: response.sqlException.helpLink });
             }
 
-            if (result.exception != null) {
-                $scope.showException(result.exception.message, result.exception.helpLink, result.exception.stackTrace);
+            if (response.exception != null) {
+                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
             }
 
         }, function (response) {
             // Error
             $scope.isBusy = false;
 
-            var message = "Can not connect to server";
-
+            var message = "Can not connect to server.";
+            if (response.status != null) {
+                message += " " + "Status code:" + response.status;
+            }
             // 500 Internal Server Error
             if (response.status === 500) {
                 $scope.showException(message, null, response.data);
@@ -669,7 +925,11 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
         return width;
     };
 
-    $scope.getDatabases();
+    //$scope.getDatabases();
+
+    if ($scope.databases.length > 0) {
+        $scope.selectedDatabase = $scope.databases[0];
+    }
 
 }
 
@@ -677,9 +937,10 @@ function SqlCtrl($scope, Sql, Database, patchService, SqlQuery, $dialog) {
 /**
  * Edit Database Controller
  */
-function CreateDatabaseCtrl($scope, Settings, CreateDatabase, CommandStatus, $dialog, $rootScope, $location) {
+function CreateDatabaseCtrl($scope, Settings, Database, CommandStatus, $dialog, $rootScope, $location) {
 
     $scope.isBusy = false;
+    $scope.alerts.length = 0;
 
     $scope.getDefaultSettings = function () {
 
@@ -687,18 +948,20 @@ function CreateDatabaseCtrl($scope, Settings, CreateDatabase, CommandStatus, $di
         $scope.alerts.length = 0;
 
         // Retrive database list
-        Settings.query({ type: "database" }, function (defaultSettings) {
+        Settings.query({ type: "database" }, function (response) {
             $scope.isBusy = false;
+            response.tempDirectory = response.tempDirectory.replace("[DatabaseName]", response.databaseName);
+            response.imageDirectory = response.imageDirectory.replace("[DatabaseName]", response.databaseName);
+            response.transactionLogDirectory = response.transactionLogDirectory.replace("[DatabaseName]", response.databaseName);
 
-            defaultSettings.tempDirectory = defaultSettings.tempDirectory.replace("[DatabaseName]", defaultSettings.databaseName);
-            defaultSettings.imageDirectory = defaultSettings.imageDirectory.replace("[DatabaseName]", defaultSettings.databaseName);
-            defaultSettings.transactionLogDirectory = defaultSettings.transactionLogDirectory.replace("[DatabaseName]", defaultSettings.databaseName);
-
-            $scope.settings = defaultSettings;
+            $scope.settings = response;
         }, function (response) {
             // Error, Can not retrive a list of databases
             $scope.isBusy = false;
-            var message = "Can not retrive database detault settings";
+            var message = "Can not retrive database detault settings.";
+            if (response.status != null) {
+                message += " " + "Status code:" + response.status;
+            }
 
             // 500 Internal Server Error
             if (response.status === 500) {
@@ -719,60 +982,90 @@ function CreateDatabaseCtrl($scope, Settings, CreateDatabase, CommandStatus, $di
         var pollFrequency = 100 // 500ms
         var pollTimeout = 60000; // 60 Seconds
 
-        CreateDatabase.save({ databaseName: $scope.settings.databaseName }, $scope.settings, function (result) {
+        Database.create($scope.settings, function (response) {
 
-            console.log("CommandId:" + result.commandId);
+            $scope.isBusy = false;
+            var commandStarted = true;
 
-            (function poll() {
+            if (response.validationErrors != null && response.validationErrors.length > 0) {
 
-                $.ajax({
-                    url: "/command/" + result.commandId,
+                for (var i = 0; i < response.validationErrors.length; i++) {
+                    $scope.alerts.push({ type: 'error', msg: response.validationErrors[i].message });
+                    $scope.myForm[response.validationErrors[i].property].$setValidity("validationError", false);
+                    var id = response.validationErrors[i].property;
+                    var unregister = $scope.$watch("settings." + response.validationErrors[i].property, function (newValue, oldValue) {
+                        if (newValue == oldValue) return;
+                        $scope.myForm[id].$setValidity("validationError", true);
+                        unregister();
+                    }, false);
 
-                    success: function (result) {
+                }
+                commandStarted = false;
+            }
 
-                        $scope.status = result.message;
+            if (response.exception != null) {
+                commandStarted = false;
+                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
+            }
 
-                        if (result.exception != null) {
-                            $scope.isBusy = false;
-                            $scope.showException(result.exception.message, result.exception.helpLink, result.exception.stackTrace);
-                        } else if (result.isCompleted) {
-                            $scope.isBusy = false;
-                            $scope.status = "";
-                            // Check for errors
-                            if (result.errors.length > 0) {
-                                for (var i = 0; i < result.errors.length ; i++) {
-                                    $scope.alerts.push({ type: 'error', msg: result.errors[i].message, helpLink: result.errors[i].helpLink });
+            if (commandStarted) {
+                $scope.isBusy = true;
+
+                (function poll() {
+
+                    $.ajax({
+                        url: "/command/" + response.commandId,
+
+                        success: function (response) {
+
+                            $scope.status = response.message;
+
+                            if (response.exception != null) {
+                                $scope.isBusy = false;
+                                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
+                            } else if (response.isCompleted) {
+                                $scope.isBusy = false;
+                                $scope.status = "";
+                                // Check for errors
+                                if (response.errors.length > 0) {
+                                    for (var i = 0; i < response.errors.length ; i++) {
+                                        $scope.alerts.push({ type: 'error', msg: response.errors[i].message, helpLink: response.errors[i].helpLink });
+                                    }
+                                }
+                                else {
+                                    $scope.alerts.push({ type: 'success', msg: "Database " + $scope.settings.name + " was successfully created." });
+                                    //$location.path("/databases");
+                                    $scope.settings = null;
                                 }
                             }
                             else {
-                                $scope.alerts.push({ type: 'success', msg: "Database " + $scope.settings.databaseName + " was successfully created." });
-                                $location.path("/databases");
+                                setTimeout(function () { poll(); }, pollFrequency); // wait 3 seconds than call ajax request again
                             }
-                        }
-                        else {
-                            setTimeout(function () { poll(); }, pollFrequency); // wait 3 seconds than call ajax request again
-                        }
-                    },
+                        },
 
-                    error: function (xhr, textStatus, thrownError) {
-                        $scope.alerts.push({ type: 'error', msg: textStatus });
-                    },
+                        error: function (xhr, textStatus, thrownError) {
+                            $scope.isBusy = false;
+                            $scope.alerts.push({ type: 'error', msg: textStatus });
+                        },
 
-                    complete: function () {
-                        console.log("complete");
-                        $scope.$apply();
+                        complete: function () {
+                            console.log("complete");
+                            $scope.$apply();
 
-                    },
-                    dataType: "json",
-                    timeout: pollTimeout
-                });
-            })();
+                        },
+                        dataType: "json",
+                        timeout: pollTimeout
+                    });
+                })();
 
-
+            }
         }, function (response) {
             // Error, Can not create database
             $scope.isBusy = false;
-            var message = "Can not create database";
+            var message = "Can not create database.";
+            if (response.status != null) {
+                message += " " + "Status code:" + response.status;
+            }
 
             // 500 Internal Server Error
             if (response.status === 500) {
@@ -785,12 +1078,13 @@ function CreateDatabaseCtrl($scope, Settings, CreateDatabase, CommandStatus, $di
         });
     }
 
-
     $scope.btnClick_createDatabase = function () {
         $scope.createDatabase();
     }
 
     $scope.getDefaultSettings();
+
+
 }
 
 
