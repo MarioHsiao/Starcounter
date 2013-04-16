@@ -129,6 +129,9 @@ namespace star {
        
         static void Main(string[] args) {
             ApplicationArguments appArgs;
+            int serverPort;
+            string serverName;
+            string serverHost;
 
             if (args.Length == 0) {
                 Usage(null);
@@ -158,6 +161,13 @@ namespace star {
             if (syntaxTests) {
                 ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
                 ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
+                // Include how we resolve the admin server port / server, if applicable.
+                // By design, silently ignore any error.
+                try {
+                    GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
+                    ConsoleUtil.ToConsoleWithColor(string.Format("Server \"{0}\" on port {1}.", serverName, serverPort), ConsoleColor.Yellow);
+                } catch { }
+
                 // Exiting, because we were asked to test syntax only.
                 return;
             }
@@ -201,9 +211,6 @@ namespace star {
             // So bottomline: a client with "full" transparency.
             
             // First make sure we have a server/port to communicate with.
-            int serverPort;
-            string serverName;
-            string serverHost;
 
             try {
                 GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
