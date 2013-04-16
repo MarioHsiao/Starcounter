@@ -28,6 +28,14 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
         });
     });
 
+
+    $provide.factory('DbWorkaround', function ($resource) {
+        return $resource('/a/:name', { name: '@name' }, {
+            start: { method: 'POST', params: { action: 'start' }, isArray: false },
+            stop: { method: 'POST', params: { action: 'stop' }, isArray: false },
+        });
+    });
+
     $provide.factory('Database', function ($resource) {
         return $resource('/databases/:name', { name: '@name' }, {
             create: { method: 'POST', isArray: false },     // Create new database
