@@ -65,20 +65,20 @@
 
                     <td>
                         <div class="btn-group">
-                            <a ng-click="btnClick_restart()" class="btn"><i class="icon-repeat"></i></a>
-                            <a ng-click="btnClick_start()" class="btn"><i class="icon-play"></i></a>
-                            <a ng-click="btnClick_stop()" class="btn"><i class="icon-stop "></i></a>
+                            <a ng-click="btnClick_restart(database)" class="btn"><i class="icon-repeat"></i></a>
+                            <a ng-click="btnClick_start(database)" class="btn"><i class="icon-play"></i></a>
+                            <a ng-click="btnClick_stop(database)" class="btn"><i class="icon-stop "></i></a>
                         </div>
                     </td>
 
                     <td>
-                        <a href="#/databases/{{database.id}}">{{database.name}}</a>
+                        <a href="#/databases/{{database.name}}">{{database.name}}</a>
                     </td>
 
                     <td>{{database.status}}
                     </td>
                     <td>
-                        <button ng-click="btnClick_delete(database.id)" class="close">&times;</button>
+                        <button ng-click="btnClick_delete(database)" class="close">&times;</button>
                     </td>
                 </tr>
 
