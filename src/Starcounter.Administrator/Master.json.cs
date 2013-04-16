@@ -39,12 +39,7 @@ namespace Starcounter.Administrator {
             }
 
             // Administrator port.
-            UInt16 adminPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
-            if (UInt16.TryParse(args[1], out adminPort) == false) {
-                Console.WriteLine("Starcounter Administrator: Invalid port number {0}", args[1]);
-                return;
-            };
-
+            UInt16 adminPort = NewConfig.Default.SystemHttpPort;
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
 #if ANDWAH
@@ -72,14 +67,15 @@ namespace Starcounter.Administrator {
                 Master.ServerInterface
             );
 
-            RegisterHandlers(serverInfo.Configuration.SystemHttpPort);
+            // Registering Administrator handlers.
+            RegisterHandlers();
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="sytemHttpPort">Port for doing SQL queries</param>
-        static void RegisterHandlers(ushort sytemHttpPort) {
+        static void RegisterHandlers() {
 
             // Registering default handler for ALL static resources on the server.
             GET("/{?}", (string res) => {

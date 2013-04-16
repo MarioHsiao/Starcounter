@@ -434,9 +434,10 @@ namespace Starcounter.InstallerEngine
             sc_check_cpu_features(ref popcntInstr);
             if (!popcntInstr)
             {
-                Utilities.MessageBoxWarning(
-                    "Your CPU does not support POPCNT instruction, which is recommended to run Starcounter.",
-                    "Unavailable CPU feature..");
+                //Utilities.MessageBoxWarning(
+                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
+                    "Your CPU does not support POPCNT instruction, which is a requirement to run Starcounter.");
+                //    "Unavailable CPU feature..");
             }
         }
 
