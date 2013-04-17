@@ -1,12 +1,11 @@
 
 
-/* SQL, Peter Idestam-Almquist, Starcounter, 2013-04-15. */
+/* SQL, Peter Idestam-Almquist, Starcounter, 2013-04-12. */
 
 /* A query processor of SQL-queries. */
 
 /*** Modifications in interface: ***/
 
-/* 13-04-15: Added Database parameter to delete_schemainfo and process_version_and_delete_schemainfo. */
 /* 13-04-12: Added Database parameter to schemafile, class, extension, property, method, gmethod. */
 /* 13-02-04: Added support of offset not only offsetkey in fetch clause. */
 /* 13-01-28: Added condition isTypePredicate/3. */
@@ -78,8 +77,8 @@ user:runtime_entry(start):-
 	register_query(add_schemainfo_prolog(SchemaInfo),add_schemainfo(SchemaInfo)), 
 	register_query(load_schemainfo_prolog(SchemaFile),load_schemainfo(SchemaFile)), 
 	register_query(current_schemafiles_prolog(SchemaFileList),current_schemafiles(SchemaFileList)), 
-	register_query(delete_schemainfo_prolog(Database),delete_schemainfo(Database)), 
-	register_query(process_version_and_delete_schemainfo_prolog(Database,Version),process_version_and_delete_schemainfo(Database,Version)), 
+	register_query(delete_schemainfo_prolog,delete_schemainfo), 
+	register_query(process_version_and_delete_schemainfo_prolog(Version),process_version_and_delete_schemainfo(Version)), 
 	register_query(sql_prolog(Database,Query,TypeDef,Tree,VarNum,ErrList),sql(Database,Query,TypeDef,Tree,VarNum,ErrList)), 
 	prolog_flag(argv,[Arg1|_]), 
 	atom_codes(Arg1,NumCodes), 
@@ -94,30 +93,29 @@ replace([Code1|Cs1],Code2,Code3,[Code1|Cs2]):-
 replace([],_,_,[]):- !.
 
 
-process_version_and_delete_schemainfo(DatabaseCodes,Version):- 
+process_version_and_delete_schemainfo(Version):- 
 	process_version(Version), 
-	delete_schemainfo(DatabaseCodes), !.
+	delete_schemainfo, !.
 
 process_version(Version):-
 	sql_version(Version), !.
 
 kill:- shutdown.
 
-load_schemainfo(FilePathCodes):- 
-	atom_codes(FilePathAtom,FilePathCodes), 
-	compile(FilePathAtom), !.
+load_schemainfo(FileCodes):- 
+	atom_codes(FilePath,FileCodes), 
+	compile(FilePath), !.
 
 current_schemafiles(FileNameBag):- 
 	findall(FileName,schemafile(_,FileName),FileNameBag), !.
 
-delete_schemainfo(DatabaseCodes):- 
-	atom_codes(DatabaseAtom,DatabaseCodes), 
-	retractall(schemafile(DatabaseAtom,_)), 
-	retractall(class(DatabaseAtom,_,_,_)), 
-	retractall(extension(DatabaseAtom,_,_,_)), 
-	retractall(property(DatabaseAtom,_,_,_,_)), 
-	retractall(method(DatabaseAtom,_,_,_,_,_)), 
-	retractall(gmethod(DatabaseAtom,_,_,_,_,_,_)), !.
+delete_schemainfo:- 
+	retractall(schemafile(_,_)), 
+	retractall(class(_,_,_,_)), 
+	retractall(extension(_,_,_,_)), 
+	retractall(property(_,_,_,_,_)), 
+	retractall(method(_,_,_,_,_,_)), 
+	retractall(gmethod(_,_,_,_,_,_,_)), !.
 
 
 /*===== Process SQL query. =====*/
