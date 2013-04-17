@@ -15,7 +15,7 @@ extern "C" int32_t make_sc_process_uri(const char *server_name, const char *proc
 #define LOG_BUFFER_MESSAGE_SIZE 1024
 
 //#define WITH_DATABASE // if defined the scservice requires a database with the name "administrator"
-//#define START_PROLOG
+#define START_PROLOG
 
 // Handle IDs for all processes.
 enum ProcessIds
