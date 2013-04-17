@@ -22,6 +22,7 @@
 
 #include "record_header.hpp"
 #include "data_header.hpp"
+#include "defined_column_value.hpp"
 #include "macro_definitions.hpp"
 
 namespace starcounter {
@@ -34,32 +35,6 @@ namespace record {
 // DATA HEADER
 // DEFINED COLUMN VALUES
 
-
-// DEFINED COLUMN VALUES (revision 8):
-// +-------------------------------------------------+
-// | +---------------------------+  <== Byte aligned |
-// | | DEFINED COLUMN VALUE 0    |                   |  First DEFINED COLUMN VALUE
-// | +---------------------------+  <== Byte aligned |
-// | | DEFINED COLUMN VALUE 1    |                   |  Second DEFINED COLUMN VALUE
-// | +---------------------------+                   |
-// |             •                                   |
-// |             •                                   |
-// |             •                                   |
-// | +---------------------------+  <== Byte aligned |
-// | | DEFINED COLUMN VALUE N -1 |                   |  Last DEFINED COLUMN VALUE
-// | +---------------------------+                   |
-// +-------------------------------------------------+  <== Byte aligned
-// : Next record. . .                                :
-
-namespace defined_column_value {
-
-typedef uint8_t* pointer;
-typedef uint32_t size_type;
-
-} // namespace defined_column_value
-
-
-
 /// get_pointer_to_value() gets a pointer to an value in the tuple, if
 /// it is defined.
 /**
@@ -71,7 +46,7 @@ typedef uint32_t size_type;
  *		value is not defined, size is not changed.
  * @return A pointer to the value if it is defined, or 0 if not defined.
  */
-defined_column_value::pointer get_pointer_to_value(
+defined_column_value::pointer_type get_pointer_to_value(
 data_header::pointer_type /* RESTRICT */ data_header,
 data_header::index_type index,
 defined_column_value::size_type* /* RESTRICT */ size);

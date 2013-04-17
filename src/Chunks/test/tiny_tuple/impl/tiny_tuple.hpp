@@ -16,7 +16,7 @@ namespace core {
 namespace tiny_tuple {
 namespace record {
 
-defined_column_value::pointer get_pointer_to_value(
+defined_column_value::pointer_type get_pointer_to_value(
 data_header::pointer_type /* RESTRICT */ data_header,
 data_header::index_type index,
 defined_column_value::size_type* /* RESTRICT */ size) {
