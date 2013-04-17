@@ -54,6 +54,11 @@ try {
 		(get_pointer_to_record_data(record_header_size));
 
 		std::cout << "DATA HEADER ADDR: " << data_header_addr << std::endl;
+		
+		data_header::size_type data_header_size
+		= data_header::size(data_header_addr);
+
+		std::cout << "DATA HEADER SIZE: " << data_header_size << std::endl;
 
 		// Read the COLUMNS value from the DATA HEADER.
 		uint32_t columns = data_header::get_columns(data_header_addr);
