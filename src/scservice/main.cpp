@@ -7,10 +7,15 @@
 
 extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
 
-#define IPC_MONITOR_INHERIT_CONSOLE 0
-#define GATEWAY_INHERIT_CONSOLE 0
-#define SCDATA_INHERIT_CONSOLE 0
-#define SCCODE_INHERIT_CONSOLE 1
+#define INHERIT_CONSOLE_IPC_MONITOR 0
+#define INHERIT_CONSOLE_GATEWAY 0
+#define INHERIT_CONSOLE_SCDATA 0
+#define INHERIT_CONSOLE_SCCODE 1
+
+#define LOG_BUFFER_MESSAGE_SIZE 1024
+
+//#define WITH_DATABASE // if defined the scservice requires a database with the name "administrator"
+//#define START_PROLOG
 
 // Handle IDs for all processes.
 enum ProcessIds
@@ -19,15 +24,17 @@ enum ProcessIds
     ID_IPC_MONITOR,
     ID_GATEWAY,
     ID_ADMIN_SCCODE,
+
+#ifdef WITH_DATABASE
     ID_ADMIN_SCDATA,
+#endif
+
+#ifdef START_PROLOG
     ID_PROLOG,
+#endif
+
     ID_LAST_ID
 };
-
-#define LOG_BUFFER_MESSAGE_SIZE 1024
-
-//#define WITH_DATABASE // if defined the scservice requires a database with the name "administrator"
-//#define START_PROLOG
 
 static void *hcontrol_event;
 
@@ -535,7 +542,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	}
 
 	// Start and register IPC monitor.
-	r = _exec(monitor_cmd, IPC_MONITOR_INHERIT_CONSOLE, &handles[ID_IPC_MONITOR]);
+	r = _exec(monitor_cmd, INHERIT_CONSOLE_IPC_MONITOR, &handles[ID_IPC_MONITOR]);
 	if (r) goto log_winerr;
 
 	if (logsteps != 0 ) { 
@@ -548,7 +555,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	}
 
 	// Start and register network gateway.
-	r = _exec(gateway_cmd, GATEWAY_INHERIT_CONSOLE, &handles[ID_GATEWAY]);
+	r = _exec(gateway_cmd, INHERIT_CONSOLE_GATEWAY, &handles[ID_GATEWAY]);
 	if (r) goto log_winerr;
 
 	if (logsteps != 0 ) { 
@@ -577,7 +584,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start the database: %s", scdata_cmd);
 		LogVerboseMessage(logmessagebuffer);
 	}
-	r = _exec(scdata_cmd, SCDATA_INHERIT_CONSOLE, &handles[ID_ADMIN_SCDATA]);
+	r = _exec(scdata_cmd, INHERIT_CONSOLE_SCDATA, &handles[ID_ADMIN_SCDATA]);
 	if (r) goto log_scerr;
 
 	if (logsteps != 0 ) { 
@@ -589,7 +596,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start sccode: %s", sccode_cmd);
 		LogVerboseMessage(logmessagebuffer);
 	}
-	r = _exec(sccode_cmd, SCCODE_INHERIT_CONSOLE, &handles[ID_ADMIN_SCCODE]);
+	r = _exec(sccode_cmd, INHERIT_CONSOLE_SCCODE, &handles[ID_ADMIN_SCCODE]);
 	if (r) goto log_winerr;
 
 	if (logsteps != 0 ) { 
@@ -661,6 +668,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 			    goto log_scerr;
             }
 
+#ifdef START_PROLOG
             case ID_PROLOG:
             {
                 // scsqlparser died. Kill the server. Kill the system.
@@ -673,7 +681,9 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
                 r = SCERRDATABASEENGINETERMINATED;
                 goto log_scerr;
             }
+#endif
 
+#ifdef WITH_DATABASE
 		    case ID_ADMIN_SCDATA:
             {
 			    if (logsteps != 0 ) { 
@@ -683,6 +693,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 			    // scdata died. Kill the server. Kill the system.
     		    goto end;
             }
+#endif
 
 		    default:
 			    __assume(0);
@@ -723,7 +734,7 @@ log_winerr:
 	if (r)
 	{
         wchar_t* error_msg_buf = new wchar_t[512];
-		wsprintf(error_msg_buf, L"Error: process exited with error code: %s\n", r);
+		wsprintf(error_msg_buf, L"Error: process exited with error code: %d\n", r);
 
 		// Logging this error.
 		wprintf(error_msg_buf);
@@ -738,10 +749,18 @@ log_winerr:
 	}
 
 end:
+
+#ifdef WITH_DATABASE
 	if (handles[ID_ADMIN_SCDATA]) _kill_and_cleanup(handles[ID_ADMIN_SCDATA]);
+#endif
+
 	if (handles[ID_ADMIN_SCCODE]) _kill_and_cleanup(handles[ID_ADMIN_SCCODE]);
 	if (handles[ID_GATEWAY]) _kill_and_cleanup(handles[ID_GATEWAY]);
+
+#ifdef START_PROLOG
     if (handles[ID_PROLOG]) _kill_and_cleanup(handles[ID_PROLOG]);
+#endif
+
 	if (handles[ID_IPC_MONITOR]) _kill_and_cleanup(handles[ID_IPC_MONITOR]);
 	if (handles[ID_SCSERVICE]) _destroy_event(handles[ID_SCSERVICE]);
 
