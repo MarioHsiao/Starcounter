@@ -57,6 +57,8 @@ namespace data_header {
 typedef uint64_t* pointer_type;
 typedef uint32_t columns_type;
 typedef uint32_t offset_type;
+typedef uint32_t offset_distance_type;
+typedef uint32_t offset_size_type;
 typedef uint32_t index_type;
 
 enum {
@@ -71,19 +73,73 @@ enum {
 	static_fields_mask = (1 << static_field_size) -1
 };
 
-/// number_of_columns() returns number of columns value, 0 to 255.
+/// get_columns() returns number of COLUMNS value, 0 to 255.
 /**
  * @param data_header The address of the byte aligned DATA HEADER.
  * @return The number of columns value, 0 to 255.
  */
-FORCE_INLINE columns_type number_of_columns(pointer_type data_header);
+FORCE_INLINE columns_type get_columns(pointer_type data_header);
 
-/// offset_size() returns the offset size, 5 to 12.
+/// set_columns() sets number of COLUMNS value, 0 to 255.
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @param columns The COLUMN value to be written, 0 to 255. Other bits in the
+ *      DATA HEADER are preserved.
+ */
+FORCE_INLINE void set_columns(pointer_type data_header, columns_type columns);
+
+/// offset_size() returns the OFFSET size, 5 to 12.
 /**
  * @param data_header The address of the byte aligned DATA HEADER.
  * @return The offset size, 5 to 12.
  */
-FORCE_INLINE offset_type offset_size(pointer_type data_header);
+FORCE_INLINE offset_type get_offset_size(pointer_type data_header);
+
+/// set_offset_size() sets the OFFSET value, 5 to 12.
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @param offset The OFFSET value to be written, 5 to 12. Other bits in the
+ *      DATA HEADER are preserved.
+ */
+FORCE_INLINE void set_offset_size(pointer_type data_header, offset_type offset);
+
+/// get_defined_column_flag() returns state of the column flag at index.
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @param index The index of the DEFINED COLUMN FLAG.
+ * @return The state of the column flag at index, false = not defined and
+ *      true = defined.
+ */
+FORCE_INLINE bool get_defined_column_flag(pointer_type data_header, index_type index);
+
+/// set_defined_column_flag() sets the state of the column flag at index.
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @param index The index of the DEFINED COLUMN FLAG.
+ * @param state The state to assign to the DEFINED COLUMN FLAG at index.
+ */
+FORCE_INLINE void set_defined_column_flag(pointer_type data_header, index_type index, bool state);
+
+/// get_distance_to_offset() returns the distance of OFFSET at index, in number of bits
+/// from the beginning of the DATA HEADER. This utility function is used by set_offset().
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @param index The index of the OFFSET.
+ * @param columns The number of COLUMNS in the DATA HEADER.
+ * @param offset_size The number of bits (5 to 12) in each OFFSET.
+ * @return The distance of OFFSET at index, in number of bits from the beginning
+ *      of the DATA HEADER.
+ */
+FORCE_INLINE offset_distance_type get_distance_to_offset(pointer_type data_header, index_type index,
+columns_type columns, offset_type offset_size);
+
+/// get_offset() returns the OFFSET value at index, which is relative to the beginning of the DATA HEADER.
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @param index The index of the OFFSET.
+ * @return Tthe OFFSET value at index, which is relative to the beginning of the DATA HEADER.
+ */
+FORCE_INLINE offset_type get_offset(pointer_type data_header, index_type index);
 
 } // namespace data_header
 } // namespace record
