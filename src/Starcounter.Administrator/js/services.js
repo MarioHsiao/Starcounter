@@ -100,11 +100,11 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
         });
     });
 
-    $provide.factory('CreateDatabase', function ($resource) {
-        return $resource('/databases/:databaseName', { databaseName: '@databaseName' }, {
-            save: { method: 'POST', isArray: false }
-        });
-    });
+    //$provide.factory('CreateDatabase', function ($resource) {
+    //    return $resource('/databases/:databaseName', { databaseName: '@databaseName' }, {
+    //        save: { method: 'POST', isArray: false }
+    //    });
+    //});
 
     $provide.factory('Settings', function ($resource) {
         return $resource('/settings/default/:type', { type: '@type' }, {
