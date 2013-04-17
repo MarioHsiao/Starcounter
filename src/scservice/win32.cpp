@@ -210,6 +210,7 @@ void _kill_and_cleanup_orphaned_children(int32_t logsteps)
     HANDLE hparent_proc;
     HANDLE hchild_proc;
     BOOL process_found;
+    DWORD exitcode;
     DWORD parent_pid;
     wchar_t logmessagebuffer[1024];
 
@@ -257,19 +258,21 @@ void _kill_and_cleanup_orphaned_children(int32_t logsteps)
                     }
 
                     if (hparent_proc) {
-                        // The parent is still alive. No need to do anything more.
-                        continue;
-                    } else {
-                        // Parent process is terminated. Lets kill the process.
-                        if (logsteps) {
-                            _snwprintf_s(logmessagebuffer, 1024, L"Terminating process '%s' with parent pid %d", pe.szExeFile, parent_pid);
-                            LogVerboseMessage(logmessagebuffer);
-                        }
+                        if (GetExitCodeProcess(hparent_proc, &exitcode) && (exitcode == STILL_ACTIVE)) {
+                            // The parent is still active. The childprocess is not orphaned.
+                            continue; 
+                        } 
+                    }
+                      
+                    // Parent process is terminated. Lets kill the process.
+                    if (logsteps) {
+                        _snwprintf_s(logmessagebuffer, 1024, L"Terminating process '%s' with parent pid %d", pe.szExeFile, parent_pid);
+                        LogVerboseMessage(logmessagebuffer);
+                    }
 		            
-                        hchild_proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe.th32ProcessID);
-                        if (hchild_proc) {
-                            _kill_and_cleanup(hchild_proc);
-                        }
+                    hchild_proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe.th32ProcessID);
+                    if (hchild_proc) {
+                        _kill_and_cleanup(hchild_proc);
                     }
                 } else {
                     // No parent. Do we kill those as well?
