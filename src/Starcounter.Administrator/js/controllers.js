@@ -1118,7 +1118,7 @@ function CreateDatabaseCtrl($scope, Settings, Database, CommandStatus, $dialog, 
         var pollFrequency = 100 // 500ms
         var pollTimeout = 60000; // 60 Seconds
 
-        Database.create($scope.settings, function (response) {
+        Database.create({},$scope.settings, function (response) {
 
             $scope.isBusy = false;
             var commandStarted = true;

@@ -428,7 +428,7 @@ namespace Starcounter.Administrator {
             });
 
             // Create a database
-            POST("/databases", (Request req) => {
+            POST("/databases/{?}", (string name, Request req) => {
 
                 dynamic resultJson = new DynamicJson();
                 resultJson.commandId = null;
