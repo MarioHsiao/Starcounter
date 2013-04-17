@@ -72,7 +72,20 @@ uint8_t record_data[record_data_size] = {
 	// DEFINED VALUES = DEFINED COLUMN VALUES
 	// n = First (and last) DEFINED COLUMN VALUE. It is 1 byte in size.
 
-	0x01, 0x38, 0x08, 0xA2
+	///0x01, 0x38, 0x08, 0xA2
+
+	//==========================================================================
+	// DATA HEADER with ten column values that are not defined:
+	//
+	//  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+	// .1 0 9 8 7 6 5 4.3 2 1 0 9 8 7 6.5 4 3 2 1 0 9 8.7 6 5 4 3 2 1 0.
+	// +-----------+---------+-------------------+-----+---------------+
+	// |        PAD|   OFFSET|    DEFINED COLUMNS|OFFSZ|        COLUMNS|
+	// +-----------+---------+-------------------+-----+---------------+
+	// |x x x x x x|0 0 1 0 0|0 0 0 0 0 0 0 0 0 0|0 0 0|0 0 0 0 1 0 1 0|
+	// +-----------+---------+-------------------+-----+---------------+
+
+	0x0A, 0x00, 0x80, 0x00
 };
 
 uint8_t* get_pointer_to_record_data(uint64_t offset) {
