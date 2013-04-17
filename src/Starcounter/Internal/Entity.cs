@@ -168,23 +168,5 @@ namespace Starcounter.Internal {
         ulong Advanced.IBindable.Identity {
             get { return __sc__this_id__; }
         }
-
-        /// <summary>
-        /// Returns numerical Object identity of the database object
-        /// </summary>
-        public ulong ObjectNo {
-            get { return this.__sc__this_id__; }
-        }
-
-        /// <summary>
-        /// Returns Web friendly string representing object identity of the database object
-        /// </summary>
-        public String ObjectID {
-            get {
-                if (this_id_web_string == null)
-                    this_id_web_string = Starcounter.Query.ObjectIdentityHelpMethods.Base64ForUrlEncode(this.__sc__this_id__);
-                return this_id_web_string;
-            }
-        }
     }
 }
