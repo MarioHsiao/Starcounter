@@ -330,7 +330,7 @@ namespace Starcounter.Administrator {
             //    return "hello world";
             //});
             // Start   /database/mydatabas?action=start
-            POST("/databases/{?}?action=start", (string name, Request req) => {
+            /*POST("/databases/{?}?action=start", (string name, Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
 
@@ -355,7 +355,7 @@ namespace Starcounter.Administrator {
                 else {
                     return HttpStatusCode.NotAcceptable;
                 }
-            });
+            });*/
 
             // Stop   /database/mydatabas?action=stop
             //POST("/databases/{?}?action=stop", (string id, Request req) => {
