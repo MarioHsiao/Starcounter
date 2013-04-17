@@ -11,6 +11,8 @@ namespace QueryProcessingTest {
             Trace.Assert(a != null);
             Trace.Assert(a.GetObjectID() != null);
             Trace.Assert(DbHelper.Base64ForUrlDecode(a.GetObjectID()) == a.GetObjectNo());
+            Trace.Assert(DbHelper.GetObjectNo(a) == a.GetObjectNo());
+            Trace.Assert(DbHelper.GetObjectID(a) == a.GetObjectID());
             HelpMethods.LogEvent("Finished testing get object identities extension methods");
 #if false
             HelpMethods.LogEvent("Test object identities in SQL");
