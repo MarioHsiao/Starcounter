@@ -1,8 +1,6 @@
 ﻿<div class="btn-toolbar">
 
-
-
-<!--    <div class="input-prepend">
+    <!--    <div class="input-prepend">
             <button class="btn btn-primary" ng-disabled="selectedDatabase == null||isBusy == true" ng-click="btnClick_execute()">{{executeButtonTitle()}}</button>
   <button class="btn" type="button">Go!</button>
             <select class="span3" ui-select2 ng-model="selectedDatabaseId">
@@ -13,12 +11,10 @@
 
     </div>-->
 
-
-
     <div class="input-prepend">
         <div class="btn-group">
             <button class="btn btn-success span2" ng-disabled="selectedDatabase == null||isBusy == true" ng-click="btnClick_execute()">{{executeButtonTitle()}}</button>
-            <select ng-model="selectedDatabase" ng-options="database.DatabaseName for database in databases">
+            <select ng-model="selectedDatabase" ng-options="database.name for database in databases">
                 <option value="">-- chose database --</option>
             </select>
         </div>
@@ -47,20 +43,27 @@ Rows {{Rows}}-->
 
 </table>-->
 
-<ui-handsontable
-    id="handsontable"
-    height="calcHeight"
-    stretchh="'last'"
-    selectedindex="SelectedIndex"
-    outsideclickdeselects="false"
-    selectedindex="currentSelection"
-    columns="columns"
-    minsparerows="0"
-    startrows="0"
-    datarows="row in rows"
-    currentrowclassname="'currentRow'"
-    manualcolumnmove="false"
-    manualcolumnresize="false"
-    columnsorting="false">
+<div ng-show='isBusy == true' class="progress progress-striped active">
+    <div class="bar" style="width: 100%;"></div>
+</div>
+
+<div ng-hide='isBusy == true'>
+
+    <ui-handsontable
+        id="handsontable"
+        height="calcHeight"
+        stretchh="'last'"
+        selectedindex="SelectedIndex"
+        outsideclickdeselects="false"
+        selectedindex="currentSelection"
+        columns="columns"
+        minsparerows="0"
+        startrows="0"
+        datarows="row in rows"
+        currentrowclassname="'currentRow'"
+        manualcolumnmove="false"
+        manualcolumnresize="false"
+        columnsorting="false">
 </ui-handsontable>
 
+</div>

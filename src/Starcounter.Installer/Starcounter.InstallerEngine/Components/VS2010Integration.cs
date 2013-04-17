@@ -9,11 +9,17 @@ public class CVS2010Integration : VSIntegration
 {
     DevEnv devEnv;
 
+    // TODO: Disabling unreachable code warnings.
+    #pragma warning disable 162
+
     /// <summary>
     /// Component initialization.
     /// </summary>
     public CVS2010Integration()
     {
+        // TODO: Enable when needed.
+        return;
+
         devEnv = new DevEnv(VisualStudioVersion.VS2010);
     }
 
@@ -50,6 +56,9 @@ public class CVS2010Integration : VSIntegration
     /// </summary>
     public override void Install()
     {
+        // TODO: Enable when needed.
+        return;
+
         // Checking if component should be installed in this session.
         if (!ShouldBeInstalled())
             return;
@@ -87,6 +96,9 @@ public class CVS2010Integration : VSIntegration
     /// </summary>
     public override void Uninstall()
     {
+        // TODO: Enable when needed.
+        return;
+
         if (!UninstallEngine.CompleteCleanupSetting)
         {
             if (UninstallEngine.RollbackSetting)
@@ -164,6 +176,9 @@ public class CVS2010Integration : VSIntegration
     /// <returns>True if already installed.</returns>
     public override Boolean IsInstalled()
     {
+        // TODO: Enable when needed.
+        return false;
+
         // Check registry value indicating the VS 2010 integration is actually
         // installed for the current user.
 
@@ -181,6 +196,9 @@ public class CVS2010Integration : VSIntegration
     /// <returns>True if can.</returns>
     public override Boolean CanBeInstalled()
     {
+        // TODO: Enable when needed.
+        return false;
+
         if (!DependenciesCheck.VStudio2010Installed())
         {
             throw ErrorCode.ToException(Error.SCERRINSTALLERVS2010NOTFOUND,
@@ -206,6 +224,9 @@ public class CVS2010Integration : VSIntegration
     /// <returns>True if component should be installed.</returns>
     public override Boolean ShouldBeInstalled()
     {
+        // TODO: Enable when needed.
+        return false;
+
         return InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_InstallVS2010Integration, ConstantsBank.Setting_True);
     }
 
@@ -216,6 +237,9 @@ public class CVS2010Integration : VSIntegration
     /// <returns>True if component should be uninstalled.</returns>
     public override Boolean ShouldBeRemoved()
     {
+        // TODO: Enable when needed.
+        return false;
+
         return UninstallEngine.UninstallationSettingCompare(ConstantsBank.Setting_RemoveVS2010Integration, ConstantsBank.Setting_True);
     }
 }

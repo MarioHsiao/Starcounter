@@ -18,7 +18,7 @@ namespace Starcounter.Server {
     internal sealed class PublicModelProvider : IServerRuntime {
         private ServerEngine engine;
         private readonly Dictionary<string, DatabaseInfo> databases;
-        
+
         /// <summary>
         /// Gets the current snapshot of server information.
         /// </summary>
@@ -126,7 +126,8 @@ namespace Starcounter.Server {
                         if (waitableHandle == null) {
                             ManualResetEventSlim slimEvent = waitable as ManualResetEventSlim;
                             slimEvent.Wait();
-                        } else {
+                        }
+                        else {
                             // NOTE: This code is temporary, and should be here until we have
                             // a better understanding of why sometimes, commands does not get
                             // the completed signal. For more information, consult:
@@ -151,10 +152,11 @@ namespace Starcounter.Server {
                                         if (latestCopy == null) {
                                             ServerLogSources.Default.LogError("The command {0}, started {1}, did not get notified when finished and the last copy of its result was not found.", info.Description, info.StartTime);
                                             System.Diagnostics.Trace.Fail("Internal server error");
-                                        } else {
+                                        }
+                                        else {
                                             ServerLogSources.Default.LogError(
-                                                "The command {0}, started {1}, did not get notified when finished. Ended at {2}, had errors: {3}", 
-                                                info.Description, 
+                                                "The command {0}, started {1}, did not get notified when finished. Ended at {2}, had errors: {3}",
+                                                info.Description,
                                                 info.StartTime,
                                                 latestCopy.EndTime.Value,
                                                 latestCopy.HasError);
@@ -166,7 +168,8 @@ namespace Starcounter.Server {
 
                             System.Diagnostics.Trace.Assert(finished, string.Format("Command {0} didn't finish in time ({1})", info.Description, t));
                         }
-                    } catch (ObjectDisposedException) {
+                    }
+                    catch (ObjectDisposedException) {
                         // Ignore this. If the server has decided the underlying
                         // construct was ready to be disposed, thats a sure sign
                         // the command has completed.
@@ -195,7 +198,7 @@ namespace Starcounter.Server {
 
                 Thread.Sleep(100);
             };
-            
+
             return cmd;
         }
 
@@ -220,6 +223,18 @@ namespace Starcounter.Server {
                 DatabaseInfo databaseInfo;
                 databases.TryGetValue(databaseUri, out databaseInfo);
                 return databaseInfo;
+            }
+        }
+
+        /// <inheritdoc />
+        public DatabaseInfo GetDatabaseByName(string databaseName) {
+            lock (databases) {
+                foreach (var keyvalue in this.databases) {
+                    if (keyvalue.Value.Name.Equals(databaseName)) {
+                        return keyvalue.Value;
+                    }
+                }
+                return null;
             }
         }
 

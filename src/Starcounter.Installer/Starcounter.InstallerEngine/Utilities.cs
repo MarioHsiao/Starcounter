@@ -602,12 +602,21 @@ namespace Starcounter.InstallerEngine
                 {
                     // Asking to launch previous version uninstaller.
                     String installDir = CInstallationBase.GetInstalledDirFromEnv();
-                    String prevSetupExePath = Path.Combine(installDir, ConstantsBank.SCInstallerGUI + ".exe");
+
+                    // Trying "Starcounter-[Version]-Setup.exe".
+                    String prevSetupExeName = "Starcounter-" + previousVersion + "-Setup.exe";
+                    String prevSetupExePath = Path.Combine(installDir, prevSetupExeName);
                     if (!File.Exists(prevSetupExePath))
                     {
-                        throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
-                            "Can't find " + ConstantsBank.SCInstallerGUI + ".exe for Starcounter " + previousVersion +
-                            " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
+                        // Trying "Starcounter-Setup.exe".
+                        prevSetupExeName = ConstantsBank.SCInstallerGUI + ".exe";
+                        prevSetupExePath = Path.Combine(installDir, prevSetupExeName);
+                        if (!File.Exists(prevSetupExePath))
+                        {
+                            throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
+                                "Can't find " + prevSetupExeName + " for Starcounter " + previousVersion +
+                                " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
+                        }
                     }
 
                     Process prevSetupProcess = new Process();

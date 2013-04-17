@@ -632,6 +632,16 @@ namespace Starcounter.InstallerWPF {
                 CInstallationBase.GetEnvVarMachineUser(ConstantsBank.SCEnvVariableDefaultServer),
                 EnvironmentVariableTarget.Process);
 
+            Environment.SetEnvironmentVariable(
+                ConstantsBank.SCEnvVariableDefaultPersonalPort,
+                CInstallationBase.GetEnvVarMachineUser(ConstantsBank.SCEnvVariableDefaultPersonalPort),
+                EnvironmentVariableTarget.Process);
+
+            Environment.SetEnvironmentVariable(
+                ConstantsBank.SCEnvVariableDefaultSystemPort,
+                CInstallationBase.GetEnvVarMachineUser(ConstantsBank.SCEnvVariableDefaultSystemPort),
+                EnvironmentVariableTarget.Process);
+
             // Calling post-setup processes function.
             InstallerMain.StartPostSetupProcesses(true);
 
