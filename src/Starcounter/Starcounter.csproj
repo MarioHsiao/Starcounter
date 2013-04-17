@@ -298,7 +298,6 @@
     <Compile Include="Query\Execution\Variables\TypeVariable.cs" />
     <Compile Include="Query\Execution\Variables\Variable.cs" />
     <Compile Include="Query\Execution\Variables\VariableArray.cs" />
-    <Compile Include="Query\ObjectIdentityHelpMethods.cs" />
     <Compile Include="Query\Optimization\_AggregationNode.cs" />
     <Compile Include="Query\Optimization\_ConditionDictionary.cs" />
     <Compile Include="Query\Optimization\_ExtentNode.cs" />
