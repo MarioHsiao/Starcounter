@@ -272,6 +272,19 @@ public class CPersonalServer : CComponentBase
                 "Can't replace Prolog SQL TCP port for " + StarcounterEnvironment.ServerNames.PersonalServer + " server.");
         }
 
+        // Setting the given personal server system HTTP port on the current user
+        int serverSystemPort;
+        var serverSystemPortString = InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort);
+        if (string.IsNullOrEmpty(serverSystemPortString) || !int.TryParse(serverSystemPortString, out serverSystemPort)) {
+            throw ErrorCode.ToException(
+                Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Unable to properly access given server HTTP port value: " + serverSystemPortString ?? "NULL");
+        }
+        Environment.SetEnvironmentVariable(
+            ConstantsBank.SCEnvVariableDefaultPersonalPort,
+            serverSystemPortString,
+            EnvironmentVariableTarget.User);
+
         // Creating server config.
         InstallerMain.CreateServerConfig(
             StarcounterEnvironment.ServerNames.PersonalServer,
@@ -357,6 +370,12 @@ public class CPersonalServer : CComponentBase
             ConstantsBank.SCEnvVariableDefaultServer,
             null,
             EnvironmentVariableTarget.User);
+
+        Environment.SetEnvironmentVariable(
+            ConstantsBank.SCEnvVariableDefaultPersonalPort,
+            null,
+            EnvironmentVariableTarget.User);
+
 
         // Logging event.
         Utilities.ReportSetupEvent("Deleting personal database server registry entries...");

@@ -41,15 +41,29 @@ namespace star {
             public const string AttatchCodeHostDebugger = "debug";
         }
 
-        static class EnvironmentVariable {
-            public const string ServerName = "STAR_SERVER";
+        static void GetEnvironmentIntOrDefault(string variable, out int result, int fallback = -1) {
+            var x = Environment.GetEnvironmentVariable(variable);
+            if (x == null || !int.TryParse(x, out result)) {
+                result = fallback;
+            }
         }
 
         static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
             string givenPort;
+            int personalDefault;
+            int systemDefault;
 
-            // Use proper error code / message for unresolved server
-            // TODO:
+            GetEnvironmentIntOrDefault(
+                StarcounterEnvironment.VariableNames.DefaultServerPersonalPort,
+                out personalDefault,
+                StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort
+                );
+
+            GetEnvironmentIntOrDefault(
+                StarcounterEnvironment.VariableNames.DefaultServerSystemPort,
+                out systemDefault,
+                StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort
+                );
 
             if (args.TryGetProperty(Option.Serverport, out givenPort)) {
                 port = int.Parse(givenPort);
@@ -64,12 +78,16 @@ namespace star {
                 //   4) Using a const string (e.g. "N/A")
 
                 if (!args.TryGetProperty(Option.Server, out serverName)) {
-                    if (port == StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort) {
+                    if (port == personalDefault) {
+                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
+                    } else if (port == systemDefault) {
+                        serverName = StarcounterEnvironment.ServerNames.SystemServer;
+                    } else if (port == StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort) {
                         serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     } else if (port == StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort) {
                         serverName = StarcounterEnvironment.ServerNames.SystemServer;
                     } else {
-                        serverName = Environment.GetEnvironmentVariable(EnvironmentVariable.ServerName);
+                        serverName = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.DefaultServer);
                         if (string.IsNullOrEmpty(serverName)) {
                             serverName = UnresolvedServerName;
                         }
@@ -87,7 +105,7 @@ namespace star {
                 // environment, we'll assume personal and the default port for that.
 
                 if (!args.TryGetProperty(Option.Server, out serverName)) {
-                    serverName = Environment.GetEnvironmentVariable(EnvironmentVariable.ServerName);
+                    serverName = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.DefaultServer);
                     if (string.IsNullOrEmpty(serverName)) {
                         serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     }
@@ -96,21 +114,24 @@ namespace star {
                 var comp = StringComparison.InvariantCultureIgnoreCase;
 
                 if (serverName.Equals(StarcounterEnvironment.ServerNames.PersonalServer, comp)) {
-                    port = NewConfig.Default.SystemHttpPort;
+                    port = personalDefault;
                 } else if (serverName.Equals(StarcounterEnvironment.ServerNames.SystemServer, comp)) {
-                    port = NewConfig.Default.SystemHttpPort;
+                    port = systemDefault;
                 } else {
                     throw ErrorCode.ToException(
                         Error.SCERRUNSPECIFIED,
                         string.Format("Unknown server name: {0}. Please specify the port using '{1}'.", 
-                        serverName, 
+                        serverName,
                         Option.Serverport));
-                }                
+                }
             }
         }
        
         static void Main(string[] args) {
             ApplicationArguments appArgs;
+            int serverPort;
+            string serverName;
+            string serverHost;
 
             if (args.Length == 0) {
                 Usage(null);
@@ -140,6 +161,13 @@ namespace star {
             if (syntaxTests) {
                 ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
                 ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
+                // Include how we resolve the admin server port / server, if applicable.
+                // By design, silently ignore any error.
+                try {
+                    GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
+                    ConsoleUtil.ToConsoleWithColor(string.Format("Server \"{0}\" on port {1}.", serverName, serverPort), ConsoleColor.Yellow);
+                } catch { }
+
                 // Exiting, because we were asked to test syntax only.
                 return;
             }
@@ -183,9 +211,6 @@ namespace star {
             // So bottomline: a client with "full" transparency.
             
             // First make sure we have a server/port to communicate with.
-            int serverPort;
-            string serverName;
-            string serverHost;
 
             try {
                 GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
@@ -531,7 +556,10 @@ namespace star {
                 Console.WriteLine();
             }
             Console.WriteLine("Environment variables:");
-            Console.WriteLine("{0}\t{1,8}", EnvironmentVariable.ServerName, "Sets the server to use by default.");
+            formatting = "{0,-30}{1,25}";
+            Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServer, "Holds the server to use by default.");
+            Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerPersonalPort, "Personal server port used by default.");
+            Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerSystemPort, "System server port used by default.");
             Console.WriteLine();
             Console.WriteLine("For complete help, see http://www.starcounter.com/wiki/star.exe");
         }
