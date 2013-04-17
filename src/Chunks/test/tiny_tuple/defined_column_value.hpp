@@ -1,5 +1,5 @@
 //
-// tiny_tuple.hpp
+// defined_column_value.hpp
 //
 // Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
@@ -7,8 +7,8 @@
 // Revision: 8
 //
 
-#ifndef STARCOUNTER_CORE_TINY_TUPLE_HPP
-#define STARCOUNTER_CORE_TINY_TUPLE_HPP
+#ifndef STARCOUNTER_CORE_TINY_TUPLE_RECORD_DEFINED_COLUMN_VALUE_HPP
+#define STARCOUNTER_CORE_TINY_TUPLE_RECORD_DEFINED_COLUMN_VALUE_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
@@ -28,12 +28,7 @@ namespace starcounter {
 namespace core {
 namespace tiny_tuple {
 namespace record {
-
-// A tiny tuple record consists of three parts:
-// RECORD HEADER
-// DATA HEADER
-// DEFINED COLUMN VALUES
-
+namespace defined_column_value {
 
 // DEFINED COLUMN VALUES (revision 8):
 // +-------------------------------------------------+
@@ -49,41 +44,17 @@ namespace record {
 // | | DEFINED COLUMN VALUE N -1 |                   |  Last DEFINED COLUMN VALUE
 // | +---------------------------+                   |
 // +-------------------------------------------------+  <== Byte aligned
-// : Next record. . .                                :
 
-namespace defined_column_value {
 
 typedef uint8_t* pointer;
 typedef uint32_t size_type;
 
 } // namespace defined_column_value
-
-
-
-/// get_pointer_to_value() gets a pointer to an value in the tuple, if
-/// it is defined.
-/**
- * @param data_header The address of the byte aligned DATA HEADER.
- * @param index The index of the value to retrieve. It is assumed that it is a
- *		valid index.
- * @param size A pointer to a size_type which upon return will contain
- *		the size (in bytes) of the value, if the value is defined. If the
- *		value is not defined, size is not changed.
- * @return A pointer to the value if it is defined, or 0 if not defined.
- */
-defined_column_value::pointer get_pointer_to_value(
-data_header::pointer_type /* RESTRICT */ data_header,
-data_header::index_type index,
-defined_column_value::size_type* /* RESTRICT */ size);
-
-// Inserts
-// Updates
-
 } // namespace record
 } // namespace tiny_tuple
 } // namespace core
 } // namespace starcounter
 
-#include "impl/tiny_tuple.hpp"
+#include "impl/defined_column_value.hpp"
 
-#endif // STARCOUNTER_CORE_TINY_TUPLE_HPP
+#endif // STARCOUNTER_CORE_TINY_TUPLE_RECORD_DEFINED_COLUMN_VALUE_HPP

@@ -45,17 +45,17 @@ try {
 		uint32_t record_header_size = 3;
 
 		// Get a pointer to the DATA HEADER in the record.
-		data_header::pointer data_header
-		= data_header::pointer(get_pointer_to_record_data(record_header_size));
+		data_header::pointer_type data_header = data_header::pointer_type
+		(get_pointer_to_record_data(record_header_size));
 
 		std::cout << "DATA HEADER ADDRESS: " << data_header << std::endl;
 
 		// Read the COLUMNS value from the DATA HEADER.
-		uint32_t columns = number_of_columns(data_header);
+		uint32_t columns = data_header::number_of_columns(data_header);
 		std::cout << "COLUMNS: " << columns << std::endl;
 
 		// Read the OFFSET SIZE value from the DATA HEADER.
-		uint32_t osize = offset_size(data_header);
+		uint32_t osize = data_header::offset_size(data_header);
 		std::cout << "OFFSET SIZE: " << osize << std::endl;
 
 		defined_column_value::pointer p = get_pointer_to_record_data(28);
@@ -69,10 +69,10 @@ try {
 		std::cout << "DEFINED COLUMN VALUE SIZE: " << sz << std::endl;
 
 		// Start the tiny_tuple_test application.
-		boost::scoped_ptr<starcounter::core::tiny_tuple::test> app
-		(new starcounter::core::tiny_tuple::test(argc, argv));
+		//boost::scoped_ptr<starcounter::core::tiny_tuple::test> app
+		//(new starcounter::core::tiny_tuple::test(argc, argv));
 
-		app->run();
+		//app->run();
 	}
 	catch (...) {
 		// An unknown exception was caught.

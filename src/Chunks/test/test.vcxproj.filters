@@ -49,5 +49,11 @@
     <ClInclude Include="tiny_tuple\impl\test.hpp" />
     <ClInclude Include="tiny_tuple\record_data.hpp" />
     <ClInclude Include="tiny_tuple\bit_operations.hpp" />
+    <ClInclude Include="tiny_tuple\data_header.hpp" />
+    <ClInclude Include="tiny_tuple\impl\data_header.hpp" />
+    <ClInclude Include="tiny_tuple\record_header.hpp" />
+    <ClInclude Include="tiny_tuple\impl\record_header.hpp" />
+    <ClInclude Include="tiny_tuple\impl\defined_column_value.hpp" />
+    <ClInclude Include="tiny_tuple\defined_column_value.hpp" />
   </ItemGroup>
 </Project>

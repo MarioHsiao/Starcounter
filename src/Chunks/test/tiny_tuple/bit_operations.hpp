@@ -33,12 +33,12 @@ namespace core {
 ///	Operating System:			Unix	Unix	Windows	Windows
 ///	Vector instructions:		SSE2	SSE4.2	SSE2	SSE4.2
 /// ----------------------------------------------------------------------------
-/// bit_scan_forward(uint32_t)	NO		NO		YES		YES
-/// bit_scan_forward(uint64_t)	NO		NO		YES		YES
-/// bit_scan_reverse(uint32_t)	NO		NO		YES		YES
-/// bit_scan_reverse(uint64_t)	NO		NO		YES		YES
-/// population_count(uint32_t)	NO		NO		YES		YES
-/// population_count(uint64_t)	NO		NO		YES		YES
+/// bit_scan_forward(uint32_t)	YES		YES		YES		YES
+/// bit_scan_forward(uint64_t)	YES		YES		YES		YES
+/// bit_scan_reverse(uint32_t)	YES		YES		YES		YES
+/// bit_scan_reverse(uint64_t)	YES		YES		YES		YES
+/// population_count(uint32_t)	YES		YES		YES		YES
+/// population_count(uint64_t)	YES		YES		YES		YES
 ///
 /// NOTE: Unix = Linux or OS X. No other Unix or Unix like OS are supported.
 /// SSE4.2 allows using the POPCNT instruction, and will be used if the macro
