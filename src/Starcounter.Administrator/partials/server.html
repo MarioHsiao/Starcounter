@@ -1,19 +1,40 @@
-﻿
-<div>
+﻿<div ng-show='server == null' class="progress progress-striped active">
+  <div class="bar" style="width: 100%;"></div>
+</div>
+
+
+<form name="myForm" class="form-horizontal  well well-small" ng-hide='server == null'>
+
+    <legend>Edit Server - {{server.name}}</legend>
+
+    <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
+        <label class="control-label" for="httpPort">Http Port</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="httpPort" id="httpPort" placeholder="Http port" ng-model="server.httpPort" required>
+            <span ng-show="myForm.httpPort.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.httpPort.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" ng-disabled="myForm.$invalid || isBusy == true || myForm.$dirty == false" class="btn btn-success" ng-click="btnClick_saveSettings()">Save</button>
+    </div>
+
+</form>
+
+
+
+<!--<div>
 
     <dl class="dl-horizontal">
         <dt>Name</dt>
-        <dd>{{server.ServerName}}</dd>
+        <dd>{{server.name}}</dd>
 
         <dt>Http Port</dt>
-        <dd>{{server.SystemHttpPort}}</dd>
+        <dd>{{server.httpPort}}</dd>
 
-        <dt>DatabaseDirectory</dt>
-        <dd>{{server.DatabaseDirectory}}</dd>
-        <dt>LogDirectory</dt>
-        <dd>{{server.LogDirectory}}</dd>
-        <dt>TempDirectory</dt>
-        <dd>{{server.TempDirectory}}</dd>
     </dl>
 
 </div>
+
+<a class="btn btn-primary pull-right" href="#/server/edit">Edit</a>-->
