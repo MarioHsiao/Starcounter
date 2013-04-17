@@ -98,7 +98,7 @@ namespace Starcounter.Internal
             /// <summary>
             /// Default port for the Prolog SQL parsing process.
             /// </summary>
-            public const int SQLProlog = 8011;
+            public const int SQLProlog = 8066;
 
             /// <summary>
             /// Default port for the activity monitor server.
