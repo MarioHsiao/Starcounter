@@ -385,7 +385,7 @@ namespace SQLTest
 
         internal static String GetObjectIdString(IObjectView obj)
         {
-            UInt64 uintObjectId = DbHelper.GetObjectID(obj);
+            UInt64 uintObjectId = DbHelper.GetObjectNo(obj);
             return uintObjectId.ToString();
         }
     }

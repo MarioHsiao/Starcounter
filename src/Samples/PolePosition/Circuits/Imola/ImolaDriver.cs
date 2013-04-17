@@ -43,7 +43,7 @@ public class ImolaDriver : Driver
                 p.LicenseId = i;
                 if (i <= Setup.SelectCount)
                 {
-                    objectIds[i - 1] = DbHelper.GetObjectID(p);
+                    objectIds[i - 1] = DbHelper.GetObjectNo(p);
                 }
                 if (Setup.IsCommitPoint(i))
                 {

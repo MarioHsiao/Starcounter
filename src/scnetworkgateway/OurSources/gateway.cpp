@@ -614,9 +614,16 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     uint32_t err_code;
 
     // Opening file stream.
-    std::ifstream config_file_stream(configFilePath);
+    std::ifstream config_file_stream;
+    config_file_stream.open(configFilePath);
     if (!config_file_stream.is_open())
-        return SCERRGWCANTLOADXMLSETTINGS;
+    {
+        config_file_stream.open(GW_DEFAULT_CONFIG_NAME);
+        if (!config_file_stream.is_open())
+        {
+            return SCERRGWCANTLOADXMLSETTINGS;
+        }
+    }
 
     // Copying config contents into a string.
     std::stringstream str_stream;

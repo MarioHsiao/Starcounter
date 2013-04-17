@@ -361,6 +361,7 @@ const int32_t WS_BLOB_USER_DATA_OFFSET = 16;
 // Gateway program name.
 const wchar_t* const GW_PROGRAM_NAME = L"scnetworkgateway";
 const char* const GW_PROCESS_NAME = "networkgateway";
+const wchar_t* const GW_DEFAULT_CONFIG_NAME = L"scnetworkgateway.xml";
 
 // Port types.
 enum PortType

@@ -7,14 +7,34 @@
 
 extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
 
-#define MONITOR_INHERIT_CONSOLE 0
-#define GATEWAY_INHERIT_CONSOLE 0
-#define SCDATA_INHERIT_CONSOLE 0
-#define SCCODE_INHERIT_CONSOLE 1
+#define INHERIT_CONSOLE_IPC_MONITOR 0
+#define INHERIT_CONSOLE_GATEWAY 0
+#define INHERIT_CONSOLE_SCDATA 0
+#define INHERIT_CONSOLE_SCCODE 1
 
 #define LOG_BUFFER_MESSAGE_SIZE 1024
 
-//#define WITH_DATABASE // if defined the scservice requiers a database with the name "administrator"
+//#define WITH_DATABASE // if defined the scservice requires a database with the name "administrator"
+//#define START_PROLOG
+
+// Handle IDs for all processes.
+enum ProcessIds
+{
+    ID_SCSERVICE,
+    ID_IPC_MONITOR,
+    ID_GATEWAY,
+    ID_ADMIN_SCCODE,
+
+#ifdef WITH_DATABASE
+    ID_ADMIN_SCDATA,
+#endif
+
+#ifdef START_PROLOG
+    ID_PROLOG,
+#endif
+
+    ID_LAST_ID
+};
 
 static void *hcontrol_event;
 
@@ -66,34 +86,25 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	if (argc > 1)
 	{
 		// Checking if help is needed.
-		if (argv[1][0] == L'?' || argc > 3)
+		if ((0 == wcscmp(argv[1], L"?")) ||
+            (0 == wcscmp(argv[1], L"-h")) ||
+            (0 == wcscmp(argv[1], L"--help")) ||
+            (argc > 3))
 		{
 			PrintCommandHelp();
 			return 0;
 		}
 
-		for(int i = 1; i < argc; i++)
+		for (int i = 1; i < argc; i++)
 		{
-			if ( wcslen( argv[i]) == 10 && 
-				argv[i][0] == L'-' && 
-				argv[i][1] == L'-' && 
-				argv[i][2] == L'l' && 
-				argv[i][3] == L'o' && 
-				argv[i][4] == L'g' && 
-				argv[i][5] == L's' && 
-				argv[i][6] == L't' && 
-				argv[i][7] == L'e' && 
-				argv[i][8] == L'p' && 
-				argv[i][9] == L's')
+			if (0 == wcscmp(argv[i], L"--logsteps"))
 			{
 				logsteps = 1;
-				break;
 			}
-		}
-
-		// Reading the server name if specified.
-		if(( wcslen( argv[1]) > 0 && argv[1][0] != L'-') || (  wcslen( argv[1]) > 1 && argv[1][1] != L'-')    ) {
-			srv_name = argv[1];
+            else
+            {
+                srv_name = argv[i];
+            }
 		}
 	}
 
@@ -145,12 +156,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	const char *admin_dbname_ascii = "administrator";	
 	const wchar_t *mingw = L"MinGW\\bin\\x86_64-w64-mingw32-gcc.exe";
 
-#ifdef WITH_DATABASE
-	void *handles[5];
-#else
-	void *handles[4];
-#endif
-
+	void *handles[ID_LAST_ID];
 	memset(handles, 0, sizeof(handles));
 
 	// Read server configuration.
@@ -171,18 +177,22 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	wchar_t *srv_name_upr;
 	wchar_t *admin_dbname_upr;
-#ifdef WITH_DATABASE
-	wchar_t *admin_dburi;
-#endif
 	const wchar_t *str_template;
 	size_t str_num_chars, str_size_bytes;
 
 	wchar_t *event_name;
 	wchar_t *monitor_cmd;
 	wchar_t *gateway_cmd;
+
+#ifdef START_PROLOG
+    wchar_t *prolog_cmd;
+#endif
+
 #ifdef WITH_DATABASE
 	wchar_t *scdata_cmd;
+    wchar_t *admin_dburi;
 #endif
+
 	wchar_t *sccode_cmd;
 	wchar_t *admin_exe_path;
 	wchar_t *admin_working_dir;
@@ -257,13 +267,16 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	wchar_t *server_database_dir;
 	wchar_t *system_http_port;
 	wchar_t *default_user_http_port;
+    wchar_t *prolog_port;
+
 	r = _read_server_config(
 		server_cfg_path,
 		&server_logs_dir,
 		&server_temp_dir,
 		&server_database_dir,
 		&system_http_port,
-		&default_user_http_port);
+		&default_user_http_port,
+        &prolog_port);
 
 	if (r) goto log_scerr;
 
@@ -352,6 +365,22 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	swprintf(gateway_cmd, str_num_chars, str_template, srv_name_upr, server_dir, server_logs_dir);
 
+#ifdef START_PROLOG
+
+    str_template = L"32BitComponents\\scsqlparser.exe %s";
+    str_num_chars =
+        wcslen(str_template) +
+        wcslen(prolog_port) +
+        1;
+
+    str_size_bytes = str_num_chars * sizeof(wchar_t);
+    prolog_cmd = (wchar_t *)malloc(str_size_bytes);
+    if (!prolog_cmd) goto err_nomem;
+
+    swprintf(prolog_cmd, str_num_chars, str_template, prolog_port);
+
+#endif
+
 	// Creating Admin exepath
 	str_template = L"scadmin\\Administrator.exe";
 	str_num_chars = 
@@ -390,6 +419,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	swprintf(scdata_cmd, str_num_chars, str_template, admin_dbname_upr, admin_dburi, server_logs_dir);
 #endif
+
 	// Creating sccode command
 	str_num_chars = 0;
 
@@ -479,7 +509,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	// Create shutdown event. Will fail if event already exists and so also
 	// confirm that no server with the specific name already is running.
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to create shutdown event listener %s", event_name);
 		LogVerboseMessage(logmessagebuffer);
 	}
@@ -487,72 +517,89 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	r = _create_event(event_name, &hcontrol_event);
 	if (r) goto log_winerr;
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Event listener %s created", event_name);
 		LogVerboseMessage(logmessagebuffer);
 	}
 
-
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		LogVerboseMessage(L"About to create console ctrl-c event listener");
 	}
 
-	if(_set_shutdown_event_handler(__shutdown_event_handler) == false ) {
+	if (_set_shutdown_event_handler(__shutdown_event_handler) == false ) {
 		goto log_winerr;
 	}
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		LogVerboseMessage(L"Event listener created");
 	}
 
-	handles[0] = hcontrol_event;
+	handles[ID_SCSERVICE] = hcontrol_event;
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start the IPC monitor: %s", monitor_cmd);
 		LogVerboseMessage(logmessagebuffer);
 	}
+
 	// Start and register IPC monitor.
-	r = _exec(monitor_cmd, MONITOR_INHERIT_CONSOLE, (handles + 1));
+	r = _exec(monitor_cmd, INHERIT_CONSOLE_IPC_MONITOR, &handles[ID_IPC_MONITOR]);
 	if (r) goto log_winerr;
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		LogVerboseMessage(L"IPC monitor started");
 	}
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start the Network gateway: %s", gateway_cmd);
 		LogVerboseMessage(logmessagebuffer);
 	}
+
 	// Start and register network gateway.
-	r = _exec(gateway_cmd, GATEWAY_INHERIT_CONSOLE, (handles + 2));
+	r = _exec(gateway_cmd, INHERIT_CONSOLE_GATEWAY, &handles[ID_GATEWAY]);
 	if (r) goto log_winerr;
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		LogVerboseMessage(L"Network gateway started");
 	}
 
-#ifdef WITH_DATABASE
+#ifdef START_PROLOG
 
-	if(logsteps != 0 ) { 
+    if (logsteps != 0 ) { 
+        _snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start the Prolog SQL: %s", prolog_cmd);
+        LogVerboseMessage(logmessagebuffer);
+    }
+
+    // Start and register Prolog.
+    r = _exec(prolog_cmd, 0, &handles[ID_PROLOG]);
+    if (r) goto log_winerr;
+
+    if (logsteps != 0 ) { 
+        LogVerboseMessage(L"Prolog SQL started");
+    }
+
+#endif
+
+#ifdef WITH_DATABASE
+	if (logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start the database: %s", scdata_cmd);
 		LogVerboseMessage(logmessagebuffer);
 	}
-	r = _exec(scdata_cmd, SCDATA_INHERIT_CONSOLE, (handles + 4));
+	r = _exec(scdata_cmd, INHERIT_CONSOLE_SCDATA, &handles[ID_ADMIN_SCDATA]);
 	if (r) goto log_scerr;
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		LogVerboseMessage(L"Database started");
 	}
 #endif
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start sccode: %s", sccode_cmd);
 		LogVerboseMessage(logmessagebuffer);
 	}
-	r = _exec(sccode_cmd, SCCODE_INHERIT_CONSOLE, (handles + 3));
+	r = _exec(sccode_cmd, INHERIT_CONSOLE_SCCODE, &handles[ID_ADMIN_SCCODE]);
 	if (r) goto log_winerr;
 
-	if(logsteps != 0 ) { 
+	if (logsteps != 0 ) { 
 		LogVerboseMessage(L"sccode started");
 	}
 
@@ -561,75 +608,95 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	{
 		uint32_t signaled_index;
 
-#ifdef WITH_DATABASE
-		uint32_t num_handles = 5;
-#else
-		uint32_t num_handles = 4;
-#endif
-
-		if(logsteps != 0 ) { 
+		if (logsteps != 0 ) { 
 			LogVerboseMessage(L"scservice done (waiting)");
 		}
 
-		r = _wait(handles, num_handles, &signaled_index);
+		r = _wait(handles, ID_LAST_ID, &signaled_index);
 		if (r) goto log_winerr;
 
-		if(logsteps != 0 ) { 
+		if (logsteps != 0 ) { 
 			LogVerboseMessage(L"scservice got event signal");
 		}
 
 		switch (signaled_index)
 		{
-		case 0:
-			// Shutdown signaled.
+		    case ID_SCSERVICE:
+            {
+			    // Shutdown signaled.
 
-			if(logsteps != 0 ) { 
-				LogVerboseMessage(L"scservice got shutdown signal");
-			}
-			goto end;
+			    if (logsteps != 0 ) { 
+				    LogVerboseMessage(L"scservice got shutdown signal");
+			    }
+			    goto end;
+            }
 
-		case 1:
-			// IPC monitor died. Kill the server.
-			if(logsteps != 0 ) { 
-				LogVerboseMessage(L"IPC monitor exited");
-			}
-            GetExitCodeProcess(handles[1], &process_exit_code);
-            exit_code_is_scerr = false;
-            r = SCERRIPCMONITORTERMINATED;
-			goto log_scerr;
+		    case ID_IPC_MONITOR:
+            {
+			    // IPC monitor died. Kill the server.
+			    if (logsteps != 0 ) { 
+				    LogVerboseMessage(L"IPC monitor exited");
+			    }
+                GetExitCodeProcess(handles[ID_IPC_MONITOR], &process_exit_code);
+                exit_code_is_scerr = false;
+                r = SCERRIPCMONITORTERMINATED;
+			    goto log_scerr;
+            }
 
-		case 2:
-			// Gateway died. Kill the server. Kill the system.
-			if(logsteps != 0 ) { 
-				LogVerboseMessage(L"Network gateway exited");
-			}
-            GetExitCodeProcess(handles[2], &process_exit_code);
-            exit_code_is_scerr = false;
-            r = SCERRNETWORKGATEWAYTERMINATED;
-			goto log_scerr;
+		    case ID_GATEWAY:
+            {
+			    // Gateway died. Kill the server. Kill the system.
+			    if (logsteps != 0 ) { 
+				    LogVerboseMessage(L"Network gateway exited");
+			    }
+                GetExitCodeProcess(handles[ID_GATEWAY], &process_exit_code);
+                exit_code_is_scerr = false;
+                r = SCERRNETWORKGATEWAYTERMINATED;
+			    goto log_scerr;
+            }
 
-		case 3:
-			// sccode died. Kill the server. Kill the system.
-			if(logsteps != 0 ) { 
-				LogVerboseMessage(L"sccode exited");
-			}
+		    case ID_ADMIN_SCCODE:
+            {
+			    // sccode died. Kill the server. Kill the system.
+			    if (logsteps != 0 ) { 
+				    LogVerboseMessage(L"sccode exited");
+			    }
 
-            GetExitCodeProcess(handles[3], &process_exit_code);
-            exit_code_is_scerr = true;
-            r = SCERRDATABASEENGINETERMINATED;
-			goto log_scerr;
+                GetExitCodeProcess(handles[ID_ADMIN_SCCODE], &process_exit_code);
+                exit_code_is_scerr = true;
+                r = SCERRDATABASEENGINETERMINATED;
+			    goto log_scerr;
+            }
+
+#ifdef START_PROLOG
+            case ID_PROLOG:
+            {
+                // scsqlparser died. Kill the server. Kill the system.
+                if (logsteps != 0 ) { 
+                    LogVerboseMessage(L"scsqlparser exited");
+                }
+
+                GetExitCodeProcess(handles[ID_PROLOG], &process_exit_code);
+                exit_code_is_scerr = true;
+                r = SCERRDATABASEENGINETERMINATED;
+                goto log_scerr;
+            }
+#endif
 
 #ifdef WITH_DATABASE
-		case 4:
+		    case ID_ADMIN_SCDATA:
+            {
+			    if (logsteps != 0 ) { 
+				    LogVerboseMessage(L"scdata exited");
+			    }
 
-			if(logsteps != 0 ) { 
-				LogVerboseMessage(L"scdata exited");
-			}
-			// scdata died. Kill the server. Kill the system.
-			goto end;
+			    // scdata died. Kill the server. Kill the system.
+    		    goto end;
+            }
 #endif
-		default:
-			__assume(0);
+
+		    default:
+			    __assume(0);
 		}
 	}
 
@@ -667,7 +734,7 @@ log_winerr:
 	if (r)
 	{
         wchar_t* error_msg_buf = new wchar_t[512];
-		wsprintf(error_msg_buf, L"Error: process exited with error code: %s\n", r);
+		wsprintf(error_msg_buf, L"Error: process exited with error code: %d\n", r);
 
 		// Logging this error.
 		wprintf(error_msg_buf);
@@ -682,13 +749,20 @@ log_winerr:
 	}
 
 end:
+
 #ifdef WITH_DATABASE
-	if (handles[4]) _kill_and_cleanup(handles[4]);	// SCDATA
+	if (handles[ID_ADMIN_SCDATA]) _kill_and_cleanup(handles[ID_ADMIN_SCDATA]);
 #endif
-	if (handles[3]) _kill_and_cleanup(handles[3]);	// SCDODE
-	if (handles[2]) _kill_and_cleanup(handles[2]);	// Gateway
-	if (handles[1]) _kill_and_cleanup(handles[1]);	// Monitor
-	if (handles[0]) _destroy_event(handles[0]);
+
+	if (handles[ID_ADMIN_SCCODE]) _kill_and_cleanup(handles[ID_ADMIN_SCCODE]);
+	if (handles[ID_GATEWAY]) _kill_and_cleanup(handles[ID_GATEWAY]);
+
+#ifdef START_PROLOG
+    if (handles[ID_PROLOG]) _kill_and_cleanup(handles[ID_PROLOG]);
+#endif
+
+	if (handles[ID_IPC_MONITOR]) _kill_and_cleanup(handles[ID_IPC_MONITOR]);
+	if (handles[ID_SCSERVICE]) _destroy_event(handles[ID_SCSERVICE]);
 
 	return (int32_t)r;
 
