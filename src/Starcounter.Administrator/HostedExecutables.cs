@@ -12,25 +12,9 @@ using System.IO;
 using System.Collections.Specialized;
 using System.Text;
 using Starcounter.Internal;
+using Starcounter.Server.Rest.MessageTypes;
 
 namespace Starcounter.Administrator {
-
-    /// <summary>
-    /// Outlines the response entity body data of a successfull
-    /// exect request returning in a "201 Created".
-    /// </summary>
-    /// <remarks>
-    /// This class is only temporary and will eventually be
-    /// replaced once we have decided how to use and promote
-    /// this kind of schema/metadata in our public REST APIs.
-    /// See forum discussion at:
-    /// http://www.starcounter.com/forum/showthread.php?2492-Sharing-of-REST-JSON-data-and-schemata
-    /// </remarks>
-    internal sealed class ExecResponse201 {
-        public string DatabaseUri { get; set; }
-        public int DatabaseHostPID { get; set; }
-        public bool DatabaseCreated { get; set; }
-    }
 
     /// <summary>
     /// Abstracts the admin server resource /databases/{name}/executables
@@ -53,7 +37,7 @@ namespace Starcounter.Administrator {
             HostedExecutables.runtime = runtime;
             HostedExecutables.serverHost = serverHost;
             HostedExecutables.serverPort = serverPort;
-            StarcounterBase.POST<string, Request>(relativeResourceUri, HandlePOST);
+            Handle.POST<string, Request>(relativeResourceUri, HandlePOST);
         }
 
         static object HandlePOST(string name, Request request) {
