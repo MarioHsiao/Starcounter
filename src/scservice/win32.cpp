@@ -11,9 +11,11 @@
 
 _STATIC_ASSERT(sizeof(HANDLE) == sizeof(void *));
 
-#define NETWORKGATEWAY_PROCESS_NAME L"scnetworkgateway.exe"
-#define IPCMONITOR__PROCESS_NAME L"scipcmonitor.exe"
-#define CODEHOST_PROCESS_NAME L"sccode.exe"
+#define PROCESS_NAME_NETWORKGATEWAY L"scnetworkgateway.exe"
+#define PROCESS_NAME_IPCMONITOR L"scipcmonitor.exe"
+#define PROCESS_NAME_CODEHOST L"sccode.exe"
+#define PROCESS_NAME_CODEDATA L"scdata.exe"
+#define PROCESS_NAME_PROLOG L"scsqlparser.exe"
 
 static void (*__shutdown_event_handler)();
 
@@ -229,9 +231,11 @@ void _kill_and_cleanup_orphaned_children(int32_t logsteps)
             process_found = false;
             if (pe.szExeFile[0] == 's' && pe.szExeFile[1] == 'c')
             {
-                if (lstrcmpi(pe.szExeFile, NETWORKGATEWAY_PROCESS_NAME) == 0
-                        || lstrcmpi(pe.szExeFile, IPCMONITOR__PROCESS_NAME) == 0
-                        || lstrcmpi(pe.szExeFile, CODEHOST_PROCESS_NAME) == 0)
+                if (lstrcmpi(pe.szExeFile, PROCESS_NAME_NETWORKGATEWAY) == 0
+                        || lstrcmpi(pe.szExeFile, PROCESS_NAME_IPCMONITOR) == 0
+                        || lstrcmpi(pe.szExeFile, PROCESS_NAME_CODEHOST) == 0
+                        || lstrcmpi(pe.szExeFile, PROCESS_NAME_CODEDATA) == 0
+                        /*|| lstrcmpi(pe.szExeFile, PROCESS_NAME_PROLOG) == 0*/)
                 {
                     process_found = true;
                 }
