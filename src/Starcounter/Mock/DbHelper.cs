@@ -79,7 +79,7 @@ namespace Starcounter {
         /// <returns>
         /// The unique object identity of the given object.
         /// </returns>
-        public static ulong GetObjectID(this object obj) {
+        public static ulong GetObjectNo(this object obj) {
             var bindable = obj as IBindable;
             if (bindable == null) {
                 if (obj == null) {
