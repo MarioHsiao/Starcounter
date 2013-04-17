@@ -37,9 +37,15 @@
 	<Compile Include="MessageTypes\ExecRequest.json.cs">
       <DependentUpon>ExecRequest.json</DependentUpon>
     </Compile>
+	<Compile Include="MessageTypes\ExecResponse201.json.cs">
+      <DependentUpon>ExecResponse201.json</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="MessageTypes\ExecRequest.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+	<TypedJSON Include="MessageTypes\ExecResponse201.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
