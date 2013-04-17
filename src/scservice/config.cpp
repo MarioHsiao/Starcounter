@@ -97,7 +97,8 @@ uint32_t _read_server_config(
     wchar_t **pserver_temp_dir,
     wchar_t **pserver_database_dir,
     wchar_t **psystem_http_port,
-    wchar_t **pdefault_user_http_port)
+    wchar_t **pdefault_user_http_port,
+    wchar_t **pprolog_port)
 {
     using namespace rapidxml;
 
@@ -158,7 +159,7 @@ uint32_t _read_server_config(
     *pserver_logs_dir = (wchar_t *)malloc(str_size_bytes);
     if (!*pserver_logs_dir) goto end;
 
-    // Converting server directory from UTF-8 to wchar_t.
+    // Converting from UTF-8 to wchar_t.
     int32_t num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, server_log_dir_elem->value(), -1, *pserver_logs_dir, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
@@ -171,7 +172,7 @@ uint32_t _read_server_config(
     *pserver_temp_dir = (wchar_t *)malloc(str_size_bytes);
     if (!*pserver_temp_dir) goto end;
 
-    // Converting server directory from UTF-8 to wchar_t.
+    // Converting from UTF-8 to wchar_t.
     num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, server_temp_dir_elem->value(), -1, *pserver_temp_dir, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
@@ -184,7 +185,7 @@ uint32_t _read_server_config(
     *pserver_database_dir = (wchar_t *)malloc(str_size_bytes);
     if (!*pserver_database_dir) goto end;
 
-    // Converting server directory from UTF-8 to wchar_t.
+    // Converting from UTF-8 to wchar_t.
     num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, server_databases_dir_elem->value(), -1, *pserver_database_dir, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
@@ -197,7 +198,7 @@ uint32_t _read_server_config(
     *psystem_http_port = (wchar_t *)malloc(str_size_bytes);
     if (!*psystem_http_port) goto end;
 
-    // Converting server directory from UTF-8 to wchar_t.
+    // Converting from UTF-8 to wchar_t.
     num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, admin_port_dir_elem->value(), -1, *psystem_http_port, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
@@ -210,8 +211,21 @@ uint32_t _read_server_config(
     *pdefault_user_http_port = (wchar_t *)malloc(str_size_bytes);
     if (!*pdefault_user_http_port) goto end;
 
-    // Converting default apps port from UTF-8 to wchar_t.
+    // Converting from UTF-8 to wchar_t.
     num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, default_apps_port_elem->value(), -1, *pdefault_user_http_port, (int)str_num_chars);
+    if (0 == num_chars_converted) goto end;
+
+    // Read Prolog port.
+    xml_node<> *prolog_port_dir_elem = root_elem->first_node("DefaultDatabaseConfiguration")->first_node("Runtime")->first_node("SQLProcessPort");
+    if (!prolog_port_dir_elem) goto end;
+
+    str_num_chars = prolog_port_dir_elem->value_size() + 1;
+    str_size_bytes = str_num_chars * sizeof(wchar_t);
+    *pprolog_port = (wchar_t *)malloc(str_size_bytes);
+    if (!*pprolog_port) goto end;
+
+    // Converting from UTF-8 to wchar_t.
+    num_chars_converted = MultiByteToWideChar(CP_UTF8, 0, prolog_port_dir_elem->value(), -1, *pprolog_port, (int)str_num_chars);
     if (0 == num_chars_converted) goto end;
 
     r = 0;

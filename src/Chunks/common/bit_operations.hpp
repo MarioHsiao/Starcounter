@@ -1,7 +1,7 @@
 //
 // bit_operations.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -20,9 +20,9 @@
 # undef WIN32_LEAN_AND_MEAN
 #endif // defined(_MSC_VER)
 
-//#if defined(USE_POPCNT) && defined(_MSC_VER) && defined(__INTEL_COMPILER)
-//# include <nmmintrin.h> // Intel header for _mm_popcnt_u64() intrinsic
-//#endif
+#if defined(USE_POPCNT) && defined(_MSC_VER) && defined(__INTEL_COMPILER)
+# include <nmmintrin.h> // Intel header for _mm_popcnt_u64() intrinsic
+#endif // defined(USE_POPCNT) && defined(_MSC_VER) && defined(__INTEL_COMPILER)
 
 #include "macro_definitions.hpp"
 
@@ -30,19 +30,19 @@ namespace starcounter {
 namespace core {
 
 ///=============================================================================
-///	Operating System:			Unix	Unix	Unix	Windows	Windows	Windows
-///	Machine:					ILP32	LLP64	LLP64	ILP32	LLP64	LLP64
-///	Vector instructions:		-		SSE2	SSE4.2	-		SSE2	SSE4.2
+///	Operating System:			Unix	Unix	Windows	Windows
+///	Vector instructions:		SSE2	SSE4.2	SSE2	SSE4.2
 /// ----------------------------------------------------------------------------
-/// bit_scan_forward(uint32_t)	YES		NO		NO		NO		NO		NO
-/// bit_scan_forward(uint64_t)	NO		NO		NO		NO		NO		NO
-/// bit_scan_reverse(uint32_t)	NO		NO		NO		NO		NO		NO
-/// bit_scan_reverse(uint64_t)	NO		NO		NO		NO		NO		NO
-/// population_count(uint32_t)	YES		NO		NO		YES		NO		NO
-/// population_count(uint64_t)	YES		NO		NO		YES		NO		NO
+/// bit_scan_forward(uint32_t)	NO		NO		YES		YES
+/// bit_scan_forward(uint64_t)	NO		NO		YES		YES
+/// bit_scan_reverse(uint32_t)	NO		NO		YES		YES
+/// bit_scan_reverse(uint64_t)	NO		NO		YES		YES
+/// population_count(uint32_t)	NO		NO		YES		YES
+/// population_count(uint64_t)	NO		NO		YES		YES
 ///
 /// NOTE: Unix = Linux or OS X. No other Unix or Unix like OS are supported.
-/// SSE4.2 allows using the POPCNT instruction.
+/// SSE4.2 allows using the POPCNT instruction, and will be used if the macro
+/// USE_POPCNT is defined.
 ///=============================================================================
 
 #if defined(__INTEL_COMPILER) || defined(__GNUC__)
@@ -163,27 +163,49 @@ static FORCE_INLINE std::size_t bit_scan_reverse(uint64_t word) {
 /// and return the count.
 ///=============================================================================
 
-// WARNING: Currently population_count() will not use a POPCNT instruction even
-// if the hardware supports it. This will be fixed later but that involves
-// generating different compiles for different target architectures and there is
-// no time for that now.
+// population_count() will use the POPCNT (SSE4.2) instruction if the macro
+// USE_POPCNT is defined (in the makefile.) If USE_POPCNT is not defined,
+// population_count() will use instructions supported by older hardware.
 
-//int _mm_popcnt_u64(unsigned __int64 w);
-
+#if defined (USE_POPCNT)
 static FORCE_INLINE int population_count(uint32_t w) {
-	w = w -((w >> 1) & 0x55555555);
+# if defined(_MSC_VER) && defined(__INTEL_COMPILER)
+	return _mm_popcnt_u32(w);
+# elif defined(_MSC_VER)
+	return (int) __popcnt(w);
+# else // Clang and GCC
+	__asm__("popcnt %1, %0" : "=r" (b) : "r" (w));
+	return w;
+# endif // defined(_MSC_VER) && defined(__INTEL_COMPILER)
+}
+
+static FORCE_INLINE int population_count(uint64_t w) {
+# if defined(_MSC_VER) && defined(__INTEL_COMPILER)
+	return _mm_popcnt_u64(w);
+# elif defined(_MSC_VER)
+	return (int) __popcnt64(w);
+# else // Clang and GCC
+	__asm__("popcnt %1, %0" : "=r" (b) : "r" (w));
+	return w;
+# endif // defined(_MSC_VER) && defined(__INTEL_COMPILER)
+}
+
+#else // !defined (USE_POPCNT)
+static FORCE_INLINE int population_count(uint32_t w) {
+	w -= (w >> 1) & 0x55555555;
 	w = (w & 0x33333333) +((w >> 2) & 0x33333333);
 	w = (w +(w >> 4)) & 0x0F0F0F0F;
 	return (w * 0x01010101) >> 24;
 }
 
 static FORCE_INLINE int population_count(uint64_t w) {
-	w = w -((w >> 1) & UINT64_C(0x5555555555555555));
-	w = (w & UINT64_C(0x3333333333333333))
-	+((w >> 2) & UINT64_C(0x3333333333333333));
-	w = (w +(w >> 4)) & UINT64_C(0x0F0F0F0F0F0F0F0F);
-	return (w * UINT64_C(0x0101010101010101)) >> 56;
+	w -= (w >> 1) & 0x5555555555555555ULL;
+	w = ((w >> 2) & 0x3333333333333333ULL) +(w & 0x3333333333333333ULL);
+	w = ((w >> 4) +w) & 0x0F0F0F0F0F0F0F0FULL;
+	return (w * 0x0101010101010101ULL) >> 56;
 }
+
+#endif // defined (USE_POPCNT)
 
 } // namespace core
 } // namespace starcounter

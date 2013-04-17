@@ -33,6 +33,9 @@ scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
 :: Starting database memory management process.
 START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 
+:: Starting Prolog process.
+START CMD /C "32bitComponents\scsqlparser.exe 8066"
+
 :: Sleeping some time using ping.
 ping -n 3 127.0.0.1 > nul
 

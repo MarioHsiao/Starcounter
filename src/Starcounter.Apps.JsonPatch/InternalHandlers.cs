@@ -192,7 +192,7 @@ namespace Starcounter.Internal.JsonPatch {
                     if (sqle.ProjectionTypeCode != null) {
 
                         if (sqle.ProjectionTypeCode == DbTypeCode.Object && row != null) {
-                            resultJson.rows[index][props[0].Name] = DbHelper.GetObjectID(row);
+                            resultJson.rows[index][props[0].Name] = DbHelper.GetObjectNo(row);
                         }
                         else {
                             resultJson.rows[index][props[0].Name] = row;
@@ -239,7 +239,7 @@ namespace Starcounter.Internal.JsonPatch {
 
                                     value = obj.GetObject(prop.Index);
                                     if (value != null) {
-                                        value = DbHelper.GetObjectID(value);
+                                        value = DbHelper.GetObjectNo(value);
                                     }
                                     break;
                                 case DbTypeCode.SByte:

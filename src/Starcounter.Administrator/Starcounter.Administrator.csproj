@@ -70,9 +70,6 @@
     <Compile Include="ServerApp.json.cs">
       <DependentUpon>ServerApp.json</DependentUpon>
     </Compile>
-    <Compile Include="ExecRequest.json.cs">
-      <DependentUpon>ExecRequest.json</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="Master.json">
@@ -249,6 +246,11 @@
       <Name>HttpStructs</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Server\Starcounter.Server.Rest\Starcounter.Server.Rest.csproj">
+      <Project>{60aae92e-e384-45ff-96f3-3d6b38462e3c}</Project>
+      <Name>Starcounter.Server.Rest</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Server\Starcounter.Server\Starcounter.Server.csproj">
       <Project>{28e1d438-7dc4-4bf7-a486-0598c78dbbe9}</Project>
       <Name>Starcounter.Server</Name>
@@ -338,12 +340,6 @@
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="LogEntryApp.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
-    <!-- Group with including all messages supported -->
-    <TypedJSON Include="ExecRequest.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
