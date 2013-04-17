@@ -1,16 +1,63 @@
-﻿
+﻿<div ng-show='isBusy == true' class="progress progress-striped active">
+    <div class="bar" style="width: 100%;">{{status}}</div>
+</div>
 
+<form name="myForm" class="form-horizontal  well well-small" ng-hide='settings == null || isBusy == true'>
 
-<form class="form-horizontal  well well-small" >
+    <legend>Create Database</legend>
 
-<legend>Create Database</legend>
-
-    <div class="control-group">
-        <label class="control-label" for="chunksNumber">Name</label>
+<!--    <div class="control-group">
+        <label class="control-label" for="name">Name</label>
         <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="databaseName" placeholder="databaseName" ng-model="settings.databaseName"><span class="help-inline">Inline help text</span>
+            <input ng-disabled="isBusy == true" type="text" id="name" placeholder="name" ng-model="settings.name">
+        </div>
+    </div>-->
+
+    <div class="control-group" ng-class="{error: myForm.name.$invalid}">
+        <label class="control-label" for="name">Name</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" name="name" id="name" placeholder="Database name" ng-model="settings.name" required>
+            <span ng-show="myForm.name.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.name.$error.required" class="help-inline">Required</span>
         </div>
     </div>
+
+
+
+
+    <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
+        <label class="control-label" for="httpPort">Http Port</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="httpPort" id="Number1" placeholder="Http port" ng-model="settings.httpPort" required>
+            <span ng-show="myForm.httpPort.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.httpPort.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <div class="control-group" ng-class="{error: myForm.schedulerCount.$invalid}">
+        <label class="control-label" for="schedulerCount">Scheduler Count</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="schedulerCount" id="Number2" placeholder="Scheduler Count" ng-model="settings.schedulerCount" required>
+            <span ng-show="myForm.schedulerCount.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.schedulerCount.$error.required" class="help-inline">Required</span>
+            <span class="help-block">Number of schedulers the database host should utilize.</span>
+        </div>
+    </div>
+
+    <!--    <div class="control-group">
+        <label class="control-label" for="httpPort">HttpPort</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="httpPort" placeholder="httpPort" ng-model="settings.httpPort">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="schedulerCount">Scheduler Count</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="text" id="schedulerCount" placeholder="schedulerCount" ng-model="settings.schedulerCount">
+        </div>
+    </div>-->
+
 
     <div class="control-group">
         <label class="control-label" for="chunksNumber">Chunks</label>
@@ -20,12 +67,7 @@
         </div>
     </div>
 
-    <div class="control-group">
-        <label class="control-label" for="defaultUserHttpPort">Default User HttpPort</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="defaultUserHttpPort" placeholder="defaultUserHttpPort" ng-model="settings.defaultUserHttpPort">
-        </div>
-    </div>
+
 
     <div class="control-group">
         <label class="control-label" for="dumpDirectory">Dump Directory</label>
@@ -55,12 +97,6 @@
         </div>
     </div>
 
-    <div class="control-group">
-        <label class="control-label" for="schedulerCount">Scheduler Count</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="schedulerCount" placeholder="schedulerCount" ng-model="settings.schedulerCount">
-        </div>
-    </div>
 
     <div class="control-group">
         <div class="controls">
@@ -104,9 +140,9 @@
         </div>
     </div>
 
+
     <div class="form-actions">
-        <button type="submit"  ng-disabled="isBusy == true" class="btn btn-success" ng-click="btnClick_createDatabase()">Create Database</button>
-        <!--<a class="btn" href="#/databases">Cancel</a>-->
+        <button type="submit" ng-disabled="myForm.$invalid || isBusy == true" class="btn btn-success" ng-click="btnClick_createDatabase()">Create Database</button>
         {{status}}
     </div>
 

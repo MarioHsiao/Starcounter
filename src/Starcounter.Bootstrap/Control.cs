@@ -141,9 +141,10 @@ namespace StarcounterInternal.Bootstrap
                 OnBmxManagerInitialized();
 
                 // Initializing package loader.
-                Package.InitPackage(
-                    () => InternalHandlers.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort),
-                    schedulerCount);
+                Package.InitPackage(() => InternalHandlers.Register(
+                    configuration.DefaultUserHttpPort,
+                    configuration.DefaultSystemHttpPort)
+                );
             }
 
             // Initializing REST.

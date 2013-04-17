@@ -30,25 +30,13 @@ namespace Starcounter.Hosting {
         /// </summary>
         static Boolean packageInitialized_ = false;
 
-        private static uint schedulerCount;
-        private static byte schedulerNumber;
-        private static byte firstAssignableScheduler;
-        private static DbSession dbSession;
-
         /// <summary>
         /// Initializes package with global settings.
         /// </summary>
         /// <param name="initInternalHttpHandlers">Initializes internal HTTP handlers.</param>
-        /// <param name="schedulerCount">The numbers of schedulers the database is using.</param>
-        public static void InitPackage(Action initInternalHttpHandlers, uint schedulerCount)
+        public static void InitPackage(Action initInternalHttpHandlers)
         {
             InitInternalHttpHandlers_ = initInternalHttpHandlers;
-            Package.schedulerCount = schedulerCount;
-            Package.schedulerNumber = 0;
-
-            Package.firstAssignableScheduler = 1;
-            if (schedulerCount == 1)
-                Package.firstAssignableScheduler = 0;
         }
 
         /// <summary>
@@ -137,9 +125,6 @@ namespace Starcounter.Hosting {
                     packageInitialized_ = true;
                 }
 
-                // We want the entrypoint to be executed on another scheduler so we can 
-                // process more  packages directly and not wait for the usercode to finish.
-//                ScheduleEntrypointExecution();
                 ExecuteEntryPoint();
             } finally {
                 OnProcessingCompleted();
@@ -254,25 +239,6 @@ namespace Starcounter.Hosting {
                     m.Invoke(null, new object[] { this.WorkingDirectory, this.EntrypointArguments ?? new string[] { } });
                 }
             }
-        }
-
-        /// <summary>
-        /// Schedules the execution of the entrypoint on a separate scheduler from which
-        /// we are currently running, to allow long-running entrypoints. 
-        /// </summary>
-        /// <remarks>
-        /// A simple RoundRobin scheme is used to schedule these executions on different
-        /// schedulers, and the first scheduler is never used since it it dedicated to 
-        /// package processing.
-        /// </remarks>
-        private void ScheduleEntrypointExecution() {
-            // only one package is processed at a time so this function is threadsafe.
-            if (dbSession == null)
-                dbSession = new DbSession();
-            schedulerNumber++;
-            if (schedulerNumber >= schedulerCount)
-                schedulerNumber = firstAssignableScheduler;
-            dbSession.RunAsync(ExecuteEntryPoint, schedulerNumber);
         }
 
         /// <summary>

@@ -29,8 +29,7 @@ namespace Starcounter.Query
         internal const Int32 MaxQueryRetries = 10;
         internal const Int32 MaxVerifyRetries = 100;
         internal const Int32 TimeBetweenVerifyRetries = 100; // [ms]
-        //Temporary constant
-        internal const String DatabaseId = "MyDB";
+        internal static String DatabaseId = Db.Environment.DatabaseName;
 
         /// <summary>
         /// Initiates query module. Called during start-up.
@@ -71,7 +70,7 @@ namespace Starcounter.Query
             try
             {
                 Scheduler scheduler = Scheduler.GetInstance(true);
-                PrologManager.DeleteAllSchemaInfo(scheduler);
+                PrologManager.DeleteAllSchemaInfo(QueryModule.DatabaseId, scheduler);
             }
             finally
             {
@@ -89,7 +88,7 @@ namespace Starcounter.Query
             try
             {
                 Scheduler scheduler = Scheduler.GetInstance(true);
-                PrologManager.ExportSchemaInfo(scheduler, typeDefArray);
+                PrologManager.ExportSchemaInfo(scheduler, QueryModule.DatabaseId, typeDefArray);
             }
             finally
             {
