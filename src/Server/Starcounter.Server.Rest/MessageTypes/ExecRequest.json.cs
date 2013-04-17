@@ -1,7 +1,7 @@
 ﻿
 using Starcounter;
 
-namespace Starcounter.Server.Client.MessageTypes {
+namespace Starcounter.Server.Rest.MessageTypes {
     /// <summary>
     /// Represents a request to execute user code in a Starcounter
     /// host code process.
