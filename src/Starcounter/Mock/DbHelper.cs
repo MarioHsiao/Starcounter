@@ -97,6 +97,22 @@ namespace Starcounter {
             return bindable.Identity;
         }
 
+        public static string GetObjectID(this object obj) {
+            var bindable = obj as IBindable;
+            if (bindable == null) {
+                if (obj == null) {
+                    throw new ArgumentNullException("obj");
+                } else {
+                    throw ErrorCode.ToException(
+                        Error.SCERRCODENOTENHANCED,
+                        string.Format("Don't know how to get the identity from objects with type {0}.", obj.GetType()),
+                        (msg, inner) => { return new InvalidCastException(msg, inner); });
+                }
+            }
+
+            return Base64ForUrlEncode(bindable.Identity);
+        }
+
         /// <summary>
         /// Returns the object identifier of the given <see cref="IBindable"/>
         /// instance.
@@ -113,7 +129,14 @@ namespace Starcounter {
             }
             return obj.Identity;
         }
-    
+
+        public static string GetObjectID(this IBindable obj) {
+            if (obj == null) {
+                throw new ArgumentNullException("obj");
+            }
+            return Base64ForUrlEncode(obj.Identity);
+        }
+
         ///<summary>
         /// Base 64 Encoding with URL and Filename Safe Alphabet using UTF-8 character set.
         ///</summary>
