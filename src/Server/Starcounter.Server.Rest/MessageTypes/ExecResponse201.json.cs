@@ -1,7 +1,7 @@
 ﻿
 using Starcounter;
 
-namespace Starcounter.Server.Client.MessageTypes {
+namespace Starcounter.Server.Rest.MessageTypes {
     /// <summary>
     /// Outlines the response entity body data of a successfull
     /// exect request returning in a "201 Created".

@@ -7,8 +7,8 @@
     <ProjectGuid>{60AAE92E-E384-45FF-96F3-3D6B38462E3C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Starcounter.Server.Client</RootNamespace>
-    <AssemblyName>Starcounter.Server.Client</AssemblyName>
+    <RootNamespace>Starcounter.Server.Rest</RootNamespace>
+    <AssemblyName>Starcounter.Server.Rest</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,13 +31,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>..\..\..\bin\Release\Starcounter.Server.Client.XML</DocumentationFile>
+    <DocumentationFile>..\..\..\bin\Release\Starcounter.Server.Rest.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-	<Compile Include="MessageTypes\ExecRequest.json.cs">
+    <Compile Include="MessageTypes\ExecRequest.json.cs">
       <DependentUpon>ExecRequest.json</DependentUpon>
     </Compile>
-	<Compile Include="MessageTypes\ExecResponse201.json.cs">
+    <Compile Include="MessageTypes\ExecResponse201.json.cs">
       <DependentUpon>ExecResponse201.json</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -45,7 +45,7 @@
     <TypedJSON Include="MessageTypes\ExecRequest.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-	<TypedJSON Include="MessageTypes\ExecResponse201.json">
+    <TypedJSON Include="MessageTypes\ExecResponse201.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
@@ -61,15 +61,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-	<ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
+    <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
       <Private>False</Private>
     </ProjectReference>
-	<ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
+    <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
-	  <Private>False</Private>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
