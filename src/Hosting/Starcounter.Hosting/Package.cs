@@ -123,9 +123,13 @@ namespace Starcounter.Hosting {
 
                     // Indicating that package is now initialized.
                     packageInitialized_ = true;
+
+                    OnInternalHandlersRegistered();
                 }
 
+                // Starting user Main() here.
                 ExecuteEntryPoint();
+
             } finally {
                 OnProcessingCompleted();
                 processedEvent_.Set();
@@ -257,7 +261,8 @@ namespace Starcounter.Hosting {
             }
         }
 
-        private void OnProcessingStarted() { Trace("Processing started."); }
+        private void OnProcessingStarted() { Trace("Package started."); }
+        private void OnInternalHandlersRegistered() { Trace("Internal handlers were registered."); }
         private void OnDatabaseSchemaCheckedAndUpdated() { Trace("Database schema checked and updated."); }
         private void OnTypeDefsRegistered() { Trace("Type definitions registered."); }
         private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
@@ -268,6 +273,8 @@ namespace Starcounter.Hosting {
         private void Trace(string message)
         {
             Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
+
+            //File.AppendAllText("trace.log", "PACKAGE: " + message + " " + (Double)stopwatch_.ElapsedTicks / Stopwatch.Frequency + Environment.NewLine);
         }
     }
 }
