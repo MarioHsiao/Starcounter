@@ -117,7 +117,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02. Shared Memory Communica
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HtmlAgilityPack.fx.4.0", "ThirdParty\HtmlAgilityPack\HtmlAgilityPack.fx.4.0.csproj", "{1028002A-BBE2-4FF2-94B7-A8368A8F6887}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "12. Server", "12. Server", "{42B8DA2F-1785-43DC-B8D8-AE3676E822D4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "13. Server", "13. Server", "{42B8DA2F-1785-43DC-B8D8-AE3676E822D4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server", "Server\Starcounter.Server\Starcounter.Server.csproj", "{28E1D438-7DC4-4BF7-A486-0598C78DBBE9}"
 EndProject
@@ -148,7 +148,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitsAndBytes.Unsafe", "Star
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Logging", "Starcounter.Logging\Starcounter.Logging.csproj", "{A1FAE6E5-8EBB-42C3-9FC2-33D67917067D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "13. MsBuild", "13. MsBuild", "{B6488502-13DF-4934-8A40-CD6AF52E1342}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "12. MsBuild", "12. MsBuild", "{B6488502-13DF-4934-8A40-CD6AF52E1342}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MySampleApp", "Samples\MySampleApp\MySampleApp.csproj", "{2F1B4CDB-2A7E-405E-A774-EC9D9AF9BD3F}"
 EndProject
@@ -319,6 +319,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Starcounter.InstallerNativeHelper", "Starcounter.Installer\Starcounter.InstallerNativeHelper\Starcounter.InstallerNativeHelper.vcxproj", "{86D47DAA-8B07-46A4-B9EE-5A5B413C331C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server.Rest", "Server\Starcounter.Server.Rest\Starcounter.Server.Rest.csproj", "{60AAE92E-E384-45FF-96F3-3D6B38462E3C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
