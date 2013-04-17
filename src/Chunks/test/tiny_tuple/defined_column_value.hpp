@@ -46,7 +46,7 @@ namespace defined_column_value {
 // +-------------------------------------------------+  <== Byte aligned
 
 
-typedef uint8_t* pointer;
+typedef uint8_t* pointer_type;
 typedef uint32_t size_type;
 
 } // namespace defined_column_value
