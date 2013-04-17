@@ -135,18 +135,18 @@ namespace Starcounter.Query.Sql
         /// </summary>
         /// <param name="scheduler">Representation of the current virtual processor.</param>
         /// <param name="tmpSchemaFileList">List of previously generated schema files.</param>
-        private static void ReExportAllSchemaInfo(Scheduler scheduler, List<String> tmpSchemaFileList)
+        private static void ReExportAllSchemaInfo(Scheduler scheduler)
         {
             // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block.
 
             String schemaFilePath = null;
-            for (Int32 i = 0; i < tmpSchemaFileList.Count; i++)
+            for (Int32 i = 0; i < schemaFilePathList.Count; i++)
             {
                 try
                 {
-                    CallSqlProcessToLoadSchemaInfo(scheduler, tmpSchemaFileList[i]);
+                    CallSqlProcessToLoadSchemaInfo(scheduler, schemaFilePathList[i]);
                 }
                 catch (Exception exception)
                 {
@@ -154,7 +154,6 @@ namespace Starcounter.Query.Sql
                     // TODO: New error code SCERRSQLRELOADSCHEMAFAILED
                     throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
                 }
-                schemaFilePathList.Add(tmpSchemaFileList[i]);
                 logSource.Debug("Reexported schema info: " + schemaFilePath);
             }
         }
@@ -202,7 +201,7 @@ namespace Starcounter.Query.Sql
             }
             LeaveConnectedSession(session, scheduler);
 
-            schemaFilePathList = new List<String>();
+            schemaFilePathList.Clear();
         }
 
         ///// <summary>
@@ -399,6 +398,7 @@ namespace Starcounter.Query.Sql
 
                 CheckQueryAnswerForError(answer);
                 String existingProcessVersion = answer.getValue("Version").ToString();
+                schemaFilePathList.Clear();
                 return existingProcessVersion;
             }
             catch (SocketException)
@@ -1008,7 +1008,7 @@ namespace Starcounter.Query.Sql
                         EstablishSqlProcess();
                         logSource.LogWarning("Restarted process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " + 
                             QueryModule.ProcessPort);
-                        ReExportAllSchemaInfo(scheduler, schemaFilePathList);
+                        ReExportAllSchemaInfo(scheduler);
                     }
                     else
                     {
