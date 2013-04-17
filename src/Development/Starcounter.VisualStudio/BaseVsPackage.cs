@@ -41,6 +41,7 @@ namespace Starcounter.VisualStudio {
             try {
                 reference = new AssemblyName(args.Name);
             } catch (FileLoadException) {
+                TryWriteLogInformation(string.Format("Failed to get AssemblyName instance of {0}", args.Name));
                 return null;
             }
 
@@ -55,14 +56,17 @@ namespace Starcounter.VisualStudio {
             // Search for it in the Starcounter installation directory, currently
             // being resolved to the place from where this assembly (Starcounter.VisualStudio)
             // has been loaded from.
+            string path = null;
             try {
                 var installationDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var path = Path.Combine(installationDir, reference.Name + ".dll");
+                path = Path.Combine(installationDir, reference.Name + ".dll");
                 if (File.Exists(path)) {
                     var assemblyName = AssemblyName.GetAssemblyName(path);
                     return Assembly.Load(assemblyName);
                 }
-            } catch { }
+            } catch (Exception e) {
+                TryWriteLogInformation(string.Format("Failed to load {0} from path {1}. Error: {2}.", args.Name, path, e.Message));
+            }
 
             return null;
         }
