@@ -60,7 +60,7 @@ public:
 	void run();
 
 private:
-	record::data_header::pointer ptr_;
+	record::data_header::pointer_type ptr_;
 };
 
 } // namespace tiny_tuple
