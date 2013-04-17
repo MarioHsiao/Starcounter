@@ -222,6 +222,19 @@ public class CSystemServer : CComponentBase
                 "Can't replace Prolog SQL TCP port for " + StarcounterEnvironment.ServerNames.SystemServer + " server.");
         }
 
+        // Setting the given system server system HTTP port on the machine
+        int serverSystemPort;
+        var serverSystemPortString = InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort);
+        if (string.IsNullOrEmpty(serverSystemPortString) || !int.TryParse(serverSystemPortString, out serverSystemPort)) {
+            throw ErrorCode.ToException(
+                Error.SCERRINSTALLERINTERNALPROBLEM,
+                "Unable to properly access given server HTTP port value: " + serverSystemPortString ?? "NULL");
+        }
+        Environment.SetEnvironmentVariable(
+            ConstantsBank.SCEnvVariableDefaultSystemPort,
+            serverSystemPortString,
+            EnvironmentVariableTarget.Machine);
+
         // Creating server config.
         InstallerMain.CreateServerConfig(
             StarcounterEnvironment.ServerNames.SystemServer,
@@ -436,6 +449,11 @@ public class CSystemServer : CComponentBase
 
         // Removing default server environment variable.
         Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableDefaultServer,
+            null,
+            EnvironmentVariableTarget.Machine);
+
+        Environment.SetEnvironmentVariable(
+            ConstantsBank.SCEnvVariableDefaultSystemPort,
             null,
             EnvironmentVariableTarget.Machine);
 
