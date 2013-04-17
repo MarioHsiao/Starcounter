@@ -76,10 +76,12 @@
     <ClInclude Include="tiny_tuple\defined_column_value.hpp" />
     <ClInclude Include="tiny_tuple\impl\data_header.hpp" />
     <ClInclude Include="tiny_tuple\impl\defined_column_value.hpp" />
+    <ClInclude Include="tiny_tuple\impl\random.hpp" />
     <ClInclude Include="tiny_tuple\impl\record_header.hpp" />
     <ClInclude Include="tiny_tuple\impl\test.hpp" />
     <ClInclude Include="tiny_tuple\impl\tiny_tuple.hpp" />
     <ClInclude Include="tiny_tuple\macro_definitions.hpp" />
+    <ClInclude Include="tiny_tuple\random.hpp" />
     <ClInclude Include="tiny_tuple\record_data.hpp" />
     <ClInclude Include="tiny_tuple\record_header.hpp" />
     <ClInclude Include="tiny_tuple\test.hpp" />
