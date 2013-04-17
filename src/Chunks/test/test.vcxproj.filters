@@ -55,5 +55,7 @@
     <ClInclude Include="tiny_tuple\impl\record_header.hpp" />
     <ClInclude Include="tiny_tuple\impl\defined_column_value.hpp" />
     <ClInclude Include="tiny_tuple\defined_column_value.hpp" />
+    <ClInclude Include="tiny_tuple\random.hpp" />
+    <ClInclude Include="tiny_tuple\impl\random.hpp" />
   </ItemGroup>
 </Project>
