@@ -15,8 +15,7 @@ uint8_t record_data[record_data_size] = {
 	0x00, 0x00, 0x00,
 
 	//==========================================================================
-	// Minimal DATA HEADER with one column value that is not defined require 24
-	// bits:
+	// DATA HEADER with one column value that is not defined:
 	//
 	//  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
 	// .1 0 9 8 7 6 5 4.3 2 1 0 9 8 7 6.5 4 3 2 1 0 9 8.7 6 5 4 3 2 1 0.
@@ -44,8 +43,7 @@ uint8_t record_data[record_data_size] = {
 	///0x01, 0x30, 0x00
 
 	//==========================================================================
-	// Minimal DATA HEADER with eight column values that are not defined require
-	// 24 bits:
+	// DATA HEADER with eight column values that are not defined:
 	//
 	//  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
 	// .1 0 9 8 7 6 5 4.3 2 1 0 9 8 7 6.5 4 3 2 1 0 9 8.7 6 5 4 3 2 1 0.
@@ -61,7 +59,7 @@ uint8_t record_data[record_data_size] = {
 	///0x08, 0x00, 0x18
 
 	//==========================================================================
-	// Minimal DATA HEADER with one DEFINED COLUMN VALUE is 32 bits:
+	// DATA HEADER with one DEFINED COLUMN VALUE:
 	//
 	//  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
 	// .1 0 9 8 7 6 5 4.3 2 1 0 9 8 7 6.5 4 3 2 1 0 9 8.7 6 5 4 3 2 1 0.
