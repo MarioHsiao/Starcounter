@@ -2741,55 +2741,20 @@ namespace Starcounter.Query.Sql
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect memberTerm: " + memberTerm);
         }
 
-        private static IProperty CreateProperty(Int32 extNum, ITypeBinding typeBind, Term typeTerm, Term nameTerm)
-        {
+        private static IProperty CreateProperty(Int32 extNum, ITypeBinding typeBind, Term typeTerm, Term nameTerm) {
             // property(Type,Name).
-            if (typeTerm.Name == "binary")
-            {
-                return CreateBinaryProperty(extNum, typeBind, nameTerm);
+            switch (typeTerm.Name) {
+                case "binary": return CreateBinaryProperty(extNum, typeBind, nameTerm);
+                case "boolean": return CreateBooleanProperty(extNum, typeBind, nameTerm);
+                case "datetime": return CreateDateTimeProperty(extNum, typeBind, nameTerm);
+                case "decimal": return CreateDecimalProperty(extNum, typeBind, nameTerm);
+                case "double": return CreateDoubleProperty(extNum, typeBind, nameTerm);
+                case "integer": return CreateIntegerProperty(extNum, typeBind, nameTerm);
+                case "object": return CreateObjectProperty(extNum, typeBind, nameTerm);
+                case "string": return CreateStringProperty(extNum, typeBind, nameTerm);
+                case "uinteger": return CreateUIntegerProperty(extNum, typeBind, nameTerm);
+                default: throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
             }
-            // else
-            if (typeTerm.Name == "boolean")
-            {
-                return CreateBooleanProperty(extNum, typeBind, nameTerm);
-            }
-            // else
-            if (typeTerm.Name == "datetime")
-            {
-                return CreateDateTimeProperty(extNum, typeBind, nameTerm);
-            }
-            // else
-            if (typeTerm.Name == "decimal")
-            {
-                return CreateDecimalProperty(extNum, typeBind, nameTerm);
-            }
-            // else
-            if (typeTerm.Name == "double")
-            {
-                return CreateDoubleProperty(extNum, typeBind, nameTerm);
-            }
-            // else
-            if (typeTerm.Name == "integer")
-            {
-                return CreateIntegerProperty(extNum, typeBind, nameTerm);
-            }
-            // else
-            if (typeTerm.Name == "object")
-            {
-                return CreateObjectProperty(extNum, typeBind, nameTerm);
-            }
-            // else
-            if (typeTerm.Name == "string")
-            {
-                return CreateStringProperty(extNum, typeBind, nameTerm);
-            }
-            // else
-            if (typeTerm.Name == "uinteger")
-            {
-                return CreateUIntegerProperty(extNum, typeBind, nameTerm);
-            }
-            // else
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
         }
 
         private static BinaryProperty CreateBinaryProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
