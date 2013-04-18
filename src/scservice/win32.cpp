@@ -236,9 +236,10 @@ void _kill_and_cleanup_orphaned_children(int32_t logsteps)
                         || lstrcmpi(pe.szExeFile, PROCESS_NAME_IPCMONITOR) == 0
                         || lstrcmpi(pe.szExeFile, PROCESS_NAME_CODEHOST) == 0
                         || lstrcmpi(pe.szExeFile, PROCESS_NAME_CODEDATA) == 0
-                        /*|| lstrcmpi(pe.szExeFile, PROCESS_NAME_PROLOG) == 0*/)
+                        || lstrcmpi(pe.szExeFile, PROCESS_NAME_PROLOG) == 0)
                 {
                     process_found = true;
+                    goto KILL_PROCESS;
                 }
             }
 
@@ -263,7 +264,7 @@ void _kill_and_cleanup_orphaned_children(int32_t logsteps)
                             continue; 
                         } 
                     }
-                      
+KILL_PROCESS:
                     // Parent process is terminated. Lets kill the process.
                     if (logsteps) {
                         _snwprintf_s(logmessagebuffer, 1024, L"Terminating process '%s' with parent pid %d", pe.szExeFile, parent_pid);

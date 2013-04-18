@@ -1,9 +1,9 @@
 ﻿
-using Newtonsoft.Json;
 using Starcounter;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
+using Starcounter.Server.Rest.MessageTypes;
 using Starcounter.Server.Setup;
 using System;
 using System.Diagnostics;
@@ -374,10 +374,6 @@ namespace star {
         /// Creates the request body expected by the admin server when
         /// recieving requests to execute/host an executable.
         /// </summary>
-        /// <remarks>
-        /// See the ExecRequest class in Administrator for the format being
-        /// used.
-        /// </remarks>
         /// <param name="request">The exec request POCO object that is
         /// serialized in the returned string.
         /// </param>
@@ -385,7 +381,7 @@ namespace star {
         /// execute an executable, compatible with what is expected from
         /// the admin server.</returns>
         static string CreateRequestBody(ExecRequest request) {
-            return JsonConvert.SerializeObject(request);
+            return request.ToJson();
         }
 
         static async Task ShowResultAndSetExitCode(
@@ -416,7 +412,9 @@ namespace star {
 
             int statusCode = (int)response.StatusCode;
             if (statusCode == 201) {
-                var responseBody = JsonConvert.DeserializeObject<ExecResponse201>(body);
+                var responseBody = new ExecResponse201();
+                responseBody.PopulateFromJson(body);
+
                 var dbUri = ScUri.FromString(responseBody.DatabaseUri);
 
                 var output = string.Format(

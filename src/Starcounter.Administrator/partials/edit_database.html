@@ -1,19 +1,6 @@
-﻿
-
-<form name="myForm" class="form-horizontal  well well-small" ng-hide='database == null'>
+﻿<form name="myForm" class="form-horizontal  well well-small" ng-hide='database == null'>
 
     <legend>Edit Database - {{database.name}}</legend>
-
-    <!--type="number" min="0" max="65535" integer-->
-    <!--    <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
-        <label class="control-label" for="httpPort">HttpPort</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" name="httpPort" id="httpPort" placeholder="Http Port" ng-model="database.httpPort" required>
-            <span ng-show="myForm.httpPort.$error.required" class="help-inline">Required</span>
-        </div>
-    </div>-->
-
-
 
     <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
         <label class="control-label" for="httpPort">Http Port</label>
@@ -24,7 +11,7 @@
         </div>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.schedulerCount.$invalid}">
+<!--    <div class="control-group" ng-class="{error: myForm.schedulerCount.$invalid}">
         <label class="control-label" for="schedulerCount">Scheduler Count</label>
         <div class="controls">
             <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="schedulerCount" id="schedulerCount" placeholder="Scheduler Count" ng-model="database.schedulerCount" required>
@@ -32,140 +19,50 @@
             <span ng-show="myForm.schedulerCount.$error.required" class="help-inline">Required</span>
             <span class="help-block">Number of schedulers the database host should utilize.</span>
         </div>
-    </div>
+    </div>-->
 
 
-
-
-    <!--    
-    
-    TEST VALIDATE FILED
-    
-    <div class="control-group" ng-class="{error: myForm.test.$invalid}">
-        <label class="control-label" for="test">test</label>
+    <div class="control-group" ng-class="{error: myForm.sqlProcessPort.$invalid}">
+        <label class="control-label" for="sqlProcessPort">SQL Process Port</label>
         <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" name="test" id="test" placeholder="test" ng-model="test" ui-validate="{test : 'testValidate($value)'}" >
-            <span ng-show="myForm.test.$error.required" class="help-inline">Required</span>
-            <span ng-show='myForm.$error.test' class="help-inline">2 chars only!</span>
-        </div>
-    </div>-->
-
-
-
-
-
-
-
-    <!--    <div class="control-group" ng-class="{error: myForm.site.$invalid}">
-        <label>Website</label>
-        <input type="url" name="site" ng-model="project.site">
-
-        <span ng-show="myForm.site.$error.required" class="help-inline">Required</span>
-        <span ng-show="myForm.site.$error.url" class="help-inline">Not a URL</span>
-    </div>-->
-
-    <!--   <div class="control-group" ng-class="{error: myForm.name.$invalid}">
-        <label>Name</label>
-        <input type="text" name="name" ng-model="project.name" required>
-        <span ng-show="myForm.name.$error.required" class="help-inline">Required</span>
-    </div>-->
-
-
-
-    <!--   
-
-    <div class="control-group">
-        <label class="control-label" for="databaseName">Name</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="databaseName" placeholder="databaseName" ng-model="settings.databaseName"><span class="help-inline">Inline help text</span>
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="sqlProcessPort" id="sqlProcessPort" placeholder="SQL Process port" ng-model="database.sqlProcessPort" required>
+            <span ng-show="myForm.sqlProcessPort.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.sqlProcessPort.$error.required" class="help-inline">Required</span>
         </div>
     </div>
 
-    
-    <div class="control-group">
+    <div class="control-group" ng-class="{error: myForm.sqlAggregationSupport.$invalid}">
+        <div class="controls">
+            <label class="checkbox">
+                <input ng-disabled="isBusy == true" type="checkbox" name="sqlAggregationSupport" id="sqlAggregationSupport" ng-model="database.sqlAggregationSupport">SQL Aggregation Support</label>
+        </div>
+    </div>
+
+
+    <div class="control-group" ng-class="{error: myForm.schedulerCount.$invalid}">
+        <label class="control-label" for="schedulerCount">Scheduler Count</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="schedulerCount" id="Number1" placeholder="Scheduler Count" ng-model="database.schedulerCount" required>
+            <span ng-show="myForm.schedulerCount.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.schedulerCount.$error.required" class="help-inline">Required</span>
+            <span class="help-block">Number of schedulers the database host should utilize.</span>
+        </div>
+    </div>
+
+    <div class="control-group" ng-class="{error: myForm.chunksNumber.$invalid}">
         <label class="control-label" for="chunksNumber">Chunks</label>
         <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="chunksNumber" placeholder="Chunks" ng-model="settings.chunksNumber">
+            <input ng-disabled="isBusy == true" type="number" name="chunksNumber" id="chunksNumber" placeholder="Chunks" ng-model="database.chunksNumber" required>
+            <span ng-show="myForm.chunksNumber.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.chunksNumber.$error.required" class="help-inline">Required</span>
             <span class="help-block">Number of shared memory chunks, dividable by 256..</span>
         </div>
     </div>
-        
-     <div class="control-group">
-        <label class="control-label" for="dumpDirectory">Dump Directory</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="dumpDirectory" placeholder="dumpDirectory" ng-model="settings.dumpDirectory">
-        </div>
-    </div>
 
-    <div class="control-group">
-        <label class="control-label" for="imageDirectory">Image Directory</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="imageDirectory" placeholder="imageDirectory" ng-model="settings.imageDirectory">
-        </div>
-    </div>
 
-    <div class="control-group">
-        <label class="control-label" for="tempDirectory">Temp Directory</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="tempDirectory" placeholder="tempDirectory" ng-model="settings.tempDirectory">
-        </div>
-    </div>
 
-    <div class="control-group">
-        <label class="control-label" for="transactionLogDirectory">Transaction Log Directory</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" class="input-xxlarge" type="text" id="transactionLogDirectory" placeholder="transactionLogDirectory" ng-model="settings.transactionLogDirectory">
-        </div>
-    </div>
 
-    <div class="control-group">
-        <label class="control-label" for="schedulerCount">Scheduler Count</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="schedulerCount" placeholder="schedulerCount" ng-model="settings.schedulerCount">
-        </div>
-    </div>
 
-    <div class="control-group">
-        <div class="controls">
-            <label class="checkbox">
-                <input ng-disabled="isBusy == true" type="checkbox" ng-model="settings.sqlAggregationSupport">SQL Aggregation Support</label>
-        </div>
-    </div>
-
-    <div class="control-group">
-        <label class="control-label" for="sqlProcessPort">SQL Process Port</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="sqlProcessPort" placeholder="sqlProcessPort" ng-model="settings.sqlProcessPort">
-        </div>
-    </div>
-
-    <div class="control-group">
-        <label class="control-label" for="collationFile">Collation File</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="collationFile" placeholder="collationFile" ng-model="settings.collationFile">
-        </div>
-    </div>
-
-    <div class="control-group">
-        <label class="control-label" for="maxImageSize">Max Image Size</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="maxImageSize" placeholder="maxImageSize" ng-model="settings.maxImageSize">
-        </div>
-    </div>
-
-    <div class="control-group">
-        <div class="controls">
-            <label class="checkbox">
-                <input ng-disabled="isBusy == true" type="checkbox" ng-model="settings.supportReplication">Support Replication</label>
-        </div>
-    </div>
-
-    <div class="control-group">
-        <label class="control-label" for="transactionLogSize">Transaction Log Size</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" id="transactionLogSize" placeholder="transactionLogSize" ng-model="settings.transactionLogSize">
-        </div>
-    </div>-->
 
     <div class="form-actions">
         <button type="submit" ng-disabled="myForm.$invalid || isBusy == true || myForm.$dirty == false" class="btn btn-success" ng-click="btnClick_saveSettings()">Save</button>
