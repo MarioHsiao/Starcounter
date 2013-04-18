@@ -1,5 +1,13 @@
 
 
+sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Peter\"").
+sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Pet\"er'").
+sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = \"Pet'er\"").
+sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Peter'").
+sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = \"Peter\"").
+sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Pet''er'").
+sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = \"Pet\"\"er\"").
+
 sql_example(pos,'MyDB',"select E from Employee e where E.Manager = ?").
 sql_example(pos,'MyDB',"select e from Employee e where e.Manager = ?").
 sql_example(pos,'MyDB',"select p from Example.Person p where p is Employee").
