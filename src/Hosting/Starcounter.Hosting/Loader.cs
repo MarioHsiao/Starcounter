@@ -139,7 +139,8 @@ namespace StarcounterInternal.Hosting
             Package package = new Package(
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef },
                 null,
-                stopwatch_
+                stopwatch_,
+                true
                 );
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
@@ -188,13 +189,18 @@ namespace StarcounterInternal.Hosting
         /// will execute in.</param>
         /// <param name="entrypointArguments">Arguments to be passed to the assembly
         /// entry point, if any.</param>
+        /// <param name="executeEntryPointSynchronously">
+        /// If true the event for processing complete will be set after the entrypoint returns, 
+        /// if set to false the event will be set before the entrypoint executes and execute the 
+        /// entrypoint async.
         /// <exception cref="StarcounterInternal.Hosting.LoaderException"></exception>
         public static unsafe void ExecApp(
             void* hsched,
             string filePath,
             Stopwatch stopwatch = null,
             string workingDirectory = null,
-            string[] entrypointArguments = null
+            string[] entrypointArguments = null,
+            bool execEntryPointSynchronously = false
             )
         {
             if (stopwatch != null)
@@ -254,7 +260,10 @@ namespace StarcounterInternal.Hosting
 
             OnTargetAssemblyLoaded();
 
-            Package package = new Package(unregisteredTypeDefs.ToArray(), assembly, stopwatch_);
+            Package package = new Package(unregisteredTypeDefs.ToArray(), 
+                                          assembly, 
+                                          stopwatch_, 
+                                          execEntryPointSynchronously);
             if (!string.IsNullOrEmpty(workingDirectory))
             {
                 package.WorkingDirectory = workingDirectory;
