@@ -2870,7 +2870,7 @@ namespace Starcounter.Query.Sql
             return new ObjectProperty(extNum, typeBind, propBind);
         }
 
-        private static StringProperty CreateStringProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
+        private static IProperty CreateStringProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
         {
             String propName = nameTerm.Name;
             //PI110503 IPropertyBinding propBind = typeBind.GetPropertyBindingByUpperCaseName(propName.ToUpper());
@@ -2878,7 +2878,7 @@ namespace Starcounter.Query.Sql
             if (propBind == null)
             {
                 if (propName == DbHelper.ObjectIDName)
-                    return new ObjectIDProperty(extNum, typeBind, propName);
+                    return new ObjectIDProperty(extNum, typeBind);
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Unknown property: " + propName);
             }
             if (propBind.TypeCode != DbTypeCode.String)
@@ -2888,7 +2888,7 @@ namespace Starcounter.Query.Sql
             return new StringProperty(extNum, typeBind, propBind);
         }
 
-        private static UIntegerProperty CreateUIntegerProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
+        private static IProperty CreateUIntegerProperty(Int32 extNum, ITypeBinding typeBind, Term nameTerm)
         {
             String propName = nameTerm.Name;
             //PI110503 IPropertyBinding propBind = typeBind.GetPropertyBindingByUpperCaseName(propName.ToUpper());
@@ -2896,7 +2896,7 @@ namespace Starcounter.Query.Sql
             if (propBind == null)
             {
                 if (propName == DbHelper.ObjectNoName)
-                    return new ObjectNoProperty(extNum, typeBind, propName);
+                    return new ObjectNoProperty(extNum, typeBind);
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Unknown property: " + propName);
             }
             if (propBind.TypeCode != DbTypeCode.UInt64 && propBind.TypeCode != DbTypeCode.UInt32 &&
