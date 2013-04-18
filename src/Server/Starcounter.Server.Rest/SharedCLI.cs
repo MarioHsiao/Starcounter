@@ -48,7 +48,22 @@ namespace Starcounter.Server {
             public const string NoAutoCreateDb = "noautocreate";
         }
 
-        static void ResolveAdminServer(ApplicationArguments args, out string host, out int port,  out string name) {
+        /// <summary>
+        /// Resolves the admin server host, port and well-known name from a given
+        /// set of command-line arguments.
+        /// </summary>
+        /// <remarks>
+        /// For arguments that are not explicitly given, this method uses environment
+        /// defaults as a first fallback and finally constants, in case there is no
+        /// environment data available.
+        /// </remarks>
+        /// <param name="args">Command-line arguments, possibly including shared
+        /// options.</param>
+        /// <param name="host">The host of the admin server.</param>
+        /// <param name="port">The admin server port.</param>
+        /// <param name="name">The display name of the admin server, e.g. "Personal".
+        /// </param>
+        public static void ResolveAdminServer(ApplicationArguments args, out string host, out int port,  out string name) {
             string givenPort;
             int personalDefault;
             int systemDefault;
