@@ -23,36 +23,29 @@ using System.Windows.Threading;
 using Starcounter.InstallerWPF.DemoSequence;
 using Starcounter.Internal;
 
-namespace Starcounter.InstallerWPF
-{
+namespace Starcounter.InstallerWPF {
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
-    {
+    public partial class MainWindow : Window, INotifyPropertyChanged {
         #region Commands
 
         #region NextPage
 
-        private void CanExecute_NextPage_Command(object sender, CanExecuteRoutedEventArgs e)
-        {
+        private void CanExecute_NextPage_Command(object sender, CanExecuteRoutedEventArgs e) {
 
-            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null)
-            {
-                if (this.pages_lb.Items.CurrentPosition == this.pages_lb.Items.Count - 1)
-                {
+            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
+                if (this.pages_lb.Items.CurrentPosition == this.pages_lb.Items.Count - 1) {
                     e.CanExecute = false;
                 }
-                else
-                {
+                else {
                     BasePage page = this.pages_lb.Items.CurrentItem as BasePage;
                     e.CanExecute = page.CanGoNext;
                 }
                 e.Handled = true;
             }
         }
-        private void Executed_NextPage_Command(object sender, ExecutedRoutedEventArgs e)
-        {
+        private void Executed_NextPage_Command(object sender, ExecutedRoutedEventArgs e) {
             e.Handled = true;
             this.pages_lb.Items.MoveCurrentToNext();
         }
@@ -61,16 +54,12 @@ namespace Starcounter.InstallerWPF
 
         #region PreviousPage
 
-        private void CanExecute_PreviousPage_Command(object sender, CanExecuteRoutedEventArgs e)
-        {
-            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null)
-            {
-                if (this.pages_lb.Items.CurrentPosition == 0)
-                {
+        private void CanExecute_PreviousPage_Command(object sender, CanExecuteRoutedEventArgs e) {
+            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
+                if (this.pages_lb.Items.CurrentPosition == 0) {
                     e.CanExecute = false;
                 }
-                else
-                {
+                else {
 
                     BasePage page = this.pages_lb.Items.CurrentItem as BasePage;
                     e.CanExecute = page.CanGoBack;
@@ -78,8 +67,7 @@ namespace Starcounter.InstallerWPF
                 e.Handled = true;
             }
         }
-        private void Executed_PreviousPage_Command(object sender, ExecutedRoutedEventArgs e)
-        {
+        private void Executed_PreviousPage_Command(object sender, ExecutedRoutedEventArgs e) {
             e.Handled = true;
             //this.pages_lb.IsSynchronizedWithCurrentItem 
             //NavigationCommands.PreviousPage
@@ -92,18 +80,15 @@ namespace Starcounter.InstallerWPF
 
         #region GoToPage
 
-        private void CanExecute_GoToPage_Command(object sender, CanExecuteRoutedEventArgs e)
-        {
+        private void CanExecute_GoToPage_Command(object sender, CanExecuteRoutedEventArgs e) {
 
-            if (e.Parameter is Exception)
-            {
+            if (e.Parameter is Exception) {
                 e.Handled = true;
                 e.CanExecute = true;
                 return;
             }
 
-            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null)
-            {
+            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
                 BasePage page = this.pages_lb.Items.CurrentItem as BasePage;
                 e.CanExecute = page.CanGoNext;
                 e.Handled = true;
@@ -111,14 +96,12 @@ namespace Starcounter.InstallerWPF
             }
 
 
-            if (e.Parameter is BasePage)
-            {
+            if (e.Parameter is BasePage) {
                 e.Handled = true;
                 e.CanExecute = true;
                 return;
             }
-            if (string.IsNullOrEmpty(e.Parameter as string))
-            {
+            if (string.IsNullOrEmpty(e.Parameter as string)) {
                 e.Handled = true;
                 e.CanExecute = false;
                 return;
@@ -126,15 +109,11 @@ namespace Starcounter.InstallerWPF
 
         }
 
-        private void Executed_GoToPage_Command(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (e.Parameter is Exception)
-            {
+        private void Executed_GoToPage_Command(object sender, ExecutedRoutedEventArgs e) {
+            if (e.Parameter is Exception) {
                 // Remove finish page
-                foreach (BasePage page in this.Pages)
-                {
-                    if (page is IFinishedPage)
-                    {
+                foreach (BasePage page in this.Pages) {
+                    if (page is IFinishedPage) {
                         this.Pages.Remove(page);
                         break;
                     }
@@ -153,18 +132,15 @@ namespace Starcounter.InstallerWPF
 
 
 
-            foreach (BasePage page in this.Pages)
-            {
-                if (page.GetType().Name.Equals(e.Parameter))
-                {
+            foreach (BasePage page in this.Pages) {
+                if (page.GetType().Name.Equals(e.Parameter)) {
                     this.pages_lb.Items.MoveCurrentTo(page);
                     e.Handled = true;
                     break;
                 }
             }
 
-            if (e.Parameter is BasePage)
-            {
+            if (e.Parameter is BasePage) {
                 BasePage page = this.RegisterPage(e.Parameter as BasePage);
                 this.pages_lb.Items.MoveCurrentTo(page);
                 e.Handled = true;
@@ -172,15 +148,12 @@ namespace Starcounter.InstallerWPF
 
 
             // Used to go to web page
-            if (e.Handled == false && !string.IsNullOrEmpty(e.Parameter as string))
-            {
-                try
-                {
+            if (e.Handled == false && !string.IsNullOrEmpty(e.Parameter as string)) {
+                try {
                     Process.Start(new ProcessStartInfo(e.Parameter as string));
                     e.Handled = true;
                 }
-                catch (Win32Exception ee)
-                {
+                catch (Win32Exception ee) {
                     string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
                     this.OnError(new Exception(message));
                 }
@@ -192,17 +165,14 @@ namespace Starcounter.InstallerWPF
         #endregion
 
         #region Commands
-        private void CanExecute_ChooseFolder_Command(object sender, CanExecuteRoutedEventArgs e)
-        {
+        private void CanExecute_ChooseFolder_Command(object sender, CanExecuteRoutedEventArgs e) {
             e.Handled = true;
             e.CanExecute = true;
         }
-        private void Executed_ChooseFolder_Command(object sender, ExecutedRoutedEventArgs e)
-        {
+        private void Executed_ChooseFolder_Command(object sender, ExecutedRoutedEventArgs e) {
 
 
-            if (e.OriginalSource is TextBox)
-            {
+            if (e.OriginalSource is TextBox) {
                 e.Handled = true;
                 this.ChooseFolderDialog(e.OriginalSource as TextBox, e.Parameter as string);
             }
@@ -211,17 +181,14 @@ namespace Starcounter.InstallerWPF
 
         #region Close
 
-        private void CanExecute_Close_Command(object sender, CanExecuteRoutedEventArgs e)
-        {
-            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null)
-            {
+        private void CanExecute_Close_Command(object sender, CanExecuteRoutedEventArgs e) {
+            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
                 BasePage page = this.pages_lb.Items.CurrentItem as BasePage;
                 e.CanExecute = page.CanClose;
                 e.Handled = true;
             }
         }
-        private void Executed_Close_Command(object sender, ExecutedRoutedEventArgs e)
-        {
+        private void Executed_Close_Command(object sender, ExecutedRoutedEventArgs e) {
             e.Handled = true;
             this.Close();
         }
@@ -231,24 +198,20 @@ namespace Starcounter.InstallerWPF
         #region Start
         public static RoutedUICommand StartRoutedCommand = new RoutedUICommand();
 
-        private void CanExecute_Start_Command(object sender, CanExecuteRoutedEventArgs e)
-        {
-            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null)
-            {
+        private void CanExecute_Start_Command(object sender, CanExecuteRoutedEventArgs e) {
+            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
                 BasePage page = this.pages_lb.Items.CurrentItem as BasePage;
                 e.CanExecute = page.CanClose;
                 e.Handled = true;
             }
         }
 
-        private void Executed_Start_Command(object sender, ExecutedRoutedEventArgs e)
-        {
+        private void Executed_Start_Command(object sender, ExecutedRoutedEventArgs e) {
             e.Handled = true;
 
             bool bStartDemoComponent = false;
             Demo demoComponent = this.Configuration.Components[Demo.Identifier] as Demo;
-            if (demoComponent != null && demoComponent.StartWhenInstalled && demoComponent.ExecuteCommand == true)
-            {
+            if (demoComponent != null && demoComponent.StartWhenInstalled && demoComponent.ExecuteCommand == true) {
                 bStartDemoComponent = true;
             }
 
@@ -265,18 +228,15 @@ namespace Starcounter.InstallerWPF
         // Generate a file with arguments for the demo (executable)
         // The when the demo is started (started from another process) this file will be read.
         // A simple way of passing arguments between processes
-        private void GenerateArgumentFileForDemoSequence(bool bStartDemoComponent)
-        {
+        private void GenerateArgumentFileForDemoSequence(bool bStartDemoComponent) {
             string startDemoArgumentsFile = ConstantsBank.ScStartDemosTemp;
 
             // Cleanup old file if it exists (just to be safe).
-            if (File.Exists(startDemoArgumentsFile))
-            {
+            if (File.Exists(startDemoArgumentsFile)) {
                 // Check readonly flag
                 FileAttributes attr = File.GetAttributes(startDemoArgumentsFile);
                 bool isReadOnly = ((attr & FileAttributes.ReadOnly) == FileAttributes.ReadOnly);
-                if (isReadOnly)
-                {
+                if (isReadOnly) {
                     // Remove readonly flag
                     attr ^= FileAttributes.ReadOnly;
                     File.SetAttributes(startDemoArgumentsFile, attr);
@@ -284,13 +244,11 @@ namespace Starcounter.InstallerWPF
                 File.Delete(startDemoArgumentsFile);
             }
 
-            if (bStartDemoComponent)
-            {
+            if (bStartDemoComponent) {
 
                 string demoPath = this.GetDemoPath();
 
-                if (!string.IsNullOrEmpty(demoPath))
-                {
+                if (!string.IsNullOrEmpty(demoPath)) {
                     // Getting personal server installation path.
 
                     VisualStudio2010Integration visualStudio2010IntegrationComponent = this.Configuration.Components[VisualStudio2010Integration.Identifier] as VisualStudio2010Integration;
@@ -301,22 +259,19 @@ namespace Starcounter.InstallerWPF
                     String postDemoType = String.Empty;
 
                     if ((visualStudio2010IntegrationComponent != null && visualStudio2010IntegrationComponent.IsAvailable) &&
-                        (personalServerComponent != null && personalServerComponent.IsAvailable))
-                    {
+                        (personalServerComponent != null && personalServerComponent.IsAvailable)) {
                         postDemoType = PostDemoTypeEnum.VS2010.ToString();
                     }
 
                     if ((visualStudio2012IntegrationComponent != null && visualStudio2012IntegrationComponent.IsAvailable) &&
-                        (personalServerComponent != null && personalServerComponent.IsAvailable))
-                    {
+                        (personalServerComponent != null && personalServerComponent.IsAvailable)) {
                         postDemoType = PostDemoTypeEnum.VS2012.ToString();
                     }
 
                     // Checking if no VS solution should be started.
                     if ((String.IsNullOrEmpty(postDemoType)) &&
                             ((personalServerComponent != null && personalServerComponent.IsAvailable) ||
-                             (systemServerComponent != null && systemServerComponent.IsAvailable)))
-                    {
+                             (systemServerComponent != null && systemServerComponent.IsAvailable))) {
                         postDemoType = PostDemoTypeEnum.PREBUILT.ToString();
                     }
 
@@ -330,11 +285,9 @@ namespace Starcounter.InstallerWPF
         /// Gets the demo path.
         /// </summary>
         /// <returns>'Root' path to demos or null</returns>
-        private string GetDemoPath()
-        {
+        private string GetDemoPath() {
             PersonalServer personalServer = this.GetComponent(PersonalServer.Identifier) as PersonalServer;
-            if (personalServer != null && !string.IsNullOrEmpty(personalServer.Path))
-            {
+            if (personalServer != null && !string.IsNullOrEmpty(personalServer.Path)) {
                 return personalServer.Path;
             }
             return null;
@@ -349,11 +302,9 @@ namespace Starcounter.InstallerWPF
 
         // Setup Options
         private SetupOptions _SetupOptions = SetupOptions.None;
-        public SetupOptions SetupOptions
-        {
+        public SetupOptions SetupOptions {
             get { return this._SetupOptions; }
-            set
-            {
+            set {
                 if (this._SetupOptions == value) return;
                 this._SetupOptions = value;
                 this.OnPropertyChanged("SetupOptions");
@@ -361,21 +312,17 @@ namespace Starcounter.InstallerWPF
         }
 
         private IList<object> _Pages = new ObservableCollection<object>();
-        public IList<object> Pages
-        {
+        public IList<object> Pages {
             get { return this._Pages; }
 
         }
 
         private Configuration _Configuration = new Configuration();
-        public Configuration Configuration
-        {
-            get
-            {
+        public Configuration Configuration {
+            get {
                 return this._Configuration;
             }
-            set
-            {
+            set {
                 this._Configuration = value;
             }
         }
@@ -395,14 +342,11 @@ namespace Starcounter.InstallerWPF
         //}
 
         private string _Version;
-        public string Version
-        {
-            get
-            {
+        public string Version {
+            get {
                 return this._Version;
             }
-            protected set
-            {
+            protected set {
                 if (string.Compare(this._Version, value, true) == 0) return;
                 this._Version = value;
                 this.OnPropertyChanged("Version");
@@ -414,8 +358,7 @@ namespace Starcounter.InstallerWPF
 
         #endregion
 
-        public MainWindow()
-        {
+        public MainWindow() {
             this.Closing += new CancelEventHandler(MainWindow_Closing);
             this.PropertyChanged += new PropertyChangedEventHandler(MainWindow_PropertyChanged);
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
@@ -423,21 +366,17 @@ namespace Starcounter.InstallerWPF
             InitializeComponent();
         }
 
-        void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if ("SetupOptions".Equals(e.PropertyName))
-            {
+        void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+            if ("SetupOptions".Equals(e.PropertyName)) {
 
                 // Clear previous pages setup
-                while (this.Pages.Count > 1)
-                {
+                while (this.Pages.Count > 1) {
                     this.Pages.RemoveAt(1);
                 }
 
                 this.Configuration.SetDefaultValues(this.SetupOptions);
 
-                switch (this.SetupOptions)
-                {
+                switch (this.SetupOptions) {
                     case SetupOptions.Install:
 
                         this.UpdateComponentsCommand(ComponentCommand.Install);
@@ -474,11 +413,9 @@ namespace Starcounter.InstallerWPF
 
 
                 if (this.SetupOptions != InstallerWPF.Pages.SetupOptions.Ask &&
-                    this.SetupOptions != SetupOptions.None)
-                {
+                    this.SetupOptions != SetupOptions.None) {
                     // Validate Environment
-                    if (!this.ValidateEnvironment())
-                    {
+                    if (!this.ValidateEnvironment()) {
                         // Exiting the application.
                         Environment.Exit(1);
                     }
@@ -490,8 +427,7 @@ namespace Starcounter.InstallerWPF
         /// Calls InstallerEngine for proper version info implementation.
         /// </summary>
         /// <returns></returns>
-        private string GetVersionString()
-        {
+        private string GetVersionString() {
             VersionInfo versionInfo = InstallerMain.GetEmbVersionInfo();
             return "Version " + versionInfo.Version.ToString();
         }
@@ -499,19 +435,16 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Checks recommended hardware settings for Starcounter.
         /// </summary>
-        void CheckHardwareStatus()
-        {
+        void CheckHardwareStatus() {
             // Checking the RAM size.
-            if (Utilities.LessThan4GbMemory())
-            {
+            if (Utilities.LessThan4GbMemory()) {
                 WpfMessageBox.Show("For being productive Starcounter recommends that your machine has at least 4Gb of RAM." +
                     Environment.NewLine + "You can now proceed with installation...",
                     "At least 4Gb of RAM recommended...", WpfMessageBoxButton.OK, WpfMessageBoxImage.Exclamation);
             }
         }
 
-        void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
+        void MainWindow_Loaded(object sender, RoutedEventArgs e) {
             this._InternalComponents.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(_InternalComponents_CollectionChanged);
 
             // Retrieve Version of setup package
@@ -537,15 +470,13 @@ namespace Starcounter.InstallerWPF
                 this.SetupOptions = SetupOptions.Ask;
             }
 #else
-            if (!this.HasCurrentInstalledComponents())
-            {
+            if (!this.HasCurrentInstalledComponents()) {
                 // Checking system recommendations.
                 CheckHardwareStatus();
 
                 this.SetupOptions = SetupOptions.Install;
             }
-            else
-            {
+            else {
                 this.SetupOptions = SetupOptions.Ask;
             }
 #endif
@@ -557,19 +488,15 @@ namespace Starcounter.InstallerWPF
         /// <returns>
         /// <c>true</c> if there is installed components; otherwise, <c>false</c>.
         /// </returns>
-        private bool HasCurrentInstalledComponents()
-        {
-            if (MainWindow.InstalledComponents == null)
-            {
+        private bool HasCurrentInstalledComponents() {
+            if (MainWindow.InstalledComponents == null) {
                 // Retrieve current installed components
                 MainWindow.InstalledComponents = ComponentsCheck.GetListOfInstalledComponents();
             }
 
             // Checking if something is installed.
-            foreach (Boolean component in MainWindow.InstalledComponents)
-            {
-                if (component)
-                {
+            foreach (Boolean component in MainWindow.InstalledComponents) {
+                if (component) {
                     return true;
                 }
             }
@@ -581,37 +508,21 @@ namespace Starcounter.InstallerWPF
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.ComponentModel.CancelEventArgs"/> instance containing the event data.</param>
-        void MainWindow_Closing(object sender, CancelEventArgs e)
-        {
-            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null)
-            {
+        void MainWindow_Closing(object sender, CancelEventArgs e) {
+            if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
                 BasePage page = this.pages_lb.Items.CurrentItem as BasePage;
                 e.Cancel = !page.CanClose;
             }
 
-            if (e.Cancel == false && this.pages_lb != null && this.pages_lb.Items.CurrentItem != null)
-            {
-                if (!(this.pages_lb.Items.CurrentItem is IFinishedPage || this.pages_lb.Items.CurrentItem is ErrorPage))
-                {
+            if (e.Cancel == false && this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
+                if (!(this.pages_lb.Items.CurrentItem is IFinishedPage || this.pages_lb.Items.CurrentItem is ErrorPage)) {
                     WpfMessageBoxResult result = WpfMessageBox.Show("Do you want to exit the setup program?", "Starcounter - Setup", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
-                    if (result != WpfMessageBoxResult.Yes)
-                    {
+                    if (result != WpfMessageBoxResult.Yes) {
                         e.Cancel = true;
                     }
                 }
             }
 
-            // Checking if user is not cancelling the setup.
-            if (e.Cancel == false)
-            {
-                if ((this.pages_lb.Items.CurrentItem is UninstallFinishedPage) ||
-                    (this.pages_lb.Items.CurrentItem is RemoveComponentsFinishedPage) ||
-                    (this.pages_lb.Items.CurrentItem is ErrorPage))
-                {
-                    // Calling installation folder removal function.
-                    UninstallEngine.DeleteInstallationDir(false);
-                }
-            }
         }
 
         #region Setup Components
@@ -621,8 +532,7 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Setups the components.
         /// </summary>
-        private void SetupComponents()
-        {
+        private void SetupComponents() {
             // Pre
             VisualStudio2010 visualStudio2010 = new VisualStudio2010(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2010);
@@ -685,15 +595,12 @@ namespace Starcounter.InstallerWPF
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.Collections.Specialized.NotifyCollectionChangedEventArgs"/> instance containing the event data.</param>
-        void _InternalComponents_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
+        void _InternalComponents_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
 
-            switch (e.Action)
-            {
+            switch (e.Action) {
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
 
-                    foreach (BaseComponent component in e.NewItems)
-                    {
+                    foreach (BaseComponent component in e.NewItems) {
                         this.Configuration.Components.Add(component.ComponentIdentifier, component);
                     }
 
@@ -715,12 +622,9 @@ namespace Starcounter.InstallerWPF
         /// </summary>
         /// <param name="identifier">The identifier.</param>
         /// <returns></returns>
-        private BaseComponent GetComponent(string identifier)
-        {
-            foreach (BaseComponent component in this._InternalComponents)
-            {
-                if (string.Equals(component.ComponentIdentifier, identifier))
-                {
+        private BaseComponent GetComponent(string identifier) {
+            foreach (BaseComponent component in this._InternalComponents) {
+                if (string.Equals(component.ComponentIdentifier, identifier)) {
                     return component;
                 }
             }
@@ -731,17 +635,14 @@ namespace Starcounter.InstallerWPF
         /// Updates the components command.
         /// </summary>
         /// <param name="command">The command.</param>
-        private void UpdateComponentsCommand(ComponentCommand command)
-        {
+        private void UpdateComponentsCommand(ComponentCommand command) {
 
             IDictionaryEnumerator _enumerator = this.Configuration.Components.GetEnumerator();
 
-            while (_enumerator.MoveNext())
-            {
+            while (_enumerator.MoveNext()) {
                 //_string += _enumerator.Key + " ";
                 BaseComponent component = _enumerator.Value as BaseComponent;
-                if (component != null)
-                {
+                if (component != null) {
                     component.Command = command;
                 }
 
@@ -755,23 +656,19 @@ namespace Starcounter.InstallerWPF
         /// Validates the environment.
         /// </summary>
         /// <returns></returns>
-        private bool ValidateEnvironment()
-        {
+        private bool ValidateEnvironment() {
             // Retrieve installation path
             String installedPath = string.Empty;
             InstallationBase starcounterInstallation = this.GetComponent(InstallationBase.Identifier) as InstallationBase;
-            if (starcounterInstallation != null)
-            {
+            if (starcounterInstallation != null) {
                 installedPath = starcounterInstallation.Path;
             }
 
             // Checking if something is installed.
             Boolean somethingIsInstalled = this.HasCurrentInstalledComponents();
 
-            if (somethingIsInstalled)
-            {
-                if (String.IsNullOrEmpty(installedPath))
-                {
+            if (somethingIsInstalled) {
+                if (String.IsNullOrEmpty(installedPath)) {
                     // Corrupted Starcounter installation.
                     String foundComponents = Environment.NewLine;
 
@@ -795,8 +692,7 @@ namespace Starcounter.InstallerWPF
                         Environment.NewLine + "Would you like to run Starcounter cleanup process?" +
                         Environment.NewLine + "(All Starcounter footprints will be removed from your system).", "Starcounter installation is corrupted.", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question, WpfMessageBoxResult.No);
 
-                    if (result == WpfMessageBoxResult.Yes)
-                    {
+                    if (result == WpfMessageBoxResult.Yes) {
                         // Showing uninstall progress page.
                         InstallerMain.StarcounterSetup(new String[] { "--cleanup" }, null, null, null, null);
 
@@ -822,8 +718,7 @@ namespace Starcounter.InstallerWPF
         /// </summary>
         /// <param name="page">The page.</param>
         /// <returns></returns>
-        private BasePage RegisterPage(BasePage page)
-        {
+        private BasePage RegisterPage(BasePage page) {
             page.Resources.MergedDictionaries.Add(this.Resources);
             page.DataContext = this.Configuration;
             this.Pages.Add(page);
@@ -834,8 +729,7 @@ namespace Starcounter.InstallerWPF
         /// Called when [error].
         /// </summary>
         /// <param name="exc">The exc.</param>
-        public void OnError(Exception exc)
-        {
+        public void OnError(Exception exc) {
             NavigationCommands.GoToPage.Execute(exc, this);
             CommandManager.InvalidateRequerySuggested();
         }
@@ -845,16 +739,14 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Add, Remove or Uninstall Question question.
         /// </summary>
-        private void RegisterAddRemoveUninstallQuestionPages()
-        {
+        private void RegisterAddRemoveUninstallQuestionPages() {
             this.RegisterPage(new AddRemoveUninstallQuestionPage());
         }
 
         /// <summary>
         /// Registers the first installation pages.
         /// </summary>
-        private void RegisterFirstInstallationPages()
-        {
+        private void RegisterFirstInstallationPages() {
             this.RegisterPage(new WelcomePage());
             this.RegisterPage(new LicenseAgreementPage());
             this.RegisterPage(new InstallationPathPage());
@@ -869,8 +761,7 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Registers the uninstall pages.
         /// </summary>
-        private void RegisterUninstallPages()
-        {
+        private void RegisterUninstallPages() {
             this.RegisterPage(new UninstallPage());
 
             this.RegisterPage(new UninstallProgressPage());
@@ -881,8 +772,7 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Registers the remove components pages.
         /// </summary>
-        private void RegisterRemoveComponentsPages()
-        {
+        private void RegisterRemoveComponentsPages() {
             this.RegisterPage(new DatabaseEnginesPage());
             //this.RegisterPage(new AdministrationToolsPage());
             //this.RegisterPage(new ConnectivityPage());
@@ -895,8 +785,7 @@ namespace Starcounter.InstallerWPF
         /// <summary>
         /// Registers the add components pages.
         /// </summary>
-        private void RegisterAddComponentsPages()
-        {
+        private void RegisterAddComponentsPages() {
             this.RegisterPage(new LicenseAgreementPage());
             this.RegisterPage(new DatabaseEnginesPage());
             //this.RegisterPage(new AdministrationToolsPage());
@@ -914,26 +803,21 @@ namespace Starcounter.InstallerWPF
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.Windows.Controls.SelectionChangedEventArgs"/> instance containing the event data.</param>
-        private void pages_lb_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
+        private void pages_lb_SelectionChanged(object sender, SelectionChangedEventArgs e) {
 
             e.Handled = true;
             Selector selector = sender as Selector;
 
             // OnDeselected
-            if (e.RemovedItems != null)
-            {
-                foreach (BasePage page in e.RemovedItems)
-                {
+            if (e.RemovedItems != null) {
+                foreach (BasePage page in e.RemovedItems) {
                     page.OnDeselected();
                 }
             }
 
             // OnSelected
-            if (e.AddedItems != null)
-            {
-                foreach (BasePage page in e.AddedItems)
-                {
+            if (e.AddedItems != null) {
+                foreach (BasePage page in e.AddedItems) {
                     page.OnSelected();
                 }
             }
@@ -941,8 +825,7 @@ namespace Starcounter.InstallerWPF
             Dispatcher _dispatcher = Dispatcher.FromThread(Thread.CurrentThread);
 
             _dispatcher.BeginInvoke(DispatcherPriority.Render,
-                      new Action(delegate
-                      {
+                      new Action(delegate {
                           this.DoMarker();
                       }
                   ));
@@ -950,14 +833,12 @@ namespace Starcounter.InstallerWPF
         }
 
 
-        private void DoMarker()
-        {
+        private void DoMarker() {
 
             this.marker.Points.Clear();
             //this.marker2.Points.Clear();
 
-            if (this.pages_lb.SelectedItem == null)
-            {
+            if (this.pages_lb.SelectedItem == null) {
                 return;
             }
 
@@ -1001,43 +882,35 @@ namespace Starcounter.InstallerWPF
 
         }
 
-        void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
+        void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e) {
             this.DoMarker();
         }
 
         #endregion
 
-        private void ChooseFolderDialog(TextBox textBox, string title)
-        {
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog
-            {
+        private void ChooseFolderDialog(TextBox textBox, string title) {
+            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog {
 
                 //Description = "Select installation folder",
                 ShowNewFolderButton = false,
             };
 
-            if (!string.IsNullOrEmpty(title))
-            {
+            if (!string.IsNullOrEmpty(title)) {
                 folderBrowserDialog.Description = title;
             }
-            else
-            {
+            else {
                 folderBrowserDialog.Description = "Select path";
             }
 
 
-            if (Directory.Exists(textBox.Text))
-            {
+            if (Directory.Exists(textBox.Text)) {
                 folderBrowserDialog.SelectedPath = textBox.Text;
             }
-            else
-            {
+            else {
                 folderBrowserDialog.SelectedPath = Environment.CurrentDirectory;
             }
 
-            if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
+            if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                 textBox.Text = folderBrowserDialog.SelectedPath;
                 textBox.Focus();
                 textBox.SelectionStart = textBox.Text.Length;
@@ -1050,32 +923,26 @@ namespace Starcounter.InstallerWPF
         /// <param name="targetDirectory">The target directory.</param>
         /// <param name="recursive">if set to <c>true</c> [recursive].</param>
         /// <returns></returns>
-        public static bool DirectoryContainsFiles(string targetDirectory, bool recursive)
-        {
+        public static bool DirectoryContainsFiles(string targetDirectory, bool recursive) {
 
-            if (!Directory.Exists(targetDirectory))
-            {
+            if (!Directory.Exists(targetDirectory)) {
                 return false;
             }
 
             string[] fileEntries = Directory.GetFiles(targetDirectory);
 
-            if (fileEntries.Length > 0)
-            {
+            if (fileEntries.Length > 0) {
                 return true;
             }
 
-            if (!recursive)
-            {
+            if (!recursive) {
                 return false;
             }
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
-            foreach (string subdirectory in subdirectoryEntries)
-            {
-                if (DirectoryContainsFiles(subdirectory, true))
-                {
+            foreach (string subdirectory in subdirectoryEntries) {
+                if (DirectoryContainsFiles(subdirectory, true)) {
                     return true;
                 }
             }
@@ -1086,10 +953,8 @@ namespace Starcounter.InstallerWPF
         #region INotifyPropertyChanged Members
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string fieldName)
-        {
-            if (PropertyChanged != null)
-            {
+        protected virtual void OnPropertyChanged(string fieldName) {
+            if (PropertyChanged != null) {
                 PropertyChanged(this, new PropertyChangedEventArgs(fieldName));
             }
         }
@@ -1098,22 +963,18 @@ namespace Starcounter.InstallerWPF
     }
 
 
-    public class ValueToIsIndeterminate : IValueConverter
-    {
+    public class ValueToIsIndeterminate : IValueConverter {
         #region IValueConverter Members
 
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            if (((int)value) == 0)
-            {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+            if (((int)value) == 0) {
                 return true;
             }
 
             return false;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
             throw new NotImplementedException();
         }
 
