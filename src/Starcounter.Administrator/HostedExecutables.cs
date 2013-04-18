@@ -13,6 +13,7 @@ using System.Collections.Specialized;
 using System.Text;
 using Starcounter.Internal;
 using Starcounter.Server.Rest.MessageTypes;
+using Starcounter.Server.Rest;
 
 namespace Starcounter.Administrator {
 
@@ -37,7 +38,7 @@ namespace Starcounter.Administrator {
             HostedExecutables.runtime = runtime;
             HostedExecutables.serverHost = serverHost;
             HostedExecutables.serverPort = serverPort;
-            Handle.POST<string, Request>(relativeResourceUri, HandlePOST);
+            Handle.POST<string, Request>(AdminUri.Full(AdminUri.HostedDatabaseExecutables), HandlePOST);
         }
 
         static object HandlePOST(string name, Request request) {
@@ -150,7 +151,7 @@ namespace Starcounter.Administrator {
             // characteristics and location(s) from which the user or user agent can
             // choose the one most appropriate".
 
-            var runningExeRelativeUri = HostedExecutables.relativeResourceUri.Replace("{?}", databaseName);
+            var runningExeRelativeUri = AdminUri.Full(AdminUri.HostedDatabaseExecutables).Replace("{?}", databaseName);
             runningExeRelativeUri += "/" + Path.GetFileName(execRequest.ExecutablePath);
             
             var location = string.Format("http://{0}:{1}{2}", serverHost, serverPort, runningExeRelativeUri);
