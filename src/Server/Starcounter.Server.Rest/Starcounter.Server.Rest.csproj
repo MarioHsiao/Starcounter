@@ -42,6 +42,7 @@
     <Compile Include="MessageTypes\ExecResponse201.json.cs">
       <DependentUpon>ExecResponse201.json</DependentUpon>
     </Compile>
+    <Compile Include="SharedCLI.cs" />
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="MessageTypes\ExecRequest.json">
