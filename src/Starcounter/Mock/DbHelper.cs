@@ -137,6 +137,11 @@ namespace Starcounter {
             return Base64ForUrlEncode(obj.Identity);
         }
 
+        internal const string ObjectNoName = "ObjectNo";
+        internal static Type ObjectNoType = typeof(UInt64);
+        internal const string ObjectIDName = "ObjectID";
+        internal static Type ObjectIDType = typeof(String);
+
         ///<summary>
         /// Base 64 Encoding with URL and Filename Safe Alphabet using UTF-8 character set.
         ///</summary>
