@@ -153,9 +153,17 @@ namespace Starcounter.InstallerWPF {
                     Process.Start(new ProcessStartInfo(e.Parameter as string));
                     e.Handled = true;
                 }
-                catch (Win32Exception ee) {
-                    string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
-                    this.OnError(new Exception(message));
+                catch (Win32Exception) {
+
+                    try {
+                        Process.Start(new ProcessStartInfo("explorer.exe", e.Parameter as string));
+                        e.Handled = true;
+                    }
+                    catch (Win32Exception ee) {
+                        string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                        this.OnError(new Exception(message));
+                    }
+
                 }
             }
 
@@ -826,8 +834,8 @@ namespace Starcounter.InstallerWPF {
 
             _dispatcher.BeginInvoke(DispatcherPriority.Render,
                       new Action(delegate {
-                          this.DoMarker();
-                      }
+                this.DoMarker();
+            }
                   ));
 
         }
