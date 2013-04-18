@@ -19,6 +19,12 @@
     <ClCompile Include="test.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="tiny_tuple\benchmark.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="tiny_tuple\record_data.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="worker.hpp">
@@ -36,5 +42,20 @@
     <ClInclude Include="impl\test.hpp">
       <Filter>src\impl</Filter>
     </ClInclude>
+    <ClInclude Include="tiny_tuple\tiny_tuple.hpp" />
+    <ClInclude Include="tiny_tuple\impl\tiny_tuple.hpp" />
+    <ClInclude Include="tiny_tuple\macro_definitions.hpp" />
+    <ClInclude Include="tiny_tuple\test.hpp" />
+    <ClInclude Include="tiny_tuple\impl\test.hpp" />
+    <ClInclude Include="tiny_tuple\record_data.hpp" />
+    <ClInclude Include="tiny_tuple\bit_operations.hpp" />
+    <ClInclude Include="tiny_tuple\data_header.hpp" />
+    <ClInclude Include="tiny_tuple\impl\data_header.hpp" />
+    <ClInclude Include="tiny_tuple\record_header.hpp" />
+    <ClInclude Include="tiny_tuple\impl\record_header.hpp" />
+    <ClInclude Include="tiny_tuple\impl\defined_column_value.hpp" />
+    <ClInclude Include="tiny_tuple\defined_column_value.hpp" />
+    <ClInclude Include="tiny_tuple\random.hpp" />
+    <ClInclude Include="tiny_tuple\impl\random.hpp" />
   </ItemGroup>
 </Project>

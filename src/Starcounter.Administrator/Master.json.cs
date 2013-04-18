@@ -311,7 +311,10 @@ namespace Starcounter.Administrator {
                                 name = databases[i].Name,
                                 status = databases[i].HostProcessId,
                                 httpPort = databases[i].Configuration.Runtime.DefaultUserHttpPort,
-                                schedulerCount = databases[i].Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount
+                                schedulerCount = databases[i].Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
+                                chunksNumber = databases[i].Configuration.Runtime.ChunksNumber,
+                                sqlProcessPort = databases[i].Configuration.Runtime.SQLProcessPort,
+                                sqlAggregationSupport = databases[i].Configuration.Runtime.SqlAggregationSupport
                             };
                         }
                     }
@@ -326,11 +329,9 @@ namespace Starcounter.Administrator {
 
             });
 
-            //POST("/databases/{?}?{?}", (string id, string parameters) => {
-            //    return "hello world";
-            //});
-            // Start   /database/mydatabas?action=start
-            POST("/databases/{?}?action=start", (string name, Request req) => {
+
+            //  TODO: This should be "/databases/{?}?{?}"
+            POST("/a/{?}?{?}", (string name, string parameters, Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
 
@@ -342,10 +343,24 @@ namespace Starcounter.Administrator {
 
                         DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
                         // TODO: Check for null value of database
+                        NameValueCollection collection = System.Web.HttpUtility.ParseQueryString(parameters);
+                        ServerCommand command = null;
+                        switch (collection["action"]) {
+                            case "start":
+                                command = new StartDatabaseCommand(Master.ServerEngine, database.Name);
+                                break;
+                            case "stop":
+                                command = new StopDatabaseCommand(Master.ServerEngine, database.Name);
+                                break;
+                            default:
+                                // Unknown command
+                                break;
+                        }
 
-                        StartDatabaseCommand command = new StartDatabaseCommand(Master.ServerEngine, database.Name);
-                        CommandInfo commandInfo = Master.ServerInterface.Execute(command);
-                        resultJson.commandId = commandInfo.Id.Value;
+                        if (command != null) {
+                            CommandInfo commandInfo = Master.ServerInterface.Execute(command);
+                            resultJson.commandId = commandInfo.Id.Value;
+                        }
                     }
                     catch (Exception e) {
                         resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
@@ -403,7 +418,10 @@ namespace Starcounter.Administrator {
                                 name = database.Name,
                                 status = database.HostProcessId,
                                 httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
-                                schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount
+                                schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
+                                chunksNumber = database.Configuration.Runtime.ChunksNumber,
+                                sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
+                                sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport
                             };
                         }
                     }
@@ -416,7 +434,7 @@ namespace Starcounter.Administrator {
             });
 
             // Create a database
-            POST("/databases", (Request req) => {
+            POST("/databases/{?}", (string name, Request req) => {
 
                 dynamic resultJson = new DynamicJson();
                 resultJson.commandId = null;
@@ -430,11 +448,10 @@ namespace Starcounter.Administrator {
                     // Getting POST contents.
                     String content = req.GetBodyStringUtf8_Slow();
 
-                    // TODO: Validation of values
-
                     var incomingJson = DynamicJson.Parse(content);
 
-                    // Port number
+                    #region Validate incoming json data
+                    // Database name
                     if (string.IsNullOrEmpty(incomingJson.name)) {
                         resultJson.validationErrors[validationErrors++] = new { property = "name", message = "invalid database name" };
                     }
@@ -451,24 +468,89 @@ namespace Starcounter.Administrator {
                         resultJson.validationErrors[validationErrors++] = new { property = "schedulerCount", message = "invalid scheduler count" };
                     }
 
+                    // Chunks Number
+                    int chunksNumber;
+                    if (!int.TryParse(incomingJson.chunksNumber.ToString(), out chunksNumber)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "chunksNumber", message = "invalid chunks number" };
+                    }
+
+                    // Dump Directory
+                    if (string.IsNullOrEmpty(incomingJson.dumpDirectory)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "dumpDirectory", message = "invalid dump directory" };
+                    }
+
+                    // Temp Directory
+                    if (string.IsNullOrEmpty(incomingJson.tempDirectory)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "tempDirectory", message = "invalid temp directory" };
+                    }
+
+                    // Image Directory
+                    if (string.IsNullOrEmpty(incomingJson.imageDirectory)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "imageDirectory", message = "invalid image directory" };
+                    }
+
+                    // Log Directory
+                    if (string.IsNullOrEmpty(incomingJson.transactionLogDirectory)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "transactionLogDirectory", message = "invalid transaction log directory" };
+                    }
+
+                    // SQL Aggregation support
+                    bool sqlAggregationSupport;
+                    if (!bool.TryParse(incomingJson.sqlAggregationSupport.ToString(), out sqlAggregationSupport)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "sqlAggregationSupport", message = "invalid SQL Aggregation support" };
+                    }
+
+                    // sqlProcessPort
+                    ushort sqlProcessPort;
+                    if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
+                    }
+
+                    // Collation File
+                    if (string.IsNullOrEmpty(incomingJson.collationFile)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "collationFile", message = "invalid collation file" };
+                    }
+
+                    // maxImageSize
+                    long maxImageSize;
+                    if (!long.TryParse(incomingJson.maxImageSize.ToString(), out maxImageSize)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "maxImageSize", message = "invalid max image size" };
+                    }
+
+                    // supportReplication
+                    bool supportReplication;
+                    if (!bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "supportReplication", message = "invalid support replication" };
+                    }
+
+                    // transactionLogSize
+                    long transactionLogSize;
+                    if (!long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
+                        resultJson.validationErrors[validationErrors++] = new { property = "transactionLogSize", message = "invalid transaction log size" };
+                    }
+
+                    #endregion
+
                     if (validationErrors == 0) {
 
                         var command = new CreateDatabaseCommand(Master.ServerEngine, incomingJson.name);
                         command.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = port;
                         command.SetupProperties.Configuration.Runtime.SchedulerCount = schedulerCount;
+                        command.SetupProperties.Configuration.Runtime.ChunksNumber = chunksNumber;
 
-                        command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)incomingJson.chunksNumber;
                         command.SetupProperties.Configuration.Runtime.DumpDirectory = incomingJson.dumpDirectory;
                         command.SetupProperties.Configuration.Runtime.TempDirectory = incomingJson.tempDirectory;
                         command.SetupProperties.Configuration.Runtime.ImageDirectory = incomingJson.imageDirectory;
                         command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = incomingJson.transactionLogDirectory;
-                        command.SetupProperties.Configuration.Runtime.SqlAggregationSupport = (bool)incomingJson.sqlAggregationSupport;
-                        command.SetupProperties.Configuration.Runtime.SQLProcessPort = (ushort)incomingJson.sqlProcessPort;
+
+                        command.SetupProperties.Configuration.Runtime.SqlAggregationSupport = sqlAggregationSupport;
+                        command.SetupProperties.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
 
                         command.SetupProperties.StorageConfiguration.CollationFile = incomingJson.collationFile;
-                        command.SetupProperties.StorageConfiguration.MaxImageSize = (long)incomingJson.maxImageSize;
-                        command.SetupProperties.StorageConfiguration.SupportReplication = (bool)incomingJson.supportReplication;
-                        command.SetupProperties.StorageConfiguration.TransactionLogSize = (long)incomingJson.transactionLogSize;
+
+                        command.SetupProperties.StorageConfiguration.MaxImageSize = maxImageSize;
+                        command.SetupProperties.StorageConfiguration.SupportReplication = supportReplication;
+                        command.SetupProperties.StorageConfiguration.TransactionLogSize = transactionLogSize;
 
                         CommandInfo commandInfo = Master.ServerInterface.Execute(command);
                         resultJson.commandId = commandInfo.Id.Value;
@@ -484,7 +566,7 @@ namespace Starcounter.Administrator {
 
             PUT("/databases/{?}", (string name, Request req) => {
 
-
+                // Update settings
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     dynamic resultJson = new DynamicJson();
                     resultJson.database = null;
@@ -506,26 +588,49 @@ namespace Starcounter.Administrator {
                             // Validate settings
                             int validationErrors = 0;
 
+                            #region Validate incoming json data
+
                             // Port number
                             ushort port;
-                            if (ushort.TryParse(incomingJson.httpPort.ToString(), out port) && port >= IPEndPoint.MinPort && port <= IPEndPoint.MaxPort) {
-                                database.Configuration.Runtime.DefaultUserHttpPort = port;
-                            }
-                            else {
+                            if (!ushort.TryParse(incomingJson.httpPort.ToString(), out port) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
                                 resultJson.validationErrors[validationErrors++] = new { property = "httpPort", message = "invalid port number" };
                             }
 
                             // Scheduler Count
                             int schedulerCount;
-                            if (int.TryParse(incomingJson.schedulerCount.ToString(), out schedulerCount)) {
-                                database.Configuration.Runtime.SchedulerCount = schedulerCount;
-                            }
-                            else {
+                            if (!int.TryParse(incomingJson.schedulerCount.ToString(), out schedulerCount)) {
                                 resultJson.validationErrors[validationErrors++] = new { property = "schedulerCount", message = "invalid scheduler count" };
                             }
 
+                            // Chunks Number
+                            int chunksNumber;
+                            if (!int.TryParse(incomingJson.chunksNumber.ToString(), out chunksNumber)) {
+                                resultJson.validationErrors[validationErrors++] = new { property = "chunksNumber", message = "invalid chunks number" };
+                            }
+
+                            // SQL Aggregation support
+                            bool sqlAggregationSupport;
+                            if (!bool.TryParse(incomingJson.sqlAggregationSupport.ToString(), out sqlAggregationSupport)) {
+                                resultJson.validationErrors[validationErrors++] = new { property = "sqlAggregationSupport", message = "invalid SQL Aggregation support" };
+                            }
+
+                            // sqlProcessPort
+                            ushort sqlProcessPort;
+                            if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
+                                resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
+                            }
+
+                            #endregion
+
                             if (validationErrors == 0) {
                                 // Validation OK
+
+                                database.Configuration.Runtime.DefaultUserHttpPort = port;
+                                database.Configuration.Runtime.SchedulerCount = schedulerCount;
+                                database.Configuration.Runtime.ChunksNumber = chunksNumber;
+                                database.Configuration.Runtime.SqlAggregationSupport = sqlAggregationSupport;
+                                database.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
+
                                 database.Configuration.Save();
                                 resultJson.message = "Settings saved. The new settings will be used at the next start of the database";
 
@@ -539,7 +644,10 @@ namespace Starcounter.Administrator {
                                         name = database.Name,
                                         status = database.HostProcessId,
                                         httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
-                                        schedulerCount = database.Configuration.Runtime.SchedulerCount
+                                        schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
+                                        chunksNumber = database.Configuration.Runtime.ChunksNumber,
+                                        sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
+                                        sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport
                                     };
                                 }
 
@@ -582,7 +690,15 @@ namespace Starcounter.Administrator {
 
                         json.chunksNumber = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ChunksNumber;
 
-                        json.dumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory;
+                        // TODO: this is a workaround to get the default dumpdirectory path (fix this in the public model api)
+                        if (string.IsNullOrEmpty(serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory)) {
+                            //  By default, dump files are stored in ImageDirectory
+                            json.dumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
+                        }
+                        else {
+                            json.dumpDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.DumpDirectory;
+                        }
+
                         json.tempDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TempDirectory;
                         json.imageDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
                         json.transactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
@@ -590,6 +706,14 @@ namespace Starcounter.Administrator {
                         json.sqlAggregationSupport = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SqlAggregationSupport;
                         json.sqlProcessPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SQLProcessPort;
                         json.collationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
+
+                        json.collationFiles = new object[] { };
+                        // TODO: Extend the Public model api to be able to retrive a list of all available collation files
+                        json.collationFiles[0] = new { name = "TurboText_en-GB_2.dll", description = "English" };
+                        json.collationFiles[1] = new { name = "TurboText_sv-SE_2.dll", description = "Swedish" };
+                        json.collationFiles[2] = new { name = "TurboText_nb-NO_2.dll", description = "Norwegian" };
+
+
                         json.maxImageSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.MaxImageSize ?? -1;
                         json.supportReplication = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.SupportReplication;
                         json.transactionLogSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.TransactionLogSize ?? -1;
@@ -760,8 +884,7 @@ namespace Starcounter.Administrator {
 
                 try {
                     // Registering static handler on given port.
-                    GET(port, "/{?}", (string res) =>
-                    {
+                    GET(port, "/{?}", (string res) => {
                         return null;
                     });
                 }
