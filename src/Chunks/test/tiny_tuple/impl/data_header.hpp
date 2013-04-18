@@ -93,8 +93,9 @@ FORCE_INLINE void set_offset(pointer_type data_header, index_type index, offset_
 
     // Clear bits where the offset will be inserted.
     old_offset &= ~(((1 << offset_size) -1) << (offset_start & 7));
-    old_offset |= offset;
-    *((uint32_t*)((uint8_t*) data_header +(offset_start >> 3))) = offset;
+	
+	// Write back old_offset merged with offset.
+    *((uint32_t*)((uint8_t*) data_header +(offset_start >> 3))) = old_offset | offset;
 }
 
 FORCE_INLINE size_type size(pointer_type data_header) {

@@ -534,11 +534,9 @@ function ServerCtrl($scope, $dialog, Server, $http) {
 function DatabasesCtrl($scope, $dialog) {
     $scope.alerts.length = 0;
 
-
     $scope.btnClick_refreshDatabases = function () {
         $scope.getDatabases();
     }
-
 
     $scope.btnClick_restart = function (database) {
         $scope.alerts.length = 0;
@@ -728,37 +726,6 @@ function DatabaseCtrl($scope, $location, $routeParams, $dialog, $http, Database,
         });
 
     }
-
-    // Form validation
-    //$scope.blackList = ['bad@domain.com', 'verybad@domain.com'];
-    //$scope.notBlackListed = function (value) {
-
-    //    return $scope.blackList.indexOf(value) === -1;
-
-    //};
-
-    //$scope.test2Validate = function (value) {
-
-    //    return true;
-
-    //};
-
-    //$scope.testValidate = function (value) {
-
-    //    if (value == null) return false;
-    //    return value.length === 2;
-
-    //};
-
-
-
-
-    //$scope.notBlackListed = function (value) {
-    //    var blacklist = ['bad@domain.com', 'verybad@domain.com'];
-    //    return blacklist.indexOf(value) === -1;
-    //}
-
-
 
     // User clicked the "Refresh" button
     $scope.btnClick_refreshConsole = function () {
@@ -1086,11 +1053,15 @@ function CreateDatabaseCtrl($scope, Settings, Database, CommandStatus, $dialog, 
         // Retrive database list
         Settings.query({ type: "database" }, function (response) {
             $scope.isBusy = false;
-            response.tempDirectory = response.tempDirectory.replace("[DatabaseName]", response.databaseName);
-            response.imageDirectory = response.imageDirectory.replace("[DatabaseName]", response.databaseName);
-            response.transactionLogDirectory = response.transactionLogDirectory.replace("[DatabaseName]", response.databaseName);
+            response.tempDirectory = response.tempDirectory.replace("[DatabaseName]", response.name);
+            response.imageDirectory = response.imageDirectory.replace("[DatabaseName]", response.name);
+            response.transactionLogDirectory = response.transactionLogDirectory.replace("[DatabaseName]", response.name);
+            response.dumpDirectory = response.dumpDirectory.replace("[DatabaseName]", response.name);
 
             $scope.settings = response;
+
+            $scope.myForm.$setPristine(); // This disent work, the <select> breaks the pristine state :-(
+
         }, function (response) {
             // Error, Can not retrive a list of databases
             $scope.isBusy = false;
@@ -1118,7 +1089,7 @@ function CreateDatabaseCtrl($scope, Settings, Database, CommandStatus, $dialog, 
         var pollFrequency = 100 // 500ms
         var pollTimeout = 60000; // 60 Seconds
 
-        Database.create({},$scope.settings, function (response) {
+        Database.create({}, $scope.settings, function (response) {
 
             $scope.isBusy = false;
             var commandStarted = true;
@@ -1170,8 +1141,10 @@ function CreateDatabaseCtrl($scope, Settings, Database, CommandStatus, $dialog, 
                                 }
                                 else {
                                     $scope.alerts.push({ type: 'success', msg: "Database " + $scope.settings.name + " was successfully created." });
-                                    //$location.path("/databases");
                                     $scope.settings = null;
+                                    // Refresh the databases list
+                                    $rootScope.getDatabases();
+                                    //                                    $location.path("/databases");
                                 }
                             }
                             else {
@@ -1217,6 +1190,12 @@ function CreateDatabaseCtrl($scope, Settings, Database, CommandStatus, $dialog, 
     $scope.btnClick_createDatabase = function () {
         $scope.createDatabase();
     }
+
+    $scope.btnClick_reset = function () {
+
+        $scope.getDefaultSettings();
+    }
+
 
     $scope.getDefaultSettings();
 
