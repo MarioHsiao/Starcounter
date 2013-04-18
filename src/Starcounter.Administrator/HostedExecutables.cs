@@ -140,7 +140,7 @@ namespace Starcounter.Administrator {
             // http://tools.ietf.org/html/rfc2616#section-14.30
             //
             // That is, in this case: http://host:port/path/to/the/executable/
-            // like http://localhost:8181/databases/default/executables/foo.exe.
+            // like http://127.0.0.1:8181/databases/default/executables/foo.exe.
             //
             // From 10.2.2 201 Created:
             // "The newly created resource can be referenced by the URI(s)
