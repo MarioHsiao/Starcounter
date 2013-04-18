@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter.CommandLine;
+using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 
 namespace Starcounter.Server {
@@ -46,6 +47,47 @@ namespace Starcounter.Server {
             public const string LogSteps = "logsteps";
             public const string NoDb = "nodb";
             public const string NoAutoCreateDb = "noautocreate";
+        }
+
+        /// <summary>
+        /// Defines and includes the well-known, shared CLI options in
+        /// the given <see cref="SyntaxDefinition"/>.
+        /// </summary>
+        /// <param name="definition">The <see cref="SyntaxDefinition"/>
+        /// in which well-known, shared options should be included.</param>
+        public static void DefineWellKnownOptions(SyntaxDefinition definition) {
+            definition.DefineProperty(
+                Option.Serverport,
+                "The port of the server to use.",
+                OptionAttributes.Default,
+                new string[] { "p" }
+                );
+            definition.DefineProperty(
+                Option.Db,
+                "The database to use.",
+                OptionAttributes.Default,
+                new string[] { "d" }
+                );
+            definition.DefineProperty(
+                Option.Server,
+                "Sets the name of the server to use."
+                );
+            definition.DefineProperty(
+                Option.ServerHost,
+                "Specifies identify of the server host."
+                );
+            definition.DefineFlag(
+                Option.LogSteps,
+                "Enables diagnostic logging. When set, Starcounter will produce a set of diagnostic log entries in the log."
+                );
+            definition.DefineFlag(
+                Option.NoDb,
+                "Specifies the code host should run the executable without loading any database data."
+                );
+            definition.DefineFlag(
+                Option.NoAutoCreateDb,
+                "Specifies that a database can not be automatically created if it doesn't exist."
+                );
         }
 
         /// <summary>
