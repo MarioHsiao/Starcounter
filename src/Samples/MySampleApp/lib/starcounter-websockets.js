@@ -30,7 +30,7 @@
               if (!this.UseText)
                  ws.binaryType = "arraybuffer";
 
-              //var ws = new wsImpl('ws://localhost:8181/consoleappsample', 'my-protocol');
+              //var ws = new wsImpl('ws://127.0.0.1:8181/consoleappsample', 'my-protocol');
               ws.StableSocket = this;
 
               // when data is comming from the server, this metod is called

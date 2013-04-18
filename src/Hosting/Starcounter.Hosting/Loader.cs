@@ -128,9 +128,12 @@ namespace StarcounterInternal.Hosting
         /// Adds the base package.
         /// </summary>
         /// <param name="hsched">The hsched.</param>
-        public static unsafe void AddBasePackage(void* hsched)
+        public static unsafe void AddBasePackage(void* hsched, Stopwatch stopwatch = null)
         {
-            stopwatch_ = Stopwatch.StartNew();
+            if (stopwatch != null)
+                stopwatch_ = stopwatch;
+            else
+                stopwatch_ = new Stopwatch();
 
             var sysTableTypeDef = SysTable.CreateTypeDef();
             var sysColumnTypeDef = SysColumn.CreateTypeDef();

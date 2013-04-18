@@ -55,7 +55,7 @@
 # define DLL_IMPORT __declspec(dllimport)
 #endif // defined(_MSC_VER)
 
-//#define USE_POPCNT
+#define USE_POPCNT
 
 // Restrict is a compiler directive that helps avoid load-hit-store stalls.
 //
