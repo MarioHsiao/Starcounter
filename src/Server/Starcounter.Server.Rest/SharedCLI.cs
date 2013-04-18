@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
+using System.Net;
 
 namespace Starcounter.Server {
 
@@ -29,7 +30,7 @@ namespace Starcounter.Server {
         /// <summary>
         /// Provides the default admin server host.
         /// </summary>
-        public const string DefaultAdminServerHost = "localhost";
+        public static string DefaultAdminServerHost = IPAddress.Loopback.ToString();
         /// <summary>
         /// Provides the name of the default database being used when
         /// none is explicitly given.
