@@ -744,6 +744,10 @@ namespace Starcounter.Query.Sql
                 //}
 
                 // Export information about properties (columns).
+                string objectNoNameUpper = DbHelper.ObjectNoName.ToUpperInvariant();
+                bool isUserObjectNo = false;
+                bool isUserObjectID = false;
+                string objectIDNameUpper = DbHelper.ObjectIDName.ToUpperInvariant();
                 streamWriter.WriteLine("/* property(databaseId,fullClassName,propertyNameUpper,propertyName,propertyType). */");
                 for (Int32 i = 0; i < typeDefArray.Length; i++)
                 {
@@ -767,8 +771,19 @@ namespace Starcounter.Query.Sql
                         {
                             streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
                                 propDef.Name + "','" + propDef.Type.ToString() + "')).");
+                            if (propDef.Name.ToUpperInvariant() == objectNoNameUpper)
+                                isUserObjectNo = true;
+                            if (propDef.Name.ToUpperInvariant() == objectIDNameUpper)
+                                isUserObjectID = true;
                         }
                     }
+                    // Add hard-coded properties ObjectNo and ObjectID
+                    if (!isUserObjectNo)
+                        streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + objectNoNameUpper + "','" +
+                            DbHelper.ObjectNoName + "','" + DbHelper.ObjectNoType.ToString() + "')).");
+                    if (!isUserObjectID)
+                        streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + objectIDNameUpper + "','" +
+                            DbHelper.ObjectIDName + "','" + DbHelper.ObjectIDType.ToString() + "')).");
                 }
 
                 //// Export information about extension properties (columns).
