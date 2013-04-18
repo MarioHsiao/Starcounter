@@ -93,8 +93,23 @@ FORCE_INLINE void set_offset(pointer_type data_header, index_type index, offset_
 
     // Clear bits where the offset will be inserted.
     old_offset &= ~(((1 << offset_size) -1) << (offset_start & 7));
-    old_offset |= offset;
-    *((uint32_t*)((uint8_t*) data_header +(offset_start >> 3))) = offset;
+	
+	// Write back old_offset merged with offset.
+    *((uint32_t*)((uint8_t*) data_header +(offset_start >> 3))) = old_offset | offset;
+}
+
+FORCE_INLINE size_type size(pointer_type data_header) {
+	// The data header size is stored in the first OFFSET.
+    columns_type columns = get_columns(data_header);
+    offset_size_type offset_size = get_offset_size(data_header);
+
+    // Calculate distance to the first OFFSET.
+    offset_distance_type first_offset_start = static_field_size +columns;
+	
+    // Load the first OFFSET from the byte aligned 32-bit word overlapping the OFFSET.
+	uint32_t first_offset = *((uint32_t*)((uint8_t*) data_header +(first_offset_start >> 3)));
+	first_offset >>= first_offset_start & 7;
+    return first_offset & ((1 << offset_size) -1);
 }
 
 } // namespace data_header

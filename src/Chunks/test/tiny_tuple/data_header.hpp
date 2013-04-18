@@ -60,6 +60,7 @@ typedef uint32_t offset_type;
 typedef uint32_t offset_distance_type;
 typedef uint32_t offset_size_type;
 typedef uint32_t index_type;
+typedef uint32_t size_type;
 
 enum {
 	// Field sizes:
@@ -137,9 +138,16 @@ columns_type columns, offset_type offset_size);
 /**
  * @param data_header The address of the byte aligned DATA HEADER.
  * @param index The index of the OFFSET.
- * @return Tthe OFFSET value at index, which is relative to the beginning of the DATA HEADER.
+ * @return The OFFSET value at index, which is relative to the beginning of the DATA HEADER.
  */
 FORCE_INLINE offset_type get_offset(pointer_type data_header, index_type index);
+
+/// size() returns the size of the DATA HEADER.
+/**
+ * @param data_header The address of the byte aligned DATA HEADER.
+ * @return The size of the DATA HEADER.
+ */
+FORCE_INLINE size_type size(pointer_type data_header);
 
 } // namespace data_header
 } // namespace record

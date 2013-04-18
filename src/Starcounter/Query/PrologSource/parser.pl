@@ -75,7 +75,9 @@ digit_code([Code|Cs],Cs):- /* '0'-'9' */
 	Code >= 48, 
 	Code =< 57, !. 
 
-quote_code([39|Cs],Cs):- !. /* ''' */
+single_quote_code([39|Cs],Cs):- !. /* ''' */
+
+double_quote_code([34|Cs],Cs):- !. /* '"' */
 
 underscore_code([95|Cs],Cs):- !. /* '_' */
 
@@ -89,8 +91,10 @@ space_code([32|Cs],Cs):- !. /* ' ' */
 
 terminal([Code|Cs],Code,Cs):- !. /* Used to represent terminal symbols. */
 
-empty_string_literal(literal(string,Literal)):- 
+empty_string_literal(literal(string,Literal)):- /* '' */
 	atom_codes(Literal,[39,39]), !.
+empty_string_literal(literal(string,Literal)):- /* "" */
+	atom_codes(Literal,[34,34]), !.
 
 
 /*===== 5.2 <token> and <separator>. =====*/
@@ -228,28 +232,50 @@ string_literal([Token|Ts],Ts,literal(string,Token)):-
 	atom_codes(Token,Codes), 
 	string_codes(Codes,[]), !.
 
-string_codes(Cs1,Cs4):- 
-	quote_code(Cs1,Cs2), 
-	string_codes2(Cs2,Cs3), 
-	quote_code(Cs3,Cs4), !.
+string_codes(Cs1,Cs4):- /* String of format '...'. */
+	single_quote_code(Cs1,Cs2), 
+	string_codes_single(Cs2,Cs3), 
+	single_quote_code(Cs3,Cs4), !.
+string_codes(Cs1,Cs4):- /* String of format "...". */
+	double_quote_code(Cs1,Cs2), 
+	string_codes_double(Cs2,Cs3), 
+	double_quote_code(Cs3,Cs4), !.
 
-string_codes2(Cs1,Cs3):- 
-	character_representation_code(Cs1,Cs2), 
-	string_codes2(Cs2,Cs3), !.
-string_codes2(Cs,Cs):- !.
+string_codes_single(Cs1,Cs3):- 
+	character_representation_code_single(Cs1,Cs2), 
+	string_codes_single(Cs2,Cs3), !.
+string_codes_single(Cs,Cs):- !.
 
-character_representation_code(Cs1,Cs2):- 
-	non_quote_character_code(Cs1,Cs2), !.
-character_representation_code(Cs1,Cs2):- 
-	quote_symbol_code(Cs1,Cs2), !.
+character_representation_code_single(Cs1,Cs2):- 
+	non_quote_character_code_single(Cs1,Cs2), !.
+character_representation_code_single(Cs1,Cs2):- 
+	quote_symbol_code_single(Cs1,Cs2), !.
 
-non_quote_character_code(Cs1,Cs2):- 
-	quote_code(Cs1,Cs2), !, fail.
-non_quote_character_code([_|Cs],Cs):- !.
+non_quote_character_code_single(Cs1,Cs2):- 
+	single_quote_code(Cs1,Cs2), !, fail.
+non_quote_character_code_single([_|Cs],Cs):- !.
 
-quote_symbol_code(Cs1,Cs3):- 
-	quote_code(Cs1,Cs2), 
-	quote_code(Cs2,Cs3), !.
+quote_symbol_code_single(Cs1,Cs3):- 
+	single_quote_code(Cs1,Cs2), 
+	single_quote_code(Cs2,Cs3), !.
+
+string_codes_double(Cs1,Cs3):- 
+	character_representation_code_double(Cs1,Cs2), 
+	string_codes_double(Cs2,Cs3), !.
+string_codes_double(Cs,Cs):- !.
+
+character_representation_code_double(Cs1,Cs2):- 
+	non_quote_character_code_double(Cs1,Cs2), !.
+character_representation_code_double(Cs1,Cs2):- 
+	quote_symbol_code_double(Cs1,Cs2), !.
+
+non_quote_character_code_double(Cs1,Cs2):- 
+	double_quote_code(Cs1,Cs2), !, fail.
+non_quote_character_code_double([_|Cs],Cs):- !.
+
+quote_symbol_code_double(Cs1,Cs3):- 
+	double_quote_code(Cs1,Cs2), 
+	double_quote_code(Cs2,Cs3), !.
 
 /* Object literal (not SQL92). */
 
@@ -974,10 +1000,6 @@ in_predicate2(Ts1,Ts2,not):-
 	terminal(Ts1,'<NOT>',Ts2), !.
 in_predicate2(Ts,Ts,noNot):- !.
 
-/***071206
-in_predicate_value(Ts1,Ts2,ValueList):- 
-	table_subquery(Ts1,Ts2,ValueList), !.
-***/
 in_predicate_value(Ts1,Ts4,ValueList):- 
 	terminal(Ts1,'(',Ts2), 
 	in_value_list(Ts2,Ts3,ValueList), 
