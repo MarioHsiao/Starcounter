@@ -22,7 +22,7 @@ namespace star {
         const string DefaultAdminServerHost = "localhost";
         const string DefaultDatabaseName = StarcounterConstants.DefaultDatabaseName;
 
-        static class Option {
+        static class StarOption {
             public const string Help = "help";
             public const string HelpEx = "helpextended";
             public const string Version = "version";
@@ -65,7 +65,7 @@ namespace star {
                 StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort
                 );
 
-            if (args.TryGetProperty(Option.Serverport, out givenPort)) {
+            if (args.TryGetProperty(StarOption.Serverport, out givenPort)) {
                 port = int.Parse(givenPort);
 
                 // If a port is specified, that always have precedence.
@@ -77,7 +77,7 @@ namespace star {
                 //   3) Finding a server name configured in the environment.
                 //   4) Using a const string (e.g. "N/A")
 
-                if (!args.TryGetProperty(Option.Server, out serverName)) {
+                if (!args.TryGetProperty(StarOption.Server, out serverName)) {
                     if (port == personalDefault) {
                         serverName = StarcounterEnvironment.ServerNames.PersonalServer;
                     } else if (port == systemDefault) {
@@ -104,7 +104,7 @@ namespace star {
                 //   If no server is specified either on the command line or in the
                 // environment, we'll assume personal and the default port for that.
 
-                if (!args.TryGetProperty(Option.Server, out serverName)) {
+                if (!args.TryGetProperty(StarOption.Server, out serverName)) {
                     serverName = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.DefaultServer);
                     if (string.IsNullOrEmpty(serverName)) {
                         serverName = StarcounterEnvironment.ServerNames.PersonalServer;
@@ -122,7 +122,7 @@ namespace star {
                         Error.SCERRUNSPECIFIED,
                         string.Format("Unknown server name: {0}. Please specify the port using '{1}'.", 
                         serverName,
-                        Option.Serverport));
+                        StarOption.Serverport));
                 }
             }
         }
@@ -153,11 +153,11 @@ namespace star {
 
             // Process global options that has precedence
 
-            if (appArgs.ContainsFlag(Option.NoColor)) {
+            if (appArgs.ContainsFlag(StarOption.NoColor)) {
                 ConsoleUtil.DisableColors = true;
             }
 
-            var syntaxTests = appArgs.ContainsFlag(Option.Syntax);
+            var syntaxTests = appArgs.ContainsFlag(StarOption.Syntax);
             if (syntaxTests) {
                 ConsoleUtil.ToConsoleWithColor(() => { SyntaxTreeToConsole(syntax); }, ConsoleColor.DarkGray);
                 ConsoleUtil.ToConsoleWithColor(() => { ParsedArgumentsToConsole(appArgs, syntax); }, ConsoleColor.Green);
@@ -172,22 +172,22 @@ namespace star {
                 return;
             }
 
-            if (appArgs.ContainsFlag(Option.Help, CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(StarOption.Help, CommandLineSection.GlobalOptions)) {
                 Usage(syntax);
                 return;
             }
 
-            if (appArgs.ContainsFlag(Option.HelpEx, CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(StarOption.HelpEx, CommandLineSection.GlobalOptions)) {
                 Usage(syntax, true);
                 return;
             }
 
-            if (appArgs.ContainsFlag(Option.Info, CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(StarOption.Info, CommandLineSection.GlobalOptions)) {
                 ShowInfoAboutStarcounter();
                 return;
             }
 
-            if (appArgs.ContainsFlag(Option.Version, CommandLineSection.GlobalOptions)) {
+            if (appArgs.ContainsFlag(StarOption.Version, CommandLineSection.GlobalOptions)) {
                 ShowVersionInfo();
                 return;
             }
@@ -223,7 +223,7 @@ namespace star {
                 Environment.ExitCode = (int)errorCode;
                 return;
             }
-            if (!appArgs.TryGetProperty(Option.ServerHost, out serverHost)) {
+            if (!appArgs.TryGetProperty(StarOption.ServerHost, out serverHost)) {
                 serverHost = Program.DefaultAdminServerHost;
             } else {
                 if (serverHost.StartsWith("http", true, null)) {
@@ -314,7 +314,7 @@ namespace star {
             ExecRequest request;
             string executable;
 
-            if (!args.TryGetProperty(Option.Db, out database)) {
+            if (!args.TryGetProperty(StarOption.Db, out database)) {
                 database = Program.DefaultDatabaseName;
             }
             relativeUri = string.Format("/databases/{0}/executables", database);
@@ -342,9 +342,9 @@ namespace star {
                 ExecutablePath = executable,
                 CommandLineString = string.Empty,
                 ResourceDirectoriesString = string.Empty,
-                NoDb = args.ContainsFlag(Option.NoDb),
-                LogSteps = args.ContainsFlag(Option.LogSteps),
-                CanAutoCreateDb = !args.ContainsFlag(Option.NoAutoCreateDb)
+                NoDb = args.ContainsFlag(StarOption.NoDb),
+                LogSteps = args.ContainsFlag(StarOption.LogSteps),
+                CanAutoCreateDb = !args.ContainsFlag(StarOption.NoAutoCreateDb)
             };
 
             // Check if we have any arguments we ultimately must pass on
@@ -391,7 +391,7 @@ namespace star {
             var content = response.Content.ReadAsStringAsync();
             var body = await content;
 
-            var showHttp = args.ContainsFlag(Option.ShowHttp);
+            var showHttp = args.ContainsFlag(StarOption.ShowHttp);
 
             if (showHttp) {
                 var request = response.RequestMessage;
@@ -424,7 +424,7 @@ namespace star {
                     dbUri.DatabaseName,
                     responseBody.DatabaseHostPID);
                 ConsoleUtil.ToConsoleWithColor(output, ConsoleColor.Green);
-                if (args.ContainsFlag(Option.AttatchCodeHostDebugger)) {
+                if (args.ContainsFlag(StarOption.AttatchCodeHostDebugger)) {
                     Process.Start("vsjitdebugger.exe", "-p " + responseBody.DatabaseHostPID);
                     Console.ReadLine();
                 }
@@ -438,8 +438,8 @@ namespace star {
             } else if (statusCode == 404) {
                 ConsoleUtil.ToConsoleWithColor(body, ConsoleColor.Red);
                 Console.WriteLine();
-                if (args.ContainsFlag(Option.NoAutoCreateDb)) {
-                    Console.WriteLine("To allow automatic creation of the database, remove the --{0} option.", Option.NoAutoCreateDb);
+                if (args.ContainsFlag(StarOption.NoAutoCreateDb)) {
+                    Console.WriteLine("To allow automatic creation of the database, remove the --{0} option.", StarOption.NoAutoCreateDb);
                     Console.WriteLine();
                 }
                 Environment.ExitCode = (int)Error.SCERRDATABASENOTFOUND;
@@ -525,27 +525,27 @@ namespace star {
             Console.WriteLine();
             Console.WriteLine("Options:");
             formatting = "  {0,-22}{1,25}";
-            Console.WriteLine(formatting, string.Format("-h, --{0}", Option.Help), "Shows help about star.exe.");
-            Console.WriteLine(formatting, string.Format("-hx, --{0}", Option.HelpEx), "Shows extended/unofficial help about star.exe.");
-            Console.WriteLine(formatting, string.Format("-v, --{0}", Option.Version), "Prints the version of Starcounter.");
-            Console.WriteLine(formatting, string.Format("-i, --{0}", Option.Info), "Prints information about the Starcounter installation.");
-            Console.WriteLine(formatting, string.Format("-p, --{0} port", Option.Serverport), "The port to use to the admin server.");
-            Console.WriteLine(formatting, string.Format("--{0} name", Option.Server), "Specifies the name of the server. If no port is");
+            Console.WriteLine(formatting, string.Format("-h, --{0}", StarOption.Help), "Shows help about star.exe.");
+            Console.WriteLine(formatting, string.Format("-hx, --{0}", StarOption.HelpEx), "Shows extended/unofficial help about star.exe.");
+            Console.WriteLine(formatting, string.Format("-v, --{0}", StarOption.Version), "Prints the version of Starcounter.");
+            Console.WriteLine(formatting, string.Format("-i, --{0}", StarOption.Info), "Prints information about the Starcounter installation.");
+            Console.WriteLine(formatting, string.Format("-p, --{0} port", StarOption.Serverport), "The port to use to the admin server.");
+            Console.WriteLine(formatting, string.Format("--{0} name", StarOption.Server), "Specifies the name of the server. If no port is");
             Console.WriteLine(formatting, "", "specified, star.exe use the known port of server.");
-            Console.WriteLine(formatting, string.Format("--{0} host", Option.ServerHost), "Specifies the identity of the server host. If no");
+            Console.WriteLine(formatting, string.Format("--{0} host", StarOption.ServerHost), "Specifies the identity of the server host. If no");
             Console.WriteLine(formatting, "", "host is specified, 'localhost' is used.");
-            Console.WriteLine(formatting, string.Format("-d, --{0} name", Option.Db), "The database to use. 'Default' is used if not given.");
-            Console.WriteLine(formatting, string.Format("--{0}", Option.LogSteps), "Enables diagnostic logging.");
-            Console.WriteLine(formatting, string.Format("--{0}", Option.NoDb), "Tells the host to load and run the executable");
+            Console.WriteLine(formatting, string.Format("-d, --{0} name", StarOption.Db), "The database to use. 'Default' is used if not given.");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.LogSteps), "Enables diagnostic logging.");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoDb), "Tells the host to load and run the executable");
             Console.WriteLine(formatting, "", "without loading any database into the process.");
-            Console.WriteLine(formatting, string.Format("--{0}", Option.NoAutoCreateDb), "Prevents automatic creation of database.");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoAutoCreateDb), "Prevents automatic creation of database.");
             if (extended) {
-                Console.WriteLine(formatting, string.Format("--{0} level", Option.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
+                Console.WriteLine(formatting, string.Format("--{0} level", StarOption.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
                 Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
-                Console.WriteLine(formatting, string.Format("--{0}", Option.Syntax), "Shows the parsing of the command-line, then exits.");
-                Console.WriteLine(formatting, string.Format("--{0}", Option.NoColor), "Instructs star.exe to turn off colorizing output.");
-                Console.WriteLine(formatting, string.Format("--{0}", Option.ShowHttp), "Displays underlying HTTP messages.");
-                Console.WriteLine(formatting, string.Format("--{0}", Option.AttatchCodeHostDebugger), "Attaches a debugger to the code host process.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.Syntax), "Shows the parsing of the command-line, then exits.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoColor), "Instructs star.exe to turn off colorizing output.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.ShowHttp), "Displays underlying HTTP messages.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.AttatchCodeHostDebugger), "Attaches a debugger to the code host process.");
             }
             Console.WriteLine();
             if (extended) {
@@ -570,82 +570,82 @@ namespace star {
             appSyntax.ProgramDescription = "star.exe";
             appSyntax.DefaultCommand = "exec";
             appSyntax.DefineFlag(
-                Option.Help,
+                StarOption.Help,
                 "Prints the star.exe help message.",
                 OptionAttributes.Default,
                 new string[] { "h" }
                 );
             appSyntax.DefineFlag(
-                Option.HelpEx,
+                StarOption.HelpEx,
                 "Prints the star.exe extended help message.",
                 OptionAttributes.Default,
                 new string[] { "hx" }
                 );
             appSyntax.DefineFlag(
-                Option.Version,
+                StarOption.Version,
                 "Prints the version of Starcounter.",
                 OptionAttributes.Default,
                 new string[] { "v" }
                 );
             appSyntax.DefineFlag(
-                Option.Info,
+                StarOption.Info,
                 "Prints information about Starcounter and star.exe",
                 OptionAttributes.Default,
                 new string[] { "i" }
                 );
             appSyntax.DefineProperty(
-                Option.Serverport,
+                StarOption.Serverport,
                 "The port of the server to use.",
                 OptionAttributes.Default,
                 new string[] { "p" }
                 );
             appSyntax.DefineProperty(
-                Option.Db,
+                StarOption.Db,
                 "The database to use for commands that support it.",
                 OptionAttributes.Default,
                 new string[] { "d" }
                 );
             appSyntax.DefineProperty(
-                Option.Server,
+                StarOption.Server,
                 "Sets the name of the server to use."
                 );
             appSyntax.DefineProperty(
-                Option.ServerHost,
+                StarOption.ServerHost,
                 "Specifies identify of the server host. Default is 'localhost'."
                 );
             appSyntax.DefineFlag(
-                Option.LogSteps,
+                StarOption.LogSteps,
                 "Enables diagnostic logging. When set, Starcounter will produce a set of diagnostic log entries in the log."
                 );
             appSyntax.DefineFlag(
-                Option.NoDb,
+                StarOption.NoDb,
                 "Specifies the code host should run the executable without loading any database data."
                 );
             appSyntax.DefineFlag(
-                Option.NoAutoCreateDb,
+                StarOption.NoAutoCreateDb,
                 "Specifies that a database can not be automatically created if it doesn't exist."
                 );
 
             // Extended, advanced functionality
 
             appSyntax.DefineProperty(
-                Option.Verbosity,
+                StarOption.Verbosity,
                 "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
                 );
             appSyntax.DefineFlag(
-                Option.Syntax,
+                StarOption.Syntax,
                 "Instructs star.exe to just parse the command-line and show the result of that."
                 );
             appSyntax.DefineFlag(
-                Option.NoColor,
+                StarOption.NoColor,
                 "Instructs star.exe to turn off colorizing output."
                 );
             appSyntax.DefineFlag(
-                Option.ShowHttp,
+                StarOption.ShowHttp,
                 "Displays underlying HTTP request/response messages to/from the admin server."
                 );
             appSyntax.DefineFlag(
-                Option.AttatchCodeHostDebugger,
+                StarOption.AttatchCodeHostDebugger,
                 "Attaches a debugger to the code host process after it has started."
                 );
 
