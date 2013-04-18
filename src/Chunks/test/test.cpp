@@ -54,13 +54,18 @@ try {
 		(get_pointer_to_record_data(record_header_size));
 
 		std::cout << "DATA HEADER ADDR: " << data_header_addr << std::endl;
+		
+		data_header::size_type data_header_size
+		= data_header::size(data_header_addr);
+
+		std::cout << "DATA HEADER SIZE: " << data_header_size << std::endl;
 
 		// Read the COLUMNS value from the DATA HEADER.
 		uint32_t columns = data_header::get_columns(data_header_addr);
 		std::cout << "COLUMNS: " << columns << std::endl;
 
 		// Write a COLUMNS value to the DATA HEADER.
-		data_header::set_columns(data_header_addr, 0xAA);
+		data_header::set_columns(data_header_addr, 10);
 
 		// Read the COLUMNS value from the DATA HEADER.
 		columns = data_header::get_columns(data_header_addr);
@@ -87,9 +92,11 @@ try {
 		std::cout << "DEFINED COLUMN VALUE POINTER: " << (void*) value_ptr << std::endl;
 		std::cout << "DEFINED COLUMN VALUE SIZE: " << sz << std::endl;
 
-		uint64_t value = *((uint64_t*) value_ptr);
-		value &= (1ULL << (sz << 3)) -1;
-		std::cout << "DEFINED COLUMN VALUE: " << value << std::endl;
+		if (value_ptr) {
+			uint64_t value = *((uint64_t*) value_ptr);
+			value &= (1ULL << (sz << 3)) -1;
+			std::cout << "DEFINED COLUMN VALUE: " << value << std::endl;
+		}
 
 		uint8_t data[16] = { 0xFF, 0xFF, 0xFF };
 		bool is_defined;
