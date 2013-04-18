@@ -27,6 +27,15 @@ namespace Starcounter.Query.Execution {
         }
 
         /// <summary>
+        /// The DbTypeCode of this property.
+        /// </summary>
+        public override DbTypeCode DbTypeCode {
+            get {
+                return DbTypeCode.String;
+            }
+        }
+
+        /// <summary>
         /// Appends data of this leaf to the provided filter key.
         /// </summary>
         /// <param name="key">Reference to the filter key to which data should be appended.</param>
