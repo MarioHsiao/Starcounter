@@ -51,8 +51,8 @@
                                 It uses RAM as the main medium while maintaining enterprise level durability using transaction logging and database images on disk.
                                 <LineBreak/>
                                 <LineBreak/>
-                                Please check our 
-                                <Hyperlink CommandParameter="http://www.starcounter.com/wiki/Installation" Command="NavigationCommands.GoToPage"  >system requirements.</Hyperlink>
+                                Please check the  
+                                <Hyperlink CommandParameter="https://github.com/Starcounter/Starcounter/wiki/Installing-Starcounter#system-requirements" Command="NavigationCommands.GoToPage"  >system requirements.</Hyperlink>
                             </TextBlock>
                         </Grid>
                     </Grid>
