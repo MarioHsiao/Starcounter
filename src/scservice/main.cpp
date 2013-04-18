@@ -425,7 +425,10 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	// Checking if number of schedulers is defined.
 #ifdef WITH_DATABASE
-	str_template = L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\" %s\" --WorkingDir=\"%s\" --DefaultUserHttpPort=%s --SchedulerCount=%s";
+	str_template =
+        L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" "
+        L"--CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" --WorkingDir=\"%s\" "
+        L"--DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --SchedulerCount=%s";
 
 	// TODO: Remove the scheduler count at all?
 	database_scheduler_count = L"1";
@@ -440,8 +443,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		wcslen(mingw) + 
 		wcslen(admin_exe_path) +
 		wcslen(server_cfg_path) +
-		wcslen(system_http_port) +
 		wcslen(admin_working_dir) +
+        wcslen(system_http_port) +
 		wcslen(default_user_http_port) +
 		wcslen(database_scheduler_count) +
 		1;
@@ -462,13 +465,17 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		mingw,
 		admin_exe_path,
 		server_cfg_path,
-		system_http_port,
 		admin_working_dir,
+        system_http_port,
 		default_user_http_port,
 		database_scheduler_count);
 
 #else
-	str_template = L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" --CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" --WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --FLAG:NoDb %s";
+
+	str_template =
+        L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
+        L"--CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" "
+        L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --FLAG:NoDb %s";
 
 	str_num_chars +=
 		wcslen(str_template) + 

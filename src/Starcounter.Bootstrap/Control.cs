@@ -228,7 +228,7 @@ namespace StarcounterInternal.Bootstrap
             {
                 try
                 {
-                    Loader.ExecApp(hsched_, r.GetParameter<string>());
+                    Loader.ExecApp(hsched_, r.GetParameter<string>(), stopwatch_);
                 }
                 catch (LoaderException ex)
                 {
@@ -252,7 +252,7 @@ namespace StarcounterInternal.Bootstrap
                         args = KeyValueBinary.ToArray(argsString);
                     }
 
-                    Loader.ExecApp(hsched_, assemblyPath, workingDirectory, args);
+                    Loader.ExecApp(hsched_, assemblyPath, stopwatch_, workingDirectory, args);
 
                 }
                 catch (LoaderException ex)
@@ -331,8 +331,10 @@ namespace StarcounterInternal.Bootstrap
                 String workingDir = null;
                 configuration.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, out workingDir);
 
+                OnArgumentsParsed();
+
                 // Loading the given application.
-                Loader.ExecApp(hsched_, configuration.AutoStartExePath, workingDir, userArgsArray);
+                Loader.ExecApp(hsched_, configuration.AutoStartExePath, stopwatch_, workingDir, userArgsArray, true);
 
                 OnAutoStartModuleExecuted();
             }
@@ -621,6 +623,8 @@ namespace StarcounterInternal.Bootstrap
         {
             long elapsedTicks = stopwatch_.ElapsedTicks + ticksElapsedBetweenProcessStartAndMain_;
             Diagnostics.WriteTrace("control", elapsedTicks, message);
+
+            //File.AppendAllText("trace.log", "CONTROL: " + message + ": " + (Double)stopwatch_.ElapsedTicks / Stopwatch.Frequency + Environment.NewLine);
         }
 
         private void OnProcessInitialized()
@@ -628,7 +632,7 @@ namespace StarcounterInternal.Bootstrap
             ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
             stopwatch_ = Stopwatch.StartNew();
 
-            Trace("Process initialized.");
+            Trace("--------------");
         }
 
         private void OnExceptionFactoryInstalled() { Trace("Exception factory installed."); }
@@ -651,6 +655,7 @@ namespace StarcounterInternal.Bootstrap
         private void OnServerCommandHandlersRegistered() { Trace("Server command handlers registered."); }
         private void OnBasePackageLoaded() { Trace("Base package loaded."); }
         private void OnNetworkGatewayConnected() { Trace("Network gateway connected."); }
+        private void OnArgumentsParsed() { Trace("Command line arguments parsed."); }
         private void OnAutoStartModuleExecuted() { Trace("Auto start module executed."); }
 
         private void OnEndStart() { Trace("Start completed."); }

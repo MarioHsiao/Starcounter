@@ -1,9 +1,10 @@
 
 
-/* Tokenizer, Peter Idestam-Almquist, Starcounter, 2011-11-30. */
+/* Tokenizer, Peter Idestam-Almquist, Starcounter, 2013-04-17. */
 
 /* A tokenizer for SQL following SQL92. */
 
+/* 13-04-17: Added support of strings defined by quote symbol '"'. */
 /* 11-11-30: Added reserved words CREATE, DATETIME, DELETE, FETCH, FIRST, INSERT, LIMIT, OFFSET, OFFSETKEY, ONLY, OUT, OUTPUT, PROC, PROCEDURE, ROWS, UNIQUE and UPDATE. */
 /* 10-12-13: Added reserved word BINARY. */
 /* 10-09-21: Number variables (?N). */
@@ -32,7 +33,8 @@
 tokenize(Codes,Tokens2,VarNum,Err,Err):- 
 	tokenize2(Codes,Xs,Xs,Tokens1), 
 	number_variables(Tokens1,0,Tokens2,VarNum), !.
-tokenize(_,[],0,['Unknown error in module tokenizer.'|Err],Err):- !.
+tokenize(_,[],0,['Unable to tokenize the string.'|Err],Err):- !.
+
 
 /* tokenize2(+Codes,+Head,+Tail,-Tokens):-
 *	Head-Tail is a difference list for accumulating codes to build a token.
@@ -66,31 +68,57 @@ tokenize2([Code|Cs],AccCodes,[],[Token1,Token2|Ts]):-
 	atom_codes_spec(Token2,[Code]), 
 	tokenize2(Cs,List,List,Ts).
 tokenize2([Code|Cs],[],[],Tokens):- 
-	quote_code(Code), !, 
-	tokenize_str(Cs,[Code|List],List,Tokens).
+	single_quote_code(Code), !, 
+	tokenize_str_single(Cs,[Code|List],List,Tokens).
 tokenize2([Code|Cs],AccCodes,[],[Token|Ts]):- 
-	quote_code(Code), !, 
+	single_quote_code(Code), !, 
 	atom_codes_spec(Token,AccCodes), 
-	tokenize_str(Cs,[Code|List],List,Ts).
+	tokenize_str_single(Cs,[Code|List],List,Ts).
+tokenize2([Code|Cs],[],[],Tokens):- 
+	double_quote_code(Code), !, 
+	tokenize_str_double(Cs,[Code|List],List,Tokens).
+tokenize2([Code|Cs],AccCodes,[],[Token|Ts]):- 
+	double_quote_code(Code), !, 
+	atom_codes_spec(Token,AccCodes), 
+	tokenize_str_double(Cs,[Code|List],List,Ts).
 tokenize2([Code|Cs],[],[],Tokens):- 
 	digit_code(Code), !, 
 	tokenize_num(Cs,[Code|List],List,Tokens).
 tokenize2([Code|Cs],Head,[Code|Tail],Tokens):- 
 	tokenize2(Cs,Head,Tail,Tokens).
 
-/* tokenize_str(+Codes,+Head,+Tail,-Tokens):-
-*	Head-Tail is a difference list for accumulating codes to build a string-atom.
+
+/* tokenize_str_single(+Codes,+Head,+Tail,-Tokens):-
+*	Head-Tail is a difference list for accumulating codes to build a string-atom, 
+*	defined by single quotation marks ('...').
 */
-tokenize_str([Code1,Code2|Cs],Head,[Code1,Code2|Tail],Tokens):- 
-	quote_code(Code1), 
-	quote_code(Code2), !, 
-	tokenize_str(Cs,Head,Tail,Tokens).
-tokenize_str([Code|Cs],AccCodes,[Code],[Token|Ts]):- 
-	quote_code(Code), !, 
+tokenize_str_single([Code1,Code2|Cs],Head,[Code1,Code2|Tail],Tokens):- 
+	single_quote_code(Code1), 
+	single_quote_code(Code2), !, 
+	tokenize_str_single(Cs,Head,Tail,Tokens).
+tokenize_str_single([Code|Cs],AccCodes,[Code],[Token|Ts]):- 
+	single_quote_code(Code), !, 
 	atom_codes(Token,AccCodes), 
 	tokenize2(Cs,List,List,Ts).
-tokenize_str([Code|Cs],Head,[Code|Tail],Tokens):- 
-	tokenize_str(Cs,Head,Tail,Tokens).
+tokenize_str_single([Code|Cs],Head,[Code|Tail],Tokens):- 
+	tokenize_str_single(Cs,Head,Tail,Tokens).
+
+
+/* tokenize_str_double(+Codes,+Head,+Tail,-Tokens):-
+*	Head-Tail is a difference list for accumulating codes to build a string-atom, 
+*	defined by double quotation marks ("...").
+*/
+tokenize_str_double([Code1,Code2|Cs],Head,[Code1,Code2|Tail],Tokens):- 
+	double_quote_code(Code1), 
+	double_quote_code(Code2), !, 
+	tokenize_str_double(Cs,Head,Tail,Tokens).
+tokenize_str_double([Code|Cs],AccCodes,[Code],[Token|Ts]):- 
+	double_quote_code(Code), !, 
+	atom_codes(Token,AccCodes), 
+	tokenize2(Cs,List,List,Ts).
+tokenize_str_double([Code|Cs],Head,[Code|Tail],Tokens):- 
+	tokenize_str_double(Cs,Head,Tail,Tokens).
+
 
 /* tokenize_num(+Codes,+Head,+Tail,-Tokens):-
 *	Head-Tail is a difference list for accumulating codes to build a number-atom.
@@ -128,6 +156,7 @@ atom_codes_spec(Atom,Codes1):-
 atom_codes_spec(Atom,Codes):- 
 	atom_codes(Atom,Codes).
 
+
 /* internal_format(+Codes1,-Codes2):- 
 *	Translates a token represented by the codes Codes1 to a token represented by the codes Codes2 
 *	in the internal format of reserved words '<WORD>'.
@@ -147,6 +176,7 @@ internal_format3(Code1,Code2):-
 	Code1 =< 122, 
 	Code2 is Code1 - 32, !. /* Upper case. */
 internal_format3(Code,Code).
+
 
 /* fixed_format(+Codes1,-Codes2):- 
 *	Translates a token in the fixed format '[token]' represented by the codes Codes1 to a token 
@@ -168,7 +198,9 @@ space_code(9). /* TAB */
 space_code(10). /* LF (new line) */
 space_code(32). /* ' ' */
 
-quote_code(39). /* ''' */
+single_quote_code(39). /* ''' */
+
+double_quote_code(34). /* '"' */
 
 digit_codes([Code|Cs]):- 
 	digit_code(Code), 

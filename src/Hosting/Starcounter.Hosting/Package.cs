@@ -61,7 +61,9 @@ namespace Starcounter.Hosting {
         private readonly Assembly assembly_;
 
         private readonly Stopwatch stopwatch_;
-        
+
+        private readonly bool execEntryPointSynchronously_;
+
         /// <summary>
         /// The processed event_
         /// </summary>
@@ -91,15 +93,21 @@ namespace Starcounter.Hosting {
         /// <param name="unregisteredTypeDefs">The unregistered type defs.</param>
         /// <param name="assembly">The assembly.</param>
         /// <param name="stopwatch"></param>
+        /// <param name="execEntryPointSynchronously">
+        /// If true the event for processing complete will be set after the entrypoint returns, 
+        /// if set to false the event will be set before the entrypoint executes.
+        /// </param>
         public Package(
             TypeDef[] unregisteredTypeDefs, // Previously unregistered type definitions.
             Assembly assembly,              // Entry point assembly.
-            Stopwatch stopwatch             // Stopwatch used to measure package load times.
+            Stopwatch stopwatch,             // Stopwatch used to measure package load times.
+            bool execEntryPointSynchronously
             ) {
             unregisteredTypeDefs_ = unregisteredTypeDefs;
             assembly_ = assembly;
             stopwatch_ = stopwatch;
             processedEvent_ = new ManualResetEvent(false);
+            execEntryPointSynchronously_ = execEntryPointSynchronously;
         }
 
         /// <summary>
@@ -123,13 +131,21 @@ namespace Starcounter.Hosting {
 
                     // Indicating that package is now initialized.
                     packageInitialized_ = true;
+
+                    OnInternalHandlersRegistered();
                 }
 
-                ExecuteEntryPoint();
+                // Starting user Main() here.
+                if (execEntryPointSynchronously_)
+                    ExecuteEntryPoint();
+
             } finally {
                 OnProcessingCompleted();
                 processedEvent_.Set();
             }
+
+            if (!execEntryPointSynchronously_)
+                ExecuteEntryPoint();
         }
 
         /// <summary>
@@ -257,7 +273,8 @@ namespace Starcounter.Hosting {
             }
         }
 
-        private void OnProcessingStarted() { Trace("Processing started."); }
+        private void OnProcessingStarted() { Trace("Package started."); }
+        private void OnInternalHandlersRegistered() { Trace("Internal handlers were registered."); }
         private void OnDatabaseSchemaCheckedAndUpdated() { Trace("Database schema checked and updated."); }
         private void OnTypeDefsRegistered() { Trace("Type definitions registered."); }
         private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
@@ -268,6 +285,8 @@ namespace Starcounter.Hosting {
         private void Trace(string message)
         {
             Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
+
+            //File.AppendAllText("trace.log", "PACKAGE: " + message + " " + (Double)stopwatch_.ElapsedTicks / Stopwatch.Frequency + Environment.NewLine);
         }
     }
 }
