@@ -19,10 +19,6 @@ namespace star {
 
     class Program {
 
-        const string UnresolvedServerName = "N/A";
-        const string DefaultAdminServerHost = "localhost";
-        const string DefaultDatabaseName = StarcounterConstants.DefaultDatabaseName;
-
         static class StarOption {
             public const string Help = "help";
             public const string HelpEx = "helpextended";
@@ -40,92 +36,6 @@ namespace star {
             public const string NoColor = "nocolor";
             public const string ShowHttp = "http";
             public const string AttatchCodeHostDebugger = "debug";
-        }
-
-        static void GetEnvironmentIntOrDefault(string variable, out int result, int fallback = -1) {
-            var x = Environment.GetEnvironmentVariable(variable);
-            if (x == null || !int.TryParse(x, out result)) {
-                result = fallback;
-            }
-        }
-
-        static void GetAdminServerPortAndName(ApplicationArguments args, out int port, out string serverName) {
-            string givenPort;
-            int personalDefault;
-            int systemDefault;
-
-            GetEnvironmentIntOrDefault(
-                StarcounterEnvironment.VariableNames.DefaultServerPersonalPort,
-                out personalDefault,
-                StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort
-                );
-
-            GetEnvironmentIntOrDefault(
-                StarcounterEnvironment.VariableNames.DefaultServerSystemPort,
-                out systemDefault,
-                StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort
-                );
-
-            if (args.TryGetProperty(StarOption.Serverport, out givenPort)) {
-                port = int.Parse(givenPort);
-
-                // If a port is specified, that always have precedence.
-                // If it is, we try to pair it with a server name based on
-                // the following priorities:
-                //   1) Getting a given name on the command-line
-                //   2) Trying to pair the port with a default server based
-                // on known server port defaults.
-                //   3) Finding a server name configured in the environment.
-                //   4) Using a const string (e.g. "N/A")
-
-                if (!args.TryGetProperty(StarOption.Server, out serverName)) {
-                    if (port == personalDefault) {
-                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
-                    } else if (port == systemDefault) {
-                        serverName = StarcounterEnvironment.ServerNames.SystemServer;
-                    } else if (port == StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort) {
-                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
-                    } else if (port == StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort) {
-                        serverName = StarcounterEnvironment.ServerNames.SystemServer;
-                    } else {
-                        serverName = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.DefaultServer);
-                        if (string.IsNullOrEmpty(serverName)) {
-                            serverName = UnresolvedServerName;
-                        }
-                    }
-                }
-            } else {
-                
-                // No port given. See if a server was specified by name and try
-                // to figure out a port based on that, or a port based on a server
-                // name given in the environment.
-                //   If a server name in fact IS specified (and no port is), we
-                // must match it against one of the known server names. If it is
-                // not part of them, we refuse it.
-                //   If no server is specified either on the command line or in the
-                // environment, we'll assume personal and the default port for that.
-
-                if (!args.TryGetProperty(StarOption.Server, out serverName)) {
-                    serverName = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.DefaultServer);
-                    if (string.IsNullOrEmpty(serverName)) {
-                        serverName = StarcounterEnvironment.ServerNames.PersonalServer;
-                    }
-                }
-
-                var comp = StringComparison.InvariantCultureIgnoreCase;
-
-                if (serverName.Equals(StarcounterEnvironment.ServerNames.PersonalServer, comp)) {
-                    port = personalDefault;
-                } else if (serverName.Equals(StarcounterEnvironment.ServerNames.SystemServer, comp)) {
-                    port = systemDefault;
-                } else {
-                    throw ErrorCode.ToException(
-                        Error.SCERRUNSPECIFIED,
-                        string.Format("Unknown server name: {0}. Please specify the port using '{1}'.", 
-                        serverName,
-                        StarOption.Serverport));
-                }
-            }
         }
        
         static void Main(string[] args) {
@@ -165,8 +75,8 @@ namespace star {
                 // Include how we resolve the admin server port / server, if applicable.
                 // By design, silently ignore any error.
                 try {
-                    GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
-                    ConsoleUtil.ToConsoleWithColor(string.Format("Server \"{0}\" on port {1}.", serverName, serverPort), ConsoleColor.Yellow);
+                    SharedCLI.ResolveAdminServer(appArgs, out serverHost, out serverPort, out serverName);
+                    ConsoleUtil.ToConsoleWithColor(string.Format("Server \"{0}\" on @ {1}:{2}.", serverName, serverHost, serverPort), ConsoleColor.Yellow);
                 } catch { }
 
                 // Exiting, because we were asked to test syntax only.
@@ -214,7 +124,7 @@ namespace star {
             // First make sure we have a server/port to communicate with.
 
             try {
-                GetAdminServerPortAndName(appArgs, out serverPort, out serverName);
+                SharedCLI.ResolveAdminServer(appArgs, out serverHost, out serverPort, out serverName);
             } catch (Exception e) {
                 uint errorCode;
                 if (!ErrorCode.TryGetCode(e, out errorCode)) {
@@ -223,14 +133,6 @@ namespace star {
                 ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
                 Environment.ExitCode = (int)errorCode;
                 return;
-            }
-            if (!appArgs.TryGetProperty(StarOption.ServerHost, out serverHost)) {
-                serverHost = Program.DefaultAdminServerHost;
-            } else {
-                if (serverHost.StartsWith("http", true, null)) {
-                    serverHost = serverHost.Substring(4);
-                }
-                serverHost = serverHost.TrimStart(new char[] { ':', '/' });
             }
 
             HttpClient client;
@@ -315,9 +217,7 @@ namespace star {
             ExecRequest request;
             string executable;
 
-            if (!args.TryGetProperty(StarOption.Db, out database)) {
-                database = Program.DefaultDatabaseName;
-            }
+            database = SharedCLI.ResolveDatabase(args);
             relativeUri = string.Format("/databases/{0}/executables", database);
 
             // Aware of the client transparency guideline stated previously,
