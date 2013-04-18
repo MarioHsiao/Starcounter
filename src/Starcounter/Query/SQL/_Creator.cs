@@ -2877,6 +2877,8 @@ namespace Starcounter.Query.Sql
             IPropertyBinding propBind = typeBind.GetPropertyBinding(propName);
             if (propBind == null)
             {
+                if (propName == DbHelper.ObjectIDName)
+                    return new ObjectIDProperty(extNum, typeBind, propName);
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Unknown property: " + propName);
             }
             if (propBind.TypeCode != DbTypeCode.String)
@@ -2893,6 +2895,8 @@ namespace Starcounter.Query.Sql
             IPropertyBinding propBind = typeBind.GetPropertyBinding(propName);
             if (propBind == null)
             {
+                if (propName == DbHelper.ObjectNoName)
+                    return new ObjectNoProperty(extNum, typeBind, propName);
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Unknown property: " + propName);
             }
             if (propBind.TypeCode != DbTypeCode.UInt64 && propBind.TypeCode != DbTypeCode.UInt32 &&
