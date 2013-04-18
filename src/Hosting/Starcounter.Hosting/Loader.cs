@@ -187,15 +187,22 @@ namespace StarcounterInternal.Hosting
         /// <param name="workingDirectory">The logical working directory the assembly
         /// will execute in.</param>
         /// <param name="entrypointArguments">Arguments to be passed to the assembly
-        /// entrypoint, if any.</param>
+        /// entry point, if any.</param>
         /// <exception cref="StarcounterInternal.Hosting.LoaderException"></exception>
         public static unsafe void ExecApp(
             void* hsched,
             string filePath,
+            Stopwatch stopwatch = null,
             string workingDirectory = null,
-            string[] entrypointArguments = null)
+            string[] entrypointArguments = null
+            )
         {
-            stopwatch_ = Stopwatch.StartNew();
+            if (stopwatch != null)
+                stopwatch_ = stopwatch;
+            else
+                stopwatch_ = new Stopwatch();
+
+            OnLoaderStarted();
 
             try
             {
@@ -283,6 +290,7 @@ namespace StarcounterInternal.Hosting
             stopwatch_ = null;
         }
 
+        private static void OnLoaderStarted() { Trace("Loader started."); }
         private static void OnInputVerifiedAndAssemblyResolverUpdated() { Trace("Input verified and assembly resolver updated."); }
         private static void OnSchemaVerifiedAndLoaded() { Trace("Schema verified and loaded."); }
         private static void OnUnregisteredTypeDefsDetermined() { Trace("Unregistered type definitions determined."); }
@@ -294,6 +302,8 @@ namespace StarcounterInternal.Hosting
         private static void Trace(string message)
         {
             Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
+
+            //File.AppendAllText("trace.log", "LOADER: " + message + " " + (Double)stopwatch_.ElapsedTicks / Stopwatch.Frequency + Environment.NewLine);
         }
     }
 }

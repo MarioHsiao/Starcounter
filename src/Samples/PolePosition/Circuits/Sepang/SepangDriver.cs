@@ -77,7 +77,7 @@ public class SepangDriver : Driver
 
             set
             {
-                root = (value == null) ? null : new ulong?(DbHelper.GetObjectID(value));
+                root = (value == null) ? null : new ulong?(DbHelper.GetObjectNo(value));
             }
         }
     }

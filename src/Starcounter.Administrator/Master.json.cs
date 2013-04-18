@@ -326,11 +326,9 @@ namespace Starcounter.Administrator {
 
             });
 
-            //POST("/databases/{?}?{?}", (string id, string parameters) => {
-            //    return "hello world";
-            //});
-            // Start   /database/mydatabas?action=start
-            POST("/databases/{?}?action=start", (string name, Request req) => {
+
+            //  TODO: This should be "/databases/{?}?{?}"
+            POST("/a/{?}?{?}", (string name, string parameters, Request req) => {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
 
@@ -342,10 +340,24 @@ namespace Starcounter.Administrator {
 
                         DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
                         // TODO: Check for null value of database
+                        NameValueCollection collection = System.Web.HttpUtility.ParseQueryString(parameters);
+                        ServerCommand command = null;
+                        switch (collection["action"]) {
+                            case "start":
+                                command = new StartDatabaseCommand(Master.ServerEngine, database.Name);
+                                break;
+                            case "stop":
+                                command = new StopDatabaseCommand(Master.ServerEngine, database.Name);
+                                break;
+                            default:
+                                // Unknown command
+                                break;
+                        }
 
-                        StartDatabaseCommand command = new StartDatabaseCommand(Master.ServerEngine, database.Name);
-                        CommandInfo commandInfo = Master.ServerInterface.Execute(command);
-                        resultJson.commandId = commandInfo.Id.Value;
+                        if (command != null) {
+                            CommandInfo commandInfo = Master.ServerInterface.Execute(command);
+                            resultJson.commandId = commandInfo.Id.Value;
+                        }
                     }
                     catch (Exception e) {
                         resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
@@ -416,7 +428,7 @@ namespace Starcounter.Administrator {
             });
 
             // Create a database
-            POST("/databases", (Request req) => {
+            POST("/databases/{?}", (string name, Request req) => {
 
                 dynamic resultJson = new DynamicJson();
                 resultJson.commandId = null;
@@ -760,8 +772,7 @@ namespace Starcounter.Administrator {
 
                 try {
                     // Registering static handler on given port.
-                    GET(port, "/{?}", (string res) =>
-                    {
+                    GET(port, "/{?}", (string res) => {
                         return null;
                     });
                 }

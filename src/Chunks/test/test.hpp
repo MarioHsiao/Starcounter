@@ -116,7 +116,7 @@ public:
 	/**
 	 * @param argc Argument count.
 	 * @param argv Argument vector.
-	 * @throws starcounter::core::bad_test if the test fails to start.
+	 * @throws starcounter::core::test_exception if the test fails to start.
 	 */
 	explicit test(int argc, wchar_t* argv[]);
 	

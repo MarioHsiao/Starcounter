@@ -12,25 +12,9 @@ using System.IO;
 using System.Collections.Specialized;
 using System.Text;
 using Starcounter.Internal;
+using Starcounter.Server.Rest.MessageTypes;
 
 namespace Starcounter.Administrator {
-
-    /// <summary>
-    /// Outlines the response entity body data of a successfull
-    /// exect request returning in a "201 Created".
-    /// </summary>
-    /// <remarks>
-    /// This class is only temporary and will eventually be
-    /// replaced once we have decided how to use and promote
-    /// this kind of schema/metadata in our public REST APIs.
-    /// See forum discussion at:
-    /// http://www.starcounter.com/forum/showthread.php?2492-Sharing-of-REST-JSON-data-and-schemata
-    /// </remarks>
-    internal sealed class ExecResponse201 {
-        public string DatabaseUri { get; set; }
-        public int DatabaseHostPID { get; set; }
-        public bool DatabaseCreated { get; set; }
-    }
 
     /// <summary>
     /// Abstracts the admin server resource /databases/{name}/executables
@@ -53,7 +37,7 @@ namespace Starcounter.Administrator {
             HostedExecutables.runtime = runtime;
             HostedExecutables.serverHost = serverHost;
             HostedExecutables.serverPort = serverPort;
-            StarcounterBase.POST<string, Request>(relativeResourceUri, HandlePOST);
+            Handle.POST<string, Request>(relativeResourceUri, HandlePOST);
         }
 
         static object HandlePOST(string name, Request request) {
@@ -179,21 +163,12 @@ namespace Starcounter.Administrator {
             var headers = new NameValueCollection(StringComparer.InvariantCultureIgnoreCase);
             headers.Add("Location", location);
 
-            // What about the schema we use here? If we build a client such
-            // as star.exe, we want to share a few things. How do publish the
-            // schema of what we return here and make it accessible to
-            // management clients?
-            //   Maybe start with adding a simple number/version, that the
-            // client do read. If it is compatible, it can try getting all
-            // the info. If not, in just displays it in plain JSON.
-            // TODO:
-
             var x = new ExecResponse201() {
                 DatabaseUri = command.DatabaseUri,
                 DatabaseHostPID = database.HostProcessId,
                 DatabaseCreated = createdDatabase
             };
-            var content = JsonConvert.SerializeObject(x);
+            var content = x.ToJson();
 
             return new Response { Uncompressed = 
                 HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(201, headers, content) 

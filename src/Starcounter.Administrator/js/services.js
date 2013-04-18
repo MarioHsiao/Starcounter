@@ -28,6 +28,14 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
         });
     });
 
+
+    $provide.factory('DbWorkaround', function ($resource) {
+        return $resource('/a/:name', { name: '@name' }, {
+            start: { method: 'POST', params: { action: 'start' }, isArray: false },
+            stop: { method: 'POST', params: { action: 'stop' }, isArray: false },
+        });
+    });
+
     $provide.factory('Database', function ($resource) {
         return $resource('/databases/:name', { name: '@name' }, {
             create: { method: 'POST', isArray: false },     // Create new database
@@ -92,11 +100,11 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
         });
     });
 
-    $provide.factory('CreateDatabase', function ($resource) {
-        return $resource('/databases/:databaseName', { databaseName: '@databaseName' }, {
-            save: { method: 'POST', isArray: false }
-        });
-    });
+    //$provide.factory('CreateDatabase', function ($resource) {
+    //    return $resource('/databases/:databaseName', { databaseName: '@databaseName' }, {
+    //        save: { method: 'POST', isArray: false }
+    //    });
+    //});
 
     $provide.factory('Settings', function ($resource) {
         return $resource('/settings/default/:type', { type: '@type' }, {

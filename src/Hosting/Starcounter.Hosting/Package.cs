@@ -30,25 +30,13 @@ namespace Starcounter.Hosting {
         /// </summary>
         static Boolean packageInitialized_ = false;
 
-        private static uint schedulerCount;
-        private static byte schedulerNumber;
-        private static byte firstAssignableScheduler;
-        private static DbSession dbSession;
-
         /// <summary>
         /// Initializes package with global settings.
         /// </summary>
         /// <param name="initInternalHttpHandlers">Initializes internal HTTP handlers.</param>
-        /// <param name="schedulerCount">The numbers of schedulers the database is using.</param>
-        public static void InitPackage(Action initInternalHttpHandlers, uint schedulerCount)
+        public static void InitPackage(Action initInternalHttpHandlers)
         {
             InitInternalHttpHandlers_ = initInternalHttpHandlers;
-            Package.schedulerCount = schedulerCount;
-            Package.schedulerNumber = 0;
-
-            Package.firstAssignableScheduler = 1;
-            if (schedulerCount == 1)
-                Package.firstAssignableScheduler = 0;
         }
 
         /// <summary>
@@ -135,12 +123,13 @@ namespace Starcounter.Hosting {
 
                     // Indicating that package is now initialized.
                     packageInitialized_ = true;
+
+                    OnInternalHandlersRegistered();
                 }
 
-                // We want the entrypoint to be executed on another scheduler so we can 
-                // process more  packages directly and not wait for the usercode to finish.
-//                ScheduleEntrypointExecution();
+                // Starting user Main() here.
                 ExecuteEntryPoint();
+
             } finally {
                 OnProcessingCompleted();
                 processedEvent_.Set();
@@ -257,25 +246,6 @@ namespace Starcounter.Hosting {
         }
 
         /// <summary>
-        /// Schedules the execution of the entrypoint on a separate scheduler from which
-        /// we are currently running, to allow long-running entrypoints. 
-        /// </summary>
-        /// <remarks>
-        /// A simple RoundRobin scheme is used to schedule these executions on different
-        /// schedulers, and the first scheduler is never used since it it dedicated to 
-        /// package processing.
-        /// </remarks>
-        private void ScheduleEntrypointExecution() {
-            // only one package is processed at a time so this function is threadsafe.
-            if (dbSession == null)
-                dbSession = new DbSession();
-            schedulerNumber++;
-            if (schedulerNumber >= schedulerCount)
-                schedulerNumber = firstAssignableScheduler;
-            dbSession.RunAsync(ExecuteEntryPoint, schedulerNumber);
-        }
-
-        /// <summary>
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint() {
@@ -291,7 +261,8 @@ namespace Starcounter.Hosting {
             }
         }
 
-        private void OnProcessingStarted() { Trace("Processing started."); }
+        private void OnProcessingStarted() { Trace("Package started."); }
+        private void OnInternalHandlersRegistered() { Trace("Internal handlers were registered."); }
         private void OnDatabaseSchemaCheckedAndUpdated() { Trace("Database schema checked and updated."); }
         private void OnTypeDefsRegistered() { Trace("Type definitions registered."); }
         private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
@@ -302,6 +273,8 @@ namespace Starcounter.Hosting {
         private void Trace(string message)
         {
             Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
+
+            //File.AppendAllText("trace.log", "PACKAGE: " + message + " " + (Double)stopwatch_.ElapsedTicks / Stopwatch.Frequency + Environment.NewLine);
         }
     }
 }

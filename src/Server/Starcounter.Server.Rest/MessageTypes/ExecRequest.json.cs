@@ -1,7 +1,7 @@
 ﻿
 using Starcounter;
 
-namespace Starcounter.Administrator {
+namespace Starcounter.Server.Rest.MessageTypes {
     /// <summary>
     /// Represents a request to execute user code in a Starcounter
     /// host code process.
@@ -15,4 +15,3 @@ namespace Starcounter.Administrator {
     partial class ExecRequest : Json {
     }
 }
-
