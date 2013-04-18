@@ -438,7 +438,7 @@ namespace star {
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerPersonalPort, "Personal server port used by default.");
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerSystemPort, "System server port used by default.");
             Console.WriteLine();
-            Console.WriteLine("For complete help, see http://www.starcounter.com/wiki/star.exe");
+            Console.WriteLine("For complete help, see {0}{1}.", StarcounterEnvironment.InternetAddresses.StarcounterWiki, "star.exe");
         }
 
         static IApplicationSyntax DefineCommandLineSyntax() {
@@ -448,6 +448,8 @@ namespace star {
             appSyntax = new ApplicationSyntaxDefinition();
             appSyntax.ProgramDescription = "star.exe";
             appSyntax.DefaultCommand = "exec";
+            SharedCLI.DefineWellKnownOptions(appSyntax);
+
             appSyntax.DefineFlag(
                 StarOption.Help,
                 "Prints the star.exe help message.",
@@ -472,38 +474,6 @@ namespace star {
                 OptionAttributes.Default,
                 new string[] { "i" }
                 );
-            appSyntax.DefineProperty(
-                StarOption.Serverport,
-                "The port of the server to use.",
-                OptionAttributes.Default,
-                new string[] { "p" }
-                );
-            appSyntax.DefineProperty(
-                StarOption.Db,
-                "The database to use for commands that support it.",
-                OptionAttributes.Default,
-                new string[] { "d" }
-                );
-            appSyntax.DefineProperty(
-                StarOption.Server,
-                "Sets the name of the server to use."
-                );
-            appSyntax.DefineProperty(
-                StarOption.ServerHost,
-                "Specifies identify of the server host. Default is 'localhost'."
-                );
-            appSyntax.DefineFlag(
-                StarOption.LogSteps,
-                "Enables diagnostic logging. When set, Starcounter will produce a set of diagnostic log entries in the log."
-                );
-            appSyntax.DefineFlag(
-                StarOption.NoDb,
-                "Specifies the code host should run the executable without loading any database data."
-                );
-            appSyntax.DefineFlag(
-                StarOption.NoAutoCreateDb,
-                "Specifies that a database can not be automatically created if it doesn't exist."
-                );
 
             // Extended, advanced functionality
 
@@ -527,7 +497,6 @@ namespace star {
                 StarOption.AttatchCodeHostDebugger,
                 "Attaches a debugger to the code host process after it has started."
                 );
-
 
             // NOTE:
             // Although we will refuse to execute any EXEC command without at least one parameter,
