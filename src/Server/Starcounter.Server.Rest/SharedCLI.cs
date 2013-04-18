@@ -148,5 +148,24 @@ namespace Starcounter.Server {
                 host = host.TrimStart(new char[] { ':', '/' });
             }
         }
+
+        /// <summary>
+        /// Resolves the named database to use from a given set of
+        /// command-line arguments.
+        /// </summary>
+        /// <remarks>
+        /// If database argument are not explicitly given, this method uses environment
+        /// defaults as a first fallback and finally constants, in case there is no
+        /// environment data available.
+        /// </remarks>
+        /// <param name="args">Command-line arguments to consult.</param>
+        /// <returns>The name of the database.</returns>
+        public static string ResolveDatabase(ApplicationArguments args) {
+            string database;
+            if (!args.TryGetProperty(Option.Db, out database)) {
+                database = SharedCLI.DefaultDatabaseName;
+            }
+            return database;
+        }
     }
 }
