@@ -85,7 +85,7 @@ myApp.value('ui.config', {
 /**
  * App Controller
  */
-function HeadCtrl($scope, $location, $rootScope, $http, $dialog, App, Database) {
+function HeadCtrl($scope, $location, $rootScope, $http, $dialog, App, Database, DbWorkaround) {
 
     $rootScope.alerts = [];
     $rootScope.databases = [];
@@ -144,8 +144,11 @@ function HeadCtrl($scope, $location, $rootScope, $http, $dialog, App, Database) 
     // Start database
     $rootScope.startDatabase = function (name) {
 
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        return;
 
-        Database.start({ name: name }, "some payload", function (response) { // TODO
+        DbWorkaround.start({ name: name }, "some payload", function (response) { // TODO
             //$scope.databases = result.databases;
             $scope.alerts.push({ type: 'info', msg: "response:" + response });
 
@@ -182,7 +185,11 @@ function HeadCtrl($scope, $location, $rootScope, $http, $dialog, App, Database) 
     // Stop database
     $rootScope.stopDatabase = function (name) {
 
-        Database.stop({ name: name }, "some payload", function (response) { // TODO
+        $scope.alerts.length = 0;
+        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
+        return;
+
+        DbWorkaround.stop({ name: name }, "some payload", function (response) { // TODO
             //$scope.databases = result.databases;
             $scope.alerts.push({ type: 'info', msg: "response:" + response });
 
@@ -364,15 +371,11 @@ function MainCtrl($scope, Database) {
     }
 
     $scope.btnClick_start = function (database) {
-        $scope.alerts.length = 0;
-        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
-        //$scope.startDatabase(database.name);
+        $scope.startDatabase(database.name);
     }
 
     $scope.btnClick_stop = function (database) {
-        $scope.alerts.length = 0;
-        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
-//        $scope.stopDatabase(database.name);
+        $scope.stopDatabase(database.name);
     }
 
     $scope.btnClick_delete = function (database) {
@@ -543,15 +546,11 @@ function DatabasesCtrl($scope, $dialog) {
     }
 
     $scope.btnClick_start = function (database) {
-        $scope.alerts.length = 0;
-        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
-        //$scope.startDatabase(database.name);
+        $scope.startDatabase(database.name);
     }
 
     $scope.btnClick_stop = function (database) {
-        $scope.alerts.length = 0;
-        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
-        //$scope.stopDatabase(database.name);
+        $scope.stopDatabase(database.name);
     }
 
     $scope.btnClick_delete = function (database) {
@@ -775,16 +774,12 @@ function DatabaseCtrl($scope, $location, $routeParams, $dialog, $http, Database,
 
     // User clicked the "Start" button
     $scope.btnClick_start = function () {
-        $scope.alerts.length = 0;
-        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
-        //$scope.startDatabase( $scope.database.name);
+        $scope.startDatabase($scope.database.name);
     }
 
     // User clicked the "Stop" button
     $scope.btnClick_stop = function () {
-        $scope.alerts.length = 0;
-        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
-        //$scope.stopDatabase( $scope.database.name);
+        $scope.stopDatabase($scope.database.name);
     }
 
     // Handsontable (fixed the height)
@@ -1123,7 +1118,7 @@ function CreateDatabaseCtrl($scope, Settings, Database, CommandStatus, $dialog, 
         var pollFrequency = 100 // 500ms
         var pollTimeout = 60000; // 60 Seconds
 
-        Database.create($scope.settings, function (response) {
+        Database.create({},$scope.settings, function (response) {
 
             $scope.isBusy = false;
             var commandStarted = true;

@@ -163,21 +163,12 @@ namespace Starcounter.Administrator {
             var headers = new NameValueCollection(StringComparer.InvariantCultureIgnoreCase);
             headers.Add("Location", location);
 
-            // What about the schema we use here? If we build a client such
-            // as star.exe, we want to share a few things. How do publish the
-            // schema of what we return here and make it accessible to
-            // management clients?
-            //   Maybe start with adding a simple number/version, that the
-            // client do read. If it is compatible, it can try getting all
-            // the info. If not, in just displays it in plain JSON.
-            // TODO:
-
             var x = new ExecResponse201() {
                 DatabaseUri = command.DatabaseUri,
                 DatabaseHostPID = database.HostProcessId,
                 DatabaseCreated = createdDatabase
             };
-            var content = JsonConvert.SerializeObject(x);
+            var content = x.ToJson();
 
             return new Response { Uncompressed = 
                 HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(201, headers, content) 
