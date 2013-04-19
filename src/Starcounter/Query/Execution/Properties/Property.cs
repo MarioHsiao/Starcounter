@@ -49,7 +49,7 @@ internal abstract class Property : CodeGenFilterNode, IProperty
 
     public Boolean InvolvesCodeExecution()
     {
-        return (propBinding.Index == -1);
+        return (propIndex == -1);
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ internal abstract class Property : CodeGenFilterNode, IProperty
     /// <summary>
     /// Name to be displayed for example as column header in a result grid.
     /// </summary>
-    public String Name
+    public virtual String Name
     {
         get
         {

@@ -16,6 +16,7 @@ namespace Starcounter.Query.Execution {
             }
             extentNumber = extNum;
             typeBinding = typeBind;
+            propIndex = -1;
         }
         /// <summary>
         /// 
@@ -35,6 +36,15 @@ namespace Starcounter.Query.Execution {
             }
         }
 
+        /// <summary>
+        /// Name to be displayed for example as column header in a result grid.
+        /// </summary>
+        public override String Name {
+            get {
+                return DbHelper.ObjectIDName;
+            }
+        }
+        
         /// <summary>
         /// Full path name to uniquely identify this property.
         /// </summary>

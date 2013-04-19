@@ -16,6 +16,7 @@ namespace Starcounter.Query.Execution {
             }
             extentNumber = extNum;
             typeBinding = typeBind;
+            propIndex = -1;
         }
 
         public QueryTypeCode QueryTypeCode {
@@ -30,6 +31,15 @@ namespace Starcounter.Query.Execution {
         public override DbTypeCode DbTypeCode {
             get {
                 return DbTypeCode.UInt64;
+            }
+        }
+
+        /// <summary>
+        /// Name to be displayed for example as column header in a result grid.
+        /// </summary>
+        public override String Name {
+            get {
+                return DbHelper.ObjectNoName;
             }
         }
 
