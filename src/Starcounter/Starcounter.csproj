@@ -170,6 +170,8 @@
     <Compile Include="Query\Execution\Enumerators\GenericEnumerator.cs" />
     <Compile Include="Query\Execution\Literals\TypeLiteral.cs" />
     <Compile Include="Query\Execution\LogicalExpressions\IsTypePredicate.cs" />
+    <Compile Include="Query\Execution\Properties\ObjectIDProperty.cs" />
+    <Compile Include="Query\Execution\Properties\ObjectNoProperty.cs" />
     <Compile Include="Query\Execution\Row\RowMetaObject.cs" />
     <Compile Include="Query\Execution\Row\Row.cs" />
     <Compile Include="Query\Execution\Row\RowTypeBinding.cs" />

@@ -53,10 +53,14 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(nrs == 1);
             HelpMethods.LogEvent("Finished test queries with like");
-            Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
             HelpMethods.LogEvent("Start testing projections");
             TestProjectionName();
             HelpMethods.LogEvent("Finished testing projections");
+            HelpMethods.LogEvent("Some tests on variables and case insensitivity");
+            Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
+            var row = Db.SlowSQL("select Client, count(accountid) from account group by Client").First;
+            //row = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
+            HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -209,6 +213,14 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "5");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5).Name;
             Trace.Assert(n == "5");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7).DisplayName;
+            Trace.Assert(n == "ObjectNo");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7).Name;
+            Trace.Assert(n == "7");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).DisplayName;
+            Trace.Assert(n == "ObjectID");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).Name;
+            Trace.Assert(n == "8");
         }
 
     }

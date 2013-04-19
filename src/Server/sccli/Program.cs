@@ -19,7 +19,7 @@ namespace star {
     class Program {
 
         const string UnresolvedServerName = "N/A";
-        const string DefaultAdminServerHost = "localhost";
+        const string DefaultAdminServerHost = "127.0.0.1";
         const string DefaultDatabaseName = StarcounterConstants.DefaultDatabaseName;
 
         static class Option {

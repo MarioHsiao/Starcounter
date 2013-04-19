@@ -270,7 +270,7 @@ public class CSystemServer : CComponentBase
 
         // Calling external tool to create Administrator shortcut.
         Utilities.CreateShortcut(
-            "http://localhost:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort),
+            "http://127.0.0.1:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort),
             SystemServerAdminDesktopShortcutPath,
             "",
             installPath,

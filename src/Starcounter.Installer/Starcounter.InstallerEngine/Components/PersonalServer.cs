@@ -125,7 +125,7 @@ public class CPersonalServer : CComponentBase
 
         // Calling external tool to create Administrator shortcut.
         Utilities.CreateShortcut(
-            "http://localhost:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort),
+            "http://127.0.0.1:" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort),
             PersonalServerAdminDesktopShortcutPath,
             "",
             installPath,

@@ -13,9 +13,9 @@
 
     <div class="input-prepend">
         <div class="btn-group">
-            <button class="btn btn-success span2" ng-disabled="selectedDatabase == null||isBusy == true" ng-click="btnClick_execute()">{{executeButtonTitle()}}</button>
+            <button class="btn btn-success span2" ng-disabled="selectedDatabase == null||isBusy == true||sqlQuery == ''" ng-click="btnClick_execute()">{{executeButtonTitle()}}</button>
             <select ng-model="selectedDatabase" ng-options="database.name for database in databases">
-                <option value="">-- chose database --</option>
+                <option value="">-- choose database --</option>
             </select>
         </div>
     </div>
