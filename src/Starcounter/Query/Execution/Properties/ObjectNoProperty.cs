@@ -32,7 +32,16 @@ namespace Starcounter.Query.Execution {
                 return DbTypeCode.UInt64;
             }
         }
-        
+
+        /// <summary>
+        /// Full path name to uniquely identify this property.
+        /// </summary>
+        public override String FullName {
+            get {
+                return DbHelper.ObjectNoName;
+            }
+        }
+
         /// <summary>
         /// Appends data of this leaf to the provided filter key.
         /// </summary>
