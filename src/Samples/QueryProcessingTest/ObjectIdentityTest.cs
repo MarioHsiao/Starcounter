@@ -18,7 +18,6 @@ namespace QueryProcessingTest {
             Trace.Assert(e.MoveNext());
             string s = e.Current;
             Trace.Assert(s != null && s != "");
-            Console.WriteLine(s);
             ulong n = Db.SQL<ulong>("select objectno from account").First;
             Trace.Assert(n > 0);
             HelpMethods.LogEvent("Finished testing object identities");
