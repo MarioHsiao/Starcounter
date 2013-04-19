@@ -59,7 +59,7 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Some tests on variables and case insensitivity");
             Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
             var row = Db.SlowSQL("select Client, count(accountid) from account group by Client").First;
-            row = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
+            //row = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
             HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
         }
 
