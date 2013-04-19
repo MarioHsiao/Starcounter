@@ -21,13 +21,11 @@ using System.Collections;
 using Starcounter.InstallerWPF.Components;
 using Starcounter.Controls;
 
-namespace Starcounter.InstallerWPF.Pages
-{
+namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for UninstallProgressPage.xaml
     /// </summary>
-    public partial class UninstallProgressPage : BasePage
-    {
+    public partial class UninstallProgressPage : BasePage {
 
         #region Win32 import
 
@@ -49,41 +47,32 @@ namespace Starcounter.InstallerWPF.Pages
         #region Properties
 
         private bool _CanGoNext = false;
-        public override bool CanGoNext
-        {
-            get
-            {
+        public override bool CanGoNext {
+            get {
                 return base.CanGoNext && _CanGoNext;
             }
         }
 
         private bool _CanGoBack = false;
-        public override bool CanGoBack
-        {
-            get
-            {
+        public override bool CanGoBack {
+            get {
                 return base.CanGoBack && _CanGoBack;
             }
         }
 
-        public override bool CanClose
-        {
-            get
-            {
+        public override bool CanClose {
+            get {
                 return !this._IsInstalling;
             }
 
         }
 
         private bool _IsInstalling = false;
-        public bool IsInstalling
-        {
-            get
-            {
+        public bool IsInstalling {
+            get {
                 return this._IsInstalling;
             }
-            set
-            {
+            set {
                 if (this._IsInstalling == value) return;
                 this._IsInstalling = value;
 
@@ -99,26 +88,21 @@ namespace Starcounter.InstallerWPF.Pages
         private Dispatcher _dispatcher;
 
         private bool _CloseSystemMenuButtonIsEnabled = true;
-        private bool CloseSystemMenuButtonIsEnabled
-        {
-            get
-            {
+        private bool CloseSystemMenuButtonIsEnabled {
+            get {
                 return this._CloseSystemMenuButtonIsEnabled;
             }
-            set
-            {
+            set {
                 if (this._CloseSystemMenuButtonIsEnabled == value) return;
                 this._CloseSystemMenuButtonIsEnabled = value;
 
                 var hwnd = new WindowInteropHelper(Application.Current.MainWindow).Handle;
                 IntPtr menu = GetSystemMenu(hwnd, false);
 
-                if (value)
-                {
+                if (value) {
                     EnableMenuItem(menu, SC_CLOSE, MF_ENABLED);
                 }
-                else
-                {
+                else {
                     EnableMenuItem(menu, SC_CLOSE, MF_DISABLED);
                 }
 
@@ -133,30 +117,26 @@ namespace Starcounter.InstallerWPF.Pages
         #endregion
 
 
-        public UninstallProgressPage()
-        {
+        public UninstallProgressPage() {
             this._dispatcher = Dispatcher.FromThread(Thread.CurrentThread);
 
             this.Selected += new EventHandler(Page4_Selected);
             InitializeComponent();
         }
 
-        void Page4_Selected(object sender, EventArgs e)
-        {
+        void Page4_Selected(object sender, EventArgs e) {
             this.Start();
         }
 
-        private void Start()
-        {
+        private void Start() {
             // Referring to the user configuration.
-            Configuration config = (Configuration) this.DataContext;
+            Configuration config = (Configuration)this.DataContext;
 
             IDictionaryEnumerator item = config.Components.GetEnumerator();
-            while (item.MoveNext())
-            {
+            while (item.MoveNext()) {
                 BaseComponent component = item.Value as BaseComponent;
                 component.ExecuteCommand = true;
-            }            
+            }
 
 
             this.IsInstalling = true;
@@ -170,60 +150,51 @@ namespace Starcounter.InstallerWPF.Pages
         /// Starts the installation thread.
         /// </summary>
         /// <param name="state">The state.</param>
-        private void StartInstallationThread(object state)
-        {
+        private void StartInstallationThread(object state) {
             // Starting the uninstall.
-            try
-            {
+            try {
                 Configuration config = state as Configuration;
 
                 config.ExecuteSettings(
-                    delegate(object sender, Utilities.InstallerProgressEventArgs args)
-                    {
+                    delegate(object sender, Utilities.InstallerProgressEventArgs args) {
                         this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                                                new Action(delegate
-                                                {
+                                                new Action(delegate {
 
-                                                    this.Progress = args.Progress;
-                                                    this.ProgressText = args.Text;
-                                                }
+                            this.Progress = args.Progress;
+                            this.ProgressText = args.Text;
+                        }
                                             ));
                     },
-                        delegate(object sender, Utilities.MessageBoxEventArgs args)
-                        {
-                            this._dispatcher.Invoke(new Action(() =>
-                            {
+                        delegate(object sender, Utilities.MessageBoxEventArgs args) {
+                            this._dispatcher.Invoke(new Action(() => {
                                 args.MessageBoxResult = WpfMessageBox.Show(args.MessageBoxText, args.Caption, args.Button, args.Icon, args.DefaultResult);
                             }));
                         }
                     );
+
+                this._dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate {
+                    this.OnSuccess();
+                }));
+
             }
-            catch (Exception installException)
-            {
+            catch (Exception installException) {
                 // Error occurred during installation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                    new Action(delegate
-                    {
-                        this.OnError(installException);
-                        return;
-                    }
+                    new Action(delegate {
+                    this.OnError(installException);
+                    return;
+                }
                 ));
             }
 
-            this._dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate
-            {
-                this.OnSuccess();
-            }));
         }
 
-        private void StartAnimation()
-        {
+        private void StartAnimation() {
             Storyboard Element_Storyboard = this.PART_Canvas.FindResource("canvasAnimation") as Storyboard;
             Element_Storyboard.Begin(this.PART_Canvas, true);
         }
 
-        private void StopAnimation()
-        {
+        private void StopAnimation() {
             Storyboard Element_Storyboard = this.PART_Canvas.FindResource("canvasAnimation") as Storyboard;
             Element_Storyboard.Stop(this.PART_Canvas);
         }
@@ -233,25 +204,31 @@ namespace Starcounter.InstallerWPF.Pages
         /// </summary>
         /// <param name="server">The server.</param>
         /// <param name="internalDatabases">The internal databases.</param>
-        private void OnSuccess()
-        {
-            this.IsInstalling = false;
+        private void OnSuccess() {
 
-            this.StopAnimation();
-            this._CanGoNext = true;
+            try {
+#if SIMULATE_INSTALLATION
+#else
+                UninstallEngine.DeleteInstallationDir(false);
+#endif
+                this.IsInstalling = false;
+                this.StopAnimation();
+                this._CanGoNext = true;
+                NavigationCommands.NextPage.Execute(null, this);
+                CommandManager.InvalidateRequerySuggested();
+            }
+            catch (Exception e) {
+                this.OnError(e);
+            }
 
-            NavigationCommands.NextPage.Execute(null, this);
-//            NavigationCommands.GoToPage.Execute(new UninstallFinishedPage(), this);
-
-            CommandManager.InvalidateRequerySuggested();
         }
+
 
         /// <summary>
         /// Called when [error].
         /// </summary>
         /// <param name="e">The e.</param>
-        private void OnError(Exception e)
-        {
+        private void OnError(Exception e) {
             this.IsInstalling = false;
 
             this.StopAnimation();

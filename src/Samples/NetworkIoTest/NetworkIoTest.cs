@@ -145,7 +145,7 @@ namespace NetworkIoTestApp
                 
             });
 
-            // http://localhost:8080/del-session/70300000CAA03ED139EB1306FFFFFFFF
+            // http://127.0.0.1:8080/del-session/70300000CAA03ED139EB1306FFFFFFFF
             GET("/del-session/{?}", (Session s, Request r) =>
             {
                 if (r.HasSession)
@@ -159,7 +159,7 @@ namespace NetworkIoTestApp
                 }
             });
 
-            // http://localhost:8080/view-session/3030000008E25A422DB73D6FFFFFFFFF
+            // http://127.0.0.1:8080/view-session/3030000008E25A422DB73D6FFFFFFFFF
             GET("/view-session/{?}", (Session s) =>
             {
                 if (s != null)
