@@ -405,7 +405,7 @@ namespace Starcounter {
                 if (uri.Segments.Length == 1) {
                     // We allow a certain shorttrack: "sc://[databaseName]", if the
                     // caller has supplied a default server. If so, we reformat the
-                    // URI as "sc://localhost/[defaultserver]/[database]".
+                    // URI as "sc://127.0.0.1/[defaultserver]/[database]".
 
                     if (string.IsNullOrEmpty(defaultServer)) {
                         throw ErrorCode.ToException(
@@ -417,7 +417,7 @@ namespace Starcounter {
 
                     serverName = defaultServer;
                     uri = new Uri(
-                        string.Format("{0}//{1}/{2}/{3}", ScUri.UriSchemeWithColon, "localhost", serverName, uri.Authority),
+                        string.Format("{0}//{1}/{2}/{3}", ScUri.UriSchemeWithColon, "127.0.0.1", serverName, uri.Authority),
                         UriKind.Absolute
                         );
                 }
@@ -433,22 +433,22 @@ namespace Starcounter {
 
                     if (isRecognizedServer != null && isRecognizedServer(host)) {
                         // We add local host and push everything one step to the right,
-                        // like sc://personal/mydatabase -> sc://localhost/personal/mydatabase.
+                        // like sc://personal/mydatabase -> sc://127.0.0.1/personal/mydatabase.
                         // And then we interpret the path.
 
                         uri = new Uri(
-                            string.Format("{0}//{1}/{2}{3}", ScUri.UriSchemeWithColon, "localhost", host, uri.AbsolutePath),
+                            string.Format("{0}//{1}/{2}{3}", ScUri.UriSchemeWithColon, "127.0.0.1", host, uri.AbsolutePath),
                             UriKind.Absolute
                             );
                     } else {
                         // Check if its the name of the current machine? If so, we change
-                        // it to a URI with "localhost".
+                        // it to a URI with "127.0.0.1".
 
                         string machineName = ScUri.GetMachineName();
 
                         if (host.Equals(machineName, StringComparison.InvariantCultureIgnoreCase)) {
                             uri = new Uri(
-                                string.Format("{0}//{1}{2}", ScUri.UriSchemeWithColon, "localhost", uri.AbsolutePath),
+                                string.Format("{0}//{1}{2}", ScUri.UriSchemeWithColon, "127.0.0.1", uri.AbsolutePath),
                                 UriKind.Absolute
                                 );
                         }

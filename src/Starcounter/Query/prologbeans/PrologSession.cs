@@ -258,7 +258,7 @@ public class PrologSession
     private System.Net.Sockets.TcpClient connection;
 
     private int port = StarcounterEnvironment.DefaultPorts.SQLProlog;
-    private System.String host = "localhost";
+    private System.String host = "127.0.0.1";
     //UPGRADE_NOTE: The initialization of  'flags' was moved to method 'InitBlock'. 'ms-help://MS.VSCC.2003/commoner/redir/redirect.htm?keyword="jlca1005"'
     private int flags;
     // ALWAYS_CLOSE;

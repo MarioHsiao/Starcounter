@@ -8,7 +8,7 @@ angular.module('scadminServices', ['ngResource'], function ($provide) {
 
             // Send json patch(es)
             // TODO: The Port is hardcoded
-            var resource = $resource('http://localhost\\:80' + location, {}, { send: { method: 'PATCH', isArray: true } });
+            var resource = $resource('http://127.0.0.1\\:80' + location, {}, { send: { method: 'PATCH', isArray: true } });
 
             // Send the json-patch data
             resource.send(patchstring, function (data) {
