@@ -94,7 +94,7 @@ namespace IndexQueryTest.InheritedIndex {
             Trace.Assert(nrObjects == TotalEmployees);
             // Test with fetch and offset key
             nrObjects = 0;
-            PrintQueryPlan("select e from teacher e where company = ? fetch ?"); // use inherited index
+            //PrintQueryPlan("select e from teacher e where company = ? fetch ?"); // use inherited index
             byte[] key = null;
             var en = Db.SQL("select e from teacher e where company = ? fetch ?", company, 3).GetEnumerator();
             while (en.MoveNext()) {
@@ -105,7 +105,7 @@ namespace IndexQueryTest.InheritedIndex {
             }
             Trace.Assert(nrObjects == 3);
             Trace.Assert(key != null);
-            PrintQueryPlan("select e from teacher e where company = ? offsetkey ?"); // use inherited index
+            //PrintQueryPlan("select e from teacher e where company = ? offsetkey ?"); // use inherited index
             foreach (Employee e in Db.SQL("select e from teacher e where company = ? offsetkey ?", company, key)) {
                 Trace.Assert(e is Teacher);
                 nrObjects++;
