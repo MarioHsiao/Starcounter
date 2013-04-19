@@ -97,6 +97,11 @@ namespace Starcounter {
             return bindable.Identity;
         }
 
+        /// <summary>
+        /// Returns web friendly string of object identity.
+        /// </summary>
+        /// <param name="obj">The object to get the identity from.</param>
+        /// <returns>The string</returns>
         public static string GetObjectID(this object obj) {
             var bindable = obj as IBindable;
             if (bindable == null) {
@@ -130,6 +135,12 @@ namespace Starcounter {
             return obj.Identity;
         }
 
+        /// <summary>
+        /// Returns web friendly string of the object identity of the given 
+        /// <see cref="IBindable"/> instance.
+        /// </summary>
+        /// <param name="obj">The object to get the identity from.</param>
+        /// <returns>The string</returns>
         public static string GetObjectID(this IBindable obj) {
             if (obj == null) {
                 throw new ArgumentNullException("obj");
