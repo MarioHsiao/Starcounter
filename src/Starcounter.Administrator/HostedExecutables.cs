@@ -27,8 +27,6 @@ namespace Starcounter.Administrator {
         static string serverHost;
         static int serverPort;
 
-        const string relativeResourceUri = "/databases/{?}/executables";
-
         internal static void Setup(
             string serverHost,
             int serverPort,

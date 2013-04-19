@@ -4,6 +4,7 @@ using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using Starcounter.Server;
+using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.MessageTypes;
 using Starcounter.Server.Setup;
 using System;
@@ -196,7 +197,7 @@ namespace star {
             string executable;
 
             database = SharedCLI.ResolveDatabase(args);
-            relativeUri = string.Format("/databases/{0}/executables", database);
+            relativeUri = AdminUri.Full(AdminUri.HostedDatabaseExecutables.Replace("{?}", database));
 
             // Aware of the client transparency guideline stated previously,
             // we still do resolve the path of the given executable based on
