@@ -18,9 +18,17 @@ using Starcounter.Server.Rest;
 namespace Starcounter.Administrator {
 
     /// <summary>
-    /// Abstracts the admin server resource /databases/{name}/executables
-    /// and implements it's REST interface.
+    /// Excapsulates the admin server functionality acting on the resource
+    /// "executables hosted in a database". 
     /// </summary>
+    /// <remarks>
+    /// This resource is a collection of executables currently running
+    /// inside a named database (under a particular server). The resource
+    /// should support retreival using GET, execution of a new application
+    /// using POST, stopping of an application using DELETE, and possibly
+    /// patching the set of running executables using PATCH and maybe even
+    /// assure a set of running executables using PUT.
+    /// </remarks>
     internal static class HostedExecutables {
         static ServerEngine engine;
         static IServerRuntime runtime;
@@ -36,10 +44,19 @@ namespace Starcounter.Administrator {
             HostedExecutables.runtime = runtime;
             HostedExecutables.serverHost = serverHost;
             HostedExecutables.serverPort = serverPort;
-            Handle.POST<string, Request>(AdminUri.Full(AdminUri.HostedDatabaseExecutables), HandlePOST);
+            Handle.POST<string, Request>(AdminUri.Full(AdminUri.HostedDatabaseExecutables), OnPOST);
         }
 
-        static object HandlePOST(string name, Request request) {
+        /// <summary>
+        /// Handles a POST to this resource.
+        /// </summary>
+        /// <param name="name">
+        /// The name of the database hosting the executable collection
+        /// represented by this resource.</param>
+        /// <param name="request">
+        /// The REST request.</param>
+        /// <returns>The response to be sent back to the client.</returns>
+        static object OnPOST(string name, Request request) {
 
             var execRequest = new ExecRequest();
             execRequest.PopulateFromJson(request.GetBodyStringUtf8_Slow());
