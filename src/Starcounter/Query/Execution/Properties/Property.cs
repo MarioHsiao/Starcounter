@@ -123,7 +123,7 @@ internal abstract class Property : CodeGenFilterNode, IProperty
     /// <summary>
     /// Full path name to uniquely identify this property.
     /// </summary>
-    public String FullName
+    public virtual String FullName
     {
         get
         {

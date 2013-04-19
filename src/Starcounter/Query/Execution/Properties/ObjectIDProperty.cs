@@ -36,6 +36,15 @@ namespace Starcounter.Query.Execution {
         }
 
         /// <summary>
+        /// Full path name to uniquely identify this property.
+        /// </summary>
+        public override String FullName {
+            get {
+                return DbHelper.ObjectIDName;
+            }
+        }
+
+        /// <summary>
         /// Appends data of this leaf to the provided filter key.
         /// </summary>
         /// <param name="key">Reference to the filter key to which data should be appended.</param>
@@ -104,7 +113,7 @@ namespace Starcounter.Query.Execution {
             if (obj != null && extentNumber >= 0 && obj.AccessObject(extentNumber) != null) {
                 return new StringLiteral(EvaluateToString(obj));
             }
-            return new StringProperty(extentNumber, typeBinding, propBinding);
+            return new ObjectIDProperty(extentNumber, typeBinding);
         }
 
         public override IValueExpression Clone(VariableArray varArray) {
