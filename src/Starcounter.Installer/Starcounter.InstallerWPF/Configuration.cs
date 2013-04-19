@@ -475,7 +475,7 @@ namespace Starcounter.InstallerWPF
 
                             if (result == WpfMessageBoxResult.Yes)
                             {
-                                throw new Exception("User canceled");
+                                throw new InstallerEngine.InstallerAbortedException("User canceled");
                             }
                         }
                     }

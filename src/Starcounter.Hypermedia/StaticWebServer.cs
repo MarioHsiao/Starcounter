@@ -79,7 +79,7 @@ namespace Starcounter.Internal.Web {
 
 /*      public byte[] GET(string relativeUri) {
          relativeUri = "/" + relativeUri;
-         var request = "GET " + relativeUri + " HTTP/1.1\r\nHost: localhost\r\n\r\n";
+         var request = "GET " + relativeUri + " HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n";
          var b = Encoding.UTF8.GetBytes(request);
          var req = RequestParser.Parse(b, b.Length);
          req.WantsCompressed = false; // TODO! REMOVE!

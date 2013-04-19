@@ -169,10 +169,14 @@ namespace StarcounterInternal.Bootstrap
                 configuration.DefaultSystemHttpPort,
                 configuration.Name);
 
+            OnAppsBoostraperInitialized();
+
             // Configuring database related settings.
             if (withdb_)
             {
                 ConfigureDatabase(configuration);
+                OnDatabaseConfigured();
+
                 ConnectDatabase(configuration, hsched_, hmenv, hlogs);
                 OnDatabaseConnected();
             }
@@ -273,7 +277,7 @@ namespace StarcounterInternal.Bootstrap
 
             if (withdb_)
             {
-                Loader.AddBasePackage(hsched_);
+                Loader.AddBasePackage(hsched_, stopwatch_);
                 OnBasePackageLoaded();
             }
            
@@ -334,7 +338,7 @@ namespace StarcounterInternal.Bootstrap
                 OnArgumentsParsed();
 
                 // Loading the given application.
-                Loader.ExecApp(hsched_, configuration.AutoStartExePath, stopwatch_, workingDir, userArgsArray);
+                Loader.ExecApp(hsched_, configuration.AutoStartExePath, stopwatch_, workingDir, userArgsArray, true);
 
                 OnAutoStartModuleExecuted();
             }
@@ -646,6 +650,8 @@ namespace StarcounterInternal.Bootstrap
         private void OnHostConfigured() { Trace("Host configured."); }
         private void OnSchedulerConfigured() { Trace("Scheduler configured."); }
         private void OnDatabaseConnected() { Trace("Database connected."); }
+        private void OnAppsBoostraperInitialized() { Trace("Apps bootstraper initialized."); }
+        private void OnDatabaseConfigured() { Trace("Database configured."); }
         private void OnQueryModuleInitiated() { Trace("Query module initiated."); }
 
         private void OnEndSetup() { Trace("Setup completed."); }

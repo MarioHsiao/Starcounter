@@ -4,7 +4,6 @@
         ResizeMode="NoResize"
         WindowStyle="None"
         Background="Transparent"
-        Topmost="True"
         AllowsTransparency="True"
         SizeToContent="WidthAndHeight"
         ShowInTaskbar="False"
