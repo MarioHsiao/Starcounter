@@ -213,6 +213,14 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "5");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5).Name;
             Trace.Assert(n == "5");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7).DisplayName;
+            Trace.Assert(n == "ObjectNo");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7).Name;
+            Trace.Assert(n == "7");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).DisplayName;
+            Trace.Assert(n == "ObjectID");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).Name;
+            Trace.Assert(n == "8");
         }
 
     }
