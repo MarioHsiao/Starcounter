@@ -34,6 +34,8 @@ namespace Starcounter.Server.Commands.Processors {
             if (command.StopDatabaseProcess) {
                 Engine.DatabaseEngine.StopDatabaseProcess(database);
             }
+            Engine.CurrentPublicModel.UpdateDatabase(database);
+
         }
     }
 }
