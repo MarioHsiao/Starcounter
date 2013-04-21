@@ -22,11 +22,6 @@ namespace Starcounter.Binding {
         ulong ThisHandle { get; }
 
         /// <summary>
-        /// Returns numerical Object identity of the database object
-        /// </summary>
-        UInt64 ObjectNo { get; }
-
-        /// <summary>
         /// Binds the underlying object to the given address, object id
         /// and type binding.
         /// </summary>
