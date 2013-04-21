@@ -20,15 +20,15 @@
 
                     <td>
                         <div class="btn-group">
-                            <a ng-click="btnClick_restart()" class="btn"><i class="icon-repeat"></i></a>
-                            <a ng-click="btnClick_start()" class="btn"><i class="icon-play"></i></a>
-                            <a ng-click="btnClick_stop()" class="btn"><i class="icon-stop "></i></a>
+                            <!--<a ng-click="btnClick_app_restart(app)" class="btn"><i class="icon-repeat"></i></a>-->
+                            <a ng-click="btnClick_app_start(app)" class="btn"><i class="icon-play"></i></a>
+                            <a ng-click="btnClick_app_stop(app)" class="btn"><i class="icon-stop "></i></a>
                         </div>
                     </td>
                     <td>{{app.name}}</td>
 
                     <td>
-                        <a href="#/databases/{{app.databaseID}}">{{app.databaseName}}</a>
+                        <a href="#/databases/{{app.databaseName}}">{{app.databaseName}}</a>
                     </td>
 
                     <td ng-class="app.status">{{app.status}}</td>
@@ -65,9 +65,9 @@
 
                     <td>
                         <div class="btn-group">
-                            <!--<a ng-click="btnClick_restart(database)" class="btn"><i class="icon-repeat"></i></a>-->
-                            <a ng-click="btnClick_start(database)" class="btn"><i class="icon-play"></i></a>
-                            <a ng-click="btnClick_stop(database)" class="btn"><i class="icon-stop "></i></a>
+                            <!--<a ng-click="btnClick_database_restart(database)" class="btn"><i class="icon-repeat"></i></a>-->
+                            <a ng-click="btnClick_database_start(database)" class="btn"><i class="icon-play"></i></a>
+                            <a ng-click="btnClick_database_stop(database)" class="btn"><i class="icon-stop "></i></a>
                         </div>
                     </td>
 
@@ -75,10 +75,10 @@
                         <a href="#/databases/{{database.name}}">{{database.name}}</a>
                     </td>
 
-                    <td>{{database.status}}
+                    <td ng-class="database.status">{{database.status}}
                     </td>
                     <td>
-                        <button ng-click="btnClick_delete(database)" class="close">&times;</button>
+                        <button ng-click="btnClick_database_delete(database)" class="close">&times;</button>
                     </td>
                 </tr>
 
