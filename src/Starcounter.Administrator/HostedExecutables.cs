@@ -42,6 +42,8 @@ namespace Starcounter.Administrator {
 
         static object HandlePOST(string name, Request request) {
 
+            Diagnostics.WriteTimeStamp("ADMIN", "HandlePOST");
+
             var execRequest = new ExecRequest();
             execRequest.PopulateFromJson(request.GetBodyStringUtf8_Slow());
 
@@ -68,6 +70,8 @@ namespace Starcounter.Administrator {
             var commandInfo = runtime.Execute(cmd);
             Trace.Assert(commandInfo.ProcessorToken == ExecCommand.DefaultProcessor.Token);
             commandInfo = runtime.Wait(commandInfo);
+
+            Diagnostics.WriteTimeStamp("ADMIN", "HandlePOST finished");
 
             // Done. Check the outcome.
 
