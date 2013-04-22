@@ -60,9 +60,6 @@ namespace Starcounter.Internal
     /// </summary>
     public static class SchemaLoader
     {
-        private static String ObjectIDLowerName = "objectid";
-        private static String ObjectNoLowerName = "objectno";
-
         /// <summary>
         /// Loads the and convert schema.
         /// </summary>
@@ -101,24 +98,6 @@ namespace Starcounter.Internal
             }
 
             return typeDefs;
-        }
-
-        /// <summary>
-        /// Adds given object identity property to the type.
-        /// </summary>
-        /// <param name="propertyDefs">The list of all properties of the type.</param>
-        /// <param name="propertyName">The name of the property.</param>
-        /// <param name="type">The type of the property.</param>
-        private static void AddObjectIdentityProperty(List<PropertyDef> propertyDefs, String propertyName, DbTypeCode type, ref bool isObjectID, ref bool isObjectNo) {
-            PropertyDef propertyDef = new PropertyDef(propertyName, type, false);
-
-            string columnName = null;
-            //var backingField = databaseAttribute.BackingField;
-            //if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField) {
-            //    columnName = backingField.Name;
-            //}
-            propertyDef.ColumnName = columnName;
-            AddProperty(propertyDef, propertyDefs, ref isObjectID, ref isObjectNo);
         }
 
         /// <summary>
@@ -242,7 +221,7 @@ namespace Starcounter.Internal
                                  targetTypeName
                                  );
                             propertyDef.ColumnName = targetAttribute.Name;
-                            AddProperty(propertyDef, propertyDefs, ref isObjectID, ref isObjectNo);
+                            AddProperty(propertyDef, propertyDefs);
                         }
                         break;
                     case DatabaseAttributeKind.PersistentProperty:
@@ -254,7 +233,7 @@ namespace Starcounter.Internal
                                 targetTypeName
                                 );
                             propertyDef.ColumnName = databaseAttribute.PersistentProperty.AttributeFieldIndex;
-                            AddProperty(propertyDef, propertyDefs, ref isObjectID, ref isObjectNo);
+                            AddProperty(propertyDef, propertyDefs);
                         }
                         break;
                     case DatabaseAttributeKind.NotPersistentProperty:
@@ -272,17 +251,11 @@ namespace Starcounter.Internal
                                 columnName = backingField.Name;
                             }
                             propertyDef.ColumnName = columnName;
-                            AddProperty(propertyDef, propertyDefs, ref isObjectID, ref isObjectNo);
+                            AddProperty(propertyDef, propertyDefs);
                         }
                         break;
                 }
             }
-            if (!isObjectNo)
-                AddObjectIdentityProperty(propertyDefs, "ObjectNo", DbTypeCode.UInt64, ref isObjectID, ref isObjectNo);
-#if false
-            if (!isObjectID)
-                AddObjectIdentityProperty(propertyDefs, "ObjectID", DbTypeCode.String);
-#endif
         }
 
         /// <summary>
@@ -290,7 +263,7 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="property"></param>
         /// <param name="properties"></param>
-        private static void AddProperty(PropertyDef property, List<PropertyDef> properties, ref bool isObjectID, ref bool isObjectNo) {
+        private static void AddProperty(PropertyDef property, List<PropertyDef> properties) {
             int index = properties.FindIndex( (match) => {
                 if (property.Name.Equals(match.Name))
                     return true;
@@ -304,10 +277,6 @@ namespace Starcounter.Internal
                 // Property exist in baseclass. 
                 properties[index] = property;
             }
-            if (isObjectID && isObjectNo) return;
-            String propLowerName = property.Name.ToLower();
-            isObjectID &= propLowerName == ObjectIDLowerName;
-            isObjectNo &= propLowerName == ObjectNoLowerName;
         }
 
         /// <summary>

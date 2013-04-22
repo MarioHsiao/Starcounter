@@ -30,6 +30,8 @@ namespace Starcounter.Internal {
 #pragma warning disable 0628, 0169
         #endregion
 
+        protected string this_id_web_string = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Entity" /> class.
         /// </summary>
@@ -165,13 +167,6 @@ namespace Starcounter.Internal {
         /// <inheritdoc />
         ulong Advanced.IBindable.Identity {
             get { return __sc__this_id__; }
-        }
-
-        /// <summary>
-        /// Returns numerical Object identity of the database object
-        /// </summary>
-        public ulong ObjectNo {
-            get { return this.__sc__this_id__; }
         }
     }
 }
