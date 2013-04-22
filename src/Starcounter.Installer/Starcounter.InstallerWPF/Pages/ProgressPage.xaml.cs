@@ -21,13 +21,11 @@ using Starcounter.InstallerWPF.Slides;
 using Starcounter.Controls;
 using System.Windows.Resources;
 
-namespace Starcounter.InstallerWPF.Pages
-{
+namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for Page4.xaml
     /// </summary>
-    public partial class ProgressPage : BasePage
-    {
+    public partial class ProgressPage : BasePage {
 
         #region Win32 import
 
@@ -50,12 +48,10 @@ namespace Starcounter.InstallerWPF.Pages
 
         #region NextPage
 
-        private void CanExecute_NextPage_Command(object sender, CanExecuteRoutedEventArgs e)
-        {
+        private void CanExecute_NextPage_Command(object sender, CanExecuteRoutedEventArgs e) {
             bool bCanExexute = this.CurrentIndex < (this.Slides.Count - 1) || this.IsInstalling == false;
 
-            if (bCanExexute)
-            {
+            if (bCanExexute) {
                 e.Handled = true;
                 e.CanExecute = bCanExexute;
                 //this.UpdateCloseNextButton();
@@ -64,16 +60,13 @@ namespace Starcounter.InstallerWPF.Pages
 
         }
 
-        private void Executed_NextPage_Command(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (this.CurrentIndex < (this.Slides.Count - 1))
-            {
+        private void Executed_NextPage_Command(object sender, ExecutedRoutedEventArgs e) {
+            if (this.CurrentIndex < (this.Slides.Count - 1)) {
                 e.Handled = true;
 
                 this.CurrentIndex++;
             }
-            else
-            {
+            else {
                 //if (this.CanClose)
                 //{
                 //    ApplicationCommands.Close.Execute(null, this);
@@ -89,19 +82,15 @@ namespace Starcounter.InstallerWPF.Pages
 
         #region PreviousPage
 
-        private void CanExecute_PreviousPage_Command(object sender, CanExecuteRoutedEventArgs e)
-        {
-            if (this.CurrentIndex > 0)
-            {
+        private void CanExecute_PreviousPage_Command(object sender, CanExecuteRoutedEventArgs e) {
+            if (this.CurrentIndex > 0) {
                 e.Handled = true;
                 e.CanExecute = true;
             }
         }
 
-        private void Executed_PreviousPage_Command(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (this.CurrentIndex > 0)
-            {
+        private void Executed_PreviousPage_Command(object sender, ExecutedRoutedEventArgs e) {
+            if (this.CurrentIndex > 0) {
                 e.Handled = true;
                 this.CurrentIndex--;
             }
@@ -114,27 +103,21 @@ namespace Starcounter.InstallerWPF.Pages
         #region Properties
 
         private bool _CanGoNext = false;
-        public override bool CanGoNext
-        {
-            get
-            {
+        public override bool CanGoNext {
+            get {
                 return base.CanGoNext && _CanGoNext;
             }
         }
 
         private bool _CanGoBack = false;
-        public override bool CanGoBack
-        {
-            get
-            {
+        public override bool CanGoBack {
+            get {
                 return base.CanGoBack && _CanGoBack;
             }
         }
 
-        public override bool CanClose
-        {
-            get
-            {
+        public override bool CanClose {
+            get {
                 if (this._IsInstalling == true) return false;
 
                 return base.CanClose;
@@ -145,14 +128,11 @@ namespace Starcounter.InstallerWPF.Pages
         }
 
         private bool _IsInstalling = false;
-        public bool IsInstalling
-        {
-            get
-            {
+        public bool IsInstalling {
+            get {
                 return this._IsInstalling;
             }
-            set
-            {
+            set {
                 if (this._IsInstalling == value) return;
                 this._IsInstalling = value;
 
@@ -167,14 +147,11 @@ namespace Starcounter.InstallerWPF.Pages
         }
 
         private bool _IsExecuted = false;
-        public bool IsExecuted
-        {
-            get
-            {
+        public bool IsExecuted {
+            get {
                 return this._IsExecuted;
             }
-            set
-            {
+            set {
                 if (this._IsExecuted == value) return;
                 this._IsExecuted = value;
                 this.OnPropertyChanged("IsInstalled");
@@ -184,26 +161,21 @@ namespace Starcounter.InstallerWPF.Pages
         private Dispatcher _dispatcher;
 
         private bool _CloseSystemMenuButtonIsEnabled = true;
-        private bool CloseSystemMenuButtonIsEnabled
-        {
-            get
-            {
+        private bool CloseSystemMenuButtonIsEnabled {
+            get {
                 return this._CloseSystemMenuButtonIsEnabled;
             }
-            set
-            {
+            set {
                 if (this._CloseSystemMenuButtonIsEnabled == value) return;
                 this._CloseSystemMenuButtonIsEnabled = value;
 
                 var hwnd = new WindowInteropHelper(Application.Current.MainWindow).Handle;
                 IntPtr menu = GetSystemMenu(hwnd, false);
 
-                if (value)
-                {
+                if (value) {
                     EnableMenuItem(menu, SC_CLOSE, MF_ENABLED);
                 }
-                else
-                {
+                else {
                     EnableMenuItem(menu, SC_CLOSE, MF_DISABLED);
                 }
 
@@ -216,14 +188,11 @@ namespace Starcounter.InstallerWPF.Pages
         }
 
         private int _CurrentIndex = -1;
-        public int CurrentIndex
-        {
-            get
-            {
+        public int CurrentIndex {
+            get {
                 return this._CurrentIndex;
             }
-            set
-            {
+            set {
                 if (this._CurrentIndex == value) return;
 
                 this._CurrentIndex = value;
@@ -243,8 +212,7 @@ namespace Starcounter.InstallerWPF.Pages
 
         IList<FrameworkElement> Slides = new List<FrameworkElement>();
 
-        public ProgressPage()
-        {
+        public ProgressPage() {
             this._dispatcher = Dispatcher.FromThread(Thread.CurrentThread);
 
 
@@ -262,22 +230,18 @@ namespace Starcounter.InstallerWPF.Pages
             InitializeComponent();
         }
 
- 
 
-        void ProgressPage_Loaded(object sender, RoutedEventArgs e)
-        {
 
-            if (this.CurrentIndex == -1)
-            {
+        void ProgressPage_Loaded(object sender, RoutedEventArgs e) {
+
+            if (this.CurrentIndex == -1) {
                 this.CurrentIndex = 0;
             }
 
         }
 
-        void Page_Selected(object sender, EventArgs e)
-        {
-            if (this.IsExecuted == false)
-            {
+        void Page_Selected(object sender, EventArgs e) {
+            if (this.IsExecuted == false) {
                 this.IsExecuted = true;
                 this.Start();
             }
@@ -295,8 +259,7 @@ namespace Starcounter.InstallerWPF.Pages
         //    }
         //}
 
-        private void Start()
-        {
+        private void Start() {
             // Referring to the user configuration.
             Configuration config = (Configuration)this.DataContext;
 
@@ -309,30 +272,24 @@ namespace Starcounter.InstallerWPF.Pages
         /// Starts the installation thread.
         /// </summary>
         /// <param name="state">The state.</param>
-        private void StartInstallationThread(object state)
-        {
+        private void StartInstallationThread(object state) {
 
 
 
             // Starting the installation process.
-            try
-            {
+            try {
                 Configuration config = state as Configuration;
                 config.ExecuteSettings(
-                          delegate(object sender, Utilities.InstallerProgressEventArgs args)
-                          {
+                          delegate(object sender, Utilities.InstallerProgressEventArgs args) {
                               this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                                                      new Action(delegate
-                                                      {
-                                                          this.Progress = args.Progress;
-                                                          this.ProgressText = args.Text;
-                                                      }
+                                                      new Action(delegate {
+                                  this.Progress = args.Progress;
+                                  this.ProgressText = args.Text;
+                              }
                                                   ));
                           },
-                            delegate(object sender, Utilities.MessageBoxEventArgs args)
-                            {
-                                this._dispatcher.Invoke(new Action(() =>
-                                {
+                            delegate(object sender, Utilities.MessageBoxEventArgs args) {
+                                this._dispatcher.Invoke(new Action(() => {
                                     args.MessageBoxResult = WpfMessageBox.Show(args.MessageBoxText, args.Caption, args.Button, args.Icon, args.DefaultResult);
                                 }));
 
@@ -343,22 +300,19 @@ namespace Starcounter.InstallerWPF.Pages
 
                 // Installation succeeded.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                    new Action(delegate
-                    {
-                        this.OnSuccess();
-                    }
+                    new Action(delegate {
+                    this.OnSuccess();
+                }
                 ));
                 //((Configuration)state).RunInstallerEngine(ConstantsBank.ScGlobalSettingsIniName, null);
             }
-            catch (Exception installException)
-            {
+            catch (Exception installException) {
                 // Error occurred during installation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                    new Action(delegate
-                    {
-                        this.OnError(installException);
-                        return;
-                    }
+                    new Action(delegate {
+                    this.OnError(installException);
+                    return;
+                }
                 ));
             }
 
@@ -371,20 +325,10 @@ namespace Starcounter.InstallerWPF.Pages
         /// </summary>
         /// <param name="server">The server.</param>
         /// <param name="internalDatabases">The internal databases.</param>
-        private void OnSuccess()
-        {
+        private void OnSuccess() {
             this.IsInstalling = false;
-
-            //this.tb_header.Text = "Starcounter was successfully installed";
-            //this.tb_subHeader.Text = "Click the 'Green' button to continue";
-
             this._CanGoNext = true;
 
-            //            this.DisplayName = "Installation";
-
-            //NavigationCommands.GoToPage.Execute(new FinishedPage(), this);
-
-            //NavigationCommands.NextPage.Execute(null, this);
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -392,15 +336,25 @@ namespace Starcounter.InstallerWPF.Pages
         /// Called when [error].
         /// </summary>
         /// <param name="e">The e.</param>
-        private void OnError(Exception e)
-        {
-            this.IsInstalling = false;
+        private void OnError(Exception e) {
 
+            try {
+#if SIMULATE_INSTALLATION
+#else
+                UninstallEngine.DeleteInstallationDir(false);
+#endif
+                this.IsInstalling = false;
+                this._CanGoNext = true;
+                this._CanGoBack = true;
+                NavigationCommands.GoToPage.Execute(e, this);
+            }
+            catch (Exception ee) {
+                this.IsInstalling = false;
+                this._CanGoNext = true;
+                this._CanGoBack = true;
+                NavigationCommands.GoToPage.Execute(ee, this);
+            }
 
-            this._CanGoNext = true;
-            this._CanGoBack = true;
-
-            NavigationCommands.GoToPage.Execute(e, this);
             CommandManager.InvalidateRequerySuggested();
         }
 

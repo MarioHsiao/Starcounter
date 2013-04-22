@@ -32,11 +32,9 @@
                     <a href="#/databases/{{database.name}}">{{database.name}}</a>
                 </td>
 
-                <td>{{database.status}}
-                </td>
+                <td ng-class="database.status">{{database.status}}</td>
                 <td>
                     <button ng-click="btnClick_delete(database)" class="close">&times;</button>
-
                 </td>
             </tr>
 
