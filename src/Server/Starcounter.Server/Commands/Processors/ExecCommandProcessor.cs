@@ -48,50 +48,34 @@ namespace Starcounter.Server.Commands {
             database = null;
             codeHostProcess = null;
 
-            // Check that we can properly find the executable.
-
             if (!File.Exists(command.ExecutablePath)) {
                 throw ErrorCode.ToException(
                     Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", command.ExecutablePath));
             }
+
+            databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
+            if (!databaseExist && !command.CanAutoCreateDb) {
+                throw ErrorCode.ToException(
+                    Error.SCERRDATABASENOTFOUND, string.Format("Database: {0}", command.DatabaseName)
+                    );
+            }
             
-            // First see if we can find the database and take a look what
+            // First see if we found the database and take a look at what
             // code is running inside it. We don't want to process the same
             // executable twice.
 
-            WithinTask(Task.CheckRunningExeUpToDate, (task) => {
-
-                databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
-                if (!databaseExist) {
-                    if (!command.CanAutoCreateDb) {
-                        throw ErrorCode.ToException(
-                            Error.SCERRDATABASENOTFOUND, string.Format("Database: {0}", command.DatabaseName)
-                            );
-                    }
-                } else {
-                    app = database.Apps.Find(delegate(DatabaseApp candidate) {
-                        return candidate.OriginalExecutablePath.Equals(
-                            command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
-                    });
-                    if (app != null) {
-                        // If the app is running inside the database, we must stop the host,
-                        // or validate it's up-to-date.
-                        // We currently dont implement checking if the app is up-to-date,
-                        // we simply restart the host every time.
-                        // Two TODO's here:
-                        // 1) Make sure we restart other apps that runs in the same host if
-                        // we drop the host.
-                        // 2) Check if the app is up-to-date.
-                        if (IsUpToDate(app)) {
-                            // Running the same executable more than once is not considered an
-                            // error. We just log it as a notice and consider the processing done.
-                            this.Log.LogNotice("Executable {0} is already running in database {1}.", app.OriginalExecutablePath, command.DatabaseName);
-                            return;
-                        }
-
-                        Engine.DatabaseEngine.StopCodeHostProcess(database);
-                        OnExistingWorkerProcessStopped();
-                    }
+            WithinTaskIf(databaseExist, Task.CheckRunningExeUpToDate, (task) => {
+                app = database.Apps.Find(delegate(DatabaseApp candidate) {
+                    return candidate.OriginalExecutablePath.Equals(
+                        command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
+                });
+                if (app != null) {
+                    // If the app is running inside the database, we must stop the host,
+                    // or validate it's up-to-date.
+                    // We currently dont implement checking if the app is up-to-date,
+                    // we simply restart the host every time.
+                    Engine.DatabaseEngine.StopCodeHostProcess(database);
+                    OnExistingWorkerProcessStopped();
                 }
             });
 
@@ -224,10 +208,6 @@ namespace Starcounter.Server.Commands {
 
             Engine.CurrentPublicModel.UpdateDatabase(database);
             OnDatabaseStatusUpdated();
-        }
-
-        bool IsUpToDate(DatabaseApp app) {
-            return false;
         }
 
         string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {
