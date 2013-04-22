@@ -52,6 +52,11 @@ internal class ExtentNode : IOptimizationNode
     IObjectExpression refLookUpExpression;
 
     /// <summary>
+    /// Expression to be used for ObjectId fetch.
+    /// </summary>
+    IValueExpression identityExpression;
+
+    /// <summary>
     /// Index to be used for an index scan specified by an index hint in the query.
     /// </summary>
     IndexInfo hintedIndexInfo;
@@ -202,8 +207,23 @@ internal class ExtentNode : IOptimizationNode
         while (refLookUpExpression == null && i < conditionList.Count) {
             if (conditionList[i] is ComparisonObject) {
                 refLookUpExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
+                if (refLookUpExpression != null) {
+                    conditionList.RemoveAt(i);
+                    return;
+                }
             }
-            if (refLookUpExpression != null) {
+            i++;
+        }
+        // Try to find equality on ObjectID or ObjectNo
+        i = 0;
+        while (identityExpression == null && i < conditionList.Count) {
+            if (conditionList[i] is ComparisonUInteger) {
+                identityExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
+            }
+            if (conditionList[i] is ComparisonString) {
+                identityExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
+            }
+            if (identityExpression != null) {
                 conditionList.RemoveAt(i);
                 return;
             }
