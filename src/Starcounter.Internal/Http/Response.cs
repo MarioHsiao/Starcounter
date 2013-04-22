@@ -578,7 +578,6 @@ namespace Starcounter.Advanced
             Destroy();
         }
 
-        // Constructor.
         /// <summary>
         /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
