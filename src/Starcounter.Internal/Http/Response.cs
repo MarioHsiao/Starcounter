@@ -203,6 +203,18 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Checks if status code is resembling success.
+        /// </summary>
+        public Boolean IsSuccessStatusCode
+        {
+            get
+            {
+                UInt16 statusCode = StatusCode;
+                return (statusCode >= 200) && (statusCode <= 226);
+            }
+        }
+
+        /// <summary>
         /// The number of bytes containing the http header in the uncompressed response. This is also
         /// the offset of the first byte of the content.
         /// </summary>
