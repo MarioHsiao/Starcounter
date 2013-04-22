@@ -436,8 +436,10 @@ namespace Starcounter.InstallerEngine
             {
                 //Utilities.MessageBoxWarning(
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
-                    "Your CPU does not support POPCNT instruction, which is a requirement to run Starcounter.");
-                //    "Unavailable CPU feature..");
+                    "Your processor micro-architecture is not supported by Starcounter." + Environment.NewLine +
+                    "For Intel processors, Starcounter requires a Nehalem micro-architecture or later." + Environment.NewLine +
+                    "For AMD processors, Starcounter requires a Barcelona micro-architecture or later." + Environment.NewLine +
+                    "Please refer to the system requirements for more information.");
             }
         }
 
