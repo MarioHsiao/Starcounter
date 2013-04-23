@@ -92,6 +92,25 @@ namespace IndexQueryTest.InheritedIndex {
             foreach (Employee e in Db.SQL("select e from employee e OPTION INDEX (e companyIndx)"))
                 nrObjects++;
             Trace.Assert(nrObjects == TotalEmployees);
+            // Test with fetch and offset key
+            nrObjects = 0;
+            //PrintQueryPlan("select e from teacher e where company = ? fetch ?"); // use inherited index
+            byte[] key = null;
+            var en = Db.SQL("select e from teacher e where company = ? fetch ?", company, 3).GetEnumerator();
+            while (en.MoveNext()) {
+                Trace.Assert(en.Current is Teacher);
+                nrObjects++;
+                if (nrObjects == 3)
+                    key = en.GetOffsetKey();
+            }
+            Trace.Assert(nrObjects == 3);
+            Trace.Assert(key != null);
+            //PrintQueryPlan("select e from teacher e where company = ? offsetkey ?"); // use inherited index
+            foreach (Employee e in Db.SQL("select e from teacher e where company = ? offsetkey ?", company, key)) {
+                Trace.Assert(e is Teacher);
+                nrObjects++;
+            }
+            Trace.Assert(nrObjects == TotalTeachers);
         }
 
         internal static void PrintQueryPlan(String query) {

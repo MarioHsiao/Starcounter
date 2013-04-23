@@ -128,9 +128,12 @@ namespace StarcounterInternal.Hosting
         /// Adds the base package.
         /// </summary>
         /// <param name="hsched">The hsched.</param>
-        public static unsafe void AddBasePackage(void* hsched)
+        public static unsafe void AddBasePackage(void* hsched, Stopwatch stopwatch = null)
         {
-            stopwatch_ = Stopwatch.StartNew();
+            if (stopwatch != null)
+                stopwatch_ = stopwatch;
+            else
+                stopwatch_ = new Stopwatch();
 
             var sysTableTypeDef = SysTable.CreateTypeDef();
             var sysColumnTypeDef = SysColumn.CreateTypeDef();
@@ -139,7 +142,8 @@ namespace StarcounterInternal.Hosting
             Package package = new Package(
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef },
                 null,
-                stopwatch_
+                stopwatch_,
+                true
                 );
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
@@ -188,13 +192,18 @@ namespace StarcounterInternal.Hosting
         /// will execute in.</param>
         /// <param name="entrypointArguments">Arguments to be passed to the assembly
         /// entry point, if any.</param>
+        /// <param name="executeEntryPointSynchronously">
+        /// If true the event for processing complete will be set after the entrypoint returns, 
+        /// if set to false the event will be set before the entrypoint executes and execute the 
+        /// entrypoint async.
         /// <exception cref="StarcounterInternal.Hosting.LoaderException"></exception>
         public static unsafe void ExecApp(
             void* hsched,
             string filePath,
             Stopwatch stopwatch = null,
             string workingDirectory = null,
-            string[] entrypointArguments = null
+            string[] entrypointArguments = null,
+            bool execEntryPointSynchronously = false
             )
         {
             if (stopwatch != null)
@@ -254,7 +263,10 @@ namespace StarcounterInternal.Hosting
 
             OnTargetAssemblyLoaded();
 
-            Package package = new Package(unregisteredTypeDefs.ToArray(), assembly, stopwatch_);
+            Package package = new Package(unregisteredTypeDefs.ToArray(), 
+                                          assembly, 
+                                          stopwatch_, 
+                                          execEntryPointSynchronously);
             if (!string.IsNullOrEmpty(workingDirectory))
             {
                 package.WorkingDirectory = workingDirectory;
@@ -303,7 +315,7 @@ namespace StarcounterInternal.Hosting
         {
             Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
 
-            //File.AppendAllText("trace.log", "LOADER: " + message + " " + (Double)stopwatch_.ElapsedTicks / Stopwatch.Frequency + Environment.NewLine);
+            Diagnostics.WriteTimeStamp("LOADER", message);
         }
     }
 }

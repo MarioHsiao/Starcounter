@@ -42,6 +42,8 @@ namespace Starcounter.Server.Commands {
             Process codeHostProcess;
             bool databaseExist;
 
+            Diagnostics.WriteTimeStamp("SERVER", "Execute()");
+
             command = (ExecCommand)this.Command;
             databaseExist = false;
             weavedExecutable = null;

@@ -171,4 +171,6 @@
 # define DLL_IMPORT __declspec(dllimport)
 #endif // defined(_MSC_VER)
 
+#define USE_POPCNT
+
 #endif // STARCOUNTER_CORE_MACRO_DEFINITIONS_HPP

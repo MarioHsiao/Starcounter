@@ -39,6 +39,7 @@ namespace Starcounter.Server.Commands.Processors {
 
             Engine.DatabaseEngine.StartDatabaseProcess(database);
             Engine.DatabaseEngine.StartCodeHostProcess(database, out workerProcess);
+            Engine.CurrentPublicModel.UpdateDatabase(database);
 
             // Get a client handle to the worker process.
 

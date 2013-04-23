@@ -58,6 +58,8 @@ namespace Starcounter.Administrator {
         /// <returns>The response to be sent back to the client.</returns>
         static object OnPOST(string name, Request request) {
 
+            Diagnostics.WriteTimeStamp("ADMIN", "HandlePOST");
+
             var execRequest = new ExecRequest();
             execRequest.PopulateFromJson(request.GetBodyStringUtf8_Slow());
 
@@ -84,6 +86,8 @@ namespace Starcounter.Administrator {
             var commandInfo = runtime.Execute(cmd);
             Trace.Assert(commandInfo.ProcessorToken == ExecCommand.DefaultProcessor.Token);
             commandInfo = runtime.Wait(commandInfo);
+
+            Diagnostics.WriteTimeStamp("ADMIN", "HandlePOST finished");
 
             // Done. Check the outcome.
 
@@ -156,7 +160,7 @@ namespace Starcounter.Administrator {
             // http://tools.ietf.org/html/rfc2616#section-14.30
             //
             // That is, in this case: http://host:port/path/to/the/executable/
-            // like http://localhost:8181/databases/default/executables/foo.exe.
+            // like http://127.0.0.1:8181/databases/default/executables/foo.exe.
             //
             // From 10.2.2 201 Created:
             // "The newly created resource can be referenced by the URI(s)

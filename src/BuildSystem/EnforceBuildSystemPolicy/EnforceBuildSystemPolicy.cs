@@ -316,7 +316,7 @@ namespace CheckBuildSystem
                 "TestsSplitter.csproj", "WikiErrorCodes.csproj", "AppsProjectTemplate.csproj",
                 "Starcounter.VS.CSAppsProjectTemplate.csproj", "ExeProjectTemplate.csproj",
                 "Starcounter.VS.CSExeProjectTemplate.csproj", "Starcounter.VS.VSIX.csproj",
-                "FasterThanJson.Tests.csproj", "HttpStructs.Tests.csproj", "hello.csproj",
+                "FasterThanJson.Tests.csproj", "HttpParser.Tests.csproj", "hello.csproj",
                 "HelloGateway.csproj", "IndexQueryTest.csproj", "MySampleApp.csproj",
                 "NetworkIoTest.csproj", "QueryProcessingTest.csproj", "SQLTest.csproj",
                 "sccode.csproj", "scweaver.csproj", "star.csproj", "Starcounter.Administrator.csproj",

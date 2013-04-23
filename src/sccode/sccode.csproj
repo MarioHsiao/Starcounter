@@ -68,6 +68,10 @@
       <Project>{8278b17c-e0e9-49b7-8bda-f15282445d45}</Project>
       <Name>Starcounter.Bootstrap</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
