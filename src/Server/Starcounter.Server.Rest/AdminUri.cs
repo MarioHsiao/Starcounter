@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Diagnostics;
 
 namespace Starcounter.Server.Rest {
@@ -11,9 +12,10 @@ namespace Starcounter.Server.Rest {
     /// <para>
     /// All URI's should be relative to the admin server base URI and any
     /// possible context path. That is, a full URI such as
-    ///     http://www.myadminserver.com:8181/api/databases/foo
+    ///     http://www.myadminserver.com:8181/api/objects/foo
     /// should be expressed here as
-    ///     "/databases/{?}"
+    ///     "/objects/{?}"
+    /// when being implemented in a property.
     /// </para>
     /// <para>
     /// All URI's should begin with an included forward slash.
@@ -24,31 +26,114 @@ namespace Starcounter.Server.Rest {
     /// question mark, i.e. {?}.
     /// </remarks>
     /// </para>
-    public static class AdminUri {
+    public class AdminUri {
         /// <summary>
-        /// Provides the context path used for admin server resources that
-        /// support the programmatic REST API of admin servers.
+        /// Provides the default context path used for admin server resources
+        /// that support the programmatic REST API of admin servers.
         /// </summary>
-        public const string ContextPath = "/api";
+        public const string DefaultContextPath = "/api";
 
         /// <summary>
-        /// Represents the resource that is the full collection of running
-        /// or loaded executables in a given database. This resource will
-        /// allow to be POSTed to to start an executable, the DELETE verb
-        /// to allow an executable to be stopped, GET to return a list of
-        /// all running executables.
+        /// Gets the context path in used. Assinged in the constructor.
         /// </summary>
-        public const string HostedDatabaseExecutables = "/databases/{?}/executables";
+        public readonly string ContextPath;
 
         /// <summary>
-        /// Gets the full relative admin server resource URI, including
-        /// its context path.
+        /// Gets the URI of the root server resource.
         /// </summary>
-        /// <param name="resourceUri">The resource whose URI to get.</param>
-        /// <returns>A URI for the given resource, including context.</returns>
-        public static string Full(string resourceUri) {
-            Trace.Assert(!string.IsNullOrEmpty(resourceUri) && resourceUri.StartsWith("/"));
-            return ContextPath + resourceUri;
+        public string Server {
+            get {
+                return ContextPath + "/server";
+            }
+        }
+
+        /// <summary>
+        /// Gets the URI of the root databases collection resource.
+        /// </summary>
+        public string Databases {
+            get {
+                return ContextPath + "/databases";
+            }
+        }
+
+        /// <summary>
+        /// Gets the URI template to use to address a single
+        /// database resource.
+        /// </summary>
+        public string Database {
+            get {
+                return Databases + "/{?}";
+            }
+        }
+
+        /// <summary>
+        /// Gets the URI of the root database engines collection
+        /// resource.
+        /// </summary>
+        public string Engines {
+            get {
+                return ContextPath + "/engines";
+            }
+        }
+
+        /// <summary>
+        /// Gets the URI template to use to address a single
+        /// database engine resource.
+        /// </summary>
+        public string Engine {
+            get {
+                return Engines + "/{?}";
+            }
+        }
+
+        /// <summary>
+        /// Gets the URI template of a database engine executable
+        /// collection resource.
+        /// </summary>
+        public string Executables {
+            get {
+                return Engine + "/executables";
+            }
+        }
+
+        /// <summary>
+        /// Gets the URI template to use to address a single
+        /// database engine executable resource.
+        /// </summary>
+        public string Executable {
+            get {
+                return Executables + "/{?}";
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="AdminUri"/>, defining
+        /// the context path to use to resolve all relative URIs.
+        /// </summary>
+        /// <param name="contextPath">The context path to use.</param>
+        public AdminUri(string contextPath = AdminUri.DefaultContextPath) {
+            this.ContextPath = contextPath;
+        }
+
+        /// <summary>
+        /// Formats the given URI and inserts arguments into it.
+        /// </summary>
+        /// <param name="uri">The URI to format</param>
+        /// <param name="args">The arguments to insert instead of
+        /// URI template placeholders.</param>
+        /// <returns>A string with all template placeholders
+        /// replaced with values from <paramref name="args"/>.</returns>
+        public string Format(string uri, params object[] args) {
+            for (int i = 0; args != null && i < args.Length; i++) {
+                int index = uri.IndexOf("{?}");
+                if (index == -1) throw new ArgumentOutOfRangeException("args");
+                uri = uri.Remove(index, 3);
+                uri = uri.Insert(index, args[i].ToString());
+            }
+            if (uri.Contains("{?}"))
+                throw new ArgumentOutOfRangeException("args");
+
+            return uri;
         }
     }
 }

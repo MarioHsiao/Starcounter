@@ -10,6 +10,7 @@ using Starcounter.Internal.REST;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
+using Starcounter.Server.Rest;
 using System;
 using System.Collections.Specialized;
 using System.IO;
@@ -60,9 +61,11 @@ namespace Starcounter.Administrator {
 
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
+            var admin = new AdminUri();
             HostedExecutables.Setup(
                 Dns.GetHostEntry(String.Empty).HostName,
                 adminPort,
+                admin,
                 Master.ServerEngine,
                 Master.ServerInterface
             );
