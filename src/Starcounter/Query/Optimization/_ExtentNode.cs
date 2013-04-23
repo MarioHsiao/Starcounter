@@ -22,6 +22,11 @@ internal class ExtentNode : IOptimizationNode
     const Int32 REFERENCE_LOOKUP_COST = 1;
 
     /// <summary>
+    /// The estimated cost for a lookup by object identity
+    /// </summary>
+    const Int32 NO_IDENTITY_ACCESS_COST = 1;
+
+    /// <summary>
     /// The estimated cost for an index scan.
     /// </summary>
     const Int32 INDEX_SCAN_COST = 2;
@@ -216,7 +221,8 @@ internal class ExtentNode : IOptimizationNode
         }
         // Try to find equality on ObjectID or ObjectNo
         i = 0;
-        while (identityExpression == null && i < conditionList.Count) {
+        int identityExpressionPlace = -1;
+        while (i < conditionList.Count) {
             if (conditionList[i] is ComparisonNumerical) {
                 identityExpression = (conditionList[i] as ComparisonNumerical).GetObjectNoExpression(extentNumber);
             }
@@ -224,11 +230,20 @@ internal class ExtentNode : IOptimizationNode
                 //identityExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
             }
             if (identityExpression != null) {
-                Console.WriteLine("Identity expression is found for query: " + query);
-                //conditionList.RemoveAt(i);
-                //return;
+                if (identityExpression is ILiteral || identityExpression is IVariable) {
+                    Console.WriteLine("Identity expression "+identityExpression.ToString()+" is found for query: " + query);
+                    break;
+                    //conditionList.RemoveAt(i);
+                    //return;
+                }
+                identityExpressionPlace = i;
             }
             i++;
+        }
+        if (identityExpression != null) {
+            Console.WriteLine("Identity expression " + identityExpression.ToString() + " is found for query: " + query);
+            //conditionList.RemoveAt(identityExpressionPlace);
+            //return;
         }
         // Find if there are IsTypeExpressions and evaluate them
         // Objects in all Is type conditions are from the same extent
@@ -390,6 +405,8 @@ internal class ExtentNode : IOptimizationNode
         {
             return REFERENCE_LOOKUP_COST;
         }
+        if (identityExpression is INumericalExpression)
+            return NO_IDENTITY_ACCESS_COST;
         if (bestIndexInfo != null)
         {
             return INDEX_SCAN_COST;
@@ -412,6 +429,9 @@ internal class ExtentNode : IOptimizationNode
         if (refLookUpExpression != null)
         {
             return new ReferenceLookup(rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, variableArr, query);
+        }
+
+        if (identityExpression is INumericalExpression) {
         }
 
         if (bestIndexInfo != null)
