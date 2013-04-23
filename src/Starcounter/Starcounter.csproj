@@ -395,10 +395,6 @@
     <None Include="..\Starcounter.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
-      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
-      <Name>HttpStructs</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>

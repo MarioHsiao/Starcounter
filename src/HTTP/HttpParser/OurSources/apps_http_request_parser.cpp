@@ -138,7 +138,7 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
         case ACCEPT_ENCODING_FIELD:
         {
             // Checking if Gzip is accepted.
-            int32_t i = 0;
+            size_t i = 0;
             while (i < length)
             {
                 if (at[i] == 'g')
