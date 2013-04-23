@@ -45,7 +45,6 @@ namespace Starcounter.Internal {
             NewConfig.Default.SystemHttpPort = defaultSystemHttpPort;
 
             NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
-            Node.LocalhostSystemPortNode = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();

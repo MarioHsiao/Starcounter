@@ -93,9 +93,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="HttpStructs">
-      <HintPath>..\..\..\bin\$(Configuration)\HttpStructs.dll</HintPath>
-    </Reference>
     <Reference Include="Starcounter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\bin\$(Configuration)\Starcounter.dll</HintPath>

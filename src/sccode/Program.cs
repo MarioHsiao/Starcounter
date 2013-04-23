@@ -1,5 +1,7 @@
 ﻿
-using System.Diagnostics;
+using Starcounter.Internal;
+using System;
+using System.IO;
 
 namespace sccode
 {
@@ -7,6 +9,8 @@ namespace sccode
     {
         static void Main(string[] args)
         {
+            Diagnostics.WriteTimeStamp("SCCODE", "Started sccode Main()");
+
             //Trace.Listeners.Add(new ConsoleTraceListener());
             StarcounterInternal.Bootstrap.Control.Main(args);
         }
