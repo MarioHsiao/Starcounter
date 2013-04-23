@@ -202,13 +202,13 @@ namespace Starcounter.Server {
         /// environment data available.
         /// </remarks>
         /// <param name="args">Command-line arguments to consult.</param>
-        /// <returns>The name of the database.</returns>
-        public static string ResolveDatabase(ApplicationArguments args) {
+        /// <param name="name">The name of the database.</param>
+        public static void ResolveDatabase(ApplicationArguments args, out string name) {
             string database;
             if (!args.TryGetProperty(Option.Db, out database)) {
                 database = SharedCLI.DefaultDatabaseName;
             }
-            return database;
+            name = database;
         }
     }
 }

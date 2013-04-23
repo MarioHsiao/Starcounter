@@ -196,7 +196,7 @@ namespace star {
             ExecRequest request;
             string executable;
 
-            database = SharedCLI.ResolveDatabase(args);
+            SharedCLI.ResolveDatabase(args, out database);
             relativeUri = AdminUri.Full(AdminUri.HostedDatabaseExecutables.Replace("{?}", database));
 
             // Aware of the client transparency guideline stated previously,
