@@ -1,0 +1,13 @@
+﻿{
+    "Database": {
+        "Uri": ""
+    },
+    "HostPID": 0,
+    "DatabasePID": 0,
+    "Executables": [
+        {
+            "Id": "",
+            "ExePath": ""
+        }
+    ]
+}

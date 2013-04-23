@@ -43,6 +43,12 @@
     <Compile Include="MessageTypes\ExecResponse201.json.cs">
       <DependentUpon>ExecResponse201.json</DependentUpon>
     </Compile>
+	<Compile Include="Resources\Executable.json.cs">
+      <DependentUpon>Executable.json</DependentUpon>
+    </Compile>
+	<Compile Include="Resources\Engine.json.cs">
+      <DependentUpon>Engine.json</DependentUpon>
+    </Compile>
     <Compile Include="SharedCLI.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -52,8 +58,12 @@
     <TypedJSON Include="MessageTypes\ExecResponse201.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
+	<TypedJSON Include="Resources\Executable.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+	<TypedJSON Include="Resources\Engine.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
