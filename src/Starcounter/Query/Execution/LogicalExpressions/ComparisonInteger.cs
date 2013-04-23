@@ -49,6 +49,7 @@ internal class ComparisonInteger : CodeGenFilterNode, IComparison
         compOperator = compOp;
         this.expr1 = expr1;
         this.expr2 = expr2;
+        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "ComparisonDecimal is not supported. ComparisonNumerical should be used.");
     }
 
     public ComparisonOperator Operator
