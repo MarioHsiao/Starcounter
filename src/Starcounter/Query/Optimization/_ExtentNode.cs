@@ -218,14 +218,18 @@ internal class ExtentNode : IOptimizationNode
         i = 0;
         while (identityExpression == null && i < conditionList.Count) {
             if (conditionList[i] is ComparisonUInteger) {
-                identityExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
+                identityExpression = (conditionList[i] as ComparisonUInteger).GetObjectNoExpression(extentNumber);
+            }
+            if (conditionList[i] is ComparisonNumerical) {
+                identityExpression = (conditionList[i] as ComparisonNumerical).GetObjectNoExpression(extentNumber);
             }
             if (conditionList[i] is ComparisonString) {
-                identityExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
+                //identityExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
             }
             if (identityExpression != null) {
-                conditionList.RemoveAt(i);
-                return;
+                Console.WriteLine("Identity expression is found for query: " + query);
+                //conditionList.RemoveAt(i);
+                //return;
             }
             i++;
         }
