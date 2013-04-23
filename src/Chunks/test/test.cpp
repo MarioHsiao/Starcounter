@@ -39,6 +39,7 @@
 
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
+#if 1
 	///=========================================================================
 	/// Tiny tuple test:
 	///=========================================================================
@@ -156,7 +157,7 @@ try {
 		std::cout << "error: unknown exception caught" << std::endl;
 	}
 	return 0;
-
+#endif
 	///=========================================================================
 	
 	// Start the interprocess_communication test application.

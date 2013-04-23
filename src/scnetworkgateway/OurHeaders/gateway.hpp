@@ -2207,10 +2207,7 @@ public:
     {
         // Checking if already locked.
         if (global_lock_unsafe_)
-        {
-            while (global_lock_unsafe_)
-                Sleep(1);
-        }
+            while (global_lock_unsafe_);
 
         // Entering the critical section.
         EnterCriticalSection(&cs_global_lock_);

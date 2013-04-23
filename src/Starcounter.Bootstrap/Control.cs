@@ -131,9 +131,6 @@ namespace StarcounterInternal.Bootstrap
             }
             OnLoggingConfigured();
 
-            // Initializing Apps internal HTTP request parser.
-            Starcounter.Advanced.Request.sc_init_http_parser();
-
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)
             {
@@ -148,7 +145,7 @@ namespace StarcounterInternal.Bootstrap
             }
 
             // Initializing REST.
-            RequestHandler.InitREST(configuration.TempDirectory);
+            RequestHandler.InitREST(configuration.DefaultSystemHttpPort);
 
             // Initialize the Db environment (database name)
             Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
@@ -169,10 +166,14 @@ namespace StarcounterInternal.Bootstrap
                 configuration.DefaultSystemHttpPort,
                 configuration.Name);
 
+            OnAppsBoostraperInitialized();
+
             // Configuring database related settings.
             if (withdb_)
             {
                 ConfigureDatabase(configuration);
+                OnDatabaseConfigured();
+
                 ConnectDatabase(configuration, hsched_, hmenv, hlogs);
                 OnDatabaseConnected();
             }
@@ -273,7 +274,7 @@ namespace StarcounterInternal.Bootstrap
 
             if (withdb_)
             {
-                Loader.AddBasePackage(hsched_);
+                Loader.AddBasePackage(hsched_, stopwatch_);
                 OnBasePackageLoaded();
             }
            
@@ -334,7 +335,7 @@ namespace StarcounterInternal.Bootstrap
                 OnArgumentsParsed();
 
                 // Loading the given application.
-                Loader.ExecApp(hsched_, configuration.AutoStartExePath, stopwatch_, workingDir, userArgsArray);
+                Loader.ExecApp(hsched_, configuration.AutoStartExePath, stopwatch_, workingDir, userArgsArray, true);
 
                 OnAutoStartModuleExecuted();
             }
@@ -352,7 +353,6 @@ namespace StarcounterInternal.Bootstrap
         private unsafe void Stop()
         {
             try {
-
             uint e = sccorelib.cm2_stop(hsched_, 1);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
@@ -624,7 +624,7 @@ namespace StarcounterInternal.Bootstrap
             long elapsedTicks = stopwatch_.ElapsedTicks + ticksElapsedBetweenProcessStartAndMain_;
             Diagnostics.WriteTrace("control", elapsedTicks, message);
 
-            //File.AppendAllText("trace.log", "CONTROL: " + message + ": " + (Double)stopwatch_.ElapsedTicks / Stopwatch.Frequency + Environment.NewLine);
+            Diagnostics.WriteTimeStamp("CONTROL", message);
         }
 
         private void OnProcessInitialized()
@@ -632,7 +632,7 @@ namespace StarcounterInternal.Bootstrap
             ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
             stopwatch_ = Stopwatch.StartNew();
 
-            Trace("--------------");
+            Trace("Bootstrap Main() started.");
         }
 
         private void OnExceptionFactoryInstalled() { Trace("Exception factory installed."); }
@@ -646,6 +646,8 @@ namespace StarcounterInternal.Bootstrap
         private void OnHostConfigured() { Trace("Host configured."); }
         private void OnSchedulerConfigured() { Trace("Scheduler configured."); }
         private void OnDatabaseConnected() { Trace("Database connected."); }
+        private void OnAppsBoostraperInitialized() { Trace("Apps bootstraper initialized."); }
+        private void OnDatabaseConfigured() { Trace("Database configured."); }
         private void OnQueryModuleInitiated() { Trace("Query module initiated."); }
 
         private void OnEndSetup() { Trace("Setup completed."); }

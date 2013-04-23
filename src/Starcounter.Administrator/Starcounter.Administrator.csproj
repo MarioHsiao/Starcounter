@@ -241,11 +241,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
-      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
-      <Name>HttpStructs</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Server\Starcounter.Server.Rest\Starcounter.Server.Rest.csproj">
       <Project>{60aae92e-e384-45ff-96f3-3d6b38462e3c}</Project>
       <Name>Starcounter.Server.Rest</Name>
