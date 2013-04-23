@@ -600,7 +600,7 @@ internal class ComparisonNumerical : CodeGenFilterNode, IComparison
                 expr = expr2;
             if (expr2 is IProperty && (expr2 as IProperty).ExtentNumber == extentNumber && (expr2 as IProperty).FullName == DbHelper.ObjectNoName)
                 if (expr != null)
-                    return null; // Both expressions are ObjectNo properties on the same extent, i.e, self referencing. In fact, it is always true condition.
+                    return null; // Both expressions are ObjectNo properties on the same extent, i.e, self referencing.
                 else
                     expr = expr1;
             return expr; // Assuming only useful expressions can be found.

@@ -49,6 +49,7 @@ internal class ComparisonUInteger : CodeGenFilterNode, IComparison
         compOperator = compOp;
         this.expr1 = expr1;
         this.expr2 = expr2;
+        throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "ComparisonDecimal is not supported. ComparisonNumerical should be used.");
     }
 
     public ComparisonOperator Operator
@@ -265,26 +266,6 @@ internal class ComparisonUInteger : CodeGenFilterNode, IComparison
         if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).FullName == strPath && Optimizer.ReversableOperator(compOperator))
         {
             return new NumericalRangePoint(Optimizer.ReverseOperator(compOperator), expr1);
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Gets a numerical expression to which ObjectNo of this extent is equivalent.
-    /// </summary>
-    /// <param name="extentNumber"></param>
-    /// <returns></returns>
-    internal INumericalExpression GetObjectNoExpression(int extentNumber) {
-        if (compOperator == ComparisonOperator.Equal) {
-            INumericalExpression expr = null;
-            if (expr1 is IProperty && (expr1 as IProperty).ExtentNumber == extentNumber && (expr1 as IProperty).FullName == DbHelper.ObjectNoName)
-                expr = expr2;
-            if (expr2 is IProperty && (expr2 as IProperty).ExtentNumber == extentNumber && (expr2 as IProperty).FullName == DbHelper.ObjectNoName)
-                if (expr != null)
-                    return null; // Both expressions are ObjectNo properties on the same extent, i.e, self referencing. In fact, it is always true condition.
-                else
-                    expr = expr1;
-            return expr; // Assuming only useful expressions can be found.
         }
         return null;
     }

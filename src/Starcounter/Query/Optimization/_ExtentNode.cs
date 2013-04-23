@@ -217,9 +217,6 @@ internal class ExtentNode : IOptimizationNode
         // Try to find equality on ObjectID or ObjectNo
         i = 0;
         while (identityExpression == null && i < conditionList.Count) {
-            if (conditionList[i] is ComparisonUInteger) {
-                identityExpression = (conditionList[i] as ComparisonUInteger).GetObjectNoExpression(extentNumber);
-            }
             if (conditionList[i] is ComparisonNumerical) {
                 identityExpression = (conditionList[i] as ComparisonNumerical).GetObjectNoExpression(extentNumber);
             }
