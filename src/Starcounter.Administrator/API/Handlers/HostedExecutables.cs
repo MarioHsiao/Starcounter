@@ -38,13 +38,15 @@ namespace Starcounter.Administrator {
         internal static void Setup(
             string serverHost,
             int serverPort,
+            AdminUri admin,
             ServerEngine engine, 
             IServerRuntime runtime) {
             HostedExecutables.engine = engine;
             HostedExecutables.runtime = runtime;
             HostedExecutables.serverHost = serverHost;
             HostedExecutables.serverPort = serverPort;
-            Handle.POST<string, Request>(AdminUri.Full(AdminUri.HostedDatabaseExecutables), OnPOST);
+
+            Handle.POST<string, Request>(admin.Executables, OnPOST);
         }
 
         /// <summary>
@@ -169,8 +171,9 @@ namespace Starcounter.Administrator {
             // SHOULD include an entity containing a list of resource
             // characteristics and location(s) from which the user or user agent can
             // choose the one most appropriate".
-
-            var runningExeRelativeUri = AdminUri.Full(AdminUri.HostedDatabaseExecutables).Replace("{?}", databaseName);
+    
+            var admin = new AdminUri();
+            var runningExeRelativeUri = admin.Format(admin.Executables, databaseName);
             runningExeRelativeUri += "/" + Path.GetFileName(execRequest.ExecutablePath);
             
             var location = string.Format("http://{0}:{1}{2}", serverHost, serverPort, runningExeRelativeUri);
