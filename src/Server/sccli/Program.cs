@@ -196,9 +196,9 @@ namespace star {
             ExecRequest request;
             string executable;
 
-            var admin = new AdminUri();
+            var admin = new AdminAPI();
             SharedCLI.ResolveDatabase(args, out database);
-            relativeUri = admin.Format(admin.Executables, database);
+            relativeUri = admin.FormatUri(admin.Uris.Executables, database);
 
             // Aware of the client transparency guideline stated previously,
             // we still do resolve the path of the given executable based on

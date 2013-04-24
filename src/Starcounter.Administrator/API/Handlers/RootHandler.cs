@@ -25,7 +25,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// different sets in tests (like test doubles) and experiment
         /// with a new set for a newer version of the API if we like.
         /// </remarks>
-        public static AdminUri Uris { get; private set; }
+        public static AdminAPI API { get; private set; }
 
         /// <summary>
         /// Provides a set of references to the currently running
@@ -53,10 +53,10 @@ namespace Starcounter.Administrator.API.Handlers {
         /// <summary>
         /// Sets up the root API handler.
         /// </summary>
-        /// <param name="adminUris">The URI set to be used by all
+        /// <param name="adminAPI">The API to be used by all
         /// fellow handlers.</param>
-        public static void Setup(AdminUri adminUris) {
-            Uris = adminUris;
+        public static void Setup(AdminAPI adminAPI) {
+            API = adminAPI;
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// Install handlers for the resource represented by this class and
         /// performs custom setup.
         internal static void Setup() {
-            AdminUri uris = RootHandler.Uris;
+            var uris = RootHandler.API.Uris;
             Handle.POST<string, Request>(uris.Executables, OnPOST);
         }
     }

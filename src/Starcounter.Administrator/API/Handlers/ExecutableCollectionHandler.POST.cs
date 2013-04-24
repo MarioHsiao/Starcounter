@@ -144,8 +144,8 @@ namespace Starcounter.Administrator.API.Handlers {
             // characteristics and location(s) from which the user or user agent can
             // choose the one most appropriate".
 
-            var admin = new AdminUri();
-            var runningExeRelativeUri = admin.Format(admin.Executables, databaseName);
+            var admin = new AdminAPI();
+            var runningExeRelativeUri = admin.FormatUri(admin.Uris.Executables, databaseName);
             runningExeRelativeUri += "/" + Path.GetFileName(execRequest.ExecutablePath);
 
             var location = string.Format("http://{0}:{1}{2}", serverHost, serverPort, runningExeRelativeUri);
