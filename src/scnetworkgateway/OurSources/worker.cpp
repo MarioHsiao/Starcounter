@@ -1592,6 +1592,16 @@ uint32_t GatewayWorker::CloneChunkForAnotherDatabase(
     if (err_code)
         return err_code;
 
+    // Checking if its not receiving socket data.
+    if (old_sd->get_socket_representer_flag())
+    {
+        // Untracking corresponding socket.
+        UntrackSocket(old_sd->get_db_index(), old_sd->get_socket());
+
+        // Tracking corresponding socket.
+        TrackSocket(new_db_index, old_sd->get_socket());
+    }
+
     // Returning old chunk to its pool.
     old_sd->set_socket_diag_active_conn_flag(false);
     worker_dbs_[old_sd->get_db_index()]->ReturnSocketDataChunksToPool(this, old_sd);

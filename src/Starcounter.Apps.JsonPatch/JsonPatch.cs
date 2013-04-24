@@ -532,7 +532,7 @@ namespace Starcounter.Internal.JsonPatch {
                 } else {
                     template = app.Template.Properties[path[i]];
                     sb.Append('/');
-                    sb.Append(template.Name);
+                    sb.Append(template.TemplateName);
 
                     if (template is TObjArr) {
                         // next index in the path is the index in the list.

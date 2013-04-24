@@ -21,7 +21,7 @@ namespace Starcounter.Internal.Test {
         [Test]
         public static void TestSetGet() {
             var at = new TPuppet();
-            var st = new TString() { Name = "FirstName", Parent = at };
+            var st = new TString() { TemplateName = "FirstName", Parent = at };
             var app = new Puppet() { Template = at };
             app.Set(st, "Joachim");
             Assert.AreEqual("Joachim", app.Get(st));
@@ -34,8 +34,8 @@ namespace Starcounter.Internal.Test {
         [Test]
         public static void TestNestedApp() {
             var main = new TPuppet();
-            var userId = new TString() { Name = "UserId", Parent = main };
-            var search = new TPuppet() { Name = "Search", Parent = main };
+            var userId = new TString() { TemplateName = "UserId", Parent = main };
+            var search = new TPuppet() { TemplateName = "Search", Parent = main };
             var app = new Puppet() { Template = main };
             var app2 = new Puppet() { Template = search };
             app.Set(userId, "Jocke");
@@ -49,12 +49,12 @@ namespace Starcounter.Internal.Test {
         [Test]
         public static void TestArray() {
             var appTemplate = new TPuppet();
-            var persons = new TArr<Puppet,TPuppet>() { Name = "Persons", Parent = appTemplate };
+            var persons = new TArr<Puppet,TPuppet>() { TemplateName = "Persons", Parent = appTemplate };
             var person = new TPuppet() { Parent = persons };
-            var firstName = new TString() { Name = "FirstName", Parent = person };
-            var lastName = new TString() { Name = "LastName", Parent = person };
-            var address = new TString() { Name = "Address", Parent = person };
-            var userId = new TString() { Name = "UserId", Parent = appTemplate };
+            var firstName = new TString() { TemplateName = "FirstName", Parent = person };
+            var lastName = new TString() { TemplateName = "LastName", Parent = person };
+            var address = new TString() { TemplateName = "Address", Parent = person };
+            var userId = new TString() { TemplateName = "UserId", Parent = appTemplate };
 
             var app = new Puppet() { Template = appTemplate };
             var jocke = new Puppet() { Template = person };
