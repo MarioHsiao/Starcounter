@@ -503,7 +503,15 @@ namespace Starcounter.InstallerWPF {
                         // Checking if file name is the same.
                         if (0 == String.Compare(entry.Name, dependentBinary, true)) {
                             String pathToExtractedFile = System.IO.Path.Combine(targetDirectory, entry.FullName);
+
+                            // Deleting old file if any.
+                            if (File.Exists(pathToExtractedFile))
+                                File.Delete(pathToExtractedFile);
+
+                            // Extracting the file.
                             entry.ExtractToFile(pathToExtractedFile, true);
+
+                            // Hiding the extracted file.
                             File.SetAttributes(pathToExtractedFile, FileAttributes.Hidden);
 
                             break;

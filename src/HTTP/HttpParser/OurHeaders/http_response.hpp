@@ -15,7 +15,7 @@ struct HttpResponse
 
     // Content.
     uint32_t content_offset_;
-    uint32_t content_len_bytes_;
+    int32_t content_len_bytes_;
 
     // Key-value header.
     uint32_t headers_offset_;
@@ -38,6 +38,13 @@ struct HttpResponse
 
     // HTTP response status code.
     uint16_t status_code_;
+
+    // Resets this instance of request.
+    void Reset()
+    {
+        memset(this, 0, sizeof(HttpResponse));
+        content_len_bytes_ = -1;
+    }
 };
 
 // Initializing HTTP response parser data structures.
