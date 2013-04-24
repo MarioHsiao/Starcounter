@@ -36,23 +36,23 @@
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AdminUri.cs" />
+    <Compile Include="AdminAPI.cs" />
     <Compile Include="MessageTypes\ExecRequest.json.cs">
       <DependentUpon>ExecRequest.json</DependentUpon>
     </Compile>
     <Compile Include="MessageTypes\ExecResponse201.json.cs">
       <DependentUpon>ExecResponse201.json</DependentUpon>
     </Compile>
-	<Compile Include="Resources\Executable.json.cs">
+    <Compile Include="Resources\Executable.json.cs">
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
-	<Compile Include="Resources\Engine.json.cs">
+    <Compile Include="Resources\Engine.json.cs">
       <DependentUpon>Engine.json</DependentUpon>
     </Compile>
-	<Compile Include="Resources\Database.json.cs">
+    <Compile Include="Resources\Database.json.cs">
       <DependentUpon>Database.json</DependentUpon>
     </Compile>
-	<Compile Include="Resources\DatabaseCollection.json.cs">
+    <Compile Include="Resources\DatabaseCollection.json.cs">
       <DependentUpon>DatabaseCollection.json</DependentUpon>
     </Compile>
     <Compile Include="SharedCLI.cs" />
@@ -64,16 +64,16 @@
     <TypedJSON Include="MessageTypes\ExecResponse201.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-	<TypedJSON Include="Resources\Executable.json">
+    <TypedJSON Include="Resources\Executable.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-	<TypedJSON Include="Resources\Engine.json">
+    <TypedJSON Include="Resources\Engine.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-	<TypedJSON Include="Resources\Database.json">
+    <TypedJSON Include="Resources\Database.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-	<TypedJSON Include="Resources\DatabaseCollection.json">
+    <TypedJSON Include="Resources\DatabaseCollection.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
