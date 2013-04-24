@@ -13,6 +13,7 @@ using System.Text;
 using Starcounter.Internal;
 using Starcounter.Server.Rest.MessageTypes;
 using Starcounter.Server.Rest;
+using System.Collections.Generic;
 
 namespace Starcounter.Administrator.API.Handlers {
 
@@ -155,7 +156,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var database = runtime.GetDatabase(command.DatabaseUri);
             Trace.Assert(database != null);
 
-            var headers = new NameValueCollection(StringComparer.InvariantCultureIgnoreCase);
+            var headers = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             headers.Add("Location", location);
 
             var x = new ExecResponse201() {
