@@ -588,6 +588,26 @@ internal class ComparisonNumerical : CodeGenFilterNode, IComparison
         return null;
     }
 
+    /// <summary>
+    /// Gets a numerical expression to which ObjectNo of this extent is equivalent.
+    /// </summary>
+    /// <param name="extentNumber"></param>
+    /// <returns></returns>
+    internal INumericalExpression GetObjectNoExpression(int extentNumber) {
+        if (compOperator == ComparisonOperator.Equal) {
+            INumericalExpression expr = null;
+            if (expr1 is IProperty && (expr1 as IProperty).ExtentNumber == extentNumber && (expr1 as IProperty).FullName == DbHelper.ObjectNoName)
+                expr = expr2;
+            if (expr2 is IProperty && (expr2 as IProperty).ExtentNumber == extentNumber && (expr2 as IProperty).FullName == DbHelper.ObjectNoName)
+                if (expr != null)
+                    return null; // Both expressions are ObjectNo properties on the same extent, i.e, self referencing.
+                else
+                    expr = expr1;
+            return expr; // Assuming only useful expressions can be found.
+        }
+        return null;
+    }
+
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
     {
         stringBuilder.AppendLine(tabs, "ComparisonNumerical(");

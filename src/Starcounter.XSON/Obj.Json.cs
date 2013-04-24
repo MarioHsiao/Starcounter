@@ -57,7 +57,7 @@ namespace Starcounter {
                                             int tt = 0;
                                             sb.Append('"');
                                             sb.Append('$');
-                                            sb.Append(prop.Name);
+                                            sb.Append(prop.TemplateName);
                                             sb.Append('"');
                                             sb.Append(':');
                                             sb.Append('{');
@@ -83,7 +83,7 @@ namespace Starcounter {
                         sb.Append(',');
                     }
                     sb.Append('"');
-                    sb.Append(prop.Name);
+                    sb.Append(prop.TemplateName);
                     sb.Append('"');
                     sb.Append(':');
                     if (prop is TObjArr) {

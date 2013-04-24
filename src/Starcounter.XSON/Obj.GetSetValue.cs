@@ -70,7 +70,7 @@ namespace Starcounter {
                 return GetBound(property);
 
 #if QUICKTUPLE
-                return _Values[property.Index];
+                return _Values[property.TemplateIndex];
 #else
                 throw new NotImplementedException();
 #endif
@@ -90,7 +90,7 @@ namespace Starcounter {
             }
 
 #if QUICKTUPLE
-            _Values[property.Index] = value;
+            _Values[property.TemplateIndex] = value;
 #else
                     throw new NotImplementedException();
 #endif
@@ -197,7 +197,7 @@ namespace Starcounter {
 //                return GetBound(property);
 
 //#if QUICKTUPLE
-//                return _Values[property.Index];
+//                return _Values[property.TemplateIndex];
 //#else
 //                throw new NotImplementedException();
 //#endif
@@ -218,7 +218,7 @@ namespace Starcounter {
 //            }
 
 //#if QUICKTUPLE
-//            _Values[property.Index] = value;
+//            _Values[property.TemplateIndex] = value;
 //#else
 //                    throw new NotImplementedException();
 //#endif
@@ -236,7 +236,7 @@ namespace Starcounter {
             //    data = GetBound(property);
 
 #if QUICKTUPLE
-            Obj v = _Values[property.Index];
+            Obj v = _Values[property.TemplateIndex];
             //if (v.Data != data) {
             //    v.Data = data;
             //}
@@ -257,7 +257,7 @@ namespace Starcounter {
             if (property.Bound)
                 SetBound(property, value.Data);
 #if QUICKTUPLE
-            _Values[property.Index] = value;
+            _Values[property.TemplateIndex] = value;
 #else
             throw new NotImplementedException();
 #endif
@@ -290,7 +290,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             Obj app = (Obj)property.CreateInstance(this);
             app.Data = value;
-            _Values[property.Index] = app;
+            _Values[property.TemplateIndex] = app;
 #else
             throw new NotImplementedException();
 #endif
@@ -304,7 +304,7 @@ namespace Starcounter {
         /// <returns></returns>
         public Arr Get(TObjArr property) {
 #if QUICKTUPLE
-            return _Values[property.Index];
+            return _Values[property.TemplateIndex];
 #else
             throw new NotImplementedException();
 #endif
@@ -322,7 +322,7 @@ namespace Starcounter {
 
             value.InitializeAfterImplicitConversion(this, property);
 #if QUICKTUPLE
-            _Values[property.Index] = value;
+            _Values[property.TemplateIndex] = value;
 #else
             throw new NotImplementedException();
 #endif
@@ -334,7 +334,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="data"></param>
         public void Set(TObjArr property, IEnumerable data) {
-            Arr current = _Values[property.Index];
+            Arr current = _Values[property.TemplateIndex];
             if (current != null) {
                 current.Clear();
                 current.notEnumeratedResult = data;
@@ -350,14 +350,14 @@ namespace Starcounter {
         /// <param name="data"></param>
         public void Set<T>(TObjArr property, Rows<object> data) where T : Obj, new() {
             Arr<T> newList;
-            Arr<T> current = _Values[property.Index];
+            Arr<T> current = _Values[property.TemplateIndex];
             if (current != null)
                 current.Clear();
 
             newList = data;
             newList.InitializeAfterImplicitConversion(this, property);
 
-            _Values[property.Index] = newList;
+            _Values[property.TemplateIndex] = newList;
         }
 
         /// <summary>
@@ -368,7 +368,7 @@ namespace Starcounter {
         /// <returns></returns>
         public Arr<T> Get<T>(TObjArr property) where T : Obj, new() {
 #if QUICKTUPLE
-            return (Arr<T>)(_Values[property.Index]);
+            return (Arr<T>)(_Values[property.TemplateIndex]);
 #else
             throw new NotImplementedException();
 #endif
@@ -381,12 +381,12 @@ namespace Starcounter {
         /// <param name="templ"></param>
         /// <param name="data"></param>
         public void Set<T>(TObjArr templ, Arr<T> data) where T : Obj, new() {
-            Arr<T> current = _Values[templ.Index];
+            Arr<T> current = _Values[templ.TemplateIndex];
             if (current != null)
                 current.Clear();
 
             data.InitializeAfterImplicitConversion(this, templ);
-            _Values[templ.Index] = data;
+            _Values[templ.TemplateIndex] = data;
         }
 
         /// <summary>
@@ -397,7 +397,7 @@ namespace Starcounter {
         [EditorBrowsable(EditorBrowsableState.Never)]
         public Action Get(TTrigger property) {
 #if QUICKTUPLE
-            return _Values[property.Index];
+            return _Values[property.TemplateIndex];
 #else
             throw new NotImplementedException();
 #endif
@@ -411,7 +411,7 @@ namespace Starcounter {
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Set(TTrigger property, Action value) {
 #if QUICKTUPLE
-            _Values[property.Index] = value;
+            _Values[property.TemplateIndex] = value;
 #else
             throw new NotImplementedException();
 #endif

@@ -156,7 +156,7 @@ namespace Starcounter {
         public Int32[] IndexPathFor(Template template)
         {
             Int32[] path = new Int32[ChildPathDepth];
-            path[path.Length - 1] = template.Index;
+            path[path.Length - 1] = template.TemplateIndex;
             FillIndexPath(path, path.Length - 2);
             return path;
         }
@@ -168,7 +168,7 @@ namespace Starcounter {
         /// <param name="pos">The pos.</param>
         internal virtual void FillIndexPath(Int32[] path, Int32 pos)
         {
-            path[pos] = Template.Index;
+            path[pos] = Template.TemplateIndex;
             Parent.FillIndexPath(path, pos - 1);
         }
     }
