@@ -47,7 +47,7 @@
     <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="API\Handlers\HostedExecutables.cs" />
+    <Compile Include="API\Handlers\ExecutableCollectionHandler.cs" />
     <Compile Include="AppApp.json.cs">
       <DependentUpon>AppApp.json</DependentUpon>
     </Compile>
