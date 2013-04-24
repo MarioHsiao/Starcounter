@@ -229,8 +229,7 @@ inline void PrintCurrentTimeMs(std::string msg)
 {
     SYSTEMTIME time;
     GetSystemTime(&time);
-    WORD millis = (time.wSecond * 1000) + time.wMilliseconds;
-    std::cout << msg << ": " << millis << std::endl;
+    std::cout << msg << ": " << time.wHour << "." << time.wMinute << "." << time.wSecond << "." << time.wMilliseconds << std::endl;
 }
 
 // Converts string to its uppercase copy.

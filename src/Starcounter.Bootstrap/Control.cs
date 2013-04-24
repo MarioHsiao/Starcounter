@@ -145,7 +145,7 @@ namespace StarcounterInternal.Bootstrap
             }
 
             // Initializing REST.
-            RequestHandler.InitREST(configuration.DefaultSystemHttpPort);
+            RequestHandler.InitREST();
 
             // Initialize the Db environment (database name)
             Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
