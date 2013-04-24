@@ -84,13 +84,8 @@ namespace Starcounter.Administrator {
 
             // Redirecting root to index.html.
             GET("/", (Request req) => {
-                Response resp;
-
                 // Doing another request with original request attached.
-                Node.LocalhostSystemPortNode.GET("/index.html", null, req, out resp);
-
-                if (resp == null)
-                    throw ErrorCode.ToException(Error.SCERRENDPOINTUNREACHABLE);
+                Response resp = Node.LocalhostSystemPortNode.GET("/index.html", null, req);
 
                 // Returns this response to original request.
                 return resp;
@@ -218,31 +213,30 @@ namespace Starcounter.Administrator {
 
                 if (InternalHandlers.StringExistInList("application/json", req["Accept"])) {
                     try {
-                        Response response;
+                        ;
 
                         DatabaseInfo database = Master.ServerInterface.GetDatabaseByName(name);
 
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
 
-                        Node.LocalhostSystemPortNode.POST(
+                        Response resp = Node.LocalhostSystemPortNode.POST(
                             string.Format("/__{0}/sql", database.Name),
                             bodyData,
                             "MyHeader1: 123\r\nMyHeader2: 456\r\n",
-                            null,
-                            out response);
+                            null);
 
-                        if (response == null) {
+                        /*if (resp == null) {
                             dynamic errorJson = new DynamicJson();
                             errorJson.message = string.Format("Could not retrive the query result from the {0} database, Caused by a missing database or if the database is not running.", database.Name);
                             return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.ServiceUnavailable, null, errorJson.ToString()) };
-                        }
+                        }*/
 
-                        if (response.StatusCode >= 200 && response.StatusCode < 300) {
-                            return response.GetBodyStringUtf8_Slow();
+                        if (resp.StatusCode >= 200 && resp.StatusCode < 300) {
+                            return resp.GetBodyStringUtf8_Slow();
                         }
 
                         // TODO: Do not return error code. return a more user friendly message
-                        return (int)response.StatusCode;
+                        return (int)resp.StatusCode;
                     }
                     catch (Exception e) {
                         dynamic resultJson = new DynamicJson();
@@ -971,10 +965,9 @@ namespace Starcounter.Administrator {
                     resultJson.exception = null;
 
                     try {
-                        Response response;
                         string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the message
 
-                        Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", name), null, null, out response);
+                        Response response = Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", name), null, null);
 
                         if (response == null) {
 
