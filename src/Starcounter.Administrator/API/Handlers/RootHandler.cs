@@ -1,9 +1,12 @@
 ﻿
+using Starcounter.Advanced;
+using Starcounter.Internal.Web;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,7 +19,7 @@ namespace Starcounter.Administrator.API.Handlers {
     /// </summary>
     internal static partial class RootHandler {
         /// <summary>
-        /// Provide all handler classes with a single URI set and makes
+        /// Provides all handler classes with a single URI set and makes
         /// sure it's only accessible from one place.
         /// </summary>
         /// <remarks>
@@ -57,6 +60,51 @@ namespace Starcounter.Administrator.API.Handlers {
         /// fellow handlers.</param>
         public static void Setup(AdminAPI adminAPI) {
             API = adminAPI;
+        }
+
+        /// <summary>
+        /// Registers a handler that returns 405 (Method Not Allowed) for
+        /// a given URI and the set of standard verbs/methods that it don't
+        /// explicitly provide. The handler confirms to HTTP/1.1 in that it
+        /// will return a response with the Allow header set, containing
+        /// all methods supported.
+        /// </summary>
+        /// <param name="uri">The URI to register handler(s) for.</param>
+        /// <param name="methodsSupported">The methods supported by the
+        /// resource reprsented by the given URI.</param>
+        /// <param name="allowExtensionsBeyondPatch">Tells the method to
+        /// relax and don't check the set of supported methods against the
+        /// set of known ones.</param>
+        public static void Register405OnAllUnsupported(string uri, string[] methodsSupported, bool allowExtensionsBeyondPatch = false) {
+            var restHandler = Handle._REST;
+            var verbs = new string[] { "OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT", "PATCH" };
+
+            var allows = string.Empty;
+            foreach (var allowedMethod in methodsSupported) {
+                if (!allowExtensionsBeyondPatch) {
+                    if (!verbs.Contains(allowedMethod)) {
+                        throw new ArgumentOutOfRangeException("methodsSupported", string.Format("HTTP method {0} not recognized", allowedMethod));
+                    }
+                }
+                allows += " " + allowedMethod + ",";
+            }
+            allows = allows.TrimEnd(',');
+
+            var headers = new NameValueCollection();
+            headers.Add("Allow", allows);
+
+            Func<Request, Response> return405 = (Request request) => {
+                return new Response {
+                    Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(405, headers, null)
+                };
+            };
+
+            foreach (var verb in verbs) {
+                if (methodsSupported.Contains(verb))
+                    continue;
+
+                restHandler.RegisterHandler((ushort)Host.ServerPort, verb + " " + uri, return405);
+            }
         }
     }
 }
