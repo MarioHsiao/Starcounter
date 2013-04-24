@@ -62,14 +62,10 @@ namespace Starcounter.Administrator {
 
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
+            // Register and setup the API subsystem handlers
             var admin = new AdminUri();
-            ExecutableCollectionHandler.Setup(
-                Dns.GetHostEntry(String.Empty).HostName,
-                adminPort,
-                admin,
-                Master.ServerEngine,
-                Master.ServerInterface
-            );
+            RootHandler.Host.Setup(Dns.GetHostEntry(String.Empty).HostName, adminPort, Master.ServerEngine, Master.ServerInterface);
+            ExecutableCollectionHandler.Setup(admin);
 
             // Registering Administrator handlers.
             RegisterHandlers();
