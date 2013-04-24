@@ -14,11 +14,11 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
 
             name = template.ClassName;
             if (name == null) {
-                name = template.Name;
+                name = template.TemplateName;
                 if (name == null) {
                     listing = template.Parent as TObjArr;
                     if (listing != null)
-                        name = listing.Name;
+                        name = listing.TemplateName;
                     else
                         throw new Exception("Anonymous appclasses not supported for deserialization.");
                 }

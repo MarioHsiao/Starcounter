@@ -102,7 +102,7 @@ namespace Starcounter
         /// <param name="extentNumber"></param>
         /// <param name="keyOid"></param>
         /// <param name="keyEti"></param>
-        public unsafe void RecreateEnumerator_GetObjectInfo(
+        public static unsafe void RecreateEnumerator_GetObjectInfo(
             Byte* keyData,
             Int32 extentNumber,
             out UInt64 keyOid,
