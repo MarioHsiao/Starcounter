@@ -1,7 +1,5 @@
 ﻿
 using Starcounter.Advanced;
-using Starcounter.Server;
-using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest;
 
 namespace Starcounter.Administrator.API.Handlers {
@@ -19,22 +17,13 @@ namespace Starcounter.Administrator.API.Handlers {
     /// assure a set of running executables using PUT.
     /// </remarks>
     internal static partial class ExecutableCollectionHandler {
-        static ServerEngine engine;
-        static IServerRuntime runtime;
-        static string serverHost;
-        static int serverPort;
-
-        internal static void Setup(
-            string serverHost,
-            int serverPort,
-            AdminUri admin,
-            ServerEngine engine, 
-            IServerRuntime runtime) {
-            ExecutableCollectionHandler.engine = engine;
-            ExecutableCollectionHandler.runtime = runtime;
-            ExecutableCollectionHandler.serverHost = serverHost;
-            ExecutableCollectionHandler.serverPort = serverPort;
-
+        /// <summary>
+        /// Install handlers for the resource represented by this class and
+        /// performs custom setup.
+        /// </summary>
+        /// <param name="admin">The admin URI resolver to use to get the
+        /// URI we register with.</param>
+        internal static void Setup(AdminUri admin) {
             Handle.POST<string, Request>(admin.Executables, OnPOST);
         }
     }

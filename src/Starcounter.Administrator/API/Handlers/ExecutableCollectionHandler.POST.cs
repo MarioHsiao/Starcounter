@@ -28,6 +28,8 @@ namespace Starcounter.Administrator.API.Handlers {
         /// The REST request.</param>
         /// <returns>The response to be sent back to the client.</returns>
         static object OnPOST(string name, Request request) {
+            var engine = RootHandler.Host.Engine;
+            var runtime = RootHandler.Host.Runtime;
 
             Diagnostics.WriteTimeStamp("ADMIN", "HandlePOST");
 
@@ -122,8 +124,10 @@ namespace Starcounter.Administrator.API.Handlers {
             return CreateResponseFor201(commandInfo, execRequest, name);
         }
 
-        static Response CreateResponseFor201(
-            CommandInfo command, ExecRequest execRequest, string databaseName) {
+        static Response CreateResponseFor201(CommandInfo command, ExecRequest execRequest, string databaseName) {
+            var runtime = RootHandler.Host.Runtime;
+            var serverHost = RootHandler.Host.ServerHost;
+            var serverPort = RootHandler.Host.ServerPort;
 
             // The Location response header field SHOULD be set to an ABSOLUTE
             // Uri, referencing the created resource as described by:
