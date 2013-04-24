@@ -16,6 +16,18 @@ namespace Starcounter.Administrator.API.Handlers {
     /// </summary>
     internal static partial class RootHandler {
         /// <summary>
+        /// Provide all handler classes with a single URI set and makes
+        /// sure it's only accessible from one place.
+        /// </summary>
+        /// <remarks>
+        /// This way, we can start the admin server with a dependency
+        /// injection pattern with what URI set to use for the API, using
+        /// different sets in tests (like test doubles) and experiment
+        /// with a new set for a newer version of the API if we like.
+        /// </remarks>
+        public static AdminUri Uris { get; private set; }
+
+        /// <summary>
         /// Provides a set of references to the currently running
         /// admin server host. Used and shared by handlers when fullfilling
         /// REST requests.
@@ -36,6 +48,15 @@ namespace Starcounter.Administrator.API.Handlers {
                 ServerHost = serverHost;
                 ServerPort = serverPort;
             }
+        }
+
+        /// <summary>
+        /// Sets up the root API handler.
+        /// </summary>
+        /// <param name="adminUris">The URI set to be used by all
+        /// fellow handlers.</param>
+        public static void Setup(AdminUri adminUris) {
+            Uris = adminUris;
         }
     }
 }

@@ -20,11 +20,9 @@ namespace Starcounter.Administrator.API.Handlers {
         /// <summary>
         /// Install handlers for the resource represented by this class and
         /// performs custom setup.
-        /// </summary>
-        /// <param name="admin">The admin URI resolver to use to get the
-        /// URI we register with.</param>
-        internal static void Setup(AdminUri admin) {
-            Handle.POST<string, Request>(admin.Executables, OnPOST);
+        internal static void Setup() {
+            AdminUri uris = RootHandler.Uris;
+            Handle.POST<string, Request>(uris.Executables, OnPOST);
         }
     }
 }
