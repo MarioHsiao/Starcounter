@@ -15,7 +15,7 @@ using Starcounter.Internal;
 using Starcounter.Server.Rest.MessageTypes;
 using Starcounter.Server.Rest;
 
-namespace Starcounter.Administrator {
+namespace Starcounter.Administrator.API.Handlers {
 
     /// <summary>
     /// Excapsulates the admin server functionality acting on the resource
@@ -29,7 +29,7 @@ namespace Starcounter.Administrator {
     /// patching the set of running executables using PATCH and maybe even
     /// assure a set of running executables using PUT.
     /// </remarks>
-    internal static class HostedExecutables {
+    internal static class ExecutableCollectionHandler {
         static ServerEngine engine;
         static IServerRuntime runtime;
         static string serverHost;
@@ -41,10 +41,10 @@ namespace Starcounter.Administrator {
             AdminUri admin,
             ServerEngine engine, 
             IServerRuntime runtime) {
-            HostedExecutables.engine = engine;
-            HostedExecutables.runtime = runtime;
-            HostedExecutables.serverHost = serverHost;
-            HostedExecutables.serverPort = serverPort;
+            ExecutableCollectionHandler.engine = engine;
+            ExecutableCollectionHandler.runtime = runtime;
+            ExecutableCollectionHandler.serverHost = serverHost;
+            ExecutableCollectionHandler.serverPort = serverPort;
 
             Handle.POST<string, Request>(admin.Executables, OnPOST);
         }

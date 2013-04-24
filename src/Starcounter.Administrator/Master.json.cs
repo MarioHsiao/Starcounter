@@ -3,6 +3,7 @@ using Codeplex.Data;
 using Starcounter;
 using Starcounter.ABCIPC.Internal;
 using Starcounter.Administrator;
+using Starcounter.Administrator.API.Handlers;
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Internal.JsonPatch;
@@ -62,7 +63,7 @@ namespace Starcounter.Administrator {
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
             var admin = new AdminUri();
-            HostedExecutables.Setup(
+            ExecutableCollectionHandler.Setup(
                 Dns.GetHostEntry(String.Empty).HostName,
                 adminPort,
                 admin,
