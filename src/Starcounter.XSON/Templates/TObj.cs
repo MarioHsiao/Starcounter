@@ -91,7 +91,7 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new template</param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name) where T : Template, new() {
-            T t = new T() { Name = name };
+            T t = new T() { TemplateName = name };
             Properties.Add(t);
             return t;
         }
@@ -105,7 +105,7 @@ namespace Starcounter.Templates {
         /// <param name="type"></param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, TObj type) where T : TObjArr, new() {
-            T t = new T() { Name = name, App = type };
+            T t = new T() { TemplateName = name, App = type };
             Properties.Add(t);
             return t;
         }
@@ -119,7 +119,7 @@ namespace Starcounter.Templates {
         /// <param name="bind">The name of the property in the dataobject to bind to.</param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, string bind) where T : TValue, new() {
-            T t = new T() { Name = name, Bind = bind, Bound = true };
+            T t = new T() { TemplateName = name, Bind = bind, Bound = true };
             Properties.Add(t);
             return t;
         }
@@ -134,7 +134,7 @@ namespace Starcounter.Templates {
         /// <param name="bind">The name of the property in the dataobject to bind to.</param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, TObj type, string bind) where T : TObjArr, new() {
-            T t = new T() { Name = name, App = type, Bind = bind, Bound = true };
+            T t = new T() { TemplateName = name, App = type, Bind = bind, Bound = true };
             Properties.Add(t);
             return t;
         }

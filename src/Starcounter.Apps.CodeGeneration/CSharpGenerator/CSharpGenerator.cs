@@ -329,7 +329,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// <param name="m">The m.</param>
         private void WriteObjMetadataMemberPrefix(NProperty m) {
 
-            //var objClassName = DefaultObjTemplate.InstanceType.Name;
+            //var objClassName = DefaultObjTemplate.InstanceType.TemplateName;
 
             var sb = new StringBuilder();
             sb.Append("public ");
@@ -421,7 +421,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append(mn.Type.FullClassName);
 
                     sb.Append(">(\"");
-                    sb.Append(mn.Template.Name);
+                    sb.Append(mn.Template.TemplateName);
                     sb.Append('"');
                     
                     TValue tv = mn.Template as TValue;

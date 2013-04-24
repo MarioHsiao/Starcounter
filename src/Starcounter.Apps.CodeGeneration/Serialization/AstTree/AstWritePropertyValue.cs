@@ -16,7 +16,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
 
         internal override string DebugString {
             get {
-                return "WritePropertyValue(" + Template.Name + ")";
+                return "WritePropertyValue(" + Template.TemplateName + ")";
             }
         }
 
