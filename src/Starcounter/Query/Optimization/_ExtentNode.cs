@@ -231,19 +231,18 @@ internal class ExtentNode : IOptimizationNode
             }
             if (identityExpression != null) {
                 if (identityExpression is ILiteral || identityExpression is IVariable) {
-                    Console.WriteLine("Identity expression "+identityExpression.ToString()+" is found for query: " + query);
-                    break;
-                    //conditionList.RemoveAt(i);
-                    //return;
+                    //Console.WriteLine("Identity expression "+identityExpression.ToString()+" is found for query: " + query);
+                    conditionList.RemoveAt(i);
+                    return;
                 }
                 identityExpressionPlace = i;
             }
             i++;
         }
         if (identityExpression != null) {
-            Console.WriteLine("Identity expression " + identityExpression.ToString() + " is found for query: " + query);
-            //conditionList.RemoveAt(identityExpressionPlace);
-            //return;
+            //Console.WriteLine("Identity expression " + identityExpression.ToString() + " is found for query: " + query);
+            conditionList.RemoveAt(identityExpressionPlace);
+            return;
         }
         // Find if there are IsTypeExpressions and evaluate them
         // Objects in all Is type conditions are from the same extent
@@ -431,8 +430,9 @@ internal class ExtentNode : IOptimizationNode
             return new ReferenceLookup(rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, variableArr, query);
         }
 
-        if (identityExpression is INumericalExpression) {
-        }
+        if (identityExpression != null)
+            return new ObjectIdenittyAccess(rowTypeBind, extentNumber, identityExpression, GetCondition(), 
+                fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, variableArr, query);
 
         if (bestIndexInfo != null)
         {
