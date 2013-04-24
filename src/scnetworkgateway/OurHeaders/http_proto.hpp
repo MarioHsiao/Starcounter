@@ -594,7 +594,8 @@ public:
         resp_type_ = HTTP_GATEWAY_PONG_RESPONSE;
 #endif
 
-        memset(&http_request_, 0, sizeof(http_request_));
+        http_request_.Reset();
+
         http_parser_init((http_parser *)this, HTTP_REQUEST);
     }
 
