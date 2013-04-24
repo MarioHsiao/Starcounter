@@ -171,15 +171,15 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
 
     public Boolean MoveNext()
     {
+        if (useOffsetkey && !stayAtOffsetkey) {
+            currentObject = null;
+            return false;
+        }
+
         if (counter == 0)
         {
             if (fetchNumberExpr != null && (fetchNumberExpr.EvaluateToInteger(null) == null || fetchNumberExpr.EvaluateToInteger(null).Value <= 0))
             {
-                currentObject = null;
-                return false;
-            }
-
-            if (useOffsetkey && !stayAtOffsetkey) {
                 currentObject = null;
                 return false;
             }
@@ -269,7 +269,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     }
 
     public Boolean IsAtRecreatedKey {
-        get { return true; }
+        get { return currentObject != null; }
     }
 
     /// <summary>
