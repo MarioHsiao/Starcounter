@@ -1,0 +1,9 @@
+﻿{
+    "Name": "Foo",
+    "Configuration": {
+        "HRef": "/databases/Foo/configuration"
+    },
+    "Engine": {
+        "HRef": "/engines/Foo"
+    }
+}
