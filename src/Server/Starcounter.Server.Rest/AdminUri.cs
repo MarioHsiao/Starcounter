@@ -51,6 +51,15 @@ namespace Starcounter.Server.Rest {
             public readonly string ContextPath;
 
             /// <summary>
+            /// Gets the URI of the root, i.e. the REST entrypoint.
+            /// </summary>
+            public string Root {
+                get {
+                    return ContextPath;
+                }
+            }
+
+            /// <summary>
             /// Gets the URI of the root server resource.
             /// </summary>
             public string Server {
