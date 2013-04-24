@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 namespace Starcounter.Administrator.API.Handlers {
 
     internal static partial class DatabaseHandler {
-        
         /// <summary>
         /// Handles a GET for this resource.
         /// </summary>
@@ -32,9 +31,11 @@ namespace Starcounter.Administrator.API.Handlers {
 
         static Database ToJSONDatabase(DatabaseInfo applicationDatabase) {
             var admin = RootHandler.API;
+            var engineUri = admin.FormatUri(admin.Uris.Engine, applicationDatabase.Name);
+            
             var db = new Database();
             db.DatabaseName = applicationDatabase.Name;
-            db.Engine.HRef = admin.FormatUri(admin.Uris.Engine, applicationDatabase.Name);
+            db.Engine.HRef = RootHandler.MakeAbsoluteUri(engineUri);
             return db;
         }
     }
