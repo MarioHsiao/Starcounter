@@ -6,7 +6,7 @@ using System.Collections.Specialized;
 using System.Linq;
 
 
-namespace Starcounter.Administrator.API.Handlers {
+namespace Starcounter.Administrator.API.Utilities {
     /// <summary>
     /// Provides a set of REST-related utility methods.
     /// </summary>
