@@ -49,8 +49,9 @@
   <ItemGroup>
     <Compile Include="API\Handlers\ExecutableCollectionHandler.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.POST.cs" />
-    <Compile Include="API\Handlers\RESTUtility.cs" />
+    <Compile Include="API\Utilities\RESTUtility.cs" />
     <Compile Include="API\Handlers\RootHandler.cs" />
+    <Compile Include="API\Utilities\StringExtensions.cs" />
     <Compile Include="AppApp.json.cs">
       <DependentUpon>AppApp.json</DependentUpon>
     </Compile>
