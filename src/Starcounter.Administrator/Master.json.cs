@@ -66,7 +66,7 @@ namespace Starcounter.Administrator {
             var admin = new AdminAPI();
             RootHandler.Host.Setup(Dns.GetHostEntry(String.Empty).HostName, adminPort, Master.ServerEngine, Master.ServerInterface);
             RootHandler.Setup(admin);
-
+            DatabaseHandler.Setup();
             ExecutableCollectionHandler.Setup();
 
             // Registering Administrator handlers.
