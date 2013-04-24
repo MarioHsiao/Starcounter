@@ -3,6 +3,7 @@ using Starcounter.Administrator.API.Utilities;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest;
+using System;
 
 namespace Starcounter.Administrator.API.Handlers {
     /// <summary>
@@ -32,6 +33,7 @@ namespace Starcounter.Administrator.API.Handlers {
             public static IServerRuntime Runtime { get; private set; }
             public static string ServerHost { get; private set; }
             public static int ServerPort { get; private set; }
+            public static Uri BaseUri { get; private set; }
 
             public static void Setup(
                 string serverHost,
@@ -42,6 +44,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 Runtime = runtime;
                 ServerHost = serverHost;
                 ServerPort = serverPort;
+                BaseUri = new UriBuilder(Uri.UriSchemeHttp, serverHost, serverPort).Uri;
             }
         }
 
@@ -59,6 +62,10 @@ namespace Starcounter.Administrator.API.Handlers {
 
         public static void Register405OnAllUnsupported(string uri, string[] methodsSupported, bool allowExtensionsBeyondPatch = false) {
             RESTUtility.Register405OnAllUnsupported(uri, (ushort)Host.ServerPort, methodsSupported, allowExtensionsBeyondPatch);
+        }
+
+        public static string MakeAbsoluteUri(string relativeUri) {
+            return new Uri(Host.BaseUri, relativeUri).ToString();
         }
     }
 }
