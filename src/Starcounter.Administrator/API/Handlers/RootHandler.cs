@@ -60,6 +60,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// fellow handlers.</param>
         public static void Setup(AdminAPI adminAPI) {
             API = adminAPI;
+            Register405OnAllUnsupported(API.Uris.Root, new string[] { });
         }
 
         /// <summary>
