@@ -47,6 +47,8 @@
     <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\Handlers\DatabaseHandler.cs" />
+    <Compile Include="API\Handlers\DatabaseHandler.GET.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.POST.cs" />
     <Compile Include="API\Utilities\RESTUtility.cs" />
