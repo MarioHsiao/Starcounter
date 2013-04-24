@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Net;
 
 
 namespace Starcounter.Administrator.API.Utilities {
@@ -15,6 +16,22 @@ namespace Starcounter.Administrator.API.Utilities {
     /// layer assembly, like Starcounter.Rest.
     /// </remarks>
     internal static class RESTUtility {
+        /// <summary>
+        /// Simplistic response creation utility for the API library, taking
+        /// advantage about built-in constraints of the admin server REST API
+        /// to create better responses.
+        /// </summary>
+        /// <param name="jsonContent">A JSON body.</param>
+        /// <param name="status">The status code; 200/OK by default.</param>
+        /// <param name="headers">Optional headers.</param>
+        /// <returns>A response to be sent back to the client.</returns>
+        public static Response CreateJSONResponse(
+            string jsonContent, int status = (int)HttpStatusCode.OK, Dictionary<string, string> headers = null) {
+            return new Response() { 
+                Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, null, jsonContent) 
+            };
+        }
+
         /// <summary>
         /// Registers a handler that returns 405 (Method Not Allowed) for
         /// a given URI and the set of standard verbs/methods that it don't
@@ -52,7 +69,7 @@ namespace Starcounter.Administrator.API.Utilities {
             }
             allows = allows.TrimStart().TrimEnd(',');
 
-            var headers = new NameValueCollection();
+            var headers = new Dictionary<string, string>();
             headers.Add("Allow", allows);
 
             // Seems to be something in the response builder that don't produce an
@@ -72,23 +89,23 @@ namespace Starcounter.Administrator.API.Utilities {
 
             switch (uri.CountOccurrences("{?}")) {
                 case 0:
-                    Register0(restHandler, uri, port, methodsToRegisterFor.ToArray(), headers, response);
+                    Register0(restHandler, uri, port, methodsToRegisterFor.ToArray(), response);
                     break;
                 case 1:
-                    Register1(restHandler, uri, port, methodsToRegisterFor.ToArray(), headers, response);
+                    Register1(restHandler, uri, port, methodsToRegisterFor.ToArray(), response);
                     break;
                 case 2:
-                    Register2(restHandler, uri, port, methodsToRegisterFor.ToArray(), headers, response);
+                    Register2(restHandler, uri, port, methodsToRegisterFor.ToArray(), response);
                     break;
                 case 3:
-                    Register3(restHandler, uri, port, methodsToRegisterFor.ToArray(), headers, response);
+                    Register3(restHandler, uri, port, methodsToRegisterFor.ToArray(), response);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("uri", "Too many parameters in URI");
             }
         }
 
-        static void Register0(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, NameValueCollection headers, Response response) {
+        static void Register0(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, Response response) {
             Func<Response> return405 = () => {
                 return response;
             };
@@ -98,7 +115,7 @@ namespace Starcounter.Administrator.API.Utilities {
             }
         }
 
-        static void Register1(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, NameValueCollection headers, Response response) {
+        static void Register1(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, Response response) {
             Func<string, Response> return405 = (string dummy) => {
                 return response;
             };
@@ -108,7 +125,7 @@ namespace Starcounter.Administrator.API.Utilities {
             }
         }
 
-        static void Register2(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, NameValueCollection headers, Response response) {
+        static void Register2(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, Response response) {
             Func<string, string, Response> return405 = (string dummy, string dummy2) => {
                 return response;
             };
@@ -118,7 +135,7 @@ namespace Starcounter.Administrator.API.Utilities {
             }
         }
 
-        static void Register3(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, NameValueCollection headers, Response response) {
+        static void Register3(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, Response response) {
             Func<string, string, string, Response> return405 = (string dummy, string dummy2, string dummy3) => {
                 return response;
             };
