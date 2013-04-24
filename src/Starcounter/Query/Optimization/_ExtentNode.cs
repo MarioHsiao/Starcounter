@@ -27,9 +27,14 @@ internal class ExtentNode : IOptimizationNode
     const Int32 NO_IDENTITY_ACCESS_COST = 1;
 
     /// <summary>
+    /// The estimated cost for a lookup by object identity
+    /// </summary>
+    const Int32 ID_IDENTITY_ACCESS_COST = 2;
+
+    /// <summary>
     /// The estimated cost for an index scan.
     /// </summary>
-    const Int32 INDEX_SCAN_COST = 2;
+    const Int32 INDEX_SCAN_COST = 10;
 
     /// <summary>
     /// The estimated cost for an extent scan.
@@ -223,15 +228,12 @@ internal class ExtentNode : IOptimizationNode
         i = 0;
         int identityExpressionPlace = -1;
         while (i < conditionList.Count) {
-            if (conditionList[i] is ComparisonNumerical) {
+            if (conditionList[i] is ComparisonNumerical)
                 identityExpression = (conditionList[i] as ComparisonNumerical).GetObjectNoExpression(extentNumber);
-            }
-            if (conditionList[i] is ComparisonString) {
-                //identityExpression = (conditionList[i] as ComparisonObject).GetReferenceLookUpExpression(extentNumber);
-            }
+            if (conditionList[i] is ComparisonString)
+                identityExpression = (conditionList[i] as ComparisonString).GetObjectIDExpression(extentNumber);
             if (identityExpression != null) {
                 if (identityExpression is ILiteral || identityExpression is IVariable) {
-                    //Console.WriteLine("Identity expression "+identityExpression.ToString()+" is found for query: " + query);
                     conditionList.RemoveAt(i);
                     return;
                 }
@@ -240,7 +242,6 @@ internal class ExtentNode : IOptimizationNode
             i++;
         }
         if (identityExpression != null) {
-            //Console.WriteLine("Identity expression " + identityExpression.ToString() + " is found for query: " + query);
             conditionList.RemoveAt(identityExpressionPlace);
             return;
         }
@@ -406,6 +407,8 @@ internal class ExtentNode : IOptimizationNode
         }
         if (identityExpression is INumericalExpression)
             return NO_IDENTITY_ACCESS_COST;
+        if (identityExpression is IStringExpression)
+            return ID_IDENTITY_ACCESS_COST;
         if (bestIndexInfo != null)
         {
             return INDEX_SCAN_COST;
