@@ -276,7 +276,7 @@ namespace Starcounter.Internal.JsonTemplate
             ReplaceableTemplate rt;
             String name;
 
-            name = newTemplate.Name;
+            name = newTemplate.TemplateName;
             existing = parent.Properties.GetTemplateByName(name);
 
             if (existing != null)
@@ -371,7 +371,7 @@ namespace Starcounter.Internal.JsonTemplate
                 // We create a dummy template that will be replaced later.
                 // If this dummy template is not replaced later, an exception
                 // will be raised.
-                t = new ReplaceableTemplate() { Name = name };
+                t = new ReplaceableTemplate() { TemplateName = name };
                 SetCompilerOrigin(t, debugInfo);
                 appTemplate.Properties.Add(t);
             }
@@ -404,7 +404,7 @@ namespace Starcounter.Internal.JsonTemplate
             }
             else
             {
-                newTemplate = new TString() { Name = name };
+                newTemplate = new TString() { TemplateName = name };
                 appTemplate = (OTT)parent;
 
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
@@ -433,7 +433,7 @@ namespace Starcounter.Internal.JsonTemplate
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
-                newTemplate = new TLong() { Name = name };
+                newTemplate = new TLong() { TemplateName = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -462,7 +462,7 @@ namespace Starcounter.Internal.JsonTemplate
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
-                newTemplate = new TDecimal() { Name = name };
+                newTemplate = new TDecimal() { TemplateName = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -491,7 +491,7 @@ namespace Starcounter.Internal.JsonTemplate
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
-                newTemplate = new TDouble() { Name = name };
+                newTemplate = new TDouble() { TemplateName = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -525,7 +525,7 @@ namespace Starcounter.Internal.JsonTemplate
             }
             else
             {
-                newTemplate = new TBool() { Name = name };
+                newTemplate = new TBool() { TemplateName = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -583,7 +583,7 @@ namespace Starcounter.Internal.JsonTemplate
                     );
             }
 
-            newTemplate = new TTrigger() { Name = name };
+            newTemplate = new TTrigger() { TemplateName = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -605,7 +605,7 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
-            newTemplate = new TArr<OT, OTT>() { Name = name };
+            newTemplate = new TArr<OT, OTT>() { TemplateName = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -623,7 +623,7 @@ namespace Starcounter.Internal.JsonTemplate
 //            appTemplate = parent as TApp;
 //            if (parent != null)
 //            {
-//                newTemplate.Name = name;
+//                newTemplate.TemplateName = name;
 //                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
 //            }
 //            SetCompilerOrigin(newTemplate, debugInfo);
@@ -645,7 +645,7 @@ namespace Starcounter.Internal.JsonTemplate
             newTemplate = new OTT();
             if (parent != null)
             {
-                newTemplate.Name = name;
+                newTemplate.TemplateName = name;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, (OTT)parent, debugInfo);
             }
             SetCompilerOrigin(newTemplate, debugInfo);
@@ -662,7 +662,7 @@ namespace Starcounter.Internal.JsonTemplate
         {
             var newTemplate = new OTT(); // The type of the type array (an TApp)
             newTemplate.Parent = (TContainer)array;
-            //			newTemplate.Name = "__ArrayType__"; // All children needs an id
+            //			newTemplate.TemplateName = "__ArrayType__"; // All children needs an id
             var arr = ((TObjArr)array);
             arr.App = newTemplate;
             newTemplate.Parent = arr;
