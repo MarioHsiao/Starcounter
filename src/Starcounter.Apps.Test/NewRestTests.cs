@@ -33,7 +33,7 @@ namespace Starcounter.Internal.Test
 
             UserHandlerCodegen.Setup(null, null, appServer.HandleRequest);
 
-            RequestHandler.InitREST(8181);
+            RequestHandler.InitREST();
         }
     }
 
