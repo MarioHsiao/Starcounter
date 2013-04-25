@@ -67,7 +67,7 @@ namespace Starcounter.InstallerEngine
         internal const String SCDemoDbName = "StarcounterBenchmarkDemoDb";
         internal const String ScSamplesDemosDirName = "SamplesAndDemos";
         internal const String ScLogFileName = "ScSetup.log";
-        internal const String SCVersionFileName = "VersionInfo.xml";
+        internal const String SCVersionFileName = StarcounterEnvironment.FileNames.VersionInfoFileName;
         internal const String SCSilentSetupParam = "silent";
         internal const String SCUninstallParam = "uninstall";
         internal const String SCCleanupParam = "cleanup";

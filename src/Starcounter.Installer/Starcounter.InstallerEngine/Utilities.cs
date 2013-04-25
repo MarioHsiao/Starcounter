@@ -566,10 +566,29 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
+        /// Checks if its developer installation.
+        /// </summary>
+        /// <returns></returns>
+        public static Boolean IsDeveloperInstallation()
+        {
+            String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            // Checking that we don't remove files if setup is running from installation directory.
+            if (File.Exists(System.IO.Path.Combine(curDir, StarcounterConstants.ProgramNames.ScCode + ".exe")))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Checks for basic Starcounter setup requirements.
         /// </summary>
         public static void CheckInstallationRequirements()
         {
+            // Checking if we are in developer installation.
+            if (IsDeveloperInstallation())
+                return;
+
             // Checking if platform is 64-bit.
             if (!Utilities.Platform64Bit())
             {

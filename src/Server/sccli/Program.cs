@@ -510,13 +510,13 @@ namespace star {
         }
 
         static void ShowVersionInfo() {
-            Console.WriteLine("Version={0}.{1}", StarcounterEnvironment.GetVersionInfo().Version.Major, StarcounterEnvironment.GetVersionInfo().Version.Minor);
+            Console.WriteLine("Version=", CurrentVersion.Version);
         }
 
         static void ShowInfoAboutStarcounter() {
             Console.WriteLine("Installation directory={0}", Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory));
             Console.WriteLine("Default server={0}", StarcounterEnvironment.ServerNames.PersonalServer.ToLower());
-            Console.WriteLine("Version={0}.{1}", StarcounterEnvironment.GetVersionInfo().Version.Major, StarcounterEnvironment.GetVersionInfo().Version.Minor);
+            Console.WriteLine("Version=", CurrentVersion.Version);
         }
 
         static void Usage(IApplicationSyntax syntax, bool extended = false) {

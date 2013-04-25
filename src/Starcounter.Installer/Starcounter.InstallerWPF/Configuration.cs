@@ -71,8 +71,7 @@ namespace Starcounter.InstallerWPF
 
         public Configuration()
         {
-            StarcounterCommonPath = System.IO.Path.Combine(ConstantsBank.SCProductName,
-                InstallerMain.GetEmbVersionInfo().Version.ToString());
+            StarcounterCommonPath = System.IO.Path.Combine(ConstantsBank.SCProductName, CurrentVersion.Version);
         }
 
         /// <summary>

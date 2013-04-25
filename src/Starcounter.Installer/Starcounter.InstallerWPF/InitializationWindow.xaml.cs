@@ -225,33 +225,14 @@ namespace Starcounter.InstallerWPF {
         // A forum thread exists here:
         // http://www.starcounter.com/forum/showthread.php?1216-Installing-Sc-Failed
         // This thread in turn links to the MS bug thread.
-        static String[] staticInstallerDependencies =
+        static String[] StaticInstallerDependencies =
         { 
             "Starcounter.InstallerNativeHelper.dll"
         };
 
-        static String[] TempExtractedFiles =
+        // Runs this on parent process exit.
+        static void ParentOnExitProcedure(String pathToNewInstaller)
         {
-            "Starcounter.InstallerNativeHelper.dll"
-        };
-
-        // Tries to remove temporary extracted files.
-        static void RemoveTempExtractedFiles(String pathToNewInstaller)
-        {
-            String current_directory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            // Checking that we don't remove files if setup is running from installation directory.
-            if (!File.Exists(System.IO.Path.Combine(current_directory, StarcounterConstants.ProgramNames.ScCode + ".exe")))
-            {
-                foreach (String temp_file_name in TempExtractedFiles) {
-                    String temp_file_path = System.IO.Path.Combine(current_directory, temp_file_name);
-                    if (File.Exists(temp_file_path)) {
-                        try { File.Delete(temp_file_path); }
-                        catch { }
-                    }
-                }
-            }
-
             // Starting new installer if its needed.
             if (pathToNewInstaller != null)
                 StartNewerInstaller(pathToNewInstaller);
@@ -264,9 +245,6 @@ namespace Starcounter.InstallerWPF {
             prevSetupProcess.StartInfo.FileName = pathToNewInstaller;
             prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
             prevSetupProcess.Start();
-
-            // Waiting for process elevation.
-            Thread.Sleep(10000);
         }
 
         // Indicates if this installer instance is started by parent instance.
@@ -280,7 +258,8 @@ namespace Starcounter.InstallerWPF {
 
         internal static String ScEnvVarName = "StarcounterBin";
         // First installer function that needs to be called.
-        void InitInstaller() {
+        void InitInstaller()
+        {
             //System.Diagnostics.Debugger.Launch();
 
             // Setting the nice WPF message box.
@@ -409,20 +388,41 @@ namespace Starcounter.InstallerWPF {
                 //System.Diagnostics.Debugger.Launch();
 
                 // Adding temp files cleanup event on parent installer process exit.
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => RemoveTempExtractedFiles(pathToNewInstaller);
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => RemoveTempExtractedFiles();
 
                 // Starting child setup instance.
-                this.StartingTheElevatedInstaller(args);
+                this.StartingTheElevatedInstaller(args, pathToNewInstaller);
 
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
                 throw new Exception(silentMsg, new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
             }
         }
 
+        // Tries to remove temporary extracted files.
+        static void RemoveTempExtractedFiles()
+        {
+            // Checking that we don't remove files if setup is running from installation directory.
+            if (!Utilities.IsDeveloperInstallation())
+            {
+                String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+                foreach (String tempFileName in StaticInstallerDependencies)
+                {
+                    String tempFilePath = System.IO.Path.Combine(curDir, tempFileName + "." + CurrentVersion.Version);
+                    if (File.Exists(tempFilePath))
+                    {
+                        try { File.Delete(tempFilePath); }
+                        catch { }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Sets necessary library hooks.
         /// </summary>
-        public void SetLibraryHooks() {
+        public void SetLibraryHooks()
+        {
             // Install hook to load dynamic bound dependencies from the embedded archive
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(PackagedLibrariesLoadHook);
         }
@@ -430,7 +430,8 @@ namespace Starcounter.InstallerWPF {
         /// <summary>
         /// Starts child elevated installer instance and waits for its finish.
         /// </summary>
-        private void StartingTheElevatedInstaller(String[] args) {
+        private void StartingTheElevatedInstaller(String[] args, String pathToNewInstaller)
+        {
             // Starting the elevated installer.
             Process scSetup = new Process();
             scSetup.StartInfo.FileName = Assembly.GetExecutingAssembly().Location;
@@ -446,7 +447,8 @@ namespace Starcounter.InstallerWPF {
 
             // Exit code of the child instance.
             Int32 exitCode = 1;
-            try {
+            try
+            {
                 // Starting elevated installer.
                 scSetup.Start();
 
@@ -460,7 +462,8 @@ namespace Starcounter.InstallerWPF {
                 exitCode = scSetup.ExitCode;
                 scSetup.Close();
             }
-            catch {
+            catch
+            {
                 // This can occur when user answers 'No' on elevating setup process.
                 // In this case we silently exiting the instance.
                 String errMsg = "Problems running child setup instance (e.g. elevation canceled).";
@@ -474,6 +477,9 @@ namespace Starcounter.InstallerWPF {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "Setup instance terminated with error.");
             }
+
+            // Run parent exit procedure.
+            ParentOnExitProcedure(pathToNewInstaller);
         }
 
         // Wrapper for extracting library static dependencies.
@@ -527,7 +533,7 @@ namespace Starcounter.InstallerWPF {
             // Extracting first-level dependencies from archive.
             using (zipArchive)
             {
-                foreach (var dependentBinary in staticInstallerDependencies)
+                foreach (var dependentBinary in StaticInstallerDependencies)
                 {
                     foreach (ZipArchiveEntry entry in zipArchive.Entries)
                     {
@@ -562,10 +568,12 @@ namespace Starcounter.InstallerWPF {
 
         // Wrapper for checking installation requirements.
         [MethodImplAttribute(MethodImplOptions.NoInlining)]
-        void CheckInstallationRequirements() {
+        void CheckInstallationRequirements()
+        {
             Utilities.CheckInstallationRequirements();
 
-            if (Utilities.IsAnotherVersionInstalled()) {
+            if (Utilities.IsAnotherVersionInstalled())
+            {
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
                 throw new Exception("Starting previous uninstaller.",
                     new InstallerException("Starting previous uninstaller.", InstallerErrorCode.QuietExit));
@@ -595,7 +603,7 @@ namespace Starcounter.InstallerWPF {
             // we expect to be statically linked; if it is, we don't try to resolve
             // it because it will break something else
 
-            bool shouldBeStaticallyResolved = staticInstallerDependencies.Any<string>(delegate(string candidate) {
+            bool shouldBeStaticallyResolved = StaticInstallerDependencies.Any<string>(delegate(string candidate) {
                 return candidate.Equals(asmName.Name, StringComparison.InvariantCultureIgnoreCase);
             });
             if (shouldBeStaticallyResolved)
