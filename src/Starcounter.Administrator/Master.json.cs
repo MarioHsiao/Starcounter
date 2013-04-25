@@ -3,6 +3,7 @@ using Codeplex.Data;
 using Starcounter;
 using Starcounter.ABCIPC.Internal;
 using Starcounter.Administrator;
+using Starcounter.Administrator.API;
 using Starcounter.Administrator.API.Handlers;
 using Starcounter.Advanced;
 using Starcounter.Internal;
@@ -64,10 +65,7 @@ namespace Starcounter.Administrator {
 
             // Register and setup the API subsystem handlers
             var admin = new AdminAPI();
-            RootHandler.Host.Setup(Dns.GetHostEntry(String.Empty).HostName, adminPort, Master.ServerEngine, Master.ServerInterface);
-            RootHandler.Setup(admin);
-            DatabaseHandler.Setup();
-            ExecutableCollectionHandler.Setup();
+            RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Master.ServerEngine, Master.ServerInterface);
 
             // Registering Administrator handlers.
             RegisterHandlers();
