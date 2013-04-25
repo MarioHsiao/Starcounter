@@ -231,20 +231,9 @@ namespace Starcounter.InstallerWPF {
         };
 
         // Runs this on parent process exit.
-        static void ParentOnExitProcedure(String pathToNewInstaller)
+        static void ParentOnExitProcedure()
         {
-            // Starting new installer if its needed.
-            if (pathToNewInstaller != null)
-                StartNewerInstaller(pathToNewInstaller);
-        }
-
-        // Starts new installer.
-        static void StartNewerInstaller(String pathToNewInstaller)
-        {
-            Process prevSetupProcess = new Process();
-            prevSetupProcess.StartInfo.FileName = pathToNewInstaller;
-            prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
-            prevSetupProcess.Start();
+            // Do nothing.
         }
 
         // Indicates if this installer instance is started by parent instance.
@@ -289,7 +278,6 @@ namespace Starcounter.InstallerWPF {
 
             // Don't check for other setups running.
             Boolean dontCheckOtherInstances = false;
-            String pathToNewInstaller = null;
 
             // Checking command line parameters.
             String[] args = Environment.GetCommandLineArgs();
@@ -306,10 +294,6 @@ namespace Starcounter.InstallerWPF {
                 else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase))
                 {
                     dontCheckOtherInstances = true;
-                }
-                else if (param.StartsWith(ConstantsBank.NewInstallerPathArg, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    pathToNewInstaller = param.Substring(ConstantsBank.NewInstallerPathArg.Length + 1, param.Length - 1 - ConstantsBank.NewInstallerPathArg.Length);
                 }
                 else if (param.StartsWith(ConstantsBank.ParentArg, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -375,13 +359,16 @@ namespace Starcounter.InstallerWPF {
                 // wrapper so that library is resolved without errors.).
                 CheckInstallationRequirements();
 
+                // Bringing window on top.
+                if (!IsVisible)
+                    Show();
+
                 // Stopping animation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                           new Action(delegate {
                     // Show window
                     this.StopAnimation();
-                }
-                      ));
+                }));
             }
             else
             {
@@ -391,7 +378,7 @@ namespace Starcounter.InstallerWPF {
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => RemoveTempExtractedFiles();
 
                 // Starting child setup instance.
-                this.StartingTheElevatedInstaller(args, pathToNewInstaller);
+                this.StartingTheElevatedInstaller(args);
 
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
                 throw new Exception(silentMsg, new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
@@ -430,7 +417,7 @@ namespace Starcounter.InstallerWPF {
         /// <summary>
         /// Starts child elevated installer instance and waits for its finish.
         /// </summary>
-        private void StartingTheElevatedInstaller(String[] args, String pathToNewInstaller)
+        private void StartingTheElevatedInstaller(String[] args)
         {
             // Starting the elevated installer.
             Process scSetup = new Process();
@@ -479,7 +466,7 @@ namespace Starcounter.InstallerWPF {
             }
 
             // Run parent exit procedure.
-            ParentOnExitProcedure(pathToNewInstaller);
+            ParentOnExitProcedure();
         }
 
         // Wrapper for extracting library static dependencies.
