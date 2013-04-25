@@ -1,5 +1,5 @@
 ﻿{
-    "Uri": "http://example.com/api/executables/foo",
+    "Uri": "http://example.com/api/engines/foo",
     "Database": {
         "Uri": "http://example.com/api/databases/foo"
     },
@@ -9,12 +9,15 @@
     "CodeHostProcess": {
         "PID": 0
     },
-    "Executables": [
-        {
-            "Path": "C:\\path\to\\the\\exe\\foo.exe",
-            "Uri": "http://example.com/api/executables/foo/foo.exe-123456789"
-        }
-    ],
+    "Executables": {
+        "Uri": "http://example.com/api/engines/foo/executables",
+        "Executing": [
+            {
+                "Path": "C:\\path\to\\the\\exe\\foo.exe",
+                "Uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789"
+            }
+        ]
+    },
     "StartInfo": {
         "NoDb": false,
         "LogSteps": false
