@@ -14,63 +14,6 @@ using System.Xml;
 namespace Starcounter.Internal
 {
     /// <summary>
-    /// Class VersionInfo
-    /// </summary>
-    public class VersionInfo
-    {
-        /// <summary>
-        /// Gets or sets the configuration.
-        /// </summary>
-        /// <value>The configuration.</value>
-        public string Configuration { get; set; }
-        /// <summary>
-        /// Gets or sets the platform.
-        /// </summary>
-        /// <value>The platform.</value>
-        public string Platform { get; set; }
-        /// <summary>
-        /// Gets or sets the version.
-        /// </summary>
-        /// <value>The version.</value>
-        public Version Version { get; set; }
-        /// <summary>
-        /// Gets or sets the ID full base32.
-        /// </summary>
-        /// <value>The ID full base32.</value>
-        public string IDFullBase32 { get; set; }
-        /// <summary>
-        /// Gets or sets the ID tail base64.
-        /// </summary>
-        /// <value>The ID tail base64.</value>
-        public string IDTailBase64 { get; set; }
-        /// <summary>
-        /// Gets or sets the ID tail decimal.
-        /// </summary>
-        /// <value>The ID tail decimal.</value>
-        public UInt32 IDTailDecimal { get; set; }
-        /// <summary>
-        /// Gets or sets the required registration date.
-        /// </summary>
-        /// <value>The required registration date.</value>
-        public DateTime RequiredRegistrationDate { get; set; }
-
-        // Setting default version settings.
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VersionInfo" /> class.
-        /// </summary>
-        public VersionInfo()
-        {
-            Configuration = "unknown";
-            Platform = "unknown";
-            Version = new Version(0, 0, 0, 0);
-            IDFullBase32 = "000000000000000000000000";
-            IDTailBase64 = "0000000";
-            IDTailDecimal = 0;
-            RequiredRegistrationDate = new DateTime(1900, 1, 1);
-        }
-    }
-
-    /// <summary>
     /// Class StarcounterEnvironment
     /// </summary>
     public static class StarcounterEnvironment
@@ -212,7 +155,7 @@ namespace Starcounter.Internal
             /// NOTE: This code is duplicated in the installer
             /// \perforce\Starcounter\Dev\Yellow\Main\CoreComponents.Net\Starcounter.InstallerWPF\MainWindow.xaml.cs
             /// </summary>
-            public const string Version = "VersionInfo.xml";
+            public const string VersionInfoFileName = "VersionInfo.xml";
 
             /// <summary>
             /// Default collation Filename prefix
@@ -306,139 +249,6 @@ namespace Starcounter.Internal
             /// The administrator start page
             /// </summary>
             public const string AdministratorStartPage = "http://www.starcounter.com/admin/index.php";
-        }
-
-                /// <summary>
-        /// Gets the Starcounter version information from the data stream or file.
-        /// </summary>
-        /// <returns>VersionInfo</returns>
-        public static VersionInfo GetVersionInfo(StringReader textStreamReader, String filePath)
-        {
-            // Creating default VersionInfo (in case if reading operation fails).
-            VersionInfo versionInfo = UnknownVersionInfo;
-            XmlDocument xmlDoc = new XmlDocument();
-
-            try
-            {
-                // Load the XML document from the specified text stream or file path.
-                if (textStreamReader != null)
-                    xmlDoc.Load(textStreamReader);
-                else
-                    xmlDoc.Load(filePath);
-
-                // Reading configuration.
-                try
-                {
-                    XmlNodeList ConfigurationTags = xmlDoc.GetElementsByTagName("Configuration");
-                    versionInfo.Configuration = ((XmlElement)ConfigurationTags[0]).InnerText; // e.g. Release
-                }
-                catch { }
-
-                // Reading platform.
-                try
-                {
-                    XmlNodeList PlatformTags = xmlDoc.GetElementsByTagName("Platform");
-                    versionInfo.Platform = ((XmlElement)PlatformTags[0]).InnerText; // e.g. x64
-                }
-                catch { }
-
-                // Reading version information.
-                try
-                {
-                    XmlNodeList FullversionTags = xmlDoc.GetElementsByTagName("Version");
-                    string versionStr = ((XmlElement)FullversionTags[0]).InnerText; // e.g. 2.0.0.0
-                    try
-                    {
-                        // Creating with wrong version string can also throw an exception.
-                        versionInfo.Version = new Version(versionStr);
-                    }
-                    catch { }
-                }
-                catch { }
-
-                // Reading unique ID in Base32.
-                try
-                {
-                    XmlNodeList IDFullBase32Tags = xmlDoc.GetElementsByTagName("IDFullBase32");
-                    versionInfo.IDFullBase32 = ((XmlElement)IDFullBase32Tags[0]).InnerText; // e.g. 000000000000000000000000
-                }
-                catch { }
-
-                // Reading unique ID tail in Base64.
-                try
-                {
-                    XmlNodeList IDTailBase64Tags = xmlDoc.GetElementsByTagName("IDTailBase64");
-                    versionInfo.IDTailBase64 = ((XmlElement)IDTailBase64Tags[0]).InnerText; // e.g. 0000000
-                }
-                catch { }
-
-                // Reading unique ID tail in Decimal format.
-                try
-                {
-                    XmlNodeList IDTailDecimalTags = xmlDoc.GetElementsByTagName("IDTailDecimal");
-                    string IDTailDecimalStr = ((XmlElement)IDTailDecimalTags[0]).InnerText; // e.g. 0000000
-                    UInt32 IDTailDecimal;
-                    if (UInt32.TryParse(IDTailDecimalStr, out IDTailDecimal))
-                    {
-                        versionInfo.IDTailDecimal = IDTailDecimal;
-                    }
-                }
-                catch { }
-
-                // Reading required registration date.
-                try
-                {
-                    XmlNodeList ReqRegDateTags = xmlDoc.GetElementsByTagName("RequiredRegistrationDate");
-                    string ReqRegDateStr = ((XmlElement)ReqRegDateTags[0]).InnerText; // e.g. 2012-06-09
-                    DateTime ReqRegDate = DateTime.ParseExact(ReqRegDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-                    versionInfo.RequiredRegistrationDate = ReqRegDate;
-                }
-                catch { }
-            }
-            catch { }
-            // If any exception occurs default version settings will be loaded.
-
-            return versionInfo;
-        }
-
-        /// <summary>
-        /// Cached reference of Starcounter version information.
-        /// </summary>
-        private static VersionInfo ScVersionInfo = null;
-
-        /// <summary>
-        /// Represents an unknown Starcounter version.
-        /// </summary>
-        public static readonly VersionInfo UnknownVersionInfo = new VersionInfo();
-
-        /// <summary>
-        /// Gets the version info.
-        /// </summary>
-        public static VersionInfo GetVersionInfo()
-        {
-            // Only fetch the info once.
-            if (ScVersionInfo != null)
-                return ScVersionInfo;
-
-            // Create default VersionInfo.
-            ScVersionInfo = UnknownVersionInfo;
-
-            try
-            {
-                // Checking if system directory is initialized.
-                if (!String.IsNullOrEmpty(StarcounterEnvironment.SystemDirectory))
-                {
-                    // Getting version file from system directory.
-                    String versionFilePath = Path.Combine(StarcounterEnvironment.SystemDirectory, StarcounterEnvironment.FileNames.Version);
-
-                    // Checking that version file exists.
-                    if (File.Exists(versionFilePath))
-                        ScVersionInfo = GetVersionInfo(null, versionFilePath);
-                }
-            }
-            catch { }
-
-            return ScVersionInfo;
         }
 
         static string ReadSystemDirectoryFromEnvironment()

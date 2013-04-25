@@ -73,7 +73,9 @@
     <Compile Include="CommandLine\Syntax\PropertyDefinition.cs" />
     <Compile Include="CommandLine\Syntax\SyntaxDefinition.cs" />
     <Compile Include="Constants\Constants.cs" />
+    <Compile Include="Constants\CurrentVersion.cs" />
     <Compile Include="Constants\MixedCodeConstants.cs" />
+    <Compile Include="ErrorHandling\TestTraceListener.cs" />
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HttpSessions.cs" />
@@ -122,7 +124,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangeintcs $(ProjectDir)Error.cs</PreBuildEvent>
+    <PreBuildEvent>$(ProjectDir)..\Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(ProjectDir)..\Starcounter.ErrorCodes\errorcodes.xml -orangeintcs $(ProjectDir)Error.cs</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

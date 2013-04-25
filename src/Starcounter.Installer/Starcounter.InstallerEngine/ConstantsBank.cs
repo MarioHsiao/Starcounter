@@ -66,7 +66,7 @@ namespace Starcounter.InstallerEngine
         internal const String SCDemoDbName = "StarcounterBenchmarkDemoDb";
         internal const String ScSamplesDemosDirName = "SamplesAndDemos";
         internal const String ScLogFileName = "ScSetup.log";
-        internal const String SCVersionFileName = "VersionInfo.xml";
+        internal const String SCVersionFileName = StarcounterEnvironment.FileNames.VersionInfoFileName;
         internal const String SCSilentSetupParam = "silent";
         internal const String SCUninstallParam = "uninstall";
         internal const String SCCleanupParam = "cleanup";
@@ -79,8 +79,8 @@ namespace Starcounter.InstallerEngine
         public static String SCEnvVariableDefaultServer { get { return StarcounterEnvironment.VariableNames.DefaultServer; } }
         public static String SCEnvVariableDefaultPersonalPort { get { return StarcounterEnvironment.VariableNames.DefaultServerPersonalPort; } }
         public static String SCEnvVariableDefaultSystemPort { get { return StarcounterEnvironment.VariableNames.DefaultServerSystemPort; } }
-        public static String SCPersonalDatabasesName { get { return StarcounterEnvironment.ServerNames.PersonalServer; } }
-        public static String SCSystemDatabasesName { get { return StarcounterEnvironment.ServerNames.SystemServer; } }
+        public static String SCPersonalServerName { get { return StarcounterEnvironment.ServerNames.PersonalServer; } }
+        public static String SCSystemServerName { get { return StarcounterEnvironment.ServerNames.SystemServer; } }
 
         public const String SCInstallerGUI = "Starcounter-Setup";
         public const String SCInstallerEngine = "Starcounter.InstallerEngine";

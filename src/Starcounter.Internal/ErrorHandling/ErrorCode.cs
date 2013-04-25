@@ -160,20 +160,17 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Creates the version message from a given <see cref="VersionInfo"/>.
+        /// Creates the version message from current version.
         /// </summary>
-        /// <param name="versionInfo">
-        /// The <see cref="VersionInfo"/> to use when creating the message.
-        /// </param>
         /// <returns>A string including the version.</returns>
         /// <example>
-        /// string msg = ToVersionMessage(StarcounterEnvironment.GetVersionInfo());
+        /// string msg = ToVersionMessage();
         /// Console.Write(msg);
         /// /* Output: Version: 2.0.123.456. */
         /// </example>
-        public static string ToVersionMessage(VersionInfo versionInfo)
+        public static string ToVersionMessage()
         {
-            return string.Concat("Version: ", versionInfo.Version.ToString(), ".");
+            return string.Concat("Version: ", CurrentVersion.Version, ".");
         }
 
         /// <summary>
@@ -594,7 +591,7 @@ namespace Starcounter
                     "Error {0} has occured ({1}): [Message not accessible]. {2} {3}",
                     errorCode,
                     ToDecoratedCode(errorCode),
-                    ToVersionMessage(StarcounterEnvironment.GetVersionInfo()),
+                    ToVersionMessage(),
                     ToHelpLinkMessage(errorCode)
                     );
             }
@@ -777,7 +774,7 @@ namespace Starcounter
             exception.HelpLink = ErrorCode.ToHelpLink(errorCode);
             exception.Source = string.Format(
                 "Starcounter({0})",
-                StarcounterEnvironment.GetVersionInfo().Version.ToString()
+                CurrentVersion.Version
                 );
             return exception;
         }

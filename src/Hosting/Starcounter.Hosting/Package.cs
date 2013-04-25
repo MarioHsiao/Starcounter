@@ -286,7 +286,7 @@ namespace Starcounter.Hosting {
         {
             Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
 
-            //File.AppendAllText("trace.log", "PACKAGE: " + message + " " + (Double)stopwatch_.ElapsedTicks / Stopwatch.Frequency + Environment.NewLine);
+            Diagnostics.WriteTimeStamp("PACKAGE", message);
         }
     }
 }

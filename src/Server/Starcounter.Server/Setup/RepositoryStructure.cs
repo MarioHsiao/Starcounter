@@ -22,7 +22,7 @@ namespace Starcounter.Server.Setup {
     /// paths and to finally, assist in creating the directory structure
     /// on the local disk.
     /// </remarks>
-    internal sealed class RepositoryStructure {
+    public sealed class RepositoryStructure {
         /// <summary>
         /// Gets the repository. This field is read-only. It can be
         /// specified in the constructor only.

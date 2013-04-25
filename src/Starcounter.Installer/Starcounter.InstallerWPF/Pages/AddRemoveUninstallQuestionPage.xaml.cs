@@ -68,10 +68,10 @@ namespace Starcounter.InstallerWPF.Pages
 
             MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
 
-             switch (mainWindow.SetupOptions)
+            switch (mainWindow.SetupOptions)
             {
                 case SetupOptions.Ask:
-                    this.setupOptions_RadioButton_Option1.IsChecked = true; // Add
+                    this.setupOptions_RadioButton_Option3.IsChecked = true; // Uninstall
                     break;
                 case SetupOptions.AddComponents:
                     this.setupOptions_RadioButton_Option1.IsChecked = true; // Add

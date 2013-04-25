@@ -1,4 +1,1491 @@
 
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select Department, count(FirstName) from Employee group by Department
+
+Tokens: 
+[<SELECT>][Department][,][<COUNT>][(][FirstName][)][<FROM>][Employee][<GROUP>][<BY>][Department]
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,Department)])
+            name(noName)
+        )
+        as(
+            setFunction(
+                count
+                all
+                path(any,[property(any,FirstName)])
+            )
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,noName)
+    )
+    literal(logical,true)
+    [
+        path(any,[property(any,Department)])
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select3(
+    all
+    [
+        as(
+            tmpPath([extent(1,temp),property(any,0)],path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)]))
+            name(noName)
+        )
+        as(
+            tmpPath([extent(1,temp),property(any,1)],setFunction(count,all,path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])))
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    literal(logical,true)
+    [
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)])
+    ]
+    [
+        setFunction(
+            count
+            all
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select3(
+    all
+    [
+        as(
+            tmpPath([extent(1,temp),property(any,0)],path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)]))
+            name(noName)
+        )
+        as(
+            tmpPath([extent(1,temp),property(any,1)],setFunction(count,all,path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])))
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    literal(logical,true)
+    [
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)])
+    ]
+    [
+        setFunction(
+            count
+            all
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select3(
+    all
+    [
+        as(
+            path(object(Example.Department),[extent(1,temp),property(object(Example.Department),0)])
+            name(noName)
+        )
+        as(
+            path(integer,[extent(1,temp),property(integer,1)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    literal(logical,true)
+    [
+        sortSpec(
+            object(Example.Department)
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            asc
+        )
+    ]
+    [
+        setFunction(
+            integer
+            count
+            all
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select3(
+    all
+    [
+        as(
+            path(object(Example.Department),[extent(1,temp),property(object(Example.Department),0)])
+            name(noName)
+        )
+        as(
+            path(integer,[extent(1,temp),property(integer,1)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    literal(logical,true)
+    [
+        sortSpec(
+            object(Example.Department)
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            asc
+        )
+    ]
+    [
+        setFunction(
+            integer
+            count
+            all
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+        extent(1,[object(Example.Department),integer])
+    ]
+    [
+        map(
+            0
+            path(object(Example.Department),[extent(1,temp),property(object(Example.Department),0)])
+        )
+        map(
+            1
+            path(integer,[extent(1,temp),property(integer,1)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+        extent(1,[object(Example.Department),integer])
+    ]
+    [
+        map(
+            0
+            path(object(Example.Department),[extent(1,temp),property(object(Example.Department),0)])
+        )
+        map(
+            1
+            path(integer,[extent(1,temp),property(integer,1)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select Department, count(FirstName) from Employee group by department
+
+Tokens: 
+[<SELECT>][Department][,][<COUNT>][(][FirstName][)][<FROM>][Employee][<GROUP>][<BY>][department]
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,Department)])
+            name(noName)
+        )
+        as(
+            setFunction(
+                count
+                all
+                path(any,[property(any,FirstName)])
+            )
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,noName)
+    )
+    literal(logical,true)
+    [
+        path(any,[property(any,department)])
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select3(
+    all
+    [
+        as(
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)])
+            name(noName)
+        )
+        as(
+            tmpPath([extent(1,temp),property(any,1)],setFunction(count,all,path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])))
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    literal(logical,true)
+    [
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,department)])
+    ]
+    [
+        setFunction(
+            count
+            all
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select3(
+    all
+    [
+        as(
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)])
+            name(noName)
+        )
+        as(
+            tmpPath([extent(1,temp),property(any,1)],setFunction(count,all,path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])))
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    literal(logical,true)
+    [
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,department)])
+    ]
+    [
+        setFunction(
+            count
+            all
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select3(
+    all
+    [
+        as(
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            name(noName)
+        )
+        as(
+            path(integer,[extent(1,temp),property(integer,1)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    literal(logical,true)
+    [
+        sortSpec(
+            object(Example.Department)
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            asc
+        )
+    ]
+    [
+        setFunction(
+            integer
+            count
+            all
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select3(
+    all
+    [
+        as(
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            name(noName)
+        )
+        as(
+            path(integer,[extent(1,temp),property(integer,1)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    literal(logical,true)
+    [
+        sortSpec(
+            object(Example.Department)
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            asc
+        )
+    ]
+    [
+        setFunction(
+            integer
+            count
+            all
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+        extent(1,[object(Example.Department),integer])
+    ]
+    [
+        map(
+            0
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+        )
+        map(
+            1
+            path(integer,[extent(1,temp),property(integer,1)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+        extent(1,[object(Example.Department),integer])
+    ]
+    [
+        map(
+            0
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+        )
+        map(
+            1
+            path(integer,[extent(1,temp),property(integer,1)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+    Incorrect select-list w.r.t. group-by-clause.
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select e from Employee e where e.FirstName = 'Peter"
+
+Tokens: 
+
+Parse tree: 
+noTree
+
+Rewritten tree 1: 
+noTree
+
+Rewritten tree 2: 
+noTree
+
+Controlled tree: 
+noTree
+
+Modified tree: 
+noTree
+
+Type definition: 
+noTypeDef
+
+Modified type definition: 
+noTypeDef
+
+Number of variables: 
+0
+
+Errors: 
+[
+    Unable to tokenize the string.
+    Incorrect syntax.
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select e from Employee e where e.FirstName = 'Pet"er'
+
+Tokens: 
+[<SELECT>][e][<FROM>][Employee][e][<WHERE>][e][.][FirstName][=]['Pet"er']
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,e)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,e)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,e),property(any,FirstName)])
+        literal(string,'Pet"er')
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,'Pet"er')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,'Pet"er')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,'Pet"er')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,'Pet"er')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select e from Employee e where e.FirstName = "Pet'er"
+
+Tokens: 
+[<SELECT>][e][<FROM>][Employee][e][<WHERE>][e][.][FirstName][=]["Pet'er"]
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,e)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,e)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,e),property(any,FirstName)])
+        literal(string,"Pet'er")
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,"Pet'er")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,"Pet'er")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,"Pet'er")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,"Pet'er")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select e from Employee e where e.FirstName = 'Peter'
+
+Tokens: 
+[<SELECT>][e][<FROM>][Employee][e][<WHERE>][e][.][FirstName][=]['Peter']
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,e)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,e)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,e),property(any,FirstName)])
+        literal(string,'Peter')
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,'Peter')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,'Peter')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,'Peter')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,'Peter')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select e from Employee e where e.FirstName = "Peter"
+
+Tokens: 
+[<SELECT>][e][<FROM>][Employee][e][<WHERE>][e][.][FirstName][=]["Peter"]
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,e)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,e)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,e),property(any,FirstName)])
+        literal(string,"Peter")
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,"Peter")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,"Peter")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,"Peter")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,"Peter")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select e from Employee e where e.FirstName = 'Pet''er'
+
+Tokens: 
+[<SELECT>][e][<FROM>][Employee][e][<WHERE>][e][.][FirstName][=]['Pet''er']
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,e)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,e)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,e),property(any,FirstName)])
+        literal(string,'Pet''er')
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,'Pet''er')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,'Pet''er')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,'Pet''er')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,'Pet''er')
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select e from Employee e where e.FirstName = "Pet""er"
+
+Tokens: 
+[<SELECT>][e][<FROM>][Employee][e][<WHERE>][e][.][FirstName][=]["Pet""er"]
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,e)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,e)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,e),property(any,FirstName)])
+        literal(string,"Pet""er")
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,"Pet""er")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(0,Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(0,Employee),property(any,FirstName)])
+        literal(string,"Pet""er")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,"Pet""er")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,"Pet""er")
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Employee),[extent(0,Example.Employee)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
 
 Runtime: 0
 Type: pos
@@ -328,7 +1815,7 @@ Errors:
 ]
 
 
-Runtime: 16
+Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
@@ -4675,6 +6162,7 @@ Number of variables:
 
 Errors: 
 [
+    Unsupported cast from object(Example.Person) to string.
 ]
 
 
@@ -4752,7 +6240,7 @@ select2(
     all
     [
         as(
-            path(unknown,[extent(0,Example.Person),gmethod(unknown,nonexistingmethod,[Example.MyPerson],[])])
+            path(unknown,[extent(unspec,unknown),gmethod(unknown,nonexistingmethod,[myperson],[])])
             name(noName)
         )
     ]
@@ -4770,7 +6258,7 @@ select2(
     all
     [
         as(
-            path(unknown,[extent(0,Example.Person),gmethod(unknown,nonexistingmethod,[Example.MyPerson],[])])
+            path(unknown,[extent(unspec,unknown),gmethod(unknown,nonexistingmethod,[myperson],[])])
             name(noName)
         )
     ]
@@ -4791,7 +6279,7 @@ typeDef(
     [
         map(
             0
-            path(unknown,[extent(0,Example.Person),gmethod(unknown,nonexistingmethod,[Example.MyPerson],[])])
+            path(unknown,[extent(unspec,unknown),gmethod(unknown,nonexistingmethod,[myperson],[])])
         )
     ]
 )
@@ -4804,7 +6292,7 @@ typeDef(
     [
         map(
             0
-            path(unknown,[extent(0,Example.Person),gmethod(unknown,nonexistingmethod,[Example.MyPerson],[])])
+            path(unknown,[extent(unspec,unknown),gmethod(unknown,nonexistingmethod,[myperson],[])])
         )
     ]
 )
@@ -4814,6 +6302,7 @@ Number of variables:
 
 Errors: 
 [
+    Unknown method nonexistingmethod<myperson>().
 ]
 
 
@@ -4914,7 +6403,7 @@ select2(
     comparison(
         unknown
         equal
-        path(unknown,[extent(0,Example.Employee),method(unknown,nonexistingmethod,[path(object(Example.Employee),[extent(0,Example.Employee),property(object(Example.Employee),Manager)])])])
+        path(unknown,[extent(unspec,unknown),method(unknown,nonexistingmethod,[path(object(Example.Employee),[extent(0,Example.Employee),property(object(Example.Employee),Manager)])])])
         literal(boolean,true)
     )
     [
@@ -4937,7 +6426,7 @@ select2(
     comparison(
         unknown
         equal
-        path(unknown,[extent(0,Example.Employee),method(unknown,nonexistingmethod,[path(object(Example.Employee),[extent(0,Example.Employee),property(object(Example.Employee),Manager)])])])
+        path(unknown,[extent(unspec,unknown),method(unknown,nonexistingmethod,[path(object(Example.Employee),[extent(0,Example.Employee),property(object(Example.Employee),Manager)])])])
         literal(boolean,true)
     )
     [
@@ -4978,6 +6467,7 @@ Number of variables:
 
 Errors: 
 [
+    Unknown method nonexistingmethod(object(Example.Employee)).
 ]
 
 
@@ -10056,7 +11546,7 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 16
 Type: pos
 Database: MyDB
 Query: 
@@ -11227,7 +12717,7 @@ Errors:
 ]
 
 
-Runtime: 15
+Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
@@ -11462,7 +12952,7 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 15
 Type: pos
 Database: MyDB
 Query: 
@@ -12812,6 +14302,7 @@ Number of variables:
 
 Errors: 
 [
+    Unsupported cast from object(Example.Person) to string.
 ]
 
 
@@ -20556,7 +22047,7 @@ Errors:
 ]
 
 
-Runtime: 15
+Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
@@ -21635,7 +23126,7 @@ Errors:
 ]
 
 
-Runtime: 16
+Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
@@ -22899,7 +24390,7 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 15
 Type: pos
 Database: MyDB
 Query: 

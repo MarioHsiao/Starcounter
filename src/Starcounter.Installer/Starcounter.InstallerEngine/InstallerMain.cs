@@ -67,36 +67,7 @@ namespace Starcounter.InstallerEngine
         {
             return SettingsLoader.GetSettingValue(settingName, installSettings);
         }
-
-        /// <summary>
-        /// Cached reference of embedded version info.
-        /// </summary>
-        static VersionInfo ScEmbVersionInfo = null;
-
-        /// <summary>
-        /// Gets the embedded version information.
-        /// </summary>
-        /// <returns>VersionInfo</returns>
-        public static VersionInfo GetEmbVersionInfo()
-        {
-            // Only fetch the info once.
-            if (ScEmbVersionInfo != null)
-                return ScEmbVersionInfo;
-
-            Assembly assembly = Assembly.GetExecutingAssembly();
-
-            // Trying to read as an embedded resource (this must always work).
-            StringReader textStreamReader = new StringReader(InstallerEngine.Properties.Resources.VersionInfo);
-
-            // Reading the version info.
-            ScEmbVersionInfo = StarcounterEnvironment.GetVersionInfo(textStreamReader, null);
-
-            // Closing the stream.
-            textStreamReader.Close();
-
-            return ScEmbVersionInfo;
-        }
-
+        
         // Creates server config XML.
         public static void CreateServerConfig(
             String serverName,
@@ -164,12 +135,12 @@ namespace Starcounter.InstallerEngine
             if (installDir != null)
             {
                 XmlDocument versionXML = new XmlDocument();
-                String versionInfoPath = Path.Combine(installDir, ConstantsBank.SCVersionFileName);
+                String versionInfoFilePath = Path.Combine(installDir, ConstantsBank.SCVersionFileName);
 
                 // Checking that version file exists and loading it.
                 try
                 {
-                    versionXML.Load(versionInfoPath);
+                    versionXML.Load(versionInfoFilePath);
 
                     // NOTE: We are getting only first element.
                     installedVersion = (versionXML.GetElementsByTagName("Version"))[0].InnerText;
@@ -178,20 +149,16 @@ namespace Starcounter.InstallerEngine
             }
 
             // Reading CURRENT embedded Starcounter version XML file.
-            String embVersion = GetEmbVersionInfo().Version.ToString();
+            String currentVersion = CurrentVersion.Version;
 
             // Checking if versions are not the same.
-            if ((installedVersion != null) && (installedVersion != embVersion))
+            if ((installedVersion != null) && (installedVersion != currentVersion))
                 return installedVersion;
 
             // Setting version value to embedded version value.
-            scVersion = embVersion;
+            scVersion = currentVersion;
             return null;
         }
-
-        // Used for focusing into another running setup process.
-        [DllImport("user32.dll")]
-        static extern Boolean SetForegroundWindow(IntPtr hWnd);
 
         /// <summary>
         /// Check if another instance of setup is running.
