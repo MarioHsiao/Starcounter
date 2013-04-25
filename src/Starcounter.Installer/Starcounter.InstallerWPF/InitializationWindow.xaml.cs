@@ -404,7 +404,7 @@ namespace Starcounter.InstallerWPF {
             // Checking that we don't remove files if setup is running from installation directory.
             if (!Utilities.IsDeveloperInstallation())
             {
-                String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
                 foreach (String tempFileName in StaticInstallerDependencies)
                 {
@@ -434,7 +434,7 @@ namespace Starcounter.InstallerWPF {
         {
             // Starting the elevated installer.
             Process scSetup = new Process();
-            scSetup.StartInfo.FileName = Assembly.GetExecutingAssembly().Location;
+            scSetup.StartInfo.FileName = Assembly.GetEntryAssembly().Location;
             scSetup.StartInfo.UseShellExecute = true;
             scSetup.StartInfo.Verb = "runas";
 

@@ -571,7 +571,7 @@ namespace Starcounter.InstallerEngine
         /// <returns></returns>
         public static Boolean IsDeveloperInstallation()
         {
-            String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
             // Checking that we don't remove files if setup is running from installation directory.
             if (File.Exists(System.IO.Path.Combine(curDir, StarcounterConstants.ProgramNames.ScCode + ".exe")))
