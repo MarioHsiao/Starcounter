@@ -1,11 +1,22 @@
 ﻿{
-    "LoadPath": "",
-    "OriginPath": "",
-    "ResourceDirectories": "",
-    "EntrypointArguments": [
-        {
-            "Ordinal": 0,
-            "Value": ""
-        }
-    ]
+    "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
+    "Path": "C:\\path\to\\the\\exe\\foo.exe",
+    "Description": "Implements the Foo module",
+    "StartedBy": "Per Samuelsson, per@starcounter.com",
+	"Engine": {
+        "Uri": "http://example.com/api/executables/foo"
+    },
+	"RuntimeInfo": {
+        "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
+        "LoadPath": "\\relative\\path\\to\\weaved\\server\\foo.exe",
+        "Started": "ISO-8601, e.g. 2013-04-25T06.24:32",
+        "LastRestart": "ISO-8601, e.g. 2013-04-25T06.49:01"
+    },
+	"StartInfo": {
+        "Args": [{"dummy":""}],
+        "ResourceDirectories": [{"dummy":""}],
+        "OnRestartRunOnlyThis": false,
+        "NoDb": false,
+        "LogSteps": false
+    }
 }
