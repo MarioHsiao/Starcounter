@@ -25,7 +25,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var db = new Database();
             db.PopulateFromJson(request.GetBodyStringUtf8_Slow());
 
-            var name = db.DatabaseName;
+            var name = db.Name;
             var command = new CreateDatabaseCommand(engine, name) {
                 EnableWaiting = true
             };
@@ -46,7 +46,7 @@ namespace Starcounter.Administrator.API.Handlers {
             // REST API documentation) by recreating the database object and set them.
             
             db = new Database();
-            db.DatabaseName = name;
+            db.Name = name;
             db.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Database, name);
 
             return RESTUtility.CreateJSONResponse(db.ToJson(), 201);

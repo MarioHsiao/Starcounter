@@ -1,6 +1,6 @@
 ﻿{
     "Uri": "http://example.com/api/databases/foo",
-    "DatabaseName": "Foo",
+    "Name": "Foo",
     "Configuration": {
         "Uri": "http://example.com/api/databases/foo/configuration"
     },
