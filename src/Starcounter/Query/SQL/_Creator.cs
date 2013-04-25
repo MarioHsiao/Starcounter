@@ -1070,6 +1070,31 @@ namespace Starcounter.Query.Sql
         private static ILogicalExpression CreateComparison(RowTypeBinding rowTypeBind, Term typeTerm, Term opTerm, Term exprTerm1,
                                                            Term exprTerm2, VariableArray varArray)
         {
+            switch (typeTerm.Name) {
+                case "binary" :
+                    return CreateComparisonBinary(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "boolean":
+                    return CreateComparisonBoolean(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "datetime":
+                    return CreateComparisonDateTime(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "uinteger":
+                    //return CreateComparisonUInteger(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "integer":
+                    //return CreateComparisonInteger(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "decimal":
+                    //return CreateComparisonDecimal(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "numerical":
+                    return CreateComparisonNumerical(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "double":
+                    return CreateComparisonDouble(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "object":
+                    return CreateComparisonObject(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                case "string":
+                    return CreateComparisonString(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
+                default:
+                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
+            }
+            /* Somebody wrote this code:
             if (typeTerm.Name == "binary")
             {
                 return CreateComparisonBinary(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
@@ -1111,6 +1136,7 @@ namespace Starcounter.Query.Sql
                 return CreateComparisonUInteger(rowTypeBind, opTerm, exprTerm1, exprTerm2, varArray);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeTerm: " + typeTerm);
+             * */
         }
 
         private static ILogicalExpression CreateComparison(RowTypeBinding rowTypeBind, Term typeTerm, Term opTerm, Term exprTerm1,
@@ -1223,7 +1249,7 @@ namespace Starcounter.Query.Sql
             IValueExpression expr2 = CreateValueExpression(rowTypeBind, exprTerm2, varArray);
             if (expr1 is INumericalExpression && expr2 is INumericalExpression)
             {
-                return new ComparisonDouble(op, expr1 as IDoubleExpression, expr2 as IDoubleExpression);
+                return new ComparisonDouble(op, expr1 as INumericalExpression, expr2 as INumericalExpression);
             }
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect types: " + expr1.DbTypeCode + " and " + expr2.DbTypeCode);
         }

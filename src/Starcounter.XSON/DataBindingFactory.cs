@@ -19,7 +19,7 @@ namespace Starcounter.XSON {
                 if (dataType.Equals(binding.DataType) || dataType.IsSubclassOf(binding.DataType)) {
                     return binding;
                 }
-                logSource.LogWarning(string.Format(warning, template.Parent.Name + "." + template.Name));
+                logSource.LogWarning(string.Format(warning, template.Parent.TemplateName + "." + template.TemplateName));
             }
 
             pInfo = dataType.GetProperty(bindingName, BindingFlags.Instance | BindingFlags.Public);

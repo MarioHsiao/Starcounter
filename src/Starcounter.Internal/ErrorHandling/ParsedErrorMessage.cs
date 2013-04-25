@@ -83,7 +83,6 @@ namespace Starcounter.Internal
             string body;
             string versionMessage;
             string version;
-            VersionInfo currentVersionInfo;
 
             if (string.IsNullOrEmpty(errorMessage))
                 throw new ArgumentNullException("errorMessage");
@@ -111,10 +110,9 @@ namespace Starcounter.Internal
             // the message string is from the current version; if it is
             // not, parsing will fail.
 
-            currentVersionInfo = StarcounterEnvironment.GetVersionInfo();
             helplink = ErrorCode.ToHelpLink(code);
-            version = currentVersionInfo.Version.ToString();
-            versionMessage = ErrorCode.ToVersionMessage(currentVersionInfo);
+            version = CurrentVersion.Version;
+            versionMessage = ErrorCode.ToVersionMessage();
             indexToDecoration = errorMessage.LastIndexOf(versionMessage);
             if (indexToDecoration == -1) throw ToParsingException(errorMessage);
 

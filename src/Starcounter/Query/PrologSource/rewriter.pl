@@ -1,10 +1,11 @@
 
 
-/* Rewriter, Peter Idestam-Almquist, Starcounter, 2013-04-11. */
+/* Rewriter, Peter Idestam-Almquist, Starcounter, 2013-04-25. */
 
 /* TODO: Rewrite replace_aliases_xxx? (replace_extent_aliases_xxx and replace_aggr_aliases_xxx) */
 /* TODO: Modify HintSpec in replace_derived_table_aliases_hintspec/2? */
 
+/* 13-04-25: Fixed group-by bug (problem with different cases). */
 /* 13-04-11: Fixed alias bug (problem with different cases). */
 /* 13-01-28: Added support of is-type comparison by adding istype_predicate/3. */
 /* 11-11-30: Added fetch specification; modified select1, select2, select3. */
@@ -434,11 +435,19 @@ get_extents_from_aliases([],[]):- !.
 
 
 do_replace_aliases_path_aggr([as(path(any,TempRef),path(any,Alias))|_],path(any,Path1),tmpPath(Path2,path(any,Path1))):- 
-	lists:append(Alias,RestPath,Path1), !, 
+	append_spec(Alias,RestPath,Path1), !, 
 	lists:append(TempRef,RestPath,Path2), !.
 do_replace_aliases_path_aggr([_|Aliases],Expr,Path):- 
 	do_replace_aliases_path_aggr(Aliases,Expr,Path), !.
 do_replace_aliases_path_aggr([],Expr,Expr):- !.
+
+append_spec([],Ys,Ys):- !.
+append_spec([X|Xs],Ys,[X|Zs]):- !,
+	append_spec(Xs,Ys,Zs), !.
+append_spec([property(Type,Name1)|Xs],Ys,[property(Type,Name2)|Zs]):- 
+	controller:to_upper(Name1,Name), 
+	controller:to_upper(Name2,Name), 
+	append_spec(Xs,Ys,Zs), !.
 
 
 /* do_replace_aliases_setfunction(+Aliases,+SetFunc,-TmpPath):- 

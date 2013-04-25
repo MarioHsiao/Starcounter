@@ -411,7 +411,7 @@ namespace Starcounter.InstallerEngine
             return false;
         }
 
-        [DllImport("Starcounter.InstallerNativeHelper.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("Starcounter.InstallerNativeHelper.dll." + CurrentVersion.Version, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static void sc_check_cpu_features(
             ref Boolean popcnt_instr
         );
@@ -566,10 +566,29 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
+        /// Checks if its developer installation.
+        /// </summary>
+        /// <returns></returns>
+        public static Boolean IsDeveloperInstallation()
+        {
+            String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+
+            // Checking that we don't remove files if setup is running from installation directory.
+            if (File.Exists(System.IO.Path.Combine(curDir, StarcounterConstants.ProgramNames.ScCode + ".exe")))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Checks for basic Starcounter setup requirements.
         /// </summary>
         public static void CheckInstallationRequirements()
         {
+            // Checking if we are in developer installation.
+            if (IsDeveloperInstallation())
+                return;
+
             // Checking if platform is 64-bit.
             if (!Utilities.Platform64Bit())
             {
@@ -623,7 +642,7 @@ namespace Starcounter.InstallerEngine
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExePath;
-                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
+                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg + " \"" + ConstantsBank.NewInstallerPathArg + "=" + System.Reflection.Assembly.GetEntryAssembly().Location + "\"";
                     prevSetupProcess.Start();
                 }
                 else

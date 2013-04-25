@@ -119,7 +119,7 @@ namespace Starcounter.Templates {
         /// Each template with a parent has an internal position amongst its siblings
         /// </summary>
         /// <value>The index.</value>
-        public int Index { get; internal set; }
+        public int TemplateIndex { get; internal set; }
 
         /// <summary>
         /// The _ name
@@ -172,13 +172,13 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The name.</value>
         /// <exception cref="System.Exception">Once the Name is set, it cannot be changed</exception>
-        public string Name {
+        public string TemplateName {
             get {
                 return _Name;
             }
             set {
-                if (_Name != null && Name != value)
-                    throw new Exception("Once the Name is set, it cannot be changed");
+                if (_Name != null && TemplateName != value)
+                    throw new Exception("Once the TemplateName is set, it cannot be changed");
                 _Name = value;
                 if (PropertyName == null) {
                     string name = value.Replace("$", "");

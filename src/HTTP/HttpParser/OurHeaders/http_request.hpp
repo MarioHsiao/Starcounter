@@ -49,6 +49,12 @@ struct HttpRequest
 
     // Is Gzip accepted.
     bool gzip_accepted_;
+
+    // Resets this instance of request.
+    void Reset()
+    {
+        memset(this, 0, sizeof(HttpRequest));
+    }
 };
 
 // Initializing HTTP request parser data structures.

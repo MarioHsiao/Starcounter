@@ -39,5 +39,5 @@
     
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Target Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' != '' " Name="Build" DependsOnTargets="CopyBuildServerFiles" />
+  <Target Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' == 'True' " Name="Build" DependsOnTargets="CopyBuildServerFiles" />
 </Project>

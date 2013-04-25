@@ -297,7 +297,7 @@ namespace Starcounter {
         //        [EditorBrowsable(EditorBrowsableState.Never)]
         //        public Action Get(TTrigger property) {
         //#if QUICKTUPLE
-        //            return _Values[property.Index];
+        //            return _Values[property.TemplateIndex];
         //#else
         //            throw new NotImplementedException();
         //#endif
@@ -311,7 +311,7 @@ namespace Starcounter {
         //        [EditorBrowsable(EditorBrowsableState.Never)]
         //        public void Set(TTrigger property, Action value) {
         //#if QUICKTUPLE
-        //            _Values[property.Index] = value;
+        //            _Values[property.TemplateIndex] = value;
         //#else
         //            throw new NotImplementedException();
         //#endif

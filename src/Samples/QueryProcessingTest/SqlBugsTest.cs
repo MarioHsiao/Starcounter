@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Diagnostics;
 using Starcounter;
+using Starcounter.Metadata;
 
 namespace QueryProcessingTest {
     public static class SqlBugsTest {
@@ -58,9 +59,19 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Finished testing projections");
             HelpMethods.LogEvent("Some tests on variables and case insensitivity");
             Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
+            Trace.Assert(account == null);
             var row = Db.SlowSQL("select Client, count(accountid) from account group by Client").First;
-            //row = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
+            var row2 = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
+            Trace.Assert(row is IObjectView);
+            Trace.Assert(row2 is IObjectView);
+            Trace.Assert((row as IObjectView).GetObject(0).GetObjectNo() == (row2 as IObjectView).GetObject(0).GetObjectNo());
+            Trace.Assert((row as IObjectView).GetInt64(1) == (row2 as IObjectView).GetInt64(1));
+            account = Db.SQL<Account>("select a from account a where accountid = ?", null).First;
+            Trace.Assert(account == null);
             HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
+            HelpMethods.LogEvent("Start testing queries on comparison bug");
+            TestComparison();
+            HelpMethods.LogEvent("Finished testing queries on comparison bug");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -221,6 +232,21 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "ObjectID");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).Name;
             Trace.Assert(n == "8");
+        }
+
+        public static void TestComparison() {
+            var e = Db.SQL<SysTable>("select s from systable s where tableid = ?",4).GetEnumerator();
+            Trace.Assert(e.MoveNext());
+            SysTable s = e.Current;
+            Trace.Assert(s.Name == "QueryProcessingTest.Account");
+            Trace.Assert(s.TableId == 4);
+            e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 4").GetEnumerator();
+            Trace.Assert(e.MoveNext());
+            s = e.Current;
+            Trace.Assert(s.Name == "QueryProcessingTest.Account");
+            Trace.Assert(s.TableId == 4);
+            e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 1.0E1").GetEnumerator();
+            Trace.Assert(e.MoveNext());
         }
 
     }

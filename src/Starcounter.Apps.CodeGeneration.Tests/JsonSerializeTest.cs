@@ -80,7 +80,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
             foreach (Template child in appTemplate.Children) {
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
-                rp.UnpreparedVerbAndUri = child.Name;
+                rp.UnpreparedVerbAndUri = child.TemplateName;
                 rp.Code = child;
                 handlers.Add(rp);
             }

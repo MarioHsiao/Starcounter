@@ -102,7 +102,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="item">The item.</param>
         internal void ChildNameIsSet(Template item) {
-            _NameLookup[item.Name] = (Template)item;
+            _NameLookup[item.TemplateName] = (Template)item;
         }
 
         /// <summary>
@@ -194,12 +194,12 @@ namespace Starcounter.Templates {
             if (newTemplate.Parent != null)
                 throw new Exception("Item already has a parent");
 
-            existing = _NameLookup[newTemplate.Name];
+            existing = _NameLookup[newTemplate.TemplateName];
             if (existing == null)
                 throw new Exception("No item to replace found.");
 
             props = _Parent.Properties;
-            props._NameLookup.Remove(newTemplate.Name);
+            props._NameLookup.Remove(newTemplate.TemplateName);
             props.ChildNameIsSet(newTemplate);
 
             if (newTemplate.PropertyName != null)
@@ -208,8 +208,8 @@ namespace Starcounter.Templates {
                 props.ChildPropertyNameIsSet(newTemplate);
             }
             newTemplate._Parent = _Parent;
-            newTemplate.Index = existing.Index;
-            _List[newTemplate.Index] = newTemplate;
+            newTemplate.TemplateIndex = existing.TemplateIndex;
+            _List[newTemplate.TemplateIndex] = newTemplate;
             _Parent.OnPropertyAdded(newTemplate);
         }
 
@@ -224,7 +224,7 @@ namespace Starcounter.Templates {
                 throw new Exception("This template is already used by an App. Cannot add more properties.");
             if (t.Parent != null)
                 throw new Exception("Item already has a parent");
-            if (t.Name != null) {
+            if (t.TemplateName != null) {
                 var props = (PropertyList)(_Parent.Properties);
                 props.ChildNameIsSet(t);
             }
@@ -233,7 +233,7 @@ namespace Starcounter.Templates {
                 props.ChildPropertyNameIsSet(t);
             }
             t._Parent = this._Parent;
-            t.Index = this.Count; // Last one in list (added below)
+            t.TemplateIndex = this.Count; // Last one in list (added below)
             _List.Add(t);
             _Parent.OnPropertyAdded(t);
         }

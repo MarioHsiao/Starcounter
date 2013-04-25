@@ -7,6 +7,11 @@ namespace QueryProcessingTest {
     public static class FetchTest {
         public static void RunFetchTest() {
             HelpMethods.LogEvent("Test queries with fetch");
+#if false // Not implemented the reverse order in the grammar
+            Account account1 = Db.SQL<Account>("select a from account a fetch ? option index (a auto)", 5).First;
+            Account account2 = Db.SQL<Account>("select a from account a option index (a auto) fetch ?", 5).First;
+            Trace.Assert(account1.GetObjectID() == account2.GetObjectID());
+#endif
             // Do fetch without offset
             FetchAccounts(4);
             // Do fetch with offset
