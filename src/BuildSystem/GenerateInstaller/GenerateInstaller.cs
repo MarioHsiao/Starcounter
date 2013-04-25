@@ -52,7 +52,13 @@ namespace GenerateInstaller
         static void ReplaceStringInFile(String filePath, String origString, String replaceString)
         {
             String fileContents = File.ReadAllText(filePath);
+
+            // Trying to find this exact string in file.
+            if (!fileContents.Contains(origString))
+                throw new Exception("Can't find version constant string " + origString + " in file " + filePath);
+
             fileContents = fileContents.Replace(origString, replaceString);
+
             File.WriteAllText(filePath, fileContents);
         }
 
@@ -177,8 +183,8 @@ namespace GenerateInstaller
                 ReplaceStringInFile(currentVersionFilePath, "String Version = \"2.0.0.0\";", "String Version = \"" + version + "\";");
                 ReplaceStringInFile(currentVersionFilePath, "String IDFullBase32 = \"000000000000000000000000\";", "String IDFullBase32 = \"" + downloadID.IDFullBase32 + "\";");
                 ReplaceStringInFile(currentVersionFilePath, "String IDTailBase64 = \"0000000\";", "String IDTailBase64 = \"" + downloadID.IDTailBase64 + "\";");
-                ReplaceStringInFile(currentVersionFilePath, "String IDTailDecimal = \"0\";", "String IDTailDecimal = \"" + downloadID.IDTailDecimal + "\";");
-                ReplaceStringInFile(currentVersionFilePath, "String RequiredRegistrationDate = \"1900-01-01\";", "String RequiredRegistrationDate = \"" + requiredRegistrationDate + "\";");
+                ReplaceStringInFile(currentVersionFilePath, "UInt32 IDTailDecimal = 0;", "UInt32 IDTailDecimal = " + downloadID.IDTailDecimal + ";");
+                ReplaceStringInFile(currentVersionFilePath, "DateTime RequiredRegistrationDate = DateTime.Parse(\"1900-01-01\");", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
 
                 //////////////////////////////////////////////////////////
                 // Packaging consolidated folder, updating resources, etc.
@@ -193,7 +199,6 @@ namespace GenerateInstaller
                 BuildSystem.DirectoryContainsFilesRegex(outputFolder, new String[] { @"Starcounter.+Setup\.exe" }, true);
 
                 // Looking for an Installer WPF resources folder.
-                //String installerWpfProjectName = "Starcounter.InstallerWPF.csproj";
                 installerWpfFolder = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWPF");
 
                 BuildSystem.SetNormalDirectoryAttributes(new DirectoryInfo(installerWpfFolder));
@@ -215,7 +220,7 @@ namespace GenerateInstaller
                 // Now compiling the Installer WPF project.
                 ProcessStartInfo msbuildInfo = new ProcessStartInfo();
                 msbuildInfo.FileName = BuildSystem.MsBuildExePath;
-                String msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Level1.sln") + "\""/*Path.Combine(installerWpfFolder, installerWpfProjectName)*/ + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=" + platform;
+                String msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Level1.sln") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=" + platform;
                 msbuildInfo.Arguments = msbuildArgs;
                 msbuildInfo.WorkingDirectory = outputFolder;
                 msbuildInfo.UseShellExecute = false;

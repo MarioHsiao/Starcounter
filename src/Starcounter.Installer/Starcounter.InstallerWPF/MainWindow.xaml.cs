@@ -436,8 +436,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         /// <returns></returns>
         private string GetVersionString() {
-            VersionInfo versionInfo = InstallerMain.GetEmbVersionInfo();
-            return "Version " + versionInfo.Version.ToString();
+            return "Version " + CurrentVersion.Version;
         }
 
         /// <summary>

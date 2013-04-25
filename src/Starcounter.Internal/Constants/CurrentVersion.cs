@@ -32,11 +32,11 @@ namespace Starcounter.Internal
         /// <summary>
         /// Unique tail ID in decimal format.
         /// </summary>
-        public const String IDTailDecimal = "0";
+        public const UInt32 IDTailDecimal = 0;
 
         /// <summary>
         /// Required registration date.
         /// </summary>
-        public const String RequiredRegistrationDate = "1900-01-01";
+        public static readonly DateTime RequiredRegistrationDate = DateTime.Parse("1900-01-01");
     }
 }
