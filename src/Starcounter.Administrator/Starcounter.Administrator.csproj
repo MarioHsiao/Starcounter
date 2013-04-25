@@ -47,6 +47,9 @@
     <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="API\Handlers\DatabaseCollectionHandler.cs" />
+    <Compile Include="API\Handlers\DatabaseCollectionHandler.GET.cs" />
+    <Compile Include="API\Handlers\DatabaseCollectionHandler.POST.cs" />
     <Compile Include="API\Handlers\DatabaseHandler.cs" />
     <Compile Include="API\Handlers\DatabaseHandler.GET.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.cs" />
