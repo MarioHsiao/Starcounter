@@ -32,7 +32,7 @@
         ..\Starcounter.ErrorCodes\scerrres\Win32\$(Configuration)\scerrres.lib
     </ScerrresDll32>
     
-    <LocalPrologSQLParserBinary>..\Starcounter\Query\prologbeans\scsqlparser.exe</LocalPrologSQLParserBinary>
+    <LocalPrologSQLParserBinary>..\Starcounter\Query\PrologBinary\scsqlparser.exe</LocalPrologSQLParserBinary>
     <LocalClangGatewayUriMatcherBinary>..\scnetworkgateway\GatewayClang.dll</LocalClangGatewayUriMatcherBinary>
   </PropertyGroup>
   <PropertyGroup>
