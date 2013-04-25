@@ -27,5 +27,12 @@ namespace Starcounter.Internal.ErrorHandling {
         public override void WriteLine(string message) {
             messages.Add(message);
         }
+
+        public static void ReplaceDefault(String name) {
+            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") == "True") {
+                Trace.Listeners.Remove("Default");
+                Trace.Listeners.Add(new TestTraceListener(name));
+            }
+        }
     }
 }
