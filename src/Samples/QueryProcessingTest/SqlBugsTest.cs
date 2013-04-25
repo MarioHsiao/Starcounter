@@ -60,7 +60,11 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Some tests on variables and case insensitivity");
             Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
             var row = Db.SlowSQL("select Client, count(accountid) from account group by Client").First;
-            //row = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
+            var row2 = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
+            Trace.Assert(row is IObjectView);
+            Trace.Assert(row2 is IObjectView);
+            Trace.Assert((row as IObjectView).GetObject(0).GetObjectNo() == (row2 as IObjectView).GetObject(0).GetObjectNo());
+            Trace.Assert((row as IObjectView).GetInt16(1) == (row2 as IObjectView).GetInt64(1));
             HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
             HelpMethods.LogEvent("Start testing queries on comparison bug");
             TestComparison();
