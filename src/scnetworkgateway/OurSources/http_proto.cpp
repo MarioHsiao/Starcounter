@@ -457,7 +457,7 @@ inline int HttpWsProto::OnBody(http_parser* p, const char *at, size_t length)
     HttpWsProto *http = (HttpWsProto *)p;
 
     // Setting content parameters.
-    if (http->http_request_.content_len_bytes_ <= 0)
+    if (http->http_request_.content_len_bytes_ < 0)
         http->http_request_.content_len_bytes_ = length;
 
     // Setting content data offset.

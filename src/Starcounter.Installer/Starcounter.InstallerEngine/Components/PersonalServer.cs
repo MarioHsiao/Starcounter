@@ -202,10 +202,10 @@ public class CPersonalServer : CComponentBase
             return;
 
         // Server related directories.
-        String serverDir = ComponentPath;
+        String serverOuterDir = ComponentPath;
 
         // Checking for existing server directory.
-        CheckExistingServerDirectory(serverDir);
+        CheckExistingServerDirectory(serverOuterDir);
 
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for personal database engine...");
@@ -213,20 +213,20 @@ public class CPersonalServer : CComponentBase
         // Setting the default server environment variable.
         Environment.SetEnvironmentVariable(
             ConstantsBank.SCEnvVariableDefaultServer,
-            ConstantsBank.SCPersonalDatabasesName,
+            ConstantsBank.SCPersonalServerName,
             EnvironmentVariableTarget.User);
 
         // Logging event.
         Utilities.ReportSetupEvent("Installing personal database engine...");
 
         // Checking that server path is in user's personal directory.
-        if (!Utilities.ParentChildDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "\\..", serverDir))
+        if (!Utilities.ParentChildDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "\\..", serverOuterDir))
         {
             if (!Utilities.RunningOnBuildServer())
             {
                 Utilities.MessageBoxWarning("You are installing Personal Server not in user directory."
                     + " Make sure you have read/write access rights to the directory: " +
-                    serverDir, "Personal server installation in non-user directory...");
+                    serverOuterDir, "Personal server installation in non-user directory...");
             }
         }
 
@@ -234,13 +234,12 @@ public class CPersonalServer : CComponentBase
         Utilities.ReportSetupEvent("Creating structure for personal database engine...");
 
         // Creating new server repository.
-        var setup = RepositorySetup.NewDefault(
-            Path.Combine(serverDir, ".."),
-            StarcounterEnvironment.ServerNames.PersonalServer);
+        RepositorySetup setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.PersonalServer);
 
         setup.Execute();
 
-        String serverConfigPath = Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension);
+        String serverInnerDir = setup.Structure.RepositoryDirectory;
+        String serverConfigPath = setup.ServerConfiguration.ConfigurationFilePath;
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
@@ -254,7 +253,7 @@ public class CPersonalServer : CComponentBase
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
-            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
+            serverConfigPath,
             ServerConfiguration.SystemHttpPortString,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort)))
         {
@@ -264,7 +263,7 @@ public class CPersonalServer : CComponentBase
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
-            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension),
+            serverConfigPath,
             StarcounterConstants.BootstrapOptionNames.SQLProcessPort,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalPrologSqlProcessPort)))
         {
@@ -288,12 +287,12 @@ public class CPersonalServer : CComponentBase
         // Creating server config.
         InstallerMain.CreateServerConfig(
             StarcounterEnvironment.ServerNames.PersonalServer,
-            ComponentPath,
+            serverInnerDir,
             PersonalServerConfigPath);
 
         // Copying gateway configuration.
         InstallerMain.CopyGatewayConfig(
-            serverDir,
+            serverInnerDir,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort));
 
         // Killing server process (in order to later start it with normal privileges).
@@ -307,7 +306,7 @@ public class CPersonalServer : CComponentBase
         /*
         InstallerMain.CreateDatabaseSynchronous(
             StarcounterEnvironment.ServerNames.PersonalServer,
-            ComponentPath,
+            serverInnerDir,
             ConstantsBank.SCAdminDatabaseName);
         */
 
