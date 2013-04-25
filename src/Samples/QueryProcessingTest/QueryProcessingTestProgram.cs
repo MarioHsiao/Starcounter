@@ -6,6 +6,8 @@ namespace QueryProcessingTest {
         static void Main(string[] args) {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
+                HelpMethods.LogEvent("Running false trace assert.");
+                System.Diagnostics.Trace.Assert(false);
                 BindingTestDirect.DirectBindingTest();
                 HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();
