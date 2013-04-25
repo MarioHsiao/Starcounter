@@ -1,9 +1,12 @@
 ﻿{
-    "HRef": "",
     "Databases": [
         {
-            "DatabaseName": "",
-            "HRef": ""
-        }
+            "DatabaseName": "Foo",
+            "Uri": "http://example.com/api/databases/foo"
+        },
+		{
+            "DatabaseName": "Bar",
+            "Uri": "http://example.com/api/databases/bar"
+        },
     ]
 }

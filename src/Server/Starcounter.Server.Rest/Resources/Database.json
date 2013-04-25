@@ -1,9 +1,10 @@
 ﻿{
+    "Uri": "http://example.com/api/databases/foo",
     "DatabaseName": "Foo",
     "Configuration": {
-        "HRef": "/databases/Foo/configuration"
+        "Uri": "http://example.com/api/databases/foo/configuration"
     },
     "Engine": {
-        "HRef": "/engines/Foo"
+        "Uri": "http://example.com/api/engines/foo"
     }
 }
