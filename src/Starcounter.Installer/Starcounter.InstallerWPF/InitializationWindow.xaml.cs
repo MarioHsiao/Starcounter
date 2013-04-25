@@ -437,7 +437,7 @@ namespace Starcounter.InstallerWPF {
             // Specifying what is the parent setup process ID.
             String oneStringArgs = ConstantsBank.ParentArg + "=" + Process.GetCurrentProcess().Id.ToString();
             for (Int32 i = 1; i < args.Length; i++)
-                oneStringArgs += " " + args[i];
+                oneStringArgs += " \"" + args[i] + "\"";
 
             scSetup.StartInfo.Arguments = oneStringArgs;
 
