@@ -1,7 +1,7 @@
 ﻿{
     "Uri": "http://example.com/api/engines/foo",
     "Database": {
-		"DatabaseName":"Foo",
+		"Name":"Foo",
         "Uri": "http://example.com/api/databases/foo"
     },
     "DatabaseProcess": {
