@@ -264,6 +264,7 @@ namespace Starcounter.InstallerWPF {
             prevSetupProcess.StartInfo.FileName = pathToNewInstaller;
             prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
             prevSetupProcess.Start();
+            prevSetupProcess.WaitForInputIdle();
         }
 
         // Indicates if this installer instance is started by parent instance.
