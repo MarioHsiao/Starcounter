@@ -8,6 +8,7 @@ namespace QueryProcessingTest {
         public static void Master() {
             HelpMethods.LogEvent("Test offset key");
             ErrorCases();
+            //var a = Db.SQL("select a from account a option index (a auto) fetch ?", 5).First;
             // Populate data
             User client = PopulateForTest();
             // Simple query
