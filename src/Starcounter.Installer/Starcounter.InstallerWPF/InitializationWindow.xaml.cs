@@ -351,17 +351,21 @@ namespace Starcounter.InstallerWPF {
 
                     //this.Focus();
                     this.Activate();
-
-                }
-                ));
+                }));
 
                 // Checking system requirements (calling using function
                 // wrapper so that library is resolved without errors.).
                 CheckInstallationRequirements();
 
                 // Bringing window on top.
-                if (!IsVisible)
-                    Show();
+                this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                    new Action(delegate {
+                    // Show window
+                    this.Visibility = System.Windows.Visibility.Visible;
+
+                    //this.Focus();
+                    this.Activate();
+                }));
 
                 // Stopping animation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
