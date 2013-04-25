@@ -6,7 +6,7 @@ namespace starcounter {
 namespace network {
 
 // Initializes the internal Apps HTTP request parser.
-EXTERN_C uint32_t sc_init_http_parser()
+EXTERN_C uint32_t __stdcall sc_init_http_parser()
 {
     uint32_t err_code = sc_init_http_request_parser();
     if (err_code)
