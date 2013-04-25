@@ -72,10 +72,6 @@
       <Project>{b427c63b-c13f-47cc-b101-29ced68a68b8}</Project>
       <Name>Starcounter.Hosting</Name>
     </ProjectReference>
-    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
-      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
-      <Name>HttpStructs</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>

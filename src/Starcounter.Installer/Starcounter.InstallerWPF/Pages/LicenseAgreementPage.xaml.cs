@@ -115,7 +115,7 @@ namespace Starcounter.InstallerWPF.Pages
         //{
         //    try
         //    {
-        //        Assembly _assembly = Assembly.GetExecutingAssembly();
+        //        Assembly _assembly = Assembly.GetEntryAssembly();
 
         //        StreamReader _textStreamReader = null;
         //        try
@@ -124,7 +124,7 @@ namespace Starcounter.InstallerWPF.Pages
         //        }
         //        catch
         //        {
-        //            _textStreamReader = new StreamReader(File.OpenRead(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "LicenseAgreement.html")));
+        //            _textStreamReader = new StreamReader(File.OpenRead(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "LicenseAgreement.html")));
         //        }
 
         //        string line = _textStreamReader.ReadToEnd();
@@ -173,7 +173,7 @@ namespace Starcounter.InstallerWPF.Pages
             string textcontent = string.Empty;
             try
             {
-                Assembly _assembly = Assembly.GetExecutingAssembly();
+                Assembly _assembly = Assembly.GetEntryAssembly();
 
                 StreamReader _textStreamReader = null;
                 try
@@ -182,13 +182,13 @@ namespace Starcounter.InstallerWPF.Pages
                 }
                 catch
                 {
-                    _textStreamReader = new StreamReader(File.OpenRead(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "LicenseAgreement.html")));
+                    _textStreamReader = new StreamReader(File.OpenRead(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "LicenseAgreement.html")));
                 }
 
                 string line = _textStreamReader.ReadToEnd();
 
 
-                //Assembly _assembly = Assembly.GetExecutingAssembly();
+                //Assembly _assembly = Assembly.GetEntryAssembly();
 
                 //StreamReader _textStreamReader = null;
                 //try
@@ -197,7 +197,7 @@ namespace Starcounter.InstallerWPF.Pages
                 //}
                 //catch
                 //{
-                //    _textStreamReader = new StreamReader(File.OpenRead(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "license-agreement.html")));
+                //    _textStreamReader = new StreamReader(File.OpenRead(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "license-agreement.html")));
                 //}
 
                 //string line = _textStreamReader.ReadToEnd();

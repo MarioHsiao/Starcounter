@@ -163,7 +163,7 @@ namespace Starcounter.Internal
             if (includeDecoration)
             {
                 buffer.Append(Environment.NewLine);
-                buffer.Append(ErrorCode.ToVersionMessage(StarcounterEnvironment.GetVersionInfo()));
+                buffer.Append(ErrorCode.ToVersionMessage());
 
                 buffer.Append(Environment.NewLine);
                 buffer.Append(ErrorCode.ToHelpLinkMessage(this.Helplink));

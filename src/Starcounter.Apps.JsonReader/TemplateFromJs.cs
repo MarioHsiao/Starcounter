@@ -84,7 +84,7 @@ namespace Starcounter.Internal.JsonTemplate
                 {
                     co = t.CompilerOrigin;
                     Error.CompileError.Raise<object>(
-                                "Metadata but no field for '" + t.Name + "' found",
+                                "Metadata but no field for '" + t.TemplateName + "' found",
                                 new Tuple<int, int>(co.LineNo, co.ColNo),
                                 co.FileName);
                 }

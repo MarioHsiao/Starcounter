@@ -96,10 +96,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HTTP\HttpStructs\HttpStructs.csproj">
-      <Project>{90d57166-b42e-4bbe-b9ec-cfb33e551b77}</Project>
-      <Name>HttpStructs</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.JsonPatch\Starcounter.Apps.JsonPatch.csproj">
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
       <Name>Starcounter.Apps.JsonPatch</Name>

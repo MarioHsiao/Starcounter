@@ -13,12 +13,12 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
 
         internal override string DebugString {
             get {
-                return "WriteProperty(" + Template.Name + ")";
+                return "WriteProperty(" + Template.TemplateName + ")";
             }
         }
 
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, \"" + Template.Name + "\", tmpArr);");
+            Prefix.Add("valSize = JsonHelper.WriteString((IntPtr)pfrag, nextSize, \"" + Template.TemplateName + "\", tmpArr);");
             Prefix.Add("if (valSize == -1)");
             Prefix.Add("    throw new Exception(\"Buffer too small.\");");
             Prefix.Add("nextSize -= valSize;");

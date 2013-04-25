@@ -68,7 +68,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         //{
         //    StringBuilder sb = new StringBuilder();
         //    sb.Append("        ");
-        //    sb.Append(BindsToProperty.Template.Name);       // {0}
+        //    sb.Append(BindsToProperty.Template.TemplateName);       // {0}
         //    sb.Append(".AddHandler((App app, Property<");
         //    sb.Append(BindsToProperty.Template.JsonType);   // {1}
         //    sb.Append("> prop, ");

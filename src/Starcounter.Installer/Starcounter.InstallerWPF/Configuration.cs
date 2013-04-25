@@ -71,8 +71,7 @@ namespace Starcounter.InstallerWPF
 
         public Configuration()
         {
-            StarcounterCommonPath = System.IO.Path.Combine(ConstantsBank.SCProductName,
-                InstallerMain.GetEmbVersionInfo().Version.ToString());
+            StarcounterCommonPath = System.IO.Path.Combine(ConstantsBank.SCProductName, CurrentVersion.Version);
         }
 
         /// <summary>
@@ -334,7 +333,7 @@ namespace Starcounter.InstallerWPF
 
                 // Loading Zip archive from embedded resources from scratch.
                 String resourceName = "Starcounter.InstallerWPF.resources.Archive.zip";
-                Stream memStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+                Stream memStream = Assembly.GetEntryAssembly().GetManifestResourceStream(resourceName);
                 if (memStream == null)
                     throw new FileNotFoundException("Archive.zip package can't be found as an embedded resource.");
 
@@ -370,7 +369,7 @@ namespace Starcounter.InstallerWPF
                 if (!installationBase.IsInstalled)
                 {
                     // Getting directory from where installer EXE is running.
-                    String currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                    String currentDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
                     // Checking if we are in developer mode.
                     if (File.Exists(Path.Combine(currentDirectory, ConstantsBank.SCInstallerEngine + ".dll")))

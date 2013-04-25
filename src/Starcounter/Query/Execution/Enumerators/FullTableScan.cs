@@ -404,7 +404,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             //if (!innermostExtent)
             //{
                 // Obtaining saved OID and ETI.
-                iterHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
+                IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
 
                 // Enabling recreation object check.
                 enableRecreateObjectCheck = true;

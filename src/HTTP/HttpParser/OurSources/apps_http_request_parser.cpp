@@ -29,7 +29,8 @@ struct HttpRequestParserStruct
         http_request_ = http_request;
 
         last_field_ = UNKNOWN_FIELD;
-        memset(http_request_, 0, sizeof(HttpRequest));
+        http_request_->Reset();
+
         http_parser_init(&http_parser_, HTTP_REQUEST);
         complete_header_flag_ = false;
     }
@@ -138,7 +139,7 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
         case ACCEPT_ENCODING_FIELD:
         {
             // Checking if Gzip is accepted.
-            int32_t i = 0;
+            size_t i = 0;
             while (i < length)
             {
                 if (at[i] == 'g')
@@ -185,7 +186,7 @@ inline int HttpRequestOnBody(http_parser* p, const char *at, size_t length)
     HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
     // Setting body parameters.
-    if (http->http_request_->content_len_bytes_ <= 0)
+    if (http->http_request_->content_len_bytes_ < 0)
         http->http_request_->content_len_bytes_ = (uint32_t)length;
 
     // Setting body data offset.
@@ -195,7 +196,7 @@ inline int HttpRequestOnBody(http_parser* p, const char *at, size_t length)
 }
 
 // Parses HTTP request from the given buffer and returns corresponding instance of HttpRequest.
-EXTERN_C uint32_t sc_parse_http_request(
+EXTERN_C uint32_t __stdcall sc_parse_http_request(
     uint8_t* request_buf,
     uint32_t request_size_bytes,
     uint8_t* out_http_request)
@@ -215,7 +216,7 @@ EXTERN_C uint32_t sc_parse_http_request(
     // Checking if we have complete data.
     if (!thread_http_request_parser.complete_header_flag_)
     {
-        std::cout << "Incomplete HTTP request headers supplied!" << std::endl;
+        //std::cout << "Incomplete HTTP request headers supplied!" << std::endl;
 
         return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
     }
@@ -223,7 +224,7 @@ EXTERN_C uint32_t sc_parse_http_request(
     // Checking that all bytes are parsed.
     if (bytes_parsed != request_size_bytes)
     {
-        std::cout << "Provided HTTP request has incorrect data!" << std::endl;
+        //std::cout << "Provided HTTP request has incorrect data!" << std::endl;
 
         return SCERRAPPSHTTPPARSERINCORRECT;
     }

@@ -112,7 +112,7 @@ namespace Starcounter {
                     path[pos] = cacheIndexInArr;
                 }
                 else {
-                    path[pos] = Template.Index;
+                    path[pos] = Template.TemplateIndex;
                 }
                 Parent.FillIndexPath(path, pos - 1);
             }

@@ -29,7 +29,8 @@ struct HttpResponseParserStruct
         http_response_ = http_response;
 
         last_field_ = UNKNOWN_FIELD;
-        memset(http_response_, 0, sizeof(HttpResponse));
+        http_response_->Reset();
+
         http_parser_init(&http_parser_, HTTP_RESPONSE);
         complete_header_flag_ = false;
     }
@@ -140,8 +141,8 @@ inline int HttpResponseOnBody(http_parser* p, const char *at, size_t length)
     HttpResponseParserStruct *http = (HttpResponseParserStruct *)p;
 
     // Setting body parameters.
-    //if (http->http_response_->body_len_bytes_ <= 0)
-    //    http->http_response_->body_len_bytes_ = (uint32_t)length;
+    if (http->http_response_->content_len_bytes_ < 0)
+        http->http_response_->content_len_bytes_ = (uint32_t)length;
 
     // Setting body data offset.
     http->http_response_->content_offset_ = (uint32_t)(at - (char*)http->response_buf_);
@@ -150,7 +151,7 @@ inline int HttpResponseOnBody(http_parser* p, const char *at, size_t length)
 }
 
 // Parses HTTP response from the given buffer and returns corresponding instance of HttpResponse.
-EXTERN_C uint32_t sc_parse_http_response(
+EXTERN_C uint32_t __stdcall sc_parse_http_response(
     uint8_t* response_buf,
     uint32_t response_size_bytes,
     uint8_t* out_http_response)
@@ -170,7 +171,7 @@ EXTERN_C uint32_t sc_parse_http_response(
     // Checking if we have complete data.
     if (!thread_http_response_parser.complete_header_flag_)
     {
-        std::cout << "Incomplete HTTP response headers supplied!" << std::endl;
+        //std::cout << "Incomplete HTTP response headers supplied!" << std::endl;
 
         return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
     }
@@ -178,7 +179,7 @@ EXTERN_C uint32_t sc_parse_http_response(
     // Checking that all bytes are parsed.
     if (bytes_parsed != response_size_bytes)
     {
-        std::cout << "Provided HTTP response has incorrect data!" << std::endl;
+        //std::cout << "Provided HTTP response has incorrect data!" << std::endl;
 
         return SCERRAPPSHTTPPARSERINCORRECT;
     }

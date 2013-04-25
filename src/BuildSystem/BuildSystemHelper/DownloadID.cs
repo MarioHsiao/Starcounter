@@ -13,9 +13,9 @@ namespace BuildSystemHelper
     public class DownloadID
     {
         public Byte[] IDBytes = null;
-        public String IDFullBase32 = "undefined";
-        public String IDTailBase64 = "undefined";
-        public String IDTailDecimal = "undefined";
+        public String IDFullBase32 = "000000000000000000000000";
+        public String IDTailBase64 = "0000000";
+        public UInt32 IDTailDecimal = 0;
 
         // Length of tail identifier in bytes.
         const UInt32 TailLengthBytes = 4;
@@ -112,7 +112,7 @@ namespace BuildSystemHelper
 
             // Adding converted postfix bytes in Base64 format.
             IDTailBase64 = HttpServerUtility.UrlTokenEncode(tailBytes);
-            IDTailDecimal = BitConverter.ToUInt32(tailBytes, 0).ToString();
+            IDTailDecimal = BitConverter.ToUInt32(tailBytes, 0);
 
             errorOut.WriteLine("Successfully generated new DownloadID: { " + IDFullBase32 + ", " + IDTailBase64 + ", " + IDTailDecimal + " }.");
 

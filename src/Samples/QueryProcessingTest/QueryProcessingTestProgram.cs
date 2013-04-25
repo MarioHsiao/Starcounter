@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Starcounter.TestFramework;
 
 namespace QueryProcessingTest {
@@ -6,6 +7,7 @@ namespace QueryProcessingTest {
         static void Main(string[] args) {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
+                Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
                 BindingTestDirect.DirectBindingTest();
                 HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();

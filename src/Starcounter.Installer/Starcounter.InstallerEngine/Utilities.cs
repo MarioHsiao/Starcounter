@@ -411,7 +411,7 @@ namespace Starcounter.InstallerEngine
             return false;
         }
 
-        [DllImport("Starcounter.InstallerNativeHelper.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("Starcounter.InstallerNativeHelper.dll." + CurrentVersion.Version, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static void sc_check_cpu_features(
             ref Boolean popcnt_instr
         );
@@ -436,8 +436,10 @@ namespace Starcounter.InstallerEngine
             {
                 //Utilities.MessageBoxWarning(
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
-                    "Your CPU does not support POPCNT instruction, which is a requirement to run Starcounter.");
-                //    "Unavailable CPU feature..");
+                    "Your processor micro-architecture is not supported by Starcounter." + Environment.NewLine +
+                    "For Intel processors, Starcounter requires a Nehalem micro-architecture or later." + Environment.NewLine +
+                    "For AMD processors, Starcounter requires a Barcelona micro-architecture or later." + Environment.NewLine +
+                    "Please refer to the system requirements for more information.");
             }
         }
 
@@ -564,10 +566,29 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
+        /// Checks if its developer installation.
+        /// </summary>
+        /// <returns></returns>
+        public static Boolean IsDeveloperInstallation()
+        {
+            String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+
+            // Checking that we don't remove files if setup is running from installation directory.
+            if (File.Exists(System.IO.Path.Combine(curDir, StarcounterConstants.ProgramNames.ScCode + ".exe")))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Checks for basic Starcounter setup requirements.
         /// </summary>
         public static void CheckInstallationRequirements()
         {
+            // Checking if we are in developer installation.
+            if (IsDeveloperInstallation())
+                return;
+
             // Checking if platform is 64-bit.
             if (!Utilities.Platform64Bit())
             {
@@ -623,13 +644,21 @@ namespace Starcounter.InstallerEngine
                     prevSetupProcess.StartInfo.FileName = prevSetupExePath;
                     prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
                     prevSetupProcess.Start();
+
+                    // Waiting until previous installer finishes its work.
+                    prevSetupProcess.WaitForExit();
+
+                    // Checking version once again.
+                    previousVersion = InstallerMain.CompareScVersions();
+
+                    // No more old installation - just continue the new one.
+                    if (null == previousVersion)
+                        return false;
                 }
-                else
-                {
-                    Utilities.MessageBoxInfo(
-                        "Please manually uninstall previous(" + previousVersion + ") version of Starcounter before installing this one.",
-                        "Starcounter is already installed...");
-                }
+
+                Utilities.MessageBoxInfo(
+                    "Please uninstall previous(" + previousVersion + ") version of Starcounter before installing this one.",
+                    "Starcounter is already installed...");
 
                 return true;
             }

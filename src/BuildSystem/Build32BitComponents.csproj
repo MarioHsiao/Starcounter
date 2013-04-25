@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <OutputPath>..\..\bin\Release</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <OutputPath>..\..\bin\Debug</OutputPath>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <ProjectGuid>{BA826B5D-86CE-41F5-9BD8-3716065479F7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Build32BitComponents</RootNamespace>
+    <AssemblyName>Build32BitComponents</AssemblyName>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  
+  <Target Name="BuildAndCopy32BitComponents">
+
+    <!-- Creating copied files lists. -->
+    <ItemGroup>
+      <All32BitDllsToCopy Include="
+          $(OutputPath)\FasterThanJson.dll;
+          $(OutputPath)\Roslyn.Compilers.dll;
+          $(OutputPath)\Roslyn.Compilers.CSharp.dll;
+          $(OutputPath)\Starcounter.BitsAndBytes.dll;
+          $(OutputPath)\Starcounter.BitsAndBytes.Native.dll;
+          $(OutputPath)\Starcounter.Internal.dll;
+          $(OutputPath)\Starcounter.Logging.dll;
+          $(OutputPath)\Starcounter.XSON.dll" />
+    </ItemGroup>
+
+    <!-- Coyping selected files. -->
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(All32BitDllsToCopy)" DestinationFolder="$(OutputPath)\32BitComponents" />
+    
+    <!-- Building 32Bit components. -->
+    <Exec Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe ..\Starcounter.Rest\Starcounter.Rest.csproj /property:Configuration=$(Configuration);Platform=AnyCPU;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
+    
+  </Target>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Target Condition=" '$(SC_RUNNING_ON_BUILD_SERVER)' == 'True' " Name="Build" DependsOnTargets="BuildAndCopy32BitComponents" />
+</Project>

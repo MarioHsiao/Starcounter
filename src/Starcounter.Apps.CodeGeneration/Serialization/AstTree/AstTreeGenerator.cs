@@ -33,7 +33,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
             List<RequestProcessorMetaData> handlers = new List<RequestProcessorMetaData>();
             foreach (Template child in puppetTemplate.Children) {
                 RequestProcessorMetaData rp = new RequestProcessorMetaData();
-                rp.UnpreparedVerbAndUri = child.Name;
+                rp.UnpreparedVerbAndUri = child.TemplateName;
                 rp.Code = child;
                 handlers.Add(rp);
             }

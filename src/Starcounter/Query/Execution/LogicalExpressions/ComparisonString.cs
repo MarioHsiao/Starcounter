@@ -412,6 +412,26 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
         return null;
     }
 
+    /// <summary>
+    /// Gets a string expression to which ObjectID of this extent is equivalent.
+    /// </summary>
+    /// <param name="extentNumber"></param>
+    /// <returns></returns>
+    internal IStringExpression GetObjectIDExpression(int extentNumber) {
+        if (compOperator == ComparisonOperator.Equal) {
+            IStringExpression expr = null;
+            if (expr1 is IProperty && (expr1 as IProperty).ExtentNumber == extentNumber && (expr1 as IProperty).FullName == DbHelper.ObjectIDName)
+                expr = expr2;
+            if (expr2 is IProperty && (expr2 as IProperty).ExtentNumber == extentNumber && (expr2 as IProperty).FullName == DbHelper.ObjectIDName)
+                if (expr != null)
+                    return null; // Both expressions are ObjectID properties on the same extent, i.e, self referencing.
+                else
+                    expr = expr1;
+            return expr; // Assuming only useful expressions can be found.
+        }
+        return null;
+    }
+    
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
     {
         stringBuilder.AppendLine(tabs, "ComparisonString(");
