@@ -623,7 +623,7 @@ namespace Starcounter.InstallerEngine
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExePath;
-                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
+                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg + " \"" + ConstantsBank.NewInstallerPathArg + "=" + System.Reflection.Assembly.GetEntryAssembly().Location + "\"";
                     prevSetupProcess.Start();
                 }
                 else

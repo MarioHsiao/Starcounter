@@ -48,7 +48,7 @@ namespace Starcounter.InstallerWPF.Components
             string basePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                                                      Configuration.StarcounterCommonPath );
 
-            this.Path = System.IO.Path.Combine(basePath, ConstantsBank.SCPersonalDatabasesName);
+            this.Path = basePath;
 
             this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
             this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;

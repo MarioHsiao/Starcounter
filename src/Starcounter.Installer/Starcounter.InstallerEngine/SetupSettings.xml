@@ -24,8 +24,8 @@
 
         <!-- Specifies the database server path for each installed Starcounter server
         (only selected types of installation will use the corresponding values). -->
-        <PersonalServerPath>C:\Starcounter\2.0.0.0\Personal</PersonalServerPath>
-        <SystemServerPath>C:\Starcounter\2.0.0.0\System</SystemServerPath>
+        <PersonalServerPath>C:\Starcounter\2.0.0.0</PersonalServerPath>
+        <SystemServerPath>C:\Starcounter\2.0.0.0</SystemServerPath>
 
         <!-- True if Starcounter Visual Studio 2010 developer integration should be installed. -->
         <InstallVS2010Integration>False</InstallVS2010Integration>

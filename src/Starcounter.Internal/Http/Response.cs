@@ -219,20 +219,20 @@ namespace Starcounter.Advanced
         /// the offset of the first byte of the content.
         /// </summary>
         /// <value>The length of the header.</value>
-        public int HeadersLength { get; set; }
+        public Int32 HeadersLength { get; set; }
 
         /// <summary>
         /// The number of bytes of the content (i.e. the resource) of the uncompressed http response.
         /// </summary>
         /// <value>The length of the content.</value>
-        public int ContentLength
+        public Int32 ContentLength
         {
             get
             {
                 if (UncompressedBodyLength_ > 0)
                     return UncompressedBodyLength_;
 
-                unsafe { return (Int32)http_response_struct_->content_len_bytes_; }
+                unsafe { return http_response_struct_->content_len_bytes_; }
             }
             set
             {
@@ -241,7 +241,7 @@ namespace Starcounter.Advanced
                 unsafe
                 { 
                     if (http_response_struct_ != null)
-                        http_response_struct_->content_len_bytes_ = (UInt32)value;
+                        http_response_struct_->content_len_bytes_ = value;
                 }
             }
         }
@@ -701,7 +701,7 @@ namespace Starcounter.Advanced
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetBodyRaw(out IntPtr ptr, out Int32 sizeBytes)
         {
             unsafe { http_response_struct_->GetBodyRaw(out ptr, out sizeBytes); }
         }
@@ -936,7 +936,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// The content_len_bytes_
         /// </summary>
-        public UInt32 content_len_bytes_;
+        public Int32 content_len_bytes_;
 
         /// <summary>
         /// Key-value header offset.
@@ -1030,7 +1030,7 @@ namespace Starcounter.Advanced
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetBodyRaw(out IntPtr ptr, out Int32 sizeBytes)
         {
             if (content_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
@@ -1052,8 +1052,8 @@ namespace Starcounter.Advanced
 
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
-            Byte[] content_bytes = new Byte[(Int32)content_len_bytes_];
-            Marshal.Copy((IntPtr)(socket_data_ + content_offset_), content_bytes, 0, (Int32)content_len_bytes_);
+            Byte[] content_bytes = new Byte[content_len_bytes_];
+            Marshal.Copy((IntPtr)(socket_data_ + content_offset_), content_bytes, 0, content_len_bytes_);
 
             return content_bytes;
         }
@@ -1068,7 +1068,7 @@ namespace Starcounter.Advanced
             if (content_len_bytes_ <= 0)
                 return null;
 
-            return new String((SByte*)(socket_data_ + content_offset_), 0, (Int32)content_len_bytes_, Encoding.UTF8);
+            return new String((SByte*)(socket_data_ + content_offset_), 0, content_len_bytes_, Encoding.UTF8);
         }
 
         /// <summary>
