@@ -1,4 +1,7 @@
 
+sql_example(pos,'MyDB',"select Department, count(FirstName) from Employee group by department").
+sql_example(pos,'MyDB',"select Department, count(FirstName) from Employee group by Department").
+
 
 sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Peter\"").
 sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Pet\"er'").
