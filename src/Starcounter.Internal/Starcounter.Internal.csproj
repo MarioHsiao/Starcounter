@@ -73,6 +73,7 @@
     <Compile Include="CommandLine\Syntax\PropertyDefinition.cs" />
     <Compile Include="CommandLine\Syntax\SyntaxDefinition.cs" />
     <Compile Include="Constants\Constants.cs" />
+    <Compile Include="Constants\CurrentVersion.cs" />
     <Compile Include="Constants\MixedCodeConstants.cs" />
     <Compile Include="ErrorHandling\TestTraceListener.cs" />
     <Compile Include="Handle.GET.cs" />

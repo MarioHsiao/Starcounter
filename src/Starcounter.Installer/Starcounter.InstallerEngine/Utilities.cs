@@ -411,7 +411,7 @@ namespace Starcounter.InstallerEngine
             return false;
         }
 
-        [DllImport("Starcounter.InstallerNativeHelper.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("Starcounter.InstallerNativeHelper.dll." + CurrentVersion.Version, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static void sc_check_cpu_features(
             ref Boolean popcnt_instr
         );

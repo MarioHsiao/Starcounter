@@ -264,7 +264,9 @@ namespace Starcounter.InstallerWPF {
             prevSetupProcess.StartInfo.FileName = pathToNewInstaller;
             prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
             prevSetupProcess.Start();
-            prevSetupProcess.WaitForInputIdle();
+
+            // Waiting for process elevation.
+            Thread.Sleep(10000);
         }
 
         // Indicates if this installer instance is started by parent instance.
@@ -532,7 +534,7 @@ namespace Starcounter.InstallerWPF {
                         // Checking if file name is the same.
                         if (0 == String.Compare(entry.Name, dependentBinary, true))
                         {
-                            String pathToExtractedFile = System.IO.Path.Combine(targetDirectory, entry.FullName);
+                            String pathToExtractedFile = System.IO.Path.Combine(targetDirectory, entry.FullName + "." + CurrentVersion.Version);
 
                             try
                             {
