@@ -159,10 +159,10 @@ public class CSystemServer : CComponentBase
             return;
 
         // Server related directories.
-        String serverDir = ComponentPath;
+        String serverOuterDir = ComponentPath;
 
         // Checking for existing server directory.
-        CPersonalServer.CheckExistingServerDirectory(serverDir);
+        CPersonalServer.CheckExistingServerDirectory(serverOuterDir);
 
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for system server...");
@@ -174,7 +174,7 @@ public class CSystemServer : CComponentBase
 
         // Setting the default server environment variable.
         Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableDefaultServer,
-            ConstantsBank.SCSystemDatabasesName,
+            ConstantsBank.SCSystemServerName,
             EnvironmentVariableTarget.Machine);
 
         // Logging event.
@@ -184,13 +184,12 @@ public class CSystemServer : CComponentBase
                installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
 
         // Creating new server repository.
-        var setup = RepositorySetup.NewDefault(
-            Path.Combine(serverDir, ".."),
-            StarcounterEnvironment.ServerNames.SystemServer);
+        var setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.SystemServer);
 
         setup.Execute();
 
-        String serverConfigPath = Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension);
+        String serverInnerDir = setup.Structure.RepositoryDirectory;
+        String serverConfigPath = setup.ServerConfiguration.ConfigurationFilePath;
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
@@ -204,7 +203,7 @@ public class CSystemServer : CComponentBase
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
-            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
+            serverConfigPath,
             ServerConfiguration.SystemHttpPortString,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort)))
         {
@@ -214,7 +213,7 @@ public class CSystemServer : CComponentBase
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
-            Path.Combine(serverDir, StarcounterEnvironment.ServerNames.SystemServer + ServerConfiguration.FileExtension),
+            serverConfigPath,
             StarcounterConstants.BootstrapOptionNames.SQLProcessPort,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemPrologSqlProcessPort)))
         {
@@ -245,7 +244,7 @@ public class CSystemServer : CComponentBase
         SystemServerAccount.ChangeInstallationPlatform(true);
         SystemServerAccount.AssureAccount(
             installPath,
-            serverDir,
+            serverOuterDir,
             out serviceAccountName,
             out serviceAccountPassword);
 
@@ -258,7 +257,7 @@ public class CSystemServer : CComponentBase
 
         // Copying gateway configuration.
         InstallerMain.CopyGatewayConfig(
-            serverDir,
+            serverInnerDir,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort));
 
         // Creating Administrator database.

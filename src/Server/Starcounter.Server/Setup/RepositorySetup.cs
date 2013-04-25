@@ -54,12 +54,12 @@ namespace Starcounter.Server.Setup {
         /// <summary>
         /// The <see cref="RepositoryStructure"/> to use.
         /// </summary>
-        internal readonly RepositoryStructure Structure;
+        public readonly RepositoryStructure Structure;
 
         /// <summary>
         /// The <see cref="ServerConfiguration">server configuration</see> to use.
         /// </summary>
-        internal readonly ServerConfiguration ServerConfiguration;
+        public readonly ServerConfiguration ServerConfiguration;
 
         /// <summary>
         /// Creates a new default setup based on a directory and a name.

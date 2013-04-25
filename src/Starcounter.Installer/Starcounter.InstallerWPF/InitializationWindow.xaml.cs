@@ -236,11 +236,13 @@ namespace Starcounter.InstallerWPF {
         };
 
         // Tries to remove temporary extracted files.
-        static void RemoveTempExtractedFiles() {
+        static void RemoveTempExtractedFiles(String pathToNewInstaller)
+        {
             String current_directory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
             // Checking that we don't remove files if setup is running from installation directory.
-            if (!File.Exists(System.IO.Path.Combine(current_directory, StarcounterConstants.ProgramNames.ScCode + ".exe"))) {
+            if (!File.Exists(System.IO.Path.Combine(current_directory, StarcounterConstants.ProgramNames.ScCode + ".exe")))
+            {
                 foreach (String temp_file_name in TempExtractedFiles) {
                     String temp_file_path = System.IO.Path.Combine(current_directory, temp_file_name);
                     if (File.Exists(temp_file_path)) {
@@ -249,6 +251,19 @@ namespace Starcounter.InstallerWPF {
                     }
                 }
             }
+
+            // Starting new installer if its needed.
+            if (pathToNewInstaller != null)
+                StartNewerInstaller(pathToNewInstaller);
+        }
+
+        // Starts new installer.
+        static void StartNewerInstaller(String pathToNewInstaller)
+        {
+            Process prevSetupProcess = new Process();
+            prevSetupProcess.StartInfo.FileName = pathToNewInstaller;
+            prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
+            prevSetupProcess.Start();
         }
 
         // Indicates if this installer instance is started by parent instance.
@@ -292,6 +307,7 @@ namespace Starcounter.InstallerWPF {
 
             // Don't check for other setups running.
             Boolean dontCheckOtherInstances = false;
+            String pathToNewInstaller = null;
 
             // Checking command line parameters.
             String[] args = Environment.GetCommandLineArgs();
@@ -305,14 +321,21 @@ namespace Starcounter.InstallerWPF {
                     silentMode = true;
                     userArgs.Add(param);
                 }
-                else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase)) {
+                else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase))
+                {
                     dontCheckOtherInstances = true;
                 }
-                else if (param.StartsWith(ConstantsBank.ParentArg, StringComparison.InvariantCultureIgnoreCase)) {
+                else if (param.StartsWith(ConstantsBank.NewInstallerPathArg, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    pathToNewInstaller = param.Substring(ConstantsBank.NewInstallerPathArg.Length + 1, param.Length - 1 - ConstantsBank.NewInstallerPathArg.Length);
+                }
+                else if (param.StartsWith(ConstantsBank.ParentArg, StringComparison.InvariantCultureIgnoreCase))
+                {
                     parentPID = Int32.Parse(param.Substring(ConstantsBank.ParentArg.Length + 1));
                     startedByParent = true;
                 }
-                else {
+                else
+                {
                     internalMode = true;
                     userArgs.Add(param);
                 }
@@ -338,7 +361,8 @@ namespace Starcounter.InstallerWPF {
             String silentMsg = "Silently ending installer process.";
 
             // Checking if parent process started us.
-            if (startedByParent) {
+            if (startedByParent)
+            {
                 // Checking if we need to run the internal setup directly.
                 if (internalMode) {
                     String[] userArgsArray = null;
@@ -377,11 +401,12 @@ namespace Starcounter.InstallerWPF {
                 }
                       ));
             }
-            else {
+            else
+            {
                 //System.Diagnostics.Debugger.Launch();
 
                 // Adding temp files cleanup event on parent installer process exit.
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => RemoveTempExtractedFiles();
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => RemoveTempExtractedFiles(pathToNewInstaller);
 
                 // Starting child setup instance.
                 this.StartingTheElevatedInstaller(args);
@@ -497,22 +522,33 @@ namespace Starcounter.InstallerWPF {
             }
 
             // Extracting first-level dependencies from archive.
-            using (zipArchive) {
-                foreach (var dependentBinary in staticInstallerDependencies) {
-                    foreach (ZipArchiveEntry entry in zipArchive.Entries) {
+            using (zipArchive)
+            {
+                foreach (var dependentBinary in staticInstallerDependencies)
+                {
+                    foreach (ZipArchiveEntry entry in zipArchive.Entries)
+                    {
                         // Checking if file name is the same.
-                        if (0 == String.Compare(entry.Name, dependentBinary, true)) {
+                        if (0 == String.Compare(entry.Name, dependentBinary, true))
+                        {
                             String pathToExtractedFile = System.IO.Path.Combine(targetDirectory, entry.FullName);
 
-                            // Deleting old file if any.
-                            if (File.Exists(pathToExtractedFile))
-                                File.Delete(pathToExtractedFile);
+                            try
+                            {
+                                // Deleting old file if any.
+                                if (File.Exists(pathToExtractedFile))
+                                    File.Delete(pathToExtractedFile);
 
-                            // Extracting the file.
-                            entry.ExtractToFile(pathToExtractedFile, true);
+                                // Extracting the file.
+                                entry.ExtractToFile(pathToExtractedFile, true);
 
-                            // Hiding the extracted file.
-                            File.SetAttributes(pathToExtractedFile, FileAttributes.Hidden);
+                                // Hiding the extracted file.
+                                File.SetAttributes(pathToExtractedFile, FileAttributes.Hidden);
+                            }
+                            catch
+                            {
+                                // Just ignoring failures.
+                            }
 
                             break;
                         }
