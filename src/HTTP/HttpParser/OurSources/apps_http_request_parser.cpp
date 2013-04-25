@@ -196,7 +196,7 @@ inline int HttpRequestOnBody(http_parser* p, const char *at, size_t length)
 }
 
 // Parses HTTP request from the given buffer and returns corresponding instance of HttpRequest.
-EXTERN_C uint32_t sc_parse_http_request(
+EXTERN_C uint32_t __stdcall sc_parse_http_request(
     uint8_t* request_buf,
     uint32_t request_size_bytes,
     uint8_t* out_http_request)
