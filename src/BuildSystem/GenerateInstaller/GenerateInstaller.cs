@@ -48,6 +48,14 @@ namespace GenerateInstaller
                 relativeFilePathWithSlashes);
         }
 
+        // Replaces string in file.
+        static void ReplaceStringInFile(String filePath, String origString, String replaceString)
+        {
+            String fileContents = File.ReadAllText(filePath);
+            fileContents = fileContents.Replace(origString, replaceString);
+            File.WriteAllText(filePath, fileContents);
+        }
+
         // Accepts builds pool FTP mapped directory as a path
         // ('StableBuilds' or 'NightlyBuilds' without version part).
         static int Main(string[] args)
@@ -150,7 +158,8 @@ namespace GenerateInstaller
                 versionFileContents += "  <IDTailDecimal>" + downloadID.IDTailDecimal + "</IDTailDecimal>" + Environment.NewLine;
 
                 // Adding required registration date.
-                versionFileContents += "  <RequiredRegistrationDate>" + DateTime.Now.AddDays(60).ToString("yyyy-MM-dd").ToUpper() + "</RequiredRegistrationDate>" + Environment.NewLine;
+                String requiredRegistrationDate = DateTime.Now.AddDays(60).ToString("yyyy-MM-dd").ToUpper();
+                versionFileContents += "  <RequiredRegistrationDate>" + requiredRegistrationDate + "</RequiredRegistrationDate>" + Environment.NewLine;
 
                 // Adding closing tag.
                 versionFileContents += "</VersionInfo>" + Environment.NewLine;
@@ -159,8 +168,17 @@ namespace GenerateInstaller
                 String installerEngineFolder = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerEngine");
 
                 BuildSystem.SetNormalDirectoryAttributes(new DirectoryInfo(installerEngineFolder));
+
                 // Updating the version information.
                 File.WriteAllText(Path.Combine(installerEngineFolder, BuildSystem.VersionXMLFileName), versionFileContents);
+
+                // Replacing version information.
+                String currentVersionFilePath = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs");
+                ReplaceStringInFile(currentVersionFilePath, "String Version = \"2.0.0.0\";", "String Version = \"" + version + "\";");
+                ReplaceStringInFile(currentVersionFilePath, "String IDFullBase32 = \"000000000000000000000000\";", "String IDFullBase32 = \"" + downloadID.IDFullBase32 + "\";");
+                ReplaceStringInFile(currentVersionFilePath, "String IDTailBase64 = \"0000000\";", "String IDTailBase64 = \"" + downloadID.IDTailBase64 + "\";");
+                ReplaceStringInFile(currentVersionFilePath, "String IDTailDecimal = \"0\";", "String IDTailDecimal = \"" + downloadID.IDTailDecimal + "\";");
+                ReplaceStringInFile(currentVersionFilePath, "String RequiredRegistrationDate = \"1900-01-01\";", "String RequiredRegistrationDate = \"" + requiredRegistrationDate + "\";");
 
                 //////////////////////////////////////////////////////////
                 // Packaging consolidated folder, updating resources, etc.
