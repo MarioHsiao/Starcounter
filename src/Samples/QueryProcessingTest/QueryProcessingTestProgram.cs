@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 using Starcounter.TestFramework;
 
 namespace QueryProcessingTest {
     class QueryProcessingTestProgram {
+        static TraceListener defaultTraceListener = null;
+
         static void Main(string[] args) {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
-                HelpMethods.LogEvent("Running false trace assert.");
-                System.Diagnostics.Trace.Assert(false);
+                UpdateTraceListener();
                 BindingTestDirect.DirectBindingTest();
                 HelpMethods.LogEvent("Test query preparation performance.");
                 QueryProcessingPerformance.MeasurePrepareQuery();
@@ -34,6 +36,18 @@ namespace QueryProcessingTest {
             DataPopulation.PopulateUsers(10000, 3);
             DataPopulation.PopulateAccounts(10000, 3);
             HelpMethods.LogEvent("Finished data population");
+        }
+
+        static void UpdateTraceListener() {
+            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") == "True") {
+                foreach (TraceListener l in Trace.Listeners) {
+                    if (l is DefaultTraceListener)
+                        defaultTraceListener = l;
+                }
+                Trace.Listeners.Remove(defaultTraceListener);
+                Trace.Listeners.Add(new Starcounter.Internal.ErrorHandling.TestTraceListener("QueryProcessingListener"));
+            }
+            Trace.Assert(false);
         }
     }
 }
