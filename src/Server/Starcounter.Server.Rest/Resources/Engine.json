@@ -1,13 +1,22 @@
 ﻿{
+    "Uri": "http://example.com/api/executables/foo",
     "Database": {
-        "Uri": ""
+        "Uri": "http://example.com/api/databases/foo"
     },
-    "HostPID": 0,
-    "DatabasePID": 0,
+    "DatabaseProcess": {
+        "PID": 0
+    },
+    "CodeHostProcess": {
+        "PID": 0
+    },
     "Executables": [
         {
-            "Id": "",
-            "ExePath": ""
+            "Path": "C:\\path\to\\the\\exe\\foo.exe",
+            "Uri": "http://example.com/api/executables/foo/foo.exe-123456789"
         }
-    ]
+    ],
+    "StartInfo": {
+        "NoDb": false,
+        "LogSteps": false
+    }
 }
