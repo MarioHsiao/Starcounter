@@ -52,7 +52,6 @@ namespace Starcounter.InstallerEngine
         public const String ParentArg = "YouHaveParent";
         public const String SilentArg = "Silent";
         public const String DontCheckOtherInstancesArg = "DontCheckOtherInstances";
-        public const String NewInstallerPathArg = "NewInstallerPath";
 
         public const String ScGlobalSettingsXmlName = "SetupSettings.xml";
         public const String ScGUISetupXmlName = "GUISetupSettings.xml";

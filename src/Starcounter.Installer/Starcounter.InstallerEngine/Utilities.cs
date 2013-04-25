@@ -642,15 +642,23 @@ namespace Starcounter.InstallerEngine
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExePath;
-                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg + " \"" + ConstantsBank.NewInstallerPathArg + "=" + System.Reflection.Assembly.GetEntryAssembly().Location + "\"";
+                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
                     prevSetupProcess.Start();
+
+                    // Waiting until previous installer finishes its work.
+                    prevSetupProcess.WaitForExit();
+
+                    // Checking version once again.
+                    previousVersion = InstallerMain.CompareScVersions();
+
+                    // No more old installation - just continue the new one.
+                    if (null == previousVersion)
+                        return false;
                 }
-                else
-                {
-                    Utilities.MessageBoxInfo(
-                        "Please manually uninstall previous(" + previousVersion + ") version of Starcounter before installing this one.",
-                        "Starcounter is already installed...");
-                }
+
+                Utilities.MessageBoxInfo(
+                    "Please uninstall previous(" + previousVersion + ") version of Starcounter before installing this one.",
+                    "Starcounter is already installed...");
 
                 return true;
             }
