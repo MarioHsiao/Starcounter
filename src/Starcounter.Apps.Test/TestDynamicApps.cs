@@ -48,7 +48,7 @@ namespace Starcounter.Client.Tests.Application {
             var phoneNumbers = personSchema.Add<TArr<Puppet,TPuppet>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
-            Assert.AreEqual("FirstName$", firstName.Name);
+            Assert.AreEqual("FirstName$", firstName.TemplateName);
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
             // Now let's create instances using that schema
@@ -63,11 +63,11 @@ namespace Starcounter.Client.Tests.Application {
             tim.Set(lastName, "Wester");
             tim.Set(age, 16);
 
-            Assert.AreEqual(0, firstName.Index);
-            Assert.AreEqual(1, lastName.Index);
-            Assert.AreEqual(2, age.Index);
-            Assert.AreEqual(3, phoneNumbers.Index);
-            Assert.AreEqual(0, number.Index);
+            Assert.AreEqual(0, firstName.TemplateIndex);
+            Assert.AreEqual(1, lastName.TemplateIndex);
+            Assert.AreEqual(2, age.TemplateIndex);
+            Assert.AreEqual(3, phoneNumbers.TemplateIndex);
+            Assert.AreEqual(0, number.TemplateIndex);
 
             Assert.AreEqual("Joachim", jocke.Get(firstName));
             Assert.AreEqual("Wester", jocke.Get(lastName));
@@ -92,7 +92,7 @@ namespace Starcounter.Client.Tests.Application {
             var phoneNumbers = personSchema.Add<TArr<Puppet, TPuppet>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
-            Assert.AreEqual("FirstName$", firstName.Name);
+            Assert.AreEqual("FirstName$", firstName.TemplateName);
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
             // Now let's create instances using that schema
@@ -107,11 +107,11 @@ namespace Starcounter.Client.Tests.Application {
             tim.LastName = "Wester";
             tim.Age = 16;
 
-            Assert.AreEqual(0, firstName.Index);
-            Assert.AreEqual(1, lastName.Index);
-            Assert.AreEqual(2, age.Index);
-            Assert.AreEqual(3, phoneNumbers.Index);
-            Assert.AreEqual(0, number.Index);
+            Assert.AreEqual(0, firstName.TemplateIndex);
+            Assert.AreEqual(1, lastName.TemplateIndex);
+            Assert.AreEqual(2, age.TemplateIndex);
+            Assert.AreEqual(3, phoneNumbers.TemplateIndex);
+            Assert.AreEqual(0, number.TemplateIndex);
 
             Assert.AreEqual("Joachim", jocke.FirstName);
             Assert.AreEqual("Wester", jocke.LastName);

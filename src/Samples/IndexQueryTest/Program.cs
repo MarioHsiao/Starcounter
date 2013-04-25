@@ -12,6 +12,7 @@ namespace IndexQueryTest
         static void Main(string[] args)
         {
             HelpMethods.LogEvent("Test of CREATE/DROP INDEX and DROP TABLE.");
+            Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
 #if ACCOUNTTEST_MODEL
             HelpMethods.LogEvent("Test with loading model");
             TestCreateIndexWithoutQuery();
