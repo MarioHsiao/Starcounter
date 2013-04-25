@@ -160,10 +160,6 @@ namespace Starcounter.InstallerEngine
             return null;
         }
 
-        // Used for focusing into another running setup process.
-        [DllImport("user32.dll")]
-        static extern Boolean SetForegroundWindow(IntPtr hWnd);
-
         /// <summary>
         /// Check if another instance of setup is running.
         /// </summary>
