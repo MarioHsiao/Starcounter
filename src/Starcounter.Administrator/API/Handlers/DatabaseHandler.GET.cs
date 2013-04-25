@@ -35,7 +35,7 @@ namespace Starcounter.Administrator.API.Handlers {
             
             var db = new Database();
             db.DatabaseName = applicationDatabase.Name;
-            db.Engine.HRef = RootHandler.MakeAbsoluteUri(engineUri);
+            db.Engine.Uri = RootHandler.MakeAbsoluteUri(engineUri);
             return db;
         }
     }
