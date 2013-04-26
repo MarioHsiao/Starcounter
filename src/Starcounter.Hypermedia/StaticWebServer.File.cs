@@ -138,8 +138,7 @@ namespace Starcounter.Internal.Web {
             len = payload.Length;
 
             string str = "HTTP/1.1 " + code + StarcounterConstants.NetworkConstants.CRLF +
-                "Server: SC" + StarcounterConstants.NetworkConstants.CRLF +
-                "Connection: keep-alive" + StarcounterConstants.NetworkConstants.CRLF;
+                "Server: SC" + StarcounterConstants.NetworkConstants.CRLF;
             
             // string[] parts = fileName.Split('.');
             // string ext = parts[parts.Length-1];
