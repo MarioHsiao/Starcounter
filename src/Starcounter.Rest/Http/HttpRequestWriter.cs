@@ -14,18 +14,9 @@ namespace Starcounter.Internal.Web {
     /// Class HttpRequestWriter
     /// </summary>
     public class HttpRequestWriter {
-
-//       public static byte[] OkResponseHeader;
- //      public static uint OkResponseContentLengthInsertionPoint;
-
-//       static HttpRequestWriter() {
-//          var str = "HTTP/1.0\r\nContent-Length: 9999999999";
-   //       OkResponseHeader = Encoding.UTF8.GetBytes(str);
-//          OkResponseContentLengthInsertionPoint = 32;
-//       }
-        /// <summary>
-        /// The buffer
-        /// </summary>
+       /// <summary>
+       /// The buffer
+       /// </summary>
        public static byte[] buffer = new byte[1000000];
        /// <summary>
        /// The PUT
