@@ -52,6 +52,9 @@
     <Compile Include="API\Handlers\DatabaseCollectionHandler.POST.cs" />
     <Compile Include="API\Handlers\DatabaseHandler.cs" />
     <Compile Include="API\Handlers\DatabaseHandler.GET.cs" />
+    <Compile Include="API\Handlers\EngineCollectionHandler.cs" />
+    <Compile Include="API\Handlers\EngineCollectionHandler.GET.cs" />
+    <Compile Include="API\Handlers\EngineCollectionHandler.POST.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.POST.cs" />
     <Compile Include="API\RestAPI.cs" />
