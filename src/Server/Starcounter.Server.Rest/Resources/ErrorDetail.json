@@ -1,0 +1,5 @@
+﻿{
+    "Text": "Database Foo was not found",
+    "ServerCode":10002,
+	"Helplink":"https://github.com/Starcounter/Starcounter/wiki/10002"
+}
