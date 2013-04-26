@@ -444,9 +444,43 @@ namespace Starcounter.Server.Commands {
         /// progressing while the given action executes.</param>
         /// <param name="action">The code to execute.</param>
         protected void WithinTask(CommandTask task, Action<CommandTask> action) {
+            bool cancel = false;
+
             BeginTask(task);
-            action(task);
-            EndTask(task);
+            try {
+                action(task);
+            } catch {
+                cancel = true;
+                throw;
+            } finally {
+                EndTask(task, cancel);
+            }
+        }
+
+        /// <summary>
+        /// Executes <paramref name="func"/> in between a begin and
+        /// end of the <see cref="CommandTask"/> <paramref name="task"/>.
+        /// </summary>
+        /// <remarks>
+        /// If an exception is raised from the given function, this method
+        /// does invoke the end method for the task.
+        /// </remarks>
+        /// <param name="task">The <see cref="CommandTask"/> that is
+        /// progressing while the given action executes.</param>
+        /// <param name="func">The code to execute. The ending of the task
+        /// can be marked as cancelled by returning false from the func.</param>
+        protected void WithinTask(CommandTask task, Func<CommandTask, bool> func) {
+            bool cancel = false;
+            
+            BeginTask(task);
+            try {
+                cancel = !func(task);
+            } catch {
+                cancel = true;
+                throw;
+            } finally {
+                EndTask(task, cancel);
+            }
         }
 
         /// <summary>
@@ -466,9 +500,7 @@ namespace Starcounter.Server.Commands {
         /// <param name="action">The code to execute.</param>
         protected void WithinTaskIf(bool condition, CommandTask task, Action<CommandTask> action) {
             if (condition) {
-                BeginTask(task);
-                action(task);
-                EndTask(task);
+                WithinTask(task, action);
             }
         }
 
@@ -550,14 +582,30 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Ends a single task.
+        /// Cancel a task.
         /// </summary>
-        /// <param name="task">The task to end.</param>
-        protected void EndTask(CommandTask task) {
+        /// <param name="task">The <see cref="CommandTask"/> to cancel.
+        protected void CancelTask(CommandTask task) {
             ProgressInfo info;
 
             info = this.progress[task.ID];
-            EndSingleProgress(info);
+            if (info.IsCompleted) throw new InvalidOperationException();
+            info.Cancel();
+
+            NotifyStatusChanged();
+        }
+
+        /// <summary>
+        /// Ends a single task.
+        /// </summary>
+        /// <param name="task">The task to end.</param>
+        /// <param name="cancel">Indicates if the task should
+        /// be marked as cancelled or fulfilled.</param>
+        protected void EndTask(CommandTask task, bool cancel = false) {
+            ProgressInfo info;
+
+            info = this.progress[task.ID];
+            EndSingleProgress(info, cancel);
 
             NotifyStatusChanged();
         }
@@ -582,9 +630,13 @@ namespace Starcounter.Server.Commands {
         /// Ends a single progress info.
         /// </summary>
         /// <param name="info">The progress to end.</param>
-        private void EndSingleProgress(ProgressInfo info) {
-            info.Value = info.Maximum;
-            info.Text = null;
+        private void EndSingleProgress(ProgressInfo info, bool cancel = false) {
+            if (cancel) {
+                info.Cancel();
+            } else {
+                info.Value = info.Maximum;
+                info.Text = null;
+            }
         }
 
         /// <summary>

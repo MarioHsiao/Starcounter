@@ -4,6 +4,8 @@
 // </copyright>
 // ***********************************************************************
 
+using System;
+
 namespace Starcounter.Server.PublicModel {
     
     /// <summary>
@@ -25,7 +27,16 @@ namespace Starcounter.Server.PublicModel {
         /// <param name="value">The value.</param>
         /// <param name="maximum">The maximum.</param>
         /// <param name="text">The text.</param>
+        /// <remarks>
+        /// The <paramref name="value"/> parameter can not have a value
+        /// equal to <see cref="int.MinValue"/>. This value is reserved
+        /// by the implementation and will result in the raising of a
+        /// <see cref="ArgumentOutOfRangeException"/>.
+        /// </remarks>
         internal ProgressInfo(int taskID, int value, int maximum, string text) {
+            if (value == int.MinValue) {
+                throw new ArgumentOutOfRangeException("value");
+            }
             this.TaskIdentity = taskID;
             this.Value = value;
             this.Maximum = maximum;
@@ -41,12 +52,22 @@ namespace Starcounter.Server.PublicModel {
             set; 
         }
 
+        private int _value;
         /// <summary>
         /// Progress value.
         /// </summary>
+        /// This property can not be set to a value equal to
+        /// <see cref="int.MinValue"/>. This value is reserved
+        /// by the implementation and will result in the raising
+        /// of a <see cref="ArgumentOutOfRangeException"/>.
         public int Value {
-            get;
-            set;
+            get { return _value; }
+            set {
+                if (value == int.MinValue) {
+                    throw new ArgumentOutOfRangeException("value");
+                }
+                _value = value;
+            }
         }
 
         /// <summary>
@@ -63,6 +84,23 @@ namespace Starcounter.Server.PublicModel {
         public string Text {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Marks this progress as cancelled.
+        /// </summary>
+        public void Cancel() {
+            _value = int.MinValue;
+            this.Maximum = _value;
+            this.Text = null;
+        }
+
+        /// <summary>
+        /// Gets a value indicating if the progress has stopped because
+        /// the task embracing it was cancelled.
+        /// </summary>
+        public bool IsCancelled {
+            get { return this.Value == int.MinValue; }
         }
 
         /// <summary>
