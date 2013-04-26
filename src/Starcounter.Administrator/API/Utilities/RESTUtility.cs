@@ -28,7 +28,7 @@ namespace Starcounter.Administrator.API.Utilities {
         public static Response CreateJSONResponse(
             string jsonContent, int status = (int)HttpStatusCode.OK, Dictionary<string, string> headers = null) {
             return new Response() { 
-                Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, null, jsonContent) 
+                Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, headers, jsonContent) 
             };
         }
 
