@@ -215,6 +215,10 @@ namespace Starcounter.Server {
 #endif
         }
 
+        internal bool IsCodeHostProcessRunning(Database database) {
+            return database.GetRunningCodeHostProcess() != null;
+        }
+
         internal bool StartCodeHostProcess(Database database, out Process process) {
             return StartCodeHostProcess(database, false, false, out process);
         }
