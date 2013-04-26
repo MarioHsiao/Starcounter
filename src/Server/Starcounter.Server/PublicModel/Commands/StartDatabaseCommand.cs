@@ -23,5 +23,23 @@ namespace Starcounter.Server.PublicModel.Commands {
         public StartDatabaseCommand(ServerEngine engine, string databaseName)
             : base(engine, CreateDatabaseUri(engine, databaseName), string.Format("Starting database {0}.", databaseName)) {
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating if the code host that are to be started
+        /// should connect to the database or not.
+        /// </summary>
+        public bool NoDb {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating if the code host that are to be started
+        /// should log it's boot sequence steps or not.
+        /// </summary>
+        public bool LogSteps {
+            get;
+            set;
+        }
     }
 }
