@@ -52,6 +52,9 @@
     <Compile Include="Resources\ErrorDetail.json.cs">
       <DependentUpon>ErrorDetail.json</DependentUpon>
     </Compile>
+	<Compile Include="Resources\LogEntry.json.cs">
+      <DependentUpon>LogEntry.json</DependentUpon>
+    </Compile>
     <Compile Include="Resources\Database.json.cs">
       <DependentUpon>Database.json</DependentUpon>
     </Compile>
@@ -77,6 +80,9 @@
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Resources\ErrorDetail.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+	<TypedJSON Include="Resources\LogEntry.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Resources\Database.json">
