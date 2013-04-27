@@ -16,7 +16,7 @@ using Starcounter.ABCIPC;
 namespace Starcounter.Server.Commands.Processors {
 
     [CommandProcessor(typeof(StartDatabaseCommand))]
-    internal sealed class StartDatabaseCommandProcessor : CommandProcessor {
+    internal sealed partial class StartDatabaseCommandProcessor : CommandProcessor {
         /// <summary>
         /// Initializes a new <see cref="StartDatabaseCommandProcessor"/>.
         /// </summary>
@@ -32,26 +32,46 @@ namespace Starcounter.Server.Commands.Processors {
             StartDatabaseCommand command = (StartDatabaseCommand)this.Command;
             Database database;
             Process workerProcess;
+            bool started;
 
             if (!this.Engine.Databases.TryGetValue(command.Name, out database)) {
                 throw ErrorCode.ToException(Error.SCERRDATABASENOTFOUND, string.Format("Database: '{0}'.", command.DatabaseUri));
             }
 
-            Engine.DatabaseEngine.StartDatabaseProcess(database);
-            Engine.DatabaseEngine.StartCodeHostProcess(database, out workerProcess);
-            Engine.CurrentPublicModel.UpdateDatabase(database);
+            WithinTask(Task.StartDatabaseProcess, (task) => {
+                // Check if it's already started; if so, we return false,
+                // with the effect that the task is marked as cancelled.
+                if (Engine.DatabaseEngine.IsDatabaseProcessRunning(database))
+                    return false;
 
-            // Get a client handle to the worker process.
+                // Publish our attempt to start the database process as
+                // the current working we are busy doing. If we find that
+                // the process was already started (unlikely, but possible)
+                // we mark the task/progress cancelled by returning false.
+                ProgressTask(task, 1);
+                started = Engine.DatabaseEngine.StartDatabaseProcess(database);
+                return !started;
+            });
 
-            var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
+            WithinTask(Task.StartCodeHostProcess, (task) => {
+                if (Engine.DatabaseEngine.IsCodeHostProcessRunning(database))
+                    return false;
 
-            // Send a ping, the means by which we check the "status" of the
-            // worker process - if it answers, we consider it online.
+                ProgressTask(task, 1);
+                started = Engine.DatabaseEngine.StartCodeHostProcess(
+                    database, command.NoDb, command.LogSteps, out workerProcess);
+                return !started;
+            });
 
-            bool success = client.Send("Ping");
-            if (!success) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
-            }
+            WithinTask(Task.AwaitCodeHostOnline, (task) => {
+                Engine.CurrentPublicModel.UpdateDatabase(database);
+
+                var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
+                bool success = client.Send("Ping");
+                if (!success) {
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                }
+            });
         }
     }
 }
