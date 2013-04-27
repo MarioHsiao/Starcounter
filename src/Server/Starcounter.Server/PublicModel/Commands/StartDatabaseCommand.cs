@@ -4,17 +4,26 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Starcounter.Server.Commands.Processors;
 
 namespace Starcounter.Server.PublicModel.Commands {
     /// <summary>
     /// Encapsulates a request to start a database.
     /// </summary>
     public sealed class StartDatabaseCommand : DatabaseCommand {
+        
+        public static class DefaultProcessor {
+            public static int Token {
+                get { return StartDatabaseCommandProcessor.ProcessorToken; }
+            }
+
+            public static class Tasks {
+                public const int StartDatabaseProcess = 1;
+                public const int StartCodeHostProcess = 2;
+                public const int AwaitCodeHostOnline = 3;
+            }
+        }
+
         /// <summary>
         /// Initializes a new <see cref="StartDatabaseCommand"/>.
         /// </summary>
