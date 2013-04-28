@@ -130,5 +130,19 @@ namespace Starcounter.Server.PublicModel {
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating if the database process is running.
+        /// </summary>
+        /// <remarks>
+        /// The server intentionally don't reveal the PID or any other sensitive
+        /// information about the database process, just letting server hosts
+        /// know if it's running or not.
+        /// <seealso cref="HostProcessId"/>
+        /// </remarks>
+        public bool DatabaseProcessRunning {
+            get;
+            set;
+        }
     }
 }
