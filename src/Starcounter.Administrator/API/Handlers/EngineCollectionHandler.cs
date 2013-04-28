@@ -16,7 +16,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var uri = RootHandler.API.Uris.Engines;
             
             Handle.POST<Request>(uri, OnPOST);
-            Handle.POST<Request>(uri, OnGET);
+            Handle.GET<Request>(uri, OnGET);
             RootHandler.Register405OnAllUnsupported(uri, new string[] { "GET", "POST" });
         }
     }
