@@ -99,7 +99,7 @@ namespace Starcounter.Server.PublicModel {
         /// Gets a value indicating if the progress has stopped because
         /// the task embracing it was cancelled.
         /// </summary>
-        public bool IsCancelled {
+        public bool WasCancelled {
             get { return this.Value == int.MinValue; }
         }
 
