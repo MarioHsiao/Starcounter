@@ -25,14 +25,14 @@ namespace Starcounter.Server.Commands.Processors {
             public static readonly CommandTask StartDatabaseProcess = new CommandTask(
                 StartDatabaseCommand.DefaultProcessor.Tasks.StartDatabaseProcess,
                 "Starting database process",
-                TaskDuration.ShortIndeterminate,
+                TaskDuration.UnknownWithProgress,
                 "Starts the database process. The task is marked as cancelled if the process is found already running."
                 );
 
             internal static readonly CommandTask StartCodeHostProcess = new CommandTask(
                 StartDatabaseCommand.DefaultProcessor.Tasks.StartCodeHostProcess,
                 "Starting code host process",
-                TaskDuration.ShortIndeterminate,
+                TaskDuration.UnknownWithProgress,
                 "Starts the code host process. The task is marked as cancelled if the process is found already running."
                 );
 
