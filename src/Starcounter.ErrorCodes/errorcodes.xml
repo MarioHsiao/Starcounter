@@ -4000,14 +4000,31 @@
         
     </facility>
 
+    
     <!-- Error codes related to Apps -->
-    <facility name="Apps" hex="000E">
+    <!--
+    TODO: Rename this facility to something more general and accurate, for
+    example "Rest" or "Web".
+    -->
+  <facility name="Apps" hex="000E">
         <code hex="0001" severity="Error" name="ScErrAppsHttpParserIncompleteHeaders">
             <message>HTTP request has incomplete headers.</message>
         </code>
         <code hex="0002" severity="Error" name="ScErrAppsHttpParserIncorrect">
             <message>HTTP contains incorrect data.</message>
         </code>
+      <code hex="0003" severity="Error" name="ScErrJsonPropertyNotFound">
+        <!-- Error code used when parsing a Json document against a well-defined
+        template and a given property name is not found in the template.-->
+        <message>The property is not defined in the template.</message>
+      </code>
+      <code hex="0004" severity="Error" name="ScErrJsonValueWrongType">
+        <!-- Error code used when parsing a Json document against a well-defined
+        template and a given property value is not valid according to the type of
+        the property. For example, when doing "Name":false and "Name" is a string.
+        -->
+        <message>The value does not correspond to the template property type.</message>
+      </code>
     </facility>
     
 </error-codes>
