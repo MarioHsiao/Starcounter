@@ -122,7 +122,8 @@ namespace Starcounter.Server {
                         WorkingDirectory = app.WorkingDirectory
                     };
                 }).ToArray(),
-                HostProcessId = process != null ? process.Id : 0
+                HostProcessId = process != null ? process.Id : 0,
+                DatabaseProcessRunning = Server.DatabaseEngine.IsDatabaseProcessRunning(this)
             };
             return info;
         }
