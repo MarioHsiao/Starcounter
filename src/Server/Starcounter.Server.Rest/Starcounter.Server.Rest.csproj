@@ -58,6 +58,9 @@
     <Compile Include="Resources\Database.json.cs">
       <DependentUpon>Database.json</DependentUpon>
     </Compile>
+	<Compile Include="Resources\Process.json.cs">
+      <DependentUpon>Process.json</DependentUpon>
+    </Compile>
     <Compile Include="Resources\DatabaseCollection.json.cs">
       <DependentUpon>DatabaseCollection.json</DependentUpon>
     </Compile>
@@ -86,6 +89,9 @@
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Resources\Database.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+	<TypedJSON Include="Resources\Process.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Resources\DatabaseCollection.json">
