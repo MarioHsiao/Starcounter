@@ -74,9 +74,9 @@ namespace Starcounter.Administrator.API.Handlers {
             // Check what processes were actually started and decide on
             // status code to use based on that.
             var startedHost = !commandInfo.GetProgressOf(
-                StartDatabaseCommand.DefaultProcessor.Tasks.StartCodeHostProcess).IsCancelled;
+                StartDatabaseCommand.DefaultProcessor.Tasks.StartCodeHostProcess).WasCancelled;
             var startedDatabase = !commandInfo.GetProgressOf(
-                StartDatabaseCommand.DefaultProcessor.Tasks.StartDatabaseProcess).IsCancelled;
+                StartDatabaseCommand.DefaultProcessor.Tasks.StartDatabaseProcess).WasCancelled;
 
             var state = runtime.GetDatabaseByName(name);
             engine = new Engine();
