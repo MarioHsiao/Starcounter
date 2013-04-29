@@ -220,7 +220,8 @@ namespace Starcounter
             Byte* keyData,
             Int32 extentNumber,
             Enumerator cachedEnum,
-            UInt32 flags)
+            UInt32 flags, 
+            Byte *lastKey)
         {
             int retry = 0;
 
@@ -238,7 +239,7 @@ namespace Starcounter
 
             Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
             //UInt32 flags = *((UInt32*)staticData);
-            Byte* lastKey = staticData + 4; // Skipping flags.
+            //Byte* lastKey = staticData + 4; // Skipping flags.
 
             // Dynamic data.
             Byte* recreationKey = keyData + dynDataOffset;
@@ -341,7 +342,8 @@ namespace Starcounter
             Int32 extentNumber,
             Enumerator cachedEnum,
             UInt64 filterHandle,
-            UInt32 flags)
+            UInt32 flags,
+            Byte* lastKey)
         {
             int retry = 0;
 
@@ -361,7 +363,7 @@ namespace Starcounter
             //UInt32 flags = *((UInt32*)staticData);
             //UInt64 filterHandle = *((UInt64*)(staticData + 4));
             Byte* varStream = staticData + 12;
-            Byte* lastKey = *((UInt32*)varStream) + varStream;
+            //Byte* lastKey = *((UInt32*)varStream) + varStream;
 
             // Dynamic data.
             Byte* recreationKey = keyData + dynDataOffset;
