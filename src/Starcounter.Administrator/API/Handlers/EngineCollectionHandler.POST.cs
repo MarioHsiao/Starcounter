@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.Administrator.API.Utilities;
 using Starcounter.Advanced;
+using Starcounter.Internal;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Server.Rest.Resources;
@@ -23,12 +24,23 @@ namespace Starcounter.Administrator.API.Handlers {
             var serverEngine = RootHandler.Host.Engine;
             var runtime = RootHandler.Host.Runtime;
             var admin = RootHandler.API;
-
             ErrorDetail errDetail;
-            var engine = new Engine();
+
+            // From RFC2616:
+            // "The posted entity is subordinate to that URI in the same way
+            // that a file is subordinate to a directory containing it, a news
+            // article is subordinate to a newsgroup to which it is posted,
+            // or a record is subordinate to a database".
+            //
+            // What it means to this mapping is that we don't expect a full
+            // Engine representation, but rather a reference to an engine as
+            // defined in XSON-based class EngineCollection, the Engines
+            // array instances.
+
+            var engine = new EngineCollection.EnginesApp();
             engine.PopulateFromJson(request.GetBodyStringUtf8_Slow());
 
-            var name = engine.Database.Name;
+            var name = engine.Name;
             if (string.IsNullOrWhiteSpace(name)) {
                 errDetail = new ErrorDetail() {
                     Text = "Database engine name not specified",
@@ -39,6 +51,8 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var startCommand = new StartDatabaseCommand(serverEngine, name);
             startCommand.EnableWaiting = true;
+            startCommand.NoDb = engine.NoDb;
+            startCommand.LogSteps = engine.LogSteps;
 
             var commandInfo = runtime.Execute(startCommand);
             Trace.Assert(commandInfo.ProcessorToken == StartDatabaseCommand.DefaultProcessor.Token);
@@ -48,11 +62,12 @@ namespace Starcounter.Administrator.API.Handlers {
 
             if (commandInfo.HasError) {
                 ErrorInfo single;
+                ErrorMessage msg;
 
                 single = null;
                 if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
                     if (single.GetErrorCode() == Starcounter.Error.SCERRDATABASENOTFOUND) {
-                        var msg = single.ToErrorMessage();
+                        msg = single.ToErrorMessage();
                         errDetail = new ErrorDetail();
                         errDetail.Text = msg.Body;
                         errDetail.ServerCode = Error.SCERRDATABASENOTFOUND;
@@ -61,14 +76,13 @@ namespace Starcounter.Administrator.API.Handlers {
                     }
                 }
 
-                if (single == null)
+                if (single == null) {
                     single = commandInfo.Errors[0];
+                }
+                msg = single.ToErrorMessage();
 
-                // Create a 500. Right now we do it the sloppy way, letting
-                // the server craft it for us based on the exception. We should
-                // switch to a non-exception-based approach.
-
-                throw single.ToErrorMessage().ToException();
+                errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.ToString(), msg.Helplink);
+                return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 500);
             }
 
             // Check what processes were actually started and decide on
@@ -78,16 +92,14 @@ namespace Starcounter.Administrator.API.Handlers {
             var startedDatabase = !commandInfo.GetProgressOf(
                 StartDatabaseCommand.DefaultProcessor.Tasks.StartDatabaseProcess).WasCancelled;
 
-            var state = runtime.GetDatabaseByName(name);
-            engine = new Engine();
-            engine.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Engine, name);
-
             if (!startedHost && !startedDatabase) {
                 // The request was fullfilled but nothing was actually
                 // created, indicating the engine was already running.
                 // According to specification, we should include "an
                 // entity describing or containing the result of the
-                // action".
+                // action". We just reuse the representation passed in
+                // with a simple addition: setting its URI.
+                engine.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Engine, name);
                 return RESTUtility.CreateJSONResponse(engine.ToJson(), 200);
             }
 
@@ -98,15 +110,29 @@ namespace Starcounter.Administrator.API.Handlers {
             // specific URI for the resource given by a Location header
             // field. The response SHOULD include an entity containing a
             // list of resource characteristics and location(s)".
+            //
+            // The tricky part here is that, to be correct, we must check
+            // again the application state to see that it's semantics havent
+            // changed since we got an OK from the server engine. We could
+            // well be up for a suprise, when we find the state changed (if
+            // some other client has caused it's manipulation between the
+            // successfull processing of our command and "now". Currently,
+            // we tackle this as 500. To be completly correct, we must have
+            // the server capture the principal state of the engine before
+            // it allows the execution of subsequent commands, and we should
+            // return that state.
+
+            var state = runtime.GetDatabaseByName(name);
+            if (state == null || state.HostProcessId == 0) {
+                errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASEENGINETERMINATED);
+                return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 500);
+            }
 
             var headers = new Dictionary<string, string>(1);
-            engine.Database.Name = name;
-            engine.Database.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Database, name);
-            engine.CodeHostProcess.PID = state.HostProcessId;
-            engine.DatabaseProcess.PID = -1;
-            headers.Add("Location", engine.Uri);
+            var result = EngineHandler.JSON.CreateRepresentation(state);
+            headers.Add("Location", result.Uri);
 
-            return RESTUtility.CreateJSONResponse(engine.ToJson(), 201, headers);
+            return RESTUtility.CreateJSONResponse(result.ToJson(), 201, headers);
         }
     }
 }
