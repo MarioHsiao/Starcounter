@@ -43,28 +43,28 @@
     <Compile Include="MessageTypes\ExecResponse201.json.cs">
       <DependentUpon>ExecResponse201.json</DependentUpon>
     </Compile>
-    <Compile Include="Resources\Executable.json.cs">
+    <Compile Include="Representations.JSON\Executable.json.cs">
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
-    <Compile Include="Resources\Engine.json.cs">
+    <Compile Include="Representations.JSON\Engine.json.cs">
       <DependentUpon>Engine.json</DependentUpon>
     </Compile>
-    <Compile Include="Resources\ErrorDetail.json.cs">
+    <Compile Include="Representations.JSON\ErrorDetail.json.cs">
       <DependentUpon>ErrorDetail.json</DependentUpon>
     </Compile>
-	<Compile Include="Resources\LogEntry.json.cs">
+    <Compile Include="Representations.JSON\LogEntry.json.cs">
       <DependentUpon>LogEntry.json</DependentUpon>
     </Compile>
-    <Compile Include="Resources\Database.json.cs">
+    <Compile Include="Representations.JSON\Database.json.cs">
       <DependentUpon>Database.json</DependentUpon>
     </Compile>
-	<Compile Include="Resources\Process.json.cs">
+    <Compile Include="Representations.JSON\Process.json.cs">
       <DependentUpon>Process.json</DependentUpon>
     </Compile>
-    <Compile Include="Resources\DatabaseCollection.json.cs">
+    <Compile Include="Representations.JSON\DatabaseCollection.json.cs">
       <DependentUpon>DatabaseCollection.json</DependentUpon>
     </Compile>
-    <Compile Include="Resources\EngineCollection.json.cs">
+    <Compile Include="Representations.JSON\EngineCollection.json.cs">
       <DependentUpon>EngineCollection.json</DependentUpon>
     </Compile>
     <Compile Include="SharedCLI.cs" />
@@ -76,28 +76,28 @@
     <TypedJSON Include="MessageTypes\ExecResponse201.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Resources\Executable.json">
+    <TypedJSON Include="Representations.JSON\Executable.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Resources\Engine.json">
+    <TypedJSON Include="Representations.JSON\Engine.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Resources\ErrorDetail.json">
+    <TypedJSON Include="Representations.JSON\ErrorDetail.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-	<TypedJSON Include="Resources\LogEntry.json">
+    <TypedJSON Include="Representations.JSON\LogEntry.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Resources\Database.json">
+    <TypedJSON Include="Representations.JSON\Database.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-	<TypedJSON Include="Resources\Process.json">
+    <TypedJSON Include="Representations.JSON\Process.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Resources\DatabaseCollection.json">
+    <TypedJSON Include="Representations.JSON\DatabaseCollection.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Resources\EngineCollection.json">
+    <TypedJSON Include="Representations.JSON\EngineCollection.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
