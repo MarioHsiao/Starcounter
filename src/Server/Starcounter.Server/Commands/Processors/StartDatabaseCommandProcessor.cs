@@ -50,7 +50,7 @@ namespace Starcounter.Server.Commands.Processors {
                 // we mark the task/progress cancelled by returning false.
                 ProgressTask(task, 1);
                 started = Engine.DatabaseEngine.StartDatabaseProcess(database);
-                return !started;
+                return started;
             });
 
             WithinTask(Task.StartCodeHostProcess, (task) => {
@@ -60,7 +60,7 @@ namespace Starcounter.Server.Commands.Processors {
                 ProgressTask(task, 1);
                 started = Engine.DatabaseEngine.StartCodeHostProcess(
                     database, command.NoDb, command.LogSteps, out workerProcess);
-                return !started;
+                return started;
             });
 
             WithinTask(Task.AwaitCodeHostOnline, (task) => {
