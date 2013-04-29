@@ -13,7 +13,7 @@ namespace Starcounter.Server.Rest {
         /// Provides the set of admin server URIs offered by the
         /// current instance.
         /// </summary>
-        public readonly AdminUriRegistry Uris;
+        public readonly ResourceUris Uris;
 
         /// <summary>
         /// Provides information about known URI's used by Starcounter tools
@@ -38,7 +38,7 @@ namespace Starcounter.Server.Rest {
         /// question mark, i.e. {?}.
         /// </remarks>
         /// </para>
-        public sealed class AdminUriRegistry {
+        public sealed class ResourceUris {
             /// <summary>
             /// Provides the default context path used for admin server resources
             /// that support the programmatic REST API of admin servers.
@@ -128,11 +128,11 @@ namespace Starcounter.Server.Rest {
             }
 
             /// <summary>
-            /// Initializes a new instance of <see cref="AdminUriRegistry"/>,
+            /// Initializes a new instance of <see cref="ResourceUris"/>,
             /// defining the context path to use to resolve all relative URIs.
             /// </summary>
             /// <param name="contextPath">The context path to use.</param>
-            internal AdminUriRegistry(string contextPath) {
+            internal ResourceUris(string contextPath) {
                 this.ContextPath = contextPath;
             }
         }
@@ -142,8 +142,8 @@ namespace Starcounter.Server.Rest {
         /// the context path to use to resolve all relative URIs.
         /// </summary>
         /// <param name="contextPath">The context path to use.</param>
-        public AdminAPI(string contextPath = AdminUriRegistry.DefaultContextPath) {
-            this.Uris = new AdminUriRegistry(contextPath);
+        public AdminAPI(string contextPath = ResourceUris.DefaultContextPath) {
+            this.Uris = new ResourceUris(contextPath);
         }
 
         /// <summary>
