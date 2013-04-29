@@ -11,7 +11,10 @@ namespace Starcounter.Administrator.API.Handlers {
         static string uriTemplate;
         static string uriTemplateHostProcess;
         static string uriTemplateDbProcess;
-
+        /// <summary>
+        /// Provides a set of utility methods for working on strongly typed
+        /// Engine JSON representations.
+        /// </summary>
         internal static class JSON {
             /// <summary>
             /// Creates a JSON representation of the given application level
