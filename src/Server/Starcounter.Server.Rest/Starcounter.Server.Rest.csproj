@@ -58,9 +58,6 @@
     <Compile Include="Representations.JSON\Database.json.cs">
       <DependentUpon>Database.json</DependentUpon>
     </Compile>
-    <Compile Include="Representations.JSON\Process.json.cs">
-      <DependentUpon>Process.json</DependentUpon>
-    </Compile>
     <Compile Include="Representations.JSON\DatabaseCollection.json.cs">
       <DependentUpon>DatabaseCollection.json</DependentUpon>
     </Compile>
@@ -89,9 +86,6 @@
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Representations.JSON\Database.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-    <TypedJSON Include="Representations.JSON\Process.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Representations.JSON\DatabaseCollection.json">
