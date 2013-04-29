@@ -1,5 +1,6 @@
 ﻿using Starcounter.Advanced;
 using Starcounter.Internal.Web;
+using Starcounter.Server.Rest.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -16,6 +17,44 @@ namespace Starcounter.Administrator.API.Utilities {
     /// layer assembly, like Starcounter.Rest.
     /// </remarks>
     internal static class RESTUtility {
+        /// <summary>
+        /// Provides a set of REST-related utility methods working on
+        /// JSON representations.
+        /// </summary>
+        internal static class JSON {
+            /// <summary>
+            /// Creates a stronly typed JSON instance <see cref="ErrorDetail"/> from
+            /// a given Starcounter error code. The detail will be populated data that
+            /// can be derived from the given error code, using the <see cref="ErrorCode"/>
+            /// class.
+            /// </summary>
+            /// <param name="serverErrorCode">The Starcounter server-side error code.
+            /// </param>
+            /// <returns>A stronly typed JSON <see cref="ErrorDetail"/> whose values
+            /// will be derived from the given error code.</returns>
+            internal static ErrorDetail CreateError(uint serverErrorCode) {
+                return CreateError(serverErrorCode, ErrorCode.ToMessage(serverErrorCode), ErrorCode.ToHelpLink(serverErrorCode));
+            }
+
+            /// <summary>
+            /// Creates a stronly typed JSON instance <see cref="ErrorDetail"/> from
+            /// a given Starcounter error code, an optional text and a help link.
+            /// </summary>
+            /// <param name="serverErrorCode">The Starcounter server-side error code.
+            /// <param name="text">Optional text.</param>
+            /// <param name="helplink">Optional help link.</param>
+            /// <returns>A stronly typed JSON <see cref="ErrorDetail"/> whose values
+            /// correspond to those supplied in the call.
+            /// </returns>
+            internal static ErrorDetail CreateError(uint serverErrorCode, string text = "", string helplink = "") {
+                var detail = new ErrorDetail();
+                detail.Text = text;
+                detail.ServerCode = serverErrorCode;
+                detail.Helplink = helplink;
+                return detail;
+            }
+        }
+
         /// <summary>
         /// Simplistic response creation utility for the API library, taking
         /// advantage about built-in constraints of the admin server REST API
