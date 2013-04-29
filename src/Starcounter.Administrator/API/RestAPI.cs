@@ -31,6 +31,7 @@ namespace Starcounter.Administrator.API {
             RootHandler.Setup(admin);
             DatabaseCollectionHandler.Setup();
             DatabaseHandler.Setup();
+            EngineHandler.Setup();
             EngineCollectionHandler.Setup();
             ExecutableCollectionHandler.Setup();
         }
