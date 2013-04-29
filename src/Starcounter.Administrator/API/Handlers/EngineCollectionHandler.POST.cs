@@ -37,8 +37,9 @@ namespace Starcounter.Administrator.API.Handlers {
             // defined in XSON-based class EngineCollection, the Engines
             // array instances.
 
-            var engine = new EngineCollection.EnginesApp();
-            engine.PopulateFromJson(request.GetBodyStringUtf8_Slow());
+            EngineCollection.EnginesApp engine;
+            var response = RESTUtility.JSON.CreateFromRequest<EngineCollection.EnginesApp>(request, out engine);
+            if (response != null) return response;
 
             var name = engine.Name;
             if (string.IsNullOrWhiteSpace(name)) {
@@ -68,10 +69,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
                     if (single.GetErrorCode() == Starcounter.Error.SCERRDATABASENOTFOUND) {
                         msg = single.ToErrorMessage();
-                        errDetail = new ErrorDetail();
-                        errDetail.Text = msg.Body;
-                        errDetail.ServerCode = Error.SCERRDATABASENOTFOUND;
-                        errDetail.Helplink = msg.Helplink;
+                        errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
                         return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
                     }
                 }
