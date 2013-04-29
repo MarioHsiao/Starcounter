@@ -52,6 +52,15 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets a value representing the exact command-line
+        /// arguments string what was used to start the host.
+        /// </summary>
+        internal string CodeHostArguments {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating if the database is supposed to
         /// be running or not.
         /// </summary>
