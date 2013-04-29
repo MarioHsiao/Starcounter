@@ -1,6 +1,7 @@
 ﻿using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest.Resources;
+using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.API.Handlers {
     /// <summary>
@@ -35,6 +36,8 @@ namespace Starcounter.Administrator.API.Handlers {
                 engine.CodeHostProcess.PID = state.HostProcessId;
                 engine.DatabaseProcess.Uri = RootHandler.MakeAbsoluteUri(uriTemplateDbProcess, name);
                 engine.DatabaseProcess.Running = state.DatabaseProcessRunning;
+                engine.NoDb = state.HasNoDbSwitch();
+                engine.LogSteps = state.HasLogStepsSwitch();
 
                 return engine;
             }
