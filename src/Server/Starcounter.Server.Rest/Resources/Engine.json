@@ -6,7 +6,7 @@
     },
     "DatabaseProcess": {
         "Uri": "http://example.com/api/engines/foo/db",
-        "PID": 0
+		"Running":false
     },
     "CodeHostProcess": {
         "Uri": "http://example.com/api/engines/foo/host",
