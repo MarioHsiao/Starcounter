@@ -1,11 +1,13 @@
 ﻿<div ng-show='server == null' class="progress progress-striped active">
-  <div class="bar" style="width: 100%;"></div>
+    <div class="bar" style="width: 100%;"></div>
 </div>
 
 
 <form name="myForm" class="form-horizontal  well well-small" ng-hide='server == null'>
 
-    <legend>Edit Server - {{server.name}}</legend>
+    <legend>Edit Server - {{server.name}}
+        <div class="pull-right" style="font-size: 10px">v{{server.version}}</div>
+    </legend>
 
     <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
         <label class="control-label" for="httpPort">Http Port</label>

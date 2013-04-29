@@ -333,7 +333,8 @@ namespace Starcounter.Administrator {
                         resultJson.server = new {
                             id = Master.EncodeTo64(serverInfo.Uri),
                             name = serverInfo.Configuration.Name,
-                            httpPort = serverInfo.Configuration.SystemHttpPort
+                            httpPort = serverInfo.Configuration.SystemHttpPort,
+                            version = CurrentVersion.Version
                         };
 
                         return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
@@ -406,7 +407,8 @@ namespace Starcounter.Administrator {
                             resultJson.server = new {
                                 id = Master.EncodeTo64(serverInfo.Uri),
                                 name = serverInfo.Configuration.Name,
-                                httpPort = serverInfo.Configuration.SystemHttpPort
+                                httpPort = serverInfo.Configuration.SystemHttpPort,
+                                version = CurrentVersion.Version
                             };
 
                             return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
@@ -589,6 +591,7 @@ namespace Starcounter.Administrator {
                         for (int i = 0; i < databases.Length; i++) {
                             resultJson.databases[i] = new {
                                 id = Master.EncodeTo64(databases[i].Uri),
+                                status = (databases[i].HostProcessId > 0) ? "Running" : ".",
                                 name = databases[i].Name,
                                 hostProcessId = databases[i].HostProcessId,
                                 httpPort = databases[i].Configuration.Runtime.DefaultUserHttpPort,
@@ -643,6 +646,7 @@ namespace Starcounter.Administrator {
 
                             resultJson.database = new {
                                 id = Master.EncodeTo64(database.Uri),
+                                status =  (database.HostProcessId > 0 ) ? "Running" : ".",
                                 name = database.Name,
                                 hostProcessId = database.HostProcessId,
                                 httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
