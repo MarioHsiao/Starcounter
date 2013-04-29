@@ -47,7 +47,7 @@ namespace Starcounter.Administrator.API.Handlers {
             
             db = new Database();
             db.Name = name;
-            db.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Database, name);
+            db.Uri = admin.Uris.Database.ToAbsoluteUri(name);
 
             return RESTUtility.JSON.CreateResponse(db.ToJson(), 201);
         }

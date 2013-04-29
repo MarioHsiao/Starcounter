@@ -26,15 +26,16 @@ namespace Starcounter.Administrator.API.Handlers {
             /// <returns>A strongly types JSON <see cref="Engine"/> instance.
             /// </returns>
             internal static Engine CreateRepresentation(DatabaseInfo state) {
+                var admin = RootHandler.API;
                 var engine = new Engine();
                 var name = state.Name;
 
-                engine.Uri = RootHandler.MakeAbsoluteUri(uriTemplate, name);
+                engine.Uri = uriTemplate.ToAbsoluteUri(name);
                 engine.Database.Name = name;
-                engine.Database.Uri = RootHandler.MakeAbsoluteUri(RootHandler.API.Uris.Database, name);
-                engine.CodeHostProcess.Uri = RootHandler.MakeAbsoluteUri(uriTemplateHostProcess, name);
+                engine.Database.Uri = admin.Uris.Database.ToAbsoluteUri(name);
+                engine.CodeHostProcess.Uri = uriTemplateHostProcess.ToAbsoluteUri(name);
                 engine.CodeHostProcess.PID = state.HostProcessId;
-                engine.DatabaseProcess.Uri = RootHandler.MakeAbsoluteUri(uriTemplateDbProcess, name);
+                engine.DatabaseProcess.Uri = uriTemplateDbProcess.ToAbsoluteUri(name);
                 engine.DatabaseProcess.Running = state.DatabaseProcessRunning;
                 engine.NoDb = state.HasNoDbSwitch();
                 engine.LogSteps = state.HasLogStepsSwitch();
