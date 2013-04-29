@@ -14,6 +14,7 @@ using Starcounter.Internal;
 using Starcounter.Server.Rest.MessageTypes;
 using Starcounter.Server.Rest;
 using System.Collections.Generic;
+using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.API.Handlers {
 
@@ -34,8 +35,9 @@ namespace Starcounter.Administrator.API.Handlers {
 
             Diagnostics.WriteTimeStamp("ADMIN", "HandlePOST");
 
-            var execRequest = new ExecRequest();
-            execRequest.PopulateFromJson(request.GetBodyStringUtf8_Slow());
+            ExecRequest execRequest;
+            var response = RESTUtility.JSON.CreateFromRequest<ExecRequest>(request, out execRequest);
+            if (response != null) return response;
 
             string[] userArgs = null;
             if (!string.IsNullOrEmpty(execRequest.CommandLineString)) {

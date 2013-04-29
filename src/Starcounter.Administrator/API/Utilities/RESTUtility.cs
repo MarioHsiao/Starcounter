@@ -69,6 +69,46 @@ namespace Starcounter.Administrator.API.Utilities {
                     Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, headers, jsonContent)
                 };
             }
+
+            /// <summary>
+            /// Creates a JSON representation from the body/content of a given
+            /// request and returns it on successful. If the request is somehow
+            /// considered invalid for the current (JSON) context, a response
+            /// is created and the caller is expected to immediately return it.
+            /// </summary>
+            /// <remarks>
+            /// The most obvious failure is a problem parsing the request body.
+            /// But other conditions specific for JSON representations are, or
+            /// will be, handled here too, like the failure to accept JSON as a
+            /// media type.
+            /// </remarks>
+            /// <typeparam name="T">The strongly typed JSON to create and populate
+            /// from the enclosed entity.</typeparam>
+            /// <param name="request">The request whose body we'll use.</param>
+            /// <param name="obj">The resulting strongly typed object.</param>
+            /// <returns>A response to be returned if the request can not be
+            /// accepted.</returns>
+            public static Response CreateFromRequest<T>(Request request, out T obj) where T : Json, new() {
+                T result = new T();
+                try {
+                    result.PopulateFromJson(request.GetBodyStringUtf8_Slow());
+                } catch (FormatException fe) {
+                    uint code;
+                    if (!ErrorCode.TryGetCode(fe, out code)) {
+                        throw;
+                    }
+                    if (code != Error.SCERRJSONVALUEWRONGTYPE && code != Error.SCERRJSONPROPERTYNOTFOUND) {
+                        throw;
+                    }
+
+                    obj = null;
+                    var errorDetail = CreateError(code, fe.Message, ErrorCode.ToHelpLink(code));
+                    return CreateResponse(errorDetail.ToJson(), 400);
+                }
+
+                obj = result;
+                return null;
+            }
         }
 
         /// <summary>

@@ -21,9 +21,11 @@ namespace Starcounter.Administrator.API.Handlers {
             var engine = RootHandler.Host.Engine;
             var runtime = RootHandler.Host.Runtime;
             var admin = RootHandler.API;
+            Database db;
 
-            var db = new Database();
-            db.PopulateFromJson(request.GetBodyStringUtf8_Slow());
+            var response = RESTUtility.JSON.CreateFromRequest<Database>(request, out db);
+            if (response != null)
+                return response;
 
             var name = db.Name;
             var command = new CreateDatabaseCommand(engine, name) {
