@@ -1,5 +1,7 @@
 ﻿{
     "Uri": "http://example.com/api/engines/foo",
+	"NoDb": false,
+	"LogSteps": false,
     "Database": {
         "Name": "Foo",
         "Uri": "http://example.com/api/databases/foo"
@@ -20,9 +22,5 @@
                 "Uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789"
             }
         ]
-    },
-    "StartInfo": {
-        "NoDb": false,
-        "LogSteps": false
     }
 }
