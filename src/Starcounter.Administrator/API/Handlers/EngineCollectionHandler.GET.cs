@@ -9,20 +9,17 @@ namespace Starcounter.Administrator.API.Handlers {
         /// <summary>
         /// Handles a GET for this resource.
         /// </summary>
-        /// <param name="request">
-        /// The REST request.</param>
+        /// <param name="request">The HTTP request.</param>
         /// <returns>The response to be sent back to the client.</returns>
         static object OnGET(Request request) {
             var server = RootHandler.Host.Runtime;
             var applicationDatabases = server.GetDatabases();
-            var admin = RootHandler.API;
-
+            
             var result = new EngineCollection();
             foreach (var db in applicationDatabases) {
                 if (db.HostProcessId != 0) {
                     var engine = result.Engines.Add();
-                    engine.Name = db.Name;
-                    engine.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Engine, db.Name);
+                    JSON.PopulateRefRepresentation(engine, db);
                 }
             }
 
