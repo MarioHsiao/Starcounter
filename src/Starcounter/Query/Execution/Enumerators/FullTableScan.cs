@@ -401,7 +401,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
         fixed (Byte* lastKeyPointer = lastKey) {
             // Trying to recreate the enumerator from key.
-            if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags, lastKeyPointer)) {
+            if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags, filterDataStream, lastKeyPointer)) {
                 // Indicating that enumerator has been created.
                 enumeratorCreated = true;
 
@@ -449,6 +449,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         filterHandle = privateFilter.GetFilterHandle();
         iterHelper.AddGeneratedFilter(filterHandle);
 
+        // Updating data stream as usual (taking into account
+        // the context object from some previous extent).
+        filterDataStream = privateFilter.GetDataStream(contextObject);
+        iterHelper.AddDataStream(filterDataStream);
+        
         // Trying to recreate the enumerator.
         unsafe
         {
@@ -477,10 +482,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 #endif
         }
 
-        // Updating data stream as usual (taking into account
-        // the context object from some previous extent).
-        filterDataStream = privateFilter.GetDataStream(contextObject);
-        iterHelper.AddDataStream(filterDataStream);
 
         // Creating native iterator.
         if (descending)
