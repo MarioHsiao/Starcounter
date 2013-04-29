@@ -53,22 +53,22 @@ namespace Starcounter.Administrator.API.Utilities {
                 detail.Helplink = helplink;
                 return detail;
             }
-        }
 
-        /// <summary>
-        /// Simplistic response creation utility for the API library, taking
-        /// advantage about built-in constraints of the admin server REST API
-        /// to create better responses.
-        /// </summary>
-        /// <param name="jsonContent">A JSON body.</param>
-        /// <param name="status">The status code; 200/OK by default.</param>
-        /// <param name="headers">Optional headers.</param>
-        /// <returns>A response to be sent back to the client.</returns>
-        public static Response CreateJSONResponse(
-            string jsonContent, int status = (int)HttpStatusCode.OK, Dictionary<string, string> headers = null) {
-            return new Response() { 
-                Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, headers, jsonContent) 
-            };
+            /// <summary>
+            /// Simplistic response creation utility for the API library, taking
+            /// advantage about built-in constraints of the admin server REST API
+            /// to create better responses.
+            /// </summary>
+            /// <param name="jsonContent">A JSON body.</param>
+            /// <param name="status">The status code; 200/OK by default.</param>
+            /// <param name="headers">Optional headers.</param>
+            /// <returns>A response to be sent back to the client.</returns>
+            public static Response CreateResponse(
+                string jsonContent, int status = (int)HttpStatusCode.OK, Dictionary<string, string> headers = null) {
+                return new Response() {
+                    Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(status, headers, jsonContent)
+                };
+            }
         }
 
         /// <summary>

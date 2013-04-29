@@ -26,7 +26,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 return 404;
 
             var body = ToJSONDatabase(applicationDatabase).ToJson();
-            return RESTUtility.CreateJSONResponse(body);
+            return RESTUtility.JSON.CreateResponse(body);
         }
 
         static Database ToJSONDatabase(DatabaseInfo applicationDatabase) {

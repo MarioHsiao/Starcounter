@@ -46,7 +46,7 @@ namespace Starcounter.Administrator.API.Handlers {
                     Text = "Database engine name not specified",
                     ServerCode = Error.SCERRUNSPECIFIED
                 };
-                return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 422);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 422);
             }
 
             var startCommand = new StartDatabaseCommand(serverEngine, name);
@@ -72,7 +72,7 @@ namespace Starcounter.Administrator.API.Handlers {
                         errDetail.Text = msg.Body;
                         errDetail.ServerCode = Error.SCERRDATABASENOTFOUND;
                         errDetail.Helplink = msg.Helplink;
-                        return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 404);
+                        return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
                     }
                 }
 
@@ -82,7 +82,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 msg = single.ToErrorMessage();
 
                 errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.ToString(), msg.Helplink);
-                return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 500);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 500);
             }
 
             // Check what processes were actually started and decide on
@@ -100,7 +100,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 // action". We just reuse the representation passed in
                 // with a simple addition: setting its URI.
                 engine.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Engine, name);
-                return RESTUtility.CreateJSONResponse(engine.ToJson(), 200);
+                return RESTUtility.JSON.CreateResponse(engine.ToJson(), 200);
             }
 
             // Derive a representation of the engine resource based on
@@ -125,14 +125,14 @@ namespace Starcounter.Administrator.API.Handlers {
             var state = runtime.GetDatabaseByName(name);
             if (state == null || state.HostProcessId == 0) {
                 errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASEENGINETERMINATED);
-                return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 500);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 500);
             }
 
             var headers = new Dictionary<string, string>(1);
             var result = EngineHandler.JSON.CreateRepresentation(state);
             headers.Add("Location", result.Uri);
 
-            return RESTUtility.CreateJSONResponse(result.ToJson(), 201, headers);
+            return RESTUtility.JSON.CreateResponse(result.ToJson(), 201, headers);
         }
     }
 }

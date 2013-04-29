@@ -20,14 +20,14 @@ namespace Starcounter.Administrator.API.Handlers {
             var applicationDatabase = server.GetDatabaseByName(name);
             if (applicationDatabase == null) {
                 var errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASENOTFOUND);
-                return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 404);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
             if (applicationDatabase.HostProcessId != 0) {
                 var host = new Engine.CodeHostProcessApp();
                 host.Uri = RootHandler.MakeAbsoluteUri(uriTemplateHostProcess, name);
                 host.PID = applicationDatabase.HostProcessId;
-                return RESTUtility.CreateJSONResponse(host.ToJson());
+                return RESTUtility.JSON.CreateResponse(host.ToJson());
             }
 
             // We return an empty 404 to indicate we didn't find the process,
