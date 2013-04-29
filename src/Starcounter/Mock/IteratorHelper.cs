@@ -343,6 +343,7 @@ namespace Starcounter
             Enumerator cachedEnum,
             UInt64 filterHandle,
             UInt32 flags,
+            Byte[] filterDataStream,
             Byte* lastKey)
         {
             int retry = 0;
@@ -362,24 +363,25 @@ namespace Starcounter
             Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
             //UInt32 flags = *((UInt32*)staticData);
             //UInt64 filterHandle = *((UInt64*)(staticData + 4));
-            Byte* varStream = staticData + 12;
+            //Byte* varStream = staticData + 12;
             //Byte* lastKey = *((UInt32*)varStream) + varStream;
 
             // Dynamic data.
             Byte* recreationKey = keyData + dynDataOffset;
             //SqlDebugHelper.PrintByteBuffer("FullTableScan Using Recreation Key", recreationKey, true);
-
-            // Recreating iterator using obtained data.
-            err = sccoredb.sc_recreate_iterator_with_filter(
-                indexHandle,
-                flags,
-                recreationKey,
-                lastKey,
-                filterHandle,
-                varStream,
-                &hCursor,
-                &verify
-            );
+            fixed (Byte* varStream = filterDataStream) {
+                // Recreating iterator using obtained data.
+                err = sccoredb.sc_recreate_iterator_with_filter(
+                    indexHandle,
+                    flags,
+                    recreationKey,
+                    lastKey,
+                    filterHandle,
+                    varStream,
+                    &hCursor,
+                    &verify
+                );
+            }
 
             // Checking error code.
             if (err == 0)

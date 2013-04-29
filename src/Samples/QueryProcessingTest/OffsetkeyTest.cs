@@ -84,6 +84,7 @@ namespace QueryProcessingTest {
             e.MoveNext();
             Trace.Assert(e.Current is User);
             e.Dispose();
+#if false // Tests do not fail any more, since static data are not read from the recreation key.
             // Test offsetkey on the query with the offset key from another query
             Boolean isException = false;
             e = Db.SQL("select u from user u fetch ?", 4).GetEnumerator();
@@ -101,8 +102,6 @@ namespace QueryProcessingTest {
                 e.Dispose();
             }
             Trace.Assert(isException);
-
-#if false
             isException = false;
             e = Db.SQL("select u from user u where useridnr < ? fetch ?", 5, 4).GetEnumerator();
             e.MoveNext();
