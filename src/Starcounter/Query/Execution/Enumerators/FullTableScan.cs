@@ -385,8 +385,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Tries to recreate enumerator using provided key.
     /// </summary>
-    unsafe Boolean TryRecreateEnumerator(Byte* rk)
-    {
+    unsafe Boolean TryRecreateEnumerator(Byte* rk) {
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
 
@@ -399,27 +398,25 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         else
             lastKey = secondKeyBuffer;
 
-        fixed (Byte* lastKeyPointer = lastKey) {
-            // Trying to recreate the enumerator from key.
-            if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags, filterDataStream, lastKeyPointer)) {
-                // Indicating that enumerator has been created.
-                enumeratorCreated = true;
+        // Trying to recreate the enumerator from key.
+        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
+            // Indicating that enumerator has been created.
+            enumeratorCreated = true;
 
-                // Checking if we found a deleted object.
-                //if (!innermostExtent)
-                //{
-                // Obtaining saved OID and ETI.
-                IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
+            // Checking if we found a deleted object.
+            //if (!innermostExtent)
+            //{
+            // Obtaining saved OID and ETI.
+            IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
 
-                // Enabling recreation object check.
-                enableRecreateObjectCheck = true;
-                //}
+            // Enabling recreation object check.
+            enableRecreateObjectCheck = true;
+            //}
 
-                return true;
-            } else // Checking if we are in outer enumerator.
-                if (!innermostExtent)
-                    variableArray.FailedToRecreateObject = true;
-        }
+            return true;
+        } else // Checking if we are in outer enumerator.
+            if (!innermostExtent)
+                variableArray.FailedToRecreateObject = true;
 
         return false;
     }

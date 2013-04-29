@@ -221,7 +221,7 @@ namespace Starcounter
             Int32 extentNumber,
             Enumerator cachedEnum,
             UInt32 flags, 
-            Byte *lastKey)
+            Byte[] lastKey)
         {
             int retry = 0;
 
@@ -247,14 +247,16 @@ namespace Starcounter
             // Recreating iterator using obtained data.
             //SqlDebugHelper.PrintByteBuffer("IndexScan Using Recreation Key", recreationKey, true);
             //Application.Profiler.Start("sc_recreate_iterator", 7);
-            err = sccoredb.sc_recreate_iterator(
-                indexHandle,
-                flags,
-                recreationKey,
-                lastKey,
-                &hCursor,
-                &verify
-            );
+            fixed (Byte* lastKeyPointer = lastKey) {
+                err = sccoredb.sc_recreate_iterator(
+                    indexHandle,
+                    flags,
+                    recreationKey,
+                    lastKeyPointer,
+                    &hCursor,
+                    &verify
+                );
+            }
             //Application.Profiler.Stop(7);
 
             // Checking error code.
@@ -344,7 +346,7 @@ namespace Starcounter
             UInt64 filterHandle,
             UInt32 flags,
             Byte[] filterDataStream,
-            Byte* lastKey)
+            Byte[] lastKey)
         {
             int retry = 0;
 
@@ -369,13 +371,13 @@ namespace Starcounter
             // Dynamic data.
             Byte* recreationKey = keyData + dynDataOffset;
             //SqlDebugHelper.PrintByteBuffer("FullTableScan Using Recreation Key", recreationKey, true);
-            fixed (Byte* varStream = filterDataStream) {
+            fixed (Byte* varStream = filterDataStream, lastKeyPointer = lastKey) {
                 // Recreating iterator using obtained data.
                 err = sccoredb.sc_recreate_iterator_with_filter(
                     indexHandle,
                     flags,
                     recreationKey,
-                    lastKey,
+                    lastKeyPointer,
                     filterHandle,
                     varStream,
                     &hCursor,
