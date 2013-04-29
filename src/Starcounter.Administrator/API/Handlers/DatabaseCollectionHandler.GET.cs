@@ -24,9 +24,8 @@ namespace Starcounter.Administrator.API.Handlers {
             var result = new DatabaseCollection();
             foreach (var applicationDatabase in applicationDatabases) {
                 var db = result.Databases.Add();
-                var uri = admin.FormatUri(admin.Uris.Database, applicationDatabase.Name);
                 db.Name = applicationDatabase.Name;
-                db.Uri = RootHandler.MakeAbsoluteUri(uri);
+                db.Uri = admin.Uris.Database.ToAbsoluteUri(applicationDatabase.Name);
             }
 
             return RESTUtility.JSON.CreateResponse(result.ToJson());

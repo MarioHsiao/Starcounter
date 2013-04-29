@@ -31,11 +31,10 @@ namespace Starcounter.Administrator.API.Handlers {
 
         static Database ToJSONDatabase(DatabaseInfo applicationDatabase) {
             var admin = RootHandler.API;
-            var engineUri = admin.FormatUri(admin.Uris.Engine, applicationDatabase.Name);
             
             var db = new Database();
             db.Name = applicationDatabase.Name;
-            db.Engine.Uri = RootHandler.MakeAbsoluteUri(engineUri);
+            db.Engine.Uri = admin.Uris.Engine.ToAbsoluteUri(applicationDatabase.Name);
             return db;
         }
     }

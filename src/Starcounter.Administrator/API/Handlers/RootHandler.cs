@@ -64,13 +64,19 @@ namespace Starcounter.Administrator.API.Handlers {
             RESTUtility.Register405OnAllUnsupported(uri, (ushort)Host.ServerPort, methodsSupported, allowExtensionsBeyondPatch);
         }
 
-        public static string MakeAbsoluteUri(string relativeUriTemplate, params object[] args) {
-            var relative = API.FormatUri(relativeUriTemplate, args);
-            return MakeAbsoluteUri(relative);
-        }
-
-        public static string MakeAbsoluteUri(string relativeUri) {
-            return new Uri(Host.BaseUri, relativeUri).ToString();
+        /// <summary>
+        /// Makes a uri or uri template absolute to the host bound to
+        /// the current root handler.
+        /// </summary>
+        /// <param name="relativeUriTemplate">Relative uri or uri template.</param>
+        /// <param name="args">Optional arguments, used if the uri is a template.</param>
+        /// <returns>A final and absolute URI relating to the API root.</returns>
+        public static string ToAbsoluteUri(this string relativeUriTemplate, params object[] args) {
+            var relative = relativeUriTemplate;
+            if (args != null || args.Length > 0) {
+                relative = API.FormatUri(relativeUriTemplate, args);
+            }
+            return new Uri(Host.BaseUri, relative).ToString();
         }
     }
 }

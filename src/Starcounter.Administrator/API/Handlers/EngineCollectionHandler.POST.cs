@@ -99,7 +99,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 // entity describing or containing the result of the
                 // action". We just reuse the representation passed in
                 // with a simple addition: setting its URI.
-                engine.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Engine, name);
+                engine.Uri = admin.Uris.Engine.ToAbsoluteUri(name);
                 return RESTUtility.JSON.CreateResponse(engine.ToJson(), 200);
             }
 

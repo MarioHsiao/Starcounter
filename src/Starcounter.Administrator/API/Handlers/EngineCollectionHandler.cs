@@ -28,7 +28,7 @@ namespace Starcounter.Administrator.API.Handlers {
             internal static void PopulateRefRepresentation(EngineReference engineRef, DatabaseInfo state) {
                 var name = state.Name;
                 var engineUriTemplate = RootHandler.API.Uris.Engine;
-                engineRef.Uri = RootHandler.MakeAbsoluteUri(engineUriTemplate, name);
+                engineRef.Uri = engineUriTemplate.ToAbsoluteUri(name);
                 engineRef.Name = name;
                 engineRef.NoDb = state.HasNoDbSwitch();
                 engineRef.LogSteps = state.HasLogStepsSwitch();
