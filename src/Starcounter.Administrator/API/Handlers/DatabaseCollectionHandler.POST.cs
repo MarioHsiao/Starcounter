@@ -49,7 +49,7 @@ namespace Starcounter.Administrator.API.Handlers {
             db.Name = name;
             db.Uri = RootHandler.MakeAbsoluteUri(admin.Uris.Database, name);
 
-            return RESTUtility.CreateJSONResponse(db.ToJson(), 201);
+            return RESTUtility.JSON.CreateResponse(db.ToJson(), 201);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var applicationDatabase = server.GetDatabaseByName(name);
             if (applicationDatabase == null) {
                 var errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASENOTFOUND);
-                return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 404);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
             // Concern here: should we return 404 both for the database

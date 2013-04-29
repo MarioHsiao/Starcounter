@@ -23,7 +23,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 }
             }
 
-            return RESTUtility.CreateJSONResponse(result.ToJson());
+            return RESTUtility.JSON.CreateResponse(result.ToJson());
         }
     }
 }

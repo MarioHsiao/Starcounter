@@ -25,7 +25,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var applicationDatabase = runtime.GetDatabaseByName(name);
             if (applicationDatabase == null) {
                 errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASENOTFOUND);
-                return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 404);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
             var stop = new StopDatabaseCommand(serverEngine, name, false);
@@ -45,7 +45,7 @@ namespace Starcounter.Administrator.API.Handlers {
                     if (single.GetErrorCode() == Error.SCERRDATABASENOTFOUND) {
                         var msg = single.ToErrorMessage();
                         errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
-                        return RESTUtility.CreateJSONResponse(errDetail.ToJson(), 404);
+                        return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
                     }
                 }
 
@@ -84,7 +84,7 @@ namespace Starcounter.Administrator.API.Handlers {
             applicationDatabase.HostProcessId = 0;
 
             var stoppedCodeHost = EngineHandler.JSON.CreateRepresentation(applicationDatabase);
-            return RESTUtility.CreateJSONResponse(stoppedCodeHost.ToJson());
+            return RESTUtility.JSON.CreateResponse(stoppedCodeHost.ToJson());
         }
     }
 }
