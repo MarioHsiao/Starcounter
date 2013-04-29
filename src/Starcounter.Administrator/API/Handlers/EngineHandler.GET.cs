@@ -33,7 +33,8 @@ namespace Starcounter.Administrator.API.Handlers {
             if (applicationDatabase.HostProcessId == 0)
                 return 404;
 
-            return EngineHandler.JSON.CreateRepresentation(applicationDatabase);
+            var engine = EngineHandler.JSON.CreateRepresentation(applicationDatabase);
+            return RESTUtility.JSON.CreateResponse(engine.ToJson(), 200);
         }
     }
 }
