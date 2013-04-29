@@ -55,6 +55,12 @@
     <Compile Include="API\Handlers\EngineCollectionHandler.cs" />
     <Compile Include="API\Handlers\EngineCollectionHandler.GET.cs" />
     <Compile Include="API\Handlers\EngineCollectionHandler.POST.cs" />
+    <Compile Include="API\Handlers\EngineHandler.cs" />
+    <Compile Include="API\Handlers\EngineHandler.DbProc.GET.cs" />
+    <Compile Include="API\Handlers\EngineHandler.DELETE.cs" />
+    <Compile Include="API\Handlers\EngineHandler.GET.cs" />
+    <Compile Include="API\Handlers\EngineHandler.HostProc.DELETE.cs" />
+    <Compile Include="API\Handlers\EngineHandler.HostProc.GET.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.POST.cs" />
     <Compile Include="API\RestAPI.cs" />
