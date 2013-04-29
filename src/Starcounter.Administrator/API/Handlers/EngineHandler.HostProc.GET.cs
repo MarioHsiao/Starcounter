@@ -1,7 +1,7 @@
 ﻿
 using Starcounter.Administrator.API.Utilities;
 using Starcounter.Advanced;
-using Starcounter.Server.Rest.Resources;
+using Starcounter.Server.Rest.Representations.JSON;
 
 namespace Starcounter.Administrator.API.Handlers {
 

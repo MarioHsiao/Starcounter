@@ -4,7 +4,7 @@ using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
-using Starcounter.Server.Rest.Resources;
+using Starcounter.Server.Rest.Representations.JSON;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

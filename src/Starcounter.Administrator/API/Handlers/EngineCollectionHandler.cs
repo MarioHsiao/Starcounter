@@ -1,7 +1,7 @@
 ﻿
 using Starcounter.Advanced;
 using Starcounter.Server.Rest;
-using Starcounter.Server.Rest.Resources;
+using Starcounter.Server.Rest.Representations.JSON;
 using Starcounter.Server.PublicModel;
 using Starcounter.Administrator.API.Utilities;
 

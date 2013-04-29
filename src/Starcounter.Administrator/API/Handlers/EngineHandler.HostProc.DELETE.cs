@@ -3,7 +3,7 @@ using Starcounter.Administrator.API.Utilities;
 using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
-using Starcounter.Server.Rest.Resources;
+using Starcounter.Server.Rest.Representations.JSON;
 using System.Diagnostics;
 
 namespace Starcounter.Administrator.API.Handlers {

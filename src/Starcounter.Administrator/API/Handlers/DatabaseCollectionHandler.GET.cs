@@ -1,6 +1,6 @@
 ﻿using Starcounter.Administrator.API.Utilities;
 using Starcounter.Advanced;
-using Starcounter.Server.Rest.Resources;
+using Starcounter.Server.Rest.Representations.JSON;
 using System;
 using System.Collections.Generic;
 using System.Linq;

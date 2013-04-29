@@ -1,7 +1,7 @@
 ﻿
 using Starcounter;
 
-namespace Starcounter.Server.Rest.Resources {
+namespace Starcounter.Server.Rest.Representations.JSON {
     /// <summary>
     /// Defines the log entry resource.
     /// </summary>
