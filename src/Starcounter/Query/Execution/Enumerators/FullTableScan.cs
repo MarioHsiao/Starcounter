@@ -393,29 +393,32 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // Creating flags.
         UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
 
+        Byte[] lastKey;
+        if (descending)
+            lastKey = firstKeyBuffer;
+        else
+            lastKey = secondKeyBuffer;
 
-        // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags))
-        {
-            // Indicating that enumerator has been created.
-            enumeratorCreated = true;
+        fixed (Byte* lastKeyPointer = lastKey) {
+            // Trying to recreate the enumerator from key.
+            if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags, lastKeyPointer)) {
+                // Indicating that enumerator has been created.
+                enumeratorCreated = true;
 
-            // Checking if we found a deleted object.
-            //if (!innermostExtent)
-            //{
+                // Checking if we found a deleted object.
+                //if (!innermostExtent)
+                //{
                 // Obtaining saved OID and ETI.
                 IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
 
                 // Enabling recreation object check.
                 enableRecreateObjectCheck = true;
-            //}
+                //}
 
-            return true;
-        }
-        else // Checking if we are in outer enumerator.
-        {
-            if (!innermostExtent)
-                variableArray.FailedToRecreateObject = true;
+                return true;
+            } else // Checking if we are in outer enumerator.
+                if (!innermostExtent)
+                    variableArray.FailedToRecreateObject = true;
         }
 
         return false;

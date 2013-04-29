@@ -118,12 +118,35 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         // Getting flags.
         UInt32 _flags = (UInt32)rangeFlags;
         if (descending)
-            _flags |= sccoredb.SC_ITERATOR_SORTED_DESCENDING;
-        // Trying to recreate the enumerator from key.        if (iterHelper.RecreateEnumerator_NoCodeGenFilter(rk, extentNumber, enumerator, _flags))        {
-            // Indicating that enumerator has been created.
-            enumeratorCreated = true;
-            // Checking if we found a deleted object.            //if (!innermostExtent)            //{                // Obtaining saved OID and ETI.                IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);                // Enabling recreation object check.                enableRecreateObjectCheck = true;            //}
-            return true;        }        else // Checking if we are in outer enumerator.        {            if (!innermostExtent)                variableArray.FailedToRecreateObject = true;        }        return false;    }    /// <summary>    /// Creates enumerator which than used in MoveNext.    /// </summary>    private Boolean CreateEnumerator()    {#if false // TODO EOH2: Transaction id        // Check that the current transaction has not been changed.        if (Transaction.Current == null)        {            if (variableArray.TransactionId != 0)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }        else        {            if (variableArray.TransactionId != Transaction.Current.TransactionId)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }#endif
+            _flags |= sccoredb.SC_ITERATOR_SORTED_DESCENDING;
+
+        // Getting lastkey
+        Byte[] lastKey;
+        if (onlyEqualities || descending)
+            lastKey = firstKeyBuffer;
+        else
+            lastKey = secondKeyBuffer;
+
+        fixed (Byte* lastKeyPointer = lastKey) {
+
+            // Trying to recreate the enumerator from key.
+            if (iterHelper.RecreateEnumerator_NoCodeGenFilter(rk, extentNumber, enumerator, _flags, lastKeyPointer)) {
+                // Indicating that enumerator has been created.
+                enumeratorCreated = true;
+
+                // Checking if we found a deleted object.
+                //if (!innermostExtent)
+                //{
+                // Obtaining saved OID and ETI.
+                IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
+
+                // Enabling recreation object check.
+                enableRecreateObjectCheck = true;
+                //}
+                return true;
+            } else // Checking if we are in outer enumerator.                if (!innermostExtent)
+                    variableArray.FailedToRecreateObject = true;
+        }        return false;    }    /// <summary>    /// Creates enumerator which than used in MoveNext.    /// </summary>    private Boolean CreateEnumerator()    {#if false // TODO EOH2: Transaction id        // Check that the current transaction has not been changed.        if (Transaction.Current == null)        {            if (variableArray.TransactionId != 0)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }        else        {            if (variableArray.TransactionId != Transaction.Current.TransactionId)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }#endif
 
         // Checking for query parameters.
         if (shouldRecalculateRange)
