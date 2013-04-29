@@ -113,7 +113,10 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         }
     }
 
-    public Row CurrentRow    {        get        {            if (currentObject != null)                return currentObject;            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect currentObject.");        }    }    /// <summary>    /// Depending on query flags, populates the flags value.    /// </summary>    public unsafe override void PopulateQueryFlags(UInt32* flags)    {        // Checking if there is any post managed filter.        if (!(postFilterCondition is LogicalLiteral))            (*flags) |= SqlConnectivityInterface.FLAG_POST_MANAGED_FILTER;        // Calling base function to populate other flags.        base.PopulateQueryFlags(flags);    }    /// <summary>    /// Tries to recreate enumerator using provided key.    /// </summary>    unsafe Boolean TryRecreateEnumerator(Byte* rk)    {        // In order to skip enumerator recreation next time.        triedEnumeratorRecreation = true;
+    public Row CurrentRow    {        get        {            if (currentObject != null)                return currentObject;            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect currentObject.");        }    }    /// <summary>    /// Depending on query flags, populates the flags value.    /// </summary>    public unsafe override void PopulateQueryFlags(UInt32* flags)    {        // Checking if there is any post managed filter.        if (!(postFilterCondition is LogicalLiteral))            (*flags) |= SqlConnectivityInterface.FLAG_POST_MANAGED_FILTER;        // Calling base function to populate other flags.        base.PopulateQueryFlags(flags);    }    /// <summary>    /// Tries to recreate enumerator using provided key.    /// </summary>
+    unsafe Boolean TryRecreateEnumerator(Byte* rk) {
+        // In order to skip enumerator recreation next time.
+        triedEnumeratorRecreation = true;
 
         // Getting flags.
         UInt32 _flags = (UInt32)rangeFlags;
@@ -127,26 +130,26 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         else
             lastKey = secondKeyBuffer;
 
-        fixed (Byte* lastKeyPointer = lastKey) {
+        // Trying to recreate the enumerator from key.
+        if (iterHelper.RecreateEnumerator_NoCodeGenFilter(rk, extentNumber, enumerator, _flags, lastKey)) {
+            // Indicating that enumerator has been created.
+            enumeratorCreated = true;
 
-            // Trying to recreate the enumerator from key.
-            if (iterHelper.RecreateEnumerator_NoCodeGenFilter(rk, extentNumber, enumerator, _flags, lastKeyPointer)) {
-                // Indicating that enumerator has been created.
-                enumeratorCreated = true;
+            // Checking if we found a deleted object.
+            //if (!innermostExtent)
+            //{
+            // Obtaining saved OID and ETI.
+            IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
 
-                // Checking if we found a deleted object.
-                //if (!innermostExtent)
-                //{
-                // Obtaining saved OID and ETI.
-                IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
-
-                // Enabling recreation object check.
-                enableRecreateObjectCheck = true;
-                //}
-                return true;
-            } else // Checking if we are in outer enumerator.                if (!innermostExtent)
-                    variableArray.FailedToRecreateObject = true;
-        }        return false;    }    /// <summary>    /// Creates enumerator which than used in MoveNext.    /// </summary>    private Boolean CreateEnumerator()    {#if false // TODO EOH2: Transaction id        // Check that the current transaction has not been changed.        if (Transaction.Current == null)        {            if (variableArray.TransactionId != 0)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }        else        {            if (variableArray.TransactionId != Transaction.Current.TransactionId)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }#endif
+            // Enabling recreation object check.
+            enableRecreateObjectCheck = true;
+            //}
+            return true;
+        } else // Checking if we are in outer enumerator.
+            if (!innermostExtent)
+                variableArray.FailedToRecreateObject = true;
+        return false;
+    }    /// <summary>    /// Creates enumerator which than used in MoveNext.    /// </summary>    private Boolean CreateEnumerator()    {#if false // TODO EOH2: Transaction id        // Check that the current transaction has not been changed.        if (Transaction.Current == null)        {            if (variableArray.TransactionId != 0)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }        else        {            if (variableArray.TransactionId != Transaction.Current.TransactionId)                throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);        }#endif
 
         // Checking for query parameters.
         if (shouldRecalculateRange)
