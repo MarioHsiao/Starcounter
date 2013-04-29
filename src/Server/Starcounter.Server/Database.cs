@@ -13,6 +13,7 @@ using Starcounter;
 using Starcounter.Configuration;
 using Starcounter.Server.PublicModel;
 using System.Diagnostics;
+using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
@@ -132,7 +133,8 @@ namespace Starcounter.Server {
                     };
                 }).ToArray(),
                 HostProcessId = process != null ? process.Id : 0,
-                DatabaseProcessRunning = Server.DatabaseEngine.IsDatabaseProcessRunning(this)
+                CodeHostArguments = process != null ? this.CodeHostArguments : null,
+                DatabaseProcessRunning = Server.DatabaseEngine.IsDatabaseProcessRunning(this),
             };
             return info;
         }
