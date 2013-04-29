@@ -1,8 +1,10 @@
 ﻿{
     "Engines": [
         {
+            "Uri": "http://example.com/api/engines/foo",
             "Name": "Foo",
-            "Uri": "http://example.com/api/engines/foo"
+            "NoDb": false,
+            "LogSteps": false
         }
     ]
 }
