@@ -41,7 +41,7 @@ namespace Starcounter.Server.Commands.Processors {
             if (!string.IsNullOrWhiteSpace(command.Fingerprint)) {
                 result = Engine.CurrentPublicModel.GetDatabase(command.DatabaseUri);
                 if (result.Engine == null || !result.Engine.Fingerprint.Equals(command.Fingerprint)) {
-                    this.SetResult(result, (int)Error.SCERRCOMMANDFINGERPRINTCOMPARE);
+                    this.SetResult(result, (int)Error.SCERRCOMMANDPRECONDITIONFAILED);
                     return;
                 }
             }
