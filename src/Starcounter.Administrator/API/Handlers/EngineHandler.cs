@@ -59,6 +59,41 @@ namespace Starcounter.Administrator.API.Handlers {
 
                 return engine;
             }
+
+            internal static Response CreateConditionBasedResponse(Request request, DatabaseInfo databaseInfo) {
+                return CreateConditionBasedResponse(request, databaseInfo.Engine);
+            }
+
+            internal static Response CreateConditionBasedResponse(Request request, EngineInfo engineInfo) {
+                // From RFC2616:
+                //
+                // "If the request would, without the If-Match header field, result
+                // in anything other than a 2xx or 412 status, then the If-Match
+                // header MUST be ignored".
+                //
+                // and
+                //
+                // The meaning of "If-Match: *" is that the method SHOULD be performed
+                // if the representation selected by the origin server [...] exists,
+                // and MUST NOT be performed if the representation does not exist".
+
+                if (request["If-None-Match"] != null || request["If-Range"] != null)
+                    return RESTUtility.JSON.CreateResponse(null, 501);
+
+                var etag = request["If-Match"];
+                if (etag != null) {
+                    if (etag.Equals("*")) {
+                        return RESTUtility.JSON.CreateResponse(null, 501);
+                    }
+
+                    if (engineInfo == null || !engineInfo.Fingerprint.Equals(etag)) {
+                        var errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDPRECONDITIONFAILED);
+                        return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 412);
+                    }
+                }
+
+                return null;
+            }
         }
 
         /// <summary>
