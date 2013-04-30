@@ -114,6 +114,7 @@
     <Compile Include="PublicModel\Commands\StopDatabaseCommand.cs" />
     <Compile Include="PublicModel\CommandTaskInfo.cs" />
     <Compile Include="PublicModel\DatabaseInfo.cs" />
+    <Compile Include="PublicModel\EngineInfo.cs" />
     <Compile Include="PublicModel\ErrorInfo.cs" />
     <Compile Include="PublicModel\ErrorInfoExtensions.cs" />
     <Compile Include="PublicModel\IServerRuntime.cs" />
