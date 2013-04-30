@@ -85,65 +85,13 @@ namespace Starcounter.Server.PublicModel {
         internal DatabaseInfo(
             string uri, string name, long imageSize, long logSize, EngineInfo engine, DatabaseConfiguration config, string collation) {
             this.Uri = uri;
+            this.Name = name;
             this.MaxImageSize = imageSize;
             this.TransactionLogSize = logSize;
             this.Engine = engine;
             this.Configuration = config;
             this.CollationFile = collation;
+            this.SupportReplication = false;
         }
-
-        ///// <summary>
-        ///// Gets the set of "Apps" currently hosted in the database
-        ///// represented by this snapshot.
-        ///// </summary>
-        ///// <remarks>
-        ///// This property should be moved out to a smaller, runtime-specific
-        ///// database information entity, along with all other runtime related
-        ///// state, like process identity, to allow information that change
-        ///// significantly less frequently to be updated only when needed (for
-        ///// example, configuration).
-        ///// <seealso cref="HostedApps"/>
-        ///// </remarks>
-        //public AppInfo[] HostedApps {
-        //    get;
-        //    set;
-        //}
-
-        ///// <summary>
-        ///// Gets the process ID of the database host process, if running.
-        ///// </summary>
-        ///// <remarks>
-        ///// This property should be moved out to a smaller, runtime-specific
-        ///// database information entity, along with all other runtime related
-        ///// state, like info hosted apps.
-        ///// <seealso cref="HostedApps"/>
-        ///// </remarks>
-        //public int HostProcessId {
-        //    get;
-        //    set;
-        //}
-
-        ///// <summary>
-        ///// Gets or sets a value representing the exact command-line
-        ///// arguments string what was used to start the host.
-        ///// </summary>
-        //public string CodeHostArguments {
-        //    get;
-        //    set;
-        //}
-
-        ///// <summary>
-        ///// Gets or sets a value indicating if the database process is running.
-        ///// </summary>
-        ///// <remarks>
-        ///// The server intentionally don't reveal the PID or any other sensitive
-        ///// information about the database process, just letting server hosts
-        ///// know if it's running or not.
-        ///// <seealso cref="HostProcessId"/>
-        ///// </remarks>
-        //public bool DatabaseProcessRunning {
-        //    get;
-        //    set;
-        //}
     }
 }
