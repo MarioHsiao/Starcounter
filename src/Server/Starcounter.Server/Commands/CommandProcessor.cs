@@ -31,6 +31,7 @@ namespace Starcounter.Server.Commands {
         private readonly DateTime startTime = DateTime.Now;
 
         private Dictionary<int, ProgressInfo> progress;
+        private object result;
         private readonly int typeIdentity;
 
         private NotifyCommandStatusChangedCallback _notifyStatusChangedCallback;
@@ -63,7 +64,8 @@ namespace Starcounter.Server.Commands {
             this.Id = CommandId.MakeNew();
             this.typeIdentity = CreateToken(GetType());
             this.IsPublic = !isInternal;
-            this.manualResetEvent = command.EnableWaiting ? new ManualResetEvent(false) : null; 
+            this.manualResetEvent = command.EnableWaiting ? new ManualResetEvent(false) : null;
+            this.result = null;
             stopwatch = Stopwatch.StartNew();
         }
 
@@ -141,6 +143,23 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
+        /// Provides a way for processors to attach a result to the
+        /// ending of their processing. The result will be published
+        /// with the latest/final snapshot of the command when the
+        /// processor has completed (either sucessfully or erred).
+        /// </summary>
+        /// <param name="result">The result, an opaque object.</param>
+        protected void SetResult(object result) {
+            // Lets begin to only allow results to be set during the
+            // execution of commands, and loosen up a little if we find
+            // it's needed.
+            if (this.Status != CommandStatus.Executing)
+                throw new InvalidOperationException();
+
+            this.result = result;
+        }
+
+        /// <summary>
         /// Updates the status of the current command to <see cref="CommandStatus.Failed"/>.
         /// </summary>
         /// <param name="errors">Description of the error that has happened.</param>
@@ -203,6 +222,11 @@ namespace Starcounter.Server.Commands {
                 if (this.manualResetEvent != null) {
                     info.Waitable = new WeakReference(this.manualResetEvent);
                 }
+            } else {
+                // Only assign the result to the public model
+                // reprsentation if the processor in fact have
+                // completd.
+                info.Result = this.result;
             }
 
             return info;
