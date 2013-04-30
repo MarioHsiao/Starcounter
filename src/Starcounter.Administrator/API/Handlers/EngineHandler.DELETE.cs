@@ -28,36 +28,19 @@ namespace Starcounter.Administrator.API.Handlers {
                 errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASENOTFOUND);
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
-
-            // From RFC2616:
-            //
-            // "If the request would, without the If-Match header field, result
-            // in anything other than a 2xx or 412 status, then the If-Match
-            // header MUST be ignored".
-            //
-            // and
-            //
-            // The meaning of "If-Match: *" is that the method SHOULD be performed
-            // if the representation selected by the origin server [...] exists,
-            // and MUST NOT be performed if the representation does not exist".
-
             var applicationEngine = applicationDatabase.Engine;
-            var etag = request["If-Match"];
-            if (etag != null) {
-                if (etag.Equals("*")) {
-                    return 501;
-                }
 
-                // Do entry-level lookup before we pump the command through
-                // the server loop, to check if the condition is already not
-                // met. This offloads work from the server, but does not
-                // prevent the check to be done again in a safe context during
-                // the execution of the command.
-                if (applicationEngine == null || !applicationEngine.Fingerprint.Equals(etag)) {
-                    errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDFINGERPRINTCOMPARE);
-                    return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 412);
-                }
-            }
+            // Do entry-level lookup before we pump the command through
+            // the server loop, to check if the condition is already not
+            // met. This offloads work from the server, but does not
+            // prevent the check to be done again in a safe context during
+            // the execution of the command. This is doable because we
+            // know that fingerprints will never be reused so as soon as
+            // the change, we can be 100% sure they will not get back to
+            // how they once were (i.e. the fingerprint we have) on entering.
+            var conditionFailed = JSON.CreateConditionBasedResponse(request, applicationEngine);
+            if (conditionFailed != null) return conditionFailed;
+            var etag = request["If-Match"];
 
             var stop = new StopDatabaseCommand(serverEngine, name, true);
             stop.EnableWaiting = true;
@@ -79,8 +62,8 @@ namespace Starcounter.Administrator.API.Handlers {
             // Check if there is a specific exit code and it indicates a failing
             // precondition.
             if (commandInfo.ExitCode.HasValue &&
-                commandInfo.ExitCode.Value == Error.SCERRCOMMANDFINGERPRINTCOMPARE) {
-                errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDFINGERPRINTCOMPARE);
+                commandInfo.ExitCode.Value == Error.SCERRCOMMANDPRECONDITIONFAILED) {
+                errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDPRECONDITIONFAILED);
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 412);
             }
 
