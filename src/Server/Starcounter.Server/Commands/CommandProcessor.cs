@@ -31,6 +31,7 @@ namespace Starcounter.Server.Commands {
         private readonly DateTime startTime = DateTime.Now;
 
         private Dictionary<int, ProgressInfo> progress;
+        private int? exitCode;
         private object result;
         private readonly int typeIdentity;
 
@@ -66,6 +67,7 @@ namespace Starcounter.Server.Commands {
             this.IsPublic = !isInternal;
             this.manualResetEvent = command.EnableWaiting ? new ManualResetEvent(false) : null;
             this.result = null;
+            this.exitCode = null;
             stopwatch = Stopwatch.StartNew();
         }
 
@@ -143,19 +145,22 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Provides a way for processors to attach a result to the
-        /// ending of their processing. The result will be published
-        /// with the latest/final snapshot of the command when the
-        /// processor has completed (either sucessfully or erred).
+        /// Provides a way for processors to attach an optional exit
+        /// code and a result to the ending of their processing.
+        /// The code/result will be published with the latest/final
+        /// snapshot of the command when the processor has completed
+        /// (either sucessfully or erred).
         /// </summary>
         /// <param name="result">The result, an opaque object.</param>
-        protected void SetResult(object result) {
-            // Lets begin to only allow results to be set during the
+        /// <param name="exitCode">The exit code.</param>
+        protected void SetResult(object result, int? exitCode = null) {
+            // Lets begin to only allow this to be set during the
             // execution of commands, and loosen up a little if we find
             // it's needed.
             if (this.Status != CommandStatus.Executing)
                 throw new InvalidOperationException();
 
+            this.exitCode = exitCode;
             this.result = result;
         }
 
@@ -353,7 +358,6 @@ namespace Starcounter.Server.Commands {
                 _notifyStatusChangedCallback = null;
             }
         }
-
 
         /// <summary>
         /// Executes the current command.
