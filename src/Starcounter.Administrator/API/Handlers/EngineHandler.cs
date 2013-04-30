@@ -29,17 +29,21 @@ namespace Starcounter.Administrator.API.Handlers {
                 var admin = RootHandler.API;
                 var engine = new Engine();
                 var name = state.Name;
+                var engineState = state.Engine;
 
                 engine.Uri = uriTemplate.ToAbsoluteUri(name);
                 engine.Database.Name = name;
                 engine.Database.Uri = admin.Uris.Database.ToAbsoluteUri(name);
                 engine.CodeHostProcess.Uri = uriTemplateHostProcess.ToAbsoluteUri(name);
-                engine.CodeHostProcess.PID = state.HostProcessId;
+                engine.CodeHostProcess.PID = engineState.HostProcessId;
                 engine.DatabaseProcess.Uri = uriTemplateDbProcess.ToAbsoluteUri(name);
-                engine.DatabaseProcess.Running = state.DatabaseProcessRunning;
-                engine.NoDb = state.HasNoDbSwitch();
-                engine.LogSteps = state.HasLogStepsSwitch();
-
+                engine.DatabaseProcess.Running = engineState.DatabaseProcessRunning;
+                engine.NoDb = engineState.HasNoDbSwitch();
+                engine.LogSteps = engineState.HasLogStepsSwitch();
+                engine.Executables.Uri = admin.Uris.Executables.ToAbsoluteUri(name);
+                foreach (var executable in engineState.HostedApps) {
+                    // TODO
+                }
                 return engine;
             }
         }

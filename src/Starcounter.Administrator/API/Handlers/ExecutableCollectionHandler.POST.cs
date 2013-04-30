@@ -163,7 +163,7 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var x = new ExecResponse201() {
                 DatabaseUri = command.DatabaseUri,
-                DatabaseHostPID = database.HostProcessId,
+                DatabaseHostPID = database.Engine.HostProcessId,
                 DatabaseCreated = createdDatabase
             };
             var content = x.ToJson();

@@ -23,7 +23,8 @@ namespace Starcounter.Administrator.API.Handlers {
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
-            if (applicationDatabase.DatabaseProcessRunning) {
+            var engineInfo = applicationDatabase.Engine;
+            if (engineInfo != null && engineInfo.DatabaseProcessRunning) {
                 var host = new Engine.DatabaseProcessApp();
                 host.Uri = uriTemplateDbProcess.ToAbsoluteUri(name);
                 host.Running = true;

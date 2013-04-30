@@ -30,8 +30,8 @@ namespace Starcounter.Administrator.API.Handlers {
                 var engineUriTemplate = RootHandler.API.Uris.Engine;
                 engineRef.Uri = engineUriTemplate.ToAbsoluteUri(name);
                 engineRef.Name = name;
-                engineRef.NoDb = state.HasNoDbSwitch();
-                engineRef.LogSteps = state.HasLogStepsSwitch();
+                engineRef.NoDb = state.Engine.HasNoDbSwitch();
+                engineRef.LogSteps = state.Engine.HasLogStepsSwitch();
             }
         }
 

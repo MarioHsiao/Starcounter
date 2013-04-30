@@ -12,13 +12,13 @@ namespace Starcounter.Administrator.API.Utilities {
     /// </summary>
     internal static class ApplicationLayerExtensions {
 
-        public static bool HasNoDbSwitch(this DatabaseInfo db) {
-            var args = db.CodeHostArguments;
+        public static bool HasNoDbSwitch(this EngineInfo engine) {
+            var args = engine.CodeHostArguments;
             return string.IsNullOrEmpty(args) ? false : ContainsFlag(args, "NoDb");
         }
 
-        public static bool HasLogStepsSwitch(this DatabaseInfo db) {
-            var args = db.CodeHostArguments;
+        public static bool HasLogStepsSwitch(this EngineInfo engine) {
+            var args = engine.CodeHostArguments;
             return string.IsNullOrEmpty(args) ? false : ContainsFlag(args, "LogSteps");
         }
 

@@ -23,10 +23,11 @@ namespace Starcounter.Administrator.API.Handlers {
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
-            if (applicationDatabase.HostProcessId != 0) {
+            var engineInfo = applicationDatabase.Engine;
+            if (engineInfo != null &&  engineInfo.HostProcessId != 0) {
                 var host = new Engine.CodeHostProcessApp();
                 host.Uri = uriTemplateHostProcess.ToAbsoluteUri(name);
-                host.PID = applicationDatabase.HostProcessId;
+                host.PID = engineInfo.HostProcessId;
                 return RESTUtility.JSON.CreateResponse(host.ToJson());
             }
 
