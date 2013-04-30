@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.Administrator.API.Utilities;
 using Starcounter.Advanced;
+using System.Collections.Generic;
 
 namespace Starcounter.Administrator.API.Handlers {
 
@@ -22,19 +23,18 @@ namespace Starcounter.Administrator.API.Handlers {
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
-            // Concern here: should we return 404 both for the database
-            // not being found and the engine? They are semantically different,
-            // so probably not. Right now we differ them by returning a content
-            // describing the case that the database is not found above, and
-            // returning no content if the host process was found not running.
-            // Consider and possible resolve this.
-            // TODO:
-
             var engineState = applicationDatabase.Engine;
-            if (engineState == null || engineState.HostProcessId == 0)
-                return 404;
+            if (engineState == null || engineState.HostProcessId == 0) {
+                var errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASEENGINENOTRUNNING);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
+            }
 
-            var engine = EngineHandler.JSON.CreateRepresentation(applicationDatabase);
+            var conditionFailed = JSON.CreateConditionBasedResponse(request, engineState);
+            if (conditionFailed != null) return conditionFailed;
+
+            var headers = new Dictionary<string, string>(1);
+            var engine = EngineHandler.JSON.CreateRepresentation(applicationDatabase, headers);
+            
             return RESTUtility.JSON.CreateResponse(engine.ToJson(), 200);
         }
     }
