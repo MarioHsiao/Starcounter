@@ -3722,7 +3722,19 @@
         unexpectedly terminated.
       </message>
     </code>
-
+    <code hex="0017" severity="Error" name="ScErrCommandFingerprintCompare">
+      <!--
+      This error allows server command processors to report about a condition
+      failing to be met based on a given fingerprint. The server design for
+      fingerprint matching is closely related and largely influenced by the
+      HTTP Etag- and conditional invocation concepts and hence, this error
+      can be considered the equivivalent to HTTP status 412.
+      -->
+      <message>
+        The server detected a precondition that was not met; the command was
+        not executed.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
