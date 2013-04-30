@@ -4,6 +4,7 @@ using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Server.Rest.Representations.JSON;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Starcounter.Administrator.API.Handlers {
@@ -28,35 +29,59 @@ namespace Starcounter.Administrator.API.Handlers {
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
+            // From RFC2616:
+            //
+            // "If the request would, without the If-Match header field, result
+            // in anything other than a 2xx or 412 status, then the If-Match
+            // header MUST be ignored".
+            //
+            // and
+            //
+            // The meaning of "If-Match: *" is that the method SHOULD be performed
+            // if the representation selected by the origin server [...] exists,
+            // and MUST NOT be performed if the representation does not exist".
+
+            var applicationEngine = applicationDatabase.Engine;
+            var etag = request["If-Match"];
+            if (etag != null) {
+                if (etag.Equals("*")) {
+                    return 501;
+                }
+
+                // Do entry-level lookup before we pump the command through
+                // the server loop, to check if the condition is already not
+                // met. This offloads work from the server, but does not
+                // prevent the check to be done again in a safe context during
+                // the execution of the command.
+                if (applicationEngine == null || !applicationEngine.Fingerprint.Equals(etag)) {
+                    errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDFINGERPRINTCOMPARE);
+                    return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 412);
+                }
+            }
+
             var stop = new StopDatabaseCommand(serverEngine, name, true);
             stop.EnableWaiting = true;
+            stop.Fingerprint = etag;
 
             var commandInfo = runtime.Execute(stop);
             Trace.Assert(commandInfo.ProcessorToken == StopDatabaseCommand.DefaultProcessor.Token);
             if (stop.EnableWaiting) {
                 commandInfo = runtime.Wait(commandInfo);
             }
-
             if (commandInfo.HasError) {
-                ErrorInfo single;
+                return ToErrorResponse(commandInfo);
+            }
 
-                single = null;
-                if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
-                    if (single.GetErrorCode() == Error.SCERRDATABASENOTFOUND) {
-                        var msg = single.ToErrorMessage();
-                        errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
-                        return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
-                    }
-                }
+            // Just to be sure we don't forget to change this all once
+            // we implement asynchronous requests.
+            Trace.Assert(commandInfo.IsCompleted);
 
-                if (single == null)
-                    single = commandInfo.Errors[0];
-
-                // Create a 500. Right now we do it the sloppy way, letting
-                // the server craft it for us based on the exception. We should
-                // switch to a non-exception-based approach.
-
-                throw single.ToErrorMessage().ToException();
+            // Check if there is a specific exit code and it indicates a failing
+            // precondition.
+            if (commandInfo.ExitCode.HasValue &&
+                commandInfo.ExitCode.Value == Error.SCERRCOMMANDFINGERPRINTCOMPARE) {
+                errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDFINGERPRINTCOMPARE);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 412);
             }
 
             // Check what processes were actually stopped and decide on
@@ -81,18 +106,36 @@ namespace Starcounter.Administrator.API.Handlers {
             // that. The important aspect is that right after the completion of
             // the stop command, the engine WAS in fact stopped, and thats what
             // we need to tell the client or agent.
+            //   The result of any successful stop command should contain the
+            // snapshot of the state at the completion of the command.
+            applicationDatabase = (DatabaseInfo)commandInfo.Result;
 
-            // This is no longer doable, but we need another strategy anyway
-            // to handle conditional deletes, supporting our development/debug
-            // cycle in multiple executable scenarios.
-            // TODO:
+            var headers = new Dictionary<string, string>(1);
+            var stoppedEngine = EngineHandler.JSON.CreateRepresentation(applicationDatabase, headers);
+            
+            return RESTUtility.JSON.CreateResponse(stoppedEngine.ToJson(), 200, headers);
+        }
 
-            //applicationDatabase.HostedApps = new AppInfo[0];
-            //applicationDatabase.HostProcessId = 0;
-            //applicationDatabase.DatabaseProcessRunning = false;
+        static Response ToErrorResponse(CommandInfo commandInfo) {
+            ErrorInfo single;
 
-            var stoppedEngine = EngineHandler.JSON.CreateRepresentation(applicationDatabase);
-            return RESTUtility.JSON.CreateResponse(stoppedEngine.ToJson());
+            single = null;
+            if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
+                if (single.GetErrorCode() == Error.SCERRDATABASENOTFOUND) {
+                    var msg = single.ToErrorMessage();
+                    var errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
+                    return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
+                }
+            }
+
+            if (single == null)
+                single = commandInfo.Errors[0];
+
+            // Create a 500. Right now we do it the sloppy way, letting
+            // the server craft it for us based on the exception. We should
+            // switch to a non-exception-based approach.
+
+            throw single.ToErrorMessage().ToException();
         }
     }
 }
