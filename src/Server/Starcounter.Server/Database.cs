@@ -117,25 +117,62 @@ namespace Starcounter.Server {
         /// <returns>A <see cref="DatabaseInfo"/> representing the current state
         /// of this database.</returns>
         internal DatabaseInfo ToPublicModel() {
+            EngineInfo engine = null;
             var process = GetRunningCodeHostProcess();
-            var info = new DatabaseInfo() {
-                CollationFile = null,
-                Configuration = this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
-                Name = this.Name,
-                MaxImageSize = 0,   // TODO: Backlog
-                SupportReplication = false,
-                TransactionLogSize = 0, // TODO: Backlog
-                Uri = this.Uri,
-                HostedApps = this.Apps.ConvertAll<AppInfo>(delegate(DatabaseApp app) {
-                    return new AppInfo() {
-                        ExecutablePath = app.OriginalExecutablePath,
-                        WorkingDirectory = app.WorkingDirectory
-                    };
-                }).ToArray(),
-                HostProcessId = process != null ? process.Id : 0,
-                CodeHostArguments = process != null ? this.CodeHostArguments : null,
-                DatabaseProcessRunning = Server.DatabaseEngine.IsDatabaseProcessRunning(this),
-            };
+            var databaseRunning = Server.DatabaseEngine.IsDatabaseProcessRunning(this);
+
+            if (databaseRunning || process != null) {
+                AppInfo[] executables = null;
+                int hostProcId = 0;
+                string hostProcArgs = null;
+                if (process != null) {
+                    executables = this.Apps.ConvertAll<AppInfo>((app) => {
+                        return new AppInfo() {
+                            ExecutablePath = app.OriginalExecutablePath,
+                            WorkingDirectory = app.WorkingDirectory
+                        };
+                    }).ToArray();
+                    hostProcId = process.Id;
+                    hostProcArgs = this.CodeHostArguments;
+                }
+                engine = new EngineInfo(executables, hostProcId, hostProcArgs, databaseRunning);
+            }
+            
+            var info = new DatabaseInfo(this.Uri, this.Name, 0, 0, engine,this.Configuration.Clone(this.Configuration.ConfigurationFilePath), null);
+            // {
+            //    CollationFile = null,
+            //    Configuration = this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
+            //    Name = this.Name,
+            //    MaxImageSize = 0,   // TODO: Backlog
+            //    SupportReplication = false,
+            //    TransactionLogSize = 0, // TODO: Backlog
+            //    Uri = this.Uri,
+            //    HostedApps = this.Apps.ConvertAll<AppInfo>(delegate(DatabaseApp app) {
+            //        return new AppInfo() {
+            //            ExecutablePath = app.OriginalExecutablePath,
+            //            WorkingDirectory = app.WorkingDirectory
+            //        };
+            //    }).ToArray(),
+            //    HostProcessId = process != null ? process.Id : 0,
+            //    CodeHostArguments = process != null ? this.CodeHostArguments : null,
+            //    DatabaseProcessRunning = databaseRunning
+            //};
+
+            //if (databaseRunning || process != null) {
+            //    info.Engine = new DatabaseInfo.EngineInfo();
+            //    info.Engine.DatabaseProcessRunning = databaseRunning;
+            //    if (process != null) {
+            //        info.HostProcessId = process.Id;
+            //        info.CodeHostArguments = this.CodeHostArguments;
+            //        info.HostedApps = this.Apps.ConvertAll<AppInfo>((app) => {
+            //            return new AppInfo() {
+            //                ExecutablePath = app.OriginalExecutablePath,
+            //                WorkingDirectory = app.WorkingDirectory
+            //            };
+            //        }).ToArray();
+            //    }
+            //}
+
             return info;
         }
 

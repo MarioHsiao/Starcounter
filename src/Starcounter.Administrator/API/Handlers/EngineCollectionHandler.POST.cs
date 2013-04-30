@@ -121,7 +121,7 @@ namespace Starcounter.Administrator.API.Handlers {
             // return that state.
 
             var state = runtime.GetDatabaseByName(name);
-            if (state == null || state.HostProcessId == 0) {
+            if (state == null || state.Engine == null || state.Engine.HostProcessId == 0) {
                 errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASEENGINETERMINATED);
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 500);
             }

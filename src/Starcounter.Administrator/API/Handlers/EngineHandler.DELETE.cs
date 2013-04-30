@@ -82,9 +82,14 @@ namespace Starcounter.Administrator.API.Handlers {
             // the stop command, the engine WAS in fact stopped, and thats what
             // we need to tell the client or agent.
 
-            applicationDatabase.HostedApps = new AppInfo[0];
-            applicationDatabase.HostProcessId = 0;
-            applicationDatabase.DatabaseProcessRunning = false;
+            // This is no longer doable, but we need another strategy anyway
+            // to handle conditional deletes, supporting our development/debug
+            // cycle in multiple executable scenarios.
+            // TODO:
+
+            //applicationDatabase.HostedApps = new AppInfo[0];
+            //applicationDatabase.HostProcessId = 0;
+            //applicationDatabase.DatabaseProcessRunning = false;
 
             var stoppedEngine = EngineHandler.JSON.CreateRepresentation(applicationDatabase);
             return RESTUtility.JSON.CreateResponse(stoppedEngine.ToJson());

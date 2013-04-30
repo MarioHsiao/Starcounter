@@ -80,8 +80,12 @@ namespace Starcounter.Administrator.API.Handlers {
             // the stop command, the host WAS in fact stopped, and thats what
             // we need to tell the client or agent.
 
-            applicationDatabase.HostedApps = new AppInfo[0];
-            applicationDatabase.HostProcessId = 0;
+            // Not doable right now, and we must consider etagging.
+            // Will be adressed shortly.
+            // TODO:
+            
+            // applicationDatabase.HostedApps = new AppInfo[0];
+            // applicationDatabase.HostProcessId = 0;
 
             var stoppedCodeHost = EngineHandler.JSON.CreateRepresentation(applicationDatabase);
             return RESTUtility.JSON.CreateResponse(stoppedCodeHost.ToJson());

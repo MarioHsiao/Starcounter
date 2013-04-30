@@ -30,7 +30,8 @@ namespace Starcounter.Administrator.API.Handlers {
             // Consider and possible resolve this.
             // TODO:
 
-            if (applicationDatabase.HostProcessId == 0)
+            var engineState = applicationDatabase.Engine;
+            if (engineState == null || engineState.HostProcessId == 0)
                 return 404;
 
             var engine = EngineHandler.JSON.CreateRepresentation(applicationDatabase);
