@@ -2,6 +2,8 @@
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest.Representations.JSON;
 using Starcounter.Administrator.API.Utilities;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Starcounter.Administrator.API.Handlers {
     /// <summary>
@@ -23,27 +25,38 @@ namespace Starcounter.Administrator.API.Handlers {
             /// </summary>
             /// <param name="state">The database whose semantics the JSON
             /// representation represents.</param>
+            /// <param name="headers">Dictionary with headers that possibly
+            /// will be added to if given and the state indicates we should
+            /// do so.</param>
             /// <returns>A strongly types JSON <see cref="Engine"/> instance.
             /// </returns>
-            internal static Engine CreateRepresentation(DatabaseInfo state) {
+            internal static Engine CreateRepresentation(DatabaseInfo state, Dictionary<string, string> headers = null) {
                 var admin = RootHandler.API;
                 var engine = new Engine();
                 var name = state.Name;
                 var engineState = state.Engine;
+                Trace.Assert(
+                    engineState != null, "We should never hand out engine instances with no backing state.");
 
                 engine.Uri = uriTemplate.ToAbsoluteUri(name);
                 engine.Database.Name = name;
                 engine.Database.Uri = admin.Uris.Database.ToAbsoluteUri(name);
                 engine.CodeHostProcess.Uri = uriTemplateHostProcess.ToAbsoluteUri(name);
-                engine.CodeHostProcess.PID = engineState.HostProcessId;
                 engine.DatabaseProcess.Uri = uriTemplateDbProcess.ToAbsoluteUri(name);
+                engine.CodeHostProcess.PID = engineState.HostProcessId;
                 engine.DatabaseProcess.Running = engineState.DatabaseProcessRunning;
                 engine.NoDb = engineState.HasNoDbSwitch();
                 engine.LogSteps = engineState.HasLogStepsSwitch();
                 engine.Executables.Uri = admin.Uris.Executables.ToAbsoluteUri(name);
                 foreach (var executable in engineState.HostedApps) {
-                    // TODO
+                    // Populate all executables
+                    // TODO:
                 }
+
+                if (headers != null) {
+                    headers.Add("ETag", engineState.Fingerprint);
+                }
+
                 return engine;
             }
         }
