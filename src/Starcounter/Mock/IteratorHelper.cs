@@ -220,7 +220,8 @@ namespace Starcounter
             Byte* keyData,
             Int32 extentNumber,
             Enumerator cachedEnum,
-            UInt32 flags)
+            UInt32 flags, 
+            Byte[] lastKey)
         {
             int retry = 0;
 
@@ -238,7 +239,7 @@ namespace Starcounter
 
             Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
             //UInt32 flags = *((UInt32*)staticData);
-            Byte* lastKey = staticData + 4; // Skipping flags.
+            //Byte* lastKey = staticData + 4; // Skipping flags.
 
             // Dynamic data.
             Byte* recreationKey = keyData + dynDataOffset;
@@ -246,14 +247,16 @@ namespace Starcounter
             // Recreating iterator using obtained data.
             //SqlDebugHelper.PrintByteBuffer("IndexScan Using Recreation Key", recreationKey, true);
             //Application.Profiler.Start("sc_recreate_iterator", 7);
-            err = sccoredb.sc_recreate_iterator(
-                indexHandle,
-                flags,
-                recreationKey,
-                lastKey,
-                &hCursor,
-                &verify
-            );
+            fixed (Byte* lastKeyPointer = lastKey) {
+                err = sccoredb.sc_recreate_iterator(
+                    indexHandle,
+                    flags,
+                    recreationKey,
+                    lastKeyPointer,
+                    &hCursor,
+                    &verify
+                );
+            }
             //Application.Profiler.Stop(7);
 
             // Checking error code.
@@ -341,7 +344,9 @@ namespace Starcounter
             Int32 extentNumber,
             Enumerator cachedEnum,
             UInt64 filterHandle,
-            UInt32 flags)
+            UInt32 flags,
+            Byte[] filterDataStream,
+            Byte[] lastKey)
         {
             int retry = 0;
 
@@ -360,24 +365,25 @@ namespace Starcounter
             Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
             //UInt32 flags = *((UInt32*)staticData);
             //UInt64 filterHandle = *((UInt64*)(staticData + 4));
-            Byte* varStream = staticData + 12;
-            Byte* lastKey = *((UInt32*)varStream) + varStream;
+            //Byte* varStream = staticData + 12;
+            //Byte* lastKey = *((UInt32*)varStream) + varStream;
 
             // Dynamic data.
             Byte* recreationKey = keyData + dynDataOffset;
             //SqlDebugHelper.PrintByteBuffer("FullTableScan Using Recreation Key", recreationKey, true);
-
-            // Recreating iterator using obtained data.
-            err = sccoredb.sc_recreate_iterator_with_filter(
-                indexHandle,
-                flags,
-                recreationKey,
-                lastKey,
-                filterHandle,
-                varStream,
-                &hCursor,
-                &verify
-            );
+            fixed (Byte* varStream = filterDataStream, lastKeyPointer = lastKey) {
+                // Recreating iterator using obtained data.
+                err = sccoredb.sc_recreate_iterator_with_filter(
+                    indexHandle,
+                    flags,
+                    recreationKey,
+                    lastKeyPointer,
+                    filterHandle,
+                    varStream,
+                    &hCursor,
+                    &verify
+                );
+            }
 
             // Checking error code.
             if (err == 0)
