@@ -261,6 +261,12 @@ namespace Starcounter.Internal.Web
         return response;
     }
 
+    public readonly static byte[] BadRequest400 = System.Text.Encoding.UTF8.GetBytes(
+        "HTTP/1.1 400 Bad Request" + CRLF +
+        "Server: SC" + CRLF +
+        "Connection: close" + CRLF +
+        "Content-Length: 0" + CRLFCRLF);
+
     /// <summary>
     /// Nots the found404.
     /// </summary>

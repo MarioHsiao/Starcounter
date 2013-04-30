@@ -390,7 +390,7 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the Content as UTF8 string.
+        /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
         public String GetBodyStringUtf8_Slow() {
@@ -425,6 +425,14 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) {
             unsafe { http_request_struct_->GetRequestRaw(out ptr, out sizeBytes); }
+        }
+
+        /// <summary>
+        /// Gets request as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetRequestStringUtf8_Slow() {
+            unsafe { return http_request_struct_->GetRequestStringUtf8_Slow(); }
         }
 
         /// <summary>
@@ -887,7 +895,16 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the content as UTF8 string.
+        /// Gets the request as UTF8 string.
+        /// </summary>
+        /// <returns>Request string.</returns>
+        public String GetRequestStringUtf8_Slow()
+        {
+            return new String((SByte*)(socket_data_ + request_offset_), 0, (Int32)request_len_bytes_, Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
         public String GetBodyStringUtf8_Slow() {
