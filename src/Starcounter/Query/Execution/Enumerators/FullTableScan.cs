@@ -385,38 +385,38 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Tries to recreate enumerator using provided key.
     /// </summary>
-    unsafe Boolean TryRecreateEnumerator(Byte* rk)
-    {
+    unsafe Boolean TryRecreateEnumerator(Byte* rk) {
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
 
         // Creating flags.
         UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
 
+        Byte[] lastKey;
+        if (descending)
+            lastKey = firstKeyBuffer;
+        else
+            lastKey = secondKeyBuffer;
 
         // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags))
-        {
+        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
             // Indicating that enumerator has been created.
             enumeratorCreated = true;
 
             // Checking if we found a deleted object.
             //if (!innermostExtent)
             //{
-                // Obtaining saved OID and ETI.
-                IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
+            // Obtaining saved OID and ETI.
+            IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
 
-                // Enabling recreation object check.
-                enableRecreateObjectCheck = true;
+            // Enabling recreation object check.
+            enableRecreateObjectCheck = true;
             //}
 
             return true;
-        }
-        else // Checking if we are in outer enumerator.
-        {
+        } else // Checking if we are in outer enumerator.
             if (!innermostExtent)
                 variableArray.FailedToRecreateObject = true;
-        }
 
         return false;
     }
@@ -446,6 +446,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         filterHandle = privateFilter.GetFilterHandle();
         iterHelper.AddGeneratedFilter(filterHandle);
 
+        // Updating data stream as usual (taking into account
+        // the context object from some previous extent).
+        filterDataStream = privateFilter.GetDataStream(contextObject);
+        iterHelper.AddDataStream(filterDataStream);
+        
         // Trying to recreate the enumerator.
         unsafe
         {
@@ -474,10 +479,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 #endif
         }
 
-        // Updating data stream as usual (taking into account
-        // the context object from some previous extent).
-        filterDataStream = privateFilter.GetDataStream(contextObject);
-        iterHelper.AddDataStream(filterDataStream);
 
         // Creating native iterator.
         if (descending)
@@ -608,7 +609,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
             // Emptying static data position for this enumerator.
             (*(Int32*)(keyData + enumGlobalOffset)) = 0;
-
+#if false // These data are not used. Instead they are read during recreation.
             // Creating flags.
             UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
 
@@ -638,7 +639,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             // Copy the last key.
             Marshal.Copy(lastKey, 0, (IntPtr)(keyData + globalOffset), upperKeyLength);
             globalOffset += upperKeyLength;
-
+#endif
             // Saving position of the data for current extent.
             (*(Int32*)(keyData + enumGlobalOffset)) = origGlobalOffset;
 
