@@ -1098,6 +1098,10 @@ function SqlCtrl($scope, Database, SqlQuery, $dialog) {
             // Success
             $scope.columns = response.columns;
             $scope.rows = response.rows;
+            if (response.queryPlan != null) {
+                $scope.queryPlan = response.queryPlan.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
+                $scope.queryPlan = $scope.queryPlan.replace(/\t/g, "&emsp;");  // Replace all occurrences of \t with &emsp;
+            }
 
             if (response.sqlException != null) {
                 // Show message

@@ -49,6 +49,15 @@ Rows {{Rows}}-->
 
 <div ng-hide='isBusy == true'>
 
+    <tabs>
+        <pane heading="Result">
+            <!-- TODO: Move handsontable here when it's fixed -->
+        </pane>
+        <pane heading="Queryplan">
+            <div ng-bind-html-unsafe="queryPlan" />
+       </pane>
+    </tabs>
+
     <ui-handsontable
         id="handsontable"
         height="calcHeight"
@@ -64,6 +73,6 @@ Rows {{Rows}}-->
         manualcolumnmove="false"
         manualcolumnresize="false"
         columnsorting="false">
-</ui-handsontable>
+    </ui-handsontable>
 
 </div>
