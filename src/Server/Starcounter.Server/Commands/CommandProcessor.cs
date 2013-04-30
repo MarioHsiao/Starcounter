@@ -228,9 +228,9 @@ namespace Starcounter.Server.Commands {
                     info.Waitable = new WeakReference(this.manualResetEvent);
                 }
             } else {
-                // Only assign the result to the public model
-                // reprsentation if the processor in fact have
-                // completd.
+                // Only assign the exit code and the result to the public model
+                // representation if the processor in fact have completd.
+                info.ExitCode = exitCode;
                 info.Result = this.result;
             }
 
