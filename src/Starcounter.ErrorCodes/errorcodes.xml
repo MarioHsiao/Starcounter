@@ -3722,7 +3722,7 @@
         unexpectedly terminated.
       </message>
     </code>
-    <code hex="0017" severity="Error" name="ScErrCommandFingerprintCompare">
+    <code hex="0017" severity="Error" name="ScErrCommandPreconditionFailed">
       <!--
       This error allows server command processors to report about a condition
       failing to be met based on a given fingerprint. The server design for
@@ -3732,7 +3732,16 @@
       -->
       <message>
         The server detected a precondition that was not met; the command was
-        not executed.
+        therefore not executed.
+      </message>
+    </code>
+    <code hex="0018" severity="Error" name="ScErrDatabaseEngineNotRunning">
+      <!--
+      Indicates a management operation was attempted but could not succeed
+      because the database engine was not running, as expected too.
+      -->
+      <message>
+        The database engine is not running.
       </message>
     </code>
   </facility>
