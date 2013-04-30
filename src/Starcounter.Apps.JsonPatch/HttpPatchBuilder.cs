@@ -138,8 +138,8 @@ namespace Starcounter.Internal.JsonPatch
         {
             // TODO: 
             // Change so that we can send in a buffer into the function that created 
-            // the patch instead of creating a string and then convert it to a bytearray
-            // and then copy it to the responsebuffer...
+            // the patch instead of creating a string and then convert it to a byte array
+            // and then copy it to the response buffer...
             Int32 startIndex;
             String patch;
             Template template;
