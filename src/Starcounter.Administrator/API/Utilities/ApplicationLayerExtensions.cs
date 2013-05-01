@@ -22,6 +22,15 @@ namespace Starcounter.Administrator.API.Utilities {
             return string.IsNullOrEmpty(args) ? false : ContainsFlag(args, "LogSteps");
         }
 
+        public static AppInfo GetExecutable(this EngineInfo engine, string exePath) {
+            foreach (var exe in engine.HostedApps) {
+                if (exe.ExecutablePath.Equals(exePath, StringComparison.InvariantCultureIgnoreCase)) {
+                    return exe;
+                }
+            }
+            return null;
+        }
+
         static bool ContainsFlag(string arguments, string flag) {
             var compare = StringComparison.InvariantCultureIgnoreCase;
             var candidates = new string[] { "--FLAG:" + flag, "--" + flag };
