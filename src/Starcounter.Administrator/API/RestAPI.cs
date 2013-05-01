@@ -33,6 +33,7 @@ namespace Starcounter.Administrator.API {
             DatabaseHandler.Setup();
             EngineHandler.Setup();
             EngineCollectionHandler.Setup();
+            ExecutableHandler.Setup();
             ExecutableCollectionHandler.Setup();
         }
     }
