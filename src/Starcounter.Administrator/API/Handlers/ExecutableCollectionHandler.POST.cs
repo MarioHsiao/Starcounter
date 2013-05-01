@@ -94,7 +94,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var headers = new Dictionary<string, string>(2);
             var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.ExecutablePath, headers);
             exeCreated.StartedBy = exe.StartedBy;
-            headers.Add("Location", exe.Uri);
+            headers.Add("Location", exeCreated.Uri);
 
             return RESTUtility.JSON.CreateResponse(exeCreated.ToJson(), 201, headers);
         }
