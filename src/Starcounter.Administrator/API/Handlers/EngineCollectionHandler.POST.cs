@@ -127,7 +127,7 @@ namespace Starcounter.Administrator.API.Handlers {
             }
 
             var headers = new Dictionary<string, string>(1);
-            var result = EngineHandler.JSON.CreateRepresentation(state);
+            var result = EngineHandler.JSON.CreateRepresentation(state, headers);
             headers.Add("Location", result.Uri);
 
             return RESTUtility.JSON.CreateResponse(result.ToJson(), 201, headers);
