@@ -3753,6 +3753,11 @@
         The executable is already running.
       </message>
     </code>
+    <code hex="001A" severity="Error" name="ScErrExecutableNotRunning">
+      <message>
+        The executable is not running.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
