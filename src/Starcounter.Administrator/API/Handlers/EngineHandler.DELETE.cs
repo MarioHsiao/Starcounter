@@ -56,17 +56,14 @@ namespace Starcounter.Administrator.API.Handlers {
                 return ToErrorResponse(commandInfo);
             }
 
-            // Just to be sure we don't forget to change this some once
+            // Just to be sure we don't forget to change this some, once
             // we implement asynchronous requests.
             Trace.Assert(commandInfo.IsCompleted);
 
             // Check if there is a specific exit code and it indicates a failing
             // precondition.
-            if (commandInfo.ExitCode.HasValue &&
-                commandInfo.ExitCode.Value == Error.SCERRCOMMANDPRECONDITIONFAILED) {
-                errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDPRECONDITIONFAILED);
-                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 412);
-            }
+            conditionFailed = ToResponseIfPreconditionFailed(commandInfo);
+            if (conditionFailed != null) return conditionFailed;
 
             // Check what processes were actually stopped and decide on
             // the status code to use based on that. We make a difference if
@@ -89,6 +86,15 @@ namespace Starcounter.Administrator.API.Handlers {
             }
 
             return 204;
+        }
+
+        static Response ToResponseIfPreconditionFailed(CommandInfo commandInfo) {
+            if (commandInfo.ExitCode.HasValue &&
+                commandInfo.ExitCode.Value == Error.SCERRCOMMANDPRECONDITIONFAILED) {
+                var detail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDPRECONDITIONFAILED);
+                return RESTUtility.JSON.CreateResponse(detail.ToJson(), 412);
+            }
+            return null;
         }
 
         static Response ToErrorResponse(CommandInfo commandInfo) {
