@@ -14,6 +14,7 @@ using Starcounter.Configuration;
 using Starcounter.Server.PublicModel;
 using System.Diagnostics;
 using Starcounter.Internal;
+using System.IO;
 
 namespace Starcounter.Server {
 
@@ -89,6 +90,16 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets the base directory where this database stores and runs
+        /// executables from.
+        /// </summary>
+        internal string ExecutableBasePath {
+            get {
+                return Path.Combine(Configuration.Runtime.TempDirectory, StarcounterEnvironment.Directories.WeaverTempSubDirectory);
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the list of Apps currently known to the
         /// database represented by this instance.
         /// </summary>
@@ -137,8 +148,17 @@ namespace Starcounter.Server {
                 }
                 engine = new EngineInfo(executables, hostProcId, hostProcArgs, databaseRunning);
             }
-            
-            var info = new DatabaseInfo(this.Uri, this.Name, 0, 0, engine,this.Configuration.Clone(this.Configuration.ConfigurationFilePath), null);
+
+            var info = new DatabaseInfo(
+                this.Uri, 
+                this.Name,
+                0, 
+                0, 
+                ExecutableBasePath, 
+                engine, 
+                this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
+                null);
+
             return info;
         }
 
