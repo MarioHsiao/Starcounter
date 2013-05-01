@@ -82,6 +82,7 @@
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
     <Compile Include="CoreServices\DatabaseStorageService.cs" />
+    <Compile Include="CoreServices\ExecutableService.cs" />
     <Compile Include="CoreServices\GatewayService.cs" />
     <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
