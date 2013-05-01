@@ -200,6 +200,7 @@ namespace Starcounter.Server {
             SetupDatabases();
             this.CurrentPublicModel = new PublicModelProvider(this);
             this.AppsService.Setup();
+            this.ExecutableService.Setup();
             this.WeaverService.Setup();
             this.StorageService.Setup();
             this.DatabaseHostService.Setup();
