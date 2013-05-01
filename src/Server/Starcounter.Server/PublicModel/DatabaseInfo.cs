@@ -73,6 +73,12 @@ namespace Starcounter.Server.PublicModel {
         public readonly DatabaseConfiguration Configuration;
 
         /// <summary>
+        /// Gets the base directory where this database stores and runs
+        /// executables from.
+        /// </summary>
+        public readonly string ExecutableBasePath;
+
+        /// <summary>
         /// Gets or sets the <see cref="EngineInfo"/> of the
         /// current database. Null indicates the engine is shut
         /// down (including the host and the database).
@@ -83,11 +89,12 @@ namespace Starcounter.Server.PublicModel {
         /// Initializes a <see cref="DatabaseInfo"/>.
         /// </summary>
         internal DatabaseInfo(
-            string uri, string name, long imageSize, long logSize, EngineInfo engine, DatabaseConfiguration config, string collation) {
+            string uri, string name, long imageSize, long logSize, string exeBasePath, EngineInfo engine, DatabaseConfiguration config, string collation) {
             this.Uri = uri;
             this.Name = name;
             this.MaxImageSize = imageSize;
             this.TransactionLogSize = logSize;
+            this.ExecutableBasePath = exeBasePath;
             this.Engine = engine;
             this.Configuration = config;
             this.CollationFile = collation;
