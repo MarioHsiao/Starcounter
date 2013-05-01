@@ -137,12 +137,10 @@ namespace Starcounter.Server {
                 int hostProcId = 0;
                 string hostProcArgs = null;
                 if (process != null) {
-                    executables = this.Apps.ConvertAll<AppInfo>((app) => {
-                        return new AppInfo() {
-                            ExecutablePath = app.OriginalExecutablePath,
-                            WorkingDirectory = app.WorkingDirectory
-                        };
-                    }).ToArray();
+                    executables = new AppInfo[this.Apps.Count];
+                    for (int i = 0; i < this.Apps.Count; i++) {
+                        executables[i] = this.Apps[i].ToPublicModel();
+                    }
                     hostProcId = process.Id;
                     hostProcArgs = this.CodeHostArguments;
                 }
