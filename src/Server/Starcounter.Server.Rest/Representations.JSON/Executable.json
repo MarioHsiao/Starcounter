@@ -9,7 +9,6 @@
         "Uri": "http://example.com/api/executables/foo"
     },
 	"RuntimeInfo": {
-        "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
         "LoadPath": "\\relative\\path\\to\\weaved\\server\\foo.exe",
         "Started": "ISO-8601, e.g. 2013-04-25T06.24:32",
         "LastRestart": "ISO-8601, e.g. 2013-04-25T06.49:01"
