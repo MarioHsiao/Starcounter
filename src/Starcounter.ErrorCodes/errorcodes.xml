@@ -3744,6 +3744,15 @@
         The database engine is not running.
       </message>
     </code>
+    <code hex="0019" severity="Error" name="ScErrExecutableAlreadyRunning">
+      <!--
+      Indicates an executable is already loaded in a certain database engine
+      and that state was considered worth reporting as an error.
+      -->
+      <message>
+        The executable is already running.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
