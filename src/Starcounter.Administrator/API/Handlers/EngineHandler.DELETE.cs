@@ -1,4 +1,5 @@
 ﻿
+using Codeplex.Data;
 using Starcounter.Administrator.API.Utilities;
 using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
@@ -55,7 +56,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 return ToErrorResponse(commandInfo);
             }
 
-            // Just to be sure we don't forget to change this all once
+            // Just to be sure we don't forget to change this some once
             // we implement asynchronous requests.
             Trace.Assert(commandInfo.IsCompleted);
 
@@ -68,35 +69,26 @@ namespace Starcounter.Administrator.API.Handlers {
             }
 
             // Check what processes were actually stopped and decide on
-            // the status code to use based on that.
+            // the status code to use based on that. We make a difference if
+            // we actually stopped something or not. Both are considered
+            // successful in terms of the service we offer (to assure an
+            // engine is stopped), but if we find nothing was actually stopped,
+            // we include an entity for this (and return 200). The normal
+            // scenario is to return 204 with no content.
+
             var stoppedHost = !commandInfo.GetProgressOf(
                 StopDatabaseCommand.DefaultProcessor.Tasks.StopCodeHostProcess).WasCancelled;
             var stoppedDatabase = !commandInfo.GetProgressOf(
                 StopDatabaseCommand.DefaultProcessor.Tasks.StopDatabaseProcess).WasCancelled;
 
             if (!stoppedHost && !stoppedDatabase) {
-                // No process was actually stopped. This implies an attempt
-                // to stop an engine that was not running. We distinguish this
-                // from the normal result by returning 204.
-                return 204;
+                dynamic nothingStopped = new DynamicJson();
+                nothingStopped.Code = Error.SCERRDATABASEENGINENOTRUNNING;
+                nothingStopped.Message = ErrorCode.ToMessage(Error.SCERRDATABASEENGINENOTRUNNING).Body;
+                return RESTUtility.JSON.CreateResponse(nothingStopped.ToString());
             }
 
-            // Return a representation that indicates the engine is stopped. We
-            // can and should NOT query the application object model for the
-            // engine, since some other client or server mechanism might already
-            // be busy restarting the engine, and the semantics we offer is that
-            // we have succeded stopping the engine, so the result must reflect
-            // that. The important aspect is that right after the completion of
-            // the stop command, the engine WAS in fact stopped, and thats what
-            // we need to tell the client or agent.
-            //   The result of any successful stop command should contain the
-            // snapshot of the state at the completion of the command.
-            applicationDatabase = (DatabaseInfo)commandInfo.Result;
-
-            var headers = new Dictionary<string, string>(1);
-            var stoppedEngine = EngineHandler.JSON.CreateRepresentation(applicationDatabase, headers);
-            
-            return RESTUtility.JSON.CreateResponse(stoppedEngine.ToJson(), 200, headers);
+            return 204;
         }
 
         static Response ToErrorResponse(CommandInfo commandInfo) {
