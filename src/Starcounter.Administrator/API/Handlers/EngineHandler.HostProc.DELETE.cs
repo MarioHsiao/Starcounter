@@ -1,9 +1,11 @@
 ﻿
+using Codeplex.Data;
 using Starcounter.Administrator.API.Utilities;
 using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Server.Rest.Representations.JSON;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Starcounter.Administrator.API.Handlers {
@@ -28,67 +30,68 @@ namespace Starcounter.Administrator.API.Handlers {
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
+            var applicationEngine = applicationDatabase.Engine;
+
+            // Do entry-level lookup before we pump the command through
+            // the server loop, to check if the condition is already not
+            // met. This offloads work from the server, but does not
+            // prevent the check to be done again in a safe context during
+            // the execution of the command. This is doable because we
+            // know that fingerprints will never be reused so as soon as
+            // the change, we can be 100% sure they will not get back to
+            // how they once were (i.e. the fingerprint we have) on entering.
+            var conditionFailed = JSON.CreateConditionBasedResponse(request, applicationEngine);
+            if (conditionFailed != null) return conditionFailed;
+            var etag = request["If-Match"];
+
             var stop = new StopDatabaseCommand(serverEngine, name, false);
             stop.EnableWaiting = true;
+            stop.Fingerprint = etag;
 
             var commandInfo = runtime.Execute(stop);
             Trace.Assert(commandInfo.ProcessorToken == StopDatabaseCommand.DefaultProcessor.Token);
             if (stop.EnableWaiting) {
                 commandInfo = runtime.Wait(commandInfo);
             }
-
             if (commandInfo.HasError) {
-                ErrorInfo single;
-
-                single = null;
-                if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
-                    if (single.GetErrorCode() == Error.SCERRDATABASENOTFOUND) {
-                        var msg = single.ToErrorMessage();
-                        errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
-                        return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
-                    }
-                }
-
-                if (single == null)
-                    single = commandInfo.Errors[0];
-
-                // Create a 500. Right now we do it the sloppy way, letting
-                // the server craft it for us based on the exception. We should
-                // switch to a non-exception-based approach.
-
-                throw single.ToErrorMessage().ToException();
+                return ToErrorResponse(commandInfo);
             }
+
+            // Just to be sure we don't forget to change this some, once
+            // we implement asynchronous requests.
+            Trace.Assert(commandInfo.IsCompleted);
+
+            // Check if there is a specific exit code and it indicates a failing
+            // precondition.
+            conditionFailed = ToResponseIfPreconditionFailed(commandInfo);
+            if (conditionFailed != null) return conditionFailed;
+
+            var result = (DatabaseInfo) commandInfo.Result;
 
             // Check if the process was actually stopped and decide on
             // the status code to use based on that.
+            //
+            // We use the following scheme status scheme for success:
+            //  * 200 - the host was already stopped.
+            //  * 204 - the code host was stopped, the database is still running.
+            //  * 205 - the code host was stopped, resulting in the stopping of the
+            //  engine. The client should clear its view and refetch the engine,
+            //  which will not exist any longer.
+
+            if (result.Engine == null)
+                return 205;
+            
             var stoppedHost = !commandInfo.GetProgressOf(
                 StopDatabaseCommand.DefaultProcessor.Tasks.StopCodeHostProcess).WasCancelled;
-            
+
             if (!stoppedHost) {
-                // The process was already stopped. This implies an attempt
-                // to stop an engine that was not running. We distinguish this
-                // from the normal result by returning 204.
-                return 204;
+                dynamic nothingStopped = new DynamicJson();
+                nothingStopped.Code = Error.SCERRDATABASEENGINENOTRUNNING;
+                nothingStopped.Message = ErrorCode.ToMessage(Error.SCERRDATABASEENGINENOTRUNNING).Body;
+                return RESTUtility.JSON.CreateResponse(nothingStopped.ToString());
             }
 
-            // Return a representation that indicates the host is stopped. We
-            // can and should NOT query the application object model for the
-            // engine, since some other client or server mechanism might already
-            // be busy restarting the engine, and the semantics we offer is that
-            // we have succeded stopping the engine, so the result must reflect
-            // that. The important aspect is that right after the completion of
-            // the stop command, the host WAS in fact stopped, and thats what
-            // we need to tell the client or agent.
-
-            // Not doable right now, and we must consider etagging.
-            // Will be adressed shortly.
-            // TODO:
-            
-            // applicationDatabase.HostedApps = new AppInfo[0];
-            // applicationDatabase.HostProcessId = 0;
-
-            var stoppedCodeHost = EngineHandler.JSON.CreateRepresentation(applicationDatabase);
-            return RESTUtility.JSON.CreateResponse(stoppedCodeHost.ToJson());
+            return 204;
         }
     }
 }

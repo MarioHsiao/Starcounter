@@ -35,7 +35,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var headers = new Dictionary<string, string>(1);
             var engine = EngineHandler.JSON.CreateRepresentation(applicationDatabase, headers);
             
-            return RESTUtility.JSON.CreateResponse(engine.ToJson(), 200);
+            return RESTUtility.JSON.CreateResponse(engine.ToJson(), 200, headers);
         }
     }
 }
