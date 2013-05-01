@@ -113,9 +113,7 @@ namespace Starcounter.Server.Commands {
 
             WithinTask(Task.WeaveOrPrepareForNoDb, (task) => {
                 weaver = Engine.WeaverService;
-                appRuntimeDirectory = weaver.CreateFullRuntimePath(
-                    Path.Combine(database.Configuration.Runtime.TempDirectory, StarcounterEnvironment.Directories.WeaverTempSubDirectory),
-                    command.ExecutablePath);
+                appRuntimeDirectory = weaver.CreateFullRuntimePath(database.ExecutableBasePath, command.ExecutablePath);
 
                 if (command.NoDb) {
                     weavedExecutable = CopyAllFilesToRunNoDbApplication(command.ExecutablePath, appRuntimeDirectory);
