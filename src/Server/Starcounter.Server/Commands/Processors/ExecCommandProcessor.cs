@@ -56,64 +56,34 @@ namespace Starcounter.Server.Commands {
             }
 
             databaseExist = Engine.Databases.TryGetValue(command.DatabaseName, out database);
-            if (!databaseExist && !command.CanAutoCreateDb) {
+            if (!databaseExist) {
                 throw ErrorCode.ToException(
                     Error.SCERRDATABASENOTFOUND, string.Format("Database: {0}", command.DatabaseName)
                     );
             }
-            
-            // First see if we found the database and take a look at what
-            // code is running inside it. We don't want to process the same
-            // executable twice.
 
-            WithinTaskIf(databaseExist, Task.CheckRunningExeUpToDate, (task) => {
-                app = database.Apps.Find(delegate(DatabaseApp candidate) {
-                    return candidate.OriginalExecutablePath.Equals(
-                        command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
-                });
-                if (app != null) {
-                    // If the app is running inside the database, we must stop the host,
-                    // or validate it's up-to-date.
-                    // We currently dont implement checking if the app is up-to-date,
-                    // we simply restart the host every time.
-                    Engine.DatabaseEngine.StopCodeHostProcess(database);
-                    OnExistingWorkerProcessStopped();
-                }
+            app = database.Apps.Find(delegate(DatabaseApp candidate) {
+                return candidate.OriginalExecutablePath.Equals(command.ExecutablePath, StringComparison.InvariantCultureIgnoreCase);
             });
+            if (app != null) {
+                throw ErrorCode.ToException(
+                    Error.SCERREXECUTABLEALREADYRUNNING,
+                    string.Format("Executable {0} is already running in engine {1}.", command.ExecutablePath, command.DatabaseName)
+                    );
+            }
 
-            // Create the database if it does not exist and if not told otherwise.
-            // Add it to our internal model as well as to the public one.
+            codeHostProcess = database.GetRunningCodeHostProcess();
+            if (codeHostProcess == null) {
+                throw ErrorCode.ToException(
+                    Error.SCERRDATABASEENGINENOTRUNNING,
+                    string.Format("Database {0}.", command.DatabaseName)
+                    );
+            }
 
-            WithinTaskIf(!databaseExist, Task.CreateDatabase, (task) => {
-                var setup = new DatabaseSetup(this.Engine, new DatabaseSetupProperties(this.Engine, command.DatabaseName));
-                database = setup.CreateDatabase();
-
-                OnDatabaseCreated();
-
-                Engine.Databases.Add(database.Name, database);
-                Engine.CurrentPublicModel.AddDatabase(database);
-
-                OnDatabaseRegistered();
-            });
-
-            // Assure the database is started and that there is user code worker
-            // process on top of it where we can inject the booting executable.
-
-            WithinTask(Task.StartDataAndHostProcesses, (task) => {
-                Engine.DatabaseEngine.StartDatabaseProcess(database);
-                OnDatabaseProcessStarted();
-
-                Engine.DatabaseEngine.StartCodeHostProcess(database, command.NoDb, command.LogSteps, out codeHostProcess);
-                OnWorkerProcessStarted();
-            });
-
-            // The application doesn't run inside the database, or the database
-            // doesn't exist. Process further: weaving and/or preparation for a
-            // no-database host first.
-
-            WithinTask(Task.WeaveOrPrepareForNoDb, (task) => {
+            var exeKey = Engine.ExecutableService.CreateKey(command.ExecutablePath);
+            WithinTask(Task.PrepareExecutable, (task) => {
                 weaver = Engine.WeaverService;
-                appRuntimeDirectory = weaver.CreateFullRuntimePath(database.ExecutableBasePath, command.ExecutablePath);
+                appRuntimeDirectory = Path.Combine(database.ExecutableBasePath, exeKey);
 
                 if (command.NoDb) {
                     weavedExecutable = CopyAllFilesToRunNoDbApplication(command.ExecutablePath, appRuntimeDirectory);
@@ -124,58 +94,48 @@ namespace Starcounter.Server.Commands {
                 }
             });
 
-            // Get a client handle to the hosting process.
-
             var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
             OnHostingInterfaceConnected();
 
-            WithinTask(Task.PingOrLoad, (task) => {
+            WithinTask(Task.Run, (task) => {
                 try {
-                    if (command.PrepareOnly) {
-                        bool success = client.Send("Ping");
-                        if (!success) {
-                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+
+                    // The current database worker protocol is "Exec c:\myfile.exe". We use
+                    // that until the full one is in place.
+                    //   Grab the response message and utilize it if we fail.
+
+                    var properties = new Dictionary<string, string>();
+                    properties.Add("AssemblyPath", weavedExecutable);
+                    properties.Add("WorkingDir", command.WorkingDirectory);
+                    properties.Add("Args", KeyValueBinary.FromArray(command.ArgumentsToApplication).Value);
+
+                    string responseMessage = string.Empty;
+                    bool success = client.Send("Exec2", properties, delegate(Reply reply) {
+                        if (reply.IsResponse && !reply.IsSuccess) {
+                            reply.TryGetCarry(out responseMessage);
                         }
-
-                        OnPingRequestProcessed();
-                    } else {
-
-                        // The current database worker protocol is "Exec c:\myfile.exe". We use
-                        // that until the full one is in place.
-                        //   Grab the response message and utilize it if we fail.
-
-                        var properties = new Dictionary<string, string>();
-                        properties.Add("AssemblyPath", weavedExecutable);
-                        properties.Add("WorkingDir", command.WorkingDirectory);
-                        properties.Add("Args", KeyValueBinary.FromArray(command.ArgumentsToApplication).Value);
-
-                        string responseMessage = string.Empty;
-                        bool success = client.Send("Exec2", properties, delegate(Reply reply) {
-                            if (reply.IsResponse && !reply.IsSuccess) {
-                                reply.TryGetCarry(out responseMessage);
-                            }
-                        });
-                        if (!success) {
-                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
-                        }
-
-                        OnExec2RequestProcessed();
-
-                        // The app is successfully loaded in the worker process. We should
-                        // keep it referenced in the server and consider the execution of this
-                        // processor a success.
-                        app = new DatabaseApp() {
-                            OriginalExecutablePath = command.ExecutablePath,
-                            WorkingDirectory = command.WorkingDirectory,
-                            Arguments = command.Arguments,
-                            ExecutionPath = weavedExecutable
-                        };
-                        database.Apps.Add(app);
-
-                        OnDatabaseAppRegistered();
+                    });
+                    if (!success) {
+                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
                     }
 
-                } catch (TimeoutException timeout) {
+                    OnExec2RequestProcessed();
+
+                    // The app is successfully loaded in the worker process. We should
+                    // keep it referenced in the server and consider the execution of this
+                    // processor a success.
+                    app = new DatabaseApp() {
+                        OriginalExecutablePath = command.ExecutablePath,
+                        WorkingDirectory = command.WorkingDirectory,
+                        Arguments = command.Arguments,
+                        ExecutionPath = weavedExecutable,
+                        Key = exeKey
+                    };
+                    database.Apps.Add(app);
+
+                    OnDatabaseAppRegistered();
+
+                } catch (Exception ex) {
                     // When we experience a timeout, we can try to check if the
                     // process is still alive. If not, it might have crashed.
                     // Else, we should indicate that the timeout time can be adjusted
@@ -202,23 +162,14 @@ namespace Starcounter.Server.Commands {
                         }
                         throw ErrorCode.ToException(Error.SCERRDATABASEENGINETERMINATED, inner, errorPostPrefix);
                     }
-                    throw timeout;
+                    throw ex;
                 }
             });
 
-            Engine.CurrentPublicModel.UpdateDatabase(database);
+            var result = Engine.CurrentPublicModel.UpdateDatabase(database);
+            SetResult(result);
+
             OnDatabaseStatusUpdated();
-        }
-
-        string GetAppRuntimeDirectory(string baseDirectory, string assemblyPath) {
-            string key;
-            string originalDirectory;
-
-            originalDirectory = Path.GetFullPath(Path.GetDirectoryName(assemblyPath));
-            key = originalDirectory.Replace(Path.DirectorySeparatorChar, '@').Replace(Path.VolumeSeparatorChar, '@').Replace(" ", "");
-            key += ("@" + Path.GetFileNameWithoutExtension(assemblyPath));
-
-            return Path.Combine(baseDirectory, key);
         }
 
         /// <summary>

@@ -1,201 +1,102 @@
-﻿using Starcounter.Advanced;
-using Starcounter.Server;
+﻿
+using Starcounter.Administrator.API.Utilities;
+using Starcounter.Advanced;
+using Starcounter.Internal;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
-using Starcounter.Administrator;
-using System;
-using System.Diagnostics;
-using Starcounter.Internal.Web;
-using Newtonsoft.Json;
-using System.IO;
-using System.Collections.Specialized;
-using System.Text;
-using Starcounter.Internal;
-using Starcounter.Server.Rest.MessageTypes;
-using Starcounter.Server.Rest;
+using Starcounter.Server.Rest.Representations.JSON;
 using System.Collections.Generic;
-using Starcounter.Administrator.API.Utilities;
+using System.Diagnostics;
 
 namespace Starcounter.Administrator.API.Handlers {
 
     internal static partial class ExecutableCollectionHandler {
-
         /// <summary>
         /// Handles a POST to this resource.
         /// </summary>
         /// <param name="name">
-        /// The name of the database hosting the executable collection
+        /// The name of the engine hosting the executable collection
         /// represented by this resource.</param>
         /// <param name="request">
         /// The REST request.</param>
         /// <returns>The response to be sent back to the client.</returns>
         static object OnPOST(string name, Request request) {
+            Executable exe;
+            ErrorDetail errDetail;
             var engine = RootHandler.Host.Engine;
             var runtime = RootHandler.Host.Runtime;
 
-            Diagnostics.WriteTimeStamp("ADMIN", "HandlePOST");
-
-            ExecRequest execRequest;
-            var response = RESTUtility.JSON.CreateFromRequest<ExecRequest>(request, out execRequest);
+            var response = RESTUtility.JSON.CreateFromRequest<Executable>(request, out exe);
             if (response != null) return response;
 
+            // Grab args, expect them to be formatted as a key value binary.
+            // Support human-mode too!
+            // On return, return the arguments we have deserialized, unpacked.
+            // TODO:
+
             string[] userArgs = null;
-            if (!string.IsNullOrEmpty(execRequest.CommandLineString)) {
-                userArgs = KeyValueBinary.ToArray(execRequest.CommandLineString);
+            var rawArgs = exe.Arguments == null || exe.Arguments.Count == 0 ? null : exe.Arguments[0].dummy;
+            if (!string.IsNullOrEmpty(rawArgs)) {
+                userArgs = KeyValueBinary.ToArray(rawArgs);
             }
 
-            var cmd = new ExecCommand(engine, execRequest.ExecutablePath, null, userArgs);
+            var cmd = new ExecCommand(engine, exe.Path, null, userArgs);
             cmd.DatabaseName = name;
             cmd.EnableWaiting = true;
-            cmd.LogSteps = execRequest.LogSteps;
-            cmd.NoDb = execRequest.NoDb;
-            cmd.CanAutoCreateDb = execRequest.CanAutoCreateDb;
-
-            // Ask the server runtime to execute the command.
-            // Assert it's executed by the default processor, since we
-            // depend on that to produce accurate responses.
-            // This is somewhat theoretical though, since we are in
-            // charge of both. The assert is more there if someone
-            // would introduce some changes that affects this later.
 
             var commandInfo = runtime.Execute(cmd);
             Trace.Assert(commandInfo.ProcessorToken == ExecCommand.DefaultProcessor.Token);
-            commandInfo = runtime.Wait(commandInfo);
-
-            Diagnostics.WriteTimeStamp("ADMIN", "HandlePOST finished");
-
-            // Done. Check the outcome.
+            if (cmd.EnableWaiting) {
+                commandInfo = runtime.Wait(commandInfo);
+            }
 
             if (commandInfo.HasError) {
                 ErrorInfo single;
+                ErrorMessage msg;
 
                 single = null;
                 if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
-                    if (single.GetErrorCode() == Starcounter.Error.SCERREXECUTABLENOTFOUND) {
-                        return CreateResponseFor422(single, execRequest);
-                    }
-
-                    if (single.GetErrorCode() == Starcounter.Error.SCERRDATABASENOTFOUND) {
-                        // The database was not found, and the request indicated it was not
-                        // allowed to automatically create it.
-                        return CreateResponseFor404(single, execRequest);
-                    }
+                    var code = single.GetErrorCode();
+                    switch (code) {
+                        case Error.SCERRDATABASENOTFOUND:
+                            msg = single.ToErrorMessage();
+                            errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
+                            return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
+                        case Error.SCERREXECUTABLENOTFOUND:
+                            msg = single.ToErrorMessage();
+                            errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
+                            return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 422);
+                        case Error.SCERREXECUTABLEALREADYRUNNING:
+                        case Error.SCERRDATABASEENGINENOTRUNNING:
+                            // Conflicts with the state expected; we map to HTTP 409.
+                            msg = single.ToErrorMessage();
+                            errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
+                            return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 409);
+                        default:
+                            break;
+                    };
                 }
 
-                if (single == null)
+                if (single == null) {
                     single = commandInfo.Errors[0];
+                }
+                msg = single.ToErrorMessage();
 
-                throw single.ToErrorMessage().ToException();
+                errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.ToString(), msg.Helplink);
+                return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 500);
             }
 
-            // If it was successfull, lets look at what was actually accomplished to
-            // return an appropriate response.
-            // If we find a single task that indicates checking if the executable was
-            // up to date, we know nothing else was done and we consider it a 200.
-            //   In all other cases, we use 201, indicating it was in fact "created",
-            // i.e. started as requested.
-            //
-            // Whichever of these we return, we should include an entity (JSON-based)
-            // that describes the now-running executable, the host proccess it runs
-            // in (PID), the machine, the server, the database name, etc. And the URI
-            // of the executable itself - both in the body and in the Location field.
-            // Also, if the database was created, we should describe that new resource
-            // too (name/uri, size, files, whatever).
-            //
-            // We are awaiting the proper design of upcoming Response though, as
-            // discussed in this forum thread:
-            // http://www.starcounter.com/forum/showthread.php?2482-Returning-HTTP-responses
-            //
-            // TODO:
+            // The command succeeded, indicating the executable was accepted and
+            // is now running inside the engine. We hand out an entity from the
+            // state given to us by the processor, and return 201.
 
-            if (commandInfo.Progress.Length == 1) {
-                Trace.Assert(
-                    commandInfo.Progress[0].TaskIdentity ==
-                    ExecCommand.DefaultProcessor.Tasks.CheckRunningExeUpToDate
-                );
+            var result = (DatabaseInfo) commandInfo.Result;
+            var headers = new Dictionary<string, string>(2);
+            var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.ExecutablePath, headers);
+            exeCreated.StartedBy = exe.StartedBy;
+            headers.Add("Location", exe.Uri);
 
-                // Up to date.
-                // Return a response that includes a reference to the running
-                // executable inside the host.
-
-                return 200;
-            }
-
-            // It's 201 created. For this, we have a production-like response.
-            // Build and return it.
-
-            return CreateResponseFor201(commandInfo, execRequest, name);
-        }
-
-        static Response CreateResponseFor201(CommandInfo command, ExecRequest execRequest, string databaseName) {
-            var runtime = RootHandler.Host.Runtime;
-            var serverHost = RootHandler.Host.ServerHost;
-            var serverPort = RootHandler.Host.ServerPort;
-
-            // The Location response header field SHOULD be set to an ABSOLUTE
-            // Uri, referencing the created resource as described by:
-            // http://tools.ietf.org/html/rfc2616#section-14.30
-            //
-            // That is, in this case: http://host:port/path/to/the/executable/
-            // like http://127.0.0.1:8181/databases/default/executables/foo.exe.
-            //
-            // From 10.2.2 201 Created:
-            // "The newly created resource can be referenced by the URI(s)
-            // returned in the entity of the response, with the most specific URI
-            // for the resource given by a Location header field. The response
-            // SHOULD include an entity containing a list of resource
-            // characteristics and location(s) from which the user or user agent can
-            // choose the one most appropriate".
-
-            var admin = new AdminAPI();
-            var runningExeRelativeUri = admin.FormatUri(admin.Uris.Executables, databaseName);
-            runningExeRelativeUri += "/" + Path.GetFileName(execRequest.ExecutablePath);
-
-            var location = string.Format("http://{0}:{1}{2}", serverHost, serverPort, runningExeRelativeUri);
-            var createdDatabase = command.GetProgressOf(
-                ExecCommand.DefaultProcessor.Tasks.CreateDatabase) != null;
-
-            var database = runtime.GetDatabase(command.DatabaseUri);
-            Trace.Assert(database != null);
-
-            var headers = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
-            headers.Add("Location", location);
-
-            var x = new ExecResponse201() {
-                DatabaseUri = command.DatabaseUri,
-                DatabaseHostPID = database.Engine.HostProcessId,
-                DatabaseCreated = createdDatabase
-            };
-            var content = x.ToJson();
-
-            return new Response {
-                Uncompressed =
-                    HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(201, headers, content)
-            };
-        }
-
-        static Response CreateResponseFor422(ErrorInfo error, ExecRequest execRequest) {
-            var text = error.ToErrorMessage().ToString();
-            return new Response {
-                Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(
-                    422,
-                    null,
-                    text,
-                    Encoding.UTF8,
-                    "text/plain")
-            };
-        }
-
-        static Response CreateResponseFor404(ErrorInfo error, ExecRequest execRequest) {
-            var text = error.ToErrorMessage().ToString();
-            return new Response {
-                Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent(
-                    404,
-                    null,
-                    text,
-                    Encoding.UTF8,
-                    "text/plain")
-            };
+            return RESTUtility.JSON.CreateResponse(exeCreated.ToJson(), 201, headers);
         }
     }
 }
