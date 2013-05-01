@@ -63,6 +63,8 @@
     <Compile Include="API\Handlers\EngineHandler.HostProc.GET.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.POST.cs" />
+    <Compile Include="API\Handlers\ExecutableHandler.cs" />
+    <Compile Include="API\Handlers\ExecutableHandler.GET.cs" />
     <Compile Include="API\RestAPI.cs" />
     <Compile Include="API\Utilities\ApplicationLayerExtensions.cs" />
     <Compile Include="API\Utilities\RESTUtility.cs" />
