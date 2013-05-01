@@ -40,9 +40,9 @@ namespace Starcounter.Administrator.API.Handlers {
                 var engineState = state.Engine;
                 Trace.Assert(engineState != null, "We should never hand out executables instances with no backing state.");
                 
-                exe.Uri = uriTemplate.ToAbsoluteUri(exeState.Key);
+                exe.Uri = uriTemplate.ToAbsoluteUri(name, exeState.Key);
                 exe.Engine.Uri = uriTemplateEngine.ToAbsoluteUri(name);
-                exe.Description = string.Format("\"{0}\" running in {1} (Exe key:{2}, {Host PID:{3})",
+                exe.Description = string.Format("\"{0}\" running in {1} (Exe key:{2}, Host PID:{3})",
                     Path.GetFileName(exeState.ExecutablePath), name, exeState.Key, engineState.HostProcessId);
                 exe.Path = exeState.ExecutablePath;
                 exe.RuntimeInfo.LoadPath = exeState.ExecutionPath;
