@@ -194,6 +194,7 @@ namespace Starcounter.VisualStudio.Projects {
                     CreateDatabase(node, uris, databaseName);
                 }
 
+                this.WriteDebugLaunchStatus("Starting engine");
                 engineRef = new EngineReference();
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -212,9 +213,9 @@ namespace Starcounter.VisualStudio.Projects {
 
             ExecutableReference exeRef = engine.GetExecutable(debugConfig.AssemblyPath);
             if (exeRef != null) {
-                this.WriteDebugLaunchStatus("Restarting database engine");
                 var restart = true;
                 var headers = string.Format("ETag: {0}{1}", engineETag, HTTPHelp.CRLF);
+                this.WriteDebugLaunchStatus("Stopping engine");
                 response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), null, headers, null);
                 response.FailIfNotSuccessOr(404, 412);
                 if (response.StatusCode == 412) {
@@ -240,6 +241,7 @@ namespace Starcounter.VisualStudio.Projects {
                     }
                 }
                 if (restart) {
+                    this.WriteDebugLaunchStatus("Starting engine");
                     engineRef = new EngineReference();
                     engineRef.Name = databaseName;
                     engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -256,7 +258,7 @@ namespace Starcounter.VisualStudio.Projects {
                 AttachDebugger(engine);
             }
 
-            this.WriteDebugLaunchStatus("Starting executable in database engine");
+            this.WriteDebugLaunchStatus("Starting executable");
             var exe = new Executable();
             exe.Path = debugConfig.AssemblyPath;
             exe.StartedBy = "Per Samuelsson (per@starcounter.com)";
