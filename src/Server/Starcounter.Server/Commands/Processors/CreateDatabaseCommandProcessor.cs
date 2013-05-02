@@ -39,7 +39,7 @@ namespace Starcounter.Server.Commands {
         void AssureUniqueName(CreateDatabaseCommand command) {
             string candidate = command.SetupProperties.Name;
             if (Engine.Databases.ContainsKey(candidate)) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Database '{0}' already exist.", candidate));
+                throw ErrorCode.ToException(Error.SCERRDATABASEALREADYEXISTS, string.Format("Database '{0}'.", candidate));
             }
         }
     }
