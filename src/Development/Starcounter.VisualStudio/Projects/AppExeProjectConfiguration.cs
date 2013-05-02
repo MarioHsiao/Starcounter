@@ -251,7 +251,7 @@ namespace Starcounter.VisualStudio.Projects {
                 }
             }
 
-            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) != 0) {
+            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0) {
                 this.WriteDebugLaunchStatus("Attaching debugger");
                 AttachDebugger(engine);
             }
