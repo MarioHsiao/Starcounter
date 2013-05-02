@@ -29,15 +29,9 @@ namespace Starcounter.Administrator.API.Handlers {
             var response = RESTUtility.JSON.CreateFromRequest<Executable>(request, out exe);
             if (response != null) return response;
 
-            // Grab args, expect them to be formatted as a key value binary.
-            // Support human-mode too!
-            // On return, return the arguments we have deserialized, unpacked.
-            // TODO:
-
-            string[] userArgs = null;
-            var rawArgs = exe.Arguments == null || exe.Arguments.Count == 0 ? null : exe.Arguments[0].dummy;
-            if (!string.IsNullOrEmpty(rawArgs)) {
-                userArgs = KeyValueBinary.ToArray(rawArgs);
+            string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
+            for (int i = 0; i < exe.Arguments.Count; i++) {
+                userArgs[i] = exe.Arguments[i].dummy;
             }
 
             var cmd = new ExecCommand(engine, exe.Path, null, userArgs);
@@ -94,6 +88,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var headers = new Dictionary<string, string>(2);
             var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.ExecutablePath, headers);
             exeCreated.StartedBy = exe.StartedBy;
+            exeCreated.Arguments = exe.Arguments;
             headers.Add("Location", exeCreated.Uri);
 
             return RESTUtility.JSON.CreateResponse(exeCreated.ToJson(), 201, headers);
