@@ -183,6 +183,8 @@ internal class RowTypeBinding : ITypeBinding
         Int32 index = propertyList.Count;
         PropertyMapping propMap = new PropertyMapping(name, index, expr);
         propertyIndexDictByName.Add(name, index);
+        //if (propMap.DisplayName != name)
+        //    propertyIndexDictByName.Add(propMap.DisplayName, index);
         propertyList.Add(propMap);
     }
 

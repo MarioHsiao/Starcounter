@@ -253,15 +253,17 @@ namespace QueryProcessingTest {
         }
 
         public static void TestEnumerators() {
-            SqlResult<dynamic> accounts = Db.SQL("select accountid, client.name, amount from account where accountid = ?", 1);
+            SqlResult<dynamic> accounts = Db.SQL("select accountid as accountid, client.name as name, amount as amount from account where accountid = ?", 1);
             Type t = accounts.First.GetType();
             Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
             t = accounts.First.GetType();
             Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
-#if false // Does not work
-            int accountid = accounts.First.AccountId;
+            long accountid = accounts.First.accountid;
+            //long accountid = accounts.First.AccountId;
             Trace.Assert(accountid == 1);
-            decimal amount = accounts.First.Amount;
+            decimal amount = accounts.First.amount;
+            //decimal amount = accounts.First.Amount;
+#if false // Does not work
             accounts.First.Amount += 10;
             decimal newAmount = accounts.First.Amount;
             Trace.Assert(amount + 10 == newAmount);

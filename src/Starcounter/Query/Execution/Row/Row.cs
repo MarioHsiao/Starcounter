@@ -860,6 +860,31 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
         }
     }
 
+    public dynamic GetValue(String propertyName) {
+        int propIndex = typeBinding.GetPropertyIndex(propertyName);
+        PropertyMapping prop = (PropertyMapping)typeBinding.GetPropertyBinding(propIndex);
+        switch (prop.TypeCode) {
+            case DbTypeCode.Binary: return GetBinary(propIndex);
+            case DbTypeCode.Boolean: return GetBoolean(propIndex);
+            case DbTypeCode.Byte: return GetByte(propIndex);
+            case DbTypeCode.DateTime: return GetDateTime(propIndex);
+            case DbTypeCode.Decimal: return GetDecimal(propIndex);
+            case DbTypeCode.Double: return GetDouble(propIndex);
+            case DbTypeCode.Int16: return GetInt16(propIndex);
+            case DbTypeCode.Int32: return GetInt32(propIndex);
+            case DbTypeCode.Int64: return GetInt64(propIndex);
+            case DbTypeCode.SByte: return GetSByte(propIndex);
+            case DbTypeCode.Single: return GetSingle(propIndex);
+            case DbTypeCode.String: return GetString(propIndex);
+            case DbTypeCode.Object: return GetObject(propIndex);
+            case DbTypeCode.UInt16: return GetUInt16(propIndex);
+            case DbTypeCode.UInt32: return GetUInt32(propIndex);
+            case DbTypeCode.UInt64: return GetUInt64(propIndex);
+            default:
+                throw new ArgumentException("Incorrect type " + prop.TypeCode + " of property with name: " + propertyName);
+        }
+    }
+
     /// <summary>
     /// 
     /// </summary>
