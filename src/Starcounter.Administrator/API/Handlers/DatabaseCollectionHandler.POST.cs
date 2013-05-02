@@ -36,12 +36,8 @@ namespace Starcounter.Administrator.API.Handlers {
             if (command.EnableWaiting) {
                 info = runtime.Wait(info);
             }
-
             if (info.HasError) {
-                // Check for already existing database - return 200 with a reference.
-                // And map other errors.
-                // TODO:
-                throw new NotImplementedException();
+                return ToErrorResponse(info);
             }
 
             // Assure we only return the neccessary bits (in accordance with with our
