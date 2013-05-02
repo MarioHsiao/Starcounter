@@ -1,24 +1,94 @@
 ﻿
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using System;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.IO;
-using Starcounter.Internal;
-using Starcounter.ABCIPC;
-using Starcounter.ABCIPC.Internal;
-using Starcounter.Server.PublicModel;
-using System.Threading;
 using EnvDTE;
 using EnvDTE90;
+using Microsoft.VisualStudio.Shell.Interop;
+using Starcounter.Internal;
+using Starcounter.Server;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Starcounter.VisualStudio.Projects {
-    using Thread = System.Threading.Thread;
+    using Starcounter.Advanced;
+    using Starcounter.CommandLine;
+    using Starcounter.CommandLine.Syntax;
+    using Starcounter.Server.Rest;
+    using Starcounter.Server.Rest.Representations.JSON;
+    using System.Net.Sockets;
+    using EngineReference = Starcounter.Server.Rest.Representations.JSON.EngineCollection.EnginesApp;
+    using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesApp.ExecutingApp;
+    using Option = Starcounter.Server.SharedCLI.Option;
+
+    /// <summary>
+    /// Provides a set of methods that governs the handling category
+    /// of errors occuring in the HTTP traffic when running the debug
+    /// sequence.
+    /// </summary>
+    static class HTTPHelp {
+        public const string CRLF = "\r\n";
+
+        public static int FailIfNotSuccess(this Response response) {
+            return FailIfNotSuccessOr(response);
+        }
+
+        public static int FailIfNotSuccessOr(this Response response, params int[] codes) {
+            var pass = response.IsSuccessOr(codes);
+            if (!pass) {
+                Raise(response);
+            }
+            return response.StatusCode;
+        }
+
+        public static int FailIfNotIsAnyOf(this Response response, params int[] codes) {
+            var pass = response.IsAnyOf(codes);
+            if (!pass) {
+                Raise(response);
+            }
+            return response.StatusCode;
+        }
+
+        static void Raise(Response response) {
+            // Check for an error detail as part of the body?
+            // And build a message from that.
+            // TODO:
+
+            throw new Exception(response.ToString());
+        }
+    }
 
     [ComVisible(false)]
     internal class AppExeProjectConfiguration : StarcounterProjectConfiguration {
+        static IApplicationSyntax commandLineSyntax;
         readonly IVsOutputWindowPane outputWindowPane = null;
+        bool debugFlagSpecified = false;
+
+        internal static void Initialize() {
+            RequestHandler.InitREST();
+
+            var appSyntax = new ApplicationSyntaxDefinition();
+            appSyntax.DefaultCommand = "exec";
+            SharedCLI.DefineWellKnownOptions(appSyntax);
+            
+            // Consider including support for a --scdebug flag that
+            // can attach the debugger to the extension when the debug
+            // sequence is being debugged, and maybe something similar
+            // to star.exe --syntax?
+            // TODO:
+            appSyntax.DefineFlag(
+                "scdebug",
+                "Attaches a debugger to the VS extension when about to run/debug an executable."
+                );
+
+            // NOTE:
+            // Although we will refuse to execute any EXEC command without at least one parameter,
+            // we specify a minimum of 0. The reason is that the exec command is the default, and it
+            // will be applied whenever a command is not explicitly given. This in turn means that
+            // if we invoke star.exe with a single global option, like --help, the parser will fail
+            // since it will apply exec as the default command and force it to have parameters.
+            appSyntax.DefineCommand("exec", "Executes the application", 0, int.MaxValue);
+            AppExeProjectConfiguration.commandLineSyntax = appSyntax.CreateSyntax();
+        }
 
         public AppExeProjectConfiguration(VsPackage package, IVsHierarchy project, IVsProjectCfg baseConfiguration, IVsProjectFlavorCfg innerConfiguration)
             : base(package, project, baseConfiguration, innerConfiguration) {
@@ -31,8 +101,11 @@ namespace Starcounter.VisualStudio.Projects {
 
         protected override bool BeginDebug(__VSDBGLAUNCHFLAGS flags) {
             Dictionary<string, string> properties = new Dictionary<string, string>();
-            CommandInfo command = null;
             DateTime start = DateTime.Now;
+            ApplicationArguments cmdLine;
+            string serverHost;
+            int serverPort;
+            string serverName;
             bool result;
 
             var debugConfiguration = new AssemblyDebugConfiguration(this);
@@ -40,197 +113,179 @@ namespace Starcounter.VisualStudio.Projects {
                 throw new NotSupportedException("Only 'Project' start action is currently supported.");
             }
 
-            // Create a client object to be able to communicate with the server.
-            // We use the built-in ABCIPC core services of the server to execute
-            // assemblies.
-
-            var pipeName = ScUriExtensions.MakeLocalServerPipeString(StarcounterEnvironment.ServerNames.PersonalServer.ToLower());
-            var client = ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
-
-            properties.Add("AssemblyPath", debugConfiguration.AssemblyPath);
-
-            var workingDir = debugConfiguration.WorkingDirectory;
-            if (!Path.IsPathRooted(workingDir)) {
-                workingDir = Path.Combine(Path.GetDirectoryName(debugConfiguration.AssemblyPath), workingDir);
-            }
-            properties.Add("WorkingDir", workingDir);
-
-            if (debugConfiguration.Arguments.Length > 0) {
-                properties.Add("Args", KeyValueBinary.FromArray(debugConfiguration.Arguments).Value);
-            }
-            
-            // Send the request to the server and dezerialize the reply
-            // to get the information about the command.
-            //   Then iterate until we see that the command has completed,
-            // and evaluate the result.
-            //
-            // We must get a way to check if anything lengthy will be
-            // needed when doing this, like creating a database, weaving,
-            // copying, or if the database is big and the schema must
-            // change. This is b/c if so, we must do this in another thread,
-            // or else the GUI will be locked up and be non-responsive.
-
-            this.debugLaunchDescription = string.Format("Requesting \"{0}\" to be hosted in Starcounter", Path.GetFileName(debugConfiguration.AssemblyPath));
-            this.WriteDebugLaunchStatus(null);
-            
-            // Utilize the prepare-only solution to be able to debug the
-            // entrypoint, unless the user hasn't specified we should run
-            // without the debugger. In the later case, we issue a single
-            // synchronous call to the server, completing the entire launch
-            // in one step.
-
-            properties.Add("@@Synchronous", bool.TrueString);
-            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0) {
-                properties.Add("PrepareOnly", bool.TrueString);
+            var parser = new Parser(debugConfiguration.Arguments);
+            cmdLine = parser.Parse(commandLineSyntax);
+            if (cmdLine.ContainsFlag("scdebug")) {
+                debugFlagSpecified = true;
+                System.Diagnostics.Debugger.Launch();
             }
 
-            result = client.Send("ExecApp", properties, (Reply reply) => {
-                if (!reply.IsSuccess) {
-                    // Handle failure preparing/executing the app. Deserialize the
-                    // reply (as a CommandInfo) if possible, and return false.
-                    ReportServerCommandReturningFailure(Error.SCERRDEBUGFAILEDSERVERERRORSTARTING, null, reply);
-                } else {
-                    command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
+            // Assure personal server is running; will be done as soon
+            // as Christian has implemented the code to do so.
+            // TODO:
+
+            // Pass it on:
+            try {
+                result = DoBeginDebug(debugConfiguration, flags, cmdLine);
+            } catch (SocketException se) {
+                // Map the socket level error code to a correspoding Starcounter
+                // error code. Try to be as specific as possible.
+                uint scErrorCode;
+                switch (se.SocketErrorCode) {
+                    case SocketError.ConnectionRefused:
+                        scErrorCode = Error.SCERRSERVERNOTRUNNING;
+                        break;
+                    default:
+                        scErrorCode = Error.SCERRSERVERNOTAVAILABLE;
+                        break;
                 }
-            });
 
+                SharedCLI.ResolveAdminServer(cmdLine, out serverHost, out serverPort, out serverName);
+                var serverInfo = string.Format("\"{0}\" at {1}:{2}", serverName, serverHost, serverPort);
 
-            if (result == false)
-                return result;
-
-#if false
-            // Wait for the completion of the command by polling the server
-            // for the completion data.
-
-            int threadSuspensionTimeout = 650;
-            int triesBeforeSwitchingThread = int.MaxValue;
-            
-            for (int i = 0; i < triesBeforeSwitchingThread; i++) {
-                if (command.IsCompleted)
-                    break;
-
-                Thread.Sleep(threadSuspensionTimeout);
-
-                client.Send("GetCompletedCommand", command.Id.ToString(), (Reply reply) => {
-                    // Once the reply has carry, we interpret that as the completed
-                    // command information, and we deserialize it.
-                    // However, if this fails, and the reply indicates the request
-                    // was a failure, the request failed for some other reason and
-                    // we use the carry as an error information instead.
-                    //
-                    // Currently, there is a glitch in the return value design of
-                    // ABCIPC-request/responses. Clients have to be able to distinguish
-                    // between different kind of failures, like here: we have to be
-                    // able to return FALSE as in "not completed" and FALSE as in
-                    // "command not found". I guess codes are the approprate way to
-                    // go, and/or possible raise client side exceptions for "system-
-                    // like" errors.
-                    if (reply.HasCarry) {
-                        try {
-                            command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
-                        } catch (Exception e) {
-                            string carry;
-                            reply.TryGetCarry(out carry);
-                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, e, carry);
-                        }
-                    }
-                });
-            }
-#endif
-            // Invoke the method actually attaching the debugger.
-
-            LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
-            
-            // When utilizing PrepareOnly, we execute the entrypoint after we have
-            // executed the preparation.
-
-            if (properties.Remove("PrepareOnly")) {
-                ExecuteAppEntrypointWithDebuggerAttached(client, properties);
+                this.ReportError(ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)).Message);
+                result = false;
             }
 
             var finish = DateTime.Now;
             this.WriteLine("Debug sequence time: {0}, using parameters {1}", finish.Subtract(start), string.Join(" ", debugConfiguration.Arguments));
-            
+
+            return result;
+        }
+
+        bool DoBeginDebug(AssemblyDebugConfiguration debugConfig, __VSDBGLAUNCHFLAGS flags, ApplicationArguments args) {
+            string serverHost;
+            int serverPort;
+            string serverName;
+            string databaseName;
+            EngineReference engineRef;
+            Engine engine;
+            ErrorDetail errorDetail;
+            int statusCode;
+
+            SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
+            SharedCLI.ResolveDatabase(args, out databaseName);
+            var admin = new AdminAPI();
+            var uris = admin.Uris;
+            var node = new Node(serverHost, (ushort)serverPort);
+
+            // Get the running engine on the server. If it's not found, we take
+            // a step back, and either create the database and/or start the engine.
+           
+            this.debugLaunchDescription = string.Format(
+                "Starting \"{0}\" in database {1}:{2}/{3}.",
+                Path.GetFileName(debugConfig.AssemblyPath),
+                serverHost, serverPort, databaseName);
+            this.WriteDebugLaunchStatus("Verifying database engine");
+
+            // GET or START the engine
+            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+            statusCode = response.FailIfNotSuccessOr(404);
+            if (statusCode == 404) {
+                errorDetail = new ErrorDetail();
+                errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
+                    var allowed = !args.ContainsFlag(Option.NoAutoCreateDb);
+                    if (!allowed) {
+                        throw ErrorCode.ToException(Error.SCERRDATABASENOTFOUND,
+                            string.Format("Database: {0}. Remove {1} to create automatically.", databaseName, Option.NoAutoCreateDb));
+                    }
+                    WriteDebugLaunchStatus("Creating database");
+                    CreateDatabase(node, uris, databaseName);
+                }
+
+                engineRef = new EngineReference();
+                engineRef.Name = databaseName;
+                engineRef.NoDb = args.ContainsFlag(Option.NoDb);
+                engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
+                response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                response.FailIfNotSuccess();
+            }
+            engine = new Engine();
+            engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+            var engineETag = response["ETag"];
+
+            // The engine is now started. Check if the executable we
+            // are about to debug is part of it. If so, we must restart
+            // it. The restart is conditional, to support multiple
+            // exeuctable scenarios. See below.
+
+            ExecutableReference exeRef = engine.GetExecutable(debugConfig.AssemblyPath);
+            if (exeRef != null) {
+                this.WriteDebugLaunchStatus("Restarting database engine");
+                var restart = true;
+                var headers = string.Format("ETag: {0}{1}", engineETag, HTTPHelp.CRLF);
+                response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), null, headers, null);
+                response.FailIfNotSuccessOr(404, 412);
+                if (response.StatusCode == 412) {
+                    // Precondition failed. We expect someone else to have stopped
+                    // or restared the engine, and that our executable is no longer
+                    // part of it. If it still is, we have no ability to figure out
+                    // what just happened and we must fail the attempt to debug.
+                    response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                    response.FailIfNotSuccessOr(404);
+                    if (response.IsSuccessStatusCode) {
+                        engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                        var exeHasStopped = engine.GetExecutable(debugConfig.AssemblyPath);
+                        if (exeHasStopped != null) {
+                            // This we just can't handle.
+                            // One alternative might be to try this a few times, to see
+                            // if we get a better result the second or third, but lets
+                            // just don't do that right now.
+                            // TODO: Craft a proper error message.
+                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Engine was restarted/modified, and exe still in it. Aborting.");
+                        }
+
+                        restart = false;
+                    }
+                }
+                if (restart) {
+                    engineRef = new EngineReference();
+                    engineRef.Name = databaseName;
+                    engineRef.NoDb = args.ContainsFlag(Option.NoDb);
+                    engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
+
+                    response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                    response.FailIfNotSuccess();
+                    engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                }
+            }
+
+            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) != 0) {
+                this.WriteDebugLaunchStatus("Attaching debugger");
+                AttachDebugger(engine);
+            }
+
+            this.WriteDebugLaunchStatus("Starting executable in database engine");
+            var exe = new Executable();
+            exe.Path = debugConfig.AssemblyPath;
+            exe.StartedBy = "Per Samuelsson (per@starcounter.com)";
+            foreach (var arg in args.CommandParameters.ToArray()) {
+                exe.Arguments.Add().dummy = arg;
+            }
+            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null);
+            response.FailIfNotSuccess();
+            exe.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+
+            this.WriteLine("[Summary starting {0}]", Path.GetFileName(debugConfig.AssemblyPath));
+            this.WriteLine(exe.Description + Environment.NewLine + exe.RuntimeInfo.LoadPath);
+            this.WriteLine("[End]");
+
             return true;
         }
 
-        void ReportServerCommandReturningFailure(uint errorCode, string postfix, Reply reply) {
-            CommandInfo command;
-            ErrorMessage primaryServerError;
-            string clientError;
-
-            try {
-                command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
-            } catch {
-                command = null;
-            }
-            
-            primaryServerError = command == null ? null : command.Errors[0].ToErrorMessage();
-            var serverError = primaryServerError == null ? "Server error N/A" : primaryServerError.ToString();
-            clientError = ErrorCode.ToMessage(errorCode, postfix).ToString();
-            
-            ReportError("{0}. (Server error message: {1})", clientError, serverError);
-        }
-
-        void ExecuteAppEntrypointWithDebuggerAttached(Client client, Dictionary<string, string> properties) {
-            // Currently, we don't bother waiting here since waiting will mean
-            // we are waiting for the entire entrypoint to be exeuced. We just
-            // want to return back before that. Hence, we make sure the modifier
-            // for synchronous invocation is removed (if ever specified).
-            properties.Remove("@@Synchronous");
-            client.Send("ExecApp", properties, (Reply reply) => {
-                if (!reply.IsSuccess) {
-                    ReportServerCommandReturningFailure(Error.SCERRUNSPECIFIED, "Failed invoking entrypoint", reply);
-                }
-            });
-        }
-
-        void LaunchDebugEngineIfExecCommandSucceeded(
-            Client client,
-            CommandInfo execResult,
-            __VSDBGLAUNCHFLAGS flags, 
-            AssemblyDebugConfiguration debugConfiguration) {
+        void AttachDebugger(Engine engine) {
             DTE dte;
             bool attached;
             string errorMessage;
-            DatabaseInfo database;
-
-            // We now have the final result of the command.
-            // If it succeeded (i.e. has no errors) we should be able to get the
-            // database from the command.
-            if (execResult.HasError)
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, execResult.Errors[0].ToString());
-
-            // Respect the "Start without debugging" option. If specified,
-            // we consider this method a success right here and now.
-
-            if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) != 0) {
-                return;
-            }
-
-            // The exec command succeeded. It should mean we could now get
-            // the database information, including all we need to attach the
-            // debugger to the host process
-
-            this.debugLaunchDescription = string.Format("Retreiving info of database \"{0}\"", execResult.DatabaseUri);
-            this.WriteDebugLaunchStatus(null);
-
-            database = null;
-            client.Send("GetDatabase", ScUri.FromString(execResult.DatabaseUri).DatabaseName, (Reply reply) => {
-                if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
-                database = ServerUtility.DeserializeCarry<DatabaseInfo>(reply);
-            });
-
-            this.debugLaunchDescription = string.Format("Attaching the debugger to database \"{0}\"", database.Name);
-            this.WriteDebugLaunchStatus(null);
-
+            
             try {
                 dte = this.package.DTE;
                 var debugger = (Debugger3)dte.Debugger;
                 attached = false;
 
                 foreach (Process3 process in debugger.LocalProcesses) {
-                    if (process.ProcessID == database.HostProcessId) {
+                    if (process.ProcessID == engine.CodeHostProcess.PID) {
                         process.Attach();
                         attached = true;
                         break;
@@ -240,8 +295,8 @@ namespace Starcounter.VisualStudio.Projects {
                 if (attached == false) {
                     this.ReportError(
                         "Cannot attach the debugger to the database {0}. Process {1} not found.",
-                        database.Name,
-                        database.HostProcessId
+                        engine.Database.Name,
+                        engine.CodeHostProcess.PID
                         );
                     return;
                 }
@@ -259,7 +314,7 @@ namespace Starcounter.VisualStudio.Projects {
 
                     errorMessage = string.Format(
                         "Attaching the debugger to the database \"{0}\" in process {1} was not allowed. ",
-                        database.Name, database.HostProcessId);
+                        engine.Database.Name, engine.CodeHostProcess.PID);
                     errorMessage +=
                         "The database runs with higher privileges than Visual Studio. Either restart Visual Studio " +
                         "and run it as an administrator, or make sure the database runs in non-elevated mode.";
@@ -269,51 +324,22 @@ namespace Starcounter.VisualStudio.Projects {
                 }
 
                 throw comException;
-            } finally {
-                this.debugLaunchPending = false;
             }
-
-            // The database is in fact running and the debugger is attached.
-            // We are done.
-
-            this.debugLaunchDescription = null;
-            WriteDebugLaunchStatus(null);
         }
 
-#if false
-        /// <summary>
-        /// Continues waiting for the ExecApp command, that seems to be taking
-        /// some time (possibly creating a new database, weaving, etc).
-        /// </summary>
-        /// <remarks>
-        /// This method is called from a background thread, during the debug
-        /// launching sequence, joining back with the main GUI thread once the
-        /// server has finished processing the request.
-        /// </remarks>
-        /// <param name="state">The state we operate on (array of values).</param>
-        void WaitForExecAssemblyCommandAndThenCallLauchDebugger(object state) {
-            object[] args = (object[])state;
-            var client = (Client)args[0];
-            var commandId = (CommandId)args[1];
-            var flags = (__VSDBGLAUNCHFLAGS)args[2];
-            var debugConfiguration = (AssemblyDebugConfiguration)args[3];
-            CommandInfo command = null;
-
-            do {
-                Thread.Sleep(500);
-                client.Send("GetCompletedCommand", commandId.ToString(), (Reply reply) => {
-                    if (!reply.IsSuccess) throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, reply.ToString());
-                    if (reply.HasCarry) {
-                        command = ServerUtility.DeserializeCarry<CommandInfo>(reply);
-                    }
-                });
-            } while (!command.IsCompleted);
-
-            this.package.BeginInvoke(() => {
-                LaunchDebugEngineIfExecCommandSucceeded(client, command, flags, debugConfiguration);
-            });
+        static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
+            var db = new Database();
+            db.Name = databaseName;
+            var response = node.POST(uris.Databases, db.ToJson(), null, null);
+            response.FailIfNotSuccess();
         }
-#endif
+
+        protected override void WriteDebugLaunchStatus(string status) {
+            base.WriteDebugLaunchStatus(status);
+            if (debugFlagSpecified) {
+                WriteLine(status);
+            }
+        }
 
         /// <summary>
         /// Writes a message to the default underlying output pane (normally
