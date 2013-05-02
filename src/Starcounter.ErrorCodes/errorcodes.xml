@@ -3758,17 +3758,6 @@
         The executable is not running.
       </message>
     </code>
-    <code hex="001B" severity="Error" name="ScErrDatabaseAlreadyExist">
-      <!--
-      Indicates a database already exist where the context suggest that it
-      shouldn't and must therefore be considered an error. The management
-      server library will utilize this code when databases are created and
-      the name provided reference a database that exists.
-      -->
-      <message>
-        The database already exist.
-      </message>
-    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
