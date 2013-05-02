@@ -259,10 +259,10 @@ namespace QueryProcessingTest {
             t = accounts.First.GetType();
             Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
             long accountid = accounts.First.accountid;
-            //long accountid = accounts.First.AccountId;
+            accountid = accounts.First.AccountId;
             Trace.Assert(accountid == 1);
             decimal amount = accounts.First.amount;
-            //decimal amount = accounts.First.Amount;
+            amount = accounts.First.Amount;
 #if false // Does not work
             accounts.First.Amount += 10;
             decimal newAmount = accounts.First.Amount;
