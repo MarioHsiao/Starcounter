@@ -861,7 +861,7 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
     }
 
     public dynamic GetValue(String propertyName) {
-        int propIndex = typeBinding.GetPropertyIndex(propertyName);
+        int propIndex = typeBinding.GetPropertyIndexCaseInsensitive(propertyName);
         PropertyMapping prop = (PropertyMapping)typeBinding.GetPropertyBinding(propIndex);
         switch (prop.TypeCode) {
             case DbTypeCode.Binary: return GetBinary(propIndex);
