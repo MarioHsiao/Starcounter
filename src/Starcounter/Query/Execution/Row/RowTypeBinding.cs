@@ -199,7 +199,7 @@ internal class RowTypeBinding : ITypeBinding
         PropertyMapping propMap = new PropertyMapping(name, index, expr);
         propertyIndexDictByName.Add(name, index);
         if (name.ToLower() != name)
-            propertyIndexDictByName.Add(propMap.DisplayName, index);
+            propertyIndexDictByName.Add(name.ToLower(), index);
         propertyList.Add(propMap);
     }
 
