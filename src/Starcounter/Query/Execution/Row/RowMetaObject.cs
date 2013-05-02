@@ -38,10 +38,5 @@ namespace Starcounter.Query.Execution
         {
             throw new NotSupportedException();
         }
-
-        public override DynamicMetaObject BindInvokeMember(InvokeMemberBinder binder, DynamicMetaObject[] args)
-        {
-            throw new NotSupportedException();
-        }
     }
 }
