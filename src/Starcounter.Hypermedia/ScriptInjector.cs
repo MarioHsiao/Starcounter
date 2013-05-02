@@ -127,10 +127,10 @@ namespace Starcounter.Internal.Web {
             // Copy new length
             System.Buffer.BlockCopy(newLength, 0, response, t, newLength.Length); // Copy Content-Length
             t += newLength.Length;
-            response[t++] = (byte)13;
-            response[t++] = (byte)10;
-            response[t++] = (byte)13;
-            response[t++] = (byte)10;
+            response[t++] = (byte)'\r';
+            response[t++] = (byte)'\n';
+            response[t++] = (byte)'\r';
+            response[t++] = (byte)'\n';
             // Copy the start of the original content
             System.Buffer.BlockCopy(original, headerLength, response, t, scriptInjectionPoint - headerLength);
             t = scriptInjectionPoint + extraLengthLength;

@@ -205,7 +205,7 @@ namespace Starcounter.Internal.Web {
                 return original;
             }
 
-            return null;
+            return HttpResponseBuilder.BadRequest400;
         }
 
         /// <summary>
