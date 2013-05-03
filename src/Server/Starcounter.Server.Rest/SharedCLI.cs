@@ -51,12 +51,25 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Defines a set of unofficial options, optionally supported by
+        /// our clients, but not neccessary part of the standard documentation.
+        /// </summary>
+        /// <remarks>
+        /// All unofficial options should begin with sc-*.
+        /// </remarks>
+        public static class UnofficialOptions {
+            public const string Debug = "sc-debug";
+        }
+
+        /// <summary>
         /// Defines and includes the well-known, shared CLI options in
         /// the given <see cref="SyntaxDefinition"/>.
         /// </summary>
         /// <param name="definition">The <see cref="SyntaxDefinition"/>
         /// in which well-known, shared options should be included.</param>
-        public static void DefineWellKnownOptions(SyntaxDefinition definition) {
+        /// <param name="includeUnofficial">Indicates if unofficial options
+        /// should be included in the definition.</param>
+        public static void DefineWellKnownOptions(SyntaxDefinition definition, bool includeUnofficial = false) {
             definition.DefineProperty(
                 Option.Serverport,
                 "The port of the server to use.",
@@ -89,6 +102,13 @@ namespace Starcounter.Server {
                 Option.NoAutoCreateDb,
                 "Specifies that a database can not be automatically created if it doesn't exist."
                 );
+
+            if (includeUnofficial) {
+                definition.DefineFlag(
+                    UnofficialOptions.Debug,
+                    "Attaches a debugger to the target program just after the parsing of the command-line is complete."
+                    );
+            }
         }
 
         /// <summary>
