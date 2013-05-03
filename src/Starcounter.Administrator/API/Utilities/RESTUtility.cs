@@ -109,6 +109,18 @@ namespace Starcounter.Administrator.API.Utilities {
                 obj = result;
                 return null;
             }
+
+            public static Response ExpectAsynchronousOrNone(Request request, out bool asynchronous) {
+                string expectations;
+                asynchronous = RESTUtility.ExpectAsynchronous(request, out expectations);
+                if (!asynchronous && !string.IsNullOrWhiteSpace(expectations)) {
+                    return CreateResponse(
+                        CreateError(Error.SCERRBADARGUMENTS, string.Format("Unable to meet expectation(s): {0}", expectations)).ToJson(),
+                        (int)HttpStatusCode.ExpectationFailed
+                        );
+                }
+                return null;
+            }
         }
 
         /// <summary>
@@ -182,6 +194,17 @@ namespace Starcounter.Administrator.API.Utilities {
                 default:
                     throw new ArgumentOutOfRangeException("uri", "Too many parameters in URI");
             }
+        }
+
+        public static bool ExpectAsynchronous(Request request, out string expectations) {
+            var expect = request["Expect"];
+            if (string.IsNullOrWhiteSpace(expect)) {
+                expectations = null;
+                return false;
+            }
+
+            expectations = expect;
+            return expect.Equals("202-accepted", System.StringComparison.InvariantCultureIgnoreCase);
         }
 
         static void Register0(IREST restHandler, string uri, ushort port, string[] methodsToRegisterFor, Response response) {
