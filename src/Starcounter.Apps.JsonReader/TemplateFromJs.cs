@@ -18,38 +18,29 @@ namespace Starcounter.Internal.JsonTemplate
     public class TemplateFromJs
     {
         /// <summary>
-        /// Creates from js.
+        /// Creates a json template based on the input json.
         /// </summary>
-        /// <param name="objTemplateType">The objTemplateType.</param>
-        /// <param name="script2">The script2.</param>
+        /// <param name="script2">The json</param>
         /// <param name="restrictToDesigntimeVariable">if set to <c>true</c> [restrict to designtime variable].</param>
-        /// <returns>TApp.</returns>
-        public static TObj CreateFromJs( Type objTemplateType, string script2, bool restrictToDesigntimeVariable)
+        /// <returns>an TObj instance</returns>
+        public static TObj CreateFromJs(string script2, bool restrictToDesigntimeVariable)
         {
-            return _CreateFromJs( objTemplateType, script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
+            return _CreateFromJs(script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
         }
 
         /// <summary>
-        /// _s the create from js.
+        /// 
         /// </summary>
-        /// <param name="objTemplateType">The objTemplateType.</param>
         /// <param name="source">The source.</param>
         /// <param name="sourceReference">The source reference.</param>
         /// <param name="ignoreNonDesignTimeAssigments">if set to <c>true</c> [ignore non design time assigments].</param>
-        /// <returns>TApp.</returns>
-        private static TObj _CreateFromJs(Type objTemplateType, 
-                                          string source,
+        /// <returns>TObj.</returns>
+        private static TObj _CreateFromJs(string source,
                                           string sourceReference,
                                           bool ignoreNonDesignTimeAssigments)
         {
             TObj appTemplate;
-            ITemplateFactory factory;
-
-            if (objTemplateType.Equals(typeof(TJson))) {
-                factory = new TAppFactory<Json, TJson>();
-            } else {
-                factory = new TAppFactory<Puppet, TPuppet>();
-            }
+            ITemplateFactory factory = new TAppFactory<Json, TJson>();
             
             int skip = 0;
             if (!ignoreNonDesignTimeAssigments)
@@ -58,10 +49,10 @@ namespace Starcounter.Internal.JsonTemplate
                 skip++;
             }
             appTemplate = (TObj)Materializer.BuiltTemplate(source,
-                                                                  sourceReference,
-                                                                  skip,
-                                                                  factory,
-                                                                  ignoreNonDesignTimeAssigments
+                                                           sourceReference,
+                                                           skip,
+                                                           factory,
+                                                           ignoreNonDesignTimeAssigments
                                                     ); //ignoreNonDesignTimeAssignments);
 
             VerifyTemplates(appTemplate);
@@ -96,19 +87,19 @@ namespace Starcounter.Internal.JsonTemplate
 
 
         /// <summary>
-        /// Reads the file.
+        /// Reads the file and generates a typed json template.
         /// </summary>
         /// <param name="fileSpec">The file spec.</param>
-        /// <returns>TApp.</returns>
-        public static TPuppet ReadPuppetTemplateFromFile(string fileSpec)
+        /// <returns>a TJson instance</returns>
+        public static TJson ReadJsonTemplateFromFile(string fileSpec)
         {
             string content = ReadUtf8File(fileSpec);
-            var t = _CreateFromJs(typeof(TPuppet),content, fileSpec, false);
+            var t = _CreateFromJs(content, fileSpec, false);
             if (t.ClassName == null)
             {
                 t.ClassName = Paths.StripFileNameWithoutExtention(fileSpec);
             }
-            return (TPuppet)t;
+            return (TJson)t;
         }
 
         /// <summary>

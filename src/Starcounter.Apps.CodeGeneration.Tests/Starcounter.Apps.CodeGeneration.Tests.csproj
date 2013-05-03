@@ -42,7 +42,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>
@@ -93,7 +93,6 @@
       <DependentUpon>MySampleApp.json</DependentUpon>
     </None>
     <Compile Include="DebugCompiler.cs" />
-    <Compile Include="JsonSerializeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="simple.facit.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -125,10 +124,6 @@
     <ProjectReference Include="..\Starcounter.Apps.JsonPatch\Starcounter.Apps.JsonPatch.csproj">
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
       <Name>Starcounter.Apps.JsonPatch</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
-      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
-      <Name>Starcounter.Apps</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>

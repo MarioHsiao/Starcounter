@@ -26,7 +26,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void CreateCsFromJsFile() {
-            TPuppet templ = TemplateFromJs.ReadPuppetTemplateFromFile("MySampleApp.json");
+            TJson templ = TemplateFromJs.ReadJsonTemplateFromFile("MySampleApp.json");
             Assert.NotNull(templ);
         }
 
@@ -36,10 +36,10 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCs() {
-            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("MySampleApp.json");
-            Assert.IsInstanceOf(typeof(TPuppet), actual);
+            TJson actual = TemplateFromJs.ReadJsonTemplateFromFile("MySampleApp.json");
+            Assert.IsInstanceOf(typeof(TJson), actual);
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
-            var codegen = codegenmodule.CreateGenerator(typeof(TPuppet),"C#", actual, CodeBehindMetadata.Empty);
+            var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.GenerateCode());
         }
 
@@ -47,15 +47,15 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
-            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("simple.json");
+            TJson actual = TemplateFromJs.ReadJsonTemplateFromFile("simple.json");
             actual.ClassName = "PlayerApp";
 
             var file = new System.IO.StreamReader("simple.facit.cs");
             var facit = file.ReadToEnd();
             file.Close();
-            Assert.IsInstanceOf(typeof(TPuppet), actual);
+            Assert.IsInstanceOf(typeof(TJson), actual);
             var codegenmodule = new CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet), "C#", actual, CodeBehindMetadata.Empty);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
             Console.WriteLine(code);
@@ -66,12 +66,12 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCsFromSuperSimpleJs() {
-            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile("supersimple.json");
+            TJson actual = TemplateFromJs.ReadJsonTemplateFromFile("supersimple.json");
             actual.ClassName = "PlayerApp";
 
-            Assert.IsInstanceOf(typeof(TPuppet), actual);
+            Assert.IsInstanceOf(typeof(TJson), actual);
             var codegenmodule = new CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet), "C#", actual, CodeBehindMetadata.Empty);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
             Console.WriteLine(code);
@@ -82,7 +82,7 @@ namespace Test {
             String className = "TestMessage";
             CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
 
-            TJson actual = (TJson)TemplateFromJs.CreateFromJs(typeof(TJson), File.ReadAllText(className + ".json"), false);
+            TJson actual = (TJson)TemplateFromJs.CreateFromJs(File.ReadAllText(className + ".json"), false);
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
@@ -100,15 +100,15 @@ namespace Test {
         {
             String className = "MySampleApp";
             CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
-            
-            TPuppet actual = TemplateFromJs.ReadPuppetTemplateFromFile(className + ".json");
-            Assert.IsInstanceOf(typeof(TPuppet), actual);
+
+            TJson actual = TemplateFromJs.ReadJsonTemplateFromFile(className + ".json");
+            Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TPuppet),"C#", actual, metadata);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
         }
     }

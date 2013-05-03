@@ -173,7 +173,7 @@ namespace Starcounter.Internal.JsonPatch.Test
             Template from;
             String str;
 
-            TPuppet appt = (TPuppet)aat.Template;
+            TJson appt = (TJson)aat.Template;
             from = appt.Properties[0];
             str = JsonPatch.BuildJsonPatch(JsonPatch.REPLACE, app, from, "Hmmz", -1);
             Console.WriteLine(str);
@@ -208,13 +208,13 @@ namespace Starcounter.Internal.JsonPatch.Test
         public static void TestAppIndexPath()
         {
             AppAndTemplate aat = CreateSampleApp();
-            TObj appt = (TPuppet)aat.Template;
+            TObj appt = (TJson)aat.Template;
 
             TString firstName = (TString)appt.Properties[0];
             Int32[] indexPath = aat.App.IndexPathFor(firstName);
             VerifyIndexPath(new Int32[] { 0 }, indexPath);
 
-            TObj anotherAppt = (TPuppet)appt.Properties[3];
+            TObj anotherAppt = (TJson)appt.Properties[3];
             Obj nearestApp = aat.App.Get(anotherAppt);
 
             TString desc = (TString)anotherAppt.Properties[1];
@@ -252,7 +252,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         [Test]
         public static void TestCreateHttpResponseWithPatches()
         {
-            TPuppet appt;
+            TJson appt;
             Byte[] response = null;
             DateTime start = DateTime.MinValue;
             DateTime stop = DateTime.MinValue;
@@ -264,7 +264,7 @@ namespace Starcounter.Internal.JsonPatch.Test
 
             AppAndTemplate aat = CreateSampleApp();
 
-            appt = (TPuppet)aat.Template;
+            appt = (TJson)aat.Template;
 
             TString lastName = (TString)appt.Properties[1];
             TObjArr items = (TObjArr)appt.Properties[2];
@@ -319,7 +319,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         /// <returns>AppAndTemplate.</returns>
         private static AppAndTemplate CreateSampleApp()
         {
-            dynamic template = TemplateFromJs.CreateFromJs(typeof(TObj), File.ReadAllText("SampleApp.json"), false);
+            dynamic template = TemplateFromJs.CreateFromJs(File.ReadAllText("SampleApp.json"), false);
             dynamic app = new Json() { Template = template };
             
             app.FirstName = "Cliff";

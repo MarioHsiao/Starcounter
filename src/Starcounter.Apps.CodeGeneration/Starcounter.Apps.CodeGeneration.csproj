@@ -82,38 +82,6 @@
     <Compile Include="CodeBehindAnalyser\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindAnalyser\JsonMapInfo.cs" />
     <Compile Include="CSharpGenerator\CSharpGenerator.cs" />
-    <Compile Include="Serialization\AstTree\AstCase.cs" />
-    <Compile Include="Serialization\AstTree\AstCodeStatement.cs" />
-    <Compile Include="Serialization\AstTree\AstElseIfList.cs" />
-    <Compile Include="Serialization\AstTree\AstGotoProperty.cs" />
-    <Compile Include="Serialization\AstTree\AstGotoValue.cs" />
-    <Compile Include="Serialization\AstTree\AstNamespace.cs" />
-    <Compile Include="Serialization\AstTree\AstNode.cs" />
-    <Compile Include="Serialization\AstTree\AstParseJsonValue.cs" />
-    <Compile Include="Serialization\AstTree\AstFail.cs" />
-    <Compile Include="Serialization\AstTree\AstSerializeFunction.cs" />
-    <Compile Include="Serialization\AstTree\AstJsonSerializerClass.cs" />
-    <Compile Include="Serialization\AstTree\AstJSConstructor.cs" />
-    <Compile Include="Serialization\AstTree\AstSetValue.cs" />
-    <Compile Include="Serialization\AstTree\AstSwitch.cs" />
-    <Compile Include="Serialization\AstTree\AstTreeGenerator.cs" />
-    <Compile Include="Serialization\AstTree\AstTreeHelper.cs" />
-    <Compile Include="Serialization\AstTree\AstUnsafe.cs" />
-    <Compile Include="Serialization\AstTree\AstValueJump.cs" />
-    <Compile Include="Serialization\AstTree\AstVerifier.cs" />
-    <Compile Include="Serialization\AstTree\AstDeserializeFunction.cs" />
-    <Compile Include="Serialization\AstTree\AstWhile.cs" />
-    <Compile Include="Serialization\AstTree\AstWritePropertyName.cs" />
-    <Compile Include="Serialization\AstTree\AstWritePropertyValue.cs" />
-    <Compile Include="Serialization\AstTree\AstWriteDelimiter.cs" />
-    <Compile Include="Serialization\AstTree\AstWriteObject.cs" />
-    <Compile Include="Serialization\AstTree\AstWriteArray.cs" />
-    <Compile Include="Serialization\AstTree\AstForLoop.cs" />
-    <Compile Include="Serialization\AstTree\AstParseJsonObjectArray.cs" />
-    <Compile Include="Serialization\ParseTree\ParseNode.cs" />
-    <Compile Include="Serialization\ParseTree\ParseNode.PrettyPrint.cs" />
-    <Compile Include="Serialization\ParseTree\ParseTreeGenerator.cs" />
-    <Compile Include="Serialization\ParseTree\RequestProcessorMetaData.cs" />
     <Compile Include="SimpleCodeDom\Core\NConstructor.cs" />
     <Compile Include="SimpleCodeDom\Core\NInputBinding.cs" />
     <Compile Include="SimpleCodeDom\Core\NMetadataClass.cs" />
@@ -142,10 +110,6 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
-      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
-      <Name>Starcounter.Apps</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>

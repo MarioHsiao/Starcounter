@@ -29,7 +29,7 @@ namespace Starcounter.Client.Tests.Application
 //        [Fact]
         public static void AppToJson()
         {
-            dynamic app = new Puppet() { Template = TemplateFromJs.ReadPuppetTemplateFromFile("MySampleApp2.json") };
+            dynamic app = new Json() { Template = TemplateFromJs.ReadJsonTemplateFromFile("MySampleApp2.json") };
             app.FirstName = "Joachim";
             app.LastName = "Wester";
 
@@ -40,7 +40,7 @@ namespace Starcounter.Client.Tests.Application
             item = app.Items.Add();
             item.Description = "Take a vacation";
             item.IsDone = true;
-            Puppet app2 = (Puppet)app;
+            Json app2 = (Json)app;
             Console.WriteLine(app2.ToJson());
             // Assert.IsTrue(true);
             Assert.True(true);
