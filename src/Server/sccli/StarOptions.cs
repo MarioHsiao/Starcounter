@@ -18,7 +18,6 @@ namespace star {
         public const string Verbosity = "verbosity";
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";
-        public const string ShowHttp = "http";
         public const string AttatchCodeHostDebugger = "debug";
     }
 }
