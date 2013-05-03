@@ -180,44 +180,6 @@ namespace star {
                 ShowErrorAndSetExitCode(e, true, false);
                 return;
             }
-
-            
-
-            //HttpClient client;
-            //HttpResponseMessage response;
-            //ExecRequest execRequest;
-            //string relativeUri;
-
-            //execRequest = GatherAndCreateExecRequest(appArgs, out database, out relativeUri);
-
-            //client = new HttpClient() { BaseAddress = new Uri(string.Format("http://{0}:{1}", serverHost, serverPort)) };
-            //try {
-            //    var x = ObsoleteExec(client, execRequest, serverName, database, relativeUri);
-            //    x.Wait();
-            //    response = x.Result;
-            //}
-            //catch (SocketException se) {
-            //    ShowSocketErrorAndSetExitCode(se, client.BaseAddress, serverName);
-            //    return;
-            //} catch (AggregateException ae) {
-            //    var cause = ae.GetBaseException();
-            //    while (!(cause is SocketException)) {
-            //        if (cause.InnerException != null) {
-            //            cause = cause.InnerException;
-            //            continue;
-            //        }
-            //        throw;
-            //    }
-
-            //    // We got a socket level exception. Check if it's one we
-            //    // can provide some better information for and/or map to
-            //    // any of our well-known error codes.
-
-            //    ShowSocketErrorAndSetExitCode((SocketException)cause, client.BaseAddress, serverName);
-            //    return;
-            //}
-
-            //ShowResultAndSetExitCode(execRequest, response, appArgs).Wait();
         }
 
         static void Exec(
