@@ -28,32 +28,29 @@ namespace Starcounter.VisualStudio.Projects {
     static class HTTPHelp {
         public const string CRLF = "\r\n";
 
-        public static int FailIfNotSuccess(this Response response) {
-            return FailIfNotSuccessOr(response);
-        }
+        //public static int FailIfNotSuccess(this Response response) {
+        //    return FailIfNotSuccessOr(response);
+        //}
 
-        public static int FailIfNotSuccessOr(this Response response, params int[] codes) {
-            var pass = response.IsSuccessOr(codes);
-            if (!pass) {
-                Raise(response);
-            }
-            return response.StatusCode;
-        }
+        //public static int FailIfNotSuccessOr(this Response response, params int[] codes) {
+        //    return response.FailIfNotSuccessOr(Raise, codes);
 
-        public static int FailIfNotIsAnyOf(this Response response, params int[] codes) {
-            var pass = response.IsAnyOf(codes);
-            if (!pass) {
-                Raise(response);
-            }
-            return response.StatusCode;
-        }
+        //    //var pass = response.IsSuccessOr(codes);
+        //    //if (!pass) {
+        //    //    Raise(response);
+        //    //}
+        //    //return response.StatusCode;
+        //}
 
-        static void Raise(Response response) {
+        //public static int FailIfNotIsAnyOf(this Response response, params int[] codes) {
+        //    return response.FailIfNotIsAnyOf(Raise, codes);
+        //}
+
+        public static void HandleUnexpectedResponse(Response response) {
             // Check for an error detail as part of the body?
             // And build a message from that.
             // TODO:
-
-            throw new Exception(response.ToString());
+            ResponseExtensions.DefaultErrorHandler(response);
         }
     }
 
@@ -168,6 +165,7 @@ namespace Starcounter.VisualStudio.Projects {
             int statusCode;
             string headers;
 
+            ResponseExtensions.OnUnexpectedResponse = HTTPHelp.HandleUnexpectedResponse;
             SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
             SharedCLI.ResolveDatabase(args, out databaseName);
             var admin = new AdminAPI();
