@@ -28,24 +28,6 @@ namespace Starcounter.VisualStudio.Projects {
     static class HTTPHelp {
         public const string CRLF = "\r\n";
 
-        //public static int FailIfNotSuccess(this Response response) {
-        //    return FailIfNotSuccessOr(response);
-        //}
-
-        //public static int FailIfNotSuccessOr(this Response response, params int[] codes) {
-        //    return response.FailIfNotSuccessOr(Raise, codes);
-
-        //    //var pass = response.IsSuccessOr(codes);
-        //    //if (!pass) {
-        //    //    Raise(response);
-        //    //}
-        //    //return response.StatusCode;
-        //}
-
-        //public static int FailIfNotIsAnyOf(this Response response, params int[] codes) {
-        //    return response.FailIfNotIsAnyOf(Raise, codes);
-        //}
-
         public static void HandleUnexpectedResponse(Response response) {
             // Check for an error detail as part of the body?
             // And build a message from that.
