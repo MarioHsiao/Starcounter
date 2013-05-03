@@ -46,7 +46,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>
@@ -103,10 +103,6 @@
     <ProjectReference Include="..\Starcounter.Apps.JsonReader\Starcounter.Apps.JsonReader.csproj">
       <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
       <Name>Starcounter.Apps.JsonReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
-      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
-      <Name>Starcounter.Apps</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>

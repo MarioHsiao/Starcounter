@@ -35,17 +35,17 @@ namespace Starcounter.Internal.JsonTemplate {
         /// Creates from HTML file.
         /// </summary>
         /// <param name="fileSpec">The file spec.</param>
-        /// <returns>TApp.</returns>
+        /// <returns>TJson</returns>
         /// <exception cref="System.Exception"></exception>
-        public static TPuppet CreatePuppetTemplateFromHtmlFile(string fileSpec) {
+        public static TJson CreatePuppetTemplateFromHtmlFile(string fileSpec) {
             string str = ReadUtf8File(fileSpec);
-            TPuppet template = null;
+            TJson template = null;
             var html = new HtmlDocument();
             bool shouldFindTemplate = (str.ToUpper().IndexOf("$$DESIGNTIME$$") >= 0);
             html.Load(new StringReader(str));
             foreach (HtmlNode link in html.DocumentNode.SelectNodes("//script")) {
                 string js = link.InnerText;
-                template = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),js, true);
+                template = (TJson)TemplateFromJs.CreateFromJs(js, true);
                 if (template != null)
                     return template;
             }

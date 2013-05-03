@@ -13,7 +13,7 @@ using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Apps.CodeGeneration.Tests {
     internal class GenereratedJsonCodeCompiler {
-        internal static Puppet CompileCode(string generatedCode, string codebehindCode, string fullClassName) {
+        internal static Json CompileCode(string generatedCode, string codebehindCode, string fullClassName) {
             Assembly assembly;
             Compilation compilation;
             CompilationOptions copts;

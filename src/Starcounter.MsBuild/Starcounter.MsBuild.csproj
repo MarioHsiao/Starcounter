@@ -69,7 +69,6 @@
   <ItemGroup>
     <Compile Include="JsonToCsMsBuildTask.cs" />
     <Compile Include="JsonToMessageBuildTask.cs" />
-    <Compile Include="JsonToPuppetTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -84,10 +83,6 @@
     <ProjectReference Include="..\ThirdParty\DynamoIoc\DynamoIoc.csproj">
       <Project>{ea81e2c5-0477-42ab-82f2-b57228af694e}</Project>
       <Name>DynamoIoc</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
-      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
-      <Name>Starcounter.Apps</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.CodeGeneration\Starcounter.Apps.CodeGeneration.csproj">
       <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>

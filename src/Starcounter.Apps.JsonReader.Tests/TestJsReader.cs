@@ -8,19 +8,19 @@ using System;
 using NUnit.Framework;
 using Starcounter.Templates;
 using Starcounter.Internal.JsonTemplate;
+
 namespace Starcounter.Internal.JsonTemplate.Tests {
     /// <summary>
     /// Class TestJsReader
     /// </summary>
     public class TestJsReader {
-
         /// <summary>
         /// Creates the simple template from string.
         /// </summary>
         [Test]
         public static void CreateSimpleTemplateFromString() {
             const string script2 = @"
-                      {
+                                    {
                                       FirstName:'Joachim', 
                                       LastName:'Wester', 
                                       Selected:true,
@@ -31,11 +31,11 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                          }
                                       ],
                                       Delete: event
-                       }";
+                                    }";
 
 
-            TPuppet actual = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),script2,false);
-            Assert.IsInstanceOf(typeof(TPuppet), actual);
+            TJson actual = (TJson)TemplateFromJs.CreateFromJs(script2, false);
+            Assert.IsInstanceOf(typeof(TJson), actual);
             Assert.IsInstanceOf<TString>(actual.Properties[0]);
             Assert.IsInstanceOf<TString>(actual.Properties[1]);
             Assert.IsInstanceOf<TBool>(actual.Properties[2]);
@@ -43,35 +43,31 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
             Console.WriteLine(actual);
         }
 
-
         /// <summary>
         /// Creates the simple adorned template from js.
         /// </summary>
-      [Test]
-      public static void CreateSimpleAdornedTemplateFromJs()
-      {
-         const string script2 = @"
-                      {
+        [Test]
+        public static void CreateSimpleAdornedTemplateFromJs() {
+            const string script2 = @"
+                                    {
                                       FirstName:'Joachim'               .Editable(), 
-                       }.Class('TestApp')";
+                                    }.Class('TestApp')";
 
-         TPuppet actual = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),script2, false);
-         Assert.IsInstanceOf(typeof(TPuppet), actual);
-         Assert.IsInstanceOf<TString>(actual.Properties[0]);
-         Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
-         Assert.AreEqual("TestApp", actual.ClassName);
-         Console.WriteLine(actual);
-      }
+            TJson actual = (TJson)TemplateFromJs.CreateFromJs(script2, false);
+            Assert.IsInstanceOf(typeof(TJson), actual);
+            Assert.IsInstanceOf<TString>(actual.Properties[0]);
+            Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
+            Assert.AreEqual("TestApp", actual.ClassName);
+            Console.WriteLine(actual);
+        }
 
-
-      /// <summary>
-      /// Creates the complex template from js.
-      /// </summary>
-      [Test]
-      public static void CreateComplexTemplateFromJs()
-      {
-         const string script2 = @"
-                      {
+        /// <summary>
+        /// Creates the complex template from js.
+        /// </summary>
+        [Test]
+        public static void CreateComplexTemplateFromJs() {
+            const string script2 = @"
+                                    {
                                       FirstName:'Joachim'               .Editable(), 
                                       LastName:'Wester'                 .Editable(false), 
                                       Selected:true                     .Editable(false).Editable(true),
@@ -82,31 +78,31 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                          }
                                       ],
                                       Delete: event
-                       }.Class('TestApp').Namespace('Test')";
+                                    }.Class('TestApp').Namespace('Test')";
 
 
-         TPuppet actual = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),script2, false);
-         Assert.IsInstanceOf(typeof(TPuppet), actual);
-         Assert.AreEqual("TestApp", actual.ClassName);
-         Assert.AreEqual("Test", actual.Namespace);
-         Assert.IsInstanceOf<TString>(actual.Properties[0]);
-         Assert.IsInstanceOf<TString>(actual.Properties[1]);
-         Assert.IsInstanceOf<TBool>(actual.Properties[2]);
-         Assert.IsInstanceOf<TObjArr>(actual.Properties[3]);
-         Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
-         Assert.AreEqual(false, ((TString)actual.Properties[1]).Editable);
-         Assert.AreEqual(true, ((TBool)actual.Properties[2]).Editable);
-         Console.WriteLine(actual);
-      }
+            TJson actual = (TJson)TemplateFromJs.CreateFromJs(script2, false);
+            Assert.IsInstanceOf(typeof(TJson), actual);
+            Assert.AreEqual("TestApp", actual.ClassName);
+            Assert.AreEqual("Test", actual.Namespace);
+            Assert.IsInstanceOf<TString>(actual.Properties[0]);
+            Assert.IsInstanceOf<TString>(actual.Properties[1]);
+            Assert.IsInstanceOf<TBool>(actual.Properties[2]);
+            Assert.IsInstanceOf<TObjArr>(actual.Properties[3]);
+            Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
+            Assert.AreEqual(false, ((TString)actual.Properties[1]).Editable);
+            Assert.AreEqual(true, ((TBool)actual.Properties[2]).Editable);
+            Console.WriteLine(actual);
+        }
 
 
-      /// <summary>
-      /// Creates the even more complex template from js.
-      /// </summary>
-      [Test]
-      public static void CreateEvenMoreComplexTemplateFromJs() {
-         const string script =
-            @"{
+        /// <summary>
+        /// Creates the even more complex template from js.
+        /// </summary>
+        [Test]
+        public static void CreateEvenMoreComplexTemplateFromJs() {
+            const string script =
+               @"{
     UserFullName: 'Joachim Wester',
     Login: {
         UserName: ''.Editable(),
@@ -161,8 +157,8 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
     }.Bind('this'),
     HistoryApp: {}.Include('HistoryApp')
 }.Class('CrmApp')";
-         TPuppet actual = (TPuppet)TemplateFromJs.CreateFromJs(typeof(TPuppet),script, false);
-         Assert.IsInstanceOf(typeof(TPuppet), actual);
-      }
-   }
+            TJson actual = (TJson)TemplateFromJs.CreateFromJs(script, false);
+            Assert.IsInstanceOf(typeof(TJson), actual);
+        }
+    }
 }

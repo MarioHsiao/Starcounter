@@ -75,7 +75,7 @@ namespace Starcounter.Internal.MsBuild
 
             var className = Paths.StripFileNameWithoutExtention(jsonFilename);
             metadata = CodeBehindAnalyzer.Analyze(className, codeBehindFilename);
-            t = TemplateFromJs.CreateFromJs(objTemplateType,jsonContent, false);
+            t = TemplateFromJs.CreateFromJs(jsonContent, false);
             if (t.ClassName == null)
             {
                 t.ClassName = className;

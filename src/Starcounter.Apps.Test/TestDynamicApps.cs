@@ -36,24 +36,24 @@ namespace Starcounter.Client.Tests.Application {
         /// Creates some.
         /// </summary>
         /// <returns>List{App}.</returns>
-        private static List<Puppet> _CreateTemplatesAndAppsByCode() {
+        private static List<Json> _CreateTemplatesAndAppsByCode() {
 
             // First, let's create the schema (template)
-            var personSchema = new TPuppet();
+            var personSchema = new TJson();
             var firstName = personSchema.Add<TString>("FirstName$");
             var lastName = personSchema.Add<TString>("LastName");
             var age = personSchema.Add<TLong>("Age");
 
-            var phoneNumber = new TPuppet();
-            var phoneNumbers = personSchema.Add<TArr<Puppet,TPuppet>>("Phonenumbers", phoneNumber);
+            var phoneNumber = new TJson();
+            var phoneNumbers = personSchema.Add<TArr<Json,TJson>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.TemplateName);
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
             // Now let's create instances using that schema
-            Puppet jocke = new Puppet() { Template = personSchema };
-            Puppet tim = new Puppet() { Template = personSchema };
+            Json jocke = new Json() { Template = personSchema };
+            Json tim = new Json() { Template = personSchema };
 
             jocke.Set(firstName, "Joachim");
             jocke.Set(lastName, "Wester");
@@ -74,7 +74,7 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual("Timothy", tim.Get(firstName));
             Assert.AreEqual("Wester", tim.Get(lastName));
 
-            var ret = new List<Puppet>();
+            var ret = new List<Json>();
             ret.Add(jocke);
             ret.Add(tim);
             return ret;
@@ -83,21 +83,21 @@ namespace Starcounter.Client.Tests.Application {
         [Test]
         public static void TestDynamic() {
             // First, let's create the schema (template)
-            var personSchema = new TPuppet();
+            var personSchema = new TJson();
             var firstName = personSchema.Add<TString>("FirstName$");
             var lastName = personSchema.Add<TString>("LastName");
             var age = personSchema.Add<TLong>("Age");
 
-            var phoneNumber = new TPuppet();
-            var phoneNumbers = personSchema.Add<TArr<Puppet, TPuppet>>("Phonenumbers", phoneNumber);
+            var phoneNumber = new TJson();
+            var phoneNumbers = personSchema.Add<TArr<Json, TJson>>("Phonenumbers", phoneNumber);
             var number = phoneNumber.Add<TString>("Number");
 
             Assert.AreEqual("FirstName$", firstName.TemplateName);
             Assert.AreEqual("FirstName", firstName.PropertyName);
 
             // Now let's create instances using that schema
-            dynamic jocke = new Puppet() { Template = personSchema };
-            dynamic tim = new Puppet() { Template = personSchema };
+            dynamic jocke = new Json() { Template = personSchema };
+            dynamic tim = new Json() { Template = personSchema };
 
             jocke.FirstName = "Joachim";
             jocke.LastName = "Wester";
@@ -118,7 +118,7 @@ namespace Starcounter.Client.Tests.Application {
             Assert.AreEqual("Timothy", tim.FirstName);
             Assert.AreEqual("Wester", tim.LastName);
 
-            var ret = new List<Puppet>();
+            var ret = new List<Json>();
             ret.Add(jocke);
             ret.Add(tim);
         }

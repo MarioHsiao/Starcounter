@@ -80,10 +80,6 @@
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
       <Name>Starcounter.Apps.JsonPatch</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.Apps\Starcounter.Apps.csproj">
-      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
-      <Name>Starcounter.Apps</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
