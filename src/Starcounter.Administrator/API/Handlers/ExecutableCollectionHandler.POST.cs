@@ -25,8 +25,11 @@ namespace Starcounter.Administrator.API.Handlers {
             ErrorDetail errDetail;
             var engine = RootHandler.Host.Engine;
             var runtime = RootHandler.Host.Runtime;
+            var async = false;
 
             var response = RESTUtility.JSON.CreateFromRequest<Executable>(request, out exe);
+            if (response != null) return response;
+            response = RESTUtility.JSON.ExpectAsynchronousOrNone(request, out async);
             if (response != null) return response;
 
             string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
@@ -36,14 +39,23 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var cmd = new ExecCommand(engine, exe.Path, null, userArgs);
             cmd.DatabaseName = name;
-            cmd.EnableWaiting = true;
+            cmd.EnableWaiting = !async;
 
             var commandInfo = runtime.Execute(cmd);
             Trace.Assert(commandInfo.ProcessorToken == ExecCommand.DefaultProcessor.Token);
-            if (cmd.EnableWaiting) {
+            if (!async) {
                 commandInfo = runtime.Wait(commandInfo);
+            } else if (!commandInfo.HasError) {
+                // Asked to do this asynchronously. We should return a
+                // monitor, pointing to the now-running command. Right
+                // now we are fine just returning 202 for our own needs.
+                // We should design a monitor resource to allow polling
+                // and end the last poll with either an error or the
+                // Executable reprsenting the result.
+                return 202;
             }
-
+            Trace.Assert(commandInfo.IsCompleted);
+            
             if (commandInfo.HasError) {
                 ErrorInfo single;
                 ErrorMessage msg;
