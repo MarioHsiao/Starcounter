@@ -147,9 +147,13 @@ namespace Starcounter.VisualStudio.Projects {
                 result = false;
             }
 
-            var finish = DateTime.Now;
-            this.WriteLine("Debug sequence time: {0}, using parameters {1}", finish.Subtract(start), string.Join(" ", debugConfiguration.Arguments));
-
+            if (result) {
+                var finish = DateTime.Now;
+                this.WriteLine("Successfully started {0} (time {1}s), using parameters {2}", 
+                    Path.GetFileName(debugConfiguration.AssemblyPath),
+                    finish.Subtract(start).ToString(@"ss\.fff"),
+                    string.Join(" ", debugConfiguration.Arguments));
+            }
             return result;
         }
 
@@ -162,6 +166,7 @@ namespace Starcounter.VisualStudio.Projects {
             Engine engine;
             ErrorDetail errorDetail;
             int statusCode;
+            string headers;
 
             SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
             SharedCLI.ResolveDatabase(args, out databaseName);
@@ -214,7 +219,7 @@ namespace Starcounter.VisualStudio.Projects {
             ExecutableReference exeRef = engine.GetExecutable(debugConfig.AssemblyPath);
             if (exeRef != null) {
                 var restart = true;
-                var headers = string.Format("ETag: {0}{1}", engineETag, HTTPHelp.CRLF);
+                headers = string.Format("ETag: {0}{1}", engineETag, HTTPHelp.CRLF);
                 this.WriteDebugLaunchStatus("Stopping engine");
                 response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), null, headers, null);
                 response.FailIfNotSuccessOr(404, 412);
@@ -265,13 +270,9 @@ namespace Starcounter.VisualStudio.Projects {
             foreach (var arg in args.CommandParameters.ToArray()) {
                 exe.Arguments.Add().dummy = arg;
             }
-            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null);
+            headers = string.Format("Expect: {0}{1}", "202-accepted", HTTPHelp.CRLF);
+            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), headers, null);
             response.FailIfNotSuccess();
-            exe.PopulateFromJson(response.GetBodyStringUtf8_Slow());
-
-            this.WriteLine("[Summary starting {0}]", Path.GetFileName(debugConfig.AssemblyPath));
-            this.WriteLine(exe.Description + Environment.NewLine + exe.RuntimeInfo.LoadPath);
-            this.WriteLine("[End]");
 
             return true;
         }
