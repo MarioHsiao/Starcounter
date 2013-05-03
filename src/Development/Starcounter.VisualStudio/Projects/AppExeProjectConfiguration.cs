@@ -47,24 +47,11 @@ namespace Starcounter.VisualStudio.Projects {
 
             var appSyntax = new ApplicationSyntaxDefinition();
             appSyntax.DefaultCommand = "exec";
-            SharedCLI.DefineWellKnownOptions(appSyntax);
-            
-            // Consider including support for a --scdebug flag that
-            // can attach the debugger to the extension when the debug
-            // sequence is being debugged, and maybe something similar
-            // to star.exe --syntax?
-            // TODO:
-            appSyntax.DefineFlag(
-                "scdebug",
-                "Attaches a debugger to the VS extension when about to run/debug an executable."
-                );
+            SharedCLI.DefineWellKnownOptions(appSyntax, true);
 
-            // NOTE:
-            // Although we will refuse to execute any EXEC command without at least one parameter,
-            // we specify a minimum of 0. The reason is that the exec command is the default, and it
-            // will be applied whenever a command is not explicitly given. This in turn means that
-            // if we invoke star.exe with a single global option, like --help, the parser will fail
-            // since it will apply exec as the default command and force it to have parameters.
+            // Hidden "exec" command, allowing us to use the command-line
+            // library for the parsing and defining of the command-line given
+            // in project settings
             appSyntax.DefineCommand("exec", "Executes the application", 0, int.MaxValue);
             AppExeProjectConfiguration.commandLineSyntax = appSyntax.CreateSyntax();
         }
@@ -94,7 +81,7 @@ namespace Starcounter.VisualStudio.Projects {
 
             var parser = new Parser(debugConfiguration.Arguments);
             cmdLine = parser.Parse(commandLineSyntax);
-            if (cmdLine.ContainsFlag("scdebug")) {
+            if (cmdLine.ContainsFlag(SharedCLI.UnofficialOptions.Debug)) {
                 debugFlagSpecified = true;
                 System.Diagnostics.Debugger.Launch();
             }
