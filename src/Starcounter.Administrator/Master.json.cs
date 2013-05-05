@@ -592,7 +592,7 @@ namespace Starcounter.Administrator {
                         for (int i = 0; i < databases.Length; i++) {
                             resultJson.databases[i] = new {
                                 id = Master.EncodeTo64(databases[i].Uri),
-                                status = (databases[i].HostProcessId > 0) ? "Running" : ".",
+                                status = (databases[i].Engine != null) ? "Running" : ".",
                                 name = databases[i].Name,
                                 hostProcessId = databases[i].Engine == null ? 0 : databases[i].Engine.HostProcessId,
                                 httpPort = databases[i].Configuration.Runtime.DefaultUserHttpPort,
@@ -647,7 +647,7 @@ namespace Starcounter.Administrator {
 
                             resultJson.database = new {
                                 id = Master.EncodeTo64(database.Uri),
-                                status =  (database.HostProcessId > 0 ) ? "Running" : ".",
+                                status =  (database.Engine != null) ? "Running" : ".",
                                 name = database.Name,
                                 hostProcessId = database.Engine == null ? 0 : database.Engine.HostProcessId,
                                 httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
