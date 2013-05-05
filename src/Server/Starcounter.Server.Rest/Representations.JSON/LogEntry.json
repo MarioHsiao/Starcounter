@@ -1,0 +1,12 @@
+﻿{
+    "Message": "Database Foo was not found",
+    "ErrorCode": 10002,
+    "Severity":"Error",
+	"Time": "ISO-8601, e.g. 2013-04-27T14.17:02",
+    "Next": {
+        "Uri": "http://example.com/api/logs/124"
+    },
+    "Previous": {
+        "Uri": "http://example.com/api/logs/122"
+    }
+}

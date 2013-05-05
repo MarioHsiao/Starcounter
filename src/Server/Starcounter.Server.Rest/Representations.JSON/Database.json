@@ -1,0 +1,10 @@
+﻿{
+    "Uri": "http://example.com/api/databases/foo",
+    "Name": "Foo",
+    "Configuration": {
+        "Uri": "http://example.com/api/databases/foo/configuration"
+    },
+    "Engine": {
+        "Uri": "http://example.com/api/engines/foo"
+    }
+}

@@ -1,8 +1,0 @@
-﻿{
-	"ExecutablePath":"",
-	"CommandLineString":"Separate tokens by spaces, i.e. one two three.",
-	"ResourceDirectoriesString":"Separate paths with semicolons, i.e. C:\Path1;C:\Path2.",
-	"NoDb":false,
-	"LogSteps":false,
-	"CanAutoCreateDb":true
-}
