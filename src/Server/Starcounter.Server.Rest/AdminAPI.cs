@@ -36,8 +36,8 @@ namespace Starcounter.Server.Rest {
         /// All URI's should be defined with the same syntax we use to define
         /// handlers, meaning replacement values should be in brackets with a
         /// question mark, i.e. {?}.
-        /// </remarks>
         /// </para>
+        /// </remarks>
         public sealed class ResourceUris {
             /// <summary>
             /// Provides the default context path used for admin server resources
