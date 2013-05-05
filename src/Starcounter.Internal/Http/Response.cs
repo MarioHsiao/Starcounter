@@ -749,7 +749,7 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Gets the content as UTF8 string.
+        /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
         public String GetBodyStringUtf8_Slow()
@@ -776,6 +776,15 @@ namespace Starcounter.Advanced
         public void GetResponseRaw(out IntPtr ptr, out UInt32 sizeBytes)
         {
             unsafe { http_response_struct_->GetResponseRaw(out ptr, out sizeBytes); }
+        }
+
+        /// <summary>
+        /// Gets response as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetResponseStringUtf8_Slow()
+        {
+            unsafe { return http_response_struct_->GetResponseStringUtf8_Slow(); }
         }
 
         /// <summary>
@@ -1016,6 +1025,15 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Gets the response as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetResponseStringUtf8_Slow()
+        {
+            return new String((SByte*)(socket_data_ + response_offset_), 0, (Int32)response_len_bytes_, Encoding.UTF8);
+        }
+
+        /// <summary>
         /// Gets the raw parameters structure.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
@@ -1059,7 +1077,7 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Gets the content as UTF8 string.
+        /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
         public String GetBodyStringUtf8_Slow()

@@ -155,7 +155,7 @@ namespace Starcounter.Internal.Web
     /// Initializes static members of the <see cref="HttpResponseBuilder" /> class.
     /// </summary>
     static HttpResponseBuilder() {
-        string str = "HTTP/1.0 200 OK" + CRLF + "Content-Length: 9999999999";
+        string str = "HTTP/1.1 200 OK" + CRLF + "Content-Length: 9999999999";
         OkResponseHeader = Encoding.ASCII.GetBytes(str);
         OkResponseContentLengthInsertionPoint = 32; // Content-Length
 
@@ -258,6 +258,12 @@ namespace Starcounter.Internal.Web
         return response;
     }
 
+    public readonly static byte[] BadRequest400 = System.Text.Encoding.UTF8.GetBytes(
+        "HTTP/1.1 400 Bad Request" + CRLF +
+        "Server: SC" + CRLF +
+        "Connection: close" + CRLF +
+        "Content-Length: 0" + CRLFCRLF);
+
     /// <summary>
     /// Nots the found404.
     /// </summary>
@@ -275,8 +281,11 @@ namespace Starcounter.Internal.Web
     /// <returns>System.Byte[][].</returns>
     public static byte[] NotFound404(Byte[] contentBytes)
     {
-        string str = "HTTP/1.1 404 Not Found" + CRLF + "Server: SC" + CRLF + "Connection: close" + CRLF;
-        str += "Content-Length: " + contentBytes.Length + CRLF +
+        string str =
+            "HTTP/1.1 404 Not Found" + CRLF +
+            "Server: SC" + CRLF +
+            "Connection: close" + CRLF +
+            "Content-Length: " + contentBytes.Length + CRLF +
             "Content-Type: text/plain;charset=UTF-8" + CRLFCRLF;
 
         byte[] headersBytes = Encoding.UTF8.GetBytes(str);
@@ -289,8 +298,10 @@ namespace Starcounter.Internal.Web
     }
 
     public static byte[] FromCodeAndReason_NOT_VALIDATING(int code, string reason) {
-        string headers = "HTTP/1.1 " + HttpStatusCodeAndReason.ToStatusLineFormatNoValidate(code, reason) +
-            CRLF + "Server: SC" + CRLF + "Content-Length: 0" + CRLFCRLF;
+        string headers =
+            "HTTP/1.1 " + HttpStatusCodeAndReason.ToStatusLineFormatNoValidate(code, reason) + CRLF +
+            "Server: SC" + CRLF +
+            "Content-Length: 0" + CRLFCRLF;
           
         return Encoding.UTF8.GetBytes(headers);
     }
@@ -331,10 +342,12 @@ namespace Starcounter.Internal.Web
             }
         }*/
           
-        String responseStr = "HTTP/1.1 200 OK" + CRLF + "Server: SC" + CRLF + "Connection: close" + CRLF +
-        "Content-Length: " + contentBytes.Length + CRLF +
-        "Content-Encoding: " + encodingType + CRLF +
-        "Content-Type: text/plain;charset=UTF-8" + CRLFCRLF;
+        String responseStr =
+            "HTTP/1.1 200 OK" + CRLF +
+            "Server: SC" + CRLF +
+            "Content-Length: " + contentBytes.Length + CRLF +
+            "Content-Encoding: " + encodingType + CRLF +
+            "Content-Type: text/plain;charset=UTF-8" + CRLFCRLF;
 
         byte[] headersBytes = Encoding.ASCII.GetBytes(responseStr);
         var responseBytes = new byte[headersBytes.Length + contentBytes.Length];
@@ -355,9 +368,11 @@ namespace Starcounter.Internal.Web
     /// with headers properly specifying the metadata of the enclosed
     /// content.</returns>
     public static byte[] FromJsonUTF8Content(byte[] contentBytes) {
-        String responseStr = "HTTP/1.1 200 OK" + CRLF + "Server: SC" + CRLF + "Connection: close" + CRLF +
-        "Content-Length: " + contentBytes.Length + CRLF +
-        "Content-Type: application/json;charset=UTF-8" + CRLFCRLF;
+        String responseStr =
+            "HTTP/1.1 200 OK" + CRLF +
+            "Server: SC" + CRLF +
+            "Content-Length: " + contentBytes.Length + CRLF +
+            "Content-Type: application/json;charset=UTF-8" + CRLFCRLF;
 
         var headersBytes = Encoding.ASCII.GetBytes(responseStr);
         var responseBytes = new byte[headersBytes.Length + contentBytes.Length];
@@ -381,10 +396,12 @@ namespace Starcounter.Internal.Web
     /// </returns>
     public static byte[] Create201Response(byte[] contentBytes, string location)
     {
-        var headers = "HTTP/1.1 201 Created" + CRLF + "Server: SC" + CRLF + "Connection: close" + CRLF;
-        headers += "Content-Length: " + contentBytes.Length + CRLF
-                 + "Content-Type: application/json;charset=UTF-8" + CRLF
-                 + "Location: " + location + CRLFCRLF;
+        var headers =
+            "HTTP/1.1 201 Created" + CRLF +
+            "Server: SC" + CRLF +
+            "Content-Length: " + contentBytes.Length + CRLF +
+            "Content-Type: application/json;charset=UTF-8" + CRLF +
+            "Location: " + location + CRLFCRLF;
 
         var headersBytes = Encoding.ASCII.GetBytes(headers);
         var responseBytes = new byte[headersBytes.Length + contentBytes.Length];
@@ -401,7 +418,11 @@ namespace Starcounter.Internal.Web
 
         // In HTTP 1.1, adding space(s) after the colon is not required. The omitting of the additional space character is intentional in Starcounter
         // HTTP responses.
-        string str = "HTTP/1.1 200 OK" + CRLF + "Server: SC" + CRLF + "Connection: Keep-Alive" + CRLF + "Content-Type: application/json" + CRLF + "Content-Length: " + contentBytes.Length + CRLFCRLF;
+        string str =
+            "HTTP/1.1 200 OK" + CRLF +
+            "Server: SC" + CRLF +
+            "Content-Type: application/json" + CRLF +
+            "Content-Length: " + contentBytes.Length + CRLFCRLF;
 
         byte[] headersBytes = Encoding.UTF8.GetBytes(str);
         var responseBytes = new byte[headersBytes.Length + contentBytes.Length];
