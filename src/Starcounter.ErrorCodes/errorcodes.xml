@@ -3722,7 +3722,42 @@
         unexpectedly terminated.
       </message>
     </code>
-
+    <code hex="0017" severity="Error" name="ScErrCommandPreconditionFailed">
+      <!--
+      This error allows server command processors to report about a condition
+      failing to be met based on a given fingerprint. The server design for
+      fingerprint matching is closely related and largely influenced by the
+      HTTP Etag- and conditional invocation concepts and hence, this error
+      can be considered the equivivalent to HTTP status 412.
+      -->
+      <message>
+        The server detected a precondition that was not met; the command was
+        therefore not executed.
+      </message>
+    </code>
+    <code hex="0018" severity="Error" name="ScErrDatabaseEngineNotRunning">
+      <!--
+      Indicates a management operation was attempted but could not succeed
+      because the database engine was not running, as expected too.
+      -->
+      <message>
+        The database engine is not running.
+      </message>
+    </code>
+    <code hex="0019" severity="Error" name="ScErrExecutableAlreadyRunning">
+      <!--
+      Indicates an executable is already loaded in a certain database engine
+      and that state was considered worth reporting as an error.
+      -->
+      <message>
+        The executable is already running.
+      </message>
+    </code>
+    <code hex="001A" severity="Error" name="ScErrExecutableNotRunning">
+      <message>
+        The executable is not running.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
@@ -4000,14 +4035,31 @@
         
     </facility>
 
+    
     <!-- Error codes related to Apps -->
-    <facility name="Apps" hex="000E">
+    <!--
+    TODO: Rename this facility to something more general and accurate, for
+    example "Rest" or "Web".
+    -->
+  <facility name="Apps" hex="000E">
         <code hex="0001" severity="Error" name="ScErrAppsHttpParserIncompleteHeaders">
             <message>HTTP request has incomplete headers.</message>
         </code>
         <code hex="0002" severity="Error" name="ScErrAppsHttpParserIncorrect">
             <message>HTTP contains incorrect data.</message>
         </code>
+      <code hex="0003" severity="Error" name="ScErrJsonPropertyNotFound">
+        <!-- Error code used when parsing a Json document against a well-defined
+        template and a given property name is not found in the template.-->
+        <message>The property is not defined in the template.</message>
+      </code>
+      <code hex="0004" severity="Error" name="ScErrJsonValueWrongType">
+        <!-- Error code used when parsing a Json document against a well-defined
+        template and a given property value is not valid according to the type of
+        the property. For example, when doing "Name":false and "Name" is a string.
+        -->
+        <message>The value does not correspond to the template property type.</message>
+      </code>
     </facility>
     
 </error-codes>

@@ -38,5 +38,23 @@ namespace Starcounter.Server.PublicModel {
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets the path from which the represented executable
+        /// actually runs (governed by the server).
+        /// </summary>
+        public string ExecutionPath {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the server key for this executable. A key must
+        /// be assured to be unique within the scope of a single database.
+        /// </summary>
+        public string Key {
+            get;
+            set;
+        }
     }
 }
