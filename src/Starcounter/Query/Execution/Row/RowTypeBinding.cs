@@ -143,6 +143,21 @@ internal class RowTypeBinding : ITypeBinding
         }
     }
 
+    public Int32 GetPropertyIndexCaseInsensitive(String name) {
+        Int32 index = -1;
+        if (name == null) {
+            throw new ArgumentNullException("name");
+        }
+        if (propertyIndexDictByName.TryGetValue(name, out index)) {
+            return index;
+        } else {
+            if (propertyIndexDictByName.TryGetValue(name.ToLower(), out index))
+                return index;
+            else
+                throw new KeyNotFoundException("There is no property with name: " + name);
+        }
+    }
+
     public String GetPropertyName(Int32 index)
     {
         if (index < 0 || index >= propertyList.Count)
@@ -183,6 +198,8 @@ internal class RowTypeBinding : ITypeBinding
         Int32 index = propertyList.Count;
         PropertyMapping propMap = new PropertyMapping(name, index, expr);
         propertyIndexDictByName.Add(name, index);
+        if (name.ToLower() != name)
+            propertyIndexDictByName.Add(name.ToLower(), index);
         propertyList.Add(propMap);
     }
 

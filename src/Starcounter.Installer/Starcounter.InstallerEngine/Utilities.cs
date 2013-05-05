@@ -536,11 +536,12 @@ namespace Starcounter.InstallerEngine
         public static void CreateShortcut(
             String pathToOrigin,
             String pathToLnk,
-            String args,
+            String commandArgs,
             String workingDir,
             String description,
             String iconPath)
         {
+            /*
             // Creating shortcut using our utility.
             ProcessStartInfo shortcutInfo = new ProcessStartInfo();
             shortcutInfo.FileName = "\"" + InstallerMain.InstallationDir + "\\CreateShortcut\"";
@@ -563,6 +564,16 @@ namespace Starcounter.InstallerEngine
 
             // Closing process instance.
             shortcutProcess.Close();
+            */
+
+            IWshRuntimeLibrary.WshShell shell = new IWshRuntimeLibrary.WshShell();
+            IWshRuntimeLibrary.IWshShortcut shortcut = (IWshRuntimeLibrary.IWshShortcut)shell.CreateShortcut(pathToLnk);
+            shortcut.Description = description;
+            shortcut.TargetPath = pathToOrigin;
+            shortcut.WorkingDirectory = workingDir;
+            shortcut.IconLocation = iconPath;
+            shortcut.Arguments = commandArgs;
+            shortcut.Save();
         }
 
         /// <summary>
