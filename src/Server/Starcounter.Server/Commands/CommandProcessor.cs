@@ -31,6 +31,8 @@ namespace Starcounter.Server.Commands {
         private readonly DateTime startTime = DateTime.Now;
 
         private Dictionary<int, ProgressInfo> progress;
+        private int? exitCode;
+        private object result;
         private readonly int typeIdentity;
 
         private NotifyCommandStatusChangedCallback _notifyStatusChangedCallback;
@@ -63,7 +65,9 @@ namespace Starcounter.Server.Commands {
             this.Id = CommandId.MakeNew();
             this.typeIdentity = CreateToken(GetType());
             this.IsPublic = !isInternal;
-            this.manualResetEvent = command.EnableWaiting ? new ManualResetEvent(false) : null; 
+            this.manualResetEvent = command.EnableWaiting ? new ManualResetEvent(false) : null;
+            this.result = null;
+            this.exitCode = null;
             stopwatch = Stopwatch.StartNew();
         }
 
@@ -141,6 +145,26 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
+        /// Provides a way for processors to attach an optional exit
+        /// code and a result to the ending of their processing.
+        /// The code/result will be published with the latest/final
+        /// snapshot of the command when the processor has completed
+        /// (either sucessfully or erred).
+        /// </summary>
+        /// <param name="result">The result, an opaque object.</param>
+        /// <param name="exitCode">The exit code.</param>
+        protected void SetResult(object result, int? exitCode = null) {
+            // Lets begin to only allow this to be set during the
+            // execution of commands, and loosen up a little if we find
+            // it's needed.
+            if (this.Status != CommandStatus.Executing)
+                throw new InvalidOperationException();
+
+            this.exitCode = exitCode;
+            this.result = result;
+        }
+
+        /// <summary>
         /// Updates the status of the current command to <see cref="CommandStatus.Failed"/>.
         /// </summary>
         /// <param name="errors">Description of the error that has happened.</param>
@@ -203,6 +227,11 @@ namespace Starcounter.Server.Commands {
                 if (this.manualResetEvent != null) {
                     info.Waitable = new WeakReference(this.manualResetEvent);
                 }
+            } else {
+                // Only assign the exit code and the result to the public model
+                // representation if the processor in fact have completd.
+                info.ExitCode = exitCode;
+                info.Result = this.result;
             }
 
             return info;
@@ -330,7 +359,6 @@ namespace Starcounter.Server.Commands {
             }
         }
 
-
         /// <summary>
         /// Executes the current command.
         /// </summary>
@@ -444,9 +472,43 @@ namespace Starcounter.Server.Commands {
         /// progressing while the given action executes.</param>
         /// <param name="action">The code to execute.</param>
         protected void WithinTask(CommandTask task, Action<CommandTask> action) {
+            bool cancel = false;
+
             BeginTask(task);
-            action(task);
-            EndTask(task);
+            try {
+                action(task);
+            } catch {
+                cancel = true;
+                throw;
+            } finally {
+                EndTask(task, cancel);
+            }
+        }
+
+        /// <summary>
+        /// Executes <paramref name="func"/> in between a begin and
+        /// end of the <see cref="CommandTask"/> <paramref name="task"/>.
+        /// </summary>
+        /// <remarks>
+        /// If an exception is raised from the given function, this method
+        /// does invoke the end method for the task.
+        /// </remarks>
+        /// <param name="task">The <see cref="CommandTask"/> that is
+        /// progressing while the given action executes.</param>
+        /// <param name="func">The code to execute. The ending of the task
+        /// can be marked as cancelled by returning false from the func.</param>
+        protected void WithinTask(CommandTask task, Func<CommandTask, bool> func) {
+            bool cancel = false;
+            
+            BeginTask(task);
+            try {
+                cancel = !func(task);
+            } catch {
+                cancel = true;
+                throw;
+            } finally {
+                EndTask(task, cancel);
+            }
         }
 
         /// <summary>
@@ -466,9 +528,7 @@ namespace Starcounter.Server.Commands {
         /// <param name="action">The code to execute.</param>
         protected void WithinTaskIf(bool condition, CommandTask task, Action<CommandTask> action) {
             if (condition) {
-                BeginTask(task);
-                action(task);
-                EndTask(task);
+                WithinTask(task, action);
             }
         }
 
@@ -550,14 +610,30 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Ends a single task.
+        /// Cancel a task.
         /// </summary>
-        /// <param name="task">The task to end.</param>
-        protected void EndTask(CommandTask task) {
+        /// <param name="task">The <see cref="CommandTask"/> to cancel.
+        protected void CancelTask(CommandTask task) {
             ProgressInfo info;
 
             info = this.progress[task.ID];
-            EndSingleProgress(info);
+            if (info.IsCompleted) throw new InvalidOperationException();
+            info.Cancel();
+
+            NotifyStatusChanged();
+        }
+
+        /// <summary>
+        /// Ends a single task.
+        /// </summary>
+        /// <param name="task">The task to end.</param>
+        /// <param name="cancel">Indicates if the task should
+        /// be marked as cancelled or fulfilled.</param>
+        protected void EndTask(CommandTask task, bool cancel = false) {
+            ProgressInfo info;
+
+            info = this.progress[task.ID];
+            EndSingleProgress(info, cancel);
 
             NotifyStatusChanged();
         }
@@ -582,9 +658,13 @@ namespace Starcounter.Server.Commands {
         /// Ends a single progress info.
         /// </summary>
         /// <param name="info">The progress to end.</param>
-        private void EndSingleProgress(ProgressInfo info) {
-            info.Value = info.Maximum;
-            info.Text = null;
+        private void EndSingleProgress(ProgressInfo info, bool cancel = false) {
+            if (cancel) {
+                info.Cancel();
+            } else {
+                info.Value = info.Maximum;
+                info.Text = null;
+            }
         }
 
         /// <summary>

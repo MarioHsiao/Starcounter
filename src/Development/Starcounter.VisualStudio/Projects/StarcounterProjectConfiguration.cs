@@ -114,13 +114,14 @@ namespace Starcounter.VisualStudio.Projects {
         protected void ReportError(string description) {
             var task = package.ErrorList.NewTask(ErrorTaskSource.Debug);
             task.Text = description;
+            task.CanDelete = true;
 
             this.package.ErrorList.Tasks.Add(task);
             this.package.ErrorList.Refresh();
             this.package.ErrorList.Show();
         }
 
-        protected void WriteDebugLaunchStatus(string status) {
+        protected virtual void WriteDebugLaunchStatus(string status) {
             string text;
 
             if (string.IsNullOrEmpty(this.debugLaunchDescription) && status == null) {

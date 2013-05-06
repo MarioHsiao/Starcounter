@@ -1,0 +1,26 @@
+﻿{
+    "Uri": "http://example.com/api/engines/foo",
+	"NoDb": false,
+	"LogSteps": false,
+    "Database": {
+        "Name": "Foo",
+        "Uri": "http://example.com/api/databases/foo"
+    },
+    "DatabaseProcess": {
+        "Uri": "http://example.com/api/engines/foo/db",
+		"Running":false
+    },
+    "CodeHostProcess": {
+        "Uri": "http://example.com/api/engines/foo/host",
+        "PID": 0
+    },
+    "Executables": {
+        "Uri": "http://example.com/api/engines/foo/executables",
+        "Executing": [
+            {
+                "Path": "C:\\path\to\\the\\exe\\foo.exe",
+                "Uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789"
+            }
+        ]
+    }
+}
