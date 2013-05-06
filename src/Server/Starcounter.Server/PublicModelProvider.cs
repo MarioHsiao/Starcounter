@@ -31,7 +31,7 @@ namespace Starcounter.Server {
         /// the current model.</param>
         internal PublicModelProvider(ServerEngine engine) {
             this.engine = engine;
-            this.databases = new Dictionary<string, DatabaseInfo>();
+            this.databases = new Dictionary<string, DatabaseInfo>(StringComparer.InvariantCultureIgnoreCase);
 
             foreach (var database in engine.Databases.Values) {
                 databases.Add(database.Uri, database.ToPublicModel());
@@ -52,23 +52,31 @@ namespace Starcounter.Server {
         /// <summary>
         /// Adds a database to the public model.
         /// </summary>
-        /// <param name="database"></param>
-        internal void AddDatabase(Database database) {
+        /// <param name="database">The database whose state
+        /// we are adding to the public model.</param>
+        /// <returns>The representation as it appears in
+        /// the public model.</returns>
+        internal DatabaseInfo AddDatabase(Database database) {
             var info = database.ToPublicModel();
             lock (databases) {
                 databases.Add(database.Uri, info);
             }
+            return info;
         }
 
         /// <summary>
         /// Updates a database already part of the public model.
         /// </summary>
-        /// <param name="database"></param>
-        internal void UpdateDatabase(Database database) {
+        /// <param name="database">The database whose state
+        /// we are updating in the public model.</param>
+        /// <returns>The representation as it appears in
+        /// the public model.</returns>
+        internal DatabaseInfo UpdateDatabase(Database database) {
             var info = database.ToPublicModel();
             lock (databases) {
                 databases[database.Uri] = info;
             }
+            return info;
         }
 
         /// <summary>
@@ -229,8 +237,9 @@ namespace Starcounter.Server {
         /// <inheritdoc />
         public DatabaseInfo GetDatabaseByName(string databaseName) {
             lock (databases) {
+                var comp = StringComparison.InvariantCultureIgnoreCase;
                 foreach (var keyvalue in this.databases) {
-                    if (keyvalue.Value.Name.Equals(databaseName)) {
+                    if (keyvalue.Value.Name.Equals(databaseName, comp)) {
                         return keyvalue.Value;
                     }
                 }

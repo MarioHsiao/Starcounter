@@ -130,6 +130,25 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
+        /// Gets the exit code of the command, or null if no
+        /// exit code was provided by the command.
+        /// </summary>
+        public int? ExitCode {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Gets a possible outcome from the processor. There
+        /// should never be a result unless the command is considered
+        /// completed (successfully or erred).
+        /// </summary>
+        public object Result {
+            get;
+            internal set;
+        }
+
+        /// <summary>
         /// Errors that happened during command execution, or <b>null</b>
         /// if the command executed successfully.
         /// </summary>

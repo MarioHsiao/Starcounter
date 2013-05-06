@@ -1,0 +1,12 @@
+﻿{
+    "Databases": [
+        {
+            "Name": "Foo",
+            "Uri": "http://example.com/api/databases/foo"
+        },
+		{
+            "Name": "Bar",
+            "Uri": "http://example.com/api/databases/bar"
+        },
+    ]
+}

@@ -7,7 +7,7 @@
     Foreground="White"
     SnapsToDevicePixels="true"
     TextOptions.TextFormattingMode="Display"        
-    Title="Starcounter Setup" Width="776" Height="480">
+    Title="Starcounter Setup" Width="776" Height="493">
 
     <Window.Resources>
 
@@ -50,7 +50,7 @@
             <Viewbox>
                 <StackPanel Orientation="Horizontal">
                     <ContentPresenter Width="100" Height="100" ContentTemplate="{StaticResource icon_sc_symbol}" />
-                    <ContentPresenter Margin="10,0,0,0" Height="70" ContentTemplate="{StaticResource icon_sc_starcounter_lightspeed_text}" />
+                    <ContentPresenter Margin="15,0,0,0" Height="70" ContentTemplate="{StaticResource icon_sc_starcounter_lightspeed_text}" />
                 </StackPanel>
             </Viewbox>
         </DataTemplate>
