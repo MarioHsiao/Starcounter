@@ -288,10 +288,29 @@ namespace star {
 
         static void HandleUnexpectedResponse(Response response) {
             var red = ConsoleColor.Red;
+            int exitCode = response.StatusCode;
+
             Console.WriteLine();
             ConsoleUtil.ToConsoleWithColor("Unexpected response from server - unable to continue.", red);
-            ConsoleUtil.ToConsoleWithColor("Response:", red);
-            ConsoleUtil.ToConsoleWithColor(response.ToString(), red);
+            ConsoleUtil.ToConsoleWithColor(string.Format("  Response status code: {0}", response.StatusCode), red);
+            
+            // Try extracting an error detail from the body, but make
+            // sure that if we fail doing so, we just dump out the full
+            // content in it's rawest format (dictated by the
+            // Response.ToString implementation).
+            try {
+                var detail = new ErrorDetail();
+                detail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                ConsoleUtil.ToConsoleWithColor(string.Format("  Starcounter error code: {0}", detail.ServerCode), red);
+                ConsoleUtil.ToConsoleWithColor(string.Format("  Error message: {0}", detail.Text), red);
+                ConsoleUtil.ToConsoleWithColor(string.Format("  Help link: {0}", detail.Helplink), red);
+                exitCode = (int)detail.ServerCode;
+            } catch {
+                ConsoleUtil.ToConsoleWithColor("  Response:", red);
+                ConsoleUtil.ToConsoleWithColor(response.ToString(), red);
+            } finally {
+                Environment.Exit(exitCode);
+            }
         }
 
         static void ShowHeadline(string headline) {
