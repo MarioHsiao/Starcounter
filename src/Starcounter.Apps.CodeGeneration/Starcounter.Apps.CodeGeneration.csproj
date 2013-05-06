@@ -69,19 +69,23 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeBehindAnalyser\InputBindingInfo.cs" />
     <Compile Include="CodeBehindAnalyser\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindAnalyser\JsonMapInfo.cs" />
     <Compile Include="CSharpGenerator\CSharpGenerator.cs" />
+    <Compile Include="Serialization\ParseTree\ParseNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Serialization\ParseTree\ParseTreeGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Serialization\ParseTree\TemplateMetadata.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SimpleCodeDom\Core\NConstructor.cs" />
     <Compile Include="SimpleCodeDom\Core\NInputBinding.cs" />
     <Compile Include="SimpleCodeDom\Core\NMetadataClass.cs" />

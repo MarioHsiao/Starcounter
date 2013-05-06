@@ -9,6 +9,7 @@ using System.Dynamic;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
+using Starcounter.CodeGeneration.Serialization;
 
 
 namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
@@ -29,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// </summary>
         /// <param name="handlers">The meta data built up from the registred handlers before code generation is performed</param>
         /// <returns>The branch tree used to generate the code for the request processor used to match the verbs and URIs</returns>
-        public static ParseNode BuildParseTree(List<RequestProcessorMetaData> handlers) {
+        public static ParseNode BuildParseTree(List<TemplateMetadata> handlers) {
             var n = new ParseNode() {
                 AllHandlers = handlers
             };
