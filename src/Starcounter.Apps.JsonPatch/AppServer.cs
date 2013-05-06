@@ -147,34 +147,84 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
-        /// The GET Method. Returns a representation of a resource.
-        /// Works for http and web sockets.
+        /// Handles request.
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
-        /// <exception cref="System.NotImplementedException"></exception>
         public override Response HandleRequest(Request request) {
-            object x;
+            Object result;
 
-            try {
-                // Checking if we are in session already.
-                if (request.HasSession) {
-                    Session.Start((Session)request.AppsSessionInterface);
+            switch (request.ProtocolType)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    try
+                    {
+                        // Checking if we are in session already.
+                        if (request.HasSession)
+                            Session.Start((Session)request.AppsSessionInterface);
+
+                        // Invoking original user delegate with parameters here.
+                        UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
+
+                        // Handling and returning the HTTP response.
+                        return HandleResponse(request, result);
+                    }
+                    catch (Exception ex)
+                    {
+                        byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
+                        return new Response() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
+                    }
+                    finally
+                    {
+                        Session.End();
+                    }
                 }
-                // Invoking original user delegate with parameters here.
-#if GW_URI_MATCHING_CODEGEN
-                UserHandlerCodegen.HandlersManager.RunDelegate(request, out x);
-#else
-                RequestHandler.RequestProcessor.Invoke(request, out x);
-#endif
-                // Handling and returning the HTTP response.
-                return HandleResponse(request, x);
-            } catch (Exception ex) {
-                byte[] error = Encoding.UTF8.GetBytes(this.GetExceptionString(ex));
-                return new Response() { Uncompressed = HttpResponseBuilder.Create500WithContent(error) };
-            } finally {
-                Session.End();
+
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
+                {
+                    try
+                    {
+                        // Checking if we are in session already.
+                        if (!request.HasSession)
+                        {
+                            // Generating new session if it does not exist.
+                            Session session = Session.CreateNewEmptySession();
+
+                            UInt32 errorCode = request.GenerateNewSession(session);
+                            if (errorCode != 0)
+                                throw ErrorCode.ToException(errorCode);
+                        }
+                        else
+                        {
+                            Session.Start((Session)request.AppsSessionInterface);
+                        }
+
+                        // Invoking original user delegate with parameters here.
+                        UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
+
+                        if (result != null)
+                        {
+                            Byte[] byte_result = null;
+
+                            if (result is Byte[])
+                                byte_result = (Byte[])result;
+                            else if (result is String)
+                                byte_result = Encoding.UTF8.GetBytes((String)result);
+
+                            return new Response() { Uncompressed = byte_result };
+                        }
+
+                        return null;
+                    }
+                    finally
+                    {
+                        Session.End();
+                    }
+                }
             }
+
+            return null;
         }
 
         /// <summary>
