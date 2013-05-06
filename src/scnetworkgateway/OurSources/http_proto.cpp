@@ -944,8 +944,8 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id);
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
         ResetParser();
@@ -983,11 +983,8 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
-            // Handled successfully.
-            *is_handled = true;
-
             // Perform WebSockets handshake.
-            return ws_proto_.DoHandshake(gw, sd);
+            return ws_proto_.DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
