@@ -63,21 +63,14 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TemplateFromHtml.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
-      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
-      <Name>Starcounter.Rest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
       <Name>Starcounter.Apps.Interfaces</Name>
