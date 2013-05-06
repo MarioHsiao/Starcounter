@@ -48,7 +48,7 @@ namespace Starcounter.Server.Commands {
         /// supports <see cref="ManualResetEventSlim"/> too, so we can change to
         /// that if it should better suit certain commands.
         /// </remarks>
-        private ManualResetEvent manualResetEvent;
+        private ManualResetEvent completedEvent;
 
         /// <summary>
         /// Initializes a new <see cref="CommandProcessor"/>.
@@ -65,7 +65,7 @@ namespace Starcounter.Server.Commands {
             this.Id = CommandId.MakeNew();
             this.typeIdentity = CreateToken(GetType());
             this.IsPublic = !isInternal;
-            this.manualResetEvent = command.EnableWaiting ? new ManualResetEvent(false) : null;
+            this.completedEvent = command.EnableWaiting ? new ManualResetEvent(false) : null;
             this.result = null;
             this.exitCode = null;
             stopwatch = Stopwatch.StartNew();
@@ -224,8 +224,8 @@ namespace Starcounter.Server.Commands {
                 // reference at any time can be dropped.
                 //   See PublicModelProvider.Wait(CommandInfo) for the
                 // details.
-                if (this.manualResetEvent != null) {
-                    info.Waitable = new WeakReference(this.manualResetEvent);
+                if (this.completedEvent != null) {
+                    info.Waitable = new WeakReference(this.completedEvent);
                 }
             } else {
                 // Only assign the exit code and the result to the public model
@@ -690,9 +690,9 @@ namespace Starcounter.Server.Commands {
         private void SignalCompletion() {
             // Check if we've been instructed to support waiting using
             // event.
-            if (this.manualResetEvent != null) {
+            if (this.completedEvent != null) {
                 // Set the event
-                this.manualResetEvent.Set();
+                this.completedEvent.Set();
 
                 // The question now is, what do we do here. Either we could
                 // just let the event be, and have the GC collect it. We are
@@ -725,7 +725,7 @@ namespace Starcounter.Server.Commands {
                 // We begin using this approach and see where it ends up, if we find any problems.
                 // By setting it to NULL, the event can be GC'd and the underlying unmanaged OS
                 // event info released.
-                this.manualResetEvent = null;
+                this.completedEvent = null;
             }
         }
 
