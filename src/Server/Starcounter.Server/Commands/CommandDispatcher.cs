@@ -95,7 +95,7 @@ namespace Starcounter.Server.Commands {
                             if (match(command.Value))
                                 return command.Value;
                         } else {
-                            _lists.ProcessedInfo.Remove(command);
+                            RemoveProcessedCommand(command);
                         }
                     }
                     while (nextCommand != null);
@@ -130,7 +130,7 @@ namespace Starcounter.Server.Commands {
                         if (command.Value.EndTime > removedAt) {
                             commands.Add(command.Value);
                         } else {
-                            _lists.ProcessedInfo.Remove(command);
+                            RemoveProcessedCommand(command);
                         }
                     }
                     while (nextCommand != null);
@@ -138,6 +138,18 @@ namespace Starcounter.Server.Commands {
             }
 
             return commands.ToArray();
+        }
+
+        void RemoveProcessedCommand(LinkedListNode<CommandInfo> commandNode) {
+            var list = commandNode.List;
+            var command = commandNode.Value;
+            if (command.CompletedEvent != null) {
+                try {
+                    command.CompletedEvent.Dispose();
+                } catch (ObjectDisposedException) { }
+                command.CompletedEvent = null;
+            }
+            list.Remove(commandNode);
         }
 
         /// <summary>
