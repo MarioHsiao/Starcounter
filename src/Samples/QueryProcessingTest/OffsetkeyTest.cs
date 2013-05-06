@@ -10,6 +10,7 @@ namespace QueryProcessingTest {
             ErrorCases();
             // Populate data
             User client = PopulateForTest();
+            SomeTests(client);
             // Simple query
             TestDataModification("select a from account a where accountid > ?", client);
             Db.Transaction(delegate {
@@ -138,37 +139,55 @@ namespace QueryProcessingTest {
 #endif
         }
 
-        static void SomeTest(User client) {
+        static void SomeTests(User client) {
             byte[] key = null;
-            int[] a1FetchExpected = new int[] { 30006, 30009, 30009 };
-            int[] a2FetchExpected = new int[] { 30003, 30003, 30006 };
+            int[] a1FetchExpected = new int[] { 30006, 30009 };
+            int[] a2FetchExpected = new int[] { 30003, 30003 };
             using (IRowEnumerator<IObjectView> res =
                 Db.SQL<IObjectView>("select a1,a2 from account a1, account a2 where a1.accountid > ? and a1.accountid > a2.accountid and a2.accountid > ? fetch ?",
-                29999, 29999, 3).GetEnumerator()) {
-                Console.WriteLine(res.ToString());
+                29999, 29999, 2).GetEnumerator()) {
                 for (int i = 0; res.MoveNext(); i++) {
                     Trace.Assert(((Account)res.Current.GetObject(0)).AccountId == a1FetchExpected[i]);
                     Trace.Assert(((Account)res.Current.GetObject(1)).AccountId == a2FetchExpected[i]);
-                    if (i == 2)
+                    if (i == 1)
                         key = res.GetOffsetKey();
                 }
             }
             Trace.Assert(key != null);
-            int[] a1OffsetkeyExpected = new int[] { 30009, 30012, 30012 };
-            int[] a2OffsetkeyExpected = new int[] { 30006, 30003, 30006 };
+            int[] a1OffsetkeyExpected = new int[] { 30009, 30012 };
+            int[] a2OffsetkeyExpected = new int[] { 30006, 30003 };
             using (IRowEnumerator<IObjectView> res =
                 Db.SQL<IObjectView>("select a1,a2 from account a1, account a2 where a1.accountid > ? and a1.accountid > a2.accountid and a2.accountid > ? fetch ? offsetkey ?",
-                29999, 29999, 3, key).GetEnumerator()) {
-                Console.WriteLine(res.ToString());
+                29999, 29999, 2, key).GetEnumerator()) {
                 int nrs = 0;
                 while (res.MoveNext()) {
                     Account a1 = (Account)res.Current.GetObject(0);
                     Trace.Assert(a1.AccountId == a1OffsetkeyExpected[nrs]);
                     Account a2 = (Account)res.Current.GetObject(1);
                     Trace.Assert(a2.AccountId == a2OffsetkeyExpected[nrs]);
+                    if (nrs == 1)
+                        key = res.GetOffsetKey();
                     nrs++;
                 }
-                Trace.Assert(nrs == 3);
+                Trace.Assert(nrs == 2);
+            }
+            Trace.Assert(key != null);
+            a1OffsetkeyExpected = new int[] { 30012, 30012 };
+            a2OffsetkeyExpected = new int[] { 30006, 30009 };
+            using (IRowEnumerator<IObjectView> res =
+                Db.SQL<IObjectView>("select a1,a2 from account a1, account a2 where a1.accountid > ? and a1.accountid > a2.accountid and a2.accountid > ? fetch ? offsetkey ?",
+                29999, 29999, 2, key).GetEnumerator()) {
+                int nrs = 0;
+                while (res.MoveNext()) {
+                    Account a1 = (Account)res.Current.GetObject(0);
+                    Trace.Assert(a1.AccountId == a1OffsetkeyExpected[nrs]);
+                    Account a2 = (Account)res.Current.GetObject(1);
+                    Trace.Assert(a2.AccountId == a2OffsetkeyExpected[nrs]);
+                    if (nrs == 1)
+                        key = res.GetOffsetKey();
+                    nrs++;
+                }
+                Trace.Assert(nrs == 2);
             }
         }
 
