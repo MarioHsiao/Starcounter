@@ -69,6 +69,19 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Gets or sets a value that represents the fingerprint of the
+        /// principal entity the current command address.
+        /// </summary>
+        /// <remarks>
+        /// The fingerprint is opaque and can be used by specializations
+        /// at will.
+        /// </remarks>
+        public string Fingerprint {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Infrastructure method invoked by the server engine just before a
         /// command is enqued with the dispatcher (i.e. in the hosts calling
         /// thread). The command gets a chance to either fill in defaults

@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Server.Commands.Processors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,18 @@ namespace Starcounter.Server.PublicModel.Commands {
     /// Encapsulates a request to stop or suspend a database.
     /// </summary>
     public sealed class StopDatabaseCommand : DatabaseCommand {
+
+        public static class DefaultProcessor {
+            public static int Token {
+                get { return StopDatabaseCommandProcessor.ProcessorToken; }
+            }
+
+            public static class Tasks {
+                public const int StopDatabaseProcess = 1;
+                public const int StopCodeHostProcess = 2;
+            }
+        }
+
         /// <summary>
         /// Gets or sets a value indicating if the command should not
         /// only stop the worker process for the given database, but

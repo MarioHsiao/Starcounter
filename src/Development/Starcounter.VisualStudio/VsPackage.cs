@@ -86,6 +86,7 @@ namespace Starcounter.VisualStudio {
             this.ErrorList = new StarcounterErrorListProvider(this);
             HWndDispatcher.Initialize();
             this.StarcounterOutputPane = this.CreateVsOutputPane("Starcounter");
+            AppExeProjectConfiguration.Initialize();
         }
 
         /// <summary>

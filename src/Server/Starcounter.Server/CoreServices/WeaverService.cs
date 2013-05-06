@@ -70,18 +70,7 @@ namespace Starcounter.Server {
         /// Console.WriteLine(dir);
         /// </example>
         internal string CreateFullRuntimePath(string baseDirectory, string assemblyPath) {
-            string hash;
-            string key;
-
-            assemblyPath = assemblyPath.ToLowerInvariant();
-            var keyBytes = Encoding.UTF8.GetBytes(assemblyPath);
-
-            using (var sha1 = SHA1.Create()) {
-                var hashBytes = sha1.ComputeHash(keyBytes);
-                hash = BitConverter.ToString(hashBytes).Replace("-", "");
-            }
-
-            key = string.Format("{0}-{1}", Path.GetFileName(assemblyPath), hash);
+            var key = engine.ExecutableService.CreateKey(assemblyPath);
             return Path.Combine(baseDirectory, key);
         }
 

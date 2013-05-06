@@ -50,14 +50,19 @@ namespace Starcounter.Administrator {
             this.CollationFile = databaseInfo.CollationFile;
             this.SupportReplication = databaseInfo.SupportReplication;
 
-            this.HostProcessId = databaseInfo.HostProcessId;
+            var engineInfo = databaseInfo.Engine;
+            if (engineInfo == null || engineInfo.HostProcessId == 0) {
+                this.HostProcessId = 0;
+                this.Apps.Clear();
+            } else {
 
-            this.Apps.Clear(); // TODO: Update list, do not recreate it.
-            foreach (var app in databaseInfo.HostedApps) {
-                this.Apps.Add(new AppApp() { ExecutablePath = app.ExecutablePath, WorkingDirectory = app.WorkingDirectory });
+                this.HostProcessId = engineInfo.HostProcessId;
+
+                this.Apps.Clear(); // TODO: Update list, do not recreate it.
+                foreach (var app in engineInfo.HostedApps) {
+                    this.Apps.Add(new AppApp() { ExecutablePath = app.ExecutablePath, WorkingDirectory = app.WorkingDirectory });
+                }
             }
-
-
         }
 
     }

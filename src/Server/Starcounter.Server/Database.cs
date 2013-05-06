@@ -13,6 +13,8 @@ using Starcounter;
 using Starcounter.Configuration;
 using Starcounter.Server.PublicModel;
 using System.Diagnostics;
+using Starcounter.Internal;
+using System.IO;
 
 namespace Starcounter.Server {
 
@@ -52,6 +54,15 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets a value representing the exact command-line
+        /// arguments string what was used to start the host.
+        /// </summary>
+        internal string CodeHostArguments {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating if the database is supposed to
         /// be running or not.
         /// </summary>
@@ -76,6 +87,16 @@ namespace Starcounter.Server {
         internal DateTime LastAutoRestartTime {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Gets the base directory where this database stores and runs
+        /// executables from.
+        /// </summary>
+        internal string ExecutableBasePath {
+            get {
+                return Path.Combine(Configuration.Runtime.TempDirectory, StarcounterEnvironment.Directories.WeaverTempSubDirectory);
+            }
         }
 
         /// <summary>
@@ -107,23 +128,35 @@ namespace Starcounter.Server {
         /// <returns>A <see cref="DatabaseInfo"/> representing the current state
         /// of this database.</returns>
         internal DatabaseInfo ToPublicModel() {
+            EngineInfo engine = null;
             var process = GetRunningCodeHostProcess();
-            var info = new DatabaseInfo() {
-                CollationFile = null,
-                Configuration = this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
-                Name = this.Name,
-                MaxImageSize = 0,   // TODO: Backlog
-                SupportReplication = false,
-                TransactionLogSize = 0, // TODO: Backlog
-                Uri = this.Uri,
-                HostedApps = this.Apps.ConvertAll<AppInfo>(delegate(DatabaseApp app) {
-                    return new AppInfo() {
-                        ExecutablePath = app.OriginalExecutablePath,
-                        WorkingDirectory = app.WorkingDirectory
-                    };
-                }).ToArray(),
-                HostProcessId = process != null ? process.Id : 0
-            };
+            var databaseRunning = Server.DatabaseEngine.IsDatabaseProcessRunning(this);
+
+            if (databaseRunning || process != null) {
+                AppInfo[] executables = null;
+                int hostProcId = 0;
+                string hostProcArgs = null;
+                if (process != null) {
+                    executables = new AppInfo[this.Apps.Count];
+                    for (int i = 0; i < this.Apps.Count; i++) {
+                        executables[i] = this.Apps[i].ToPublicModel();
+                    }
+                    hostProcId = process.Id;
+                    hostProcArgs = this.CodeHostArguments;
+                }
+                engine = new EngineInfo(executables, hostProcId, hostProcArgs, databaseRunning);
+            }
+
+            var info = new DatabaseInfo(
+                this.Uri, 
+                this.Name,
+                0, 
+                0, 
+                ExecutableBasePath, 
+                engine, 
+                this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
+                null);
+
             return info;
         }
 

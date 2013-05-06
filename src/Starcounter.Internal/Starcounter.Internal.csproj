@@ -76,6 +76,7 @@
     <Compile Include="Constants\CurrentVersion.cs" />
     <Compile Include="Constants\MixedCodeConstants.cs" />
     <Compile Include="ErrorHandling\TestTraceListener.cs" />
+    <Compile Include="EnvironmentExtensions.cs" />
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HttpSessions.cs" />
