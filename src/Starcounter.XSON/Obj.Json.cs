@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using Starcounter.Templates;
+using Starcounter.Internal;
 
 namespace Starcounter {
 
@@ -166,52 +167,71 @@ namespace Starcounter {
             bool insideArray = false;
             Template tChild = null;
             TObj tobj = obj.Template;
-            
-            while (reader.Read()) {
+
+            try {
+                while (reader.Read()) {
+                    switch (reader.TokenType) {
+                        case JsonToken.StartObject:
+                            Obj newObj;
+                            if (insideArray) {
+                                newObj = obj.Get((TObjArr)tChild).Add();
+                            } else {
+                                newObj = obj.Get((TObj)tChild);
+                            }
+                            PopulateObject(newObj, reader);
+                            break;
+                        case JsonToken.EndObject:
+                            return;
+                        case JsonToken.PropertyName:
+                            var tname = (string)reader.Value;
+                            tChild = tobj.Properties.GetTemplateByName(tname);
+                            if (tChild == null) {
+                                throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\"", tname), (msg, e) => {
+                                    return new FormatException(msg, e);
+                                });
+                            }
+                            break;
+                        case JsonToken.String:
+                            obj.Set((TString)tChild, (string)reader.Value);
+                            break;
+                        case JsonToken.Integer:
+                            obj.Set((TLong)tChild, (long)reader.Value);
+                            break;
+                        case JsonToken.Boolean:
+                            obj.Set((TBool)tChild, (bool)reader.Value);
+                            break;
+                        case JsonToken.Float:
+                            if (tChild is TDecimal) {
+                                obj.Set((TDecimal)tChild, Convert.ToDecimal(reader.Value));
+                            } else {
+                                obj.Set((TDouble)tChild, (double)reader.Value);
+                            }
+                            break;
+                        case JsonToken.StartArray:
+                            insideArray = true;
+                            break;
+                        case JsonToken.EndArray:
+                            insideArray = false;
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                }
+            } catch (InvalidCastException castException) {
                 switch (reader.TokenType) {
-                    case JsonToken.StartObject:
-                        Obj newObj;
-                        if (insideArray) {
-                            newObj = obj.Get((TObjArr)tChild).Add();
-                        } else {
-                            newObj = obj.Get((TObj)tChild);
-                        }
-                        PopulateObject(newObj, reader);
-                        break;
-                    case JsonToken.EndObject:
-                        return;
-                    case JsonToken.PropertyName:
-                        tChild = tobj.Properties.GetTemplateByName((string)reader.Value);
-                        if (tChild == null) {
-                            // TODO: 
-                            // How should we handle properties in the json string that does not exist in the Obj?
-                            throw new Exception("Unknown property '" + reader.Value + "' found in json. Cannot populate object.");
-                        }
-                        break;
                     case JsonToken.String:
-                        obj.Set((TString)tChild, (string)reader.Value);
-                        break;
                     case JsonToken.Integer:
-                        obj.Set((TLong)tChild, (long)reader.Value);
-                        break;
                     case JsonToken.Boolean:
-                        obj.Set((TBool)tChild, (bool)reader.Value);
-                        break;
                     case JsonToken.Float:
-                        if (tChild is TDecimal) {
-                            obj.Set((TDecimal)tChild, Convert.ToDecimal(reader.Value));
-                        } else {
-                            obj.Set((TDouble)tChild, (double)reader.Value);
-                        }
-                        break;
-                    case JsonToken.StartArray:
-                        insideArray = true;
-                        break;
-                    case JsonToken.EndArray:
-                        insideArray = false;
-                        break;
+                        throw ErrorCode.ToException(
+                            Error.SCERRJSONVALUEWRONGTYPE,
+                            castException,
+                            string.Format("Property=\"{0} ({1})\", Value=\"{2}\"", tChild.PropertyName, tChild.JsonType, reader.Value.ToString()), 
+                            (msg, e) => {
+                            return new FormatException(msg, e);
+                        });
                     default:
-                        throw new NotImplementedException();
+                        throw;
                 }
             }
         }

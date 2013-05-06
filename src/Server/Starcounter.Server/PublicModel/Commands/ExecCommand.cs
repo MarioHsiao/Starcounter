@@ -25,11 +25,8 @@ namespace Starcounter.Server.PublicModel.Commands {
             }
 
             public static class Tasks {
-                public const int CheckRunningExeUpToDate = 1;
-                public const int CreateDatabase = 2;
-                public const int StartDataAndHostProcesses = 3;
-                public const int WeaveOrPrepareForNoDb = 4;
-                public const int PingOrLoad = 5;
+                public const int PrepareExecutableAndFiles = 1;
+                public const int RunInCodeHost = 2;
             }
         }
 

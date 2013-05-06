@@ -36,7 +36,6 @@ namespace Starcounter.Internal.Web
     /// </summary>
     public static class Slow
     {
-
         /// <summary>
         /// Build a HTTP/1.1 response using a given status code, a set
         /// of headers and content given in the form of a <see cref="string"/>.
@@ -64,12 +63,11 @@ namespace Starcounter.Internal.Web
         /// transfer encoding is applied (i.e. it's uncompressed).</returns>
         public static byte[] FromStatusHeadersAndStringContent(
             int code,
-            NameValueCollection headers, 
+            Dictionary<string, string> headers,
             string content,
             Encoding contentEncoding = null,
             string contentType = "application/json"
-            )
-        {
+            ) {
             string reason;
             string msgHeader;
             string header;
@@ -88,9 +86,8 @@ namespace Starcounter.Internal.Web
             msgHeader += CRLF;
 
             if (headers != null) {
-                foreach (var key in headers.AllKeys) {
-                    var value = headers[key];
-                    header = string.Concat(key, ":", value, CRLF);
+                foreach (var pair in headers) {
+                    header = string.Concat(pair.Key, ":", pair.Value, CRLF);
                     msgHeader += header;
                 }
             }
@@ -260,6 +257,12 @@ namespace Starcounter.Internal.Web
         Array.Copy(content, 0, response, offset, content.Length);
         return response;
     }
+
+    public readonly static byte[] BadRequest400 = System.Text.Encoding.UTF8.GetBytes(
+        "HTTP/1.1 400 Bad Request" + CRLF +
+        "Server: SC" + CRLF +
+        "Connection: close" + CRLF +
+        "Content-Length: 0" + CRLFCRLF);
 
     /// <summary>
     /// Nots the found404.

@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,15 @@ namespace Starcounter.Server {
         /// </summary>
         internal string OriginalExecutablePath {
             get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the server key for this executable. A key must
+        /// be assured to be unique within the scope of a single database.
+        /// </summary>
+        internal string Key { 
+            get; 
             set;
         }
 
@@ -51,6 +61,20 @@ namespace Starcounter.Server {
         internal string[] Arguments {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Creates a snapshot of this <see cref="DatabaseApp"/> in the
+        /// form of a public model <see cref="AppInfo"/>.
+        /// </summary>
+        /// <returns>An <see cref="AppInfo"/> representing the current state
+        /// of this executable.</returns>
+        internal AppInfo ToPublicModel() {
+            return new AppInfo() {
+                ExecutablePath = this.OriginalExecutablePath,
+                ExecutionPath = this.ExecutionPath,
+                Key = this.Key
+            };
         }
     }
 }

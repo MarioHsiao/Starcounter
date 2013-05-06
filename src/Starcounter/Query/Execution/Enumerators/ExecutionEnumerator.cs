@@ -280,6 +280,7 @@ internal abstract class ExecutionEnumerator
 
         // Getting the amount of leaves in execution tree.
         Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
+        // Offset to first enumerator static data
         globalOffset = ((leavesNum << 3) + IteratorHelper.RK_HEADER_LEN);
 
         // Using cache temp buffer.

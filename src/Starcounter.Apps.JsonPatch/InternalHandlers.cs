@@ -155,9 +155,12 @@ namespace Starcounter.Internal.JsonPatch {
             resultJson.rows = new object[] { };
             resultJson.exception = null;
             resultJson.sqlException = null;
+            resultJson.queryPlan = null;
 
             try {
                 sqle = (Starcounter.SqlEnumerator<object>)Db.SlowSQL(query).GetEnumerator();
+
+                resultJson.queryPlan = sqle.ToString();
 
                 #region Retrive Columns
 

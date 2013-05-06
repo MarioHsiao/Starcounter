@@ -24,47 +24,26 @@ namespace Starcounter.Server.Commands {
                 ProcessorToken = ProcessorToken,
                 CommandDescription = "Executes an executable inside a Starcounter host",
                 Tasks = new TaskInfo[] { 
-                    Task.CheckRunningExeUpToDate.ToPublicModel(), 
-                    Task.CreateDatabase.ToPublicModel() 
+                    Task.PrepareExecutable.ToPublicModel(), 
+                    Task.Run.ToPublicModel() 
                 }
             };
         }
 
         internal static class Task {
 
-            internal static readonly CommandTask CheckRunningExeUpToDate = new CommandTask(
-                ExecCommand.DefaultProcessor.Tasks.CheckRunningExeUpToDate,
-                "Checking executable",
-                TaskDuration.ShortIndeterminate,
-                "Checks if the executable is already running and can be considered up to date."
-                );
-
-            internal static readonly CommandTask CreateDatabase = new CommandTask(
-                ExecCommand.DefaultProcessor.Tasks.CreateDatabase,
-                "Creating database",
-                TaskDuration.NormalIndeterminate,
-                "Creates a database if one with the given name is not found and automatic creation is not disabled."
-                );
-
-            internal static readonly CommandTask StartDataAndHostProcesses = new CommandTask(
-                ExecCommand.DefaultProcessor.Tasks.StartDataAndHostProcesses,
-                "Preparing database engine",
-                TaskDuration.NormalIndeterminate,
-                "Assures neccessary processes such as scdata and sccode is up and ready."
-                );
-
-            internal static readonly CommandTask WeaveOrPrepareForNoDb = new CommandTask(
-                ExecCommand.DefaultProcessor.Tasks.WeaveOrPrepareForNoDb,
+            internal static readonly CommandTask PrepareExecutable = new CommandTask(
+                ExecCommand.DefaultProcessor.Tasks.PrepareExecutableAndFiles,
                 "Preparing user executables and files",
                 TaskDuration.NormalIndeterminate,
                 "Prepares the user code to be hosted in the code host, weaving and/or copying it."
                 );
 
-            internal static readonly CommandTask PingOrLoad = new CommandTask(
-                ExecCommand.DefaultProcessor.Tasks.PingOrLoad,
-                "Setting up code host process",
+            internal static readonly CommandTask Run = new CommandTask(
+                ExecCommand.DefaultProcessor.Tasks.RunInCodeHost,
+                "Loading executable in code host",
                 TaskDuration.NormalIndeterminate,
-                "Communications with the code host, by pinging it (in case of preparation) or loading user code."
+                "Makes a request to the code host to load and execute the prepared executable."
                 );
         }
     }
