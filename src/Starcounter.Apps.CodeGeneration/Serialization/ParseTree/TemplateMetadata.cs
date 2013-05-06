@@ -4,34 +4,49 @@
 // </copyright>
 // ***********************************************************************
 
-using System.Collections.Generic;
 using System;
 using Starcounter.Templates;
 
-namespace Starcounter.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// 
     /// </summary>
     internal class TemplateMetadata  {
+        private byte[] nameArr = null;
+
         /// <summary>
         /// The template index.
         /// </summary>
-        internal int TemplateIndex { get { return Template.TemplateIndex } }
+//        internal int TemplateIndex { get { return Template.TemplateIndex; } }
 
         /// <summary>
         /// The name of the template.
         /// </summary>
         internal string TemplateName { get { return Template.PropertyName; } }
 
+        /// <summary>
+        /// The name of the template converted to a UTF8 bytearray.
+        /// </summary>
+        internal byte[] TemplateNameArr { get { return nameArr; } } 
+
        /// <summary>
         /// The Template.
         /// </summary>
-        internal Template Template;
+        internal readonly Template Template;
 
         /// <summary>
         /// 
         /// </summary>
-        internal Int32 HandlerId;
+        internal Int32 TemplateIndex;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        internal TemplateMetadata(Template template) {
+            Template = template;
+            nameArr = System.Text.Encoding.UTF8.GetBytes(Template.PropertyName);
+        }
     }
 
 }

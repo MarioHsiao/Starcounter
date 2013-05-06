@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Starcounter.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
     /// The result of analysing template names. Used to generate source code to quickly 
@@ -46,22 +46,23 @@ namespace Starcounter.CodeGeneration.Serialization {
                 }
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        private static readonly string[] EmptyParseTypes = new string[0];
 
         ///// <summary>
-        ///// Gets the handler.
+        ///// 
         ///// </summary>
-        ///// <value>The handler.</value>
-        //internal TemplateMetadata Handler {
-        //    get {
-        //        if (HandlerIndex == -1)
-        //            return null;
-        //        return AllHandlers[HandlerIndex];
-        //    }
-        //}
+        //private static readonly string[] EmptyParseTypes = new string[0];
+
+        /// <summary>
+        /// Gets the template if this is a leaf-node.
+        /// </summary>
+        /// <value>The template or null if the current node is not a leaf-node.</value>
+        internal TemplateMetadata Template {
+            get {
+                if (TemplateIndex == -1)
+                    return null;
+                return AllTemplates[TemplateIndex];
+            }
+        }
 
         /// <summary>
         /// All the templates in the top level processor. This is the list used
@@ -85,7 +86,7 @@ namespace Starcounter.CodeGeneration.Serialization {
         internal int RootCharOffsetInUriTemplate = 0;
 
         /// <summary>
-        /// The index in the verb+uri template string corresponding to the child candidates
+        /// The index in template name string corresponding to the child candidates
         /// </summary>
         internal int MatchCharInTemplateRelative;
 
@@ -107,17 +108,17 @@ namespace Starcounter.CodeGeneration.Serialization {
             }
         }
 
-        ///// <summary>
-        ///// This method returns a leaf node. As this function will return
-        ///// any leaf not, its use is limited to retrieve the VerbAndUri text
-        ///// in the part that is identical in all candidates.
-        ///// </summary>
-        ///// <returns>RequestProcessorMetaData.</returns>
-        //private RequestProcessorMetaData GetAnyCandidateHandler() {
-        //    if (HandlerIndex != -1)
-        //        return AllHandlers[HandlerIndex];
-        //    return Candidates[0].GetAnyCandidateHandler();
-        //}
+        /// <summary>
+        /// This method returns a leaf node. As this function will return
+        /// any leaf not, its use is limited to retrieve the name of the template
+        /// in the part that is identical in all candidates.
+        /// </summary>
+        /// <returns>RequestProcessorMetaData.</returns>
+        private TemplateMetadata GetAnyCandidateTemplate() {
+            if (TemplateIndex != -1)
+                return AllTemplates[TemplateIndex];
+            return Candidates[0].GetAnyCandidateTemplate();
+        }
 
         /// <summary>
         /// Extracts the part of the URI template (and leading verb) that
@@ -132,37 +133,24 @@ namespace Starcounter.CodeGeneration.Serialization {
         /// list. Does not affect the procesing logic.</remarks>
         internal string DebugMatchFragment {
             get {
-                return "TODO: " + Match;
+                int count;
+                int start;
+                string templateName;
+                string fragment = "";
 
-                //int count;
-                //int start;
-                //string str;
+                if (Parent != null && DetectedType == NodeType.CharMatchNode) {
+                    start = Parent.MatchCharInTemplateAbsolute + 1;
+                    count = MatchCharInTemplateRelative - 1;
 
-                //if (Parent == null) {
-                //    return null;
-                //}
+                    if (count > 0) {
+                        templateName = GetAnyCandidateTemplate().TemplateName;
+                        fragment = templateName.Substring(start, count);
+                    }
 
-                //str = null;
-                //if (HandlerIndex == -1) {
-                //    start = Parent.MatchCharInTemplateAbsolute + 1;
-                //    count = MatchCharInTemplateRelative - 1;
-
-                //    if (Parent.Parent == null) {
-                //        start--;
-                //        count++;
-                //    }
-
-                //    if (count < 1)
-                //        return null;
-
-                //    str = GetAnyCandidateHandler().PreparedVerbAndUri;
-                //    str = str.Substring(start, count);
-                //    if (Match != 0)
-                //        str += (char)Match;
-                //} else if (Match != 0) {
-                //    str = "" + (char)Match;
-                //}
-                //return str;
+                    if (Match != 0)
+                        fragment += (char)Match;
+                } 
+                return fragment;
             }
         }
 
@@ -171,147 +159,67 @@ namespace Starcounter.CodeGeneration.Serialization {
         /// </summary>
         /// <returns>The debug string</returns>
         public override string ToString() {
-            return "TODO!";
-            //var sb = new StringBuilder();
-            //var comment = BuildPrettyPrintDebugString(false, sb, 0);
-            //if (comment != null) {
-            //    sb.Append(comment);
-            //}
-            //return sb.ToString();
+            var sb = new StringBuilder();
+            BuildPrettyDebugString(sb, 0);
+            return sb.ToString();
         }
 
-        /// <summary>
-        /// Creates a pretty print DOM tree in the form of
-        /// a JSON tree
-        /// </summary>
-        /// <param name="fullDebug">Set to true to print the used data, false to only show the debug data</param>
-        /// <returns>A multiline string</returns>
-        public string ToString(bool fullDebug) {
-            return "TODO!";
-            //var sb = new StringBuilder();
-            //var comment = BuildPrettyPrintDebugString(fullDebug, sb, 0);
-            //if (comment != null) {
-            //    sb.Append(comment);
-            //}
-            //return sb.ToString();
-        }
         /// <summary>
         /// Used for debug purposes to pretty print a tree. Called by ToString().
         /// </summary>
         /// <param name="fullDebug">if set to <c>true</c> [full debug].</param>
         /// <param name="sb">A string builder to which the tree string is appended</param>
         /// <param name="indentation">The current indentation level</param>
-        /// <returns>System.String.</returns>
-        private string BuildPrettyPrintDebugString(bool fullDebug, StringBuilder sb, int indentation) {
-            return "TODO!";
-            //sb.Append(' ', indentation);
-            ////          sb.AppendLine("{");
-            //sb.Append("{ ");
-            //string comment = null;
-            //var par = false;
-            //var nt = DetectedType;
-            ////            if (nt == NodeType.CharMatchNode) {
-            //if (fullDebug) {
-            //    par = true;
-            //    sb.Append("Match:\'");
-            //    if (Match != 0)
-            //        sb.Append(Encoding.UTF8.GetString(new byte[] { Match }));
-            //    sb.Append("', ");
-            //    sb.Append("DebugMatch:\"");
-            //    sb.Append(DebugMatchFragment);
-            //    sb.Append("\"");
-            //} else {
-            //    //                    sb.Append("Case:'");
-            //    //                    if (Match != 0)
-            //    //                        sb.Append((char)Match);
-            //    //                    sb.Append("'");
-            //    if (Match != 0) {
-            //        if (par)
-            //            sb.Append(", ");
-            //        par = true;
-            //        sb.Append("Match:\"");
-            //        sb.Append(DebugMatchFragment);
-            //        sb.Append('"');
-            //    }
-            //}
-            ////            }
-            ////            else {
-            ////                par = true;
-            ////                sb.Append("Type:\"");
-            ////                sb.Append(DebugTypeString);
-            ////                sb.Append("\"");
-            ////            }
-            //if (HandlerIndex != -1 && Candidates.Count == 0) {
-            //    if (par)
-            //        sb.Append(", ");
-            //    sb.Append("Handler:\"");
-            //    sb.Append(AllHandlers[HandlerIndex].PreparedVerbAndUri);
-            //    sb.Append('"');
-            //    par = true;
-            //}
-            //if (IsParseTypeNode) {
-            //    if (par)
-            //        sb.Append(", ");
-            //    sb.Append("Parse:'" + (char)Match + "'");
-            //    par = true;
-            //}
+        private void BuildPrettyDebugString(StringBuilder sb, int indentation) {
+            sb.Append(' ', indentation);
+            sb.Append("{ Match: \'");
+            if (Match != 0)
+                sb.Append((char)Match);
+            sb.Append("', DebugMatch: \"");
+            sb.Append(DebugMatchFragment);
+            sb.Append("\"");
+            
+            if (TemplateIndex != -1 && Candidates.Count == 0) {
+                sb.Append(", ");
+                sb.Append("Template: \"");
+                sb.Append(AllTemplates[TemplateIndex].TemplateName);
+                sb.Append('"');
+            }
 
-            //if (fullDebug) {
-            //    if (par)
-            //        sb.Append(", ");
-            //    par = true;
-            //    if (HandlerIndex != -1) {
-            //        sb.Append("HandlerIndex:");
-            //        sb.Append(HandlerIndex);
-            //    }
-            //    if (par)
-            //        sb.Append(", ");
-            //    par = true;
-            //    sb.Append("RelativeCharIndex:");
-            //    sb.Append(MatchCharInTemplateRelative);
-            //    sb.Append(", AbsoluteCharIndex:");
-            //    sb.Append(MatchCharInTemplateAbsolute);
-            //}
-            //if (par)
-            //    sb.Append(", ");
-            //par = true;
-            //sb.Append("Detected:\"");
-            //sb.Append(DebugDetected);
-            //sb.Append('"');
-            //if (Candidates.Count == 0) {
-            //    sb.Append(' ');
-            //} else {
-            //    //                if (par && !IsParseParent) {
-            //    //                    sb.Append(", ");
-            //    //                    sb.Append("Switch(" + MatchCharInTemplateRelative + ")");
-            //    //                }
-            //    if (par)
-            //        sb.Append(", ");
-            //    sb.Append("Candidates:");
-            //    //                sb.Append(' ', indentation);
-            //    sb.AppendLine("[");
-            //    int x = 0;
-            //    foreach (var child in Candidates) {
-            //        x++;
-            //        if (x > 1) {
-            //            sb.Append(",");
-            //            //                        if (comment != null) {
-            //            //                            sb.Append(comment);
-            //            //                        }
-            //            sb.AppendLine("");
-            //        }
-            //        comment = child.BuildPrettyPrintDebugString(fullDebug, sb, indentation + 4);
-            //    }
-            //    sb.Append("]");
-            //}
-            //indentation -= 4;
-            //sb.Append("}");
-            //if (Candidates.Count == 0) {
-            //    if (HandlerIndex == -1)
-            //        return " // ERROR";
-            //    return " // " + AllHandlers[HandlerIndex].PreparedVerbAndUri;
-            //}
-            //return comment;
+            sb.Append(", ");
+            if (TemplateIndex != -1) {
+                sb.Append("TemplateIndex: ");
+                sb.Append(TemplateIndex);
+                sb.Append(", ");
+            }
+                
+            sb.Append("RelativeCharIndex: ");
+            sb.Append(MatchCharInTemplateRelative);
+            sb.Append(", AbsoluteCharIndex: ");
+            sb.Append(MatchCharInTemplateAbsolute);
+            
+            if (Candidates.Count == 0) {
+                sb.Append(' ');
+            } else {
+                sb.Append(", ");
+                sb.AppendLine("Candidates:[ ");
+                
+                int x = 0;
+                foreach (var child in Candidates) {
+                    x++;
+                    if (x > 1) {
+                        sb.AppendLine(",");
+                    }
+                    child.BuildPrettyDebugString(sb, indentation + 4);
+                }
+                sb.Append(" ]");
+            }
+            
+            sb.Append("}");
+            if (Candidates.Count == 0) {
+                if (TemplateIndex == -1)
+                    throw new Exception("TODO: something wrong in ParseTreeGenerator.");
+            }
         }
     }
 

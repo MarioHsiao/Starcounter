@@ -93,6 +93,7 @@
       <DependentUpon>MySampleApp.json</DependentUpon>
     </None>
     <Compile Include="DebugCompiler.cs" />
+    <Compile Include="JsonSerializeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="simple.facit.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
