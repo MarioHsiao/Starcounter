@@ -340,7 +340,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Internal structure with HTTP response information.
         /// </summary>
-        unsafe HttpResponseInternal* http_response_struct_;
+        unsafe HttpResponseInternal* http_response_struct_ = null;
 
         /// <summary>
         /// Direct pointer to session data.
@@ -408,6 +408,7 @@ namespace Starcounter.Advanced
                 {
                     // Releasing internal resources here.
                     BitsAndBytes.Free((IntPtr)http_response_struct_->socket_data_);
+                    http_response_struct_->socket_data_ = null;
                 }
 
                 // Setting the response data pointer.
@@ -450,6 +451,7 @@ namespace Starcounter.Advanced
 
                 // Allocating space just for response structure.
                 http_response_struct_ = (HttpResponseInternal*) BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
+                http_response_struct_->socket_data_ = null;
 
                 // Checking if we have a complete response.
                 if (complete)
@@ -579,7 +581,7 @@ namespace Starcounter.Advanced
             Byte* socket_data,
             INetworkDataStream data_stream)
         {
-            http_response_struct_ = (HttpResponseInternal*)http_response_begin;
+            http_response_struct_ = (HttpResponseInternal*) http_response_begin;
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
             http_response_struct_->socket_data_ = socket_data;
             data_stream_ = data_stream;
