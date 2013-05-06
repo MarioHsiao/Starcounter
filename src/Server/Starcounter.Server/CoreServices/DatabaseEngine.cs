@@ -238,7 +238,7 @@ namespace Starcounter.Server {
             // alive. Start a code host process.
 
             var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps);
-            DoStartEngineProcess(startInfo, database);
+            process = DoStartEngineProcess(startInfo, database);
             database.CodeHostProcess = process;
             database.SupposedToBeStarted = true;
             database.CodeHostArguments = startInfo.Arguments;
@@ -255,6 +255,7 @@ namespace Starcounter.Server {
                 process.Close();
                 database.Apps.Clear();
                 database.CodeHostProcess = null;
+                database.SupposedToBeStarted = false;
                 return false;
             }
 
