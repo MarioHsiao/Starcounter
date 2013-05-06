@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Xml.Serialization;
 
 namespace Starcounter.Server.PublicModel {
@@ -201,16 +202,17 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
-        /// Gets or sets a <see cref="WeakReference"/> to an object that
+        /// Gets or sets a <see cref="ManualResetEventSlim"/> that
         /// the server can use to wait for the command to complete.
         /// </summary>
         /// <remarks>
-        /// Commands that does not support waiting using a waitable handle,
-        /// or commands that are complete, will return null here.
-        /// <seealso cref="PublicModelProvider.Wait(CommandInfo)"/>
-        /// <seealso cref="Commands.ServerCommand.EnableWaiting"/>
+        /// <para>
+        /// This reference will only be assigned for commands that
+        /// explicitly state that they need to support waiting, see
+        /// <see cref="ServerCommand.EnableWaiting"/>.
+        /// </para>
         /// </remarks>
-        internal WeakReference Waitable {
+        internal ManualResetEventSlim CompletedEvent {
             get;
             set;
         }
