@@ -80,6 +80,7 @@
     <Compile Include="Commands\CommandProcessorAttribute.cs" />
     <Compile Include="Commands\CommandTask.cs" />
     <Compile Include="Configuration\Server\DatabaseStorageConfiguration.cs" />
+    <Compile Include="CoreServices\DatabaseEngineMonitor.cs" />
     <Compile Include="CoreServices\DatabaseHostingService.cs" />
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
