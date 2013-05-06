@@ -72,6 +72,9 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Start testing queries on comparison bug");
             TestComparison();
             HelpMethods.LogEvent("Finished testing queries on comparison bug");
+            HelpMethods.LogEvent("Test enumerator related bugs");
+            TestEnumerators();
+            HelpMethods.LogEvent("Finished testing enumerator related bugs");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -249,5 +252,22 @@ namespace QueryProcessingTest {
             Trace.Assert(e.MoveNext());
         }
 
+        public static void TestEnumerators() {
+            SqlResult<dynamic> accounts = Db.SQL("select accountid as accountid, client.name as name, amount as amount from account where accountid = ?", 1);
+            Type t = accounts.First.GetType();
+            Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
+            t = accounts.First.GetType();
+            Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
+            long accountid = accounts.First.accountid;
+            accountid = accounts.First.AccountId;
+            Trace.Assert(accountid == 1);
+            decimal amount = accounts.First.amount;
+            amount = accounts.First.Amount;
+#if false // Does not work
+            accounts.First.Amount += 10;
+            decimal newAmount = accounts.First.Amount;
+            Trace.Assert(amount + 10 == newAmount);
+#endif
+        }
     }
 }

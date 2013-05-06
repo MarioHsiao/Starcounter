@@ -16,6 +16,13 @@ namespace Starcounter.Server.PublicModel {
         Unknown,
 
         /// <summary>
+        /// Indicates the duration is currently hard to predict or we have
+        /// no reason to try. But we can still report progress, for example
+        /// a ticker (e.g. updated every tenth of a second).
+        /// </summary>
+        UnknownWithProgress,
+
+        /// <summary>
         /// Short and indeterminate task. Typically finished within
         /// a second.
         /// </summary>
@@ -56,7 +63,9 @@ namespace Starcounter.Server.PublicModel {
         /// <param name="duration">The duration</param>
         /// <returns></returns>
         public static bool IsProgressing(this TaskDuration duration) {
-            return duration == TaskDuration.LongWithProgress || duration == TaskDuration.LongWithFixedProgress;
+            return duration == TaskDuration.LongWithProgress ||
+                duration == TaskDuration.LongWithFixedProgress ||
+                duration == TaskDuration.UnknownWithProgress;
         }
 
         /// <summary>
