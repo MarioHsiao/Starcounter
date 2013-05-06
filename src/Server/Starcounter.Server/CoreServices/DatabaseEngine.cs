@@ -16,6 +16,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using Starcounter.Internal;
+using Starcounter.Server.PublicModel.Commands;
 
 namespace Starcounter.Server {
 
@@ -44,6 +45,11 @@ namespace Starcounter.Server {
         /// Gets the server that has instantiated this engine.
         /// </summary>
         internal readonly ServerEngine Server;
+
+        /// <summary>
+        /// Gets the database engine monitor service
+        /// </summary>
+        internal readonly DatabaseEngineMonitor Monitor;
 
         /// <summary>
         /// Gets the full path to the database executable.
@@ -76,6 +82,7 @@ namespace Starcounter.Server {
         /// <param name="server"></param>
         internal DatabaseEngine(ServerEngine server) {
             this.Server = server;
+            this.Monitor = new DatabaseEngineMonitor(server);
         }
 
         /// <summary>
@@ -98,6 +105,8 @@ namespace Starcounter.Server {
             this.DatabaseExePath = databaseExe;
             this.CodeHostExePath = codeHostExe;
             this.MinGWCompilerPath = compilerPath;
+
+            this.Monitor.Setup();
         }
 
         /// <summary>
@@ -134,11 +143,8 @@ namespace Starcounter.Server {
 
             if (!databaseRunning) {
                 ProcessStartInfo startInfo;
-                Process databaseProcess;
-
                 startInfo = GetDatabaseStartInfo(database);
-                databaseProcess = Process.Start(startInfo);
-                databaseProcess.Close();
+                DoStartEngineProcess(startInfo, database);
             }
 
             return !databaseRunning;
@@ -232,7 +238,7 @@ namespace Starcounter.Server {
             // alive. Start a code host process.
 
             var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps);
-            process = Process.Start(startInfo);
+            DoStartEngineProcess(startInfo, database);
             database.CodeHostProcess = process;
             database.SupposedToBeStarted = true;
             database.CodeHostArguments = startInfo.Arguments;
@@ -292,6 +298,11 @@ namespace Starcounter.Server {
             return true;
         }
 
+        Process DoStartEngineProcess(ProcessStartInfo startInfo, Database database) {
+            var p = Process.Start(startInfo);
+            this.Monitor.BeginMonitoring(database, p);
+            return p;
+        }
 
         void WaitForDatabaseProcessToExit(string processControlEventName) {
             while (IsDatabaseProcessRunning(processControlEventName)) Thread.Sleep(1);
