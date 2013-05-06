@@ -890,6 +890,11 @@ internal interface IPathComparer : ISingleComparer
 internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
 {
     /// <summary>
+    /// Gets node id, which is unique for an execution tree.
+    /// </summary>
+    byte NodeId { get; }
+
+    /// <summary>
     /// Sets a null value to an SQL variable.
     /// </summary>
     /// <param name="index">The order number of the variable starting at 0.</param>

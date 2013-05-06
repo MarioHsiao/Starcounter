@@ -17,6 +17,7 @@ namespace Starcounter.Query.Execution
 // Implementation for base execution enumerator class.
 internal abstract class ExecutionEnumerator
 {
+    protected readonly byte nodeId; // Unique node identifier in execution tree. Top node has largest nodeId.
     protected Row currentObject = null; // Represents latest successfully retrieved object.
     protected VariableArray variableArray = null; // Array with variables from query.
     protected Int64 counter = 0; // Number of successful hits (retrieved objects).
@@ -27,6 +28,14 @@ internal abstract class ExecutionEnumerator
     protected UInt64 uniqueQueryID = 0; // Uniquely identifies query it belongs to.
     protected String uniqueGenName = null; // Uniquely identifies the scan during code generation.
     protected Boolean hasCodeGeneration = false; // Indicates if code generation is done for this enumerator.
+
+#if false // Not in use or not needed
+    protected byte totalNodeNr = 0; // Total number of nodes in execution tree if it is the top node (i.e., nodeId=0);
+    internal byte TotalNodeNr { get { return totalNodeNr; } set { totalNodeNr = value; } }
+    protected byte[] staticOffsetKeyPart; // Stores static part of the offset key related only to this node
+    protected int staticOffsetKeyPartLength = 0; // Stores the length of the offset key static part
+#endif
+    internal readonly EnumeratorNodeType NodeType;
 
     protected INumericalExpression fetchNumberExpr = null; // Represents fetch literal or variable.
     protected Int64 fetchNumber = Int64.MaxValue; // Maximum fetch number.
@@ -43,8 +52,10 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Default constructor.
     /// </summary>
-    internal ExecutionEnumerator(RowTypeBinding rowTypeBind, VariableArray varArray)
+    internal ExecutionEnumerator(byte nodeId, EnumeratorNodeType nodeType, RowTypeBinding rowTypeBind, VariableArray varArray)
     {
+        this.nodeId = nodeId;
+        NodeType = nodeType;
         rowTypeBinding = rowTypeBind;
         variableArray = varArray;
 
@@ -54,6 +65,8 @@ internal abstract class ExecutionEnumerator
             projectionTypeCode = propertyBinding.TypeCode;
         }
     }
+
+    public byte NodeId { get { return nodeId; } }
 
     /// <summary>
     /// Sets the transaction handle value.
