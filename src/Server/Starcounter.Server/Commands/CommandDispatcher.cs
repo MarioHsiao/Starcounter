@@ -95,7 +95,7 @@ namespace Starcounter.Server.Commands {
                             if (match(command.Value))
                                 return command.Value;
                         } else {
-                            _lists.ProcessedInfo.Remove(command);
+                            RemoveProcessedCommand(command);
                         }
                     }
                     while (nextCommand != null);
@@ -130,7 +130,7 @@ namespace Starcounter.Server.Commands {
                         if (command.Value.EndTime > removedAt) {
                             commands.Add(command.Value);
                         } else {
-                            _lists.ProcessedInfo.Remove(command);
+                            RemoveProcessedCommand(command);
                         }
                     }
                     while (nextCommand != null);
@@ -138,6 +138,18 @@ namespace Starcounter.Server.Commands {
             }
 
             return commands.ToArray();
+        }
+
+        void RemoveProcessedCommand(LinkedListNode<CommandInfo> commandNode) {
+            var list = commandNode.List;
+            var command = commandNode.Value;
+            if (command.CompletedEvent != null) {
+                try {
+                    command.CompletedEvent.Dispose();
+                } catch (ObjectDisposedException) { }
+                command.CompletedEvent = null;
+            }
+            list.Remove(commandNode);
         }
 
         /// <summary>
@@ -185,6 +197,9 @@ namespace Starcounter.Server.Commands {
         }
 
         private CommandProcessor GetCommandProcessor(ServerCommand command) {
+            if (command is InvokableCommand)
+                return new InvokableCommandProcessor(_engine, command);
+
             return (CommandProcessor)_constructors[command.GetType()].Invoke(new object[] { _engine, command });
         }
 
@@ -263,6 +278,10 @@ namespace Starcounter.Server.Commands {
 
             foreach (Type type in assembly.GetTypes()) {
                 if (!type.IsAbstract && typeof(CommandProcessor).IsAssignableFrom(type)) {
+                    if (typeof(InvokableCommandProcessor) == type) {
+                        continue;
+                    }
+
                     CommandProcessorAttribute[] attributes =
                         (CommandProcessorAttribute[])type.GetCustomAttributes(
                             typeof(CommandProcessorAttribute), false

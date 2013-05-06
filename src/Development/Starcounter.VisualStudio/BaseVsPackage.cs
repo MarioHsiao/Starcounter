@@ -4,18 +4,48 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Starcounter.VisualStudio {
     public abstract class BaseVsPackage : Package {
         static ActivityLogWriter _logWriter = null;
-        
+
+        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
+        static extern IntPtr LoadLibrary(string fileName);
+
         /// <summary>
         /// Gets the full path to the Starcounter installation directory.
         /// </summary>
         internal static readonly string InstallationDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+        /// <summary>
+        /// Gets the full path to Starcounter 32-bit components.
+        /// </summary>
+        internal static readonly string Installed32BitComponponentsDirectory = Path.Combine(InstallationDirectory, "32BitComponents");
         
-        static BaseVsPackage() {            
+        static BaseVsPackage() {
             AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
+            TryExplicitlyLoadingHttpParserBinary();
+        }
+
+        private static bool TryExplicitlyLoadingHttpParserBinary() {
+            IntPtr moduleHandle;
+            string resourceBinaryPath;
+
+            // By design, we catch all possible exceptions here. If any exception
+            // occur, we return false.
+
+            moduleHandle = IntPtr.Zero;
+            try {
+                resourceBinaryPath = InstallationDirectory;
+                if (IntPtr.Size == 4) {
+                    resourceBinaryPath = Installed32BitComponponentsDirectory;
+                }
+
+                moduleHandle = LoadLibrary(Path.Combine(resourceBinaryPath, "HttpParser.dll"));
+            } catch { }
+
+            return moduleHandle != IntPtr.Zero;
         }
 
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args) {
@@ -41,6 +71,7 @@ namespace Starcounter.VisualStudio {
             try {
                 reference = new AssemblyName(args.Name);
             } catch (FileLoadException) {
+                TryWriteLogInformation(string.Format("Failed to get AssemblyName instance of {0}", args.Name));
                 return null;
             }
 
@@ -55,14 +86,26 @@ namespace Starcounter.VisualStudio {
             // Search for it in the Starcounter installation directory, currently
             // being resolved to the place from where this assembly (Starcounter.VisualStudio)
             // has been loaded from.
+            string path = null;
             try {
-                var installationDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var path = Path.Combine(installationDir, reference.Name + ".dll");
+                var installationDir = InstallationDirectory;
+                if (IntPtr.Size == 4) {
+                    var pathTo32Bit = Installed32BitComponponentsDirectory;
+                    path = Path.Combine(pathTo32Bit, reference.Name + ".dll");
+                    if (File.Exists(path)) {
+                        var assemblyName = AssemblyName.GetAssemblyName(path);
+                        return Assembly.Load(assemblyName);
+                    }
+                }
+
+                path = Path.Combine(installationDir, reference.Name + ".dll");
                 if (File.Exists(path)) {
                     var assemblyName = AssemblyName.GetAssemblyName(path);
                     return Assembly.Load(assemblyName);
                 }
-            } catch { }
+            } catch (Exception e) {
+                TryWriteLogInformation(string.Format("Failed to load {0} from path {1}. Error: {2}.", args.Name, path, e.Message));
+            }
 
             return null;
         }
