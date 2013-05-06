@@ -215,6 +215,10 @@ namespace Starcounter.Server {
 #endif
         }
 
+        internal bool IsCodeHostProcessRunning(Database database) {
+            return database.GetRunningCodeHostProcess() != null;
+        }
+
         internal bool StartCodeHostProcess(Database database, out Process process) {
             return StartCodeHostProcess(database, false, false, out process);
         }
@@ -227,9 +231,11 @@ namespace Starcounter.Server {
             // No process referenced, or the referenced process was not
             // alive. Start a code host process.
 
-            process = Process.Start(GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps));
+            var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps);
+            process = Process.Start(startInfo);
             database.CodeHostProcess = process;
             database.SupposedToBeStarted = true;
+            database.CodeHostArguments = startInfo.Arguments;
             return true;
         }
 

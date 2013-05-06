@@ -3,6 +3,8 @@ using Codeplex.Data;
 using Starcounter;
 using Starcounter.ABCIPC.Internal;
 using Starcounter.Administrator;
+using Starcounter.Administrator.API;
+using Starcounter.Administrator.API.Handlers;
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Internal.JsonPatch;
@@ -10,6 +12,7 @@ using Starcounter.Internal.REST;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
+using Starcounter.Server.Rest;
 using System;
 using System.Collections.Specialized;
 using System.IO;
@@ -60,12 +63,9 @@ namespace Starcounter.Administrator {
 
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
-            HostedExecutables.Setup(
-                Dns.GetHostEntry(String.Empty).HostName,
-                adminPort,
-                Master.ServerEngine,
-                Master.ServerInterface
-            );
+            // Register and setup the API subsystem handlers
+            var admin = new AdminAPI();
+            RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Master.ServerEngine, Master.ServerInterface);
 
             // Registering Administrator handlers.
             RegisterHandlers();
@@ -456,7 +456,8 @@ namespace Starcounter.Administrator {
                             if (database == null) continue;
 
                             // The reason we also send the HostProcessId it to let the client know it the database process is running or not.
-                            resultJson.commands[i] = new { description = command.Description, name = database.Name, hostProcessId = database.HostProcessId, status = command.Status.ToString() };
+                            var hostProcId = database.Engine == null ? 0 : database.Engine.HostProcessId;
+                            resultJson.commands[i] = new { description = command.Description, name = database.Name, hostProcessId = hostProcId, status = command.Status.ToString() };
                             resultJson.commands[i].errors = new object[] { };
                             resultJson.commands[i].progressText = null;
 
@@ -591,9 +592,9 @@ namespace Starcounter.Administrator {
                         for (int i = 0; i < databases.Length; i++) {
                             resultJson.databases[i] = new {
                                 id = Master.EncodeTo64(databases[i].Uri),
-                                status = (databases[i].HostProcessId > 0) ? "Running" : ".",
+                                status = (databases[i].Engine != null) ? "Running" : ".",
                                 name = databases[i].Name,
-                                hostProcessId = databases[i].HostProcessId,
+                                hostProcessId = databases[i].Engine == null ? 0 : databases[i].Engine.HostProcessId,
                                 httpPort = databases[i].Configuration.Runtime.DefaultUserHttpPort,
                                 schedulerCount = databases[i].Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                 chunksNumber = databases[i].Configuration.Runtime.ChunksNumber,
@@ -646,9 +647,9 @@ namespace Starcounter.Administrator {
 
                             resultJson.database = new {
                                 id = Master.EncodeTo64(database.Uri),
-                                status =  (database.HostProcessId > 0 ) ? "Running" : ".",
+                                status =  (database.Engine != null) ? "Running" : ".",
                                 name = database.Name,
-                                hostProcessId = database.HostProcessId,
+                                hostProcessId = database.Engine == null ? 0 : database.Engine.HostProcessId,
                                 httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
                                 schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                 chunksNumber = database.Configuration.Runtime.ChunksNumber,
@@ -926,7 +927,7 @@ namespace Starcounter.Administrator {
                                         id = Master.EncodeTo64(database.Uri),
                                         name = database.Name,
                                         //status = database.HostProcessId,
-                                        hostProcessId = database.HostProcessId,
+                                        hostProcessId = database.Engine == null ? 0 : database.Engine.HostProcessId,
                                         httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
                                         schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                         chunksNumber = database.Configuration.Runtime.ChunksNumber,
@@ -1083,13 +1084,15 @@ namespace Starcounter.Administrator {
 
                         DatabaseInfo[] databases = Master.ServerInterface.GetDatabases();
                         foreach (var database in databases) {
-                            for (int i = 0; i < database.HostedApps.Length; i++) {
+                            var engineState = database.Engine;
+                            var appsState = engineState == null ? null : engineState.HostedApps;
+                            for (int i = 0; appsState != null && i < appsState.Length; i++) {
 
                                 resultJson.apps[i] = new {
                                     status = "Running", // TODO: Use an id
-                                    name = Path.GetFileNameWithoutExtension(database.HostedApps[i].ExecutablePath),
-                                    path = database.HostedApps[i].ExecutablePath,
-                                    folder = database.HostedApps[i].WorkingDirectory,
+                                    name = Path.GetFileNameWithoutExtension(appsState[i].ExecutablePath),
+                                    path = appsState[i].ExecutablePath,
+                                    folder = appsState[i].WorkingDirectory,
                                     databaseName = database.Name,
                                     databaseID = Master.EncodeTo64(database.Uri)
                                 };
