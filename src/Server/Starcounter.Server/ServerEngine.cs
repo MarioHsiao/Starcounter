@@ -104,6 +104,12 @@ namespace Starcounter.Server {
         internal AppsService AppsService { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="ExecutableService"/> used when the current
+        /// server engine needs operate on executables.
+        /// </summary>
+        internal ExecutableService ExecutableService { get; private set; }
+
+        /// <summary>
         /// Gets the <see cref="WeaverService"/> used when the current server
         /// engine will need to weave user code.
         /// </summary>
@@ -145,9 +151,7 @@ namespace Starcounter.Server {
             this.WeaverService = new Server.WeaverService(this);
             this.StorageService = new DatabaseStorageService(this);
             this.DatabaseHostService = new DatabaseHostingService(this);
-            // TODO: Remove!
-            //this.SharedMemoryMonitor = new SharedMemoryMonitor(this);
-            //this.GatewayService = new GatewayService(this);
+            this.ExecutableService = new ExecutableService(this);
         }
 
         /// <summary>
@@ -196,6 +200,7 @@ namespace Starcounter.Server {
             SetupDatabases();
             this.CurrentPublicModel = new PublicModelProvider(this);
             this.AppsService.Setup();
+            this.ExecutableService.Setup();
             this.WeaverService.Setup();
             this.StorageService.Setup();
             this.DatabaseHostService.Setup();

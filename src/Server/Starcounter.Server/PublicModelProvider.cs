@@ -31,7 +31,7 @@ namespace Starcounter.Server {
         /// the current model.</param>
         internal PublicModelProvider(ServerEngine engine) {
             this.engine = engine;
-            this.databases = new Dictionary<string, DatabaseInfo>();
+            this.databases = new Dictionary<string, DatabaseInfo>(StringComparer.InvariantCultureIgnoreCase);
 
             foreach (var database in engine.Databases.Values) {
                 databases.Add(database.Uri, database.ToPublicModel());
@@ -52,23 +52,31 @@ namespace Starcounter.Server {
         /// <summary>
         /// Adds a database to the public model.
         /// </summary>
-        /// <param name="database"></param>
-        internal void AddDatabase(Database database) {
+        /// <param name="database">The database whose state
+        /// we are adding to the public model.</param>
+        /// <returns>The representation as it appears in
+        /// the public model.</returns>
+        internal DatabaseInfo AddDatabase(Database database) {
             var info = database.ToPublicModel();
             lock (databases) {
                 databases.Add(database.Uri, info);
             }
+            return info;
         }
 
         /// <summary>
         /// Updates a database already part of the public model.
         /// </summary>
-        /// <param name="database"></param>
-        internal void UpdateDatabase(Database database) {
+        /// <param name="database">The database whose state
+        /// we are updating in the public model.</param>
+        /// <returns>The representation as it appears in
+        /// the public model.</returns>
+        internal DatabaseInfo UpdateDatabase(Database database) {
             var info = database.ToPublicModel();
             lock (databases) {
                 databases[database.Uri] = info;
             }
+            return info;
         }
 
         /// <summary>
@@ -108,75 +116,16 @@ namespace Starcounter.Server {
             if (info.IsCompleted)
                 return info;
 
-            var waitableReference = info.Waitable;
-            if (waitableReference == null) {
-                // The command either doesn't support waiting using
-                // a waitable construct, or it has completed and the
-                // public model has been updated accordingly. In any
-                // case, we pass it on to the polling-based waiting
-                // to either wait using that, or have that return the
-                // completed command.
+            if (info.CompletedEvent == null) {
+                // The command doesn't support waiting using a waitable
+                // construct, i.e it was created w/ the EnableWaiting flag
+                // set to false. We pass the call on to the polling-based
+                // waiting to either wait using that, or have that return
+                // the completed command.
                 return Wait(info.Id);
             }
-            else if (waitableReference.IsAlive) {
-                var waitable = waitableReference.Target;
-                if (waitable != null) {
-                    WaitHandle waitableHandle = waitable as WaitHandle;
-                    try {
-                        if (waitableHandle == null) {
-                            ManualResetEventSlim slimEvent = waitable as ManualResetEventSlim;
-                            slimEvent.Wait();
-                        }
-                        else {
-                            // NOTE: This code is temporary, and should be here until we have
-                            // a better understanding of why sometimes, commands does not get
-                            // the completed signal. For more information, consult:
-                            // http://www.starcounter.com/forum/showthread.php?2211-quot-Start-Debugging-quot-(F5)-Freezes-Visual-Studio
 
-                            bool finished = false;
-                            TimeSpan t = new TimeSpan(0, 1, 30);
-                            for (int i = 0; i < t.TotalSeconds; i++) {
-                                // Every n-th second, we check the status of the command.
-                                finished = waitableHandle.WaitOne(3000);
-                                if (!finished) {
-                                    // The handle indicates the command has not finished yet.
-                                    // We'll get the latest status from the public model and
-                                    // make sure we can confirm this.
-
-                                    var latestCopy = this.engine.Dispatcher.GetRecentCommand(info.Id);
-                                    if (latestCopy == null || latestCopy.IsCompleted) {
-                                        // The command could either not be fetched or it is marked
-                                        // as completed. Both indicates an error in the implementation.
-                                        // We should log this and try to build an understanding of
-                                        // why it occurs.
-                                        if (latestCopy == null) {
-                                            ServerLogSources.Default.LogError("The command {0}, started {1}, did not get notified when finished and the last copy of its result was not found.", info.Description, info.StartTime);
-                                            System.Diagnostics.Trace.Fail("Internal server error");
-                                        }
-                                        else {
-                                            ServerLogSources.Default.LogError(
-                                                "The command {0}, started {1}, did not get notified when finished. Ended at {2}, had errors: {3}",
-                                                info.Description,
-                                                info.StartTime,
-                                                latestCopy.EndTime.Value,
-                                                latestCopy.HasError);
-                                            return latestCopy;
-                                        }
-                                    }
-                                }
-                            }
-
-                            System.Diagnostics.Trace.Assert(finished, string.Format("Command {0} didn't finish in time ({1})", info.Description, t));
-                        }
-                    }
-                    catch (ObjectDisposedException) {
-                        // Ignore this. If the server has decided the underlying
-                        // construct was ready to be disposed, thats a sure sign
-                        // the command has completed.
-                    }
-                }
-            }
-
+            info.CompletedEvent.Wait();
             return this.engine.Dispatcher.GetRecentCommand(info.Id);
         }
 
@@ -229,8 +178,9 @@ namespace Starcounter.Server {
         /// <inheritdoc />
         public DatabaseInfo GetDatabaseByName(string databaseName) {
             lock (databases) {
+                var comp = StringComparison.InvariantCultureIgnoreCase;
                 foreach (var keyvalue in this.databases) {
-                    if (keyvalue.Value.Name.Equals(databaseName)) {
+                    if (keyvalue.Value.Name.Equals(databaseName, comp)) {
                         return keyvalue.Value;
                     }
                 }
