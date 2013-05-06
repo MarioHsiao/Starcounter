@@ -49,7 +49,7 @@ namespace Starcounter.Server {
                 log.Debug("Begin monitoring code host process {0}, PID {1}, running database {2}", engineProcess.ProcessName, engineProcess.Id, database.Name);
                 engineProcess.EnableRaisingEvents = true;
                 engineProcess.Exited += (sender, args) => {
-                    log.Debug("Detected exiting of code host {0}, PID {1}, running database {2}", engineProcess.ProcessName, engineProcess.Id, database.Name);
+                    log.Debug("Detected exiting of code host with PID {0}, running database {1}", engineProcess.Id, database.Name);
                     var x = new ActionCommand<Process, Database>(this.Server, ReactToCodeHostExit, engineProcess, database, description);
                     this.Server.CurrentPublicModel.Execute(x);
                 };
@@ -57,8 +57,8 @@ namespace Starcounter.Server {
         }
 
         void ReactToCodeHostExit(ICommandProcessor processor, Process processExited, Database database) {
-            log.Debug("Updating state due to the exiting of code host process {0}, PID {1}, running database {2}", 
-                processExited.ProcessName, processExited.Id, database.Name);
+            log.Debug("Updating state due to the exiting of code host process with PID {0}, running database {1}", 
+                processExited.Id, database.Name);
 
             if (!database.SupposedToBeStarted || (database.CodeHostProcess != null && database.CodeHostProcess.Id != processExited.Id)) {
                 log.Debug("Ignoring state update for code host with PID {0}; state already up-to-date.", processExited.Id);
