@@ -17,10 +17,9 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
     SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
     SOCKET_DATA_FLAGS_JUST_SEND = 64,
-    HTTP_WS_FLAGS_UPGRADE = 128,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 256,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 512,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 1024
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 128,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 256,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 512
 };
 
 // Socket data chunk.
@@ -33,6 +32,29 @@ class SocketDataChunk
 
     // Starcounter session information.
     ScSessionStruct session_;
+
+    /////////////////////////
+    // 8 bytes aligned data.
+    /////////////////////////
+
+    // Unique sequence number for the database.
+    uint64_t db_unique_seq_num_;
+
+    // Socket to which this data belongs.
+    SOCKET sock_;
+
+    // Unique number for socket.
+    session_salt_type unique_socket_id_;
+
+    // Proxy socket information.
+    SOCKET proxy_sock_;
+
+    // Determined handler id.
+    BMX_HANDLER_TYPE saved_user_handler_id_;
+
+    /////////////////////////
+    // 4 bytes aligned data.
+    /////////////////////////
 
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
@@ -53,41 +75,31 @@ class SocketDataChunk
     // Indicates how many chunks are associated with this socket data (normally 1).
     uint32_t num_chunks_;
 
-    // Socket to which this data belongs.
-    SOCKET sock_;
-
-    // Unique number for socket.
-    session_salt_type unique_socket_id_;
-
-    // Receive flags.
-    uint32_t recv_flags_;
-
-    // Current type of network operation.
-    SocketOperType type_of_network_oper_;
-
     // Socket data flags.
     uint32_t flags_;
 
     // Port handlers index.
     int32_t port_index_;
 
-    // Determined handler id.
-    BMX_HANDLER_TYPE fixed_handler_id_;
-
     // Index into databases array.
     int32_t db_index_;
 
-    // Unique sequence number for the database.
-    uint64_t db_unique_seq_num_;
+    /////////////////////////
+    // 1 bytes aligned data.
+    /////////////////////////
 
-    // Blob user data offset.
-    int32_t blob_user_data_offset_;
+    // Current type of network operation.
+    uint8_t type_of_network_oper_;
+
+    // Type of protocol.
+    uint8_t type_of_network_protocol_;
+
+    /////////////////////////
+    // Data structures.
+    /////////////////////////
 
     // Accumulative buffer chunk.
     AccumBuffer accum_buf_;
-
-    // Proxy socket information.
-    SOCKET proxy_sock_;
 
     // HTTP protocol instance.
     HttpWsProto http_ws_proto_;
@@ -112,14 +124,27 @@ public:
     uint32_t AssertCorrectState()
     {
         uint8_t* sd = (uint8_t*) this;
+        uint8_t* smc = (uint8_t*)get_smc();
 
-        GW_ASSERT(SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_SEND == starcounter::bmx::SOCKET_DATA_FLAGS_JUST_SEND);
+        GW_ASSERT(8 == sizeof(SOCKET));
+        GW_ASSERT(8 == sizeof(session_salt_type));
+        GW_ASSERT(8 == sizeof(BMX_HANDLER_TYPE));
+        GW_ASSERT(4 == sizeof(core::chunk_index));
+
+        GW_ASSERT((&session_.scheduler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_SCHEDULER_ID);
+        GW_ASSERT(((uint8_t*)&session_.linear_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_LINEAR_INDEX);
+        GW_ASSERT(((uint8_t*)&session_.random_salt_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
+        GW_ASSERT(((uint8_t*)&session_.view_model_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_VIEWMODEL_INDEX);
+
+        GW_ASSERT(((uint8_t*)&saved_user_handler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
+
+        GW_ASSERT(SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_SEND == starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND);
 
         GW_ASSERT((accept_data_or_params_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
 
         GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
 
-        GW_ASSERT(((uint8_t*)&flags_ - sd) == (bmx::CHUNK_OFFSET_SOCKET_FLAGS - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&flags_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS);
 
         GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
@@ -127,18 +152,34 @@ public:
 
         GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NUM_CHUNKS);
 
-        GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - sd) == (bmx::CHUNK_OFFSET_MAX_USER_DATA_BYTES - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&user_data_offset_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA);
 
-        GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - sd) == (bmx::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES - bmx::BMX_HEADER_MAX_SIZE_BYTES));
+        GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_MAX_USER_DATA_BYTES);
+
+        GW_ASSERT(((uint8_t*)&user_data_written_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
+
+        GW_ASSERT(((uint8_t*)&type_of_network_protocol_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE);
+
+        GW_ASSERT(((uint8_t*)&sock_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_NUMBER);
+
+        GW_ASSERT(((uint8_t*)&unique_socket_id_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
+
+        GW_ASSERT(((uint8_t*)&port_index_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PORT_INDEX);
 
         return 0;
     }
 
 #ifdef GW_SOCKET_ID_CHECK
-    // Setting new unique socket number.
-    void SetUniqueSocketId()
+
+    void set_unique_socket_id(session_salt_type unique_socket_id)
     {
-        unique_socket_id_ = g_gateway.SetUniqueSocketId(sock_);
+        unique_socket_id_ = unique_socket_id;
+    }
+
+    // Setting new unique socket number.
+    void CreateUniqueSocketId()
+    {
+        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_);
     }
 
     // Checking if unique socket number is correct.
@@ -157,16 +198,34 @@ public:
     // Returns all linked chunks except the main one.
     uint32_t ReturnExtraLinkedChunks(GatewayWorker* gw);
 
-    // Setting fixed handler id.
-    void set_fixed_handler_id(BMX_HANDLER_TYPE fixed_handler_id)
+    // Setting user handler id.
+    void set_saved_user_handler_id(BMX_HANDLER_TYPE saved_user_handler_id)
     {
-        fixed_handler_id_ = fixed_handler_id;
+        saved_user_handler_id_ = saved_user_handler_id;
     }
 
-    // Getting fixed handler id.
-    BMX_HANDLER_TYPE get_fixed_handler_id()
+    // Getting type of network protocol.
+    MixedCodeConstants::NetworkProtocolType get_type_of_network_protocol()
     {
-        return fixed_handler_id_;
+        return (MixedCodeConstants::NetworkProtocolType) type_of_network_protocol_;
+    }
+
+    // Checking if its a WebSocket protocol.
+    bool IsWebSocket()
+    {
+        return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == get_type_of_network_protocol();
+    }
+
+    // Setting type of network protocol.
+    void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType protocol_type)
+    {
+        type_of_network_protocol_ = protocol_type;
+    }
+
+    // Getting saved user handler id.
+    BMX_HANDLER_TYPE get_saved_user_handler_id()
+    {
+        return saved_user_handler_id_;
     }
 
     // Continues fill up if needed.
@@ -319,21 +378,6 @@ public:
             flags_ |= SOCKET_DATA_FLAGS_NEW_SESSION;
         else
             flags_ &= ~SOCKET_DATA_FLAGS_NEW_SESSION;
-    }
-
-    // Getting WebSocket upgrade flag.
-    bool get_web_sockets_upgrade_flag()
-    {
-        return flags_ & HTTP_WS_FLAGS_UPGRADE;
-    }
-
-    // Setting WebSocket upgrade flag.
-    void set_web_sockets_upgrade_flag(bool value)
-    {
-        if (value)
-            flags_ |= HTTP_WS_FLAGS_UPGRADE;
-        else
-            flags_ &= ~HTTP_WS_FLAGS_UPGRADE;
     }
 
     // Getting complete header flag.
@@ -519,13 +563,13 @@ public:
     // Current type of network operation.
     SocketOperType get_type_of_network_oper()
     {
-        return type_of_network_oper_;
+        return (SocketOperType)type_of_network_oper_;
     }
 
     // Current type of network operation.
     void set_type_of_network_oper(SocketOperType type_of_network_oper)
     {
-        type_of_network_oper_ = type_of_network_oper;
+        type_of_network_oper_ = (uint8_t)type_of_network_oper;
     }
 
     // Accept data.
@@ -582,6 +626,12 @@ public:
     uint16_t get_db_index()
     {
         return db_index_;
+    }
+
+    // Index into databases array.
+    void set_db_index(uint16_t db_index)
+    {
+        db_index_ = db_index;
     }
 
     // Unique database sequence number.
@@ -645,13 +695,13 @@ public:
     // Resets user data offset.
     void ResetUserDataOffset()
     {
-        user_data_offset_ = data_blob_ - ((uint8_t *)this) + blob_user_data_offset_;
+        user_data_offset_ = data_blob_ - ((uint8_t *)this);
     }
 
     // Resets max user data buffer.
     void ResetMaxUserDataBytes()
     {
-        max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES - blob_user_data_offset_;
+        max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES;
     }
 
     // Start receiving on socket.
@@ -665,7 +715,9 @@ public:
         return WSA_IO_PENDING;
 #endif
 
-        return WSARecv(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
+
+        DWORD flags = 0;
+        return WSARecv(sock_, (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
     }
 
     // Start receiving on socket using multiple chunks.
@@ -680,7 +732,8 @@ public:
 #endif
 
         // NOTE: Need to subtract two chunks from being included in receive.
-        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)num_bytes, (LPDWORD)&recv_flags_, &ovl_, NULL);
+        DWORD flags = 0;
+        return WSARecv(sock_, (WSABUF*)&(shared_int->chunk(extra_chunk_index_)), num_chunks_ - 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
     }
 
     // Start sending on socket.
@@ -792,6 +845,9 @@ public:
 
     // Clones existing socket data chunk.
     uint32_t CloneToReceive(GatewayWorker *gw);
+
+    // Clone current socket data to simply send it.
+    uint32_t CloneToSend(GatewayWorker*gw, SocketDataChunk** new_sd);
 
     // Attaches session to socket data.
     void AssignSession(ScSessionStruct& session)

@@ -68,12 +68,12 @@ namespace Starcounter.Advanced
         /// <summary>
         /// The _ uncompressed
         /// </summary>
-        private byte[] UncompressedResponse_ = null;
+        private byte[] uncompressed_response_ = null;
 
         /// <summary>
         /// The _ compressed
         /// </summary>
-        private byte[] CompressedResponse_ = null;
+        private byte[] compressed_response_ = null;
 
         /// <summary>
         /// UncompressedBodyOffset_
@@ -254,11 +254,11 @@ namespace Starcounter.Advanced
         {
             get
             {
-                return UncompressedResponse_;
+                return uncompressed_response_;
             }
             set
             {
-                UncompressedResponse_ = value;
+                uncompressed_response_ = value;
             }
         }
 
@@ -275,8 +275,8 @@ namespace Starcounter.Advanced
                         return (Int32)http_response_struct_->response_len_bytes_;
                 }
 
-                if (UncompressedResponse_ != null)
-                    return UncompressedResponse_.Length;
+                if (uncompressed_response_ != null)
+                    return uncompressed_response_.Length;
 
                 return 0;
             }
@@ -305,13 +305,13 @@ namespace Starcounter.Advanced
             get
             {
                 if (!WorthWhileCompressing)
-                    return UncompressedResponse_;
+                    return uncompressed_response_;
                 else
-                    return CompressedResponse_;
+                    return compressed_response_;
             }
             set
             {
-                CompressedResponse_ = value;
+                compressed_response_ = value;
             }
         }
 
@@ -343,14 +343,6 @@ namespace Starcounter.Advanced
         unsafe HttpResponseInternal* http_response_struct_;
 
         /// <summary>
-        /// Internal structure with HTTP response information.
-        /// </summary>
-        public unsafe HttpResponseInternal* HttpResponseInternalStruct
-        {
-            get { return http_response_struct_; }
-        }
-
-        /// <summary>
         /// Direct pointer to session data.
         /// </summary>
         unsafe ScSessionStruct* session_;
@@ -363,7 +355,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Indicates if this Response is internally constructed from Apps.
         /// </summary>
-        Boolean isInternalResponse = false;
+        Boolean is_internal_response_ = false;
 
         /// <summary>
         /// Parses internal HTTP response.
@@ -377,14 +369,18 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
-        public Response() {
+        public Response()
+        {
             HeaderInjectionPoint = -1;
         }
 
         /// <summary>
         /// Reference to corresponding HTTP request.
         /// </summary>
-        Request httpRequest_ = null;
+        Request http_request_ = null;
+
+        // Type of network protocol.
+        //MixedCodeConstants.NetworkProtocolType protocol_type_;
 
         /// <summary>
         /// Setting corresponding HTTP request.
@@ -392,46 +388,37 @@ namespace Starcounter.Advanced
         /// <param name="httpRequest"></param>
         public void SetHttpRequest(Request httpRequest)
         {
-            httpRequest_ = httpRequest;
+            http_request_ = httpRequest;
         }
 
         /// <summary>
-        /// Underlying memory stream.
-        /// </summary>
-        MemoryStream mem_stream_ = null;
-
-        /// <summary>
-        /// Setting the response bytes.
-        /// </summary>
-        /// <param name="mem_stream"></param>
-        /// <param name="response_len_bytes"></param>
-        public void SetResponseBytes(MemoryStream mem_stream, Int32 response_len_bytes)
-        {
-            mem_stream_ = mem_stream;
-            UncompressedResponse_ = mem_stream_.GetBuffer();
-
-            SetResponseBytes(UncompressedResponse_, response_len_bytes);
-        }
-
-        /// <summary>
-        /// Setting the response bytes.
+        /// Setting the response buffer.
         /// </summary>
         /// <param name="response_buf"></param>
         /// <param name="response_len_bytes"></param>
-        public void SetResponseBytes(Byte[] response_buf, Int32 response_len_bytes)
+        public void SetResponseBuffer(Byte[] response_buf, Int32 response_len_bytes)
         {
-            UncompressedResponse_ = response_buf;
+            // Setting the uncompressed bytes.
+            uncompressed_response_ = response_buf;
 
             unsafe
             {
+                // Checking if have not allocated anything yet.
+                if (null != http_response_struct_->socket_data_)
+                {
+                    // Releasing internal resources here.
+                    BitsAndBytes.Free((IntPtr)http_response_struct_->socket_data_);
+                }
+
+                // Setting the response data pointer.
+                http_response_struct_->socket_data_ = (Byte*) BitsAndBytes.Alloc(response_buf.Length);
+
+                // Copying HTTP response data.
+                fixed (Byte* fixed_response_buf = response_buf)
+                    BitsAndBytes.MemCpy(http_response_struct_->socket_data_, fixed_response_buf, (UInt32)response_buf.Length);
+
                 // Setting the final response length.
                 http_response_struct_->response_len_bytes_ = (UInt32)response_len_bytes;
-
-                fixed (Byte* pbuf = response_buf)
-                {
-                    // Setting the response data pointer.
-                    http_response_struct_->socket_data_ = pbuf;
-                }
             }
         }
 
@@ -440,60 +427,46 @@ namespace Starcounter.Advanced
         /// </summary>
         public void ParseResponseFromUncompressed()
         {
-            if (UncompressedResponse_ != null)
-                ParseResponse(UncompressedResponse_, UncompressedResponse_.Length);
+            if (uncompressed_response_ != null)
+                TryParseResponse(uncompressed_response_, uncompressed_response_.Length, true);
         }
 
         /// <summary>
         /// Parses HTTP response from buffer.
         /// </summary>
         /// <param name="buf"></param>
-        /// <param name="lenBytes"></param>
-        public void ParseResponse(Byte[] buf, Int32 lenBytes)
+        /// <param name="bufLenBytes"></param>
+        /// <param name="complete"></param>
+        public void TryParseResponse(Byte[] buf, Int32 bufLenBytes, Boolean complete)
         {
             UInt32 err_code;
             unsafe
             {
-                // Setting uncompressed response reference.
-                UncompressedResponse_ = buf;
-
-                // Allocating space for Response contents and structure.
-                /*Byte* response_native_buf = (Byte*)BitsAndBytes.Alloc(buf.Length + sizeof(HttpResponseInternal));
-                fixed (Byte* fixed_buf = buf)
-                {
-                    // Copying HTTP response data.
-                    BitsAndBytes.MemCpy(response_native_buf, fixed_buf, (UInt32)buf.Length);
-                }
-
-                // Pointing to HTTP response structure.
-                http_response_struct_ = (HttpResponseInternal*)(response_native_buf + buf.Length);
-                
-                // Setting the response data pointer.
-                http_response_struct_->socket_data_ = response_native_buf;
-                */
+                // First destroying.
+                Destroy();
 
                 // Indicating that we internally constructing Response.
-                isInternalResponse = true;
+                is_internal_response_ = true;
 
-                // Allocating space for internal HTTP response.
-                Byte* response_native_buf = (Byte*)BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
+                // Allocating space just for response structure.
+                http_response_struct_ = (HttpResponseInternal*) BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
 
-                // Pointing to HTTP response structure.
-                http_response_struct_ = (HttpResponseInternal*)response_native_buf;
-
-                fixed (Byte* pbuf = buf)
+                // Checking if we have a complete response.
+                if (complete)
                 {
-                    // Setting the response data pointer.
-                    http_response_struct_->socket_data_ = pbuf;
-
-                    // NOTE: No internal sessions support.
-                    session_ = null;
-
-                    // NOTE: No internal data stream support:
-                    // Simply on which socket to send this "response"?
+                    // Setting the internal buffer.
+                    SetResponseBuffer(buf, bufLenBytes);
 
                     // Executing HTTP response parser and getting Response structure as result.
-                    err_code = sc_parse_http_response(pbuf, (UInt32)lenBytes, (Byte*)http_response_struct_);
+                    err_code = sc_parse_http_response(http_response_struct_->socket_data_, (UInt32)bufLenBytes, (Byte*)http_response_struct_);
+                }
+                else
+                {
+                    fixed (Byte* pbuf = buf)
+                    {
+                        // Executing HTTP response parser and getting Response structure as result.
+                        err_code = sc_parse_http_response(pbuf, (UInt32)bufLenBytes, (Byte*)http_response_struct_);
+                    }
                 }
 
                 // Checking if any error occurred.
@@ -502,8 +475,14 @@ namespace Starcounter.Advanced
                     // Freeing memory etc.
                     Destroy();
 
+                    // Throwing the concrete error code exception.
                     throw ErrorCode.ToException(err_code);
                 }
+
+                // NOTE: No internal sessions support.
+                session_ = null;
+
+                //protocol_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
             }
         }
 
@@ -512,15 +491,15 @@ namespace Starcounter.Advanced
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public Response(Byte[] buf, Int32 lenBytes, Request httpRequest = null)
+        public Response(Byte[] buf, Int32 lenBytes, Request httpRequest = null, Boolean complete = true)
         {
             unsafe
             {
                 // Parsing given buffer.
-                ParseResponse(buf, lenBytes);
+                TryParseResponse(buf, lenBytes, complete);
 
                 // Setting corresponding HTTP request.
-                httpRequest_ = httpRequest;
+                http_request_ = httpRequest;
             }
         }
 
@@ -531,18 +510,22 @@ namespace Starcounter.Advanced
         {
             unsafe
             {
-                // Checking if we have underlying memory stream.
-                if (mem_stream_ != null)
-                    mem_stream_.Close();
-
                 // Checking if already destroyed.
                 if (http_response_struct_ == null)
                     return;
 
                 // Checking if we have constructed this Response
                 // internally in Apps or externally in Gateway.
-                if (isInternalResponse)
+                if (is_internal_response_)
                 {
+                    // Checking if have not allocated anything yet.
+                    if (null != http_response_struct_->socket_data_)
+                    {
+                        // Releasing response data.
+                        BitsAndBytes.Free((IntPtr)http_response_struct_->socket_data_);
+                        http_response_struct_->socket_data_ = null;
+                    }
+
                     // Releasing internal resources here.
                     BitsAndBytes.Free((IntPtr)http_response_struct_);
                 }
@@ -735,7 +718,7 @@ namespace Starcounter.Advanced
         /// <returns>Response bytes.</returns>
         public Byte[] ResponseBytes
         {
-            get { return UncompressedResponse_; }
+            get { return uncompressed_response_; }
         }
 
         /// <summary>

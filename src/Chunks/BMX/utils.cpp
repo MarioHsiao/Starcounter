@@ -30,6 +30,15 @@ EXTERN_C uint32_t __stdcall sc_bmx_read_from_chunk(
 	return 999;
 }
 
+// Obtains new shared memory chunk.
+EXTERN_C uint32_t __stdcall sc_bmx_obtain_new_chunk(
+    starcounter::core::chunk_index* new_chunk_index,
+    uint8_t** new_chunk_mem)
+{
+    // Obtaining chunk memory.
+    return cm_get_shared_memory_chunk(*new_chunk_index, new_chunk_mem);
+}
+
 // Writing linked chunks data to a given buffer and releasing all chunks except first.
 EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     starcounter::core::chunk_index first_chunk_index,
@@ -203,10 +212,10 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
 
     // Checking if we should just send the chunks.
     if (just_sending_flag)
-        *(cur_chunk_buf + starcounter::bmx::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::bmx::SOCKET_DATA_FLAGS_JUST_SEND;
+        *(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
 
     // Setting the number of written bytes.
-    *(uint32_t*)(cur_chunk_buf + starcounter::bmx::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
+    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
 
     // Going through each linked chunk and write data there.
     uint32_t left_bytes_to_write = num_bytes_to_write;
@@ -272,7 +281,7 @@ __forceinline uint32_t __stdcall sc_bmx_send_small_buffer(
     )
 {
     // Setting number of actual user bytes written.
-    *(uint32_t*)(src_chunk_buf + starcounter::bmx::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
+    *(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
 
     // Copying buffer into chunk.
     memcpy(src_chunk_buf + chunk_user_data_offset, buf, buf_len_bytes);
@@ -357,7 +366,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     )
 {
     // Points to user data offset in chunk.
-    uint32_t chunk_user_data_offset = *(uint32_t*)(src_chunk_buf + starcounter::bmx::CHUNK_OFFSET_USER_DATA) + starcounter::bmx::BMX_HEADER_MAX_SIZE_BYTES;
+    uint32_t chunk_user_data_offset = *(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA) + starcounter::MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES;
     uint32_t remaining_bytes_in_orig_chunk = (starcounter::bmx::CHUNK_MAX_DATA_BYTES - chunk_user_data_offset);
 
     // Setting non-bmx-management chunk type.
