@@ -673,6 +673,12 @@ namespace Starcounter.Server.Commands {
         }
 
         private void SignalCompletion() {
+            // NOTE:
+            // Don't dispose this event here; clients might still access it
+            // through the reference copy in CommandInfo. The disposal of
+            // this events will be governed by the server, when dropping
+            // commands from the recent command list.
+            // (See CommandDispatcher.RemoveProcessedCommand)
             if (this.completedEvent != null) {
                 this.completedEvent.Set();
             }
