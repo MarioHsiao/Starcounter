@@ -58,7 +58,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     Boolean isAtRecreatedKey = false;
     public Boolean IsAtRecreatedKey { get { return isAtRecreatedKey; } }
 
-    internal FullTableScan(
+    internal FullTableScan(byte nodeId, 
         RowTypeBinding rowTypeBind,
         Int32 extentNum, IndexInfo indexInfo,
         ILogicalExpression queryCond,
@@ -69,7 +69,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         Boolean innermostExtent, 
         CodeGenFilterPrivate privFilter,
         VariableArray varArr, String query)
-        : base(rowTypeBind, varArr)
+        : base(nodeId, EnumeratorNodeType.FullTableScan, rowTypeBind, varArr)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -583,6 +583,9 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         return false;
     }
 
+    internal void CreateStaticKeyPart() {
+    }
+
     /// <summary>
     /// Used to populate the recreation key.
     /// </summary>
@@ -827,7 +830,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         if (fetchOffsetKeyExpr != null)
             fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
 
-        return new FullTableScan(typeBindingClone,
+        return new FullTableScan(nodeId, typeBindingClone,
             extentNumber,
             indexInfo,
             conditionClone,

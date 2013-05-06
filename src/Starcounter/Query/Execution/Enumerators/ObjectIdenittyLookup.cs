@@ -24,7 +24,7 @@ namespace Starcounter.Query.Execution {
 
         UInt64 keyOID, keyETI; // Saved OID, ETI from recreation key.
 
-        internal ObjectIdenittyAccess(RowTypeBinding rowTypeBind,
+        internal ObjectIdenittyAccess(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
         IValueExpression expr,
         ILogicalExpression cond,
@@ -32,7 +32,7 @@ namespace Starcounter.Query.Execution {
         INumericalExpression fetchOffsetExpr,
         IBinaryExpression fetchOffsetKeyExpr,
         VariableArray varArr, String query)
-            : base(rowTypeBind, varArr) {
+            : base(nodeId, EnumeratorNodeType.ObjectIdentityLookup, rowTypeBind, varArr) {
             if (rowTypeBind == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
             if (varArr == null)
@@ -296,7 +296,7 @@ namespace Starcounter.Query.Execution {
             else
                 expressionClone = (expression as IStringExpression).CloneToString(varArrClone);
 
-            return new ObjectIdenittyAccess(rowTypeBindClone, extentNumber, expressionClone,
+            return new ObjectIdenittyAccess(nodeId, rowTypeBindClone, extentNumber, expressionClone,
                 condition.Clone(varArrClone), fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
                 varArrClone, query);
         }

@@ -19,13 +19,13 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     IQueryComparer comparer;
     IEnumerator<Row> enumerator;
 
-    internal Sort(RowTypeBinding rowTypeBind, 
+    internal Sort(byte nodeId, RowTypeBinding rowTypeBind, 
         IExecutionEnumerator subEnum,
         IQueryComparer comp,
         VariableArray varArr,
         String query,
         INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
-        : base(rowTypeBind, varArr)
+        : base(nodeId, EnumeratorNodeType.Sorting, rowTypeBind, varArr)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -265,7 +265,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         if (fetchOffsetExpr != null)
             fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
 
-        return new Sort(rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
+        return new Sort(nodeId, rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
             fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone);
     }
 
