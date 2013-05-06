@@ -43,12 +43,7 @@ namespace Starcounter.Server.Commands {
         /// Event reference we use for processors that are instructed to support
         /// waiting by means of signaling (instead of polling).
         /// </summary>
-        /// <remarks>
-        /// The implementation of the waiting, in <see cref="PublicModelProvider.Wait(CommandInfo)"/>,
-        /// supports <see cref="ManualResetEventSlim"/> too, so we can change to
-        /// that if it should better suit certain commands.
-        /// </remarks>
-        private ManualResetEvent completedEvent;
+        private ManualResetEventSlim completedEvent;
 
         /// <summary>
         /// Initializes a new <see cref="CommandProcessor"/>.
@@ -65,7 +60,7 @@ namespace Starcounter.Server.Commands {
             this.Id = CommandId.MakeNew();
             this.typeIdentity = CreateToken(GetType());
             this.IsPublic = !isInternal;
-            this.completedEvent = command.EnableWaiting ? new ManualResetEvent(false) : null;
+            this.completedEvent = command.EnableWaiting ? new ManualResetEventSlim(false) : null;
             this.result = null;
             this.exitCode = null;
             stopwatch = Stopwatch.StartNew();
