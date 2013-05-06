@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Xml.Serialization;
 
 namespace Starcounter.Server.PublicModel {
@@ -198,6 +199,22 @@ namespace Starcounter.Server.PublicModel {
             return p == null ? null : p.FirstOrDefault<ProgressInfo>((candidate) => {
                 return candidate.TaskIdentity == task;
             });
+        }
+
+        /// <summary>
+        /// Gets or sets a <see cref="ManualResetEventSlim"/> that
+        /// the server can use to wait for the command to complete.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This reference will only be assigned for commands that
+        /// explicitly state that they need to support waiting, see
+        /// <see cref="ServerCommand.EnableWaiting"/>.
+        /// </para>
+        /// </remarks>
+        internal ManualResetEventSlim CompletedEvent {
+            get;
+            set;
         }
 
         /// <summary>
