@@ -25,7 +25,7 @@ namespace Starcounter.Server.Commands {
     /// Command processors should be annotated with the <see cref="CommandProcessorAttribute"/> custom
     /// attribute.
     /// </remarks>
-    internal abstract class CommandProcessor {
+    internal abstract class CommandProcessor : ICommandProcessor {
         private readonly ServerCommand command;
 
         private readonly DateTime startTime = DateTime.Now;
@@ -702,6 +702,10 @@ namespace Starcounter.Server.Commands {
         /// </remarks>
         public static int CreateToken(Type commandProcessorType) {
             return commandProcessorType.FullName.GetHashCode();
+        }
+
+        void ICommandProcessor.SetResult(object result, int? exitCode) {
+            this.SetResult(result, exitCode);
         }
     }
 }
