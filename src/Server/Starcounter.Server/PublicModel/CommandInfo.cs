@@ -218,21 +218,6 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
-        /// Gets or sets a <see cref="WeakReference"/> to an object that
-        /// the server can use to wait for the command to complete.
-        /// </summary>
-        /// <remarks>
-        /// Commands that does not support waiting using a waitable handle,
-        /// or commands that are complete, will return null here.
-        /// <seealso cref="PublicModelProvider.Wait(CommandInfo)"/>
-        /// <seealso cref="Commands.ServerCommand.EnableWaiting"/>
-        /// </remarks>
-        internal WeakReference Waitable {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Returns a clone of the current object.
         /// </summary>
         /// <returns></returns>
