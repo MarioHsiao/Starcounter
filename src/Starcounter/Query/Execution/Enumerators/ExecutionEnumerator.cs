@@ -293,7 +293,7 @@ internal abstract class ExecutionEnumerator
 
         // Getting the amount of leaves in execution tree.
         //Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
-        short nodesNum = (short)(NodeId + 1);
+        byte nodesNum = (byte)(NodeId + 1);
         // Offset to first enumerator static data
         globalOffset = ((nodesNum << 3) + IteratorHelper.RK_HEADER_LEN);
 
@@ -305,7 +305,7 @@ internal abstract class ExecutionEnumerator
             fixed (Byte* recreationKey = tempBuffer)
             {
                 // Saving number of enumerators.
-                (*(short*)(recreationKey + IteratorHelper.RK_ENUM_NUM_OFFSET)) = nodesNum;
+                (*(byte*)(recreationKey + IteratorHelper.RK_ENUM_NUM_OFFSET)) = nodesNum;
 
                 // Saving static data (or obtaining absolute position of the first dynamic data).
                 globalOffset = execEnum.SaveEnumerator(recreationKey, globalOffset, false);
