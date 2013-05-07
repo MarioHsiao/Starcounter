@@ -1476,6 +1476,12 @@ class Gateway
     // Monitor shared interface.
     core::monitor_interface_ptr shm_monitor_interface_;
 
+    // Gateway pid.
+    core::pid_type gateway_pid_;
+
+    // Gateway owner id.
+    core::owner_id gateway_owner_id_;
+
     // Shared memory monitor interface name.
     std::string shm_monitor_int_name_;
 
