@@ -158,6 +158,7 @@ typedef int64_t echo_id_type;
 #define SCERRGWFAILEDTOBINDPORT 12409
 #define SCERRGWFAILEDTOATTACHSOCKETTOIOCP 12410
 #define SCERRGWFAILEDTOLISTENONSOCKET 12411
+#define SCERRGWWEBSOCKETSPAYLOADTOOBIG 12412
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -193,7 +194,7 @@ const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
 
 // Length of blob data in bytes.
-const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::CHUNK_MAX_DATA_BYTES - bmx::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
+const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::CHUNK_MAX_DATA_BYTES - MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
 
 // Size of OVERLAPPED structure.
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
@@ -349,7 +350,7 @@ const int32_t HTTPS_BLOB_USER_DATA_OFFSET = 2048;
 const int32_t RAW_BLOB_USER_DATA_OFFSET = 0;
 const int32_t AGGR_BLOB_USER_DATA_OFFSET = 64;
 const int32_t SUBPORT_BLOB_USER_DATA_OFFSET = 32;
-const int32_t WS_BLOB_USER_DATA_OFFSET = 16;
+const int32_t WS_NEEDED_USER_DATA_OFFSET = 16;
 
 // Error code type.
 #define GW_ERR_CHECK(err_code) if (0 != err_code) return err_code
@@ -992,8 +993,11 @@ _declspec(align(64)) struct ScSessionStructPlus
     // Active socket flag.
     uint64_t active_socket_flag_;
 
-    // Padding to cache size (64 bytes).
-    uint64_t pad;
+    // WebSockets opcode type.
+    uint32_t ws_opcode_;
+
+    // Padding to cache size.
+    uint32_t pad_;
 };
 
 // Represents an active database.
@@ -1176,9 +1180,6 @@ class ServerPort
     volatile int64_t num_allocated_connect_sockets_unsafe_;
 #endif
 
-    // Offset for the user data to be written.
-    int32_t blob_user_data_offset_;
-
     // Ports handler lists.
     PortHandlers* port_handlers_;
 
@@ -1215,12 +1216,6 @@ public:
         return registered_subports_;
     }
 
-    // Getting user data offset in blob.
-    int32_t get_blob_user_data_offset()
-    {
-        return blob_user_data_offset_;
-    }
-
     // Removes this port.
     void EraseDb(int32_t db_index);
 
@@ -1234,7 +1229,7 @@ public:
     bool IsEmpty();
 
     // Initializes server socket.
-    void Init(int32_t port_index, uint16_t port_number, SOCKET port_socket, int32_t blob_user_data_offset);
+    void Init(int32_t port_index, uint16_t port_number, SOCKET port_socket);
 
     // Server port.
     ServerPort();
@@ -1695,7 +1690,7 @@ public:
     }
 
     // Setting new unique socket number.
-    session_salt_type SetUniqueSocketId(SOCKET s)
+    session_salt_type CreateUniqueSocketId(SOCKET s)
     {
         session_salt_type unique_id = get_unique_socket_id();
 
@@ -2149,7 +2144,7 @@ public:
     }
 
     // Adds new server port.
-    ServerPort* AddServerPort(uint16_t port_num, SOCKET listening_sock, int32_t blob_user_data_offset)
+    ServerPort* AddServerPort(uint16_t port_num, SOCKET listening_sock)
     {
         // Looking for an empty server port slot.
         int32_t empty_slot = 0;
@@ -2160,7 +2155,7 @@ public:
         }
 
         // Initializing server port on this slot.
-        server_ports_[empty_slot].Init(empty_slot, port_num, listening_sock, blob_user_data_offset);
+        server_ports_[empty_slot].Init(empty_slot, port_num, listening_sock);
 
         // Checking if it was the last slot.
         if (empty_slot >= num_server_ports_slots_)

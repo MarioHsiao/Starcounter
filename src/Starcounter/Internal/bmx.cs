@@ -88,7 +88,9 @@ namespace Starcounter.Internal
         /// </summary>
         /// <returns>UInt32.</returns>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static UInt32 sc_init_bmx_manager(HttpStructs.GlobalSessions.DestroyAppsSessionCallback dasc);
+        public extern static UInt32 sc_init_bmx_manager(
+            HttpStructs.GlobalSessions.DestroyAppsSessionCallback dasc,
+            HttpStructs.GlobalSessions.CreateNewAppsSessionCallback cnasc);
 
         /// <summary>
         /// Sc_wait_for_bmx_readies this instance.
@@ -145,6 +147,16 @@ namespace Starcounter.Internal
             UInt32 first_chunk_index,
             Byte* first_chunk_data,
             Byte* buffer
+        );
+
+        /// <summary>
+        /// sc_bmx_obtain_new_chunk.
+        /// </summary>
+        /// <returns>UInt32.</returns>
+        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_bmx_obtain_new_chunk(
+            UInt32* new_chunk_index,
+            Byte** new_chunk_mem
         );
 
         /// <summary>
@@ -229,7 +241,8 @@ namespace Starcounter.Internal
             Byte* param_types,
             Byte num_params,
             BMX_HANDLER_CALLBACK callback,
-            UInt64* handler_id
+            UInt64* handler_id,
+            MixedCodeConstants.NetworkProtocolType proto_type
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
