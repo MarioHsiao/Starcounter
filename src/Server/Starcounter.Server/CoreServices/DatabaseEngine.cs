@@ -252,10 +252,10 @@ namespace Starcounter.Server {
 
             process.Refresh();
             if (process.HasExited) {
-                process.Close();
                 database.Apps.Clear();
                 database.CodeHostProcess = null;
                 database.SupposedToBeStarted = false;
+                SafeClose(process);
                 return false;
             }
 
@@ -289,14 +289,17 @@ namespace Starcounter.Server {
                     process.Kill();
                 }
             }
-            try {
-                process.Close();
-            } catch { }
 
             database.CodeHostProcess = null;
             database.Apps.Clear();
             database.SupposedToBeStarted = false;
+
+            SafeClose(process);
             return true;
+        }
+
+        void SafeClose(Process p) {
+            try { p.Close(); } catch { }
         }
 
         Process DoStartEngineProcess(ProcessStartInfo startInfo, Database database) {
