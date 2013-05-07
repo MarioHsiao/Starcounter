@@ -151,10 +151,11 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BM
                 req->content_offset_ = req->request_offset_;
 
                 // Determining user data offset.
-                uint32_t user_data_offset = payload - ((uint8_t *)sd);
+                uint32_t user_data_offset = payload - (uint8_t *) sd;
                 if ((payload - cur_data_ptr) < WS_NEEDED_USER_DATA_OFFSET)
                     user_data_offset += WS_NEEDED_USER_DATA_OFFSET;
-                sd->set_user_data_offset(user_data_offset);
+
+                sd->set_user_data_offset_in_socket_data(user_data_offset);
 
                 // Push chunk to corresponding channel/scheduler.
                 gw->PushSocketDataToDb(sd, user_handler_id);
