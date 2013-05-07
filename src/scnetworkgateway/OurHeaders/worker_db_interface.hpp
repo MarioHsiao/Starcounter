@@ -152,10 +152,13 @@ public:
     }
 
     // Sends session destroyed message.
-    uint32_t PushDeadSession(
-        apps_unique_session_num_type apps_unique_session,
-        session_salt_type apps_session_salt,
-        uint32_t scheduler_id);
+    uint32_t PushSessionDestroy(
+        session_index_type linear_index,
+        session_salt_type random_salt,
+        uint8_t scheduler_id);
+
+    // Sends session create message.
+    uint32_t PushSessionCreate(SocketDataChunkRef sd);
 
     // Getting shared interface.
     core::shared_interface* get_shared_int()
