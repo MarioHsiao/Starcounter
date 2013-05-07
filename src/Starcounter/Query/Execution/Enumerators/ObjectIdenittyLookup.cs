@@ -21,8 +21,9 @@ namespace Starcounter.Query.Execution {
         public Boolean UseOffsetkey { get { return useOffsetkey; } set { useOffsetkey = value; } }
         Boolean isAtRecreatedKey = false;
         public Boolean IsAtRecreatedKey { get { return isAtRecreatedKey; } }
-
+#if false
         UInt64 keyOID, keyETI; // Saved OID, ETI from recreation key.
+#endif
 
         internal ObjectIdenittyAccess(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
@@ -239,6 +240,7 @@ namespace Starcounter.Query.Execution {
         }
 
         internal Boolean SameAsOffsetkeyOrNull(IObjectView obj) {
+#if false
             if (useOffsetkey && fetchOffsetKeyExpr != null) {
                 unsafe {
                     fixed (Byte* recrKey = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
@@ -255,6 +257,8 @@ namespace Starcounter.Query.Execution {
                     isAtRecreatedKey = true;
                 return isAtRecreatedKey;
             } else return true;
+#endif
+            return true;
         }
 
         /// <summary>

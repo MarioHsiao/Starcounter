@@ -389,6 +389,15 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
 
+        // Validate the key and obtain kernel recreation key
+        Byte* staticDataOffset = rk + (nodeId << 3) + IteratorHelper.RK_HEADER_LEN;
+        UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
+        if (dynDataOffset == 0)
+            return false;
+        Byte* staticData = rk + (*(UInt32*)(staticDataOffset));
+        Byte* recreationKey = rk + dynDataOffset;
+
+
         // Creating flags.
         UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
 
@@ -399,7 +408,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             lastKey = secondKeyBuffer;
 
         // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, nodeId, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
+        if (iterHelper.RecreateEnumerator_CodeGenFilter(recreationKey, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
             // Indicating that enumerator has been created.
             enumeratorCreated = true;
 
@@ -407,7 +416,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             //if (!innermostExtent)
             //{
             // Obtaining saved OID and ETI.
-            IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, nodeId, out keyOID, out keyETI);
+            IteratorHelper.RecreateEnumerator_GetObjectInfo(recreationKey, out keyOID, out keyETI);
 
             // Enabling recreation object check.
             enableRecreateObjectCheck = true;
