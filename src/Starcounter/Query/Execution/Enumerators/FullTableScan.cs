@@ -258,6 +258,18 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                     break;
                 }
 
+                case DbTypeCode.Key: {
+                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending) {
+                        firstKeyBuilder.Append(UIntegerRangeValue.MAX_VALUE);
+                        secondKeyBuilder.Append(UIntegerRangeValue.MIN_VALUE);
+                    }
+                    else {
+                        firstKeyBuilder.Append(UIntegerRangeValue.MIN_VALUE);
+                        secondKeyBuilder.Append(UIntegerRangeValue.MAX_VALUE);
+                    }
+                    break;
+                }
+
                 default:
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeCode.");
             }

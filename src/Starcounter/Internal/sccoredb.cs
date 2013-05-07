@@ -55,10 +55,13 @@ namespace Starcounter.Internal
         public const byte SC_BASETYPE_OBJREF = 0x08;
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_SINGLE = 0x0A;
+        public const byte SC_BASETYPE_OBJKEY = 0x0A;
         /// <summary>
         /// </summary>
-        public const byte SC_BASETYPE_DOUBLE = 0x0C;
+        public const byte SC_BASETYPE_SINGLE = 0x0C;
+        /// <summary>
+        /// </summary>
+        public const byte SC_BASETYPE_DOUBLE = 0x0E;
 
         /// <summary>
         /// </summary>
@@ -114,7 +117,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         public const byte Mdb_Type_LargeBinary = (0x10 | SC_BASETYPE_LBINARY);
-
+        /// <summary>
+        /// </summary>
+        public const byte Mdb_Type_ObjectKey = (0x10 | SC_BASETYPE_OBJKEY);
 
         /// <summary>
         /// MDB_s the get last error.
