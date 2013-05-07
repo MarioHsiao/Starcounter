@@ -119,6 +119,14 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
 
+        // Verify static data and obtain kernel recreation key
+        Byte* staticDataOffset = rk + (nodeId << 3) + IteratorHelper.RK_HEADER_LEN;
+        UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
+        if (dynDataOffset == 0)
+            return false;
+        Byte* staticData = rk + (*(UInt32*)(staticDataOffset));
+        Byte* recreationKey = rk + dynDataOffset;
+
         // Getting flags.
         UInt32 _flags = (UInt32)rangeFlags;
         if (descending)
@@ -132,7 +140,7 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
             lastKey = secondKeyBuffer;
 
         // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_NoCodeGenFilter(rk, nodeId, enumerator, _flags, lastKey)) {
+        if (iterHelper.RecreateEnumerator_NoCodeGenFilter(recreationKey, enumerator, _flags, lastKey)) {
             // Indicating that enumerator has been created.
             enumeratorCreated = true;
 
@@ -140,7 +148,7 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
             //if (!innermostExtent)
             //{
             // Obtaining saved OID and ETI.
-            IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, nodeId, out keyOID, out keyETI);
+            IteratorHelper.RecreateEnumerator_GetObjectInfo(recreationKey, out keyOID, out keyETI);
 
             // Enabling recreation object check.
             enableRecreateObjectCheck = true;
