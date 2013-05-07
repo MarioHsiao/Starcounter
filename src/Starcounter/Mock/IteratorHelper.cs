@@ -86,13 +86,13 @@ namespace Starcounter
         /// <summary>
         /// 
         /// </summary>
-        public const Int32 RK_FIRST_DYN_DATA_OFFSET = 8;
+        public const Int32 RK_FIRST_DYN_DATA_OFFSET = 12;
 
         // Length of recreation key header in bytes.
         /// <summary>
         /// 
         /// </summary>
-        public const Int32 RK_HEADER_LEN = 12;
+        public const Int32 RK_HEADER_LEN = 8;
 
         // Gets the information about saved object in the iterator.
         /// <summary>

@@ -612,6 +612,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
             // Emptying static data position for this enumerator.
             (*(Int32*)(keyData + enumGlobalOffset)) = 0;
+
+            // Saving type of this node
+            *((byte*)(keyData + globalOffset)) = (byte)NodeType;
+            globalOffset += 2;
+
 #if false // These data are not used. Instead they are read during recreation.
             // Creating flags.
             UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
