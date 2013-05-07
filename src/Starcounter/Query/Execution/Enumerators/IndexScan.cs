@@ -114,18 +114,23 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         }
     }
 
-    public Row CurrentRow    {        get        {            if (currentObject != null)                return currentObject;            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect currentObject.");        }    }    /// <summary>    /// Depending on query flags, populates the flags value.    /// </summary>    public unsafe override void PopulateQueryFlags(UInt32* flags)    {        // Checking if there is any post managed filter.        if (!(postFilterCondition is LogicalLiteral))            (*flags) |= SqlConnectivityInterface.FLAG_POST_MANAGED_FILTER;        // Calling base function to populate other flags.        base.PopulateQueryFlags(flags);    }    /// <summary>    /// Tries to recreate enumerator using provided key.    /// </summary>
+    public Row CurrentRow    {        get        {            if (currentObject != null)                return currentObject;            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect currentObject.");        }    }    /// <summary>    /// Depending on query flags, populates the flags value.    /// </summary>    public unsafe override void PopulateQueryFlags(UInt32* flags)    {        // Checking if there is any post managed filter.        if (!(postFilterCondition is LogicalLiteral))            (*flags) |= SqlConnectivityInterface.FLAG_POST_MANAGED_FILTER;        // Calling base function to populate other flags.        base.PopulateQueryFlags(flags);    }
+
+    private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
+        Byte* staticDataOffset = rk + (nodeId << 3) + IteratorHelper.RK_HEADER_LEN;
+        UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
+        Debug.Assert(dynDataOffset != 0);
+        Byte* staticData = rk + (*(UInt32*)(staticDataOffset));
+        ValidateNodeType((*(Byte*)staticData));
+        return rk + dynDataOffset;
+    }
+
+    /// <summary>    /// Tries to recreate enumerator using provided key.    /// </summary>
     unsafe Boolean TryRecreateEnumerator(Byte* rk) {
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
 
-        // Verify static data and obtain kernel recreation key
-        Byte* staticDataOffset = rk + (nodeId << 3) + IteratorHelper.RK_HEADER_LEN;
-        UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
-        if (dynDataOffset == 0)
-            return false;
-        Byte* staticData = rk + (*(UInt32*)(staticDataOffset));
-        Byte* recreationKey = rk + dynDataOffset;
+        Byte* recreationKey = ValidateAndGetRecreateKey(rk);
 
         // Getting flags.
         UInt32 _flags = (UInt32)rangeFlags;
@@ -241,7 +246,7 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
 
             // Saving type of this node
             *((byte*)(keyData + globalOffset)) = (byte)NodeType;
-            globalOffset += 2;
+            globalOffset += 1;
 
 #if false
             // Getting flags.            UInt32 _flags = (UInt32)rangeFlags;

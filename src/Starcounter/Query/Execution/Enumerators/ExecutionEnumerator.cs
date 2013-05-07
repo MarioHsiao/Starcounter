@@ -335,6 +335,11 @@ internal abstract class ExecutionEnumerator
         return null;
     }
 
+    protected virtual void ValidateNodeType(byte keyNodeType) {
+        if (keyNodeType != (byte)NodeType)
+            throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan");
+    }
+
     /// <summary>
     /// Enumerator reset functionality.
     /// </summary>

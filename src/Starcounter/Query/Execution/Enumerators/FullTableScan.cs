@@ -382,6 +382,15 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
+    private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
+        Byte* staticDataOffset = rk + (nodeId << 3) + IteratorHelper.RK_HEADER_LEN;
+        UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
+        Debug.Assert(dynDataOffset != 0);
+        Byte* staticData = rk + (*(UInt32*)(staticDataOffset));
+        ValidateNodeType((*(Byte*)staticData));
+        return rk + dynDataOffset;
+    }
+
     /// <summary>
     /// Tries to recreate enumerator using provided key.
     /// </summary>
@@ -389,14 +398,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // In order to skip enumerator recreation next time.
         triedEnumeratorRecreation = true;
 
-        // Validate the key and obtain kernel recreation key
-        Byte* staticDataOffset = rk + (nodeId << 3) + IteratorHelper.RK_HEADER_LEN;
-        UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
-        if (dynDataOffset == 0)
-            return false;
-        Byte* staticData = rk + (*(UInt32*)(staticDataOffset));
-        Byte* recreationKey = rk + dynDataOffset;
-
+        Byte* recreationKey = ValidateAndGetRecreateKey(rk);
 
         // Creating flags.
         UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
@@ -624,7 +626,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
             // Saving type of this node
             *((byte*)(keyData + globalOffset)) = (byte)NodeType;
-            globalOffset += 2;
+            globalOffset += 1;
 
 #if false // These data are not used. Instead they are read during recreation.
             // Creating flags.
