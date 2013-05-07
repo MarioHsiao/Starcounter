@@ -1045,8 +1045,14 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
         UInt32 maxBytes,
         UInt32 * outLenBytes);
 
-    // Saves the enumerator being in the current state.
-    unsafe Int32 SaveEnumerator(Byte * keysData, Int32 globalOffset, Boolean saveDynamicDataOnly);
+    /// <summary>
+    /// Used to populate the recreation key.
+    /// </summary>
+    /// <param name="keyData">Pointer to the beginning of the key to populate.</param>
+    /// <param name="globalOffset">The offset to place where to store static/dynamic data.</param>
+    /// <param name="saveDynamicDataOnly">Specifies if dynamic or static data should be written.</param>
+    /// <returns>The offset directly after data were stored or the offset to first dynamic data (reusing the key).</returns>
+    unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly);
 
     // Flags describing whether the query includes literal, aggregation etc.
     QueryFlags QueryFlags

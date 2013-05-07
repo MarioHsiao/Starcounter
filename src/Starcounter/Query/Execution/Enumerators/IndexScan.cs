@@ -223,7 +223,19 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
         //    return MoveNextCodeGen();
 
         return MoveNextManaged();
-    }    /// <summary>    /// Used to populate the recreation key.    /// </summary>    public unsafe Int32 SaveEnumerator(Byte* keyData, Int32 globalOffset, Boolean saveDynamicDataOnly)    {        // Immediately preventing further accesses to current object.        currentObject = null;        // If we already tried to recreate the enumerator and we want to write static data,        // just return first dynamic data offset.        if (triedEnumeratorRecreation && (!saveDynamicDataOnly))            return (*(Int32*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET));        Int32 origGlobalOffset = globalOffset;        // Position of enumerator.        Int32 enumGlobalOffset = (extentNumber << 3) + IteratorHelper.RK_HEADER_LEN;        // Writing static data.        if (!saveDynamicDataOnly)        {            // In order to exclude double copy of last key.            rangeChanged = false;            // Emptying static data position for this enumerator.            (*(Int32*)(keyData + enumGlobalOffset)) = 0;#if false
+    }    /// <summary>
+    /// Used to populate the recreation key.
+    /// </summary>
+    /// <param name="keyData">Pointer to the beginning of the key to populate.</param>
+    /// <param name="globalOffset">The offset to place where to store static/dynamic data.</param>
+    /// <param name="saveDynamicDataOnly">Specifies if dynamic or static data should be written.</param>
+    /// <returns>The offset directly after data were stored or the offset to first dynamic data (reusing the key).</returns>    public unsafe Int32 SaveEnumerator(Byte* keyData, Int32 globalOffset, Boolean saveDynamicDataOnly)    {        // Immediately preventing further accesses to current object.        currentObject = null;        // If we already tried to recreate the enumerator and we want to write static data,        // just return first dynamic data offset.        if (triedEnumeratorRecreation && (!saveDynamicDataOnly))            return (*(Int32*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET));        Int32 origGlobalOffset = globalOffset;        // Position of enumerator.        Int32 enumGlobalOffset = (extentNumber << 3) + IteratorHelper.RK_HEADER_LEN;        // Writing static data.        if (!saveDynamicDataOnly)        {            // In order to exclude double copy of last key.            rangeChanged = false;            // Emptying static data position for this enumerator.            (*(Int32*)(keyData + enumGlobalOffset)) = 0;
+
+            // Saving type of this node
+            *((byte*)(keyData + globalOffset)) = (byte)NodeType;
+            globalOffset += 2;
+
+#if false
             // Getting flags.            UInt32 _flags = (UInt32)rangeFlags;
 
             // Getting the last key and its length.            Int32 lastKeyLength;            Byte[] lastKey;            if (onlyEqualities)            {                lastKeyLength = firstKeyBuilder.LengthInBytes();                lastKey = firstKeyBuffer;            }            else            {                if (!descending) // Ascending sorting.                {                    lastKeyLength = secondKeyBuilder.LengthInBytes();                    lastKey = secondKeyBuffer;                }                else // Descending sorting.                {                    lastKeyLength = firstKeyBuilder.LengthInBytes();                    lastKey = firstKeyBuffer;                    _flags |= sccoredb.SC_ITERATOR_SORTED_DESCENDING;                }
