@@ -58,8 +58,12 @@ namespace bmx
     // Scheduler spin count.
     const uint32_t SCHEDULER_SPIN_COUNT = 1000000;
 
+    // Chunk reserved bytes at the end.
+    // TODO: Fix when non null value.
+    const uint32_t CHUNK_TAIL_RESERVED_BYTES = 0;
+
     // Constants needed for chunks processing.
-    const uint32_t CHUNK_MAX_DATA_BYTES = starcounter::core::chunk_size - shared_memory_chunk::link_size;
+    const uint32_t CHUNK_MAX_DATA_BYTES = starcounter::core::chunk_size - shared_memory_chunk::link_size - CHUNK_TAIL_RESERVED_BYTES;
 
     // NOTE: Excluding original chunk since its for extra linked.
     const uint32_t MAX_EXTRA_LINKED_WSABUFS = CHUNK_MAX_DATA_BYTES / sizeof(WSABUF) - 1;
@@ -68,20 +72,14 @@ namespace bmx
     const uint32_t BMX_HEADER_MAX_SIZE_BYTES = MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES;
 
     // Some socket data constants.
-    const uint32_t  SOCKET_DATA_FLAGS_JUST_SEND = 64;
+    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 136;
 
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 144;
-
-    const uint32_t CHUNK_OFFSET_USER_DATA = BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants::OVERLAPPED_SIZE + MixedCodeConstants::SESSION_STRUCT_SIZE;
-    const uint32_t CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA + 4;
-    const uint32_t CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = CHUNK_OFFSET_MAX_USER_DATA_BYTES + 4;
-    const uint32_t CHUNK_OFFSET_SOCKET_FLAGS = BMX_HEADER_MAX_SIZE_BYTES + 104;
     const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
     const uint32_t CHUNK_OFFSET_BMX_HTTP_REQUEST = BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST;
     const uint32_t SOCKET_DATA_MAX_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::link_size;
 
-    const BMX_HANDLER_TYPE BMX_INVALID_HANDLER_INFO = ~(BMX_HANDLER_TYPE)0;
-    const BMX_HANDLER_INDEX_TYPE BMX_INVALID_HANDLER_INDEX = ~(BMX_HANDLER_INDEX_TYPE)0;
+    const BMX_HANDLER_TYPE BMX_INVALID_HANDLER_INFO = ~((BMX_HANDLER_TYPE) 0);
+    const BMX_HANDLER_INDEX_TYPE BMX_INVALID_HANDLER_INDEX = ~((BMX_HANDLER_INDEX_TYPE) 0);
 
     // Predefined BMX management handler.
     const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_ID = 0;
@@ -109,8 +107,8 @@ namespace bmx
     const uint8_t BMX_REGISTER_PUSH_CHANNEL_RESPONSE = 6;
     const uint8_t BMX_DEREGISTER_PUSH_CHANNEL = 7;
     const uint8_t BMX_SEND_ALL_HANDLERS = 8;
-    const uint8_t BMX_SESSION_CREATED = 9;
-    const uint8_t BMX_SESSION_DESTROYED = 10;
+    const uint8_t BMX_SESSION_CREATE = 9;
+    const uint8_t BMX_SESSION_DESTROY = 10;
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
 
@@ -177,6 +175,8 @@ namespace bmx
 
         uint8_t num_params_;
         uint8_t param_types_[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
+
+        starcounter::MixedCodeConstants::NetworkProtocolType proto_type_;
 
         HandlersList(const HandlersList&);
         HandlersList& operator=(const HandlersList&);
@@ -306,7 +306,8 @@ namespace bmx
             char* processed_uri_info,
             uint32_t processed_uri_len_chars,
             uint8_t* param_types,
-            int32_t num_params)
+            int32_t num_params,
+            starcounter::MixedCodeConstants::NetworkProtocolType proto_type)
         {
             assert(original_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
             assert(processed_uri_len_chars < MixedCodeConstants::MAX_URI_STRING_LEN);
@@ -335,6 +336,8 @@ namespace bmx
             num_params_ = num_params;
             if (num_params_ > 0)
                 memcpy(param_types_, param_types, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
+
+            proto_type_ = proto_type;
 
             // Checking the type of handler.
             switch(type)
@@ -422,6 +425,7 @@ namespace bmx
             resp_chunk->write_string(processed_uri_info_, processed_uri_info_len_chars_);
             resp_chunk->write(num_params_);
             resp_chunk->write_data_only(param_types_, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
+            resp_chunk->write((uint8_t)proto_type_);
 
             return resp_chunk->get_offset();
         }
@@ -573,7 +577,8 @@ namespace bmx
         // Pushes unregistered handler.
         uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info);
         uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
-        uint32_t HandleDestroyedSession(request_chunk_part* request, TASK_INFO_TYPE* task_info);
+        uint32_t HandleSessionDestruction(request_chunk_part* request, TASK_INFO_TYPE* task_info);
+        uint32_t HandleSessionCreation(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
 
         // Sends information about all registered handlers.
         uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
@@ -617,7 +622,8 @@ namespace bmx
             uint8_t* param_types,
             int32_t num_params,
             GENERIC_HANDLER_CALLBACK uri_handler, 
-            BMX_HANDLER_TYPE* handler_id);
+            BMX_HANDLER_TYPE* handler_id,
+            starcounter::MixedCodeConstants::NetworkProtocolType proto_type);
 
         // Constructor.
         BmxData(uint32_t max_total_handlers)
@@ -647,30 +653,38 @@ namespace bmx
 
     // Managed callback to destroy Apps session.
     typedef void (*DestroyAppsSessionCallback)(
-        uint64_t apps_session_index,
-        uint64_t apps_session_salt,
-        uint32_t scheduler_id);
+        uint8_t scheduler_id,
+        uint32_t linear_index,
+        uint64_t random_salt);
 
-    // Callback to destroy Apps inactive session.
     extern DestroyAppsSessionCallback g_destroy_apps_session_callback;
+
+    // Managed callback to create a new Apps session.
+    typedef void (*CreateNewAppsSessionCallback)(
+        uint8_t scheduler_id,
+        uint32_t* linear_index,
+        uint64_t* random_salt,
+        uint32_t* view_model_index);
+
+    extern CreateNewAppsSessionCallback g_create_new_apps_session_callback;
 
 }  // namespace bmx
 }; // namespace starcounter
 
 // Waits for BMX manager to be ready.
-EXTERN_C void sc_wait_for_bmx_ready();
+EXTERN_C void __stdcall sc_wait_for_bmx_ready();
 
 // Handles all incoming chunks.
-EXTERN_C uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
+EXTERN_C uint32_t __stdcall sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
 
 // Construct BMX Ping message.
-EXTERN_C uint32_t sc_bmx_construct_ping(
+EXTERN_C uint32_t __stdcall sc_bmx_construct_ping(
     uint64_t ping_data, 
     shared_memory_chunk* smc
     );
 
 // Parse BMX Pong message.
-EXTERN_C uint32_t sc_bmx_parse_pong(
+EXTERN_C uint32_t __stdcall sc_bmx_parse_pong(
     shared_memory_chunk* smc,
     uint64_t* pong_data
     );

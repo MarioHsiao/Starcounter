@@ -41,11 +41,14 @@ void LeaveSafeBmxManagement(BmxData* new_bmx_data)
     //std::cout << "LeaveSafeBmxManagement." << std::endl;
 }
 
-// Callback to Apps inactive sessions cleanup.
+// Callback to Apps sessions.
 DestroyAppsSessionCallback starcounter::bmx::g_destroy_apps_session_callback = NULL;
+CreateNewAppsSessionCallback starcounter::bmx::g_create_new_apps_session_callback = NULL;
 
 // Initializes BMX related data structures.
-EXTERN_C uint32_t sc_init_bmx_manager(DestroyAppsSessionCallback dasc)
+EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
+    DestroyAppsSessionCallback dasc,
+    CreateNewAppsSessionCallback cnapsc)
 {
     // Initializing BMX critical section.
     InitializeCriticalSection(&g_bmx_cs_);
@@ -63,8 +66,9 @@ EXTERN_C uint32_t sc_init_bmx_manager(DestroyAppsSessionCallback dasc)
     if (bmx_handler_id != BMX_MANAGEMENT_HANDLER_ID)
         return SCERRUNSPECIFIED; // SCERRWRONGBMXMANAGERHANDLER
 
-    // Saving Apps session destroy callback.
+    // Saving Apps session callbacks.
     g_destroy_apps_session_callback = dasc;
+    g_create_new_apps_session_callback = cnapsc;
 
     return 0;
 }
@@ -89,7 +93,7 @@ uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
 }
 
 // Registers port handler.
-EXTERN_C uint32_t sc_bmx_register_port_handler(
+EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
     uint16_t port_num, 
     GENERIC_HANDLER_CALLBACK callback,
     BMX_HANDLER_TYPE* handler_id
@@ -117,7 +121,7 @@ EXTERN_C uint32_t sc_bmx_register_port_handler(
 };
 
 // Registers sub-port handler.
-EXTERN_C uint32_t sc_bmx_register_subport_handler(
+EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
     uint16_t port_num,
     BMX_SUBPORT_TYPE sub_port,
     GENERIC_HANDLER_CALLBACK callback,
@@ -146,14 +150,15 @@ EXTERN_C uint32_t sc_bmx_register_subport_handler(
 }
 
 // Registers raw port handler.
-EXTERN_C uint32_t sc_bmx_register_uri_handler(
+EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     uint16_t port_num,
     char* original_uri_info,
     char* processed_uri_info,
     uint8_t* param_types,
     uint8_t num_params,
     GENERIC_HANDLER_CALLBACK callback, 
-    BMX_HANDLER_TYPE* handler_id
+    BMX_HANDLER_TYPE* handler_id,
+    starcounter::MixedCodeConstants::NetworkProtocolType proto_type
     )
 {
     assert(NULL != g_bmx_data);
@@ -172,7 +177,8 @@ EXTERN_C uint32_t sc_bmx_register_uri_handler(
         param_types,
         num_params,
         callback,
-        handler_id);
+        handler_id,
+        proto_type);
 
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
@@ -393,10 +399,21 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
             break;
         }
 
-        case BMX_SESSION_DESTROYED:
+        case BMX_SESSION_DESTROY:
         {
             // Handling session destruction.
-            err_code = g_bmx_data->HandleDestroyedSession(request, task_info);
+            err_code = g_bmx_data->HandleSessionDestruction(request, task_info);
+
+            if (err_code)
+                return err_code;
+
+            break;
+        }
+
+        case BMX_SESSION_CREATE:
+        {
+            // Handling new session creation.
+            err_code = g_bmx_data->HandleSessionCreation(smc, task_info);
 
             if (err_code)
                 return err_code;

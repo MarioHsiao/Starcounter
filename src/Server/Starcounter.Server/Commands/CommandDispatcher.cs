@@ -197,6 +197,9 @@ namespace Starcounter.Server.Commands {
         }
 
         private CommandProcessor GetCommandProcessor(ServerCommand command) {
+            if (command is InvokableCommand)
+                return new InvokableCommandProcessor(_engine, command);
+
             return (CommandProcessor)_constructors[command.GetType()].Invoke(new object[] { _engine, command });
         }
 
@@ -275,6 +278,10 @@ namespace Starcounter.Server.Commands {
 
             foreach (Type type in assembly.GetTypes()) {
                 if (!type.IsAbstract && typeof(CommandProcessor).IsAssignableFrom(type)) {
+                    if (typeof(InvokableCommandProcessor) == type) {
+                        continue;
+                    }
+
                     CommandProcessorAttribute[] attributes =
                         (CommandProcessorAttribute[])type.GetCustomAttributes(
                             typeof(CommandProcessorAttribute), false
