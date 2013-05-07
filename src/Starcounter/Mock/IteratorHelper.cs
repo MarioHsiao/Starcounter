@@ -70,29 +70,25 @@ namespace Starcounter
             dataStream = null;
         }
 
-        // Empty recreation key length.
         /// <summary>
-        /// 
+        /// Empty recreation key length.
         /// </summary>
         public const Int32 RK_EMPTY_LEN = 4;
 
-        // Offset in bytes for number of enumerators.
         /// <summary>
-        /// 
+        /// Offset in bytes for number of enumerators.
         /// </summary>
         public const Int32 RK_ENUM_NUM_OFFSET = 4;
 
-        // Offset in bytes for dynamic data.
         /// <summary>
-        /// 
+        /// Offset in bytes for dynamic data.
         /// </summary>
-        public const Int32 RK_FIRST_DYN_DATA_OFFSET = 8;
+        public const Int32 RK_FIRST_DYN_DATA_OFFSET = 6;
 
-        // Length of recreation key header in bytes.
         /// <summary>
-        /// 
+        /// Length of recreation key header in bytes.
         /// </summary>
-        public const Int32 RK_HEADER_LEN = 12;
+        public const Int32 RK_HEADER_LEN = 10;
 
         // Gets the information about saved object in the iterator.
         /// <summary>
@@ -104,12 +100,12 @@ namespace Starcounter
         /// <param name="keyEti"></param>
         public static unsafe void RecreateEnumerator_GetObjectInfo(
             Byte* keyData,
-            Int32 extentNumber,
+            Byte nodeId,
             out UInt64 keyOid,
             out UInt64 keyEti)
         {
             // Position of enumerator static data.
-            Byte* staticDataOffset = keyData + (extentNumber << 3) + RK_HEADER_LEN;
+            Byte* staticDataOffset = keyData + (nodeId << 3) + RK_HEADER_LEN;
 
             // Dynamic data.
             Byte* recreationKey = keyData + (*(UInt32*)(staticDataOffset + 4));
@@ -218,7 +214,7 @@ namespace Starcounter
         /// <returns></returns>
         public unsafe Boolean RecreateEnumerator_NoCodeGenFilter(
             Byte* keyData,
-            Int32 extentNumber,
+            Byte nodeId,
             Enumerator cachedEnum,
             UInt32 flags, 
             Byte[] lastKey)
@@ -227,7 +223,7 @@ namespace Starcounter
 
         go:
             // Position of enumerator static data.
-            Byte* staticDataOffset = keyData + (extentNumber << 3) + RK_HEADER_LEN;
+            Byte* staticDataOffset = keyData + (nodeId << 3) + RK_HEADER_LEN;
 
             // Checking if its possible to recreate the key (dynamic data offset).
             UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
@@ -341,7 +337,7 @@ namespace Starcounter
         /// <returns></returns>
         public unsafe Boolean RecreateEnumerator_CodeGenFilter(
             Byte* keyData,
-            Int32 extentNumber,
+            Byte nodeId,
             Enumerator cachedEnum,
             UInt64 filterHandle,
             UInt32 flags,
@@ -352,7 +348,7 @@ namespace Starcounter
 
         go:
             // Position of enumerator static data.
-            Byte* staticDataOffset = keyData + (extentNumber << 3) + RK_HEADER_LEN;
+            Byte* staticDataOffset = keyData + (nodeId << 3) + RK_HEADER_LEN;
 
             // Checking if its possible to recreate the key (dynamic data offset).
             UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));

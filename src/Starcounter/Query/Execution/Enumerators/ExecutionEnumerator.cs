@@ -292,9 +292,10 @@ internal abstract class ExecutionEnumerator
         IExecutionEnumerator execEnum = this as IExecutionEnumerator;
 
         // Getting the amount of leaves in execution tree.
-        Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
+        //Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
+        short nodesNum = (short)(NodeId + 1);
         // Offset to first enumerator static data
-        globalOffset = ((leavesNum << 3) + IteratorHelper.RK_HEADER_LEN);
+        globalOffset = ((nodesNum << 3) + IteratorHelper.RK_HEADER_LEN);
 
         // Using cache temp buffer.
         Byte[] tempBuffer = Scheduler.GetInstance().SqlEnumCache.TempBuffer;
@@ -304,7 +305,7 @@ internal abstract class ExecutionEnumerator
             fixed (Byte* recreationKey = tempBuffer)
             {
                 // Saving number of enumerators.
-                (*(Int32*)(recreationKey + IteratorHelper.RK_ENUM_NUM_OFFSET)) = leavesNum;
+                (*(short*)(recreationKey + IteratorHelper.RK_ENUM_NUM_OFFSET)) = nodesNum;
 
                 // Saving static data (or obtaining absolute position of the first dynamic data).
                 globalOffset = execEnum.SaveEnumerator(recreationKey, globalOffset, false);
