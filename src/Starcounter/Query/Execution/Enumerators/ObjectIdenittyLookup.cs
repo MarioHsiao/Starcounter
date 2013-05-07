@@ -244,7 +244,7 @@ namespace Starcounter.Query.Execution {
                     fixed (Byte* recrKey = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
                         // Checking if recreation key is valid.
                         if ((*(Int32*)recrKey) > IteratorHelper.RK_EMPTY_LEN)
-                            IteratorHelper.RecreateEnumerator_GetObjectInfo(recrKey + 4, extentNumber, out keyOID, out keyETI);
+                            IteratorHelper.RecreateEnumerator_GetObjectInfo(recrKey + 4, nodeId, out keyOID, out keyETI);
                     }
                 }
                 IObjectProxy dbObject = obj as IObjectProxy;

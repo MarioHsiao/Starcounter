@@ -29,8 +29,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
     ILogicalExpression condition = null; // Condition tree for the query.
     Boolean descending = false, // Sorting: Ascending or Descending.
-       enumeratorCreated = false, // True after execution enumerator is created.
-       dataStreamChanged = false; // True if data stream has changed.
+       enumeratorCreated = false; // True after execution enumerator is created.
+       //dataStreamChanged = false; // True if data stream has changed.
 
     Enumerator enumerator = null; // Handle to execution enumerator.
     Row contextObject = null; // This object comes from the outer loop in joins.
@@ -399,7 +399,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             lastKey = secondKeyBuffer;
 
         // Trying to recreate the enumerator from key.
-        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, extentNumber, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
+        if (iterHelper.RecreateEnumerator_CodeGenFilter(rk, nodeId, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
             // Indicating that enumerator has been created.
             enumeratorCreated = true;
 
@@ -407,7 +407,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             //if (!innermostExtent)
             //{
             // Obtaining saved OID and ETI.
-            IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, extentNumber, out keyOID, out keyETI);
+            IteratorHelper.RecreateEnumerator_GetObjectInfo(rk, nodeId, out keyOID, out keyETI);
 
             // Enabling recreation object check.
             enableRecreateObjectCheck = true;
@@ -502,7 +502,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         enumeratorCreated = true;
 
         // Indicating that data stream has changed.
-        dataStreamChanged = true;
+        //dataStreamChanged = true;
 
         return true;
     }
@@ -602,13 +602,13 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         Int32 origGlobalOffset = globalOffset;
 
         // Position of enumerator.
-        Int32 enumGlobalOffset = ((extentNumber << 3) + IteratorHelper.RK_HEADER_LEN);
+        Int32 enumGlobalOffset = ((nodeId << 3) + IteratorHelper.RK_HEADER_LEN);
 
         // Writing static data.
         if (!saveDynamicDataOnly)
         {
             // In order to exclude double copy of last key.
-            dataStreamChanged = false;
+            //dataStreamChanged = false;
 
             // Emptying static data position for this enumerator.
             (*(Int32*)(keyData + enumGlobalOffset)) = 0;
@@ -721,6 +721,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
             // Checking if the data stream has changed.
             Int32 shiftBytesNum = 0;
+#if false // Not part of the key anymore
             if (dataStreamChanged)
             {
                 // Position of enumerator static data.
@@ -751,6 +752,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 // Copy the new data stream on the place of old data stream.
                 Marshal.Copy(filterDataStream, 0, (IntPtr)oldDataStream, curDataStreamLength);
             }
+#endif
 
             // Copying the recreation key.
             Int32 bytesWritten = *((Int32*)createdKey);
@@ -798,7 +800,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // We are disposing the lowest level internal iterator here.
         enumerator.Dispose();
         enumeratorCreated = false;
-        dataStreamChanged = false;
+        //dataStreamChanged = false;
 
         enableRecreateObjectCheck = false;
         triedEnumeratorRecreation = false;
