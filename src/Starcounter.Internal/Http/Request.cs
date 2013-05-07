@@ -42,14 +42,6 @@ namespace Starcounter.Advanced {
         unsafe HttpRequestInternal* http_request_struct_;
 
         /// <summary>
-        /// Internal structure with HTTP request information.
-        /// </summary>
-        public unsafe HttpRequestInternal* HttpRequestInternalStruct
-        {
-            get { return http_request_struct_; }
-        }
-
-        /// <summary>
         /// Direct pointer to session data.
         /// </summary>
         unsafe ScSessionStruct* session_;
@@ -59,30 +51,48 @@ namespace Starcounter.Advanced {
         /// </summary>
         public INetworkDataStream data_stream_;
 
-        UInt16 portNumber_ = 0;
+        /// <summary>
+        /// Network port number.
+        /// </summary>
+        UInt16 port_number_ = 0;
+
+        /// <summary>
+        /// Network port number.
+        /// </summary>
         public UInt16 PortNumber
         {
-            get { return portNumber_; }
-            set { portNumber_ = value; }
+            get { return port_number_; }
+            set { port_number_ = value; }
         }
 
         /// <summary>
         /// Indicates if this Request is internally constructed from Apps.
         /// </summary>
-        Boolean isInternalRequest = false;
+        Boolean is_internal_request_ = false;
 
         /// <summary>
         /// Just using Request as holder for user Message instance type.
         /// </summary>
-        Type messageObjectType_ = null;
+        Type message_object_type_ = null;
+
+        // Type of network protocol.
+        MixedCodeConstants.NetworkProtocolType protocol_type_;
+
+        /// <summary>
+        /// Returns protocol type.
+        /// </summary>
+        public MixedCodeConstants.NetworkProtocolType ProtocolType
+        {
+            get { return protocol_type_; }
+        }
 
         /// <summary>
         /// Setting message object type.
         /// </summary>
         public Type ArgMessageObjectType
         {
-            get { return messageObjectType_; }
-            set { messageObjectType_ = value; }
+            get { return message_object_type_; }
+            set { message_object_type_ = value; }
         }
 
         /// <summary>
@@ -129,9 +139,11 @@ namespace Starcounter.Advanced {
         /// <param name="chunk_data">The chunk_data.</param>
         /// <param name="single_chunk">The single_chunk.</param>
         /// <param name="chunk_index">The chunk_index.</param>
+        /// <param name="handler_id">The handler id.</param>
         /// <param name="http_request_begin">The http_request_begin.</param>
         /// <param name="socket_data">The socket_data.</param>
         /// <param name="data_stream">The data_stream.</param>
+        /// <param name="protocol_type">Type of network protocol.</param>
         public unsafe Request(
             Byte* chunk_data,
             Boolean single_chunk,
@@ -139,14 +151,16 @@ namespace Starcounter.Advanced {
             UInt16 handler_id,
             Byte* http_request_begin,
             Byte* socket_data,
-            INetworkDataStream data_stream)
+            INetworkDataStream data_stream,
+            MixedCodeConstants.NetworkProtocolType protocol_type)
         {
             http_request_struct_ = (HttpRequestInternal*)http_request_begin;
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
             http_request_struct_->socket_data_ = socket_data;
             data_stream_ = data_stream;
             data_stream_.Init(chunk_data, single_chunk, chunk_index);
-            handlerId_ = handler_id;
+            handler_id_ = handler_id;
+            protocol_type_ = protocol_type;
         }
 
         /// <summary>
@@ -162,7 +176,7 @@ namespace Starcounter.Advanced {
                 if (params_info_ptr != null)
                     alloc_size += MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES;
 
-                Byte* request_native_buf = (Byte*)BitsAndBytes.Alloc(alloc_size);
+                Byte* request_native_buf = (Byte*) BitsAndBytes.Alloc(alloc_size);
                 fixed (Byte* fixed_buf = buf)
                 {
                     // Copying HTTP request data.
@@ -183,7 +197,8 @@ namespace Starcounter.Advanced {
                 }
                 
                 // Indicating that we internally constructing Request.
-                isInternalRequest = true;
+                is_internal_request_ = true;
+                protocol_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
 
                 // NOTE: No internal sessions support.
                 session_ = null;
@@ -218,7 +233,7 @@ namespace Starcounter.Advanced {
 
                 // Checking if we have constructed this Request
                 // internally in Apps or externally in Gateway.
-                if (isInternalRequest)
+                if (is_internal_request_)
                 {
                     // Releasing internal resources here.
                     BitsAndBytes.Free((IntPtr)http_request_struct_->socket_data_);
@@ -239,17 +254,16 @@ namespace Starcounter.Advanced {
         /// Checks if HttpStructs is destroyed already.
         /// </summary>
         /// <returns>True if destroyed.</returns>
-        public bool IsDestroyed() {
-            unsafe {
-                return (http_request_struct_ == null) && (session_ == null);
-            }
+        public bool IsDestroyed()
+        {
+            unsafe { return (http_request_struct_ == null) && (session_ == null); }
         }
 
         /// <summary>
         /// Called when GC destroys this object.
         /// </summary>
-        ~Request() {
-            // TODO: Consult what is better for Apps auto-destructor or manual call to Destroy.
+        ~Request()
+        {
             Destroy();
         }
 
@@ -259,32 +273,34 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="ex">The ex.</param>
-        public void Debug(string message, Exception ex = null) {
+        public void Debug(string message, Exception ex = null) 
+        {
             Console.WriteLine(message);
         }
 
-        // TODO
         /// <summary>
-        /// The needs script injection_
+        /// The needs script injection.
         /// </summary>
-        bool needsScriptInjection_ = false;
+        bool needs_script_injection_ = false;
+
         /// <summary>
         /// Gets or sets a value indicating whether [needs script injection].
         /// </summary>
         /// <value><c>true</c> if [needs script injection]; otherwise, <c>false</c>.</value>
-        public bool NeedsScriptInjection {
-            get { return needsScriptInjection_; }
-            set { needsScriptInjection_ = value; }
+        public bool NeedsScriptInjection
+        {
+            get { return needs_script_injection_; }
+            set { needs_script_injection_ = value; }
         }
 
         /// <summary>
         /// Linear index for this handler.
         /// </summary>
-        UInt16 handlerId_;
+        UInt16 handler_id_;
         public UInt16 HandlerId
         {
-            get { return handlerId_; }
-            set { handlerId_ = value; } 
+            get { return handler_id_; }
+            set { handler_id_ = value; } 
         }
 
         /// <summary>
@@ -296,55 +312,77 @@ namespace Starcounter.Advanced {
         {
             unsafe
             {
-                if (!isInternalRequest)
+                if (!is_internal_request_)
                     return (IntPtr)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
 
                 return (IntPtr)http_request_struct_->params_info_ptr_;
             }
         }
 
-        // TODO
+        /// <summary>
+        /// Gets the raw method and URI.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="sizeBytes">The size bytes.</param>
+        public IntPtr GetRawMethodAndUri()
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe { return http_request_struct_->GetRawMethodAndUri(); }
+                }
+
+                default:
+                {
+                    return IntPtr.Zero;
+                }
+            }
+        }
+
         /// <summary>
         /// The is app view_
         /// </summary>
-        bool isAppView_ = false;
+        bool is_app_view_ = false;
+
         /// <summary>
         /// Gets or sets a value indicating whether this instance is app view.
         /// </summary>
         /// <value><c>true</c> if this instance is app view; otherwise, <c>false</c>.</value>
-        public bool IsAppView {
-            get { return isAppView_; }
-            set { isAppView_ = value; }
+        public bool IsAppView 
+        {
+            get { return is_app_view_; }
+            set { is_app_view_ = value; }
         }
 
-        // TODO
         /// <summary>
         /// The gzip advisable_
         /// </summary>
-        bool gzipAdvisable_ = false;
+        bool gzip_advisable_ = false;
+
         /// <summary>
         /// Gets or sets the gzip advisable.
         /// </summary>
         /// <value>The gzip advisable.</value>
-        public Boolean GzipAdvisable {
-            get { return gzipAdvisable_; }
-            set { gzipAdvisable_ = value; }
+        public Boolean GzipAdvisable 
+        {
+            get { return gzip_advisable_; }
+            set { gzip_advisable_ = value; }
         }
 
-        // TODO
         /// <summary>
         /// Gets or sets the view model.
         /// </summary>
         /// <value>The view model.</value>
         public byte[] ViewModel { get; set; }
+
         /// <summary>
         /// Gets a value indicating whether this instance can use static response.
         /// </summary>
         /// <value><c>true</c> if this instance can use static response; otherwise, <c>false</c>.</value>
-        public bool CanUseStaticResponse {
-            get {
-                return ViewModel == null;
-            }
+        public bool CanUseStaticResponse 
+        {
+            get { return ViewModel == null; }
         }
 
         /// <summary>
@@ -393,7 +431,8 @@ namespace Starcounter.Advanced {
         /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8_Slow() {
+        public String GetBodyStringUtf8_Slow()
+        {
             unsafe { return http_request_struct_->GetBodyStringUtf8_Slow(); }
         }
 
@@ -403,7 +442,8 @@ namespace Starcounter.Advanced {
         /// <value>The length of the content.</value>
         public UInt32 ContentLength
         {
-            get {
+            get
+            {
                 unsafe { return http_request_struct_->content_len_bytes_; }
             }
         }
@@ -414,7 +454,8 @@ namespace Starcounter.Advanced {
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length">The length.</param>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length) {
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length)
+        {
             unsafe { data_stream_.SendResponse(buffer, offset, length); }
         }
 
@@ -423,7 +464,8 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) {
+        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) 
+        {
             unsafe { http_request_struct_->GetRequestRaw(out ptr, out sizeBytes); }
         }
 
@@ -431,7 +473,8 @@ namespace Starcounter.Advanced {
         /// Gets request as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetRequestStringUtf8_Slow() {
+        public String GetRequestStringUtf8_Slow() 
+        {
             unsafe { return http_request_struct_->GetRequestStringUtf8_Slow(); }
         }
 
@@ -440,8 +483,18 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes) {
-            unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
+        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes) 
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
+                    return;
+                }
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
@@ -449,9 +502,19 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out UInt32 sizeBytes) {
-            unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
-            sizeBytes += 1;
+        public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out UInt32 sizeBytes) 
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
+                    sizeBytes += 1;
+                    return;
+                }
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
@@ -459,8 +522,18 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes) {
-            unsafe { http_request_struct_->GetRawHeaders(out ptr, out sizeBytes); }
+        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes) 
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe { http_request_struct_->GetRawHeaders(out ptr, out sizeBytes); }
+                    return;
+                }
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
@@ -468,8 +541,18 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes) {
-            unsafe { http_request_struct_->GetRawCookies(out ptr, out sizeBytes); }
+        public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes) 
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe { http_request_struct_->GetRawCookies(out ptr, out sizeBytes); }
+                    return;
+                }
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
@@ -477,8 +560,18 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawAccept(out IntPtr ptr, out UInt32 sizeBytes) {
-            unsafe { http_request_struct_->GetRawAccept(out ptr, out sizeBytes); }
+        public void GetRawAccept(out IntPtr ptr, out UInt32 sizeBytes) 
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe { http_request_struct_->GetRawAccept(out ptr, out sizeBytes); }
+                    return;
+                }
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
@@ -486,7 +579,8 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes) {
+        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes) 
+        {
             unsafe { http_request_struct_->GetRawSessionString(out ptr, out sizeBytes); }
         }
 
@@ -496,8 +590,18 @@ namespace Starcounter.Advanced {
         /// <param name="key">The key.</param>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes) {
-            unsafe { http_request_struct_->GetHeaderValue(key, out ptr, out sizeBytes); }
+        public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes) 
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe { http_request_struct_->GetHeaderValue(key, out ptr, out sizeBytes); }
+                    return;
+                }
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
         }
 
         /// <summary>
@@ -505,9 +609,19 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>String.</returns>
-        public String this[String name] {
-            get {
-                unsafe { return http_request_struct_->GetHeaderValue(name); }
+        public String this[String name] 
+        {
+            get
+            {
+                switch (protocol_type_)
+                {
+                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                    {
+                        unsafe { return http_request_struct_->GetHeaderValue(name); }
+                    }
+                }
+
+                throw new NotSupportedException("Network protocol does not support this method call.");
             }
         }
 
@@ -539,7 +653,8 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Checks if HTTP request already has session.
         /// </summary>
-        public Boolean HasSession {
+        public Boolean HasSession 
+        {
             get
             {
                 unsafe
@@ -555,9 +670,12 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Gets certain Apps session.
         /// </summary>
-        public IAppsSession AppsSessionInterface {
-            get {
-                unsafe {
+        public IAppsSession AppsSessionInterface 
+        {
+            get 
+            {
+                unsafe 
+                {
 
                     // Obtaining corresponding Apps session.
                     IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
@@ -580,8 +698,10 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Indicates if new session was created.
         /// </summary>
-        public Boolean HasNewSession {
-            get {
+        public Boolean HasNewSession 
+        {
+            get 
+            {
                 return newSession_;
             }
         }
@@ -601,8 +721,29 @@ namespace Starcounter.Advanced {
                     session_->scheduler_id_,
                     ref session_->linear_index_,
                     ref session_->random_salt_,
-                    ref session_->view_model_index_, // TODO
+                    ref session_->view_model_index_,
                     apps_session);
+            }
+        }
+
+        /// <summary>
+        /// Update session details.
+        /// </summary>
+        public void UpdateSessionDetails()
+        {
+            if (is_internal_request_)
+                return;
+
+            unsafe
+            {
+                ScSessionClass s = GlobalSessions.AllGlobalSessions.GetSessionClass(
+                    session_->scheduler_id_,
+                    session_->linear_index_,
+                    session_->random_salt_);
+
+                s.socket_num_ = *(UInt64*) (http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_NUMBER);
+                s.socket_unique_id_ = *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
+                s.port_index_ = *(Int32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PORT_INDEX);
             }
         }
 
@@ -621,10 +762,12 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Kills existing session.
         /// </summary>
-        public UInt32 DestroySession() {
+        public UInt32 DestroySession() 
+        {
             UInt32 err_code;
 
-            unsafe {
+            unsafe 
+            {
                 // Indicating that session was destroyed.
                 newSession_ = false;
 
@@ -644,22 +787,22 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Returns unique session number.
         /// </summary>
-        public UInt64 UniqueSessionIndex {
-            get {
-                unsafe {
-                    return session_->linear_index_;
-                }
+        public UInt64 UniqueSessionIndex 
+        {
+            get 
+            {
+                unsafe { return session_->linear_index_; }
             }
         }
 
         /// <summary>
         /// Returns session salt.
         /// </summary>
-        public UInt64 SessionSalt {
-            get {
-                unsafe {
-                    return session_->random_salt_;
-                }
+        public UInt64 SessionSalt
+        {
+            get
+            {
+                unsafe { return session_->random_salt_; }
             }
         }
 
@@ -667,8 +810,10 @@ namespace Starcounter.Advanced {
         /// Gets the session struct.
         /// </summary>
         /// <value>The session struct.</value>
-        public ScSessionStruct SessionStruct {
-            get {
+        public ScSessionStruct SessionStruct
+        {
+            get
+            {
                 unsafe { return *session_; }
             }
         }
@@ -677,9 +822,19 @@ namespace Starcounter.Advanced {
         /// Gets the HTTP method.
         /// </summary>
         /// <value>The HTTP method.</value>
-        public HTTP_METHODS HttpMethod {
-            get {
-                unsafe { return http_request_struct_->http_method_; }
+        public HTTP_METHODS HttpMethod
+        {
+            get 
+            {
+                switch (protocol_type_)
+                {
+                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                    {
+                        unsafe { return http_request_struct_->http_method_; }
+                    }
+                }
+
+                throw new NotSupportedException("Network protocol does not support this method call.");
             }
         }
 
@@ -687,9 +842,19 @@ namespace Starcounter.Advanced {
         /// Gets the is gzip accepted.
         /// </summary>
         /// <value>The is gzip accepted.</value>
-        public Boolean IsGzipAccepted {
-            get {
-                unsafe { return http_request_struct_->is_gzip_accepted_; }
+        public Boolean IsGzipAccepted
+        {
+            get
+            {
+                switch (protocol_type_)
+                {
+                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                    {
+                        unsafe { return http_request_struct_->is_gzip_accepted_; }
+                    }
+                }
+
+                throw new NotSupportedException("Network protocol does not support this method call.");
             }
         }
 
@@ -697,9 +862,19 @@ namespace Starcounter.Advanced {
         /// Gets the URI.
         /// </summary>
         /// <value>The URI.</value>
-        public String Uri {
-            get {
-                unsafe { return http_request_struct_->Uri; }
+        public String Uri
+        {
+            get
+            {
+                switch (protocol_type_)
+                {
+                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                    {
+                        unsafe { return http_request_struct_->Uri; }
+                    }
+                }
+
+                throw new NotSupportedException("Network protocol does not support this method call.");
             }
         }
 
@@ -707,7 +882,8 @@ namespace Starcounter.Advanced {
         /// Returns a string that represents the current object.
         /// </summary>
         /// <returns>A string that represents the current object.</returns>
-        public override String ToString() {
+        public override String ToString()
+        {
             unsafe { return http_request_struct_->ToString(); }
         }
     }
@@ -717,7 +893,7 @@ namespace Starcounter.Advanced {
     /// Struct HttpRequestInternal
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct HttpRequestInternal {
+    internal unsafe struct HttpRequestInternal {
         /// <summary>
         /// Request offset.
         /// </summary>
@@ -920,7 +1096,8 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes) {
+        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes)
+        {
             // NOTE: Method and URI must always exist.
 
             ptr = new IntPtr(socket_data_ + request_offset_);

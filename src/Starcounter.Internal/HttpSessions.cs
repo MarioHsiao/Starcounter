@@ -64,6 +64,15 @@ namespace HttpStructs
         // Internal session structure.
         public ScSessionStruct session_struct_;
 
+        // Socket number.
+        public UInt64 socket_num_;
+
+        // Unique socket id for the gateway.
+        public UInt64 socket_unique_id_;
+
+        // Port index.
+        public Int32 port_index_;
+
         // Last active time tick.
         public UInt64 LastActiveTimeTick { get; set; }
 
@@ -353,6 +362,29 @@ namespace HttpStructs
             return null;
         }
 
+        // Sets socket options on session.
+        public ScSessionClass GetSessionClass(
+            UInt32 linear_index,
+            UInt64 random_salt)
+        {
+            // Checking if we are out of range.
+            if (linear_index >= used_session_indexes_.Count)
+                return null;
+
+            ScSessionClass s = apps_sessions_[linear_index];
+            if (s == null)
+                return null;
+
+            // Checking for the correct session salt.
+            if (random_salt == s.session_struct_.random_salt_)
+            {
+                // Returning the session class.
+                return s;
+            }
+
+            return null;
+        }
+
         // Current per-scheduler time tick.
         public UInt64 CurrentTimeTick = 0;
 
@@ -386,14 +418,18 @@ namespace HttpStructs
                         // Checking that session is active at all.
                         if (s.session_struct_.IsActive()) 
                         {
-                            // Checking that session is not currently in use.
-                            if (!s.apps_session_int_.IsBeingUsed()) 
+                            // Checking that there is an Apps session at all.
+                            if (s.apps_session_int_ != null)
                             {
-                                // Checking if session is outdated.
-                                if ((CurrentTimeTick - s.LastActiveTimeTick) > 2) 
+                                // Checking that Apps session is not currently in use.
+                                if (!s.apps_session_int_.IsBeingUsed()) 
                                 {
-                                    // Destroying old session.
-                                    DestroySession(s.session_struct_);
+                                    // Checking if session is outdated.
+                                    if ((CurrentTimeTick - s.LastActiveTimeTick) > 2) 
+                                    {
+                                        // Destroying old session.
+                                        DestroySession(s.session_struct_);
+                                    }
                                 }
                             }
 
@@ -534,6 +570,23 @@ namespace HttpStructs
         }
 
         /// <summary>
+        /// Gets existing session.
+        /// </summary>
+        /// <param name="apps_session_index"></param>
+        /// <param name="apps_session_salt"></param>
+        /// <param name="scheduler_id"></param>
+        /// <returns></returns>
+        public ScSessionClass GetSessionClass(
+            Byte scheduler_id,
+            UInt32 linear_index,
+            UInt64 random_salt)
+        {
+            return scheduler_sessions_[scheduler_id].GetSessionClass(
+                linear_index,
+                random_salt);
+        }
+
+        /// <summary>
         /// All global sessions.
         /// </summary>
         public static GlobalSessions AllGlobalSessions = null;
@@ -550,19 +603,32 @@ namespace HttpStructs
         /// <summary>
         /// Callback to destroy Apps session.
         /// </summary>
-        /// <param name="apps_session_index"></param>
-        /// <param name="apps_session_salt"></param>
         /// <param name="scheduler_id"></param>
+        /// <param name="linear_index"></param>
+        /// <param name="random_salt"></param>
         public delegate void DestroyAppsSessionCallback(
             Byte scheduler_id,
             UInt32 linear_index,
             UInt64 random_salt
             );
 
-        /// <summary>
-        /// Managed callback to destroy Apps session.
-        /// </summary>
         public static DestroyAppsSessionCallback g_destroy_apps_session_callback = DestroySessionCallback;
+
+        /// <summary>
+        /// Callback to create new Apps session.
+        /// </summary>
+        /// <param name="scheduler_id"></param>
+        /// <param name="linear_index"></param>
+        /// <param name="random_salt"></param>
+        /// <param name="view_model_index"></param>
+        public delegate void CreateNewAppsSessionCallback(
+            Byte scheduler_id,
+            ref UInt32 linear_index,
+            ref UInt64 random_salt,
+            ref UInt32 view_model_index
+            );
+        
+        public static CreateNewAppsSessionCallback g_create_new_apps_session_callback = CreateNewSessionCallback;
 
         /// <summary>
         /// Managed callback to destroy Apps session.
@@ -580,6 +646,28 @@ namespace HttpStructs
                 scheduler_id,
                 linear_index,
                 random_salt
+                );
+        }
+
+        /// <summary>
+        /// Managed callback to create new Apps session.
+        /// </summary>
+        /// <param name="apps_session_index"></param>
+        /// <param name="apps_session_salt"></param>
+        /// <param name="scheduler_id"></param>
+        public static void CreateNewSessionCallback(
+            Byte scheduler_id,
+            ref UInt32 linear_index,
+            ref UInt64 random_salt,
+            ref UInt32 view_model_index
+            )
+        {
+            AllGlobalSessions.CreateNewSession(
+                scheduler_id,
+                ref linear_index,
+                ref random_salt,
+                ref view_model_index,
+                null
                 );
         }
 

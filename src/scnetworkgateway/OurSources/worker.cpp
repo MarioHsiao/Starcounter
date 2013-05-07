@@ -562,7 +562,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         else
         {
             // Attaching to existing session.
-            *sd->GetSessionStruct() = g_gateway.GetGlobalSessionCopy(sd->get_socket());
+            *(sd->GetSessionStruct()) = g_gateway.GetGlobalSessionCopy(sd->get_socket());
         }
     }
     else
@@ -571,7 +571,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         if (sd->HasActiveSession())
         {
             // Creating global session on this socket.
-            g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *sd->GetSessionStruct());
+            g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *(sd->GetSessionStruct()));
         }
     }
 
@@ -598,6 +598,9 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
 #endif
 
     uint32_t num_bytes, err_code;
+
+    // Removing just send flag.
+    sd->set_socket_just_send_flag(false);
 
     // Checking if we have one or multiple chunks to send.
     if (1 == sd->get_num_chunks())
@@ -755,7 +758,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 
 #ifdef GW_SOCKET_ID_CHECK
     // Setting unique socket id.
-    sd->SetUniqueSocketId();
+    sd->CreateUniqueSocketId();
 #endif
 
     // Calling DisconnectEx.
@@ -924,7 +927,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
 
 #ifdef GW_SOCKET_ID_CHECK
         // Setting unique socket id.
-        sd->SetUniqueSocketId();
+        sd->CreateUniqueSocketId();
 #endif
 
         // Calling ConnectEx.
@@ -1078,7 +1081,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
 
 #ifdef GW_SOCKET_ID_CHECK
     // Setting unique socket id.
-    sd->SetUniqueSocketId();
+    sd->CreateUniqueSocketId();
 #endif
 
     // Calling AcceptEx.
@@ -1549,7 +1552,7 @@ uint32_t GatewayWorker::CreateSocketData(
     }
 
     // Allocating socket data inside chunk.
-    out_sd = (SocketDataChunk*)((uint8_t*)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+    out_sd = (SocketDataChunk*)((uint8_t*)smc + MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES);
 
     // Initializing socket data.
     out_sd->Init(sock, port_index, db_index, chunk_index);

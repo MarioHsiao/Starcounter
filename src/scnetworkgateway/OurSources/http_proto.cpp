@@ -398,21 +398,15 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case UPGRADE_FIELD:
         {
             // Double checking if its a WebSocket upgrade.
-            if ((length == 9) &&
-                (*(uint64_t*)at == *(uint64_t*)"websocket"))
-            {
-                return 0;
-            }
-            else
-            {
+            if (*(uint64_t*)at != *(uint64_t*)"websocket")
                 return SCERRGWHTTPNONWEBSOCKETSUPGRADE;
-            }
 
             break;
         }
 
         case WS_KEY_FIELD:
         {
+            GW_ASSERT_DEBUG(24 == length);
             http->ws_proto_.SetClientKey((char *)at, length);
             break;
         }
@@ -426,14 +420,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case WS_VERSION_FIELD:
         {
             // Checking the WebSocket protocol version.
-            if (*(uint16_t*)at == *(uint16_t*)"13")
-            {
-                return 0;
-            }
-            else
-            {
+            if (*(uint16_t*)at != *(uint16_t*)"13")
                 return SCERRGWHTTPWRONGWEBSOCKETSVERSION;
-            }
 
             break;
         }
@@ -512,8 +500,8 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         }
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_index);
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
         char* method_and_uri = (char*)(sd->get_data_blob());
@@ -660,8 +648,8 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id);
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
         ResetParser();
@@ -699,11 +687,8 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
-            // Handled successfully.
-            *is_handled = true;
-
             // Perform WebSockets handshake.
-            return ws_proto_.DoHandshake(gw, sd);
+            return ws_proto_.DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
@@ -888,13 +873,8 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-        {
-            // Handled successfully.
-            *is_handled = true;
-
-            return ws_proto_.ProcessWsDataFromDb(gw, sd, handler_id);
-        }
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
 
 #ifndef GW_NEW_SESSIONS_APPROACH
         // Correcting the session cookie.
@@ -964,8 +944,8 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id);
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
         ResetParser();
@@ -1003,11 +983,8 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
-            // Handled successfully.
-            *is_handled = true;
-
             // Perform WebSockets handshake.
-            return ws_proto_.DoHandshake(gw, sd);
+            return ws_proto_.DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))

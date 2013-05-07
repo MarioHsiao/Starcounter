@@ -41,6 +41,8 @@ enum HttpWsFields
     WS_KEY_FIELD,
     WS_VERSION_FIELD,
     WS_PROTOCOL_FIELD,
+    WS_EXTENSIONS_FIELD,
+    WS_ACCEPT_FIELD,
     UNKNOWN_FIELD
 };
 
@@ -102,6 +104,8 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
                 case 17: return WS_KEY_FIELD; // Sec-WebSocket-Key
                 case 21: return WS_VERSION_FIELD; // Sec-WebSocket-Version
                 case 22: return WS_PROTOCOL_FIELD; // Sec-WebSocket-Protocol
+                case 24: return WS_EXTENSIONS_FIELD; // Sec-WebSocket-Extensions
+                case 20: return WS_ACCEPT_FIELD; // Sec-WebSocket-Accept
             }
 
             break;
