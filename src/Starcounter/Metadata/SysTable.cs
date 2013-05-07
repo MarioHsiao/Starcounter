@@ -44,6 +44,7 @@ namespace Starcounter.Metadata {
                 "sys_table",
                 new ColumnDef[]
                 {
+                    new ColumnDef("__id", DbTypeCode.Key, false, false),
                     new ColumnDef("table_id", DbTypeCode.UInt64, false, false),
                     new ColumnDef("name", DbTypeCode.String, true, false),
                     new ColumnDef("base_name", DbTypeCode.String, true, false),
