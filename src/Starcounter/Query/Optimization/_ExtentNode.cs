@@ -525,6 +525,9 @@ internal class ExtentNode : IOptimizationNode
                 case DbTypeCode.Byte:
                     dynamicRange = new UIntegerDynamicRange();
                     break;
+                case DbTypeCode.Key:
+                    dynamicRange = new UIntegerDynamicRange();
+                    break;
                 default:
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeCode.");
             }
