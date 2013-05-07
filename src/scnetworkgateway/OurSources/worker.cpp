@@ -1552,7 +1552,7 @@ uint32_t GatewayWorker::CreateSocketData(
     }
 
     // Allocating socket data inside chunk.
-    out_sd = (SocketDataChunk*)((uint8_t*)smc + MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES);
+    out_sd = (SocketDataChunk*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Initializing socket data.
     out_sd->Init(sock, port_index, db_index, chunk_index);
@@ -1677,8 +1677,8 @@ uint32_t GatewayWorker::SendPredefinedMessage(
             sd->CreateWSABuffers(
                 worker_db,
                 sd->get_smc(),
-                bmx::BMX_HEADER_MAX_SIZE_BYTES + sd->get_user_data_offset(),
-                bmx::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset(),
+                MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + sd->get_user_data_offset_in_socket_data(),
+                MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data(),
                 sd->get_user_data_written_bytes());
 
             GW_ASSERT(sd->get_num_chunks() > 2);

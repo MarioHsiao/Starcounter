@@ -740,7 +740,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
     task_info.handler_index = (BMX_HANDLER_INDEX_TYPE)handler_info;
     if (smc->get_link() != smc->link_terminator)
-        task_info.flags |= LINKED_CHUNKS_FLAG;
+        task_info.flags |= MixedCodeConstants::LINKED_CHUNKS_FLAG;
 
     // TODO: Init session values.
 
