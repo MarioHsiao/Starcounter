@@ -152,7 +152,7 @@ PROCESS_SERVER_PORT:
             goto ERROR_HANDLING;
 
         // Adding new server port.
-        server_port = g_gateway.AddServerPort(port_num, listening_sock, RAW_BLOB_USER_DATA_OFFSET);
+        server_port = g_gateway.AddServerPort(port_num, listening_sock);
     }
 
     // Checking if port contains handlers from this database.
