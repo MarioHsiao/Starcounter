@@ -38,20 +38,12 @@ namespace QueryProcessingTest {
                 TestDataModification("select a1 from account a1, Account a2, Account a3, User u " +
                     "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.AccountId = a3.accountid and a2.client.userid = a3.client.userid and a1.Client = u and u = a2.client and a1.amount = a3.amount", client);
             });
+            // Involving object identity lookup
+            TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.ObjectNo = a2.ObjectNo", client);
+            Db.Transaction(delegate {
+                TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.ObjectNo = a2.ObjectNo", client);
+            });
             // With operators
-#if false
-            foreach query
-                foreach interator
-                    foreach data_update
-                        Transaction1
-                        Transaction2
-                        Transaction3
-#endif
-            // Call the query with fetch
-            // Iterate and get offset key
-            // Modify data
-            // If offset key is not null, query with offset key
-            // Iterate over it
             // Drop data
             DropAfterTest();
             HelpMethods.LogEvent("Finished testing offset key");
@@ -188,6 +180,16 @@ namespace QueryProcessingTest {
                     nrs++;
                 }
                 Trace.Assert(nrs == 2);
+                key = res.GetOffsetKey();
+            }
+            Trace.Assert(key == null);
+
+            // Object identity test
+            ulong objectno = Db.SQL<ulong>("select objectno from account where accountid = ?", 30003).First;
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where objectno = ?", objectno).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.GetObjectNo());
+                Trace.Assert(!res.MoveNext());
             }
         }
 
