@@ -362,9 +362,9 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
-    public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+    public unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
     {
-        Int32 offset = leftEnumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
+        UInt16 offset = leftEnumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
         offset = rightEnumerator.SaveEnumerator(keysData, offset, saveDynamicDataOnly);
         return offset;
     }

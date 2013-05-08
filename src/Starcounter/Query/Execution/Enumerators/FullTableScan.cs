@@ -383,10 +383,10 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     }
 
     private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
-        Byte* staticDataOffset = rk + (nodeId << 3) + IteratorHelper.RK_HEADER_LEN;
-        UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
+        Byte* staticDataOffset = rk + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
+        UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
         Debug.Assert(dynDataOffset != 0);
-        Byte* staticData = rk + (*(UInt32*)(staticDataOffset));
+        Byte* staticData = rk + (*(UInt16*)(staticDataOffset));
         ValidateNodeType((*(Byte*)staticData));
         return rk + dynDataOffset;
     }
@@ -600,7 +600,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Used to populate the recreation key.
     /// </summary>
-    public unsafe Int32 SaveEnumerator(Byte* keyData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+    public unsafe UInt16 SaveEnumerator(Byte* keyData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
     {
         // Immediately preventing further accesses to current object.
         currentObject = null;
@@ -608,12 +608,12 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // If we already tried to recreate the enumerator and we want to write static data,
         // just return first dynamic data offset.
         if (triedEnumeratorRecreation && (!saveDynamicDataOnly))
-            return (*(Int32*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET));
+            return (*(UInt16*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET));
 
-        Int32 origGlobalOffset = globalOffset;
+        UInt16 origGlobalOffset = globalOffset;
 
         // Position of enumerator.
-        Int32 enumGlobalOffset = ((nodeId << 3) + IteratorHelper.RK_HEADER_LEN);
+        UInt16 enumGlobalOffset = (ushort)((nodeId << 2) + IteratorHelper.RK_HEADER_LEN);
 
         // Writing static data.
         if (!saveDynamicDataOnly)
@@ -622,53 +622,22 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             //dataStreamChanged = false;
 
             // Emptying static data position for this enumerator.
-            (*(Int32*)(keyData + enumGlobalOffset)) = 0;
+            (*(UInt16*)(keyData + enumGlobalOffset)) = 0;
 
             // Saving type of this node
             *((byte*)(keyData + globalOffset)) = (byte)NodeType;
             globalOffset += 1;
 
-#if false // These data are not used. Instead they are read during recreation.
-            // Creating flags.
-            UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
-
-            // Creating the upper key.
-            Int32 upperKeyLength = secondKeyBuilder.LengthInBytes();
-            Byte[] lastKey = secondKeyBuffer;
-            if (descending)
-            {
-                upperKeyLength = firstKeyBuilder.LengthInBytes();
-                lastKey = firstKeyBuffer;
-                _flags |= sccoredb.SC_ITERATOR_SORTED_DESCENDING;
-            }
-
-            // Saving flags.
-            *((UInt32*)(keyData + globalOffset)) = _flags;
-            globalOffset += 4;
-
-            // Saving filter handle.
-            *((UInt64*)(keyData + globalOffset)) = filterHandle;
-            globalOffset += 8;
-
-            // Copying filter variables data.
-            Int32 filterDataLength = privateFilter.GetDataStreamLength();
-            Marshal.Copy(filterDataStream, 0, (IntPtr)(keyData + globalOffset), filterDataLength);
-            globalOffset += (UInt16)filterDataLength;
-
-            // Copy the last key.
-            Marshal.Copy(lastKey, 0, (IntPtr)(keyData + globalOffset), upperKeyLength);
-            globalOffset += upperKeyLength;
-#endif
             // Saving position of the data for current extent.
-            (*(Int32*)(keyData + enumGlobalOffset)) = origGlobalOffset;
+            (*(UInt16*)(keyData + enumGlobalOffset)) = origGlobalOffset;
 
             // Saving absolute position of the first dynamic data.
-            (*(Int32*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET)) = globalOffset;
+            (*(UInt16*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET)) = globalOffset;
         }
         else // Writing dynamic data.
         {
             // Points to dynamic data offset.
-            Int32 *dynDataOffset = (Int32*)(keyData + enumGlobalOffset + 4);
+            UInt16 *dynDataOffset = (UInt16*)(keyData + enumGlobalOffset + 2);
 
             // Emptying dynamic data position for this enumerator.
             (*dynDataOffset) = 0;
@@ -730,43 +699,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             if (createdKey == null)
                 return origGlobalOffset;
 
-            // Checking if the data stream has changed.
-            Int32 shiftBytesNum = 0;
-#if false // Not part of the key anymore
-            if (dataStreamChanged)
-            {
-                // Position of enumerator static data.
-                Byte* staticDataOffset = keyData + enumGlobalOffset;
-                Int32 oldDataStreamPos = (*(Int32*)(staticDataOffset)) + 12; // Skip flags and filter handle.
-                Byte* oldDataStream = keyData + oldDataStreamPos;
-                Int32 oldDataStreamLength = (*(Int32*)(oldDataStream));
-
-                // Getting the new data stream length.
-                Int32 curDataStreamLength = privateFilter.GetDataStreamLength();
-
-                // Adding shift to dynamic data.
-                shiftBytesNum = curDataStreamLength - oldDataStreamLength;
-
-                // Checking if we need to shift data.
-                if (shiftBytesNum != 0)
-                {
-                    // Calculating the end position of old data.
-                    Int32 oldDataStreamEndPos = oldDataStreamPos + oldDataStreamLength;
-
-                    // We have to update all data positions that occur after the extended data.
-                    IndexScan.MoveEnumStaticData(keyData, globalOffset - oldDataStreamEndPos, oldDataStreamEndPos, shiftBytesNum);
-
-                    // Shifting the global offset.
-                    globalOffset += shiftBytesNum;
-                }
-
-                // Copy the new data stream on the place of old data stream.
-                Marshal.Copy(filterDataStream, 0, (IntPtr)oldDataStream, curDataStreamLength);
-            }
-#endif
-
             // Copying the recreation key.
-            Int32 bytesWritten = *((Int32*)createdKey);
+            UInt16 bytesWritten = *((UInt16*)createdKey);
 
             // Copying the buffer.
             //SqlDebugHelper.PrintByteBuffer("FullTableScan Saving Recreation Key", createdKey, true);
@@ -774,7 +708,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             globalOffset += bytesWritten;
 
             // Saving position of dynamic data.
-            (*dynDataOffset) = origGlobalOffset + shiftBytesNum;
+            (*dynDataOffset) = origGlobalOffset;
         }
 
         return globalOffset;

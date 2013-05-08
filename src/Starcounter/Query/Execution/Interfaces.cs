@@ -1052,7 +1052,7 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     /// <param name="globalOffset">The offset to place where to store static/dynamic data.</param>
     /// <param name="saveDynamicDataOnly">Specifies if dynamic or static data should be written.</param>
     /// <returns>The offset directly after data were stored or the offset to first dynamic data (reusing the key).</returns>
-    unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly);
+    unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly);
 
     // Flags describing whether the query includes literal, aggregation etc.
     QueryFlags QueryFlags
