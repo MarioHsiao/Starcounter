@@ -56,6 +56,7 @@ namespace Starcounter.Bootstrap.Management {
             IsAdministrator = NewConfig.IsAdministratorApp;
             Port = port;
             HostIdentity = hostIdentity;
+            CodeHostAPI.Setup(hostIdentity);
         }
 
         /// <summary>
