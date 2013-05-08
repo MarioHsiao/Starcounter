@@ -109,9 +109,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             // Process the chunk.
             SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-            // Setting database index and unique number.
-            sd->set_db_index(db_index_);
-            sd->set_db_unique_seq_num(g_gateway.GetDatabase(db_index_)->get_unique_num());
+            // Setting the database index and sequence number.
+            sd->AttachToDatabase(db_index_);
 
             // Checking for socket data correctness.
             GW_ASSERT(sd->get_socket() < g_gateway.setting_max_connections());
@@ -260,9 +259,6 @@ JUST_SEND_SOCKET_DATA:
 
             // Resetting the accumulative buffer.
             sd->InitAccumBufferFromUserData();
-
-            // Setting the database index and sequence number.
-            sd->AttachToDatabase(db_index_);
 
             // Put the chunk into from database queue.
             err_code = gw->RunFromDbHandlers(sd);

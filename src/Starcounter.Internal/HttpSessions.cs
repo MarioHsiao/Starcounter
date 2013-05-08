@@ -73,6 +73,9 @@ namespace HttpStructs
         // Port index.
         public Int32 port_index_;
 
+        // WebSockets opcode.
+        public Byte ws_opcode_;
+
         // Last active time tick.
         public UInt64 LastActiveTimeTick { get; set; }
 

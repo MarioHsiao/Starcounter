@@ -36,7 +36,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_obtain_new_chunk(
     uint8_t** new_chunk_mem)
 {
     // Obtaining chunk memory.
-    return cm_get_shared_memory_chunk(*new_chunk_index, new_chunk_mem);
+    return cm_acquire_shared_memory_chunk(new_chunk_index, new_chunk_mem);
 }
 
 // Writing linked chunks data to a given buffer and releasing all chunks except first.

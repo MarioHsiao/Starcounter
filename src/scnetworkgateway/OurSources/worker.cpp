@@ -701,7 +701,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     sd->ResetUserDataOffset();
 
     // Resetting buffer information.
-    accum_buf->ResetBufferForNewOperation();
+    sd->ResetAccumBuffer();
 
     // Checking if socket data is for receiving.
     if (sd->get_socket_representer_flag())
@@ -1556,9 +1556,6 @@ uint32_t GatewayWorker::CreateSocketData(
 
     // Initializing socket data.
     out_sd->Init(sock, port_index, db_index, chunk_index);
-
-    // Configuring data buffer.
-    out_sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, out_sd->get_data_blob(), true);
 
     return 0;
 }

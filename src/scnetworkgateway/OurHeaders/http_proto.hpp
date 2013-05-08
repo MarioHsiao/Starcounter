@@ -547,6 +547,12 @@ class HttpWsProto
 
 public:
 
+    // WebSockets protocol info.
+    WsProto* get_ws_proto()
+    {
+        return &ws_proto_;
+    }
+
     // Setting matching URI index.
     void set_matched_uri_index(uint32_t value)
     {
