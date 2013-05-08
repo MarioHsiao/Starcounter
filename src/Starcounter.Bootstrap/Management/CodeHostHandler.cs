@@ -5,15 +5,16 @@ namespace Starcounter.Bootstrap.Management {
     /// management resource.
     /// </summary>
     internal static class CodeHostHandler {
-        static string uri;
 
         /// <summary>
         /// Performs setup of the <see cref="CodeHostHandler"/>.
         /// </summary>
         internal static void Setup() {
-            uri = CodeHostAPI.Uris.Host;
-            Handle.GET(uri, CodeHostHandler.OnGET);
-            Handle.DELETE(uri, CodeHostHandler.OnDELETE);
+            var uri = CodeHostAPI.Uris.Host;
+            var port = ManagementService.Port;
+
+            Handle.GET(port, uri, CodeHostHandler.OnGET);
+            Handle.DELETE(port, uri, CodeHostHandler.OnDELETE);
         }
 
         static object OnGET() {
