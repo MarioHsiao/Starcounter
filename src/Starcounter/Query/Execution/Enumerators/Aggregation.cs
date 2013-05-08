@@ -29,7 +29,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     ILogicalExpression condition;
     Boolean firstCallOfMoveNext;
 
-    internal Aggregation(RowTypeBinding rowTypeBind,
+    internal Aggregation(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
         IExecutionEnumerator subEnum,
         IQueryComparer comparer,
@@ -38,7 +38,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         VariableArray varArr,
         String query,
         INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
-        : base(rowTypeBind, varArr)
+        : base(nodeId, EnumeratorNodeType.Aggregate, rowTypeBind, varArr)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -86,7 +86,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         if (this.comparer.ComparerCount == 0) {
             this.enumerator = this.subEnumerator;
         } else {
-            this.enumerator = new Sort(subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, null, null, null);
+            this.enumerator = new Sort(nodeId, subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, null, null, null);
         }
         cursorObject = null;
         currentObject = null;
@@ -373,7 +373,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
-    public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+    public unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
     {
         return enumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
     }
@@ -411,7 +411,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         if (fetchOffsetExpr != null)
             fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
         
-        return new Aggregation(rowTypeBindClone, extentNumber,
+        return new Aggregation(nodeId, rowTypeBindClone, extentNumber,
                                subEnumerator.Clone(rowTypeBindClone, varArrClone),
                                comparer.Clone(varArrClone), setFuncListClone,
                                condition.Clone(varArrClone), varArrClone, query,

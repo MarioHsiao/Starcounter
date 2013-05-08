@@ -416,30 +416,30 @@ internal class ExtentNode : IOptimizationNode
         return EXTENT_SCAN_COST;
     }
 
-    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
+    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr, ref byte nodeId)
     {
         if (hintedIndexInfo != null)
         {
-            return CreateIndexScan(hintedIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(nodeId++, hintedIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (sortIndexInfo != null)
         {
-            return CreateIndexScan(sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(nodeId++, sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (refLookUpExpression != null)
         {
-            return new ReferenceLookup(rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, variableArr, query);
+            return new ReferenceLookup(nodeId++, rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, variableArr, query);
         }
 
         if (identityExpression != null)
-            return new ObjectIdenittyAccess(rowTypeBind, extentNumber, identityExpression, GetCondition(), 
+            return new ObjectIdenittyAccess(nodeId++, rowTypeBind, extentNumber, identityExpression, GetCondition(), 
                 fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, variableArr, query);
 
         if (bestIndexInfo != null)
         {
-            return CreateIndexScan(bestIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(nodeId++, bestIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
 
         if (extentIndexInfo != null)
@@ -449,7 +449,7 @@ internal class ExtentNode : IOptimizationNode
                 // Trying to create a scan which uses native filter code generation.
                 try
                 {
-                    IExecutionEnumerator exec_enum = new FullTableScan(rowTypeBind,
+                    IExecutionEnumerator exec_enum = new FullTableScan(nodeId, rowTypeBind,
                         extentNumber,
                         extentIndexInfo,
                         GetCondition(),
@@ -462,6 +462,7 @@ internal class ExtentNode : IOptimizationNode
 
                     if (exec_enum != null)
                     {
+                        nodeId++;
                         return exec_enum;  // Returning result only on successful execution
                     }
                 }
@@ -472,13 +473,13 @@ internal class ExtentNode : IOptimizationNode
             }
 
             // Proceeding with the worst case: full table scan on managed code level.
-            return CreateIndexScan(extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(nodeId++, extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
         }
         ITypeBinding typeBind = rowTypeBind.GetTypeBinding(extentNumber);
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "There is no index for type: " + typeBind.Name);
     }
 
-    private IExecutionEnumerator CreateIndexScan(IndexInfo indexInfo, SortOrder sortOrdering, INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
+    private IExecutionEnumerator CreateIndexScan(byte nodeId, IndexInfo indexInfo, SortOrder sortOrdering, INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
     {
         List<String> strPathList = new List<String>();
         String strPath = null;
@@ -542,7 +543,7 @@ internal class ExtentNode : IOptimizationNode
         }
 
         // Creating index scan enumerator.
-        return new IndexScan(rowTypeBind,
+        return new IndexScan(nodeId, rowTypeBind,
                              extentNumber,
                              indexInfo,
                              strPathList,
@@ -553,10 +554,11 @@ internal class ExtentNode : IOptimizationNode
                              variableArr, query);
     }
 
-    private IExecutionEnumerator CreateFullTableScan(IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IIntegerExpression fetchOffsetExpr, 
+#if false // not used anywhere, not maintained
+    private IExecutionEnumerator CreateFullTableScan(byte nodeId, IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IIntegerExpression fetchOffsetExpr, 
         IBinaryExpression fetchOffsetKeyExpr)
     {
-        return new FullTableScan(rowTypeBind,
+        return new FullTableScan(nodeId, rowTypeBind,
                                  extentNumber,
                                  indexInfo,
                                  GetCondition(),
@@ -567,6 +569,7 @@ internal class ExtentNode : IOptimizationNode
                                  InnermostExtent, 
                                  null, variableArr, query);
     }
+#endif
 
     internal IndexInfo GetIndexInfo(String indexName)
     {
