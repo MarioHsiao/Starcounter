@@ -258,6 +258,10 @@ Gateway::Gateway()
     // Init unique sequence number.
     db_seq_num_ = 0;
 
+    // Reset gateway owner id and pid.
+    gateway_owner_id_ = 0;
+    gateway_pid_ = 0;
+
     // No reverse proxies by default.
     num_reversed_proxies_ = 0;
 
@@ -436,7 +440,7 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 }
 
 // Initializes server socket.
-void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening_sock, int32_t blob_user_data_offset)
+void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening_sock)
 {
     GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
 
@@ -447,7 +451,6 @@ void ServerPort::Init(int32_t port_index, uint16_t port_number, SOCKET listening
 
     listening_sock_ = listening_sock;
     port_number_ = port_number;
-    blob_user_data_offset_ = blob_user_data_offset;
     port_handlers_->set_port_number(port_number_);
     port_index_ = port_index;
 }
@@ -558,7 +561,6 @@ void ServerPort::Erase()
     }
 
     port_number_ = INVALID_PORT_NUMBER;
-    blob_user_data_offset_ = -1;
     port_index_ = INVALID_PORT_INDEX;
 
     Reset();
@@ -783,7 +785,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     std::string portNames[NUM_PREDEFINED_PORT_TYPES] = { "HttpPort", "HttpsPort", "WebSocketsPort", "GenSocketsPort", "AggregationPort" };
     GENERIC_HANDLER_CALLBACK portHandlerTypes[NUM_PREDEFINED_PORT_TYPES] = { AppsUriProcessData, HttpsProcessData, AppsUriProcessData, AppsPortProcessData, AppsPortProcessData };
     uint16_t portNumbers[NUM_PREDEFINED_PORT_TYPES] = { 80, 443, 80, 123, 12345 };
-    uint32_t userDataOffsetsInBlob[NUM_PREDEFINED_PORT_TYPES] = { HTTP_BLOB_USER_DATA_OFFSET, HTTPS_BLOB_USER_DATA_OFFSET, WS_BLOB_USER_DATA_OFFSET, RAW_BLOB_USER_DATA_OFFSET, AGGR_BLOB_USER_DATA_OFFSET };
+    uint32_t userDataOffsetsInBlob[NUM_PREDEFINED_PORT_TYPES] = { HTTP_BLOB_USER_DATA_OFFSET, HTTPS_BLOB_USER_DATA_OFFSET, WS_NEEDED_USER_DATA_OFFSET, RAW_BLOB_USER_DATA_OFFSET, AGGR_BLOB_USER_DATA_OFFSET };
 
     // Going through all ports.
     for (int32_t i = 0; i < NUM_PREDEFINED_PORT_TYPES; i++)
@@ -850,7 +852,7 @@ uint32_t Gateway::AssertCorrectState()
     if (err_code)
         goto FAILED;
 
-    GW_ASSERT(core::chunk_type::static_header_size == bmx::BMX_HEADER_MAX_SIZE_BYTES);
+    GW_ASSERT(core::chunk_type::static_header_size == MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES);
 
     // Checking overall gateway stuff.
     GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
@@ -964,8 +966,8 @@ uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port
     // Creating new connections for each worker.
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
-        uint32_t errCode = gw_workers_[i].CreateNewConnections(how_many, port_index, db_index);
-        GW_ERR_CHECK(errCode);
+        uint32_t err_code = gw_workers_[i].CreateNewConnections(how_many, port_index, db_index);
+        GW_ERR_CHECK(err_code);
     }
 
     return 0;
@@ -1523,12 +1525,12 @@ uint32_t Gateway::Init()
             SOCKET server_socket = INVALID_SOCKET;
 
             // Creating socket and binding to port (only on the first worker).
-            uint32_t errCode = CreateListeningSocketAndBindToPort(
+            uint32_t err_code = CreateListeningSocketAndBindToPort(
                 &gw_workers_[0],
                 server_ports_[p].get_port_number(),
                 server_socket);
 
-            GW_ERR_CHECK(errCode);
+            GW_ERR_CHECK(err_code);
         }
 
 #ifdef GW_TESTING_MODE
@@ -1636,6 +1638,15 @@ uint32_t Gateway::Init()
     shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
     GW_COUT << "opened!" << GW_ENDL;
 
+    // Send registration request to the monitor and try to acquire an owner_id.
+    // Without an owner_id we can not proceed and have to exit.
+    // Get process id and store it in the monitor_interface.
+    gateway_pid_.set_current();
+
+    // Try to register gateway process pid. Wait up to 10000 ms.
+    uint32_t err_code = shm_monitor_interface_->register_client_process(gateway_pid_, gateway_owner_id_, 10000/*ms*/);
+    GW_ASSERT(0 == err_code);
+
     // Indicating that network gateway is ready
     // (should be first line of the output).
     GW_COUT << "Gateway is ready!" << GW_ENDL;
@@ -1668,14 +1679,11 @@ uint32_t Gateway::InitSharedMemory(
     // Send registration request to the monitor and try to acquire an owner_id.
     // Without an owner_id we can not proceed and have to exit.
     // Get process id and store it in the monitor_interface.
-    pid_type pid;
-    pid.set_current();
-    owner_id the_owner_id;
+    gateway_pid_.set_current();
     uint32_t error_code;
 
     // Try to register this client process pid. Wait up to 10000 ms.
-    if ((error_code = shm_monitor_interface_->register_client_process(pid,
-        the_owner_id, 10000/*ms*/)) != 0)
+    if ((error_code = shm_monitor_interface_->register_client_process(gateway_pid_, gateway_owner_id_, 10000)) != 0)
     {
         // Failed to register this client process pid.
         GW_COUT << "Can't register client process, error code: " << error_code << GW_ENDL;
@@ -1701,7 +1709,7 @@ uint32_t Gateway::InitSharedMemory(
     // Construct a shared_interface.
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
-        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), pid, the_owner_id);
+        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), gateway_pid_, gateway_owner_id_);
     }
 
     return 0;

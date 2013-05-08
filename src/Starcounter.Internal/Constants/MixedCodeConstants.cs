@@ -29,11 +29,6 @@ namespace Starcounter.Internal
         // These items are members of the shared C# class and global in C++.
 
         /// <summary>
-        /// BMX protocol begin offset.
-        /// </summary>
-        public const int BMX_PROTOCOL_BEGIN_OFFSET = 16;
-
-        /// <summary>
         /// Maximum size of BMX header in the beginning of the chunk
         /// after which the gateway data can be placed.
         /// </summary>
@@ -45,9 +40,14 @@ namespace Starcounter.Internal
         public const int OVERLAPPED_SIZE = 32;
 
         /// <summary>
-        /// Offset of gateway data in chunk.
+        /// Offset of socket data in chunk.
         /// </summary>
-        public const int GATEWAY_DATA_BEGIN_OFFSET = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_SIZE;
+        public const int CHUNK_OFFSET_SOCKET_DATA = BMX_HEADER_MAX_SIZE_BYTES;
+
+        /// <summary>
+        /// Offset of session in chunk.
+        /// </summary>
+        public const int CHUNK_OFFSET_SESSION = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_SIZE;
 
         /// <summary>
         /// Data offset/size constants. 
@@ -55,24 +55,24 @@ namespace Starcounter.Internal
         public const int BMX_HANDLER_SIZE = 2;
 
         /// <summary>
-        /// Request size begin offset.
+        /// Chunk session scheduler id offset.
         /// </summary>
-        public const int REQUEST_SIZE_BEGIN_OFFSET = BMX_PROTOCOL_BEGIN_OFFSET + BMX_HANDLER_SIZE;
+        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = CHUNK_OFFSET_SESSION;
 
         /// <summary>
-        /// Gateway session salt offset.
+        /// Chunk session linear index offset.
         /// </summary>
-        public const int SESSION_SALT_OFFSET = GATEWAY_DATA_BEGIN_OFFSET;
+        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = CHUNK_OFFSET_SESSION_SCHEDULER_ID + 4;
 
         /// <summary>
-        /// Gateway session index offset.
+        /// Chunk session random salt offset.
         /// </summary>
-        public const int SESSION_INDEX_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 8;
+        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = CHUNK_OFFSET_SESSION_LINEAR_INDEX + 4;
 
         /// <summary>
-        /// Apps session index offset.
+        /// Chunk session view model index offset.
         /// </summary>
-        public const int SESSION_APPS_UNIQUE_SESSION_NUMBER_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + 16;
+        public const int CHUNK_OFFSET_SESSION_VIEWMODEL_INDEX = CHUNK_OFFSET_SESSION_RANDOM_SALT + 8;
 
         /// <summary>
         /// Size of the session structure in bytes.
@@ -82,17 +82,52 @@ namespace Starcounter.Internal
         /// <summary>
         /// User data offset in chunk.
         /// </summary>
-        public const int USER_DATA_OFFSET = GATEWAY_DATA_BEGIN_OFFSET + SESSION_STRUCT_SIZE;
+        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 128;
 
         /// <summary>
         /// Max user data offset in chunk.
         /// </summary>
-        public const int MAX_USER_DATA_BYTES_OFFSET = USER_DATA_OFFSET + 4;
+        public const int CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA + 4;
 
         /// <summary>
         /// User data written bytes offset.
         /// </summary>
-        public const int USER_DATA_WRITTEN_BYTES_OFFSET = MAX_USER_DATA_BYTES_OFFSET + 4;
+        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = CHUNK_OFFSET_MAX_USER_DATA_BYTES + 4;
+
+        /// <summary>
+        /// Fixed handler id offset in chunk.
+        /// </summary>
+        public const int CHUNK_OFFSET_SAVED_USER_HANDLER_ID = 120;
+
+        /// <summary>
+        /// Socket flags.
+        /// </summary>
+        public const int CHUNK_OFFSET_SOCKET_FLAGS = 152;
+
+        /// <summary>
+        /// Just send flag.
+        /// </summary>
+        public const int SOCKET_DATA_FLAGS_JUST_SEND = 64;
+
+        /// <summary>
+        /// Type of network operation.
+        /// </summary>
+        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 133;
+
+        /// <summary>
+        /// Socket number.
+        /// </summary>
+        public const int SOCKET_DATA_OFFSET_SOCKET_NUMBER = 64;
+
+        /// <summary>
+        /// Socket number.
+        /// </summary>
+        public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 72;
+
+        /// <summary>
+        /// Port index.
+        /// </summary>
+        public const int SOCKET_DATA_OFFSET_PORT_INDEX = 124;
 
         /// <summary>
         /// Invalid chunk index.
@@ -107,22 +142,22 @@ namespace Starcounter.Internal
         /// <summary>
         /// Offset in bytes for the session.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 640;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 632;
 
         /// <summary>
         /// Offset of data blob in socket data.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_BLOB = 704;
+        public const int SOCKET_DATA_OFFSET_BLOB = 696;
 
         /// <summary>
         /// HTTP request offset in socket data.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 224;
+        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 208;
 
         /// <summary>
         /// Number of chunks offset in gateway.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_NUM_CHUNKS = 76;
+        public const int SOCKET_DATA_OFFSET_NUM_CHUNKS = 116;
 
         /// <summary>
         /// Maximum number of URI callback parameters.
@@ -143,6 +178,35 @@ namespace Starcounter.Internal
         /// Linked chunk flag.
         /// </summary>
         public const int LINKED_CHUNKS_FLAG = 1;
+
+        /// <summary>
+        /// Number of clone bytes in socket data.
+        /// </summary>
+        public const int SOCKET_DATA_NUM_CLONE_BYTES = 136;
+
+        /// <summary>
+        /// Number of clone bytes in chunk.
+        /// </summary>
+        public const int CHUNK_NUM_CLONE_BYTES = CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_NUM_CLONE_BYTES;
+
+        // Chunk reserved bytes at the end.
+        // TODO: Fix when non null value.
+        public const int CHUNK_TAIL_RESERVED_BYTES = 0;
+
+        /// <summary>
+        /// Chunk link size.
+        /// </summary>
+        public const int CHUNK_LINK_SIZE = 8;
+
+        /// <summary>
+        /// Chunk data max size.
+        /// </summary>
+        public const int CHUNK_MAX_DATA_BYTES = SHM_CHUNK_SIZE - CHUNK_LINK_SIZE - CHUNK_TAIL_RESERVED_BYTES;
+
+        /// <summary>
+        /// Socket data max size.
+        /// </summary>
+        public const int SOCKET_DATA_MAX_SIZE = CHUNK_MAX_DATA_BYTES - CHUNK_OFFSET_SOCKET_DATA;
 
         /// <summary>
         /// MAX_PREPARSED_HTTP_REQUEST_HEADERS
@@ -172,6 +236,18 @@ namespace Starcounter.Internal
         /// Name of Administrator application.
         /// </summary>
         public const String AdministratorAppName = "Administrator";
+
+        /// <summary>
+        /// Denotes the type of network protocol.
+        /// </summary>
+        public enum NetworkProtocolType
+        {
+            PROTOCOL_RAW_PORT,
+            PROTOCOL_SUB_PORT,
+            PROTOCOL_HTTP1,
+            PROTOCOL_WEBSOCKETS,
+            PROTOCOL_HTTP2
+        };
 
 #if !__cplusplus
 

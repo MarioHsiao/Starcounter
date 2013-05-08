@@ -10,6 +10,7 @@ namespace QueryProcessingTest {
             ErrorCases();
             // Populate data
             User client = PopulateForTest();
+            SomeTests(client);
             // Simple query
             TestDataModification("select a from account a where accountid > ?", client);
             Db.Transaction(delegate {
@@ -37,20 +38,12 @@ namespace QueryProcessingTest {
                 TestDataModification("select a1 from account a1, Account a2, Account a3, User u " +
                     "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.AccountId = a3.accountid and a2.client.userid = a3.client.userid and a1.Client = u and u = a2.client and a1.amount = a3.amount", client);
             });
+            // Involving object identity lookup
+            TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.ObjectNo = a2.ObjectNo", client);
+            Db.Transaction(delegate {
+                TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.ObjectNo = a2.ObjectNo", client);
+            });
             // With operators
-#if false
-            foreach query
-                foreach interator
-                    foreach data_update
-                        Transaction1
-                        Transaction2
-                        Transaction3
-#endif
-            // Call the query with fetch
-            // Iterate and get offset key
-            // Modify data
-            // If offset key is not null, query with offset key
-            // Iterate over it
             // Drop data
             DropAfterTest();
             HelpMethods.LogEvent("Finished testing offset key");
@@ -84,6 +77,15 @@ namespace QueryProcessingTest {
             e.MoveNext();
             Trace.Assert(e.Current is User);
             e.Dispose();
+            // Test offset key with incorrect object identity in a query
+            ulong objectno = Db.SQL<ulong>("select objectno from account where accountid = ?", 1).First;
+            e = Db.SQL("select a from account a where objectno = ?", objectno).GetEnumerator();
+            Trace.Assert(e.MoveNext());
+            k = e.GetOffsetKey();
+            e.Dispose();
+            objectno = Db.SQL<ulong>("select objectno from account where accountid = ?", 2).First;
+            e = Db.SQL("select a from account a where objectno = ? offsetkey ?", objectno, k).GetEnumerator();
+            Trace.Assert(!e.MoveNext());
 #if false // Tests do not fail any more, since static data are not read from the recreation key.
             // Test offsetkey on the query with the offset key from another query
             Boolean isException = false;
@@ -138,37 +140,89 @@ namespace QueryProcessingTest {
 #endif
         }
 
-        static void SomeTest(User client) {
+        static void SomeTests(User client) {
             byte[] key = null;
-            int[] a1FetchExpected = new int[] { 30006, 30009, 30009 };
-            int[] a2FetchExpected = new int[] { 30003, 30003, 30006 };
+            int[] a1FetchExpected = new int[] { 30006, 30009 };
+            int[] a2FetchExpected = new int[] { 30003, 30003 };
             using (IRowEnumerator<IObjectView> res =
                 Db.SQL<IObjectView>("select a1,a2 from account a1, account a2 where a1.accountid > ? and a1.accountid > a2.accountid and a2.accountid > ? fetch ?",
-                29999, 29999, 3).GetEnumerator()) {
-                Console.WriteLine(res.ToString());
+                29999, 29999, 2).GetEnumerator()) {
                 for (int i = 0; res.MoveNext(); i++) {
                     Trace.Assert(((Account)res.Current.GetObject(0)).AccountId == a1FetchExpected[i]);
                     Trace.Assert(((Account)res.Current.GetObject(1)).AccountId == a2FetchExpected[i]);
-                    if (i == 2)
+                    if (i == 1)
                         key = res.GetOffsetKey();
                 }
             }
             Trace.Assert(key != null);
-            int[] a1OffsetkeyExpected = new int[] { 30009, 30012, 30012 };
-            int[] a2OffsetkeyExpected = new int[] { 30006, 30003, 30006 };
+            int[] a1OffsetkeyExpected = new int[] { 30009, 30012 };
+            int[] a2OffsetkeyExpected = new int[] { 30006, 30003 };
             using (IRowEnumerator<IObjectView> res =
                 Db.SQL<IObjectView>("select a1,a2 from account a1, account a2 where a1.accountid > ? and a1.accountid > a2.accountid and a2.accountid > ? fetch ? offsetkey ?",
-                29999, 29999, 3, key).GetEnumerator()) {
-                Console.WriteLine(res.ToString());
+                29999, 29999, 2, key).GetEnumerator()) {
                 int nrs = 0;
                 while (res.MoveNext()) {
                     Account a1 = (Account)res.Current.GetObject(0);
                     Trace.Assert(a1.AccountId == a1OffsetkeyExpected[nrs]);
                     Account a2 = (Account)res.Current.GetObject(1);
                     Trace.Assert(a2.AccountId == a2OffsetkeyExpected[nrs]);
+                    if (nrs == 1)
+                        key = res.GetOffsetKey();
                     nrs++;
                 }
-                Trace.Assert(nrs == 3);
+                Trace.Assert(nrs == 2);
+            }
+            Trace.Assert(key != null);
+            a1OffsetkeyExpected = new int[] { 30012, 30012 };
+            a2OffsetkeyExpected = new int[] { 30006, 30009 };
+            using (IRowEnumerator<IObjectView> res =
+                Db.SQL<IObjectView>("select a1,a2 from account a1, account a2 where a1.accountid > ? and a1.accountid > a2.accountid and a2.accountid > ? fetch ? offsetkey ?",
+                29999, 29999, 2, key).GetEnumerator()) {
+                int nrs = 0;
+                while (res.MoveNext()) {
+                    Account a1 = (Account)res.Current.GetObject(0);
+                    Trace.Assert(a1.AccountId == a1OffsetkeyExpected[nrs]);
+                    Account a2 = (Account)res.Current.GetObject(1);
+                    Trace.Assert(a2.AccountId == a2OffsetkeyExpected[nrs]);
+                    if (nrs == 1)
+                        key = res.GetOffsetKey();
+                    nrs++;
+                }
+                Trace.Assert(nrs == 2);
+                key = res.GetOffsetKey();
+            }
+            Trace.Assert(key == null);
+
+            // Object identity test
+            ulong objectno = Db.SQL<ulong>("select objectno from account where accountid = ?", 30003).First;
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where objectno = ?", objectno).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.GetObjectNo());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+                Trace.Assert(!res.MoveNext());
+            }
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where objectno = ? offsetkey ?", objectno, key).GetEnumerator()) {
+                Trace.Assert(!res.MoveNext());
+                key = res.GetOffsetKey();
+                Trace.Assert(key == null);
+            }
+            objectno = Db.SQL<ulong>("select objectno from user where useridnr = ?", 10005).First;
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where client.objectno = ?", objectno).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.Client.GetObjectNo());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+            }
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where client.objectno = ? offsetkey ?", objectno, key).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.Client.GetObjectNo());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+            }
+            objectno = Db.SQL<ulong>("select objectno from user where useridnr = ?", 1).First;
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where client.objectno = ? offsetkey ?", 1, key).GetEnumerator()) {
+                Trace.Assert(!res.MoveNext());
             }
         }
 

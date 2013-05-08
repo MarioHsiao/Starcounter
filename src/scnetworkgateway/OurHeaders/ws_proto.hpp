@@ -50,6 +50,9 @@ class WsProtoFrameInfo
     // Is frame masked?
     bool is_masked_;
 
+    // Payload.
+    uint8_t* payload_;
+
     // Payload length in bytes.
     int64_t payload_len_;
 
@@ -105,17 +108,17 @@ public:
         sub_protocol_len_ = 0;
     }
 
-    uint32_t ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
-    uint32_t ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
-    uint32_t DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd);
+    uint32_t DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
     void MaskUnMask(int32_t payloadLen, uint64_t mask, uint64_t *data);
 
-    uint8_t *WriteData(GatewayWorker *gw, WS_OPCODE opcode, bool masking, WS_FRAGMENT_FLAG frameType, uint8_t *payload, uint64_t *pPayloadLen);
+    uint8_t *WriteData(GatewayWorker *gw, WS_OPCODE opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t *payload, uint64_t *ppayload_len);
 
-    uint8_t *GetFrameInfo(WsProtoFrameInfo *pFrameInfo, uint8_t *data);
+    uint32_t GetFrameInfo(uint8_t *data);
 };
 
 } // namespace network

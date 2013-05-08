@@ -66,6 +66,8 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\ICommandProcessor.cs" />
+    <Compile Include="Commands\Processors\InvokableCommandProcessor.cs" />
     <Compile Include="Commands\Processors\CreateDatabaseCommandProcessor.cs" />
     <Compile Include="Commands\Processors\ExecCommandProcessor.Meta.cs" />
     <Compile Include="Commands\Processors\StartDatabaseCommandProcessor.cs" />
@@ -78,6 +80,7 @@
     <Compile Include="Commands\CommandProcessorAttribute.cs" />
     <Compile Include="Commands\CommandTask.cs" />
     <Compile Include="Configuration\Server\DatabaseStorageConfiguration.cs" />
+    <Compile Include="CoreServices\DatabaseEngineMonitor.cs" />
     <Compile Include="CoreServices\DatabaseHostingService.cs" />
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
@@ -88,6 +91,10 @@
     <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="DatabaseApp.cs" />
     <Compile Include="PublicModel\AppInfo.cs" />
+    <Compile Include="PublicModel\Commands\ActionCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PublicModel\Commands\InvokableCommand.cs" />
     <Compile Include="PublicModel\Commands\CreateDatabaseCommand.cs" />
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
     <Compile Include="Commands\ErrorInfoException.cs" />

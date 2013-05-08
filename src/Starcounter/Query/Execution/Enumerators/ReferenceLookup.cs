@@ -26,13 +26,13 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     Boolean useOffsetkey = true;
     public Boolean UseOffsetkey { get { return useOffsetkey; } set { useOffsetkey = value; } }
 
-    internal ReferenceLookup(RowTypeBinding rowTypeBind,
+    internal ReferenceLookup(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
         IObjectExpression expr,
         ILogicalExpression cond,
         INumericalExpression fetchNumExpr,
         VariableArray varArr, String query)
-        : base(rowTypeBind, varArr)
+        : base(nodeId, EnumeratorNodeType.ReferenceLookup, rowTypeBind, varArr)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -247,7 +247,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
-    public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+    public unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
     {
         return globalOffset;
     }
@@ -298,7 +298,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         if (fetchNumberExpr != null)
             fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
 
-        return new ReferenceLookup(rowTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
+        return new ReferenceLookup(nodeId, rowTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
             condition.Clone(varArrClone), fetchNumberExprClone, varArrClone, query);
     }
 

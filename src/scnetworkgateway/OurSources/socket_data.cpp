@@ -26,15 +26,14 @@ void SocketDataChunk::Init(
     port_index_ = port_index;
     db_index_ = db_index;
     db_unique_seq_num_ = g_gateway.GetDatabase(db_index_)->get_unique_num();
-    blob_user_data_offset_ = server_port->get_blob_user_data_offset();
 
     // Resets data buffer offset.
     ResetUserDataOffset();
 
     // Calculating maximum size of user data.
-    max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES - blob_user_data_offset_;
+    max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES;
     user_data_written_bytes_ = 0;
-    fixed_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
+    saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
 
     session_.Reset();
 
@@ -45,7 +44,8 @@ void SocketDataChunk::Init(
     set_to_database_direction_flag(true);
 
     type_of_network_oper_ = UNKNOWN_SOCKET_OPER;
-    recv_flags_ = 0;
+    type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
+
     num_chunks_ = 1;
 
     // Initializing HTTP/WEBSOCKETS data structures.
@@ -55,15 +55,16 @@ void SocketDataChunk::Init(
 // Resetting socket.
 void SocketDataChunk::Reset()
 {
-    // Resetting flags.
     flags_ = 0;
+
     set_to_database_direction_flag(true);
 
     proxy_sock_ = INVALID_SOCKET;
 
     type_of_network_oper_ = DISCONNECT_SOCKET_OPER;
+    type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
 
-    fixed_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
+    saved_user_handler_id_ = bmx::BMX_INVALID_HANDLER_INFO;
 
     // Clearing attached session.
     //g_gateway.ClearSession(sessionIndex);
@@ -111,7 +112,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
             cur_smc->set_link(extra_chunk_index_);
 
             // Setting new chunk as a new buffer.
-            accum_buf_.Init(bmx::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
+            accum_buf_.Init(MixedCodeConstants::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
         }
         else
         {
@@ -144,13 +145,12 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     // Copying session completely.
     sd_clone->session_ = session_;
 
-    // Copying unique socket id.
-    sd_clone->unique_socket_id_ = unique_socket_id_;
-
     sd_clone->set_to_database_direction_flag(true);
-    sd_clone->set_web_sockets_upgrade_flag(sd_clone->get_web_sockets_upgrade_flag());
+    sd_clone->set_type_of_network_protocol(get_type_of_network_protocol());
     sd_clone->set_db_unique_seq_num(db_unique_seq_num_);
+    sd_clone->set_unique_socket_id(unique_socket_id_);
     sd_clone->set_proxy_socket(proxy_sock_);
+    sd_clone->set_saved_user_handler_id(saved_user_handler_id_);
 
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag(true);
@@ -168,6 +168,45 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     GW_COUT << "Cloned socket " << sock_ << ":" << chunk_index_ << " to " <<
         sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << GW_ENDL;
 #endif
+
+    return 0;
+}
+
+// Clone current socket data to send it.
+uint32_t SocketDataChunk::CloneToSend(
+    GatewayWorker*gw,
+    SocketDataChunk** new_sd)
+{
+    // TODO: Add support for linked chunks.
+    GW_ASSERT(1 == get_num_chunks());
+
+    core::chunk_index new_chunk_index;
+    shared_memory_chunk* new_smc;
+
+    // Getting a chunk from new database.
+    uint32_t err_code = gw->GetWorkerDb(db_index_)->GetOneChunkFromPrivatePool(&new_chunk_index, &new_smc);
+    if (err_code)
+    {
+        // New chunk can not be obtained.
+        return err_code;
+    }
+
+    // Copying chunk data.
+    memcpy(new_smc, get_smc(),
+        MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB + get_accum_buf()->get_accum_len_bytes());
+
+    // Socket data inside chunk.
+    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+
+    // Changing new chunk index.
+    (*new_sd)->set_chunk_index(new_chunk_index);
+
+    // Adjusting accumulative buffer.
+    (*new_sd)->get_accum_buf()->CloneBasedOnNewBaseAddress((*new_sd)->get_data_blob(), get_accum_buf());
+
+    // This socket becomes unattached.
+    (*new_sd)->set_socket_representer_flag(false);
+    (*new_sd)->set_socket_diag_active_conn_flag(false);
 
     return 0;
 }
@@ -194,10 +233,10 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
     // Copying chunk data.
     memcpy(new_smc, get_smc(),
-        bmx::BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_BLOB_OFFSET_BYTES + get_accum_buf()->get_accum_len_bytes());
+        MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB + get_accum_buf()->get_accum_len_bytes());
 
     // Socket data inside chunk.
-    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Attaching to new database.
     (*new_sd)->AttachToDatabase(new_db_index);
@@ -225,8 +264,8 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     // Looping through all chunks and creating corresponding
     // WSA buffers in the first chunk data blob.
     uint32_t cur_chunk_data_size = bytes_left;
-    if (cur_chunk_data_size > starcounter::bmx::CHUNK_MAX_DATA_BYTES)
-        cur_chunk_data_size = starcounter::bmx::CHUNK_MAX_DATA_BYTES;
+    if (cur_chunk_data_size > starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
+        cur_chunk_data_size = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
     // Getting shared interface pointer.
     core::shared_interface* shared_int = worker_db->get_shared_int();
@@ -265,7 +304,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
         // Decreasing number of bytes left to be processed.
         bytes_left -= head_chunk_num_bytes;
-        if (bytes_left < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
             cur_chunk_data_size = bytes_left;
     }
 
@@ -283,7 +322,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
         // Decreasing number of bytes left to be processed.
         bytes_left -= cur_chunk_data_size;
-        if (bytes_left < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
             cur_chunk_data_size = bytes_left;
 
         // Getting next chunk in chain.
