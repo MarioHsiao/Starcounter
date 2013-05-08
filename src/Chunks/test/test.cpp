@@ -29,17 +29,85 @@
 #include "tiny_tuple/test.hpp"
 #include "tiny_tuple/tiny_tuple.hpp"
 #include "tiny_tuple/record_data.hpp"
+#include "decimal/decimal.hpp"
+#include "decimal/uint128_t.hpp"
 
-// NOTE: I'm using the sc_ipc_test.exe as a driver to test tiny tuple,
-// to save a little time. Tiny tuple should have its own project, etc.
-// To run the tiny tuple test, open a terminal/cmd and do:
-// >cd %UserProfile%\code\Level1\bin\Release
-// or where the "bin release" directory is located. Then:
-// >sc_ipc_test.exe
+//int64_t int2dec(int64_t v) { return v * 1E6; }
+
+namespace {
+
+// Exponents from 1e1 to 1e28 expressed as 128-bit constants.
+const starcounter::numerics::uint128_t _1e1(0x0000000000000000ULL, 0x000000000000000AULL);
+const starcounter::numerics::uint128_t _1e2(0x0000000000000000ULL, 0x0000000000000064ULL);
+const starcounter::numerics::uint128_t _1e3(0x0000000000000000ULL, 0x00000000000003E8ULL);
+const starcounter::numerics::uint128_t _1e4(0x0000000000000000ULL, 0x0000000000002710ULL);
+const starcounter::numerics::uint128_t _1e5(0x0000000000000000ULL, 0x00000000000186A0ULL);
+const starcounter::numerics::uint128_t _1e6(0x0000000000000000ULL, 0x00000000000F4240ULL);
+const starcounter::numerics::uint128_t _1e7(0x0000000000000000ULL, 0x0000000000989680ULL);
+const starcounter::numerics::uint128_t _1e8(0x0000000000000000ULL, 0x0000000005f5e100ULL);
+const starcounter::numerics::uint128_t _1e9(0x0000000000000000ULL, 0x000000003B9ACA00ULL);
+const starcounter::numerics::uint128_t _1e10(0x0000000000000000ULL, 0x00000002540BE400ULL);
+const starcounter::numerics::uint128_t _1e11(0x0000000000000000ULL, 0x000000174876E800ULL);
+const starcounter::numerics::uint128_t _1e12(0x0000000000000000ULL, 0x000000E8D4A51000ULL);
+const starcounter::numerics::uint128_t _1e13(0x0000000000000000ULL, 0x000009184E72A000ULL);
+const starcounter::numerics::uint128_t _1e14(0x0000000000000000ULL, 0x00005AF3107A4000ULL);
+const starcounter::numerics::uint128_t _1e15(0x0000000000000000ULL, 0x00038D7EA4C68000ULL);
+const starcounter::numerics::uint128_t _1e16(0x0000000000000000ULL, 0x002386F26FC10000ULL);
+const starcounter::numerics::uint128_t _1e17(0x0000000000000000ULL, 0x016345785D8A0000ULL);
+const starcounter::numerics::uint128_t _1e18(0x0000000000000000ULL, 0x0DE0B6B3A7640000ULL);
+const starcounter::numerics::uint128_t _1e19(0x0000000000000000ULL, 0x8AC7230489E80000ULL);
+const starcounter::numerics::uint128_t _1e20(0x0000000000000005ULL, 0x6BC75E2D63100000ULL);
+const starcounter::numerics::uint128_t _1e21(0x0000000000000036ULL, 0x35C9ADC5DEA00000ULL);
+const starcounter::numerics::uint128_t _1e22(0x000000000000021EULL, 0x19E0C9BAB2400000ULL);
+const starcounter::numerics::uint128_t _1e23(0x000000000000152DULL, 0x02C7E14AF6800000ULL);
+const starcounter::numerics::uint128_t _1e24(0x000000000000D3C2ULL, 0x1BCECCEDA1000000ULL);
+const starcounter::numerics::uint128_t _1e25(0x0000000000084595ULL, 0x161401484A000000ULL);
+const starcounter::numerics::uint128_t _1e26(0x000000000052B7D2ULL, 0xDCC80CD2E4000000ULL);
+const starcounter::numerics::uint128_t _1e27(0x00000000033B2E3CULL, 0x9FD0803CE8000000ULL);
+const starcounter::numerics::uint128_t _1e28(0x00000000204FCE5EULL, 0x3E25026110000000ULL);
+
+} // namespace
 
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 #if 1
+    using namespace starcounter::numerics;
+
+	try {
+		uint128_t a(_1e28);
+		a *= 7;
+		uint128_t x = a;
+		x.divide_and_throw_if_remainder_not_zero(_1e22);
+		std::cout << "x = " << x << std::endl;
+	}
+	catch (remainder_not_zero) {
+		std::cout << "remainder_not_zero" << std::endl;
+	}
+    return 0;
+
+#if 0
+	void vec_u128_divide(
+	const uint128_t* numerator,
+	const uint128_t* divisor,
+	uint128_t* result,
+	uint128_t* remainder
+	);
+
+	// Specialized with divisor 1e22, etc:
+	/**
+	 * @param numerator The numerator.
+	 * @param remainder The remainder.
+	 * @return The result.
+	 */
+	uint128_t divide_by_1e22(const uint128_t& numerator, uint128_t* remainder);
+#endif
+
+#if 1
+	decimal x6;
+	return 0;
+#endif
+
+#if 0
 	///=========================================================================
 	/// Tiny tuple test:
 	///=========================================================================

@@ -57,5 +57,10 @@
     <ClInclude Include="tiny_tuple\defined_column_value.hpp" />
     <ClInclude Include="tiny_tuple\random.hpp" />
     <ClInclude Include="tiny_tuple\impl\random.hpp" />
+    <ClInclude Include="decimal\decimal.hpp" />
+    <ClInclude Include="decimal\uint128_t.hpp" />
+    <ClInclude Include="decimal\impl\uint128_t.hpp" />
+    <ClInclude Include="decimal\impl\decimal.hpp" />
+    <ClInclude Include="decimal\macro_definitions.hpp" />
   </ItemGroup>
 </Project>
