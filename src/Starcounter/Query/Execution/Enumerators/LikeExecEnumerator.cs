@@ -251,7 +251,7 @@ namespace Starcounter.Query.Execution
         /// <summary>
         /// Saves the underlying enumerator state.
         /// </summary>
-        public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+        public unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
         {
             return currentExecEnum.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
         }

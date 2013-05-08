@@ -73,22 +73,25 @@ namespace Starcounter
         /// <summary>
         /// Empty recreation key length.
         /// </summary>
-        public const Int32 RK_EMPTY_LEN = 4;
+        public const UInt16 RK_EMPTY_LEN = 4;
 
         /// <summary>
         /// Offset in bytes for number of enumerators.
+        /// Skips length of the offset.
         /// </summary>
-        public const Int32 RK_ENUM_NUM_OFFSET = 4;
+        public const UInt16 RK_ENUM_NUM_OFFSET = 2;
 
         /// <summary>
         /// Offset in bytes for dynamic data.
+        /// Skips number of nodes.
         /// </summary>
-        public const Int32 RK_FIRST_DYN_DATA_OFFSET = RK_ENUM_NUM_OFFSET + 1;
+        public const UInt16 RK_FIRST_DYN_DATA_OFFSET = RK_ENUM_NUM_OFFSET + 1;
 
         /// <summary>
         /// Length of recreation key header in bytes.
+        /// Skips first written offset of dynamic data.
         /// </summary>
-        public const Int32 RK_HEADER_LEN = RK_FIRST_DYN_DATA_OFFSET + 4;
+        public const UInt16 RK_HEADER_LEN = RK_FIRST_DYN_DATA_OFFSET + 2;
 
         // Gets the information about saved object in the iterator.
         /// <summary>

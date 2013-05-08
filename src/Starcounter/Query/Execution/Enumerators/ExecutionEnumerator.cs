@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Text;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
@@ -288,22 +289,20 @@ internal abstract class ExecutionEnumerator
         if (currentObject == null)
             return null;
 
-        Int32 globalOffset = 0;
+        UInt16 globalOffset = 0;
         IExecutionEnumerator execEnum = this as IExecutionEnumerator;
 
         // Getting the amount of leaves in execution tree.
         //Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
         byte nodesNum = (byte)(NodeId + 1);
         // Offset to first enumerator static data
-        globalOffset = ((nodesNum << 3) + IteratorHelper.RK_HEADER_LEN);
+        globalOffset = (ushort)((nodesNum << 3) + IteratorHelper.RK_HEADER_LEN);
 
         // Using cache temp buffer.
         Byte[] tempBuffer = Scheduler.GetInstance().SqlEnumCache.TempBuffer;
 
-        unsafe
-        {
-            fixed (Byte* recreationKey = tempBuffer)
-            {
+        unsafe {
+            fixed (Byte* recreationKey = tempBuffer) {
                 // Saving number of enumerators.
                 (*(byte*)(recreationKey + IteratorHelper.RK_ENUM_NUM_OFFSET)) = nodesNum;
 
@@ -314,25 +313,20 @@ internal abstract class ExecutionEnumerator
                 globalOffset = execEnum.SaveEnumerator(recreationKey, globalOffset, true);
 
                 // Saving full recreation key length.
-                (*(Int32*)recreationKey) = globalOffset;
+                (*(UInt16*)recreationKey) = globalOffset;
 
                 // Successfully recreated the key.
-                if (globalOffset > IteratorHelper.RK_EMPTY_LEN)
-                {
-                    // Allocating space for offset key.
-                    Byte[] offsetKey = new Byte[globalOffset];
+                Debug.Assert(globalOffset > IteratorHelper.RK_EMPTY_LEN);
+                // Allocating space for offset key.
+                Byte[] offsetKey = new Byte[globalOffset];
 
-                    // Copying the recreation key into provided user buffer.
-                    Buffer.BlockCopy(tempBuffer, 0, offsetKey, 0, globalOffset);
+                // Copying the recreation key into provided user buffer.
+                Buffer.BlockCopy(tempBuffer, 0, offsetKey, 0, globalOffset);
 
-                    // Returning the key.
-                    return offsetKey;
-                }
+                // Returning the key.
+                return offsetKey;
             }
         }
-
-        // Was not able to fetch the key.
-        return null;
     }
 
     protected virtual void ValidateNodeType(byte keyNodeType) {

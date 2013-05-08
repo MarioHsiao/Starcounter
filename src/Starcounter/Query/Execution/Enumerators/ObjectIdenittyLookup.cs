@@ -264,7 +264,7 @@ namespace Starcounter.Query.Execution {
         /// <summary>
         /// Used to populate the recreation key.
         /// </summary>
-        public unsafe Int32 SaveEnumerator(Byte* keyData, Int32 globalOffset, Boolean saveDynamicDataOnly) {
+        public unsafe UInt16 SaveEnumerator(Byte* keyData, UInt16 globalOffset, Boolean saveDynamicDataOnly) {
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Recreation key cannot be created for object identity lookup.");
         }
 
