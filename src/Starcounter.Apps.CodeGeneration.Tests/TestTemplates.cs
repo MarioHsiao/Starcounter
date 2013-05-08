@@ -13,6 +13,7 @@ using Starcounter.Templates.Interfaces;
 using Starcounter.Internal.JsonTemplate;
 using System.IO;
 using System.Collections.Generic;
+using Starcounter.XSON.Metadata;
 
 namespace Test {
     /// <summary>
@@ -80,7 +81,7 @@ namespace Test {
         [Test]
         public static void GenerateCsFromTestMessage() {
             String className = "TestMessage";
-            CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
+            CodeBehindMetadata metadata = (CodeBehindMetadata)JsonFactory.Compiler.AnalyzeCodeBehind(className, className + ".json.cs");
 
             TJson actual = (TJson)TemplateFromJs.CreateFromJs(File.ReadAllText(className + ".json"), false);
             Assert.IsInstanceOf(typeof(TJson), actual);
@@ -99,7 +100,7 @@ namespace Test {
         public static void GenerateCsWithCodeBehind()
         {
             String className = "MySampleApp";
-            CodeBehindMetadata metadata = CodeBehindAnalyzer.Analyze(className, className + ".json.cs");
+            CodeBehindMetadata metadata = (CodeBehindMetadata)JsonFactory.Compiler.AnalyzeCodeBehind(className, className + ".json.cs");
 
             TJson actual = TemplateFromJs.ReadJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);

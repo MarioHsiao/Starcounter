@@ -11,8 +11,8 @@ using NUnit.Framework;
 using Starcounter.Apps;
 using Starcounter.Internal;
 using Starcounter.Templates;
-using Starcounter.Internal.JsonTemplate;
 using System.IO;
+using Starcounter.Internal.JsonTemplate;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {

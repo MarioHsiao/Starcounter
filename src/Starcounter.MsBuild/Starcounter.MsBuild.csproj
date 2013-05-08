@@ -72,6 +72,22 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Starcounter.XSON.CodeGeneration\Starcounter.XSON.CodeGeneration.csproj">
+      <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>
+      <Name>Starcounter.XSON.CodeGeneration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
+      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
+      <Name>Starcounter.XSON.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsonReader\Starcounter.XSON.JsonReader.csproj">
+      <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
+      <Name>Starcounter.XSON.JsonReader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
+      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
+      <Name>Starcounter.XSON.JsTemplateParser</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
@@ -79,22 +95,6 @@
     <ProjectReference Include="..\ThirdParty\DynamoIoc\DynamoIoc.csproj">
       <Project>{ea81e2c5-0477-42ab-82f2-b57228af694e}</Project>
       <Name>DynamoIoc</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.CodeGeneration\Starcounter.Apps.CodeGeneration.csproj">
-      <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>
-      <Name>Starcounter.Apps.CodeGeneration</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.JsonReader\Starcounter.Apps.JsonReader.csproj">
-      <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
-      <Name>Starcounter.Apps.JsonReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.Apps.Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.JsTemplateParser\Starcounter.Apps.JsTemplateParser.fsproj">
-      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
-      <Name>Starcounter.Apps.JsTemplateParser</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes\BitsAndBytes.csproj">
       <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>

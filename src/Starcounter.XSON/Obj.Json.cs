@@ -12,21 +12,27 @@ using Starcounter.Templates;
 using Starcounter.Internal;
 
 namespace Starcounter {
-
     /// <summary>
     /// Class App
     /// </summary>
     public partial class Obj {
-//        private char[] Session;
+        public void ToJson(IntPtr buffer, int bufferSize) {
+            Template.Serialize(buffer, bufferSize, this);
+        }
+
+        public string ToJson() {
+            return null;
+        }
+
         /// <summary>
-        /// To the json UTF8.
+        /// Serializes the current instance to a bytearray containing UTF8 encoded bytes.
         /// </summary>
-        /// <returns>System.Byte[][].</returns>
+        /// <returns>A bytearray containing the serialized json.</returns>
         /// <remarks>Needs optimization. Should build JSON directly from TurboText or static UTF8 bytes
         /// to UTF8. This suboptimal version first builds Windows UTF16 strings that are ultimatelly
         /// not used.</remarks>
         public byte[] ToJsonUtf8() {
-            return Encoding.UTF8.GetBytes(ToJson());
+            return Encoding.UTF8.GetBytes(ToJsonSlow());
         }
 
         /// <summary>
@@ -34,7 +40,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns>System.String.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public virtual string ToJson() { //, IncludeView includeViewContent = IncludeView.Default) {
+        public virtual string ToJsonSlow() { 
 #if QUICKTUPLE
             var sb = new StringBuilder();
             var templ = this.Template;

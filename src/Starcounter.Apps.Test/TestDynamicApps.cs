@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Client;
-using Starcounter.Templates.Interfaces;
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using System;

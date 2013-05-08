@@ -82,21 +82,9 @@
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.Apps.Interfaces</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.HtmlReader\Starcounter.Apps.HtmlReader.csproj">
       <Project>{5546e8c2-844a-4662-84fa-b47d88e515ce}</Project>
       <Name>Starcounter.Apps.HtmlReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.JsonReader\Starcounter.Apps.JsonReader.csproj">
-      <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
-      <Name>Starcounter.Apps.JsonReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.JsTemplateParser\Starcounter.Apps.JsTemplateParser.fsproj">
-      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
-      <Name>Starcounter.Apps.JsTemplateParser</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

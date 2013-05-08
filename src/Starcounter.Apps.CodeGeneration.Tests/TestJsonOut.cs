@@ -6,11 +6,8 @@
 
 using System;
 using NUnit.Framework;
-using Starcounter.Internal.Application;
-using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Client.Tests.Application
 {

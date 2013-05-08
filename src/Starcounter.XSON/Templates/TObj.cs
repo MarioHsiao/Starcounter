@@ -16,6 +16,18 @@ namespace Starcounter.Templates {
     public abstract class TObj : TContainer {
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
+        private Action<IntPtr, int, dynamic> serialize;
+
+        internal void Serialize(IntPtr buffer, int bufferSize, Obj instance) {
+            if (serialize == null)
+                throw new NotImplementedException(); // TODO! Generate serializer.
+
+            serialize(buffer, bufferSize, instance);
+        }
+
+        internal void InvalidateSerializer() {
+            serialize = null;
+        }
 
         /// <summary>
         /// The _ class name
