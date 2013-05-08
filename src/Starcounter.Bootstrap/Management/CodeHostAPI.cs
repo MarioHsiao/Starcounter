@@ -9,14 +9,18 @@ namespace Starcounter.Bootstrap.Management {
         /// Provides the set of code host URIs offered by the
         /// current instance.
         /// </summary>
-        public static ResourceUris Uris { get; private set; }
+        internal static ResourceUris Uris { get; private set; }
 
         /// <summary>
         /// Performs setup of the <see cref="CodeHostAPI"/>.
         /// </summary>
         /// <param name="hostIdentity"></param>
-        public static void Setup(string hostIdentity) {
+        internal static void Setup(string hostIdentity) {
             Uris = new ResourceUris(hostIdentity);
+        }
+
+        public static ResourceUris CreateServiceURIs(string hostIdentity) {
+            return new ResourceUris(hostIdentity);
         }
 
         /// <summary>
