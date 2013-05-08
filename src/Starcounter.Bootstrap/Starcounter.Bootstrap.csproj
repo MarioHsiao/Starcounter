@@ -68,7 +68,15 @@
     <Compile Include="Management\ManagementService.cs" />
     <Compile Include="ProgramCommandLine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+	<Compile Include="Management\Representations.JSON\Executable.json.cs">
+      <DependentUpon>Executable.json</DependentUpon>
+    </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Management\Representations.JSON\Executable.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>	
   <ItemGroup>
     <ProjectReference Include="..\Hosting\Starcounter.Hosting\Starcounter.Hosting.csproj">
       <Project>{b427c63b-c13f-47cc-b101-29ced68a68b8}</Project>
