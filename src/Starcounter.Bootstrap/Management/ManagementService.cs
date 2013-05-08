@@ -50,8 +50,11 @@ namespace Starcounter.Bootstrap.Management {
         /// <param name="port">The port all handlers should register under.</param>
         /// <param name="hostIdentity">The identity of the host. Used when
         /// constructing and registering management URIs.</param>
-        public static void Setup(ushort port, string hostIdentity) {
+        /// <param name="handleScheduler">Handle to the scheduler to use when
+        /// management services need to schedule work to be done.</param>
+        public static unsafe void Setup(ushort port, string hostIdentity, void* handleScheduler) {
             shutdownEvent = new ManualResetEvent(false);
+            
             Unavailable = true;
             IsAdministrator = NewConfig.IsAdministratorApp;
             Port = port;
@@ -60,6 +63,7 @@ namespace Starcounter.Bootstrap.Management {
             if (!IsAdministrator) {
                 CodeHostAPI.Setup(hostIdentity);
                 CodeHostHandler.Setup();
+                ExecutablesHandler.Setup(handleScheduler);
             }
         }
 
