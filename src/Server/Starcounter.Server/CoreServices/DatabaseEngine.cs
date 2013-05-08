@@ -411,5 +411,19 @@ namespace Starcounter.Server {
 
             return info;
         }
+
+        internal static Exception CreateCodeHostTerminated(Process codeHostProcess, Database database, Exception serverException = null) {
+            var exitCode = (uint)codeHostProcess.ExitCode;
+            var errorPostfix = FormatCodeHostProcessInfoString(database, codeHostProcess, true);
+
+            // If the exit code indicates anything greater than 1,
+            // we construct an inner exception based on the exit code.
+            // Exit code 1 indicates manual kiling of the process.
+            var inner = exitCode > 1 ? 
+                ErrorCode.ToException(exitCode, serverException) :
+                serverException;
+            
+            return ErrorCode.ToException(Error.SCERRDATABASEENGINETERMINATED, inner, errorPostfix);
+        }
     }
 }
