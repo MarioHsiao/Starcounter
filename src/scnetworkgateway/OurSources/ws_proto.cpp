@@ -89,7 +89,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BM
     {
         // Processing current frame.
         uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
-        err_code = GetFrameInfo(cur_data_ptr);
+        err_code = ParseFrameInfo(cur_data_ptr);
         if (err_code)
             return err_code;
 
@@ -132,7 +132,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BM
         uint32_t err_code;
 
         // Determining operation type.
-        switch(frame_info_.opcode_)
+        switch (frame_info_.opcode_)
         {
             case WS_OPCODE_TEXT:
             case WS_OPCODE_BINARY:
@@ -215,10 +215,6 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Handled successfully.
     *is_handled = true;
 
-    // Checking if this socket data is for send only.
-    if (sd->get_socket_just_send_flag())
-        goto JUST_SEND_SOCKET_DATA;
-
     // Getting user data.
     uint8_t *payload = sd->UserDataBuffer();
 
@@ -229,12 +225,10 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     payload = WriteData(gw, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, &payload_len);
 
     // Checking that we are not running out of buffer.
-    GW_ASSERT(sd->get_accum_buf()->get_orig_buf_ptr() < payload);
+    GW_ASSERT(sd->get_data_blob() < payload);
 
     // Prepare buffer to send outside.
     sd->get_accum_buf()->PrepareForSend(payload, payload_len);
-
-JUST_SEND_SOCKET_DATA:
 
     // Sending data.
     uint32_t err_code = gw->Send(sd);
@@ -320,13 +314,13 @@ void WsProto::MaskUnMask(int32_t payload_len, uint64_t mask, uint64_t *data)
 
 #define swap64(y) (((uint64_t)ntohl(y)) << 32 | ntohl(y >> 32))
 
-uint32_t WsProto::GetFrameInfo(uint8_t *data)
+uint32_t WsProto::ParseFrameInfo(uint8_t *data)
 {
     // Getting final fragment bit.
     frame_info_.is_final_ = (*data & 0x80);
 
     // Getting operation code.
-    frame_info_.opcode_ = (WS_OPCODE)(*data & 0x0F);
+    frame_info_.opcode_ = (*data & 0x0F);
 
     // Getting mask flag.
     data++;
@@ -374,7 +368,7 @@ uint32_t WsProto::GetFrameInfo(uint8_t *data)
 
 uint8_t *WsProto::WriteData(
     GatewayWorker *gw,
-    WS_OPCODE opcode,
+    uint8_t opcode,
     bool masking,
     WS_FRAGMENT_FLAG frame_type,
     uint8_t *payload,

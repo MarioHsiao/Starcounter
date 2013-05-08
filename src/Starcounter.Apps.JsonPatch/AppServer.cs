@@ -200,6 +200,9 @@ namespace Starcounter.Internal.Web {
                             Session.Start((Session)request.AppsSessionInterface);
                         }
 
+                        // Updating session information.
+                        request.UpdateSessionDetails();
+
                         // Invoking original user delegate with parameters here.
                         UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
 

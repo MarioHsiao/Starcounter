@@ -151,6 +151,8 @@ public:
 
         GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
+        GW_ASSERT((&http_ws_proto_.get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+
         GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == MixedCodeConstants::SOCKET_DATA_NUM_CLONE_BYTES);
 
         GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NUM_CHUNKS);
@@ -626,6 +628,12 @@ public:
             user_data_written_bytes_,
             (uint8_t*)this + user_data_offset_in_socket_data_,
             true);
+    }
+
+    // Resets accumulating buffer to its default socket data values.
+    void ResetAccumBuffer()
+    {
+        accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
     }
 
     // Index into databases array.
