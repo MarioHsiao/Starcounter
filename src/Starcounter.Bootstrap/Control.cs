@@ -134,7 +134,10 @@ namespace StarcounterInternal.Bootstrap
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)
             {
-                bmx.sc_init_bmx_manager(HttpStructs.GlobalSessions.g_destroy_apps_session_callback);
+                bmx.sc_init_bmx_manager(
+                    HttpStructs.GlobalSessions.g_destroy_apps_session_callback,
+                    HttpStructs.GlobalSessions.g_create_new_apps_session_callback);
+
                 OnBmxManagerInitialized();
 
                 // Initializing package loader.

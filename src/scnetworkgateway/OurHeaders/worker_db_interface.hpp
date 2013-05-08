@@ -152,10 +152,13 @@ public:
     }
 
     // Sends session destroyed message.
-    uint32_t PushDeadSession(
-        apps_unique_session_num_type apps_unique_session,
-        session_salt_type apps_session_salt,
-        uint32_t scheduler_id);
+    uint32_t PushSessionDestroy(
+        session_index_type linear_index,
+        session_salt_type random_salt,
+        uint8_t scheduler_id);
+
+    // Sends session create message.
+    uint32_t PushSessionCreate(SocketDataChunkRef sd);
 
     // Getting shared interface.
     core::shared_interface* get_shared_int()
@@ -232,7 +235,7 @@ public:
             uint32_t scheduler_id = (chunk_index_and_scheduler >> 24) & 0xFFUL;
 
             // Just getting number of chunks to push.
-            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(chunk_index)) + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(chunk_index)) + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
             // Pushing chunk using standard procedure.
             PushLinkedChunksToDb(chunk_index, sd->get_num_chunks(), scheduler_id, false);

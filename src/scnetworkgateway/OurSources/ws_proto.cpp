@@ -35,20 +35,17 @@ const int32_t kWsGuidLen = strlen(kWsGuid);
 // A client MUST close a connection if it detects a masked frame.
 
 const char *kWsHsResponse =
-    "HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
-    "Upgrade: Websocket\r\n"
+    "HTTP/1.1 101 Switching Protocols\r\n"
+    "Upgrade: websocket\r\n"
     "Connection: Upgrade\r\n"
     "Sec-WebSocket-Accept: @                           \r\n"
-    "Server: Starcounter\r\n";
+    "Server: SC\r\n"
+    //"Sec-WebSocket-Protocol: chat\r\n";
     //"Sec-WebSocket-Protocol: $                                             \r\n"
+    "\r\n";
 
 const int32_t kWsHsResponseLen = strlen(kWsHsResponse);
 const int32_t kWsAcceptOffset = abs(kWsHsResponse - strstr(kWsHsResponse, "@"));
-
-// Embedding session cookie.
-const char *kWsCookie = "Set-Cookie: SessionId=%                                       ; HttpOnly\r\n";
-const int32_t kWsCookieLen = strlen(kWsCookie);
-const int32_t kWsSessionIdOffset = abs(kWsCookie - strstr(kWsCookie, "%"));
 
 const char *kWsBadProto =
     "HTTP/1.1 400 Bad Request\r\n"
@@ -59,211 +56,283 @@ const char *kWsBadProto =
 
 const int32_t kWsBadProtoLen = strlen(kWsBadProto) + 1;
 
-uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
+uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
-    uint8_t *payload = GetFrameInfo(&frame_info_, sd->get_accum_buf()->get_orig_buf_ptr());
+    // Handled successfully.
+    *is_handled = true;
+
+    uint32_t err_code = 0;
+
+    // TODO: Make multi-chunks support.
+    GW_ASSERT(1 == sd->get_num_chunks());
+
+    // Obtaining saved user handler id.
+    user_handler_id = sd->get_saved_user_handler_id();
+    GW_ASSERT_DEBUG(bmx::BMX_INVALID_HANDLER_INFO != user_handler_id);
+
+    // Data is complete, creating parallel receive clone.
+    if (sd->HasActiveSession())
+    {
+        err_code = sd->CloneToReceive(gw);
+        if (err_code)
+            return err_code;
+    }
+
+    SocketDataChunk* new_sd = NULL;
+    uint8_t* orig_data_ptr = sd->get_accum_buf()->get_orig_buf_ptr();
+    uint32_t total_bytes = sd->get_accum_buf()->get_accum_len_bytes();
+    uint32_t num_processed_bytes = 0;
+
+    // Since WebSocket frames can be grouped into one network packet
+    // we have to processes all of them in a loop.
+    while (true)
+    {
+        // Processing current frame.
+        uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
+        err_code = GetFrameInfo(cur_data_ptr);
+        if (err_code)
+            return err_code;
+
+        uint8_t* payload = frame_info_.payload_;
+
+        // Checking if header is at the very end of chunk.
+        if (payload > (orig_data_ptr + total_bytes))
+            return SCERRGWWEBSOCKETSPAYLOADTOOBIG;
+
+        // Calculating number of bytes processed.
+        num_processed_bytes += (frame_info_.payload_ - cur_data_ptr) + frame_info_.payload_len_;
+
+        // Checking if payload length fits in maximum data.
+        if (num_processed_bytes > total_bytes)
+            return SCERRGWWEBSOCKETSPAYLOADTOOBIG;
+
+        // TODO: Support messages that exceed chunk size.
+        GW_ASSERT(num_processed_bytes < SOCKET_DATA_BLOB_SIZE_BYTES);
+
+        // Checking if it is the last frame.
+        if (num_processed_bytes < total_bytes)
+        {
+            // Cloning chunk to send it to database.
+            err_code = sd->CloneToSend(gw, &new_sd);
+            if (err_code)
+                return err_code;
+
+            // Updating data pointer in a new chunk.
+            orig_data_ptr = new_sd->get_accum_buf()->get_orig_buf_ptr();
+        }
+        else
+        {
+            new_sd = NULL;
+        }
 
 #ifdef GW_WEBSOCKET_DIAG
-    GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << GW_ENDL;
+        GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << GW_ENDL;
 #endif
 
-    uint32_t err_code;
+        uint32_t err_code;
 
-    // Determining operation type.
-    switch(frame_info_.opcode_)
-    {
-        case WS_OPCODE_TEXT:
+        // Determining operation type.
+        switch(frame_info_.opcode_)
         {
-            // Data is complete, creating parallel receive clone.
-            err_code = sd->CloneToReceive(gw);
-            GW_ERR_CHECK(err_code);
+            case WS_OPCODE_TEXT:
+            case WS_OPCODE_BINARY:
+            {
+                // Unmasking data.
+                MaskUnMask(frame_info_.payload_len_, frame_info_.mask_, (uint64_t *)payload);
 
-            // Unmasking data.
-            MaskUnMask(frame_info_.payload_len_, frame_info_.mask_, (uint64_t *)payload);
+                // Setting user data length and pointer.
+                sd->set_user_data_written_bytes(frame_info_.payload_len_);
 
-            // Setting user data length and pointer.
-            sd->set_user_data_written_bytes(frame_info_.payload_len_);
-            sd->set_user_data_offset(payload - ((uint8_t *)sd));
+                // Setting request offsets.
+                HttpRequest* req = sd->get_http_ws_proto()->get_http_request();
+                req->request_len_bytes_ = frame_info_.payload_len_;
+                req->request_offset_ = payload - (uint8_t*)sd;
+                req->content_len_bytes_ = req->request_len_bytes_;
+                req->content_offset_ = req->request_offset_;
 
-            // Push chunk to corresponding channel/scheduler.
-            // TODO: Deal with situation when not able to push.
-            gw->PushSocketDataToDb(sd, user_handler_id);
+                // Determining user data offset.
+                uint32_t user_data_offset = payload - (uint8_t *) sd;
+                if ((payload - cur_data_ptr) < WS_NEEDED_USER_DATA_OFFSET)
+                    user_data_offset += WS_NEEDED_USER_DATA_OFFSET;
 
+                sd->set_user_data_offset_in_socket_data(user_data_offset);
+
+                // Push chunk to corresponding channel/scheduler.
+                gw->PushSocketDataToDb(sd, user_handler_id);
+
+                break;
+            }
+
+            case WS_OPCODE_CLOSE:
+            {
+                // Peer wants to close the WebSocket.
+                return SCERRGWWEBSOCKETOPCODECLOSE;
+            }
+
+            case WS_OPCODE_PING:
+            {
+                // Send the request Ping.
+                break;
+            }
+
+            case WS_OPCODE_PONG:
+            {
+                uint64_t payloadLen = frame_info_.payload_len_;
+
+                // Send the response Pong.
+                MaskUnMask(payloadLen, frame_info_.mask_, (uint64_t *)payload);
+                payload = WriteData(gw, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, &payloadLen);
+
+                // Prepare buffer to send outside.
+                sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
+
+                // Sending data.
+                err_code = gw->Send(sd);
+                GW_ERR_CHECK(err_code);
+
+                break;
+            }
+
+            default:
+            {
+                // Peer wants to close the WebSocket.
+                return SCERRGWWEBSOCKETUNKNOWNOPCODE;
+            }
+        }
+
+        // Checking if we have a new chunk.
+        if (new_sd)
+            sd = new_sd;
+        else
             break;
-        }
-
-        case WS_OPCODE_BINARY:
-        {
-            // Data is complete, creating parallel receive clone.
-            err_code = sd->CloneToReceive(gw);
-            GW_ERR_CHECK(err_code);
-
-            // Unmasking data.
-            MaskUnMask(frame_info_.payload_len_, frame_info_.mask_, (uint64_t *)payload);
-
-            // Setting user data length and pointer.
-            sd->set_user_data_written_bytes(frame_info_.payload_len_);
-            sd->set_user_data_offset(payload - ((uint8_t *)sd));
-
-            // Push chunk to corresponding channel/scheduler.
-            // TODO: Deal with situation when not able to push.
-            gw->PushSocketDataToDb(sd, user_handler_id);
-
-            break;
-        }
-
-        case WS_OPCODE_CLOSE:
-        {
-            // Peer wants to close the WebSocket.
-            return SCERRGWWEBSOCKETOPCODECLOSE;
-        }
-
-        case WS_OPCODE_PING:
-        {
-            // Send the request Ping.
-            break;
-        }
-
-        case WS_OPCODE_PONG:
-        {
-            uint64_t payloadLen = frame_info_.payload_len_;
-
-            // Send the response Pong.
-            MaskUnMask(payloadLen, frame_info_.mask_, (uint64_t *)payload);
-            payload = WriteData(gw, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, &payloadLen);
-
-            // Prepare buffer to send outside.
-            sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
-
-            // Sending data.
-            err_code = gw->Send(sd);
-            GW_ERR_CHECK(err_code);
-
-            break;
-        }
-
-        default:
-        {
-            // Peer wants to close the WebSocket.
-            return SCERRGWWEBSOCKETUNKNOWNOPCODE;
-        }
     }
 
     return 0;
 }
 
-uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
+uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
+    // Handled successfully.
+    *is_handled = true;
+
+    // Checking if this socket data is for send only.
+    if (sd->get_socket_just_send_flag())
+        goto JUST_SEND_SOCKET_DATA;
+
     // Getting user data.
     uint8_t *payload = sd->UserDataBuffer();
 
     // Length of user data in bytes.
-    uint64_t payloadLen = sd->get_user_data_written_bytes();
+    uint64_t payload_len = sd->get_user_data_written_bytes();
 
     // Place where masked data should be written.
-    payload = WriteData(gw, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, &payloadLen);
+    payload = WriteData(gw, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, &payload_len);
+
+    // Checking that we are not running out of buffer.
+    GW_ASSERT(sd->get_accum_buf()->get_orig_buf_ptr() < payload);
 
     // Prepare buffer to send outside.
-    sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
+    sd->get_accum_buf()->PrepareForSend(payload, payload_len);
+
+JUST_SEND_SOCKET_DATA:
 
     // Sending data.
     uint32_t err_code = gw->Send(sd);
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        return err_code;
 
     return 0;
 }
 
-uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd)
+uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
+    // Handled successfully.
+    *is_handled = true;
+
     uint32_t err_code;
 
     // Pointing to the beginning of the data.
-    uint8_t *respDataBegin = sd->get_accum_buf()->ResponseDataStart();
-    uint32_t respBufferSize = 0;
+    uint8_t *resp_data_begin = sd->get_accum_buf()->ResponseDataStart();
 
     // Copying template in response buffer.
-    memcpy(respDataBegin, kWsHsResponse, kWsHsResponseLen);
+    memcpy(resp_data_begin, kWsHsResponse, kWsHsResponseLen);
 
     // Generating handshake response.
-    char hsResponse[128];
-    strncpy(hsResponse, /*"FixwdnCvmOSgGEhuI38LjA=="*/client_key_, /*24*/client_key_len_);
-    strncpy(hsResponse + client_key_len_, kWsGuid, kWsGuidLen);
+    char handshake_resp_temp[128];
+    strncpy(handshake_resp_temp, client_key_, client_key_len_);
+    strncpy(handshake_resp_temp + client_key_len_, kWsGuid, kWsGuidLen);
 
-    char sha1[20]; // = {0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea };
-    SHA1((uint8_t *)hsResponse, client_key_len_ + kWsGuidLen, (uint8_t *)sha1);
+    // Generating SHA1 into temp buffer.
+    char* sha1_begin = handshake_resp_temp + client_key_len_ + kWsGuidLen;
+    SHA1((uint8_t *)handshake_resp_temp, client_key_len_ + kWsGuidLen, (uint8_t *)sha1_begin);
 
     // Converting SHA1 into Base64.
-    char sha1Base64[64];
+    char* base64_begin = sha1_begin + 20;
     base64_encodestate b64;
     base64_init_encodestate(&b64);
-    int32_t sha1Base64Len = base64_encode_block(sha1, 20, sha1Base64, &b64);
-    int32_t sha1Base64EndLen = base64_encode_blockend(sha1Base64 + sha1Base64Len, &b64);
+    uint8_t base64_len = base64_encode_block(sha1_begin, 20, base64_begin, &b64);
+    base64_len += base64_encode_blockend(base64_begin + base64_len, &b64) - 1;
 
     // Sec-WebSocket-Accept.
-    memcpy(respDataBegin + kWsAcceptOffset, sha1Base64, sha1Base64Len + sha1Base64EndLen - 1);
-    respBufferSize += kWsHsResponseLen;
-
-    // Set-Cookie.
-    /*if (sd->GetAttachedSession() == NULL)
-    {
-        // Copying cookie header.
-        memcpy(respDataBegin + respBufferSize, kWsCookie, kWsCookieLen);
-
-        // Generating and attaching new session.
-        sd->AttachToSession(g_gateway.GenerateNewSession(gw));
-
-        // Converting session to string.
-        char temp[32];
-        int32_t sessionStringLen = sd->GetAttachedSession()->ConvertToString(temp);
-        memcpy(respDataBegin + respBufferSize + kWsSessionIdOffset, temp, sessionStringLen);
-        respBufferSize += kWsCookieLen;
-    }*/
-
-    // Empty line.
-    memcpy(respDataBegin + respBufferSize, "\r\n", 2);
-    respBufferSize += 2;
-
-    // Prepare buffer to send outside.
-    sd->get_accum_buf()->PrepareForSend(respDataBegin, respBufferSize);
+    GW_ASSERT_DEBUG(28 == base64_len);
+    memcpy(resp_data_begin + kWsAcceptOffset, base64_begin, base64_len);
 
     // Setting WebSocket handshake flag.
-    sd->set_web_sockets_upgrade_flag(true);
+    sd->set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
+
+    // Setting fixed handler id.
+    sd->set_saved_user_handler_id(user_handler_id);
+
+    // Prepare buffer to send outside.
+    sd->get_accum_buf()->PrepareForSend(resp_data_begin, kWsHsResponseLen);
+
+    // TODO: Check the strategy about creating session.
+    /*
+    // Just sending on way back.
+    sd->set_socket_just_send_flag(true);
+
+    // Push chunk to obtain new session.
+    err_code = gw->GetWorkerDb(sd->get_db_index())->PushSessionCreate(sd);
+    if (err_code)
+        return err_code;
+    */
 
     // Sending data.
     err_code = gw->Send(sd);
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        return err_code;
 
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG
-    GW_COUT << respDataBegin << GW_ENDL;
+    GW_COUT << resp_data_begin << GW_ENDL;
 #endif
 
     return 0;
 }
 
-void WsProto::MaskUnMask(int32_t payloadLen, uint64_t mask, uint64_t *data)
+void WsProto::MaskUnMask(int32_t payload_len, uint64_t mask, uint64_t *data)
 {
-    uint32_t len8Bytes = (payloadLen >> 3) + 1;
-    uint64_t mask8Bytes = mask | (mask << 32);
-    for (int32_t i = 0; i < len8Bytes; i++)
-        data[i] = data[i] ^ mask8Bytes;
+    uint32_t len_8bytes = (payload_len >> 3) + 1;
+    uint64_t mask_8bytes = mask | (mask << 32);
+    for (int32_t i = 0; i < len_8bytes; i++)
+        data[i] = data[i] ^ mask_8bytes;
 }
 
 #define swap64(y) (((uint64_t)ntohl(y)) << 32 | ntohl(y >> 32))
 
-uint8_t *WsProto::GetFrameInfo(WsProtoFrameInfo *pFrameInfo, uint8_t *data)
+uint32_t WsProto::GetFrameInfo(uint8_t *data)
 {
-    WsProtoFrameInfo &frameInfo = *pFrameInfo;
-
     // Getting final fragment bit.
-    frameInfo.is_final_ = (*data & 0x80);
+    frame_info_.is_final_ = (*data & 0x80);
 
     // Getting operation code.
-    frameInfo.opcode_ = (WS_OPCODE)(*data & 0x0F);
+    frame_info_.opcode_ = (WS_OPCODE)(*data & 0x0F);
 
     // Getting mask flag.
     data++;
-    frameInfo.is_masked_ = (*data & 0x80);
+    frame_info_.is_masked_ = (*data & 0x80);
+
+    // TODO: MUST BE masked from client.
 
     // Removing the mask flag.
     (*data) &= 0x7F;
@@ -274,8 +343,8 @@ uint8_t *WsProto::GetFrameInfo(WsProtoFrameInfo *pFrameInfo, uint8_t *data)
         // 16 bits.
         case 126:
         {
-            frameInfo.payload_len_ = ntohs(*(uint16_t *)(data + 1));
-            frameInfo.mask_ = *(uint32_t *)(data + 3);
+            frame_info_.payload_len_ = ntohs(*(uint16_t *)(data + 1));
+            frame_info_.mask_ = *(uint32_t *)(data + 3);
             data += 7;
             break;
         }
@@ -283,8 +352,8 @@ uint8_t *WsProto::GetFrameInfo(WsProtoFrameInfo *pFrameInfo, uint8_t *data)
         // 64 bits.
         case 127:
         {
-            frameInfo.payload_len_ = swap64(*(uint64_t *)(data + 1));
-            frameInfo.mask_ = *(uint32_t *)(data + 9);
+            frame_info_.payload_len_ = swap64(*(uint64_t *)(data + 1));
+            frame_info_.mask_ = *(uint32_t *)(data + 9);
             data += 13;
             break;
         }
@@ -292,91 +361,93 @@ uint8_t *WsProto::GetFrameInfo(WsProtoFrameInfo *pFrameInfo, uint8_t *data)
         // 7 bits.
         default:
         {
-            frameInfo.payload_len_ = *data;
-            frameInfo.mask_ = *(uint32_t *)(data + 1);
+            frame_info_.payload_len_ = *data;
+            frame_info_.mask_ = *(uint32_t *)(data + 1);
             data += 5;
         }
     }
 
-    return data;
+    frame_info_.payload_ = data;
+
+    return 0;
 }
 
 uint8_t *WsProto::WriteData(
     GatewayWorker *gw,
     WS_OPCODE opcode,
     bool masking,
-    WS_FRAGMENT_FLAG frameType,
+    WS_FRAGMENT_FLAG frame_type,
     uint8_t *payload,
-    uint64_t *pPayloadLen)
+    uint64_t *ppayload_len)
 {
-    uint64_t &payloadLen = *pPayloadLen;
+    uint64_t &payload_len = *ppayload_len;
 
     // Pointing to destination memory.
-    uint8_t *destData = payload - 1;
+    uint8_t *dest_data = payload - 1;
 
     // Checking masking.
     if (masking)
-        destData -= 4;
+        dest_data -= 4;
 
     // Checking payload length.
-    if (payloadLen < 126)
-        destData -= 1;
-    else if (payloadLen <= 0xFFFF)
-        destData -= 3;
+    if (payload_len < 126)
+        dest_data -= 1;
+    else if (payload_len <= 0xFFFF)
+        dest_data -= 3;
     else
-        destData -= 9;
+        dest_data -= 9;
 
     // Saving original data pointer.
-    uint8_t *destDataOrig = destData;
+    uint8_t *dest_data_orig = dest_data;
 
     // Applying opcode depending on the frame type.
-    switch (frameType)
+    switch (frame_type)
     {
         case WS_FRAME_SINGLE:
         {
-            *destData = 0x80 | opcode;
+            *dest_data = 0x80 | opcode;
             break;
         }
 
         case WS_FRAME_FIRST:
         {
-            *destData = opcode;
+            *dest_data = opcode;
             break;
         }
 
         case WS_FRAME_CONT:
         {
-            *destData = 0;
+            *dest_data = 0;
             break;
         }
 
         case WS_FRAME_LAST:
         {
-            *destData = 0x80;
+            *dest_data = 0x80;
             break;
         }
     }
 
     // Shifting to payload length byte.
-    destData++;
+    dest_data++;
 
     // Writing payload length.
-    if (payloadLen < 126)
+    if (payload_len < 126)
     {
-        *destData = payloadLen;
-        destData++;
+        *dest_data = payload_len;
+        dest_data++;
     }
-    else if (payloadLen <= 0xFFFF)
+    else if (payload_len <= 0xFFFF)
     {
-        *destData = 126;
-        (*(uint16_t *)(destData + 1)) = htons(payloadLen);
-        destData += 3;
+        *dest_data = 126;
+        (*(uint16_t *)(dest_data + 1)) = htons(payload_len);
+        dest_data += 3;
     }
     else
     {
-        *destData = 127;
-        (*(uint64_t *)(destData + 1)) = swap64(payloadLen);
-        destData += 9;
+        *dest_data = 127;
+        (*(uint64_t *)(dest_data + 1)) = swap64(payload_len);
+        dest_data += 9;
     }
 
     // Checking if we do masking.
@@ -386,21 +457,21 @@ uint8_t *WsProto::WriteData(
         uint32_t mask = gw->get_random()->uint64();
 
         // Writing mask.
-        *(uint32_t *)destData = mask;
-        *(destDataOrig + 1) |= 0x80;
+        *(uint32_t *)dest_data = mask;
+        *(dest_data_orig + 1) |= 0x80;
 
         // Shifting to the payload itself.
-        destData += 4;
+        dest_data += 4;
 
         // Do masking on all data.
-        MaskUnMask(payloadLen, mask, (uint64_t *)destData);
+        MaskUnMask(payload_len, mask, (uint64_t *)dest_data);
     }
 
     // Returning total data length.
-    payloadLen = (payload - destDataOrig) + payloadLen;
+    payload_len = (payload - dest_data_orig) + payload_len;
 
     // Returning new data pointer.
-    return destDataOrig;
+    return dest_data_orig;
 }
 
 } // namespace network

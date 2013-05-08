@@ -1,6 +1,6 @@
 #include "bmx.hpp"
 
-EXTERN_C uint32_t sccoredb_set_current_transaction(int32_t unlock_tran_from_thread, uint64_t handle, uint64_t verify);
+EXTERN_C uint32_t __stdcall sccoredb_set_current_transaction(int32_t unlock_tran_from_thread, uint64_t handle, uint64_t verify);
 
 using namespace starcounter::bmx;
 using namespace starcounter::core;
@@ -177,7 +177,8 @@ uint32_t BmxData::RegisterPortHandler(
         NULL,
         0,
         NULL,
-        0);
+        0,
+        MixedCodeConstants::PROTOCOL_RAW_PORT);
 
     if (err_code)
         return err_code;
@@ -261,7 +262,8 @@ uint32_t BmxData::RegisterSubPortHandler(
         NULL,
         0,
         NULL,
-        0);
+        0,
+        MixedCodeConstants::PROTOCOL_SUB_PORT);
 
     if (err_code)
         return err_code;
@@ -287,7 +289,8 @@ uint32_t BmxData::RegisterUriHandler(
     uint8_t* param_types,
     int32_t num_params,
     GENERIC_HANDLER_CALLBACK uri_handler, 
-    BMX_HANDLER_TYPE* handler_id)
+    BMX_HANDLER_TYPE* handler_id,
+    starcounter::MixedCodeConstants::NetworkProtocolType proto_type)
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
@@ -366,7 +369,8 @@ uint32_t BmxData::RegisterUriHandler(
         processed_uri_info,
         processed_uri_len_chars,
         param_types,
-        num_params);
+        num_params,
+        proto_type);
 
     if (err_code)
         return err_code;
@@ -569,20 +573,54 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
 }
 
 // Handles destroyed session message.
-uint32_t BmxData::HandleDestroyedSession(request_chunk_part* request, TASK_INFO_TYPE* task_info)
+uint32_t BmxData::HandleSessionDestruction(request_chunk_part* request, TASK_INFO_TYPE* task_info)
 {
     // Reading Apps unique session number.
-    uint64_t apps_unique_session_index = request->read_uint64();
+    uint32_t linear_index = request->read_uint32();
 
     // Reading Apps session salt.
-    uint64_t apps_session_salt = request->read_uint64();
+    uint64_t random_salt = request->read_uint64();
 
     // Calling managed function to destroy session.
-    g_destroy_apps_session_callback(apps_unique_session_index, apps_session_salt, task_info->scheduler_number);
+    g_destroy_apps_session_callback(task_info->scheduler_number, linear_index, random_salt);
 
-    std::cout << "Session " << apps_unique_session_index << ":" << apps_session_salt << " was destroyed." << std::endl;
+    //std::cout << "Session " << linear_index << ":" << random_salt << " was destroyed." << std::endl;
+
+    // Returning chunk to pool.
+    uint32_t err_code = cm_release_linked_shared_memory_chunks(task_info->chunk_index);
+    if (err_code)
+        return err_code;
 
     return 0;
+}
+
+// Handle new session creation.
+uint32_t BmxData::HandleSessionCreation(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
+{
+    uint32_t* plinear_index = (uint32_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_LINEAR_INDEX);
+    uint64_t* prandom_salt = (uint64_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
+    uint32_t* pview_model_index = (uint32_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_VIEWMODEL_INDEX);
+
+    // Calling managed function to destroy session.
+    g_create_new_apps_session_callback(task_info->scheduler_number, plinear_index, prandom_salt, pview_model_index);
+
+    //std::cout << "Session " << apps_unique_session_index << ":" << apps_session_salt << " was created." << std::endl;
+
+    // First we need to reset chunk using request.
+    smc->get_request_chunk()->reset_offset();
+
+    bmx_handler_type* handler_id = (bmx_handler_type*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
+
+    // Setting fixed handler id in response.
+    smc->set_bmx_handler_info(*handler_id);
+
+    response_chunk_part *resp_chunk = smc->get_response_chunk();
+    resp_chunk->reset_offset();
+
+    // Now the chunk is ready to be sent back.
+    uint32_t err_code = cm_send_to_client(task_info->chunk_index);
+
+    return err_code;
 }
 
 // Sends information about all registered handlers.
@@ -702,7 +740,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
     task_info.handler_index = (BMX_HANDLER_INDEX_TYPE)handler_info;
     if (smc->get_link() != smc->link_terminator)
-        task_info.flags |= LINKED_CHUNKS_FLAG;
+        task_info.flags |= MixedCodeConstants::LINKED_CHUNKS_FLAG;
 
     // TODO: Init session values.
 

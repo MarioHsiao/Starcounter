@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 namespace Starcounter.Internal {
 
@@ -158,11 +159,12 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(Request request) {
-            var result = (Response)AppServer_.HandleRequest(request);
+        private static Boolean OnHttpMessageRoot(Request request)
+        {
+            Response response = AppServer_.HandleRequest(request);
 
-            if (result != null)
-                request.SendResponse(result.Uncompressed, 0, result.Uncompressed.Length);
+            if (response != null)
+                request.SendResponse(response.Uncompressed, 0, response.Uncompressed.Length);
 
             return true;
         }

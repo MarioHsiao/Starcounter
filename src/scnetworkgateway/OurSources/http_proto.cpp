@@ -398,21 +398,15 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case UPGRADE_FIELD:
         {
             // Double checking if its a WebSocket upgrade.
-            if ((length == 9) &&
-                (*(uint64_t*)at == *(uint64_t*)"websocket"))
-            {
-                return 0;
-            }
-            else
-            {
+            if (*(uint64_t*)at != *(uint64_t*)"websocket")
                 return SCERRGWHTTPNONWEBSOCKETSUPGRADE;
-            }
 
             break;
         }
 
         case WS_KEY_FIELD:
         {
+            GW_ASSERT_DEBUG(24 == length);
             http->ws_proto_.SetClientKey((char *)at, length);
             break;
         }
@@ -426,14 +420,8 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case WS_VERSION_FIELD:
         {
             // Checking the WebSocket protocol version.
-            if (*(uint16_t*)at == *(uint16_t*)"13")
-            {
-                return 0;
-            }
-            else
-            {
+            if (*(uint16_t*)at != *(uint16_t*)"13")
                 return SCERRGWHTTPWRONGWEBSOCKETSVERSION;
-            }
 
             break;
         }
@@ -512,8 +500,8 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         }
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_index);
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
         char* method_and_uri = (char*)(sd->get_data_blob());
@@ -625,7 +613,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         //set_matched_uri_index(matched_index);
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
-        sd->get_http_ws_proto()->http_request_.uri_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + uri_offset;
+        sd->get_http_ws_proto()->http_request_.uri_offset_ = SOCKET_DATA_OFFSET_BLOB + uri_offset;
         sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
@@ -660,8 +648,8 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id);
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
         ResetParser();
@@ -699,11 +687,8 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
-            // Handled successfully.
-            *is_handled = true;
-
             // Perform WebSockets handshake.
-            return ws_proto_.DoHandshake(gw, sd);
+            return ws_proto_.DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
@@ -766,13 +751,13 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.content_offset_;
+                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_OFFSET_BLOB - http_request_.content_offset_;
                 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
+                    http_request_.content_offset_ = SOCKET_DATA_OFFSET_BLOB + bytes_parsed;
 
                     num_content_bytes_received = 0;
                 }
@@ -838,7 +823,7 @@ ALL_DATA_ACCUMULATED:
                 case HTTP_STANDARD_RESPONSE:
                 {
                     // Setting request properties.
-                    http_request_.request_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES;
+                    http_request_.request_offset_ = SOCKET_DATA_OFFSET_BLOB;
                     http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
 
                     // Resetting user data parameters.
@@ -888,13 +873,8 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-        {
-            // Handled successfully.
-            *is_handled = true;
-
-            return ws_proto_.ProcessWsDataFromDb(gw, sd, handler_id);
-        }
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
 
 #ifndef GW_NEW_SESSIONS_APPROACH
         // Correcting the session cookie.
@@ -964,8 +944,8 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if(sd->get_web_sockets_upgrade_flag())
-            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id);
+        if (sd->IsWebSocket())
+            return ws_proto_.ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
         ResetParser();
@@ -1003,11 +983,8 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
-            // Handled successfully.
-            *is_handled = true;
-
             // Perform WebSockets handshake.
-            return ws_proto_.DoHandshake(gw, sd);
+            return ws_proto_.DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
@@ -1070,13 +1047,13 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.content_offset_;
+                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_OFFSET_BLOB - http_request_.content_offset_;
 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
+                    http_request_.content_offset_ = SOCKET_DATA_OFFSET_BLOB + bytes_parsed;
 
                     num_content_bytes_received = 0;
                 }

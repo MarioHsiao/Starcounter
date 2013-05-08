@@ -193,7 +193,8 @@ namespace NetworkIoTestApp
             MODE_US_WEBSITE,
             MODE_APPS_URIS,
             MODE_APPS_URIS_SESSION,
-            MODE_HTTP_REST_CLIENT
+            MODE_HTTP_REST_CLIENT,
+            MODE_WEBSOCKETS_URIS
         }
 
         // Performance related counters.
@@ -269,43 +270,43 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_STANDARD_BROWSER:
                 {
                     handler_uri = "GET /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpGetRoot, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpGetRoot, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "POST /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpPostRoot, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpPostRoot, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "GET /users" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpUsers, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpUsers, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "OPTIONS /";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpOptions, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpOptions, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "GET /session" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpSession, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "POST /upload";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpUpload, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpUpload, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "GET /internal-http-request";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnInternalHttpRequest, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnInternalHttpRequest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "GET /download";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpDownload, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpDownload, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "GET /killsession" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpKillSession, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpKillSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "GET /image" + db_postfix;
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpGetImage, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnHttpGetImage, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -314,7 +315,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_GATEWAY_SMC_HTTP:
                 {
                     handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     break;
@@ -323,7 +324,7 @@ namespace NetworkIoTestApp
                 case TestTypes.MODE_GATEWAY_SMC_APPS_HTTP:
                 {
                     handler_uri = "POST /smc-http-echo";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
                     
                     break;
@@ -384,12 +385,22 @@ namespace NetworkIoTestApp
                     AppsBootstrapper.Bootstrap();
 
                     handler_uri = "/";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnRestClient, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnRestClient, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
 
                     handler_uri = "/testrest";
-                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, out handler_id);
+                    GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+
+                    break;
+                }
+
+                case TestTypes.MODE_WEBSOCKETS_URIS:
+                {
+                    Handle.GET(8181, "/ws", () =>
+                    {
+                        return "Hello!";
+                    });
 
                     break;
                 }

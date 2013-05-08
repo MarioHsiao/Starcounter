@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using HttpStructs;
+using Starcounter.Internal;
 
 namespace Starcounter {
     /// <summary>
@@ -21,7 +22,9 @@ namespace Starcounter {
         private static string dataLocationUri = "/__" + Db.Environment.DatabaseName.ToLower() + "/";
 
         internal Obj root;
+
         private bool isInUse;
+
         private ChangeLog changeLog;
 
         /// <summary>
@@ -42,9 +45,15 @@ namespace Starcounter {
             changeLog = new ChangeLog();
         }
 
+        /// <summary>
+        /// Creates new empty session.
+        /// </summary>
+        /// <returns></returns>
         public static Session CreateNewEmptySession()
         {
             current = new Session();
+            ChangeLog.CurrentOnThread = current.changeLog;
+
             return current;
         }
 
@@ -99,13 +108,25 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <returns></returns>
-        internal string GetDataLocation() {
+        internal string GetDataLocation() 
+        {
             if (root == null)
                 return null;
 
             return dataLocationUri + SessionIdString;
         }
 
+        /// <summary>
+        /// Pushes data on existing session.
+        /// </summary>
+        /// <param name="data"></param>
+        public void Push(Byte[] data)
+        {
+            Request req = GatewayHandlers.GenerateNewRequest(
+                InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS);
+
+            req.SendResponse(data, 0, data.Length);
+        }
 
         /// <summary>
         /// 

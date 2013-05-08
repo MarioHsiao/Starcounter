@@ -3021,6 +3021,9 @@
     <code hex="00F4" severity="Error" name="ScErrTypeSpecIllegalConstruct">
       <message>A type specification construct was missing or had an illegal signature.</message>
     </code>
+    <code hex="00F5" severity="Error" name="ScErrAtLeastOneIndexOnTable">
+      <message>Unable to drop index because at least one (not inherited) index is required on a table.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3360,6 +3363,9 @@
     </code>
     <code hex="001B" severity="Error" name="ScErrUnexpSQLScanner">
       <message>An unexpected error occurred in scanner of SQL Parser.</message>
+    </code>
+    <code hex="001C" severity="Error" name="ScErrInvalidOffsetKey">
+      <message>Offset key is invalid for given query.</message>
     </code>
   </facility>
 

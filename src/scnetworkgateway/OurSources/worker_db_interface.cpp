@@ -107,10 +107,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             }
 
             // Process the chunk.
-            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+
+            // Setting database index and unique number.
+            sd->set_db_index(db_index_);
+            sd->set_db_unique_seq_num(g_gateway.GetDatabase(db_index_)->get_unique_num());
 
             // Checking for socket data correctness.
-            GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
             GW_ASSERT(sd->get_socket() < g_gateway.setting_max_connections());
 
             // Setting chunk index because of possible cloned chunks.
@@ -128,8 +131,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                 sd->CreateWSABuffers(
                     this,
                     smc,
-                    bmx::BMX_HEADER_MAX_SIZE_BYTES + sd->get_user_data_offset(),
-                    bmx::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset(),
+                    MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + sd->get_user_data_offset_in_socket_data(),
+                    MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data(),
                     sd->get_user_data_written_bytes());
 
                 GW_ASSERT(sd->get_num_chunks() > 2);
@@ -248,15 +251,15 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             if (sd->HasActiveSession())
             {
                 // Creating global session on this socket.
-                g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *sd->GetSessionStruct());
+                g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *(sd->GetSessionStruct()));
             }
 
 #endif
 
 JUST_SEND_SOCKET_DATA:
 
-            // Resetting the data buffer.
-            sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, sd->get_data_blob(), true);
+            // Resetting the accumulative buffer.
+            sd->InitAccumBufferFromUserData();
 
             // Setting the database index and sequence number.
             sd->AttachToDatabase(db_index_);
@@ -300,10 +303,10 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 {
     // Maximum number of bytes that will be written in this call.
     uint32_t num_bytes_to_write = buf_len_bytes;
-    uint32_t num_bytes_first_chunk = starcounter::bmx::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+    uint32_t num_bytes_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
 
     // Number of chunks to use.
-    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::bmx::CHUNK_MAX_DATA_BYTES) + 1;
+    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
     assert(num_extra_chunks_to_use > 0);
 
     // Checking if more than maximum chunks we can take at once.
@@ -330,21 +333,21 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 
     // Checking if we should just send the chunks.
     if (just_sending_flag)
-        *(cur_chunk_buf + starcounter::bmx::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::bmx::SOCKET_DATA_FLAGS_JUST_SEND;
+        *(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
 
     // Setting the number of written bytes.
-    *(uint32_t*)(cur_chunk_buf + starcounter::bmx::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
+    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
 
     // Going through each linked chunk and write data there.
     uint32_t left_bytes_to_write = num_bytes_to_write;
-    uint32_t num_bytes_to_write_in_chunk = starcounter::bmx::CHUNK_MAX_DATA_BYTES;
+    uint32_t num_bytes_to_write_in_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
     // Writing to first chunk.
     memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_first_chunk);
     left_bytes_to_write -= num_bytes_first_chunk;
 
     // Checking how many bytes to write next time.
-    if (left_bytes_to_write < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+    if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
     {
         // Checking if we copied everything.
         if (left_bytes_to_write <= 0)
@@ -372,7 +375,7 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
 
         // Checking how many bytes to write next time.
-        if (left_bytes_to_write < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
         {
             // Checking if we copied everything.
             if (left_bytes_to_write <= 0)
@@ -589,10 +592,10 @@ uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_num)
 }
 
 // Pushes session destroyed message.
-uint32_t WorkerDbInterface::PushDeadSession(
-    apps_unique_session_num_type apps_unique_session_num,
-    session_salt_type apps_session_salt,
-    uint32_t scheduler_id)
+uint32_t WorkerDbInterface::PushSessionDestroy(
+    session_index_type linear_index,
+    session_salt_type random_salt,
+    uint8_t scheduler_id)
 {
     // Get a reference to the chunk.
     shared_memory_chunk *smc = NULL;
@@ -609,16 +612,44 @@ uint32_t WorkerDbInterface::PushDeadSession(
     request->reset_offset();
 
     // Writing BMX message type.
-    request->write(bmx::BMX_SESSION_DESTROYED);
+    request->write(bmx::BMX_SESSION_DESTROY);
 
     // Writing Apps unique session number.
-    request->write(apps_unique_session_num);
+    request->write(linear_index);
 
     // Writing Apps unique salt.
-    request->write(apps_session_salt);
+    request->write(random_salt);
 
     // Pushing the chunk.
     PushLinkedChunksToDb(new_chunk, 1, scheduler_id);
+
+    return 0;
+}
+
+// Sends session create message.
+uint32_t WorkerDbInterface::PushSessionCreate(SocketDataChunkRef sd)
+{
+    // Get a reference to the chunk.
+    shared_memory_chunk *smc = sd->get_smc();
+
+    // Predefined BMX management handler.
+    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
+
+    request_chunk_part* request = smc->get_request_chunk();
+    request->reset_offset();
+
+    // Writing BMX message type.
+    request->write(bmx::BMX_SESSION_CREATE);
+
+    // Obtaining the current scheduler id.
+    scheduler_id_type sched_id = sd->get_scheduler_id();
+
+    // Checking scheduler id validity.
+    if (INVALID_SCHEDULER_ID == sched_id)
+        sched_id = GetSchedulerId();
+
+    // Pushing the chunk.
+    PushLinkedChunksToDb(sd->get_chunk_index(), 1, sched_id);
 
     return 0;
 }
@@ -887,6 +918,8 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 uint8_t param_types[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
                 resp_chunk->copy_data_to_buffer(param_types, MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
 
+                // Reading protocol type.
+                MixedCodeConstants::NetworkProtocolType proto_type = (MixedCodeConstants::NetworkProtocolType)resp_chunk->read_uint8();
 
 #ifdef GW_TESTING_MODE
 
@@ -951,15 +984,15 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                 return 0;
             }
 
-            case bmx::BMX_SESSION_DESTROYED:
+            case bmx::BMX_SESSION_DESTROY:
             {
-                // Reading Apps unique session number.
-                uint64_t apps_unique_session_num = resp_chunk->read_uint64();
+                GW_ASSERT(false);
+                break;
+            }
 
-                // TODO: Handle destroyed session.
-
-                GW_PRINT_WORKER << "Session " << apps_unique_session_num << " was destroyed." << GW_ENDL;
-
+            case bmx::BMX_SESSION_CREATE:
+            {
+                GW_ASSERT(false);
                 break;
             }
 
