@@ -4,19 +4,21 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Starcounter.Bootstrap.Management;
+using Starcounter.Logging;
+using Starcounter.Rest.ExtensionMethods;
 using Starcounter.Server.PublicModel.Commands;
+using System;
 using System.Diagnostics;
-using Starcounter.ABCIPC;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace Starcounter.Server.Commands.Processors {
 
     [CommandProcessor(typeof(StartDatabaseCommand))]
     internal sealed partial class StartDatabaseCommandProcessor : CommandProcessor {
+        static LogSource log = ServerLogSources.Default;
+
         /// <summary>
         /// Initializes a new <see cref="StartDatabaseCommandProcessor"/>.
         /// </summary>
@@ -31,7 +33,7 @@ namespace Starcounter.Server.Commands.Processors {
         protected override void Execute() {
             StartDatabaseCommand command = (StartDatabaseCommand)this.Command;
             Database database;
-            Process workerProcess;
+            Process codeHostProcess;
             bool started;
 
             if (!this.Engine.Databases.TryGetValue(command.Name, out database)) {
@@ -53,23 +55,47 @@ namespace Starcounter.Server.Commands.Processors {
                 return started;
             });
 
+            codeHostProcess = database.GetRunningCodeHostProcess();
+            started = codeHostProcess != null;
+
             WithinTask(Task.StartCodeHostProcess, (task) => {
-                if (Engine.DatabaseEngine.IsCodeHostProcessRunning(database))
+                if (codeHostProcess != null)
                     return false;
 
                 ProgressTask(task, 1);
                 started = Engine.DatabaseEngine.StartCodeHostProcess(
-                    database, command.NoDb, command.LogSteps, out workerProcess);
+                    database, command.NoDb, command.LogSteps, out codeHostProcess);
                 return started;
             });
 
             WithinTask(Task.AwaitCodeHostOnline, (task) => {
                 Engine.CurrentPublicModel.UpdateDatabase(database);
 
-                var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
-                bool success = client.Send("Ping");
-                if (!success) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                var node = Node.LocalhostSystemPortNode;
+                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+                var keepTrying = true;
+
+                while (keepTrying) {
+                    try {
+                        var response = node.GET(serviceUris.Host, null, null);
+                        response.FailIfNotSuccessOr(503);
+                        if (response.StatusCode == 503) {
+                            // It's just not available yet.
+                            // Try again after a yield.
+                            Thread.Yield();
+                            continue;
+                        }
+                        keepTrying = false;
+
+                    } catch (SocketException se) {
+
+                        codeHostProcess.Refresh();
+                        if (codeHostProcess.HasExited) {
+                            throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database, se);
+                        }
+
+                        Thread.Sleep(100);
+                    }
                 }
             });
         }
