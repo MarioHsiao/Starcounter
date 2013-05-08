@@ -66,6 +66,7 @@
     <Compile Include="DbImpl.cs" />
     <Compile Include="Management\CodeHostAPI.cs" />
     <Compile Include="Management\CodeHostHandler.cs" />
+    <Compile Include="Management\ExecutablesHandler.cs" />
     <Compile Include="Management\ManagementService.cs" />
     <Compile Include="ProgramCommandLine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
