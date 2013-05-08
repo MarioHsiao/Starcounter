@@ -16,6 +16,17 @@ namespace Starcounter.Bootstrap.Management {
         static ManualResetEvent shutdownEvent;
 
         /// <summary>
+        /// Gets the host identity, used to expose management services
+        /// over HTTP.
+        /// </summary>
+        public static string HostIdentity { get; private set; }
+
+        /// <summary>
+        /// Gets the port used to expose management services over HTTP.
+        /// </summary>
+        public static ushort Port { get; private set; }
+
+        /// <summary>
         /// Governs the availability of the management service.
         /// </summary>
         /// <remarks>
@@ -43,6 +54,8 @@ namespace Starcounter.Bootstrap.Management {
             shutdownEvent = new ManualResetEvent(false);
             Unavailable = true;
             IsAdministrator = NewConfig.IsAdministratorApp;
+            Port = port;
+            HostIdentity = hostIdentity;
         }
 
         /// <summary>
