@@ -11,6 +11,7 @@ namespace Starcounter.Query.Execution {
     internal class ObjectIdenittyAccess : ExecutionEnumerator, IExecutionEnumerator {
         Int32 extentNumber;
         Row contextObject;
+        ulong currectObjectId;
 
         IValueExpression expression;
         ILogicalExpression condition;
@@ -21,10 +22,9 @@ namespace Starcounter.Query.Execution {
         public Boolean UseOffsetkey { get { return useOffsetkey; } set { useOffsetkey = value; } }
         Boolean isAtRecreatedKey = false;
         public Boolean IsAtRecreatedKey { get { return isAtRecreatedKey; } }
-#if false
-        UInt64 keyOID, keyETI; // Saved OID, ETI from recreation key.
-#endif
 
+        //Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.
+        Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
         internal ObjectIdenittyAccess(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
         IValueExpression expr,
@@ -214,12 +214,11 @@ namespace Starcounter.Query.Execution {
         /// </summary>
         /// <returns></returns>
         IObjectView EvaluateToObject() {
-            ulong objectId;
             if (expression is IStringExpression)
-                objectId = DbHelper.Base64ForUrlDecode((expression as IStringExpression).EvaluateToString(contextObject));
+                currectObjectId = DbHelper.Base64ForUrlDecode((expression as IStringExpression).EvaluateToString(contextObject));
             else
-                objectId = (ulong)(expression as INumericalExpression).EvaluateToUInteger(contextObject);
-            return DbHelper.FromID(objectId);
+                currectObjectId = (ulong)(expression as INumericalExpression).EvaluateToUInteger(contextObject);
+            return DbHelper.FromID(currectObjectId);
         }
 
 
@@ -239,25 +238,34 @@ namespace Starcounter.Query.Execution {
             }
         }
 
+        private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
+            Byte* staticDataOffset = rk + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
+            UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
+            Debug.Assert(dynDataOffset != 0);
+            Byte* staticData = rk + (*(UInt16*)(staticDataOffset));
+            ValidateNodeType((*(Byte*)staticData));
+            return rk + dynDataOffset;
+        }
+
         internal Boolean SameAsOffsetkeyOrNull(IObjectView obj) {
-#if false
             if (useOffsetkey && fetchOffsetKeyExpr != null) {
                 unsafe {
                     fixed (Byte* recrKey = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
                         // Checking if recreation key is valid.
-                        if ((*(Int32*)recrKey) > IteratorHelper.RK_EMPTY_LEN)
-                            IteratorHelper.RecreateEnumerator_GetObjectInfo(recrKey + 4, nodeId, out keyOID, out keyETI);
+                        if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
+                            Byte* recreationKey = ValidateAndGetRecreateKey(recrKey);
+                            // Check if current object matches stored in the recreation key
+                            if (currectObjectId == (*(ulong*)recreationKey))
+                                isAtRecreatedKey = true;
+                            else {
+                                isAtRecreatedKey = false;
+                                variableArray.FailedToRecreateObject = true;
+                            }
+                        }
                     }
                 }
-                IObjectProxy dbObject = obj as IObjectProxy;
-                if ((keyOID != dbObject.Identity) && (keyETI != dbObject.ThisHandle)) {
-                    isAtRecreatedKey = false;
-                    variableArray.FailedToRecreateObject = true;
-                } else
-                    isAtRecreatedKey = true;
                 return isAtRecreatedKey;
-            } else return true;
-#endif
+            } 
             return true;
         }
 
@@ -265,7 +273,54 @@ namespace Starcounter.Query.Execution {
         /// Used to populate the recreation key.
         /// </summary>
         public unsafe UInt16 SaveEnumerator(Byte* keyData, UInt16 globalOffset, Boolean saveDynamicDataOnly) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Recreation key cannot be created for object identity lookup.");
+            // Immediately preventing further accesses to current object.
+            currentObject = null;
+
+            // If we already tried to recreate the enumerator and we want to write static data,
+            // just return first dynamic data offset.
+            if (triedEnumeratorRecreation && (!saveDynamicDataOnly))
+                return (*(UInt16*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET));
+
+            UInt16 origGlobalOffset = globalOffset;
+
+            // Position of enumerator.
+            UInt16 enumGlobalOffset = (ushort)((nodeId << 2) + IteratorHelper.RK_HEADER_LEN);
+
+            // Writing static data.
+            if (!saveDynamicDataOnly) {
+                // In order to exclude double copy of last key.
+                //rangeChanged = false;
+
+                // Emptying static data position for this enumerator.
+                (*(UInt16*)(keyData + enumGlobalOffset)) = 0;
+
+                // Saving type of this node
+                *((byte*)(keyData + globalOffset)) = (byte)NodeType;
+                globalOffset += 1;
+
+                // Saving position of the data for current extent.
+                (*(UInt16*)(keyData + enumGlobalOffset)) = origGlobalOffset;
+
+                // Saving absolute position of the first dynamic data.
+                (*(UInt16*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET)) = globalOffset;
+            } else {
+                // Writing dynamic data.
+
+                // Points to dynamic data offset.
+                UInt16* dynDataOffset = (UInt16*)(keyData + enumGlobalOffset + 2);
+
+                // Emptying dynamic data position for this enumerator.
+                (*dynDataOffset) = 0;
+
+                // Storing object id
+                *((ulong*)(keyData + globalOffset)) = currectObjectId;
+                globalOffset += sizeof(ulong);
+
+                // Saving position of dynamic data.
+                (*dynDataOffset) = origGlobalOffset;
+
+            }
+            return globalOffset;
         }
 
         /// <summary>
