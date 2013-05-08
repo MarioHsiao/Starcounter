@@ -17,7 +17,7 @@ namespace Starcounter.Bootstrap.Management {
         /// <param name="handleScheduler">Handle to the scheduler to use when
         /// management services need to schedule work to be done.</param>
         public static unsafe void Setup(void* handleScheduler) {
-            var uri = CodeHostAPI.Uris.Host;
+            var uri = CodeHostAPI.Uris.Executables;
             var port = ManagementService.Port;
             schedulerHandle = handleScheduler;
 
