@@ -40,6 +40,11 @@ namespace Starcounter.Internal
         public const int OVERLAPPED_SIZE = 32;
 
         /// <summary>
+        /// Offset of socket data in chunk.
+        /// </summary>
+        public const int CHUNK_OFFSET_SOCKET_DATA = BMX_HEADER_MAX_SIZE_BYTES;
+
+        /// <summary>
         /// Offset of session in chunk.
         /// </summary>
         public const int CHUNK_OFFSET_SESSION = BMX_HEADER_MAX_SIZE_BYTES + OVERLAPPED_SIZE;
@@ -77,12 +82,12 @@ namespace Starcounter.Internal
         /// <summary>
         /// User data offset in chunk.
         /// </summary>
-        public const int CHUNK_OFFSET_USER_DATA = 128;
+        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 128;
 
         /// <summary>
         /// Max user data offset in chunk.
         /// </summary>
-        public const int CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA + 4;
+        public const int CHUNK_OFFSET_MAX_USER_DATA_BYTES = CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA + 4;
 
         /// <summary>
         /// User data written bytes offset.
@@ -173,6 +178,35 @@ namespace Starcounter.Internal
         /// Linked chunk flag.
         /// </summary>
         public const int LINKED_CHUNKS_FLAG = 1;
+
+        /// <summary>
+        /// Number of clone bytes in socket data.
+        /// </summary>
+        public const int SOCKET_DATA_NUM_CLONE_BYTES = 136;
+
+        /// <summary>
+        /// Number of clone bytes in chunk.
+        /// </summary>
+        public const int CHUNK_NUM_CLONE_BYTES = CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_NUM_CLONE_BYTES;
+
+        // Chunk reserved bytes at the end.
+        // TODO: Fix when non null value.
+        public const int CHUNK_TAIL_RESERVED_BYTES = 0;
+
+        /// <summary>
+        /// Chunk link size.
+        /// </summary>
+        public const int CHUNK_LINK_SIZE = 8;
+
+        /// <summary>
+        /// Chunk data max size.
+        /// </summary>
+        public const int CHUNK_MAX_DATA_BYTES = SHM_CHUNK_SIZE - CHUNK_LINK_SIZE - CHUNK_TAIL_RESERVED_BYTES;
+
+        /// <summary>
+        /// Socket data max size.
+        /// </summary>
+        public const int SOCKET_DATA_MAX_SIZE = CHUNK_MAX_DATA_BYTES - CHUNK_OFFSET_SOCKET_DATA;
 
         /// <summary>
         /// MAX_PREPARSED_HTTP_REQUEST_HEADERS

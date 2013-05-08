@@ -222,7 +222,7 @@ namespace Starcounter
             // Creating network data stream object.
             NetworkDataStream data_stream = new NetworkDataStream();
 
-            Byte* socket_data_begin = new_chunk_mem + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES;
+            Byte* socket_data_begin = new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
             (*(ScSessionStruct*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = session.session_struct_;
             (*(Int32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = MixedCodeConstants.SOCKET_DATA_FLAGS_JUST_SEND;
@@ -240,8 +240,8 @@ namespace Starcounter
                 true,
                 new_chunk_index,
                 0,
-                new_chunk_mem + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                new_chunk_mem + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES,
+                new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
                 data_stream,
                 protocol_type);
 
@@ -276,7 +276,7 @@ namespace Starcounter
             Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
             // Socket data begin.
-            Byte* socket_data_begin = raw_chunk + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES;
+            Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
             // Getting type of network protocol.
             MixedCodeConstants.NetworkProtocolType protocol_type = 
@@ -309,8 +309,8 @@ namespace Starcounter
                         is_single_chunk,
                         task_info->chunk_index,
                         task_info->handler_id,
-                        p_plain_chunks_data + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                        p_plain_chunks_data + MixedCodeConstants.BMX_HEADER_MAX_SIZE_BYTES,
+                        p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                        p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
                         data_stream,
                         protocol_type);
 
