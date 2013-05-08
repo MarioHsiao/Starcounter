@@ -74,17 +74,29 @@ namespace Starcounter.Server.Commands.Processors {
                 var node = Node.LocalhostSystemPortNode;
                 var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
                 var keepTrying = true;
+                var hostJustStarted = started;
+
+                if (hostJustStarted) {
+                    // If we in fact just started the engine, we should
+                    // probably give it some time to run the bootstrap
+                    // sequence.
+                    Thread.Sleep(100);
+                }
 
                 while (keepTrying) {
                     try {
                         var response = node.GET(serviceUris.Host, null, null);
                         response.FailIfNotSuccessOr(503);
                         if (response.StatusCode == 503) {
-                            // It's just not available yet.
+                            // It's just not available yet. Most likely in
+                            // between the registering of management handlers and
+                            // when the host is considered fully functional.
                             // Try again after a yield.
                             Thread.Yield();
                             continue;
                         }
+
+                        // Success. We consider the host started.
                         keepTrying = false;
 
                     } catch (SocketException se) {
@@ -94,6 +106,11 @@ namespace Starcounter.Server.Commands.Processors {
                             throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database, se);
                         }
 
+                        // The socket exception tells us that the likely cause
+                        // of the problem is that the host is just starting and
+                        // hasn't reach the point where it accepts requests just
+                        // yet. We respond with a 1/10 of a second sleeping and
+                        // the trying again.
                         Thread.Sleep(100);
                     }
                 }
