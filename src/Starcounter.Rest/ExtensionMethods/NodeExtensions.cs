@@ -2,15 +2,11 @@
 using System;
 using System.Net;
 
-namespace Starcounter.Server.Rest {
+namespace Starcounter.Rest.ExtensionMethods {
     /// <summary>
     /// Provides a set of extension methods for the <see cref="Node"/>
     /// class.
     /// </summary>
-    /// <remarks>
-    /// These are not server specific; consider moving them to a lower level
-    /// in the hierarchy.
-    /// </remarks>
     public static class NodeExtensions {
         
         public static string ToLocal(this Node node, string absoluteOrRelative) {
