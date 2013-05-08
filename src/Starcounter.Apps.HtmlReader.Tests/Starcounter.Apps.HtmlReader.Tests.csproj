@@ -78,10 +78,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
-      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
-      <Name>Starcounter.Rest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.HtmlReader\Starcounter.Apps.HtmlReader.csproj">
       <Project>{5546e8c2-844a-4662-84fa-b47d88e515ce}</Project>
       <Name>Starcounter.Apps.HtmlReader</Name>

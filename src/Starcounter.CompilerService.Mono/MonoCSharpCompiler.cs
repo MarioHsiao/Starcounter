@@ -26,7 +26,9 @@ namespace Starcounter.CompilerService.Mono {
             return o;    
         }
 
-
+        public object Compile(string code, params string[] assemblyRefs) {
+            return null;
+        }
 
         public object AnalyzeCodeBehind(string className, string codeBehindFile) {
             throw new NotImplementedException();

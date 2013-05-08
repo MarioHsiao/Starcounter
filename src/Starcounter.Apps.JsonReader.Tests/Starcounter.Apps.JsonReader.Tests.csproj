@@ -81,10 +81,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
-      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
-      <Name>Starcounter.Rest</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.JsonReader\Starcounter.XSON.JsonReader.csproj">
       <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
       <Name>Starcounter.XSON.JsonReader</Name>
