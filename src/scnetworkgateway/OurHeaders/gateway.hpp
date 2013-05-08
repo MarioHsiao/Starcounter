@@ -191,10 +191,10 @@ const int32_t MAX_PROXIED_URIS = 32;
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
-const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
+const int32_t SOCKET_DATA_OFFSET_BLOB = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
 
 // Length of blob data in bytes.
-const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::CHUNK_MAX_DATA_BYTES - MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
+const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - SOCKET_DATA_OFFSET_BLOB;
 
 // Size of OVERLAPPED structure.
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
@@ -1475,6 +1475,12 @@ class Gateway
 
     // Monitor shared interface.
     core::monitor_interface_ptr shm_monitor_interface_;
+
+    // Gateway pid.
+    core::pid_type gateway_pid_;
+
+    // Gateway owner id.
+    core::owner_id gateway_owner_id_;
 
     // Shared memory monitor interface name.
     std::string shm_monitor_int_name_;

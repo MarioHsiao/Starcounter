@@ -252,10 +252,8 @@ namespace Starcounter.Server {
 
             process.Refresh();
             if (process.HasExited) {
-                process.Close();
-                database.Apps.Clear();
-                database.CodeHostProcess = null;
-                database.SupposedToBeStarted = false;
+                ResetToCodeHostNotRunning(database);
+                SafeClose(process);
                 return false;
             }
 
@@ -289,14 +287,21 @@ namespace Starcounter.Server {
                     process.Kill();
                 }
             }
-            try {
-                process.Close();
-            } catch { }
 
+            ResetToCodeHostNotRunning(database);
+            SafeClose(process);
+            return true;
+        }
+
+        internal void ResetToCodeHostNotRunning(Database database) {
             database.CodeHostProcess = null;
+            database.CodeHostArguments = null;
             database.Apps.Clear();
             database.SupposedToBeStarted = false;
-            return true;
+        }
+
+        internal void SafeClose(Process p) {
+            try { p.Close(); } catch { }
         }
 
         Process DoStartEngineProcess(ProcessStartInfo startInfo, Database database) {

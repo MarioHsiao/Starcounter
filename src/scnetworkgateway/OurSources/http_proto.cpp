@@ -613,7 +613,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         //set_matched_uri_index(matched_index);
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
-        sd->get_http_ws_proto()->http_request_.uri_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + uri_offset;
+        sd->get_http_ws_proto()->http_request_.uri_offset_ = SOCKET_DATA_OFFSET_BLOB + uri_offset;
         sd->get_http_ws_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
 
         // Running determined handler now.
@@ -751,13 +751,13 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.content_offset_;
+                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_OFFSET_BLOB - http_request_.content_offset_;
                 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
+                    http_request_.content_offset_ = SOCKET_DATA_OFFSET_BLOB + bytes_parsed;
 
                     num_content_bytes_received = 0;
                 }
@@ -823,7 +823,7 @@ ALL_DATA_ACCUMULATED:
                 case HTTP_STANDARD_RESPONSE:
                 {
                     // Setting request properties.
-                    http_request_.request_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES;
+                    http_request_.request_offset_ = SOCKET_DATA_OFFSET_BLOB;
                     http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
 
                     // Resetting user data parameters.
@@ -1047,13 +1047,13 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
             if (http_request_.content_len_bytes_ > 0)
             {
                 // Number of content bytes already received.
-                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_BLOB_OFFSET_BYTES - http_request_.content_offset_;
+                int32_t num_content_bytes_received = accum_buf->get_accum_len_bytes() + SOCKET_DATA_OFFSET_BLOB - http_request_.content_offset_;
 
                 // Checking if content was partially received at all.
                 if (http_request_.content_offset_ <= 0)
                 {
                     // Setting the value for content offset.
-                    http_request_.content_offset_ = SOCKET_DATA_BLOB_OFFSET_BYTES + bytes_parsed;
+                    http_request_.content_offset_ = SOCKET_DATA_OFFSET_BLOB + bytes_parsed;
 
                     num_content_bytes_received = 0;
                 }

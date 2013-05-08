@@ -258,6 +258,10 @@ Gateway::Gateway()
     // Init unique sequence number.
     db_seq_num_ = 0;
 
+    // Reset gateway owner id and pid.
+    gateway_owner_id_ = 0;
+    gateway_pid_ = 0;
+
     // No reverse proxies by default.
     num_reversed_proxies_ = 0;
 
@@ -1634,6 +1638,15 @@ uint32_t Gateway::Init()
     shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
     GW_COUT << "opened!" << GW_ENDL;
 
+    // Send registration request to the monitor and try to acquire an owner_id.
+    // Without an owner_id we can not proceed and have to exit.
+    // Get process id and store it in the monitor_interface.
+    gateway_pid_.set_current();
+
+    // Try to register gateway process pid. Wait up to 10000 ms.
+    uint32_t err_code = shm_monitor_interface_->register_client_process(gateway_pid_, gateway_owner_id_, 10000/*ms*/);
+    GW_ASSERT(0 == err_code);
+
     // Indicating that network gateway is ready
     // (should be first line of the output).
     GW_COUT << "Gateway is ready!" << GW_ENDL;
@@ -1666,14 +1679,11 @@ uint32_t Gateway::InitSharedMemory(
     // Send registration request to the monitor and try to acquire an owner_id.
     // Without an owner_id we can not proceed and have to exit.
     // Get process id and store it in the monitor_interface.
-    pid_type pid;
-    pid.set_current();
-    owner_id the_owner_id;
+    gateway_pid_.set_current();
     uint32_t error_code;
 
     // Try to register this client process pid. Wait up to 10000 ms.
-    if ((error_code = shm_monitor_interface_->register_client_process(pid,
-        the_owner_id, 10000/*ms*/)) != 0)
+    if ((error_code = shm_monitor_interface_->register_client_process(gateway_pid_, gateway_owner_id_, 10000)) != 0)
     {
         // Failed to register this client process pid.
         GW_COUT << "Can't register client process, error code: " << error_code << GW_ENDL;
@@ -1699,7 +1709,7 @@ uint32_t Gateway::InitSharedMemory(
     // Construct a shared_interface.
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
-        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), pid, the_owner_id);
+        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), gateway_pid_, gateway_owner_id_);
     }
 
     return 0;

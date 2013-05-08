@@ -235,7 +235,7 @@ public:
             uint32_t scheduler_id = (chunk_index_and_scheduler >> 24) & 0xFFUL;
 
             // Just getting number of chunks to push.
-            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(chunk_index)) + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(chunk_index)) + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
             // Pushing chunk using standard procedure.
             PushLinkedChunksToDb(chunk_index, sd->get_num_chunks(), scheduler_id, false);
