@@ -72,10 +72,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.Apps.Interfaces</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.Apps.JsonPatch\Starcounter.Apps.JsonPatch.csproj">
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
       <Name>Starcounter.Apps.JsonPatch</Name>

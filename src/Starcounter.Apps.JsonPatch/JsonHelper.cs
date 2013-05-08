@@ -259,24 +259,24 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value"></param>
         /// <param name="tmpArr"></param>
         /// <returns></returns>
-        public static int WriteString(IntPtr ptr, int size, string value, byte[] tmpArr) {
-            int valSize;
+        public static int WriteString(IntPtr ptr, int size, string value) {
+            byte[] valueArr;
 
             unsafe {
                 byte* pfrag = (byte*)ptr;
 
                 if (value != null) {
-                    valSize = Encoding.UTF8.GetBytes(value, 0, value.Length, tmpArr, 0);
-                    if (size < (valSize + 2))
+                    valueArr = Encoding.UTF8.GetBytes(value);
+                    if (size < (valueArr.Length + 2))
                         return -1;
 
                     *pfrag++ = (byte)'"';
-                    fixed (byte* src = tmpArr) {
-                        BitsAndBytes.MemCpy(pfrag, src, (uint)valSize);
+                    fixed (byte* src = valueArr) {
+                        BitsAndBytes.MemCpy(pfrag, src, (uint)valueArr.Length);
                     }
-                    pfrag += valSize;
+                    pfrag += valueArr.Length;
                     *pfrag = (byte)'"';
-                    return valSize + 2;
+                    return valueArr.Length + 2;
                 } else {
                     return WriteNull(pfrag, size);
                 }
@@ -291,10 +291,10 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value"></param>
         /// <param name="tmpArr"></param>
         /// <returns></returns>
-        public static int WriteDouble(IntPtr ptr, int size, double value, byte[] tmpArr) {
+        public static int WriteDouble(IntPtr ptr, int size, double value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture), tmpArr);
+                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -306,22 +306,22 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="value"></param>
         /// <param name="tmpArr"></param>
         /// <returns></returns>
-        public static int WriteDecimal(IntPtr ptr, int size, decimal value, byte[] tmpArr) {
+        public static int WriteDecimal(IntPtr ptr, int size, decimal value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture), tmpArr);
+                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture));
             }
         }
 
-        private unsafe static int WriteStringNoQuotations(byte* pfrag, int size, string valueAsStr, byte[] tmpArr) {
-            int valSize = Encoding.UTF8.GetBytes(valueAsStr, 0, valueAsStr.Length, tmpArr, 0);
-            if (size < valSize)
+        private unsafe static int WriteStringNoQuotations(byte* pfrag, int size, string valueAsStr) {
+            byte[] valueArr = Encoding.UTF8.GetBytes(valueAsStr);
+            if (size < valueArr.Length)
                 return -1;
-            fixed (byte* src = tmpArr) {
-                BitsAndBytes.MemCpy(pfrag, src, (uint)valSize);
+            fixed (byte* src = valueArr) {
+                BitsAndBytes.MemCpy(pfrag, src, (uint)valueArr.Length);
             }
-            pfrag += valSize;
-            return valSize;
+            pfrag += valueArr.Length;
+            return valueArr.Length;
         }
 
         /// <summary>

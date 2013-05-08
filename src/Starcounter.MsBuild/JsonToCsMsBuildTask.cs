@@ -13,6 +13,7 @@ using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Metadata;
 
 namespace Starcounter.Internal.MsBuild
 {
@@ -74,7 +75,8 @@ namespace Starcounter.Internal.MsBuild
             String jsonContent = File.ReadAllText(jsonFilename);
 
             var className = Paths.StripFileNameWithoutExtention(jsonFilename);
-            metadata = CodeBehindAnalyzer.Analyze(className, codeBehindFilename);
+            metadata = (CodeBehindMetadata)JsonFactory.Compiler.AnalyzeCodeBehind(className, codeBehindFilename);
+
             t = TemplateFromJs.CreateFromJs(jsonContent, false);
             if (t.ClassName == null)
             {
