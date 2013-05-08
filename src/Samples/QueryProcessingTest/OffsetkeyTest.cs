@@ -77,6 +77,15 @@ namespace QueryProcessingTest {
             e.MoveNext();
             Trace.Assert(e.Current is User);
             e.Dispose();
+            // Test offset key with incorrect object identity in a query
+            ulong objectno = Db.SQL<ulong>("select objectno from account where accountid = ?", 1).First;
+            e = Db.SQL("select a from account a where objectno = ?", objectno).GetEnumerator();
+            Trace.Assert(e.MoveNext());
+            k = e.GetOffsetKey();
+            e.Dispose();
+            objectno = Db.SQL<ulong>("select objectno from account where accountid = ?", 2).First;
+            e = Db.SQL("select a from account a where objectno = ? offsetkey ?", objectno, k).GetEnumerator();
+            Trace.Assert(!e.MoveNext());
 #if false // Tests do not fail any more, since static data are not read from the recreation key.
             // Test offsetkey on the query with the offset key from another query
             Boolean isException = false;
@@ -189,6 +198,30 @@ namespace QueryProcessingTest {
             using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where objectno = ?", objectno).GetEnumerator()) {
                 Trace.Assert(res.MoveNext());
                 Trace.Assert(objectno == res.Current.GetObjectNo());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+                Trace.Assert(!res.MoveNext());
+            }
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where objectno = ? offsetkey ?", objectno, key).GetEnumerator()) {
+                Trace.Assert(!res.MoveNext());
+                key = res.GetOffsetKey();
+                Trace.Assert(key == null);
+            }
+            objectno = Db.SQL<ulong>("select objectno from user where useridnr = ?", 10005).First;
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where client.objectno = ?", objectno).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.Client.GetObjectNo());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+            }
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where client.objectno = ? offsetkey ?", objectno, key).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.Client.GetObjectNo());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+            }
+            objectno = Db.SQL<ulong>("select objectno from user where useridnr = ?", 1).First;
+            using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where client.objectno = ? offsetkey ?", 1, key).GetEnumerator()) {
                 Trace.Assert(!res.MoveNext());
             }
         }

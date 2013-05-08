@@ -260,6 +260,7 @@ namespace Starcounter.Query.Execution {
                             else {
                                 isAtRecreatedKey = false;
                                 variableArray.FailedToRecreateObject = true;
+                                throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Inconsistency between ObjectNo value from the offset key and obtained for this query.");
                             }
                         }
                     }
