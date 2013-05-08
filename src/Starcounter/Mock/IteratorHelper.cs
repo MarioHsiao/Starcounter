@@ -70,29 +70,28 @@ namespace Starcounter
             dataStream = null;
         }
 
-        // Empty recreation key length.
         /// <summary>
-        /// 
+        /// Empty recreation key length.
         /// </summary>
-        public const Int32 RK_EMPTY_LEN = 4;
+        public const UInt16 RK_EMPTY_LEN = 4;
 
-        // Offset in bytes for number of enumerators.
         /// <summary>
-        /// 
+        /// Offset in bytes for number of enumerators.
+        /// Skips length of the offset.
         /// </summary>
-        public const Int32 RK_ENUM_NUM_OFFSET = 4;
+        public const UInt16 RK_ENUM_NUM_OFFSET = 2;
 
-        // Offset in bytes for dynamic data.
         /// <summary>
-        /// 
+        /// Offset in bytes for dynamic data.
+        /// Skips number of nodes.
         /// </summary>
-        public const Int32 RK_FIRST_DYN_DATA_OFFSET = 8;
+        public const UInt16 RK_FIRST_DYN_DATA_OFFSET = RK_ENUM_NUM_OFFSET + 1;
 
-        // Length of recreation key header in bytes.
         /// <summary>
-        /// 
+        /// Length of recreation key header in bytes.
+        /// Skips first written offset of dynamic data.
         /// </summary>
-        public const Int32 RK_HEADER_LEN = 12;
+        public const UInt16 RK_HEADER_LEN = RK_FIRST_DYN_DATA_OFFSET + 2;
 
         // Gets the information about saved object in the iterator.
         /// <summary>
@@ -103,17 +102,10 @@ namespace Starcounter
         /// <param name="keyOid"></param>
         /// <param name="keyEti"></param>
         public static unsafe void RecreateEnumerator_GetObjectInfo(
-            Byte* keyData,
-            Int32 extentNumber,
+            Byte* recreationKey,
             out UInt64 keyOid,
             out UInt64 keyEti)
         {
-            // Position of enumerator static data.
-            Byte* staticDataOffset = keyData + (extentNumber << 3) + RK_HEADER_LEN;
-
-            // Dynamic data.
-            Byte* recreationKey = keyData + (*(UInt32*)(staticDataOffset + 4));
-
             // Fetching OID and ETI.
             UInt32 keyLen = (*(UInt32*)recreationKey);
             keyOid = *(UInt64*)(recreationKey + keyLen - 12);
@@ -217,8 +209,7 @@ namespace Starcounter
         /// <param name="cachedEnum"></param>
         /// <returns></returns>
         public unsafe Boolean RecreateEnumerator_NoCodeGenFilter(
-            Byte* keyData,
-            Int32 extentNumber,
+            Byte* recreationKey,
             Enumerator cachedEnum,
             UInt32 flags, 
             Byte[] lastKey)
@@ -226,23 +217,8 @@ namespace Starcounter
             int retry = 0;
 
         go:
-            // Position of enumerator static data.
-            Byte* staticDataOffset = keyData + (extentNumber << 3) + RK_HEADER_LEN;
-
-            // Checking if its possible to recreate the key (dynamic data offset).
-            UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
-            if (dynDataOffset == 0)
-                return false;
-
             UInt32 err;
             UInt64 hCursor, verify;
-
-            Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
-            //UInt32 flags = *((UInt32*)staticData);
-            //Byte* lastKey = staticData + 4; // Skipping flags.
-
-            // Dynamic data.
-            Byte* recreationKey = keyData + dynDataOffset;
 
             // Recreating iterator using obtained data.
             //SqlDebugHelper.PrintByteBuffer("IndexScan Using Recreation Key", recreationKey, true);
@@ -340,8 +316,7 @@ namespace Starcounter
         /// <param name="cachedEnum"></param>
         /// <returns></returns>
         public unsafe Boolean RecreateEnumerator_CodeGenFilter(
-            Byte* keyData,
-            Int32 extentNumber,
+            Byte* recreationKey,
             Enumerator cachedEnum,
             UInt64 filterHandle,
             UInt32 flags,
@@ -351,25 +326,10 @@ namespace Starcounter
             int retry = 0;
 
         go:
-            // Position of enumerator static data.
-            Byte* staticDataOffset = keyData + (extentNumber << 3) + RK_HEADER_LEN;
-
-            // Checking if its possible to recreate the key (dynamic data offset).
-            UInt32 dynDataOffset = (*(UInt32*)(staticDataOffset + 4));
-            if (dynDataOffset == 0)
-                return false;
 
             UInt64 hCursor, verify;
             UInt32 err;
 
-            Byte* staticData = keyData + (*(UInt32*)(staticDataOffset));
-            //UInt32 flags = *((UInt32*)staticData);
-            //UInt64 filterHandle = *((UInt64*)(staticData + 4));
-            //Byte* varStream = staticData + 12;
-            //Byte* lastKey = *((UInt32*)varStream) + varStream;
-
-            // Dynamic data.
-            Byte* recreationKey = keyData + dynDataOffset;
             //SqlDebugHelper.PrintByteBuffer("FullTableScan Using Recreation Key", recreationKey, true);
             fixed (Byte* varStream = filterDataStream, lastKeyPointer = lastKey) {
                 // Recreating iterator using obtained data.

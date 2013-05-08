@@ -59,7 +59,8 @@ internal static class Optimizer
 
         // The special case where query includes "LIKE ?" is handled by special class LikeExecEnumerator.
         if (((createdEnumerator.VarArray.QueryFlags & QueryFlags.IncludesLIKEvariable) != QueryFlags.None) && (createdEnumerator.QueryString[0] != ' '))
-            createdEnumerator = new LikeExecEnumerator(createdEnumerator.QueryString, null, null);
+            createdEnumerator = new LikeExecEnumerator(0, createdEnumerator.QueryString, null, null);
+        //Console.WriteLine((createdEnumerator.NodeId+1) + " " + createdEnumerator.Query);
         return createdEnumerator;
     }
 

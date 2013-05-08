@@ -24,14 +24,14 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     private Boolean stayAtOffsetkey = false;
     private Boolean useOffsetkey = true;
 
-    internal Join(RowTypeBinding rowTypeBind,
+    internal Join(byte nodeId, RowTypeBinding rowTypeBind,
         JoinType type,
         IExecutionEnumerator leftEnum,
         IExecutionEnumerator rightEnum,
         INumericalExpression fetchNumExpr,
         INumericalExpression fetchOffsetExpr,
         VariableArray varArr, String query)
-        : base(rowTypeBind, varArr)
+        : base(nodeId, EnumeratorNodeType.Join, rowTypeBind, varArr)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -362,9 +362,9 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
-    public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+    public unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
     {
-        Int32 offset = leftEnumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
+        UInt16 offset = leftEnumerator.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
         offset = rightEnumerator.SaveEnumerator(keysData, offset, saveDynamicDataOnly);
         return offset;
     }
@@ -406,7 +406,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         if (fetchOffsetExpr != null)
             fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
 
-        return new Join(rowTypeBindClone, joinType, leftEnumerator.Clone(rowTypeBindClone, varArrClone),
+        return new Join(nodeId, rowTypeBindClone, joinType, leftEnumerator.Clone(rowTypeBindClone, varArrClone),
             rightEnumerator.Clone(rowTypeBindClone, varArrClone), fetchNumberExprClone, fetchOffsetExprClone, varArrClone, query);
     }
 
