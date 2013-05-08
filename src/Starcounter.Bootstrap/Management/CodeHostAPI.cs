@@ -45,7 +45,7 @@ namespace Starcounter.Bootstrap.Management {
             /// The identity of the host, normally in the form of a database
             /// name.</param>
             internal ResourceUris(string hostIdentity) {
-                ContextPath = RootContext + hostIdentity;
+                ContextPath = RootContext + "/" + hostIdentity.ToLowerInvariant();
             }
 
             /// <summary>
