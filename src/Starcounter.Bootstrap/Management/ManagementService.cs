@@ -57,6 +57,7 @@ namespace Starcounter.Bootstrap.Management {
             Port = port;
             HostIdentity = hostIdentity;
             CodeHostAPI.Setup(hostIdentity);
+            CodeHostHandler.Setup();
         }
 
         /// <summary>
