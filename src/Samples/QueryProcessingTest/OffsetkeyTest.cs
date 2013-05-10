@@ -183,7 +183,6 @@ namespace QueryProcessingTest {
                 uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
                 Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
                 isException = true;
-                Console.WriteLine(ex.Message);
             }
             e.Dispose();
             Trace.Assert(isException);
@@ -201,7 +200,6 @@ namespace QueryProcessingTest {
                 uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
                 Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
                 isException = true;
-                Console.WriteLine(ex.Message);
             }
             e.Dispose();
             Trace.Assert(isException);
