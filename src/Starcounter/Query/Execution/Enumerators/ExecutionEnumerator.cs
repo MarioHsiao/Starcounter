@@ -37,6 +37,7 @@ internal abstract class ExecutionEnumerator
     protected int staticOffsetKeyPartLength = 0; // Stores the length of the offset key static part
 #endif
     internal readonly EnumeratorNodeType NodeType;
+    internal bool TopNode = false;
 
     protected INumericalExpression fetchNumberExpr = null; // Represents fetch literal or variable.
     protected Int64 fetchNumber = Int64.MaxValue; // Maximum fetch number.
@@ -304,7 +305,7 @@ internal abstract class ExecutionEnumerator
         unsafe {
             fixed (Byte* recreationKey = tempBuffer) {
                 // Saving number of enumerators.
-                (*(byte*)(recreationKey + IteratorHelper.RK_ENUM_NUM_OFFSET)) = nodesNum;
+                (*(byte*)(recreationKey + IteratorHelper.RK_NODE_NUM_OFFSET)) = nodesNum;
 
                 // Saving static data (or obtaining absolute position of the first dynamic data).
                 globalOffset = execEnum.SaveEnumerator(recreationKey, globalOffset, false);
@@ -329,10 +330,20 @@ internal abstract class ExecutionEnumerator
         }
     }
 
-    protected virtual void ValidateNodeType(byte keyNodeType) {
-        if (keyNodeType != (byte)NodeType)
-            throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan. Expected node type" +
-                NodeType.ToString() + ", while found node type" + ((EnumeratorNodeType)keyNodeType).ToString() + ".");
+    protected unsafe Byte* ValidateAndGetStaticKeyOffset(byte* key) {
+        if (TopNode) {
+            byte nodeNrs = (*(Byte*)(key + IteratorHelper.RK_NODE_NUM_OFFSET));
+            if (nodeNrs != (NodeId+1))
+                throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected number of nodes in execution plan. Actual number of nodes is " +
+                    (NodeId+1) + ", while the offset key contains number of nodes " + nodeNrs + ".");
+        }
+        Byte* staticDataOffset = key + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
+        Byte* staticData = key + (*(UInt16*)(staticDataOffset));
+        EnumeratorNodeType keyNodeType = (EnumeratorNodeType)(*staticData);
+        if (keyNodeType != NodeType)
+            throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan. Current node type " +
+                NodeType.ToString() + ", while the offset key contains node type " + (keyNodeType).ToString() + ".");
+        return staticDataOffset;
     }
 
     /// <summary>

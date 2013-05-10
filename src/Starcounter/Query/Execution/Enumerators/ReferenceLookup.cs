@@ -32,6 +32,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         IObjectExpression expr,
         ILogicalExpression cond,
         INumericalExpression fetchNumExpr,
+        IBinaryExpression fetchOffsetkeyExpr,
         VariableArray varArr, String query)
         : base(nodeId, EnumeratorNodeType.ReferenceLookup, rowTypeBind, varArr)
     {
@@ -52,6 +53,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         condition = cond;
 
         fetchNumberExpr = fetchNumExpr;
+        fetchOffsetKeyExpr = fetchOffsetkeyExpr;
 
         this.query = query;
     }
@@ -170,17 +172,15 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public Boolean MoveNext()
-    {
+    public Boolean MoveNext() {
         if (useOffsetkey && !stayAtOffsetkey) {
+            ValidOffsetkeyOrNull(null);
             currentObject = null;
             return false;
         }
 
-        if (counter == 0)
-        {
-            if (fetchNumberExpr != null && (fetchNumberExpr.EvaluateToInteger(null) == null || fetchNumberExpr.EvaluateToInteger(null).Value <= 0))
-            {
+        if (counter == 0) {
+            if (fetchNumberExpr != null && (fetchNumberExpr.EvaluateToInteger(null) == null || fetchNumberExpr.EvaluateToInteger(null).Value <= 0)) {
                 currentObject = null;
                 return false;
             }
@@ -189,22 +189,17 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
             IObjectView obj = expression.EvaluateToObject(contextObject);
 
             // Check for null, that the object is in the current extent and check condition.
-            if (obj == null || InCurrentExtent(obj) == false || !ValidOffsetkeyOrNull(obj) || condition.Instantiate(contextObject).Filtrate(obj) == false)
-            {
+            if (obj == null || InCurrentExtent(obj) == false || !ValidOffsetkeyOrNull(obj) || condition.Instantiate(contextObject).Filtrate(obj) == false) {
                 currentObject = null;
                 return false;
-            }
-            else
-            {
+            } else {
                 // Create new currentObject.
                 currentObject = new Row(rowTypeBinding);
                 currentObject.AttachObject(extentNumber, obj);
                 counter++;
                 return true;
             }
-        }
-        else
-        {
+        } else {
             currentObject = null;
             return false;
         }
@@ -233,15 +228,10 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     }
 
     private unsafe void ValidateAndGetRecreateKey(Byte* rk) {
-        Byte* staticDataOffset = rk + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
+        ValidateAndGetStaticKeyOffset(rk);
 #if false // Not in use
         UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
         Debug.Assert(dynDataOffset != 0);
-#endif
-        UInt16 statDataOffset = (*(UInt16*)(staticDataOffset));
-        Byte* staticData = rk + statDataOffset;
-        ValidateNodeType((*(Byte*)staticData));
-#if false
         return rk + dynDataOffset;
 #endif
     }
@@ -356,9 +346,12 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         INumericalExpression fetchNumberExprClone = null;
         if (fetchNumberExpr != null)
             fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
+        IBinaryExpression fetchOffsetKeyExprClone = null;
+        if (fetchOffsetKeyExpr != null)
+            fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
 
         return new ReferenceLookup(nodeId, rowTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
-            condition.Clone(varArrClone), fetchNumberExprClone, varArrClone, query);
+            condition.Clone(varArrClone), fetchNumberExprClone, fetchOffsetKeyExprClone, varArrClone, query);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
