@@ -68,8 +68,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         IBinaryExpression fetchOffsetKeyExpr,
         Boolean innermostExtent, 
         CodeGenFilterPrivate privFilter,
-        VariableArray varArr, String query)
-        : base(nodeId, EnumeratorNodeType.FullTableScan, rowTypeBind, varArr)
+        VariableArray varArr, String query, Boolean topNode)
+        : base(nodeId, EnumeratorNodeType.FullTableScan, rowTypeBind, varArr, topNode)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -790,7 +790,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             fetchOffsetKeyExprClone,
             innermostExtent, 
             privateFilter.Clone(conditionClone, typeBindingClone),
-            varArrClone, query);
+            varArrClone, query, TopNode);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

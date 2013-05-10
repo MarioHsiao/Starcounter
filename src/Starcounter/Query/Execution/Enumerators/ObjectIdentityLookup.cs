@@ -32,8 +32,8 @@ namespace Starcounter.Query.Execution {
         INumericalExpression fetchNumExpr,
         INumericalExpression fetchOffsetExpr,
         IBinaryExpression fetchOffsetKeyExpr,
-        VariableArray varArr, String query)
-            : base(nodeId, EnumeratorNodeType.ObjectIdentityLookup, rowTypeBind, varArr) {
+        VariableArray varArr, String query, Boolean topNode)
+            : base(nodeId, EnumeratorNodeType.ObjectIdentityLookup, rowTypeBind, varArr, topNode) {
             if (rowTypeBind == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
             if (varArr == null)
@@ -363,7 +363,7 @@ namespace Starcounter.Query.Execution {
 
             return new ObjectIdentityLookup(nodeId, rowTypeBindClone, extentNumber, expressionClone,
                 condition.Clone(varArrClone), fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
-                varArrClone, query);
+                varArrClone, query, TopNode);
         }
 
         public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs) {

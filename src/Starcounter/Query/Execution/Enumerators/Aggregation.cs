@@ -37,8 +37,9 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         ILogicalExpression condition,
         VariableArray varArr,
         String query,
-        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
-        : base(nodeId, EnumeratorNodeType.Aggregate, rowTypeBind, varArr)
+        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
+        Boolean topNode)
+        : base(nodeId, EnumeratorNodeType.Aggregate, rowTypeBind, varArr, topNode)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -86,7 +87,8 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         if (this.comparer.ComparerCount == 0) {
             this.enumerator = this.subEnumerator;
         } else {
-            this.enumerator = new Sort(nodeId, subEnumerator.RowTypeBinding, subEnumerator, comparer, variableArray, query, null, null, null);
+            this.enumerator = new Sort(nodeId, subEnumerator.RowTypeBinding, subEnumerator, 
+                comparer, variableArray, query, null, null, null, topNode);
         }
         cursorObject = null;
         currentObject = null;
@@ -415,7 +417,8 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
                                subEnumerator.Clone(rowTypeBindClone, varArrClone),
                                comparer.Clone(varArrClone), setFuncListClone,
                                condition.Clone(varArrClone), varArrClone, query,
-                               fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone);
+                               fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone,
+                               TopNode);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

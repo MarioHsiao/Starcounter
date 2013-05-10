@@ -34,7 +34,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         INumericalExpression fetchNumExpr,
         IBinaryExpression fetchOffsetkeyExpr,
         VariableArray varArr, String query)
-        : base(nodeId, EnumeratorNodeType.ReferenceLookup, rowTypeBind, varArr)
+        : base(nodeId, EnumeratorNodeType.ReferenceLookup, rowTypeBind, varArr, false)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
