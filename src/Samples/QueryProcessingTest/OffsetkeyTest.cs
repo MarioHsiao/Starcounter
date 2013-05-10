@@ -107,7 +107,6 @@ namespace QueryProcessingTest {
             }
             e.Dispose();
             Trace.Assert(isException);
-            isException = false;
             // Obtain on full table scan and try on index scan
             e = Db.SQL("select a from account a where amount > ?", 10).GetEnumerator();
             Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(FullTableScan));
@@ -127,7 +126,6 @@ namespace QueryProcessingTest {
             }
             e.Dispose();
             Trace.Assert(isException);
-            isException = false;
             // Obtain on index scan and try on object identity lookup
             e = Db.SQL("select a from account a, account a2 where a.accountid = ? and a.accountid < a2.accountid", 10).GetEnumerator();
             Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
@@ -150,13 +148,11 @@ namespace QueryProcessingTest {
             }
             e.Dispose();
             Trace.Assert(isException);
-            isException = false;
             // Obtain on index scan and try on refernce lookup
             e = Db.SQL("select a from account a, user u where a.accountid = ? and u.useridnr = ?", 10, 2).GetEnumerator();
             Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
             Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).RightEnumerator.GetType() == typeof(FullTableScan));
             Trace.Assert(e.MoveNext());
-            objectno = ((Account)e.Current).GetObjectNo();
             k = e.GetOffsetKey();
             e.Dispose();
             Trace.Assert(k != null);
@@ -172,7 +168,45 @@ namespace QueryProcessingTest {
                 isException = true;
             }
             e.Dispose();
+            Trace.Assert(isException);
+#if false // Does not work yet. Validation in Join should be implemented.
+            // Test changes in the size of the node tree
+            e = Db.SQL("select a from account a, user u where a.accountid = ? and a.client = u", 10).GetEnumerator();
+            Trace.Assert(e.MoveNext());
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            e = Db.SQL("select a from account a where a.accountid = ? offsetkey ?", 10, k).GetEnumerator();
             isException = false;
+            try {
+                e.MoveNext();
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
+                isException = true;
+                Console.WriteLine(ex.Message);
+            }
+            e.Dispose();
+            Trace.Assert(isException);
+            // More complex test
+            e = Db.SQL("select a from account a, user u where a.accountid = ? and a.client = u", 10).GetEnumerator();
+            Trace.Assert(e.MoveNext());
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            e = Db.SQL("select a from account a, user u where a.accountid = ? and a.client.userid = u.userid offsetkey ?", 10, k).GetEnumerator();
+            isException = false;
+            try {
+                e.MoveNext();
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
+                isException = true;
+                Console.WriteLine(ex.Message);
+            }
+            e.Dispose();
+            Trace.Assert(isException);
+#endif
 #if false // Tests do not fail any more, since static data are not read from the recreation key.
             // Test offsetkey on the query with the offset key from another query
             Boolean isException = false;

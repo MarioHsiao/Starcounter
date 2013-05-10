@@ -159,6 +159,7 @@ namespace Starcounter.Query.Execution {
         public Boolean MoveNext() {
             // Since this enumerator emits up to one object, it is not possible to use offset key and not stay at it.
             if (useOffsetkey && !stayAtOffsetkey && fetchOffsetKeyExpr != null) {
+                SameAsOffsetkeyOrNull(null);
                 currentObject = null;
                 return false;
             }
@@ -239,12 +240,9 @@ namespace Starcounter.Query.Execution {
         }
 
         private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
-            Byte* staticDataOffset = rk + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
+            Byte* staticDataOffset = ValidateAndGetStaticKeyOffset(rk);
             UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
             Debug.Assert(dynDataOffset != 0);
-            UInt16 statDataOffset = (*(UInt16*)(staticDataOffset));
-            Byte* staticData = rk + statDataOffset;
-            ValidateNodeType((*(Byte*)staticData));
             return rk + dynDataOffset;
         }
 
@@ -258,6 +256,8 @@ namespace Starcounter.Query.Execution {
                         // Checking if recreation key is valid.
                         if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
                             Byte* recreationKey = ValidateAndGetRecreateKey(recrKey);
+                            if (obj == null) // Moving out from offset key on first MoveNext
+                                return false;
                             // Check if current object matches stored in the recreation key
                             if (currectObjectId == (*(ulong*)recreationKey))
                                 isAtRecreatedKey = true;

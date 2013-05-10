@@ -383,11 +383,9 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     }
 
     private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
-        Byte* staticDataOffset = rk + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
+        Byte* staticDataOffset = ValidateAndGetStaticKeyOffset(rk);
         UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
         Debug.Assert(dynDataOffset != 0);
-        Byte* staticData = rk + (*(UInt16*)(staticDataOffset));
-        ValidateNodeType((*(Byte*)staticData));
         return rk + dynDataOffset;
     }
 

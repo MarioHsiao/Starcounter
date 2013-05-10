@@ -430,7 +430,7 @@ internal class ExtentNode : IOptimizationNode
 
         if (refLookUpExpression != null)
         {
-            return new ReferenceLookup(nodeId++, rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, variableArr, query);
+            return new ReferenceLookup(nodeId++, rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, fetchOffsetKeyExpr, variableArr, query);
         }
 
         if (identityExpression != null)

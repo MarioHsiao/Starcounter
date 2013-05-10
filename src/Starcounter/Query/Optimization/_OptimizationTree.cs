@@ -154,6 +154,7 @@ internal class OptimizationTree
     {
         byte nodeId = 0;
         IExecutionEnumerator enumerator = topNode.CreateExecutionEnumerator(fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, ref nodeId);
+        ((ExecutionEnumerator)enumerator).TopNode = true;
         enumerator.RowTypeBinding.ExtentOrder = extentOrder;
         if (topNode is SortNode)
             enumerator.VarArray.QueryFlags = enumerator.VarArray.QueryFlags | QueryFlags.IncludesSorting;
