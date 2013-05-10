@@ -296,7 +296,7 @@ internal abstract class ExecutionEnumerator
         //Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
         byte nodesNum = (byte)(NodeId + 1);
         // Offset to first enumerator static data
-        globalOffset = (ushort)((nodesNum << 3) + IteratorHelper.RK_HEADER_LEN);
+        globalOffset = (ushort)((nodesNum << 2) + IteratorHelper.RK_HEADER_LEN);
 
         // Using cache temp buffer.
         Byte[] tempBuffer = Scheduler.GetInstance().SqlEnumCache.TempBuffer;
@@ -331,7 +331,8 @@ internal abstract class ExecutionEnumerator
 
     protected virtual void ValidateNodeType(byte keyNodeType) {
         if (keyNodeType != (byte)NodeType)
-            throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan");
+            throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan. Expected node type" +
+                NodeType.ToString() + ", while found node type" + ((EnumeratorNodeType)keyNodeType).ToString() + ".");
     }
 
     /// <summary>

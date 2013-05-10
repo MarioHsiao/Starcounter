@@ -242,15 +242,19 @@ namespace Starcounter.Query.Execution {
             Byte* staticDataOffset = rk + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
             UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
             Debug.Assert(dynDataOffset != 0);
-            Byte* staticData = rk + (*(UInt16*)(staticDataOffset));
+            UInt16 statDataOffset = (*(UInt16*)(staticDataOffset));
+            Byte* staticData = rk + statDataOffset;
             ValidateNodeType((*(Byte*)staticData));
             return rk + dynDataOffset;
         }
 
         internal Boolean SameAsOffsetkeyOrNull(IObjectView obj) {
             if (useOffsetkey && fetchOffsetKeyExpr != null) {
+                // In order to skip enumerator recreation next time.
+                triedEnumeratorRecreation = true;
                 unsafe {
-                    fixed (Byte* recrKey = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
+                    fixed (Byte* recrKeyBuffer = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
+                        Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
                         // Checking if recreation key is valid.
                         if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
                             Byte* recreationKey = ValidateAndGetRecreateKey(recrKey);
@@ -332,6 +336,7 @@ namespace Starcounter.Query.Execution {
             contextObject = obj;
             currentObject = null;
             counter = 0;
+            triedEnumeratorRecreation = false;
 
             if (obj == null) {
                 stayAtOffsetkey = false;
