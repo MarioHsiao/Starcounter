@@ -6,8 +6,8 @@
 
 using System;
 using NUnit.Framework;
-using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
+using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Client.Tests.Application
 {
@@ -18,6 +18,12 @@ namespace Starcounter.Client.Tests.Application
     [TestFixture]
     public class TestJson
     {
+        private static IJsonFactory factory;
+
+        [TestFixtureSetUp]
+        public static void InitializeTest() {
+            factory = new JsonFactoryImpl();
+        }
 
         /// <summary>
         /// Apps to json.
@@ -26,7 +32,7 @@ namespace Starcounter.Client.Tests.Application
 //        [Fact]
         public static void AppToJson()
         {
-            dynamic app = new Json() { Template = TemplateFromJs.ReadJsonTemplateFromFile("MySampleApp2.json") };
+            dynamic app = new Json() { Template = (TObj)factory.CreateJsonTemplateFromFile("MySampleApp2.json") };
             app.FirstName = "Joachim";
             app.LastName = "Wester";
 

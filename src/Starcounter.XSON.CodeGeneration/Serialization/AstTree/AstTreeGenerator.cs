@@ -22,7 +22,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <returns></returns>
         internal static AstNamespace BuildAstTree(TObj objTemplate) {
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
-            return BuildAstTree(parseTree, objTemplate.ClassName + "Serializer");
+
+            string ns = objTemplate.Namespace;
+            if (String.IsNullOrEmpty(ns)) {
+                ns = "__starcountergenerated__";
+            }
+
+            return BuildAstTree(parseTree, ns, objTemplate.ClassName + "Serializer");
         }
 
         /// <summary>
@@ -30,11 +36,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns>An AstRequestProcessorClass node.</returns>
-        private static AstNamespace BuildAstTree(ParseNode input, string className) {
-            AstNamespace ns = new AstNamespace();
+        private static AstNamespace BuildAstTree(ParseNode input, string ns, string className) {
+            AstNamespace astNs = new AstNamespace() {
+                Namespace = ns
+            };
 
             AstJsonSerializerClass jsClass = new AstJsonSerializerClass() {
-                Parent = ns,
+                Parent = astNs,
                 ParseNode = input,
                 ClassName = className
             };
@@ -47,7 +55,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             CreateSerializerFunction(input, jsClass);
             CreateDeserializerFunction(input, jsClass);
 
-            return ns;
+            return astNs;
         }
 
         /// <summary>

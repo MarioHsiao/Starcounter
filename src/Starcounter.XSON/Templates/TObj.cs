@@ -17,7 +17,7 @@ namespace Starcounter.Templates {
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
         private CodegeneratedJsonSerializer jsonSerializer;
-        private bool shouldUseCodegeneratedSerializer = false;
+        private bool shouldUseCodegeneratedSerializer = true;
 
         /// <summary>
         /// 
@@ -25,7 +25,7 @@ namespace Starcounter.Templates {
         /// <returns></returns>
         internal CodegeneratedJsonSerializer GetSerializer() {
             if (shouldUseCodegeneratedSerializer && jsonSerializer == null)
-                throw new NotImplementedException("TODO: Generate serializer");
+                jsonSerializer = (CodegeneratedJsonSerializer)Obj.Factory.CreateJsonSerializer(this);
             return jsonSerializer;
         }
 

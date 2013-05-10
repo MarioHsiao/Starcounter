@@ -8,6 +8,7 @@ using Starcounter.Advanced;
 using Starcounter.Templates;
 using System;
 using Starcounter.Internal;
+using Starcounter.Templates.Interfaces;
 
 
 namespace Starcounter {
@@ -86,6 +87,11 @@ namespace Starcounter {
         /// Cache element index if the parent of this Obj is an array (Arr).
         /// </summary>
         internal int cacheIndexInArr;
+
+        /// <summary>
+        /// Injection point for generating typed json from different kinds of input.
+        /// </summary>
+        public static IJsonFactory Factory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
