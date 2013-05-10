@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter;
+using Starcounter.Query.Execution;
 
 namespace QueryProcessingTest {
     public static class OffsetkeyTest {
@@ -86,6 +87,92 @@ namespace QueryProcessingTest {
             objectno = Db.SQL<ulong>("select objectno from account where accountid = ?", 2).First;
             e = Db.SQL("select a from account a where objectno = ? offsetkey ?", objectno, k).GetEnumerator();
             Trace.Assert(!e.MoveNext());
+            // Test using offset key for queries with different query plans but the same extent.
+            // Obtain on index scan and try on full table scan
+            e = Db.SQL("select a from account a").GetEnumerator();
+            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(IndexScan));
+            Trace.Assert(e.MoveNext());
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            e = Db.SQL("select a from account a where amount > ? offsetkey ?", 10, k).GetEnumerator();
+            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(FullTableScan));
+            bool isException = false;
+            try {
+                e.MoveNext();
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
+                isException = true;
+            }
+            e.Dispose();
+            Trace.Assert(isException);
+            isException = false;
+            // Obtain on full table scan and try on index scan
+            e = Db.SQL("select a from account a where amount > ?", 10).GetEnumerator();
+            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(FullTableScan));
+            Trace.Assert(e.MoveNext());
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            e = Db.SQL("select a from account a where accountid < ? offsetkey ?", 10, k).GetEnumerator();
+            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(IndexScan));
+            isException = false;
+            try {
+                e.MoveNext();
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
+                isException = true;
+            }
+            e.Dispose();
+            Trace.Assert(isException);
+            isException = false;
+            // Obtain on index scan and try on object identity lookup
+            e = Db.SQL("select a from account a, account a2 where a.accountid = ? and a.accountid < a2.accountid", 10).GetEnumerator();
+            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
+            Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).LeftEnumerator.GetType() == typeof(IndexScan));
+            Trace.Assert(e.MoveNext());
+            objectno = ((Account)e.Current).GetObjectNo();
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            e = Db.SQL("select a from account a, account a2 where a.objectno = ? and a.accountid < a2.accountid offsetkey ?", objectno, k).GetEnumerator();
+            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
+            Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).LeftEnumerator.GetType() == typeof(ObjectIdentityLookup));
+            isException = false;
+            try {
+                e.MoveNext();
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
+                isException = true;
+            }
+            e.Dispose();
+            Trace.Assert(isException);
+            isException = false;
+            // Obtain on index scan and try on refernce lookup
+            e = Db.SQL("select a from account a, user u where a.accountid = ? and u.useridnr = ?", 10, 2).GetEnumerator();
+            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
+            Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).RightEnumerator.GetType() == typeof(FullTableScan));
+            Trace.Assert(e.MoveNext());
+            objectno = ((Account)e.Current).GetObjectNo();
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            e = Db.SQL("select a from account a, user u where a.accountid = ? and a.client = u offsetkey ?", 10, k).GetEnumerator();
+            Trace.Assert(((SqlEnumerator<dynamic>)e).subEnumerator.GetType() == typeof(Join));
+            Trace.Assert(((Join)((SqlEnumerator<dynamic>)e).subEnumerator).RightEnumerator.GetType() == typeof(ReferenceLookup));
+            isException = false;
+            try {
+                e.MoveNext();
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
+                isException = true;
+            }
+            e.Dispose();
+            isException = false;
 #if false // Tests do not fail any more, since static data are not read from the recreation key.
             // Test offsetkey on the query with the offset key from another query
             Boolean isException = false;
