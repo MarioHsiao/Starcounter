@@ -224,6 +224,55 @@ namespace QueryProcessingTest {
             using (IRowEnumerator<Account> res = Db.SQL<Account>("select a from account a where client.objectno = ? offsetkey ?", 1, key).GetEnumerator()) {
                 Trace.Assert(!res.MoveNext());
             }
+            objectno = Db.SQL<ulong>("select objectno from user where useridnr = ?", 5).First;
+            using (IRowEnumerator<User> res = Db.SQL<User>("select u1 from user u1, user u2 where u1.objectno = ? and u2.objectno < u1.objectno", objectno).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.GetObjectNo());
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.GetObjectNo());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+            }
+            using (IRowEnumerator<User> res = Db.SQL<User>("select u1 from user u1, user u2 where u1.objectno = ? and u2.objectno < u1.objectno offsetkey ?", objectno, key).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.GetObjectNo());
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.GetObjectNo());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+            }
+            using (IRowEnumerator<User> res = Db.SQL<User>("select u1 from user u1, user u2 where u1.objectno = ? and u2.objectno < u1.objectno offsetkey ?", objectno, key).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectno == res.Current.GetObjectNo());
+                Trace.Assert(!res.MoveNext());
+                key = res.GetOffsetKey();
+                Trace.Assert(key == null);
+            }
+            String objectid = Db.SQL<string>("select objectid from user where useridnr = ?", 5).First;
+            //Console.WriteLine(Db.SQL("select u1 from user u1, user u2 where u1.objectid = ? and u2.objectno < u1.objectno", objectid).GetEnumerator().ToString());
+            using (IRowEnumerator<User> res = Db.SQL<User>("select u1 from user u1, user u2 where u1.objectid = ? and u2.objectno < u1.objectno", objectid).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectid == res.Current.GetObjectID());
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectid == res.Current.GetObjectID());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+            }
+            using (IRowEnumerator<User> res = Db.SQL<User>("select u1 from user u1, user u2 where u1.objectid = ? and u2.objectno < u1.objectno offsetkey ?", objectid, key).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectid == res.Current.GetObjectID());
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectid == res.Current.GetObjectID());
+                key = res.GetOffsetKey();
+                Trace.Assert(key != null);
+            }
+            using (IRowEnumerator<User> res = Db.SQL<User>("select u1 from user u1, user u2 where u1.objectid = ? and u2.objectno < u1.objectno offsetkey ?", objectid, key).GetEnumerator()) {
+                Trace.Assert(res.MoveNext());
+                Trace.Assert(objectid == res.Current.GetObjectID());
+                Trace.Assert(!res.MoveNext());
+                key = res.GetOffsetKey();
+                Trace.Assert(key == null);
+            }
         }
 
         static void TestDataModification(String query, User client) {
