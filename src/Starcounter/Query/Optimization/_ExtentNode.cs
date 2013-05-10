@@ -434,7 +434,7 @@ internal class ExtentNode : IOptimizationNode
         }
 
         if (identityExpression != null)
-            return new ObjectIdenittyAccess(nodeId++, rowTypeBind, extentNumber, identityExpression, GetCondition(), 
+            return new ObjectIdentityLookup(nodeId++, rowTypeBind, extentNumber, identityExpression, GetCondition(), 
                 fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, variableArr, query);
 
         if (bestIndexInfo != null)

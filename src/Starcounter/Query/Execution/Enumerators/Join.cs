@@ -195,6 +195,14 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
+    internal IExecutionEnumerator LeftEnumerator {
+        get { return leftEnumerator; }
+    }
+
+    internal IExecutionEnumerator RightEnumerator {
+        get { return rightEnumerator; }
+    }
+
     /// <summary>
     /// Resets the enumerator with a context object.
     /// </summary>

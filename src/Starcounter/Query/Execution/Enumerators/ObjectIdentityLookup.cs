@@ -8,7 +8,7 @@ namespace Starcounter.Query.Execution {
     /// Enumerator with unique access for an object based on ObjectId, which
     /// either given numerical as ObjectNo or string as ObjectID.
     /// </summary>
-    internal class ObjectIdenittyAccess : ExecutionEnumerator, IExecutionEnumerator {
+    internal class ObjectIdentityLookup : ExecutionEnumerator, IExecutionEnumerator {
         Int32 extentNumber;
         Row contextObject;
         ulong currectObjectId;
@@ -25,7 +25,7 @@ namespace Starcounter.Query.Execution {
 
         //Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.
         Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
-        internal ObjectIdenittyAccess(byte nodeId, RowTypeBinding rowTypeBind,
+        internal ObjectIdentityLookup(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
         IValueExpression expr,
         ILogicalExpression cond,
@@ -361,7 +361,7 @@ namespace Starcounter.Query.Execution {
             else
                 expressionClone = (expression as IStringExpression).CloneToString(varArrClone);
 
-            return new ObjectIdenittyAccess(nodeId, rowTypeBindClone, extentNumber, expressionClone,
+            return new ObjectIdentityLookup(nodeId, rowTypeBindClone, extentNumber, expressionClone,
                 condition.Clone(varArrClone), fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
                 varArrClone, query);
         }
