@@ -8,36 +8,38 @@ namespace Starcounter.Templates.Interfaces {
 
 
     /// <summary>
-    /// Interface IAppFactory
+    /// 
     /// </summary>
-    public interface IAppFactory {
+    public interface IJsonFactory {
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <returns></returns>
+        //object CreateJsonInstance(string json);
 
         /// <summary>
-        /// Creates the app.
+        /// 
         /// </summary>
-        /// <returns>IApp.</returns>
-        object CreateApp();
-        /// <summary>
-        /// Creates the app template.
-        /// </summary>
-        /// <returns>ITApp.</returns>
-        object CreateTApp();
-        /// <summary>
-        /// Creates the string template.
-        /// </summary>
-        /// <returns>IStringTemplate.</returns>
-        object CreateStringTemplate();
-        /// <summary>
-        /// Creates the double template.
-        /// </summary>
-        /// <returns>IDoubleTemplate.</returns>
-        object CreateDoubleTemplate();
-        /// <summary>
-        /// Creates the bool template.
-        /// </summary>
-        /// <returns>IBoolTemplate.</returns>
-        object CreateBoolTemplate();
+        /// <returns></returns>
+        object CreateJsonTemplate(string json);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        object CreateJsonTemplateFromFile(string filePath);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        object CreateJsonSerializer(object jsonTemplate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        ICompilerService Compiler { get; }
     }
-
 }

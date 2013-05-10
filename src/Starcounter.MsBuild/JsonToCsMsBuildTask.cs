@@ -22,6 +22,8 @@ namespace Starcounter.Internal.MsBuild
     /// </summary>
     public class BuildCustomObjClass<TObjType>
     {
+        private static IJsonFactory factory = new JsonFactoryImpl();
+
         /// <summary>
         /// When overridden in a derived class, executes the task.
         /// </summary>
@@ -75,7 +77,10 @@ namespace Starcounter.Internal.MsBuild
             String jsonContent = File.ReadAllText(jsonFilename);
 
             var className = Paths.StripFileNameWithoutExtention(jsonFilename);
-            metadata = (CodeBehindMetadata)JsonFactory.Compiler.AnalyzeCodeBehind(className, codeBehindFilename);
+            metadata = (CodeBehindMetadata)factory.Compiler.AnalyzeCodeBehind(className, codeBehindFilename);
+
+            // TODO: 
+            // Add functionality to factory to get the sourcecode.
 
             t = TemplateFromJs.CreateFromJs(jsonContent, false);
             if (t.ClassName == null)

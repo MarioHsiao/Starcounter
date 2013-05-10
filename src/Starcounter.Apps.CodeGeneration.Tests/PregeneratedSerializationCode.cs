@@ -5,20 +5,17 @@ using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Internal.JsonPatch;
 
-namespace __testing__ {
-    public class ZApapap : CodegeneratedJsonSerializer {
+namespace __starcountergenerated__ {
+    public class Serializer : CodegeneratedJsonSerializer {
 
         #pragma warning disable 0414
-        private static int VerificationOffset0 = 0; // Kid
-        private static int VerificationOffset1 = 3; // Page
-        private static int VerificationOffset2 = 7; // PlayerId
-        private static int VerificationOffset3 = 15; // FullName
-        private static int VerificationOffset4 = 23; // Accounts
+        private static int VerificationOffset0 = 0; // PlayerId
+        private static int VerificationOffset1 = 8; // Accounts
         #pragma warning restore 0414
-        private static byte[] VerificationBytes = new byte[] {(byte)'K',(byte)'i',(byte)'d',(byte)'P',(byte)'a',(byte)'g',(byte)'e',(byte)'P',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'I',(byte)'d',(byte)'F',(byte)'u',(byte)'l',(byte)'l',(byte)'N',(byte)'a',(byte)'m',(byte)'e',(byte)'A',(byte)'c',(byte)'c',(byte)'o',(byte)'u',(byte)'n',(byte)'t',(byte)'s'};
+        private static byte[] VerificationBytes = new byte[] {(byte)'P',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'I',(byte)'d',(byte)'A',(byte)'c',(byte)'c',(byte)'o',(byte)'u',(byte)'n',(byte)'t',(byte)'s'};
         private static IntPtr PointerVerificationBytes;
 
-        public ZApapap() {
+        public Serializer() {
             PointerVerificationBytes = BitsAndBytes.Alloc(VerificationBytes.Length); // TODO. Free when program exists
             BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
         }
@@ -34,50 +31,6 @@ namespace __testing__ {
                     throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
                 leftBufferSize -= 2;
                 *pBuffer++ = (byte)'{';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "Kid");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                childObj = obj.Kid;
-                if (childObj == null)
-                    valueSize = JsonHelper.WriteNull((IntPtr)pBuffer, leftBufferSize);
-                else
-                    valueSize = obj.ToJson((IntPtr)pBuffer, leftBufferSize);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)',';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "Page");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                childObj = obj.Page;
-                if (childObj == null)
-                    valueSize = JsonHelper.WriteNull((IntPtr)pBuffer, leftBufferSize);
-                else
-                    valueSize = obj.ToJson((IntPtr)pBuffer, leftBufferSize);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)',';
                 valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "PlayerId");
                 if (valueSize == -1)
                     throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
@@ -88,24 +41,6 @@ namespace __testing__ {
                     throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
                 *pBuffer++ = (byte)':';
                 valueSize = JsonHelper.WriteInt((IntPtr)pBuffer, leftBufferSize, obj.PlayerId);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)',';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "FullName");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, obj.FullName);
                 if (valueSize == -1)
                     throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
                 leftBufferSize -= valueSize;
@@ -132,7 +67,7 @@ namespace __testing__ {
                 if (childObj == null)
                     valueSize = JsonHelper.WriteNull((IntPtr)pBuffer, leftBufferSize);
                 else
-                    valueSize = obj.ToJson((IntPtr)pBuffer, leftBufferSize);
+                    valueSize = childObj.ToJson((IntPtr)pBuffer, leftBufferSize);
                 if (valueSize == -1)
                     throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);
                 leftBufferSize -= valueSize;
@@ -175,113 +110,9 @@ namespace __testing__ {
                     if (leftBufferSize < 0)
                         throw new Exception("Deserialization failed.");
                     switch (*pBuffer) {
-                        case (byte)'K':
-                            pBuffer++;
-                            leftBufferSize--;
-                            // Skip until start of value to parse.
-                            while (*pBuffer != ':') {
-                                pBuffer++;
-                                leftBufferSize--;
-                                if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
-                            }
-                            pBuffer++; // Skip ':' or ','
-                            leftBufferSize--;
-                            if (leftBufferSize < 0)
-                                throw new Exception("Deserialization failed.");
-                            while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                pBuffer++;
-                                leftBufferSize--;
-                                if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
-                            }
-                            var val0 = obj.Kid;
-                            valueSize =  val0.Populate((IntPtr)pBuffer, leftBufferSize);
-                            if (valueSize != -1) {
-                                leftBufferSize -= valueSize;
-                                if (leftBufferSize < 0) {
-                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
-                                }
-                                pBuffer += valueSize;
-                            } else {
-                                throw new Exception("Unable to deserialize App. Content not compatible.");
-                            }
-                           break;
                         case (byte)'P':
                             pBuffer++;
                             leftBufferSize--;
-                            switch (*pBuffer) {
-                                case (byte)'a':
-                                    pBuffer++;
-                                    leftBufferSize--;
-                                    // Skip until start of value to parse.
-                                    while (*pBuffer != ':') {
-                                        pBuffer++;
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                             throw new Exception("Deserialization failed.");
-                                    }
-                                    pBuffer++; // Skip ':' or ','
-                                    leftBufferSize--;
-                                    if (leftBufferSize < 0)
-                                        throw new Exception("Deserialization failed.");
-                                    while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                        pBuffer++;
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                             throw new Exception("Deserialization failed.");
-                                    }
-                                    var val1 = obj.Page;
-                                    valueSize =  val1.Populate((IntPtr)pBuffer, leftBufferSize);
-                                    if (valueSize != -1) {
-                                        leftBufferSize -= valueSize;
-                                        if (leftBufferSize < 0) {
-                                            throw new Exception("Unable to deserialize App. Unexpected end of content");
-                                        }
-                                        pBuffer += valueSize;
-                                    } else {
-                                        throw new Exception("Unable to deserialize App. Content not compatible.");
-                                    }
-                                   break;
-                                case (byte)'l':
-                                    pBuffer++;
-                                    leftBufferSize--;
-                                    // Skip until start of value to parse.
-                                    while (*pBuffer != ':') {
-                                        pBuffer++;
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                             throw new Exception("Deserialization failed.");
-                                    }
-                                    pBuffer++; // Skip ':' or ','
-                                    leftBufferSize--;
-                                    if (leftBufferSize < 0)
-                                        throw new Exception("Deserialization failed.");
-                                    while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                        pBuffer++;
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                             throw new Exception("Deserialization failed.");
-                                    }
-                                    Int64 val2;
-                                    if (JsonHelper.ParseInt((IntPtr)pBuffer, leftBufferSize, out val2, out valueSize)) {
-                                        obj.PlayerId = val2;
-                                        leftBufferSize -= valueSize;
-                                        if (leftBufferSize < 0) {
-                                            throw new Exception("Unable to deserialize App. Unexpected end of content");
-                                        }
-                                        pBuffer += valueSize;
-                                    } else {
-                                        throw new Exception("Unable to deserialize App. Content not compatible.");
-                                    }
-                                   break;
-                                default:
-                                    throw new Exception("Property not belonging to this app found in content.");
-                            }
-                           break;
-                        case (byte)'F':
-                            pBuffer++;
-                            leftBufferSize--;
                             // Skip until start of value to parse.
                             while (*pBuffer != ':') {
                                 pBuffer++;
@@ -299,9 +130,9 @@ namespace __testing__ {
                                 if (leftBufferSize < 0)
                                      throw new Exception("Deserialization failed.");
                             }
-                            String val3;
-                            if (JsonHelper.ParseString((IntPtr)pBuffer, leftBufferSize, out val3, out valueSize)) {
-                                obj.FullName = val3;
+                            Int64 val0;
+                            if (JsonHelper.ParseInt((IntPtr)pBuffer, leftBufferSize, out val0, out valueSize)) {
+                                obj.PlayerId = val0;
                                 leftBufferSize -= valueSize;
                                 if (leftBufferSize < 0) {
                                     throw new Exception("Unable to deserialize App. Unexpected end of content");
@@ -339,8 +170,8 @@ namespace __testing__ {
                                 }
                                 if (*pBuffer != ']') {
                                 while (leftBufferSize > 0) {
-                                    var val4 = obj.Accounts.Add();
-                                    valueSize =  val4.Populate((IntPtr)pBuffer, leftBufferSize);
+                                    var val1 = obj.Accounts.Add();
+                                    valueSize =  val1.Populate((IntPtr)pBuffer, leftBufferSize);
                                     if (valueSize != -1) {
                                         leftBufferSize -= valueSize;
                                         if (leftBufferSize < 0) {

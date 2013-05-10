@@ -45,7 +45,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Prefix.Add("if (childObj == null)");
             Prefix.Add("    valueSize = JsonHelper.WriteNull((IntPtr)pBuffer, leftBufferSize);");
             Prefix.Add("else");
-            Prefix.Add("    valueSize = obj.ToJson((IntPtr)pBuffer, leftBufferSize);");
+            Prefix.Add("    valueSize = childObj.ToJson((IntPtr)pBuffer, leftBufferSize);");
         }
 
         private void GenerateCodeForObjArray() {
