@@ -169,7 +169,6 @@ namespace QueryProcessingTest {
             }
             e.Dispose();
             Trace.Assert(isException);
-#if false // Does not work yet. Validation in Join should be implemented.
             // Test changes in the size of the node tree
             e = Db.SQL("select a from account a, user u where a.accountid = ? and a.client = u", 10).GetEnumerator();
             Trace.Assert(e.MoveNext());
@@ -206,7 +205,6 @@ namespace QueryProcessingTest {
             }
             e.Dispose();
             Trace.Assert(isException);
-#endif
 #if false // Tests do not fail any more, since static data are not read from the recreation key.
             // Test offsetkey on the query with the offset key from another query
             Boolean isException = false;
