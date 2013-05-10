@@ -1,8 +1,3 @@
 ﻿{
-   "PlayerId": 123,
-   "Accounts":[
-      {
-         "AccountId": 555,
-      }
-   ]
+   "PlayerId": 123
 }

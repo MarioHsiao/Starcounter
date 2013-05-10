@@ -54,7 +54,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         internal override void GenerateCsCodeForNode() {
             var sb = new StringBuilder();
-            Prefix.Add("public class " + ClassName + "{");
+            Prefix.Add("public class " + ClassName + " : CodegeneratedJsonSerializer {");
             Suffix.Add("}");
         }
     }

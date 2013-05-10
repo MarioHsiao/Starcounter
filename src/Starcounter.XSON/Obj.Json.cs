@@ -12,12 +12,33 @@ using Starcounter.Templates;
 using Starcounter.Internal;
 
 namespace Starcounter {
+    // TODO: 
+    // Not sure where this class should be 
+    public abstract class CodegeneratedJsonSerializer {
+        public abstract int Serialize(IntPtr buffer, int bufferSize, dynamic obj);
+        public abstract int Populate(IntPtr buffer, int bufferSize, dynamic obj);
+    }
+
     /// <summary>
     /// Class App
     /// </summary>
     public partial class Obj {
-        public void ToJson(IntPtr buffer, int bufferSize) {
-            Template.Serialize(buffer, bufferSize, this);
+        public int ToJson(IntPtr buffer, int bufferSize) {
+            var codeGenSerializer = Template.GetSerializer();
+            if (codeGenSerializer != null) {
+                return codeGenSerializer.Serialize(buffer, bufferSize, this);
+            } else {
+                throw new NotImplementedException();
+            }
+        }
+
+        public int Populate(IntPtr buffer, int bufferSize) {
+            var codeGenSerializer = Template.GetSerializer();
+            if (codeGenSerializer != null) {
+                return codeGenSerializer.Populate(buffer, bufferSize, this);
+            } else {
+                throw new NotImplementedException();
+            }
         }
 
         public string ToJson() {

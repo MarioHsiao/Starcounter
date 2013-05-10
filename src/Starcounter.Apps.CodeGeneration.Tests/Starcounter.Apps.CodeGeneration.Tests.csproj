@@ -92,7 +92,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DependentUpon>MySampleApp.json</DependentUpon>
     </None>
-    <Compile Include="DebugCompiler.cs" />
     <Compile Include="JsonSerializeTest.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

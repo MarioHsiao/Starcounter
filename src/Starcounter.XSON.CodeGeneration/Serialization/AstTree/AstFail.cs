@@ -7,7 +7,7 @@
 using System;
 using System.Text;
 
-namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Class AstProcessFail
     /// </summary>

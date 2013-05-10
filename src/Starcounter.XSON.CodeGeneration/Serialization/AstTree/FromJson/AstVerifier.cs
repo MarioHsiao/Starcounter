@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
 
     internal abstract class AstVerifier : AstNode {
         /// <summary>
@@ -34,34 +34,34 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 }
 
                 while (compareBytes >= 8) {
-                    Prefix.Add("nextSize -= 8;");
-                    Prefix.Add("if (nextSize<0 || (*(UInt64*)pfrag) != (*(UInt64*)pver) ) {");
+                    Prefix.Add("leftBufferSize -= 8;");
+                    Prefix.Add("if (leftBufferSize < 0 || (*(UInt64*)pBuffer) != (*(UInt64*)pver) ) {");
                     AddBreakOrReturn(breakInsteadOfReturn);
-                    Prefix.Add("pfrag += 8;");
+                    Prefix.Add("pBuffer += 8;");
                     Prefix.Add("pver += 8;");
                     compareBytes -= 8;
                 }
                 if (compareBytes >= 4) {
-                    Prefix.Add("nextSize -= 4;");
-                    Prefix.Add("if (nextSize<0 || (*(UInt32*)pfrag) !=  (*(UInt32*)pver) ) {");
+                    Prefix.Add("leftBufferSize -= 4;");
+                    Prefix.Add("if (leftBufferSize < 0 || (*(UInt32*)pBuffer) !=  (*(UInt32*)pver) ) {");
                     AddBreakOrReturn(breakInsteadOfReturn);
-                    Prefix.Add("pfrag += 4;");
+                    Prefix.Add("pBuffer += 4;");
                     Prefix.Add("pver += 4;");
                     compareBytes -= 4;
                 }
                 if (compareBytes >= 2) {
-                    Prefix.Add("nextSize -= 2;");
-                    Prefix.Add("if (nextSize<0 || (*(UInt16*)pfrag) != (*(UInt16*)pver) ) {");
+                    Prefix.Add("leftBufferSize -= 2;");
+                    Prefix.Add("if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver) ) {");
                     AddBreakOrReturn(breakInsteadOfReturn);
-                    Prefix.Add("pfrag += 2;");
+                    Prefix.Add("pBuffer += 2;");
                     Prefix.Add("pver += 2;");
                     compareBytes -= 2;
                 }
                 if (compareBytes >= 1) {
-                    Prefix.Add("nextSize --;");
-                    Prefix.Add("if (nextSize<0 || (*pfrag) != (*pver) ) {");
+                    Prefix.Add("leftBufferSize --;");
+                    Prefix.Add("if (leftBufferSize < 0 || (*pBuffer) != (*pver) ) {");
                     AddBreakOrReturn(breakInsteadOfReturn);
-                    Prefix.Add("pfrag++;");
+                    Prefix.Add("pBuffer++;");
                     Prefix.Add("pver++;");
                 }
             }
@@ -84,18 +84,18 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         }
 
         private int FindHandlerIndex(ParseNode node) {
-            int handlerIndex = -1;
+            int templateIndex = -1;
 
-            if (node.HandlerIndex != -1) {
-                handlerIndex = node.HandlerIndex;
+            if (node.TemplateIndex != -1) {
+                templateIndex = node.TemplateIndex;
             } else {
                 foreach (ParseNode candidate in node.Candidates) {
-                    handlerIndex = FindHandlerIndex(candidate);
-                    if (handlerIndex != -1)
+                    templateIndex = FindHandlerIndex(candidate);
+                    if (templateIndex != -1)
                         break;
                 }
             }
-            return handlerIndex;
+            return templateIndex;
         }
     }
 }

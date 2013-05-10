@@ -6,7 +6,7 @@ using Starcounter.Internal;
 using Starcounter.Internal.JsonPatch;
 
 namespace __testing__ {
-    public static class ZApapap{
+    public class ZApapap : CodegeneratedJsonSerializer {
 
         #pragma warning disable 0414
         private static int VerificationOffset0 = 0; // Kid
@@ -18,12 +18,12 @@ namespace __testing__ {
         private static byte[] VerificationBytes = new byte[] {(byte)'K',(byte)'i',(byte)'d',(byte)'P',(byte)'a',(byte)'g',(byte)'e',(byte)'P',(byte)'l',(byte)'a',(byte)'y',(byte)'e',(byte)'r',(byte)'I',(byte)'d',(byte)'F',(byte)'u',(byte)'l',(byte)'l',(byte)'N',(byte)'a',(byte)'m',(byte)'e',(byte)'A',(byte)'c',(byte)'c',(byte)'o',(byte)'u',(byte)'n',(byte)'t',(byte)'s'};
         private static IntPtr PointerVerificationBytes;
 
-        static ZApapap() {
+        public ZApapap() {
             PointerVerificationBytes = BitsAndBytes.Alloc(VerificationBytes.Length); // TODO. Free when program exists
             BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);
         }
 
-        public static int Serialize(IntPtr buffer, int bufferSize, dynamic obj) {
+        public override int Serialize(IntPtr buffer, int bufferSize, dynamic obj) {
             int valueSize;
             Obj childObj;
             unsafe {
@@ -148,6 +148,240 @@ namespace __testing__ {
                 *pBuffer++ = (byte)'}';
                 return (bufferSize - leftBufferSize);
             }
+        }
+        public override int Populate(IntPtr buffer, int bufferSize, dynamic obj) {
+            int valueSize;
+            unsafe {
+                byte* pBuffer = (byte*)buffer;
+                byte* pver = null;
+                int leftBufferSize = bufferSize;
+                while (leftBufferSize > 0) {
+                    // Skip until start of next property or end of current object.
+                    while (true) {
+                        if (*pBuffer == '"')
+                            break;
+                        if (*pBuffer == '}') {
+                            pBuffer++;
+                            leftBufferSize--;
+                            return (bufferSize - leftBufferSize);
+                        }
+                        pBuffer++;
+                        leftBufferSize--;
+                        if (leftBufferSize < 0)
+                             throw new Exception("Deserialization failed.");
+                    }
+                    pBuffer++;
+                    leftBufferSize--;
+                    if (leftBufferSize < 0)
+                        throw new Exception("Deserialization failed.");
+                    switch (*pBuffer) {
+                        case (byte)'K':
+                            pBuffer++;
+                            leftBufferSize--;
+                            // Skip until start of value to parse.
+                            while (*pBuffer != ':') {
+                                pBuffer++;
+                                leftBufferSize--;
+                                if (leftBufferSize < 0)
+                                     throw new Exception("Deserialization failed.");
+                            }
+                            pBuffer++; // Skip ':' or ','
+                            leftBufferSize--;
+                            if (leftBufferSize < 0)
+                                throw new Exception("Deserialization failed.");
+                            while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
+                                pBuffer++;
+                                leftBufferSize--;
+                                if (leftBufferSize < 0)
+                                     throw new Exception("Deserialization failed.");
+                            }
+                            var val0 = obj.Kid;
+                            valueSize =  val0.Populate((IntPtr)pBuffer, leftBufferSize);
+                            if (valueSize != -1) {
+                                leftBufferSize -= valueSize;
+                                if (leftBufferSize < 0) {
+                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                }
+                                pBuffer += valueSize;
+                            } else {
+                                throw new Exception("Unable to deserialize App. Content not compatible.");
+                            }
+                           break;
+                        case (byte)'P':
+                            pBuffer++;
+                            leftBufferSize--;
+                            switch (*pBuffer) {
+                                case (byte)'a':
+                                    pBuffer++;
+                                    leftBufferSize--;
+                                    // Skip until start of value to parse.
+                                    while (*pBuffer != ':') {
+                                        pBuffer++;
+                                        leftBufferSize--;
+                                        if (leftBufferSize < 0)
+                                             throw new Exception("Deserialization failed.");
+                                    }
+                                    pBuffer++; // Skip ':' or ','
+                                    leftBufferSize--;
+                                    if (leftBufferSize < 0)
+                                        throw new Exception("Deserialization failed.");
+                                    while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
+                                        pBuffer++;
+                                        leftBufferSize--;
+                                        if (leftBufferSize < 0)
+                                             throw new Exception("Deserialization failed.");
+                                    }
+                                    var val1 = obj.Page;
+                                    valueSize =  val1.Populate((IntPtr)pBuffer, leftBufferSize);
+                                    if (valueSize != -1) {
+                                        leftBufferSize -= valueSize;
+                                        if (leftBufferSize < 0) {
+                                            throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                        }
+                                        pBuffer += valueSize;
+                                    } else {
+                                        throw new Exception("Unable to deserialize App. Content not compatible.");
+                                    }
+                                   break;
+                                case (byte)'l':
+                                    pBuffer++;
+                                    leftBufferSize--;
+                                    // Skip until start of value to parse.
+                                    while (*pBuffer != ':') {
+                                        pBuffer++;
+                                        leftBufferSize--;
+                                        if (leftBufferSize < 0)
+                                             throw new Exception("Deserialization failed.");
+                                    }
+                                    pBuffer++; // Skip ':' or ','
+                                    leftBufferSize--;
+                                    if (leftBufferSize < 0)
+                                        throw new Exception("Deserialization failed.");
+                                    while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
+                                        pBuffer++;
+                                        leftBufferSize--;
+                                        if (leftBufferSize < 0)
+                                             throw new Exception("Deserialization failed.");
+                                    }
+                                    Int64 val2;
+                                    if (JsonHelper.ParseInt((IntPtr)pBuffer, leftBufferSize, out val2, out valueSize)) {
+                                        obj.PlayerId = val2;
+                                        leftBufferSize -= valueSize;
+                                        if (leftBufferSize < 0) {
+                                            throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                        }
+                                        pBuffer += valueSize;
+                                    } else {
+                                        throw new Exception("Unable to deserialize App. Content not compatible.");
+                                    }
+                                   break;
+                                default:
+                                    throw new Exception("Property not belonging to this app found in content.");
+                            }
+                           break;
+                        case (byte)'F':
+                            pBuffer++;
+                            leftBufferSize--;
+                            // Skip until start of value to parse.
+                            while (*pBuffer != ':') {
+                                pBuffer++;
+                                leftBufferSize--;
+                                if (leftBufferSize < 0)
+                                     throw new Exception("Deserialization failed.");
+                            }
+                            pBuffer++; // Skip ':' or ','
+                            leftBufferSize--;
+                            if (leftBufferSize < 0)
+                                throw new Exception("Deserialization failed.");
+                            while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
+                                pBuffer++;
+                                leftBufferSize--;
+                                if (leftBufferSize < 0)
+                                     throw new Exception("Deserialization failed.");
+                            }
+                            String val3;
+                            if (JsonHelper.ParseString((IntPtr)pBuffer, leftBufferSize, out val3, out valueSize)) {
+                                obj.FullName = val3;
+                                leftBufferSize -= valueSize;
+                                if (leftBufferSize < 0) {
+                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                }
+                                pBuffer += valueSize;
+                            } else {
+                                throw new Exception("Unable to deserialize App. Content not compatible.");
+                            }
+                           break;
+                        case (byte)'A':
+                            pBuffer++;
+                            leftBufferSize--;
+                            // Skip until start of value to parse.
+                            while (*pBuffer != ':') {
+                                pBuffer++;
+                                leftBufferSize--;
+                                if (leftBufferSize < 0)
+                                     throw new Exception("Deserialization failed.");
+                            }
+                            pBuffer++; // Skip ':' or ','
+                            leftBufferSize--;
+                            if (leftBufferSize < 0)
+                                throw new Exception("Deserialization failed.");
+                            while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
+                                pBuffer++;
+                                leftBufferSize--;
+                                if (leftBufferSize < 0)
+                                     throw new Exception("Deserialization failed.");
+                            }
+                            if (*pBuffer++ == '[') {
+                                leftBufferSize--;
+                                while (*pBuffer != '{' && *pBuffer != ']') { // find first object or end of array
+                                    pBuffer++;
+                                    leftBufferSize--;
+                                }
+                                if (*pBuffer != ']') {
+                                while (leftBufferSize > 0) {
+                                    var val4 = obj.Accounts.Add();
+                                    valueSize =  val4.Populate((IntPtr)pBuffer, leftBufferSize);
+                                    if (valueSize != -1) {
+                                        leftBufferSize -= valueSize;
+                                        if (leftBufferSize < 0) {
+                                            throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                        }
+                                        pBuffer += valueSize;
+                                    } else {
+                                        throw new Exception("Unable to deserialize App. Content not compatible.");
+                                    }
+                                        // Skip until start of value to parse.
+                                        while (*pBuffer != ',') {
+                                            if (*pBuffer == ']')
+                                                break;
+                                            pBuffer++;
+                                            leftBufferSize--;
+                                            if (leftBufferSize < 0)
+                                                 throw new Exception("Deserialization failed.");
+                                        }
+                                        if (*pBuffer == ']')
+                                            break;
+                                        pBuffer++; // Skip ':' or ','
+                                        leftBufferSize--;
+                                        if (leftBufferSize < 0)
+                                            throw new Exception("Deserialization failed.");
+                                        while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
+                                            pBuffer++;
+                                            leftBufferSize--;
+                                            if (leftBufferSize < 0)
+                                                 throw new Exception("Deserialization failed.");
+                                        }
+                                }
+                                }
+                            } else
+                                throw new Exception("Invalid array value");
+                           break;
+                        default:
+                            throw new Exception("Property not belonging to this app found in content.");
+                    }
+                }
+            }
+            throw new Exception("Deserialization of App failed.");
         }
     }
 }

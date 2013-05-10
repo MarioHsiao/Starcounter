@@ -16,17 +16,24 @@ namespace Starcounter.Templates {
     public abstract class TObj : TContainer {
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
-        private Action<IntPtr, int, dynamic> serialize;
+        private CodegeneratedJsonSerializer jsonSerializer;
+        private bool shouldUseCodegeneratedSerializer = false;
 
-        internal void Serialize(IntPtr buffer, int bufferSize, Obj instance) {
-            if (serialize == null)
-                throw new NotImplementedException(); // TODO! Generate serializer.
-
-            serialize(buffer, bufferSize, instance);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal CodegeneratedJsonSerializer GetSerializer() {
+            if (shouldUseCodegeneratedSerializer && jsonSerializer == null)
+                throw new NotImplementedException("TODO: Generate serializer");
+            return jsonSerializer;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         internal void InvalidateSerializer() {
-            serialize = null;
+            jsonSerializer = null;
         }
 
         /// <summary>

@@ -22,7 +22,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <returns></returns>
         internal static AstNamespace BuildAstTree(TObj objTemplate) {
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
-            return BuildAstTree(parseTree);
+            return BuildAstTree(parseTree, objTemplate.ClassName + "Serializer");
         }
 
         /// <summary>
@@ -30,13 +30,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns>An AstRequestProcessorClass node.</returns>
-        internal static AstNamespace BuildAstTree(ParseNode input) {
+        private static AstNamespace BuildAstTree(ParseNode input, string className) {
             AstNamespace ns = new AstNamespace();
 
             AstJsonSerializerClass jsClass = new AstJsonSerializerClass() {
                 Parent = ns,
                 ParseNode = input,
-                ClassName = "ZApapap"
+                ClassName = className
             };
             
             var cons = new AstJSConstructor() {
@@ -45,7 +45,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             };
            
             CreateSerializerFunction(input, jsClass);
-//            CreateDeserializerFunction(input, jsClass);
+            CreateDeserializerFunction(input, jsClass);
 
             return ns;
         }
@@ -112,55 +112,55 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="input"></param>
         /// <param name="jsClass"></param>
         private static void CreateDeserializerFunction(ParseNode input, AstJsonSerializerClass jsClass) {
-            //AstNode nextParent;
+            AstNode nextParent;
 
-            //var df = new AstDeserializeFunction() {
-            //    Parent = jsClass
-            //};
-            //jsClass.DeserializeFunction = df;
+            var df = new AstDeserializeFunction() {
+                Parent = jsClass
+            };
+            jsClass.DeserializeFunction = df;
 
-            //nextParent = new AstUnsafe() {
-            //    ParseNode = input,
-            //    Parent = df
-            //};
+            nextParent = new AstUnsafe() {
+                ParseNode = input,
+                Parent = df
+            };
 
-            //nextParent = new AstWhile() {
-            //    Parent = nextParent
-            //};
+            nextParent = new AstWhile() {
+                Parent = nextParent
+            };
 
-            //new AstGotoProperty() {
-            //    Parent = nextParent
-            //};
+            new AstGotoProperty() {
+                Parent = nextParent
+            };
 
-            //if (input.Candidates.Count > 0 && input.Candidates[0].DetectedType == NodeType.CharMatchNode) {
-            //    nextParent = new AstSwitch() {
-            //        ParseNode = input.Candidates[0],
-            //        Parent = nextParent
-            //    };
-            //}
+            if (input.Candidates.Count > 0 && input.Candidates[0].DetectedType == NodeType.CharMatchNode) {
+                nextParent = new AstSwitch() {
+                    ParseNode = input.Candidates[0],
+                    Parent = nextParent
+                };
+            }
 
-            //foreach (var cand in input.Candidates) {
-            //    CreateCodeNode(cand, nextParent);
-            //}
+            foreach (var cand in input.Candidates) {
+                CreateCodeNode(cand, nextParent);
+            }
 
-            //if (nextParent is AstSwitch) {
-            //    // Add a default case for unknown properties.
-            //    var dc = new AstCase() {
-            //        IsDefault = true,
-            //        ParseNode = null,
-            //        Parent = nextParent
-            //    };
-            //    var fnFail = new AstProcessFail() {
-            //        Message = "Property not belonging to this app found in content.",
-            //        Parent = dc
-            //    };
-            //}
+            if (nextParent is AstSwitch) {
+                // Add a default case for unknown properties.
+                var dc = new AstCase() {
+                    IsDefault = true,
+                    ParseNode = null,
+                    Parent = nextParent
+                };
+                var fnFail = new AstProcessFail() {
+                    Message = "Property not belonging to this app found in content.",
+                    Parent = dc
+                };
+            }
 
-            //if (input.HandlerIndex == -1 || input.IsParseTypeNode) {
-            //    var fnFail = new AstProcessFail() {
-            //        Parent = df
-            //    };
-            //}
+            if (input.TemplateIndex == -1) {
+                var fnFail = new AstProcessFail() {
+                    Parent = df
+                };
+            }
         }
 
         /// <summary>
@@ -169,98 +169,86 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="pn">The pn.</param>
         /// <param name="parent">The parent.</param>
         private static void CreateCodeNode(ParseNode pn, AstNode parent) {
-            //AstNode nextParent;
+            AstNode nextParent;
 
-            //switch (pn.DetectedType) {
-            //    case NodeType.CharMatchNode:
-            //        var cn = new AstCase();
-            //        cn.Parent = parent;
-            //        cn.ParseNode = pn;        
-            //        if (pn.Candidates.Count > 1) {
-            //            var nsn = new AstSwitch() {
-            //                Parent = cn,
-            //                ParseNode = pn.Candidates[0]
-            //            };
-            //            nextParent = nsn;
-            //        }
-            //        else {
-            //            nextParent = cn;
-            //        }
-            //        foreach (var cand in pn.Candidates) {
-            //            CreateCodeNode(cand, nextParent);
-            //        }
+            switch (pn.DetectedType) {
+                case NodeType.CharMatchNode:
+                    var cn = new AstCase();
+                    cn.Parent = parent;
+                    cn.ParseNode = pn;
+                    if (pn.Candidates.Count > 1) {
+                        var nsn = new AstSwitch() {
+                            Parent = cn,
+                            ParseNode = pn.Candidates[0]
+                        };
+                        nextParent = nsn;
+                    } else {
+                        nextParent = cn;
+                    }
+                    foreach (var cand in pn.Candidates) {
+                        CreateCodeNode(cand, nextParent);
+                    }
 
-            //        if (nextParent is AstSwitch) {
-            //            // Add a default case for unknown properties.
-            //            var dc = new AstCase() {
-            //                IsDefault = true,
-            //                ParseNode = null,
-            //                Parent = nextParent
-            //            };
-            //            var fnFail = new AstProcessFail() {
-            //                Message = "Property not belonging to this app found in content.",
-            //                Parent = dc
-            //            };
-            //        }
+                    if (nextParent is AstSwitch) {
+                        // Add a default case for unknown properties.
+                        var dc = new AstCase() {
+                            IsDefault = true,
+                            ParseNode = null,
+                            Parent = nextParent
+                        };
+                        var fnFail = new AstProcessFail() {
+                            Message = "Property not belonging to this app found in content.",
+                            Parent = dc
+                        };
+                    }
 
-            //        break;
-            //    case NodeType.Heureka:
-            //        nextParent = new AstElseIfList(){
-            //            ParseNode = pn,
-            //            Parent = parent
-            //        };
+                    break;
+                case NodeType.Heureka:
+                    //nextParent = new AstElseIfList() {
+                    //    ParseNode = pn,
+                    //    Parent = parent
+                    //};
+                    nextParent = parent;
 
-            //        new AstGotoValue() {
-            //            Parent = nextParent
-            //        };
+                    new AstGotoValue() {
+                        Parent = nextParent
+                    };
 
-            //        bool addGotoValue = false;
-            //        if (pn.Handler.Code is TObjArr) {
-            //            // If the value to parse is a list we need to add some additional 
-            //            // code for looping and checking end of array.
-            //            nextParent = new AstParseJsonObjectArray() {
-            //                Parent = nextParent
-            //            };
+                    bool addGotoValue = false;
+                    if (pn.Template.Template is TObjArr) {
+                        // If the value to parse is a list we need to add some additional 
+                        // code for looping and checking end of array.
+                        nextParent = new AstParseJsonObjectArray() {
+                            Parent = nextParent
+                        };
 
-            //            nextParent = new AstWhile() {
-            //                Parent = nextParent,
-            //                Indentation = 8
-            //            };
-            //            addGotoValue = true;
-            //        } 
+                        nextParent = new AstWhile() {
+                            Parent = nextParent,
+                            Indentation = 8
+                        };
+                        addGotoValue = true;
+                    }
 
-            //        var pj = new AstParseJsonValue() {
-            //            ParseNode = pn,
-            //            Parent = nextParent
-            //        };
+                    var pj = new AstParseJsonValue() {
+                        ParseNode = pn,
+                        Parent = nextParent
+                    };
 
-            //        if (!(pn.Handler.Code is TTrigger)) {
-            //            new AstSetValue() {
-            //                ParseNode = pn,
-            //                Parent = pj
-            //            };
-            //        }
+                    if (addGotoValue) {
+                        new AstGotoValue() {
+                            Parent = pj,
+                            IsValueArrayObject = true
+                        };
+                    }
 
-            //        new AstValueJump() {
-            //            ParseNode = pn,
-            //            Parent = pj
-            //        };
-
-            //        if (addGotoValue) {
-            //            new AstGotoValue() {
-            //                Parent = pj,
-            //                IsValueArrayObject = true
-            //            };
-            //        }
-
-            //        break;
-            //    default:
-            //        new AstError() {
-            //            Parent = parent,
-            //            ParseNode = pn
-            //        };
-            //        break;
-            //}
+                    break;
+                default:
+                    new AstError() {
+                        Parent = parent,
+                        ParseNode = pn
+                    };
+                    break;
+            }
         }
     }
 
