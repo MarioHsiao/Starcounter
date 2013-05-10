@@ -9,7 +9,7 @@ using Starcounter.Templates.Interfaces;
 namespace Starcounter.CompilerService.Roslyn {
     public class RoslynCSharpCompiler : ICompilerService {
         public object Compile(string code) {
-            throw new NotImplementedException();
+            return Compile(code, new string[0]);
         }
 
         public object AnalyzeCodeBehind(string className, string codeBehindFile) {

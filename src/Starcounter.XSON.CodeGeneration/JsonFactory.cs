@@ -15,8 +15,8 @@ namespace Starcounter {
         }
 
         static JsonFactory() {
-//            Compiler = new Starcounter.CompilerService.Mono.MonoCSharpCompiler();
-            compiler = new Starcounter.CompilerService.Roslyn.RoslynCSharpCompiler();
+            compiler = new Starcounter.CompilerService.Mono.MonoCSharpCompiler();
+//            compiler = new Starcounter.CompilerService.Roslyn.RoslynCSharpCompiler();
         }
 
         public static TObj CreateTemplate(string json) {

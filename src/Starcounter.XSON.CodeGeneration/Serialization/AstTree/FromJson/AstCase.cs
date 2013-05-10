@@ -6,7 +6,7 @@
 
 using System.Text;
 
-namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
     internal class AstCase : AstNode {
         internal ParseNode ParseNode { get; set; }
 
@@ -40,8 +40,8 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
                 }
 
                 // Skip the character we switched on.
-                Prefix.Add("    pfrag++;");
-                Prefix.Add("    nextSize--;");
+                Prefix.Add("    pBuffer++;");
+                Prefix.Add("    leftBufferSize--;");
             }
 
             // AstFail throws exception so we cannot add a break if the child is a fail.

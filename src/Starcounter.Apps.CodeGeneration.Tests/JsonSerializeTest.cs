@@ -54,18 +54,25 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
 
             AstNamespace tree = AstTreeGenerator.BuildAstTree(objTemplate);
             tree.Namespace = "__testing__";
-            //dynamic o = GenereratedJsonCodeCompiler.CompileCode(tree.GenerateCsSourceCode(), "__testing__.ZApapap");
 
-            //dynamic simple = (Json)objTemplate.CreateInstance(null);
-            //simple.PlayerId = 666;
+            string code = tree.GenerateCsSourceCode();
 
-            //byte[] buffer = new byte[4096];
+            Type t = JsonFactory.Compiler.CompileType(code, "__testing__." + objTemplate.ClassName + "Serializer");
+            CodegeneratedJsonSerializer serializer = (CodegeneratedJsonSerializer)Activator.CreateInstance(t);
 
-            //unsafe {
-            //    fixed (byte* p = buffer) {
-            //        int i = o.Serialize((IntPtr)p, buffer.Length, simple);
-            //    }
-            //}
+            dynamic simple = (Json)objTemplate.CreateInstance(null);
+            simple.PlayerId = 666;
+
+            byte[] buffer = new byte[4096];
+
+            unsafe {
+                fixed (byte* p = buffer) {
+                    int i = serializer.Serialize((IntPtr)p, buffer.Length, simple);
+
+                    simple = (Json)objTemplate.CreateInstance(null);
+                    i = serializer.Populate((IntPtr)p, i, simple);
+                }
+            }
         }
     }
 }

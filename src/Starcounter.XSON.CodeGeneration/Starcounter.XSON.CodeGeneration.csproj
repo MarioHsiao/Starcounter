@@ -71,6 +71,7 @@
     <Compile Include="CSharpGenerator\CSharpGenerator.cs" />
     <Compile Include="Serialization\AstTree\AstCodeStatement.cs" />
     <Compile Include="Serialization\AstTree\AstDeserializeFunction.cs" />
+    <Compile Include="Serialization\AstTree\AstFail.cs" />
     <Compile Include="Serialization\AstTree\AstJSConstructor.cs" />
     <Compile Include="Serialization\AstTree\AstJsonSerializerClass.cs" />
     <Compile Include="Serialization\AstTree\AstNamespace.cs" />
@@ -78,6 +79,14 @@
     <Compile Include="Serialization\AstTree\AstSerializeFunction.cs" />
     <Compile Include="Serialization\AstTree\AstTreeGenerator.cs" />
     <Compile Include="Serialization\AstTree\AstUnsafe.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstGotoValue.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstParseJsonObjectArray.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstParseJsonValue.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstVerifier.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstCase.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstGotoProperty.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstSwitch.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstWhile.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonDelimiter.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonObject.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonProperty.cs" />

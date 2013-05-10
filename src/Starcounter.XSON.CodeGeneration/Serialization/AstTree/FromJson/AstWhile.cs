@@ -6,7 +6,7 @@
 
 using System.Text;
 
-namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Class AstSwitch
     /// </summary>
@@ -17,7 +17,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// <value>The debug string.</value>
         internal override string DebugString {
             get {
-                return "while (nextSize > 0)";
+                return "while (leftBufferSize > 0)";
             }
         }
 
@@ -25,7 +25,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("while (nextSize > 0) {");
+            Prefix.Add("while (leftBufferSize > 0) {");
             Suffix.Add("}");
         }
     }

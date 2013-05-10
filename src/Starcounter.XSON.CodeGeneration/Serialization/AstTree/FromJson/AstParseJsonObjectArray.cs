@@ -8,7 +8,7 @@ using System;
 using System.Text;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// 
     /// </summary>
@@ -27,13 +27,13 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("if (*pfrag++ == '[') {");
-            Prefix.Add("    nextSize--;");
-            Prefix.Add("    while (*pfrag != '{' && *pfrag != ']') { // find first object or end of array");
-            Prefix.Add("        pfrag++;");
-            Prefix.Add("        nextSize--;");
+            Prefix.Add("if (*pBuffer++ == '[') {");
+            Prefix.Add("    leftBufferSize--;");
+            Prefix.Add("    while (*pBuffer != '{' && *pBuffer != ']') { // find first object or end of array");
+            Prefix.Add("        pBuffer++;");
+            Prefix.Add("        leftBufferSize--;");
             Prefix.Add("    }");
-            Prefix.Add("    if (*pfrag != ']') {");
+            Prefix.Add("    if (*pBuffer != ']') {");
             Suffix.Add("    }");
             Suffix.Add("} else");
             Suffix.Add("    throw new Exception(\"Invalid array value\");");

@@ -5,7 +5,7 @@ using Starcounter.Templates;
 // This needs to be more generic. At the moment it only supports properties that are properly 
 // formatted with starting and ending quotes.
 
-namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
     internal class AstGotoProperty : AstNode {
         internal override string DebugString {
             get {
@@ -16,22 +16,21 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         internal override void GenerateCsCodeForNode() {
             Prefix.Add("// Skip until start of next property or end of current object.");
             Prefix.Add("while (true) {");
-            Prefix.Add("    if (*pfrag == '\"')");
+            Prefix.Add("    if (*pBuffer == '\"')");
             Prefix.Add("        break;");
-            Prefix.Add("    if (*pfrag == '}') {");
-            Prefix.Add("        pfrag++;");
-            Prefix.Add("        nextSize--;");
-            Prefix.Add("        usedSize = bufferSize - nextSize;");
-            Prefix.Add("        return app;");
+            Prefix.Add("    if (*pBuffer == '}') {");
+            Prefix.Add("        pBuffer++;");
+            Prefix.Add("        leftBufferSize--;");
+            Prefix.Add("        return (bufferSize - leftBufferSize);");
             Prefix.Add("    }");
-            Prefix.Add("    pfrag++;");
-            Prefix.Add("    nextSize--;");
-            Prefix.Add("    if (nextSize < 0)");
+            Prefix.Add("    pBuffer++;");
+            Prefix.Add("    leftBufferSize--;");
+            Prefix.Add("    if (leftBufferSize < 0)");
             Prefix.Add("         throw new Exception(\"Deserialization failed.\");");
             Prefix.Add("}");
-            Prefix.Add("pfrag++;");
-            Prefix.Add("nextSize--;");
-            Prefix.Add("if (nextSize < 0)");
+            Prefix.Add("pBuffer++;");
+            Prefix.Add("leftBufferSize--;");
+            Prefix.Add("if (leftBufferSize < 0)");
             Prefix.Add("    throw new Exception(\"Deserialization failed.\");");
         }
     }

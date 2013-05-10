@@ -6,11 +6,11 @@
 
 using System.Text;
 
-namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Class AstSwitch
     /// </summary>
-    internal class AstSwitch : AstVerifier
+    internal class AstSwitch : AstNode
     {
         /// <summary>
         /// Gets or sets the parse node.
@@ -19,12 +19,12 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         internal ParseNode ParseNode { get; set; }
 
         /// <summary>
-        /// Gets the debug string.
+        /// 
         /// </summary>
-        /// <value>The debug string.</value>
+        /// <value></value>
         internal override string DebugString {
             get {
-              return "<VERIFY> -> switch (i=" + ParseNode.MatchCharInTemplateRelative + ")";
+                return "switch (i=" + ParseNode.MatchCharInTemplateAbsolute + ")";
             }
         }
 
@@ -32,8 +32,7 @@ namespace Starcounter.Internal.Application.CodeGeneration.Serialization {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            GenVerifier(ParseNode, false);
-            Prefix.Add("switch (*pfrag) {");
+            Prefix.Add("switch (*pBuffer) {");
             Suffix.Add("}");
         }
 
