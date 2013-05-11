@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading;
 using Starcounter.Internal;
 using Starcounter.Server.PublicModel.Commands;
+using Starcounter.Bootstrap.Management;
 
 namespace Starcounter.Server {
 
@@ -260,8 +261,12 @@ namespace Starcounter.Server {
             // The process is alive; we should tell it to shut down and
             // release the reference.
 
-            var client = this.Server.DatabaseHostService.GetHostingInterface(database);
-            if (!client.SendShutdown()) {
+            var node = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
+            node.InternalSetLocalNodeForUnitTests(false);
+            var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+            
+            var response = node.DELETE(serviceUris.Host, null, null, null); 
+            if (!response.IsSuccessStatusCode) {
                 // If the host actively refused to shut down, we never try to
                 // kill it by force. Instead, we raise an exception that will later
                 // be logged, describing this scenario.
