@@ -73,7 +73,7 @@ namespace Starcounter.Server.Commands.Processors {
 
                 var node = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
                 node.InternalSetLocalNodeForUnitTests(false);
-                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name.ToUpperInvariant());
+                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
                 var keepTrying = true;
                 var hostJustStarted = started;
 
