@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Internal;
 using System;
 using System.Threading;
 
@@ -62,8 +63,10 @@ namespace Starcounter.Bootstrap.Management {
             
             if (!IsAdministrator) {
                 CodeHostAPI.Setup(hostIdentity);
-                CodeHostHandler.Setup();
-                ExecutablesHandler.Setup(handleScheduler);
+                new DbSession().RunSync(() => {
+                    CodeHostHandler.Setup();
+                    ExecutablesHandler.Setup(handleScheduler);
+                });
             }
         }
 
