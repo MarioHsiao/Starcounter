@@ -168,7 +168,7 @@
     <Compile Include="Query\Execution\Comparers\UIntegerComparer.cs" />
     <Compile Include="Query\Execution\Comparers\UIntegerPathComparer.cs" />
     <Compile Include="Query\Execution\Enumerators\GenericEnumerator.cs" />
-    <Compile Include="Query\Execution\Enumerators\ObjectIdenittyLookup.cs" />
+    <Compile Include="Query\Execution\Enumerators\ObjectIdentityLookup.cs" />
     <Compile Include="Query\Execution\Literals\TypeLiteral.cs" />
     <Compile Include="Query\Execution\LogicalExpressions\IsTypePredicate.cs" />
     <Compile Include="Query\Execution\Properties\ObjectIDProperty.cs" />
