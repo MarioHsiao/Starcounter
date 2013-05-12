@@ -24,8 +24,9 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         IQueryComparer comp,
         VariableArray varArr,
         String query,
-        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
-        : base(nodeId, EnumeratorNodeType.Sorting, rowTypeBind, varArr)
+        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
+        Boolean topNode)
+        : base(nodeId, EnumeratorNodeType.Sorting, rowTypeBind, varArr, topNode)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -266,7 +267,8 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
             fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
 
         return new Sort(nodeId, rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
-            fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone);
+            fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
+            TopNode);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
