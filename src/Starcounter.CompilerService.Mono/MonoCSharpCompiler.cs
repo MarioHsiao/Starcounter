@@ -1,9 +1,16 @@
 ﻿using System;
 using Mono.CSharp;
+using Starcounter.CompilerService.Roslyn;
 using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.CompilerService.Mono {
     public class MonoCSharpCompiler : ICompilerService {
+        private RoslynCSharpCompiler roslynCompiler;
+
+        public MonoCSharpCompiler() {
+            roslynCompiler = new RoslynCSharpCompiler();
+        }
+
         //public object Compile(string code) {
         //    // TODO:
         //    // Adding debug assembly references for testing.
@@ -34,15 +41,18 @@ namespace Starcounter.CompilerService.Mono {
         //    return o;
         //}
 
-        public Type CompileType(string code, string typeName) {
+        public object GenerateJsonSerializer(string code, string typeName) {
             CompilerSettings settings = new CompilerSettings();
+
             settings.AssemblyReferences.Add("Starcounter.dll");
             settings.AssemblyReferences.Add("Starcounter.Apps.JsonPatch.dll");
             settings.AssemblyReferences.Add("Starcounter.Internal.dll");
             settings.AssemblyReferences.Add("Starcounter.BitsAndBytes.Native.dll");
             settings.AssemblyReferences.Add("Starcounter.XSON.dll");
             settings.Unsafe = true;
-            settings.GenerateDebugInfo = true;
+
+            settings.GenerateDebugInfo = false;
+            settings.Optimize = true;
 
             CompilerContext ctx = new CompilerContext(settings, new ConsoleReportPrinter());
             Evaluator eval = new Evaluator(ctx);
@@ -50,11 +60,11 @@ namespace Starcounter.CompilerService.Mono {
             CompiledMethod cm;
             eval.Compile(code, out cm);
 
-            return (Type)eval.Evaluate("typeof(" + typeName + ");");
+            return eval.Evaluate("new " + typeName + "();");
         }
 
         public object AnalyzeCodeBehind(string className, string codeBehindFile) {
-            throw new NotImplementedException();
+            return roslynCompiler.AnalyzeCodeBehind(className, codeBehindFile);
         }
     }
 }

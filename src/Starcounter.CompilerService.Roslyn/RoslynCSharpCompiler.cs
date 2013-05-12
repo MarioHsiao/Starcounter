@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
@@ -8,42 +9,46 @@ using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.CompilerService.Roslyn {
     public class RoslynCSharpCompiler : ICompilerService {
-        public object Compile(string code) {
-            return Compile(code, new string[0]);
-        }
+        //public object Compile(string code) {
+        //    return Compile(code, new string[0]);
+        //}
 
         public object AnalyzeCodeBehind(string className, string codeBehindFile) {
             return CodeBehindAnalyzer.Analyze(className, codeBehindFile);
         }
 
-        public object Compile(string code, params string[] assemblyRefs) {
-            SyntaxTree tree = SyntaxTree.ParseText(code);
+        public object GenerateJsonSerializer(string code, string typeName) {
+            throw new NotImplementedException();
 
-            var compOptions = new CompilationOptions(
-                   outputKind: OutputKind.DynamicallyLinkedLibrary,
-                   allowUnsafe: true
-             );
+            //SyntaxTree tree = SyntaxTree.ParseText(code);
 
-            var compilation = Compilation.Create("Starcounter.GeneratedCode", compOptions);
+            //var compOptions = new CompilationOptions(
+            //       outputKind: OutputKind.DynamicallyLinkedLibrary,
+            //       allowUnsafe: true
+            // );
 
-            MetadataFileReference[] mrefs = new MetadataFileReference[assemblyRefs.Length];
-            for (int i = 0; i < assemblyRefs.Length; i++){
-                mrefs[i] = new MetadataFileReference(assemblyRefs[i]);
-            }
-            compilation.AddReferences(mrefs);
+            //var compilation = Compilation.Create("Starcounter.GeneratedCode", compOptions);
 
-            MemoryStream ms = new MemoryStream();
-            var result1 = compilation.Emit(ms);
-            if (!result1.Success) {
-                StringBuilder errorMsg = new StringBuilder();
-                errorMsg.AppendLine("Compilation of generated code failed.");
-                foreach (var d in result1.Diagnostics) {
-                    errorMsg.AppendLine(d.ToString());
-                }
-                throw new Exception(errorMsg.ToString());
-            }
+            //MetadataFileReference[] mrefs = new MetadataFileReference[assemblyRefs.Length];
+            //for (int i = 0; i < assemblyRefs.Length; i++){
+            //    mrefs[i] = new MetadataFileReference(assemblyRefs[i]);
+            //}
+            //compilation.AddReferences(mrefs);
+            //compilation.AddSyntaxTrees(tree);
 
-            return ms.GetBuffer();
+            //MemoryStream ms = new MemoryStream();
+            //var result1 = compilation.Emit(ms);
+            //if (!result1.Success) {
+            //    StringBuilder errorMsg = new StringBuilder();
+            //    errorMsg.AppendLine("Compilation of generated code failed.");
+            //    foreach (var d in result1.Diagnostics) {
+            //        errorMsg.AppendLine(d.ToString());
+            //    }
+            //    throw new Exception(errorMsg.ToString());
+            //}
+
+            //var a = Assembly.Load(ms.GetBuffer());
+            //return a.GetType(typeName);
         }
     }
 }

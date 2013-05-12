@@ -128,6 +128,10 @@
       <Project>{c5bcb67d-df0d-457c-8b05-68556fbc9dda}</Project>
       <Name>Starcounter.CompilerService.Mono</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.CompilerService.Roslyn\Starcounter.CompilerService.Roslyn.csproj">
+      <Project>{01382bc3-096b-466f-a115-6ae04766da3d}</Project>
+      <Name>Starcounter.CompilerService.Roslyn</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>

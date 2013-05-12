@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Starcounter.CompilerService.Mono;
+using Starcounter.CompilerService.Roslyn;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
@@ -12,6 +13,7 @@ namespace Starcounter {
 
         public JsonFactoryImpl() {
             this.compiler = new MonoCSharpCompiler();
+//            this.compiler = new RoslynCSharpCompiler();
         }
 
         public object CreateJsonTemplate(string json) {
@@ -37,10 +39,9 @@ namespace Starcounter {
 
             node = AstTreeGenerator.BuildAstTree(tobj);
             fullTypeName = node.Namespace + "." + ((AstJsonSerializerClass)node.Children[0]).ClassName;
-
+    
             string code = node.GenerateCsSourceCode();
-            Type t = compiler.CompileType(code, fullTypeName);
-            return Activator.CreateInstance(t);
+            return compiler.GenerateJsonSerializer(code, fullTypeName);
         }
 
         public ICompilerService Compiler { get { return compiler; } }

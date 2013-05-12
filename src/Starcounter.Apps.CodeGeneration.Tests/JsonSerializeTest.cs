@@ -13,18 +13,16 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
     /// 
     /// </summary>
     public static class JsonSerializeTest {
-        private static IJsonFactory factory;
-
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            factory = new JsonFactoryImpl();
+            Obj.Factory = new JsonFactoryImpl();
         }
 
         [Test]
         public static void GenerateSerializationParseTreeOverview() {
             TObj objTemplate;
 
-            objTemplate = (TObj)factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
+            objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
 
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
             Console.WriteLine(parseTree.ToString());
@@ -34,7 +32,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         public static void GenerateSerializationAstTreeOverview() {
             TObj objTemplate;
 
-            objTemplate = (TObj)factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
+            objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate).ToString());
         }
 
@@ -42,7 +40,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         public static void GenerateSerializationCsCode() {
             TObj objTemplate;
 
-            objTemplate = (TObj)factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
+            objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate).GenerateCsSourceCode());
         }
 
@@ -50,7 +48,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         public static void DebugPregeneratedCode() {
             TObj objTemplate;
 
-            objTemplate = (TObj)factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
+            objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
             dynamic simple = (Json)objTemplate.CreateInstance(null);
             simple.PlayerId = 666;
             var item = simple.Accounts.Add();
