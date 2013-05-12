@@ -18,7 +18,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, \"" + Template.PropertyName + "\");");
+            Prefix.Add("valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, \"" + Template.TemplateName + "\");");
             Prefix.Add("if (valueSize == -1)");
             Prefix.Add("    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);");
             Prefix.Add("leftBufferSize -= valueSize;");
