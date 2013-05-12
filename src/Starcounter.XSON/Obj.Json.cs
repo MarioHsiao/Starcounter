@@ -32,6 +32,17 @@ namespace Starcounter {
             }
         }
 
+        public int ToJson(byte[] buffer) {
+            int usedSize = 0;
+
+            unsafe {
+                fixed (byte* p = buffer) {
+                    usedSize = ToJson((IntPtr)p, buffer.Length);
+                }
+            }
+            return usedSize;
+        }
+
         public int Populate(IntPtr buffer, int bufferSize) {
             var codeGenSerializer = Template.GetSerializer();
             if (codeGenSerializer != null) {
@@ -42,7 +53,32 @@ namespace Starcounter {
         }
 
         public string ToJson() {
-            return null;
+            int startBufferSize = 4096;
+            int incAmount = 1;
+            byte[] buffer;
+            int usedSize = 0;
+
+            // TODO:
+            // How do we handle creating buffer and increasing buffer if size is not enough?
+
+            while (true) {
+                buffer = new byte[startBufferSize * incAmount];
+
+                // TODO:
+                // Change generated code to not throw any exceptions but return errorcodes.
+                try {
+                    usedSize = ToJson(buffer);
+                } catch (Exception ex) {
+                    if (ErrorCode.IsFromErrorCode(ex)) {
+                        incAmount = incAmount * 4;
+                        if (incAmount > 4096)
+                            throw;
+                    } else
+                        throw;
+                }
+
+                return System.Text.Encoding.UTF8.GetString(buffer, 0, usedSize);
+            }
         }
 
         /// <summary>

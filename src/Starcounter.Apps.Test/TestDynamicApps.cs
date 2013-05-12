@@ -18,6 +18,10 @@ namespace Starcounter.Client.Tests.Application {
     /// </summary>
     [TestFixture]
     public class AppTests {
+        [TestFixtureSetUp]
+        public static void Setup() {
+            Obj.Factory = new JsonFactoryImpl();
+        }
 
         /// <summary>
         /// Creates a template (schema) and Puppets using that schema in code.
