@@ -4,12 +4,12 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.ABCIPC;
+using Starcounter.Bootstrap.Management;
+using Starcounter.Bootstrap.Management.Representations.JSON;
 using Starcounter.Internal;
-using Starcounter.Server.PublicModel;
+using Starcounter.Rest.ExtensionMethods;
 using Starcounter.Server.PublicModel.Commands;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -100,26 +100,20 @@ namespace Starcounter.Server.Commands {
             WithinTask(Task.Run, (task) => {
                 try {
 
-                    // The current database worker protocol is "Exec c:\myfile.exe". We use
-                    // that until the full one is in place.
-                    //   Grab the response message and utilize it if we fail.
+                    var node = Node.LocalhostSystemPortNode;
+                    var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
-                    var properties = new Dictionary<string, string>();
-                    properties.Add("AssemblyPath", weavedExecutable);
-                    properties.Add("WorkingDir", command.WorkingDirectory);
-                    properties.Add("Args", KeyValueBinary.FromArray(command.ArgumentsToApplication).Value);
-
-                    string responseMessage = string.Empty;
-                    bool success = client.Send("Exec2", properties, delegate(Reply reply) {
-                        if (reply.IsResponse && !reply.IsSuccess) {
-                            reply.TryGetCarry(out responseMessage);
+                    var exe = new Executable();
+                    exe.Path = weavedExecutable;
+                    if (command.ArgumentsToApplication != null) {
+                        foreach (var arg in command.ArgumentsToApplication) {
+                            exe.Arguments.Add().dummy = arg;
                         }
-                    });
-                    if (!success) {
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, responseMessage);
                     }
 
-                    OnExec2RequestProcessed();
+                    var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
+                    response.FailIfNotSuccess();
+                    OnCodeHostExecRequestProcessed();
 
                     // The app is successfully loaded in the worker process. We should
                     // keep it referenced in the server and consider the execution of this
@@ -153,14 +147,7 @@ namespace Starcounter.Server.Commands {
                         // have any good strategy figured out. We start with just
                         // logging it and nothing else.
 
-                        Exception inner = null;
-                        uint processExitCode = (uint)codeHostProcess.ExitCode;
-                        string errorPostPrefix = DatabaseEngine.FormatCodeHostProcessInfoString(database, codeHostProcess, true);
-
-                        if (processExitCode > 1) { // 1 is the default return value if process is killed manually.
-                            inner = ErrorCode.ToException(processExitCode);
-                        }
-                        throw ErrorCode.ToException(Error.SCERRDATABASEENGINETERMINATED, inner, errorPostPrefix);
+                        throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database, ex);
                     }
                     throw ex;
                 }
@@ -228,7 +215,7 @@ namespace Starcounter.Server.Commands {
         void OnWorkerProcessStarted() { Trace("Worker process started."); }
         void OnHostingInterfaceConnected() { Trace("Hosting interface connected."); }
         void OnPingRequestProcessed() { Trace("Ping request processed."); }
-        void OnExec2RequestProcessed() { Trace("Exec2 request processed."); }
+        void OnCodeHostExecRequestProcessed() { Trace("Code host Exec request processed."); }
         void OnDatabaseAppRegistered() { Trace("Database app registered."); }
         void OnDatabaseStatusUpdated() { Trace("Database status updated."); }
     }
