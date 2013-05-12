@@ -53,15 +53,19 @@ namespace Starcounter.Bootstrap.Management {
         /// constructing and registering management URIs.</param>
         /// <param name="handleScheduler">Handle to the scheduler to use when
         /// management services need to schedule work to be done.</param>
-        public static unsafe void Setup(ushort port, string hostIdentity, void* handleScheduler) {
+        /// <param name="setupAPI">Indicates if the API should be set up.</param>
+        public static unsafe void Setup(ushort port, string hostIdentity, void* handleScheduler, bool setupAPI = true) {
             shutdownEvent = new ManualResetEvent(false);
             
             Unavailable = true;
             IsAdministrator = NewConfig.IsAdministratorApp;
             Port = port;
             HostIdentity = hostIdentity;
+            if (IsAdministrator) {
+                setupAPI = false;
+            }
             
-            if (!IsAdministrator) {
+            if (setupAPI) {
                 CodeHostAPI.Setup(hostIdentity);
                 new DbSession().RunSync(() => {
                     CodeHostHandler.Setup();
