@@ -223,7 +223,7 @@ namespace StarcounterInternal.Bootstrap
 
             OnAppDomainConfigured();
 
-            ManagementService.Setup(configuration.DefaultSystemHttpPort, configuration.Name, hsched_);
+            ManagementService.Setup(configuration.DefaultSystemHttpPort, configuration.Name, hsched_, !configuration.NoNetworkGateway);
             OnServerCommandHandlersRegistered();
 
             if (withdb_)
