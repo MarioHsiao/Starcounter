@@ -186,6 +186,7 @@ namespace Starcounter.Client.Tests.Application {
         public static void TestSlowSerializeSimpleDynamicApp() {
             TObj personSchema = CreateSimplePersonTemplate();
 
+
             dynamic p1 = new Json() { Template = personSchema };
             p1.FirstName = "Allan";
             p1.LastName = "Ballan";

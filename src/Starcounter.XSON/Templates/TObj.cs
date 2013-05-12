@@ -32,6 +32,14 @@ namespace Starcounter.Templates {
         /// <summary>
         /// 
         /// </summary>
+        public bool UseCodegeneratedSerializer {
+            get { return (shouldUseCodegeneratedSerializer && Obj.Factory != null); }
+            set { shouldUseCodegeneratedSerializer = value; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         internal void InvalidateSerializer() {
             jsonSerializer = null;
         }
