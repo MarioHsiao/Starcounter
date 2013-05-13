@@ -660,7 +660,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             if (usedNativeFillUp)
             {
                 // Getting next position of the iterator.
-                err = sccoredb.filter_iterator_get_recreate_key_and_free(
+                err = sccoredb.get_recreate_key_and_free_filter_iterator(
                     enumerator.CursorHandle,
                     enumerator.CursorVerify,
                     0,
