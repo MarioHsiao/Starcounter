@@ -74,18 +74,28 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// The prolog session
+        /// The Prolog session
         /// </summary>
         internal PrologSession PrologSession;
+
+        readonly Byte _id;
+
+        /// <summary>
+        /// Global id of this scheduler.
+        /// </summary>
+        public Byte Id
+        {
+            get { return _id; }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Scheduler" /> class.
         /// </summary>
-        /// <param name="vpContextID">The vp context ID.</param>
-        private Scheduler(Int32 vpContextID)
-            : base()
+        /// <param name="schedId">The scheduler ID.</param>
+        private Scheduler(Byte schedId)
         {
             _sqlEnumCache = new SqlEnumCache();
+            _id = schedId;
         }
 
         /// <summary>
@@ -120,23 +130,22 @@ namespace Starcounter
         /// <summary>
         /// Gets the instance.
         /// </summary>
-        /// <param name="cpuNumber">The cpu number.</param>
+        /// <param name="cpuNumber">The scheduler ID.</param>
         /// <returns>Scheduler.</returns>
-        internal static Scheduler GetInstance(Byte cpuNumber)
+        internal static Scheduler GetInstance(Byte schedId)
         {
-            return _instances[cpuNumber];
+            return _instances[schedId];
         }
 
         /// <summary>
-        /// Setups the specified cpu count.
+        /// Setups the specified CPU count.
         /// </summary>
         /// <param name="cpuCount">The cpu count.</param>
-        public static void Setup(Byte cpuCount)
+        public static void Setup(Byte schedCount)
         {
-            Scheduler[] instances;
-            Int32 i;
-            instances = new Scheduler[cpuCount];
-            for (i = 0; i < instances.Length; i++)
+            Scheduler[] instances = new Scheduler[schedCount];
+
+            for (Byte i = 0; i < instances.Length; i++)
             {
                 instances[i] = new Scheduler(i);
             }
@@ -191,11 +200,11 @@ namespace Starcounter
         /// Gets the scheduler count.
         /// </summary>
         /// <value>The scheduler count.</value>
-        internal static byte SchedulerCount
+        internal static Byte SchedulerCount
         {
             get
             {
-                return (byte)_instances.Length;
+                return (Byte)_instances.Length;
             }
         }
 
