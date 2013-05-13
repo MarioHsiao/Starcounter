@@ -211,6 +211,15 @@ namespace Starcounter.Server.PublicModel {
         /// explicitly state that they need to support waiting, see
         /// <see cref="ServerCommand.EnableWaiting"/>.
         /// </para>
+        /// <para>
+        /// The server core will only signal this once the underlying
+        /// command has fully completed (successfully or failed) and
+        /// when the latest publich snapshot (in the form of a new
+        /// <see cref="CommandInfo"/> has been made available to clients
+        /// consuming the public state model. Hence, when this event
+        /// is signaled, the waiting thread should go and grab the
+        /// latest snapshot before returning to the caller.
+        /// </para>
         /// </remarks>
         internal ManualResetEventSlim CompletedEvent {
             get;
