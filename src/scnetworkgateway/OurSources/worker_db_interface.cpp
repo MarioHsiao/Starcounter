@@ -147,10 +147,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             GW_PRINT_WORKER << "Popping chunk: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
-            // Checking if this socket data is for send only.
-            if (sd->get_socket_just_send_flag())
-                goto JUST_SEND_SOCKET_DATA;
-
 #ifndef GW_NEW_SESSIONS_APPROACH
 
             session_index_type gw_session_index = sd->get_session_index();
@@ -245,17 +241,10 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                 }
             }
 
-#else
-            // Checking if we have session related socket.
-            if (sd->HasActiveSession())
-            {
-                // Creating global session on this socket.
-                g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *(sd->GetSessionStruct()));
-            }
-
 #endif
 
-JUST_SEND_SOCKET_DATA:
+            // Checking if we have session related socket.
+            sd->SetGlobalSessionIfEmpty();
 
             // Resetting the accumulative buffer.
             sd->InitAccumBufferFromUserData();
@@ -329,7 +318,7 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 
     // Checking if we should just send the chunks.
     if (just_sending_flag)
-        *(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
+        (*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
 
     // Setting the number of written bytes.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;

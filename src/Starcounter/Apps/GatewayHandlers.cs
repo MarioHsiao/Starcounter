@@ -226,6 +226,8 @@ namespace Starcounter
 
             (*(ScSessionStruct*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = session.session_struct_;
 
+            (*(UInt32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
+
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) protocol_type;
             (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NUM_CHUNKS)) = 1;
 

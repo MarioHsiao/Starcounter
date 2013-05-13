@@ -150,9 +150,6 @@ namespace StarcounterInternal.Bootstrap
             // Initializing REST.
             RequestHandler.InitREST();
 
-            // Initialize the Db environment (database name)
-            Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
-
             // Configuring host environment.
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();
@@ -161,6 +158,9 @@ namespace StarcounterInternal.Bootstrap
             hsched_ = ConfigureScheduler(configuration, mem, hmenv, schedulerCount);
             mem += (1024 + (schedulerCount * 512));
             OnSchedulerConfigured();
+
+            // Initialize the Db environment (database name)
+            Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
             // Initializing AppsBootstrapper.
             AppsBootstrapper.InitAppsBootstrapper(
