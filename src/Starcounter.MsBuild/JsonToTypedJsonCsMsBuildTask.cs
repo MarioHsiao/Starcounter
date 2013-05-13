@@ -1,10 +1,8 @@
 ﻿
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Starcounter.Templates;
 
 namespace Starcounter.Internal.MsBuild {
-    
     /// <summary>
     /// Task that creates a C# message class from JSON file(s).
     /// </summary>
@@ -28,7 +26,7 @@ namespace Starcounter.Internal.MsBuild {
         /// </summary>
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         public override bool Execute() {
-            return BuildCustomObjClass<TJson>.ExecuteTask(InputFiles, OutputFiles, Log);
+            return JsonToCsMsBuildTask.ExecuteTask(InputFiles, OutputFiles, Log);
         }
     }
 
@@ -55,7 +53,7 @@ namespace Starcounter.Internal.MsBuild {
         /// </summary>
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         public override bool Execute() {
-            return BuildCustomObjClass<TJson>.ExecuteTask(InputFiles, OutputFiles, Log);
+            return JsonToCsMsBuildTask.ExecuteTask(InputFiles, OutputFiles, Log);
         }
     }
 }

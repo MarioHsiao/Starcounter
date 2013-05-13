@@ -52,6 +52,7 @@
     <Compile Include="Container.cs" />
     <Compile Include="DataBindingFactory.cs" />
     <Compile Include="DynamicJson.cs" />
+    <Compile Include="ITypedJsonFactory.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
     <Compile Include="JSON\JSON.cs" />

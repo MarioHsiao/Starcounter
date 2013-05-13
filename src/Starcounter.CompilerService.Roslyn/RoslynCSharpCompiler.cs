@@ -6,14 +6,15 @@ using System.Text;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Metadata;
 
 namespace Starcounter.CompilerService.Roslyn {
-    public class RoslynCSharpCompiler : ICompilerService {
+    public class RoslynCSharpCompiler {
         //public object Compile(string code) {
         //    return Compile(code, new string[0]);
         //}
 
-        public object AnalyzeCodeBehind(string className, string codeBehindFile) {
+        public CodeBehindMetadata AnalyzeCodeBehind(string className, string codeBehindFile) {
             return CodeBehindAnalyzer.Analyze(className, codeBehindFile);
         }
 

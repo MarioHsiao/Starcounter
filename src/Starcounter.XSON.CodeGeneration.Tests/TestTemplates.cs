@@ -11,8 +11,9 @@ using Starcounter.Templates;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates.Interfaces;
 using System.IO;
-using System.Collections.Generic;
 using Starcounter.XSON.Metadata;
+using Starcounter.Internal;
+using Starcounter.XSON.CodeGeneration;
 
 namespace Test {
     /// <summary>
@@ -20,11 +21,11 @@ namespace Test {
     /// </summary>
     [TestFixture]
     public class TestTemplates {
-        private static IJsonFactory factory;
+        private static ITypedJsonFactory factory;
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            factory = new JsonFactoryImpl();
+            factory = new TypedJsonFactory();
         }
 
         /// <summary>
@@ -85,7 +86,8 @@ namespace Test {
         [Test]
         public static void GenerateCsFromTestMessage() {
             String className = "TestMessage";
-            CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.Compiler.AnalyzeCodeBehind(className, className + ".json.cs");
+
+            CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.CreateCodeBehindMetadata(className, className + ".json.cs");
 
             TJson actual = (TJson)factory.CreateJsonTemplate(File.ReadAllText(className + ".json"));
             Assert.IsInstanceOf(typeof(TJson), actual);
@@ -97,6 +99,7 @@ namespace Test {
 
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
+
             Console.WriteLine(codegen.GenerateCode());
         }
 
@@ -104,7 +107,7 @@ namespace Test {
         public static void GenerateCsWithCodeBehind()
         {
             String className = "MySampleApp";
-            CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.Compiler.AnalyzeCodeBehind(className, className + ".json.cs");
+            CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.CreateCodeBehindMetadata(className, className + ".json.cs");
 
             TJson actual = (TJson)factory.CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);

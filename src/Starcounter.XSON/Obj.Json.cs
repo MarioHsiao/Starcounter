@@ -12,25 +12,15 @@ using Starcounter.Templates;
 using Starcounter.Internal;
 
 namespace Starcounter {
-    // TODO: 
-    // Not sure where this class should be 
-    public abstract class CodegeneratedJsonSerializer {
-        public abstract int Serialize(IntPtr buffer, int bufferSize, dynamic obj);
-        public abstract int Populate(IntPtr buffer, int bufferSize, dynamic obj);
-    }
-
     /// <summary>
     /// Class App
     /// </summary>
     public partial class Obj {
-        // byte[] ToJsonUtf8        --> Both slow and generated 
-        // string ToJson            --> Both slow and generated
-        // ToJson(byte[] buffer)    --> Not supported without generated.
-        // ToJson(IntPtr buffer)    --> Not supported without generated.
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public byte[] ToJsonUtf8() {
-            // TODO: 
-            // Make this function virtual and override it when generating code.
-            // Then this branch is not needed.
             if (Template.UseCodegeneratedSerializer) {
                 return ToJsonUtf8_Codegen();
             } else {
@@ -38,10 +28,11 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public string ToJson() {
-            // TODO: 
-            // Make this function virtual and override it when generating code.
-            // Then this branch is not needed.
             if (Template.UseCodegeneratedSerializer) {
                 return System.Text.Encoding.UTF8.GetString(ToJsonUtf8_Codegen());
             } else {
@@ -49,15 +40,26 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="bufferSize"></param>
+        /// <returns></returns>
         public int ToJson(IntPtr buffer, int bufferSize) {
-            var codeGenSerializer = Template.GetSerializer();
+            var codeGenSerializer = Template.GetJsonSerializer();
             if (codeGenSerializer != null) {
                 return codeGenSerializer.Serialize(buffer, bufferSize, this);
             } else {
-                throw new NotSupportedException("This function is only valid when using codegenerated serializer.");
+                throw new NotSupportedException("This function is only supported when using codegenerated serializer.");
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
         public int ToJson(byte[] buffer) {
             int usedSize = 0;
 
@@ -69,12 +71,56 @@ namespace Starcounter {
             return usedSize;
         }
 
-        public int Populate(IntPtr buffer, int bufferSize) {
-            var codeGenSerializer = Template.GetSerializer();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="bufferSize"></param>
+        /// <returns></returns>
+        public int PopulateFromJson(IntPtr buffer, int bufferSize) {
+            var codeGenSerializer = Template.GetJsonSerializer();
             if (codeGenSerializer != null) {
-                return codeGenSerializer.Populate(buffer, bufferSize, this);
+                return codeGenSerializer.PopulateFromJson(buffer, bufferSize, this);
             } else {
-                throw new NotSupportedException("This function is only valid when using codegenerated serializer.");
+                throw new NotSupportedException("This function is only supported when using codegenerated serializer.");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="bufferSize"></param>
+        /// <returns></returns>
+        public int PopulateFromJson(byte[] buffer, int bufferSize) {
+            var codeGenSerializer = Template.GetJsonSerializer();
+            if (codeGenSerializer != null) {
+                unsafe {
+                    fixed (byte* p = buffer) {
+                        return codeGenSerializer.PopulateFromJson((IntPtr)p, bufferSize, this);
+                    }
+                }
+            } else {
+                PopulateFromJson_Slow(Encoding.UTF8.GetString(buffer, 0, bufferSize));
+                return bufferSize;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        public void PopulateFromJson(string json) {
+            var codeGenSerializer = Template.GetJsonSerializer();
+            if (codeGenSerializer != null) {
+                unsafe {
+                    byte[] buffer = Encoding.UTF8.GetBytes(json);
+                    fixed (byte* p = buffer) {
+                        codeGenSerializer.PopulateFromJson((IntPtr)p, buffer.Length, this);
+                    }
+                }
+            } else {
+                PopulateFromJson_Slow(json);
             }
         }
 
@@ -122,7 +168,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns>System.String.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public string ToJson_Slow() { 
+        private string ToJson_Slow() { 
 #if QUICKTUPLE
             var sb = new StringBuilder();
             var templ = this.Template;
@@ -220,21 +266,11 @@ namespace Starcounter {
 #endif
         }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="sb"></param>
-        ///// <param name="addComma"></param>
-        ///// <returns></returns>
-        //protected virtual int InsertAdditionalJsonProperties(StringBuilder sb, bool addComma) {
-        //    return 0;
-        //}
-
         /// <summary>
         /// Populates the current object with values parsed from the specified json string.
         /// </summary>
         /// <param name="json"></param>
-        public void PopulateFromJson(string json) {
+        private void PopulateFromJson_Slow(string json) {
             using (JsonTextReader reader = new JsonTextReader(new StringReader(json))) {
                 if (reader.Read()) {
                     if (!(reader.TokenType == JsonToken.StartObject)) {

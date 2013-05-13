@@ -36,13 +36,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
             if (template is TObjArr) {
                 Prefix.Add("var" + valueName + " = obj." + template.PropertyName + ".Add();");
-                Prefix.Add("valueSize = " + valueName + ".Populate((IntPtr)pBuffer, leftBufferSize);");
+                Prefix.Add("valueSize = " + valueName + ".PopulateFromJson((IntPtr)pBuffer, leftBufferSize);");
                 Prefix.Add("if (valueSize != -1) {");
                 GenerateBufferJumpCode();
                 GenerateElseExceptionCode();
             } else if (template is TObj) {  
                 Prefix.Add("var" + valueName + " = obj." + template.PropertyName + ";");
-                Prefix.Add("valueSize = " + valueName + ".Populate((IntPtr)pBuffer, leftBufferSize);");
+                Prefix.Add("valueSize = " + valueName + ".PopulateFromJson((IntPtr)pBuffer, leftBufferSize);");
                 Prefix.Add("if (valueSize != -1) {");
                 GenerateBufferJumpCode();
                 GenerateElseExceptionCode();

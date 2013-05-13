@@ -74,8 +74,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Prefix.Add(""); 
 
             Prefix.Add("public " + jsClass.ClassName + "() {");
-            Prefix.Add("    PointerVerificationBytes = BitsAndBytes.Alloc(VerificationBytes.Length); // TODO. Free when program exists");
-            Prefix.Add("    BitsAndBytes.SlowMemCopy( PointerVerificationBytes, VerificationBytes, (uint)VerificationBytes.Length);");
+            Prefix.Add("    PointerVerificationBytes = Marshal.AllocHGlobal(VerificationBytes.Length); // TODO. Free when program exists");
+            Prefix.Add("    Marshal.Copy(VerificationBytes, 0, PointerVerificationBytes, VerificationBytes.Length);");
             Suffix.Add("}");
         }
     }

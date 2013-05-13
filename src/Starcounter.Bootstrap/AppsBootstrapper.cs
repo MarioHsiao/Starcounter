@@ -2,14 +2,12 @@
 using HttpStructs;
 using Starcounter.Advanced;
 using Starcounter.Apps.Bootstrap;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading;
+
 namespace Starcounter.Internal {
 
     /// <summary>
@@ -51,7 +49,7 @@ namespace Starcounter.Internal {
             StarcounterBase._DB = new DbImpl();
 
             // Dependency injection for json codegeneration
-            Obj.Factory = new JsonFactoryImpl();
+            Obj.Factory = new Starcounter.XSON.CodeGeneration.TypedJsonFactory();
 
             // Setting the response handler.
             Node.SetHandleResponse(AppServer_.HandleResponse);
