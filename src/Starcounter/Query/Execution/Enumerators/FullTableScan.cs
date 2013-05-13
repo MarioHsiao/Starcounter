@@ -32,7 +32,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
        enumeratorCreated = false; // True after execution enumerator is created.
        //dataStreamChanged = false; // True if data stream has changed.
 
-    Enumerator enumerator = null; // Handle to execution enumerator.
+    FilterEnumerator enumerator = null; // Handle to execution enumerator.
     Row contextObject = null; // This object comes from the outer loop in joins.
 
     CodeGenFilterPrivate privateFilter = null; // Filter code generator instance.
@@ -96,7 +96,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         iterHelper = IteratorHelper.GetIndex(indexHandle); // Caching index handle.
 
         // Creating empty enumerator at caching time (without any managed post privateFilter).
-        enumerator = new Enumerator(0, 0);
+        enumerator = new FilterEnumerator(0, 0);
 
         // Checking if private filter has already been created for us.
         if (privateFilter == null)
@@ -660,7 +660,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             if (usedNativeFillUp)
             {
                 // Getting next position of the iterator.
-                err = sccoredb.sc_get_recreate_key_and_free_iterator(
+                err = sccoredb.filter_iterator_get_recreate_key_and_free(
                     enumerator.CursorHandle,
                     enumerator.CursorVerify,
                     0,

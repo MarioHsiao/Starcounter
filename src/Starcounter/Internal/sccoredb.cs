@@ -1119,19 +1119,9 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// SCs the iterator create2.
         /// </summary>
-        /// <param name="hIndex">Index of the h.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="lesserKey">The lesser key.</param>
-        /// <param name="greaterKey">The greater key.</param>
-        /// <param name="hfilter">The hfilter.</param>
-        /// <param name="varstr">The varstr.</param>
-        /// <param name="ph">The ph.</param>
-        /// <param name="pv">The pv.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 SCIteratorCreate2(
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 create_filter_iterator(
             UInt64 hIndex,
             UInt32 flags,
             Byte* lesserKey,
@@ -1154,6 +1144,18 @@ namespace Starcounter.Internal
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static UInt32 SCIteratorNext(
+            UInt64 h,
+            UInt64 v,
+            UInt64* pObjectOID,
+            UInt64* pObjectETI,
+            UInt16* pClassIndex,
+            UInt64* pData
+        );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 filter_iterator_next(
             UInt64 h,
             UInt64 v,
             UInt64* pObjectOID,
@@ -1207,6 +1209,16 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// </summary>
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 get_recreate_key_and_free_filter_iterator(
+            UInt64 h,
+            UInt64 v,
+            UInt32 flags,
+            Byte** precreate_key
+            );
+
+        /// <summary>
         /// Sc_get_index_position_keys the specified index_addr.
         /// </summary>
         /// <param name="index_addr">The index_addr.</param>
@@ -1243,19 +1255,9 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// Sc_recreate_iterator_with_filters the specified hindex.
         /// </summary>
-        /// <param name="hindex">The hindex.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="recreate_key">The recreate_key.</param>
-        /// <param name="last_key">The last_key.</param>
-        /// <param name="hfilter">The hfilter.</param>
-        /// <param name="varstr">The varstr.</param>
-        /// <param name="ph">The ph.</param>
-        /// <param name="pv">The pv.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sc_recreate_iterator_with_filter(
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 recreate_filter_iterator(
             UInt64 hindex,
             UInt32 flags,
             Byte* recreate_key,
@@ -1281,6 +1283,15 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// </summary>
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 filter_iterator_get_local_time(
+            UInt64 iter_handle,
+            UInt64 iter_verify,
+            UInt32* plocal_time
+            );
+
+        /// <summary>
         /// SCs the iterator free.
         /// </summary>
         /// <param name="h">The h.</param>
@@ -1288,6 +1299,14 @@ namespace Starcounter.Internal
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static UInt32 SCIteratorFree(
+            UInt64 h,
+            UInt64 v
+        );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static UInt32 filter_iterator_free(
             UInt64 h,
             UInt64 v
         );
@@ -1445,8 +1464,8 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe UInt32 SCCreateFilter(
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe UInt32 create_filter(
             ushort tableId,
             UInt32 stackSize,
             UInt32 varCount,
@@ -1456,12 +1475,9 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// SCs the release filter.
         /// </summary>
-        /// <param name="h">The h.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern UInt32 SCReleaseFilter(UInt64 h);
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern UInt32 release_filter(UInt64 h);
     }
 
     /// <summary>
