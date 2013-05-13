@@ -203,9 +203,8 @@ namespace QueryProcessingTest {
             }
             e.Dispose();
             Trace.Assert(isException);
-#if false // Tests do not fail any more, since static data are not read from the recreation key.
             // Test offsetkey on the query with the offset key from another query
-            Boolean isException = false;
+            isException = false;
             e = Db.SQL("select u from user u fetch ?", 4).GetEnumerator();
             e.MoveNext();
             Trace.Assert(e.Current is User);
@@ -215,7 +214,9 @@ namespace QueryProcessingTest {
                 e = Db.SQL("select u from user u where useridnr < ? offsetkey ?", 5, k).GetEnumerator();
                 e.MoveNext();
                 Trace.Assert(e.Current is User);
-            } catch (InvalidOperationException) {
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
                 isException = true;
             } finally {
                 e.Dispose();
@@ -231,7 +232,9 @@ namespace QueryProcessingTest {
                 e = Db.SQL("select u from user u offsetkey ?", k).GetEnumerator();
                 e.MoveNext();
                 Trace.Assert(e.Current is User);
-            } catch (InvalidOperationException) {
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
                 isException = true;
             } finally {
                 e.Dispose();
@@ -240,20 +243,25 @@ namespace QueryProcessingTest {
 
             isException = false;
             e = Db.SQL("select u from user u fetch ?", 4).GetEnumerator();
-            while (e.MoveNext())
+            for (int i = 0; e.MoveNext(); i++) {
                 Trace.Assert(e.Current is User);
-            k = e.GetOffsetKey();
+                if (i == 3)
+                    k = e.GetOffsetKey();
+            }
             e.Dispose();
             Trace.Assert(k != null);
             try {
                 e = Db.SQL("select u from user u where useridnr < ? offsetkey ?", 3, k).GetEnumerator();
                 e.MoveNext();
-            } catch (InvalidOperationException) {
+            } catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
                 isException = true;
             } finally {
                 e.Dispose();
             }
             Trace.Assert(isException);
+#if false // Tests do not fail any more, since static data are not read from the recreation key.
 #endif
         }
 
