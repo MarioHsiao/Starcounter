@@ -151,6 +151,8 @@ public:
 
         GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
+        GW_ASSERT((&http_ws_proto_.get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+
         GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == MixedCodeConstants::SOCKET_DATA_NUM_CLONE_BYTES);
 
         GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NUM_CHUNKS);
@@ -190,7 +192,41 @@ public:
     {
         return g_gateway.CompareUniqueSocketId(sock_, unique_socket_id_);
     }
+
+    // Sets session if socket is correct.
+    void SetGlobalSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId() && (!g_gateway.IsGlobalSessionActive(sock_)))
+            g_gateway.SetGlobalSessionCopy(sock_, session_);
+    }
+
+    // Sets session if socket is correct.
+    void SetSdSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if ((!session_.IsActive()) && CompareUniqueSocketId() && (g_gateway.IsGlobalSessionActive(sock_)))
+            session_ = g_gateway.GetGlobalSessionCopy(sock_);
+    }
+
+    // Deletes global session.
+    void DeleteGlobalSession()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
+            g_gateway.DeleteGlobalSession(sock_);
+    }
+
+    // Checks if global session data is active.
+    bool CompareGlobalSessionSalt()
+    {
+        return g_gateway.CompareGlobalSessionSalt(sock_, session_.random_salt_);
+    }
+
 #endif
+
+    // Deletes global session and sends message to database to delete session there.
+    uint32_t SendDeleteSession(GatewayWorker* gw);
 
     // Clone current socket data to another database.
     uint32_t CloneToAnotherDatabase(
@@ -626,6 +662,12 @@ public:
             user_data_written_bytes_,
             (uint8_t*)this + user_data_offset_in_socket_data_,
             true);
+    }
+
+    // Resets accumulating buffer to its default socket data values.
+    void ResetAccumBuffer()
+    {
+        accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
     }
 
     // Index into databases array.

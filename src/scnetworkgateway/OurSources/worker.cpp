@@ -542,38 +542,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         }
     }
 
-    // Checking if there is a session on this socket.
-    if (g_gateway.IsGlobalSessionActive(sd->get_socket()))
-    {
-        // Getting attached session if any.
-        if (sd->HasActiveSession())
-        {
-            // Check that data received belongs to the correct session (not coming from abandoned connection).
-            if (!g_gateway.CompareGlobalSessionSalt(sd->get_socket(), sd->get_session_salt()))
-            {
-    #ifdef GW_ERRORS_DIAG
-                GW_PRINT_WORKER << "Data from abandoned/different socket received." << GW_ENDL;
-    #endif
-
-                // Just resetting the session.
-                sd->ResetSdSession();
-            }
-        }
-        else
-        {
-            // Attaching to existing session.
-            *(sd->GetSessionStruct()) = g_gateway.GetGlobalSessionCopy(sd->get_socket());
-        }
-    }
-    else
-    {
-        // Getting attached session if any.
-        if (sd->HasActiveSession())
-        {
-            // Creating global session on this socket.
-            g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *(sd->GetSessionStruct()));
-        }
-    }
+    // Checking if there is a session on this socket and setting it.
+    sd->SetSdSessionIfEmpty();
 
     // Running the handler.
     return RunReceiveHandlers(sd);
@@ -701,7 +671,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     sd->ResetUserDataOffset();
 
     // Resetting buffer information.
-    accum_buf->ResetBufferForNewOperation();
+    sd->ResetAccumBuffer();
 
     // Checking if socket data is for receiving.
     if (sd->get_socket_representer_flag())
@@ -752,6 +722,8 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         sd->ReturnExtraLinkedChunks(this);
     }
 
+    uint32_t err_code;
+
 #ifdef GW_PROFILER_ON
     profiler_.Start("Disconnect()", 3);
 #endif
@@ -761,8 +733,16 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     sd->CreateUniqueSocketId();
 #endif
 
+    // Sending dead session if its a WebSocket.
+    if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol())
+    {
+        // Verifying that session is correct and sending delete session to database.
+        err_code = sd->SendDeleteSession(this);
+        GW_ASSERT(0 == err_code);
+    }
+
     // Calling DisconnectEx.
-    uint32_t err_code = sd->Disconnect(this);
+    err_code = sd->Disconnect(this);
 
 #ifdef GW_PROFILER_ON
     profiler_.Stop(3);
@@ -841,6 +821,9 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
 
     // Stop tracking this socket.
     UntrackSocket(sd->get_db_index(), sd->get_socket());
+
+    // Deleting session.
+    sd->DeleteGlobalSession();
 
     // Updating the statistics.
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -1556,9 +1539,6 @@ uint32_t GatewayWorker::CreateSocketData(
 
     // Initializing socket data.
     out_sd->Init(sock, port_index, db_index, chunk_index);
-
-    // Configuring data buffer.
-    out_sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, out_sd->get_data_blob(), true);
 
     return 0;
 }

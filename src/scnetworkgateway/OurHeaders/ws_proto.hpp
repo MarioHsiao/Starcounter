@@ -40,15 +40,7 @@ class WsProtoFrameInfo
 {
     // Declaring a friend class to access private fields.
     friend class WsProto;
-
-    // Is final frame.
-    bool is_final_;
-
-    // Opcode type.
-    WS_OPCODE opcode_;
-
-    // Is frame masked?
-    bool is_masked_;
+    friend class SocketDataChunk;
 
     // Payload.
     uint8_t* payload_;
@@ -58,6 +50,15 @@ class WsProtoFrameInfo
 
     // Masking value.
     uint64_t mask_;
+
+    // Is final frame.
+    bool is_final_;
+
+    // Opcode type.
+    uint8_t opcode_;
+
+    // Is frame masked?
+    bool is_masked_;
 };
 
 class GatewayWorker;
@@ -78,6 +79,12 @@ class WsProto
 
 public:
 
+    // WebSockets frame info.
+    WsProtoFrameInfo* get_frame_info()
+    {
+        return &frame_info_;
+    }
+
     // Sets the client key.
     void SetClientKey(char *newClientKey, int32_t newClientKeyLen)
     {
@@ -90,12 +97,6 @@ public:
     {
         sub_protocol_ = newSubProtocol;
         sub_protocol_len_ = newSubProtocolLen;
-    }
-
-    // Initializes WebSocket structure.
-    void Init()
-    {
-        Reset();
     }
 
     // Resets the structure.
@@ -116,9 +117,9 @@ public:
 
     void MaskUnMask(int32_t payloadLen, uint64_t mask, uint64_t *data);
 
-    uint8_t *WriteData(GatewayWorker *gw, WS_OPCODE opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t *payload, uint64_t *ppayload_len);
+    uint8_t *WriteData(GatewayWorker *gw, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t *payload, uint64_t *ppayload_len);
 
-    uint32_t GetFrameInfo(uint8_t *data);
+    uint32_t ParseFrameInfo(uint8_t *data);
 };
 
 } // namespace network
