@@ -23,7 +23,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
         internal override void GenerateCsCodeForNode() {
             Prefix.Add("if ((leftBufferSize - 2) < 0)");
-            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);");
+            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);");
             Prefix.Add("leftBufferSize -= 2;");
 
             Prefix.Add("*pBuffer++ = (byte)'{';");

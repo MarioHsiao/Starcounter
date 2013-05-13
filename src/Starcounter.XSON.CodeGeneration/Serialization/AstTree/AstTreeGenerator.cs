@@ -276,7 +276,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         private static string CreateExceptionMessage(ParseNode node) {
-            return "ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED, \"char: '\" + (char)*pBuffer + \"', offset: \" + (bufferSize - leftBufferSize) + \"\");";
+            return "ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED, \"char: '\" + (char)*pBuffer + \"', offset: \" + (bufferSize - leftBufferSize) + \"\");";
         }
     }
 

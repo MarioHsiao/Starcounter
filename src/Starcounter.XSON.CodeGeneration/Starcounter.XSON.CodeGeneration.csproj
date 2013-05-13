@@ -67,9 +67,10 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JsonFactoryImpl.cs" />
+    <Compile Include="TypedJsonFactory.cs" />
     <Compile Include="CSharpGenerator\CSharpGenerator.cs" />
     <Compile Include="Serialization\AstTree\AstCodeStatement.cs" />
     <Compile Include="Serialization\AstTree\AstDeserializeFunction.cs" />
@@ -154,6 +155,10 @@
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
+      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
+      <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

@@ -1,14 +1,26 @@
 ﻿using System;
 using Mono.CSharp;
 using Starcounter.CompilerService.Roslyn;
+using Starcounter.Internal;
 using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Metadata;
 
 namespace Starcounter.CompilerService.Mono {
-    public class MonoCSharpCompiler : ICompilerService {
+    public class MonoCSharpCompiler {
         private RoslynCSharpCompiler roslynCompiler;
+        private CompilerSettings settings;
+        private CompilerContext context;
+//        private Evaluator evaluator;
 
         public MonoCSharpCompiler() {
             roslynCompiler = new RoslynCSharpCompiler();
+            settings = new CompilerSettings() {
+                Unsafe = true,
+                GenerateDebugInfo = false,
+                Optimize = true
+            };
+            context = new CompilerContext(settings, new ConsoleReportPrinter());
+
         }
 
         //public object Compile(string code) {
@@ -41,28 +53,21 @@ namespace Starcounter.CompilerService.Mono {
         //    return o;
         //}
 
-        public object GenerateJsonSerializer(string code, string typeName) {
-            CompilerSettings settings = new CompilerSettings();
-
-            settings.AssemblyReferences.Add("Starcounter.dll");
+        public TypedJsonSerializer GenerateJsonSerializer(string code, string typeName) {
+            settings.AssemblyReferences.Clear();
             settings.AssemblyReferences.Add("Starcounter.Internal.dll");
-            settings.AssemblyReferences.Add("Starcounter.BitsAndBytes.Native.dll");
             settings.AssemblyReferences.Add("Starcounter.XSON.dll");
-            settings.Unsafe = true;
-
-            settings.GenerateDebugInfo = false;
-            settings.Optimize = true;
-
-            CompilerContext ctx = new CompilerContext(settings, new ConsoleReportPrinter());
-            Evaluator eval = new Evaluator(ctx);
+            settings.AssemblyReferences.Add("Starcounter.XSON.CodeGeneration.dll");
+            
+            Evaluator eval = new Evaluator(context);
             
             CompiledMethod cm;
             eval.Compile(code, out cm);
 
-            return eval.Evaluate("new " + typeName + "();");
+            return (TypedJsonSerializer)eval.Evaluate("new " + typeName + "();");
         }
 
-        public object AnalyzeCodeBehind(string className, string codeBehindFile) {
+        public CodeBehindMetadata AnalyzeCodeBehind(string className, string codeBehindFile) {
             return roslynCompiler.AnalyzeCodeBehind(className, codeBehindFile);
         }
     }

@@ -114,7 +114,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         private void AddException() {
-            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);");
+            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);");
         }
 
         private int FindTemplateIndex(ParseNode node) {

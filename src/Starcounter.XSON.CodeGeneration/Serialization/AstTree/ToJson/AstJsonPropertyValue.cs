@@ -36,7 +36,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 Prefix.Add("valueSize = " + GetWriteFunction(Template));
             }
             Prefix.Add("if (valueSize == -1)");
-            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);");
+            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);");
             Prefix.Add("leftBufferSize -= valueSize;");
             Prefix.Add("pBuffer += valueSize;");
         }
@@ -51,7 +51,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         private void GenerateCodeForObjArray() {
             // Writing the start of the array and checking size with end character included.
             Prefix.Add("if ((leftBufferSize - 2) < 0)");
-            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);");
+            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);");
             Prefix.Add("*pBuffer++ = (byte)'[';");
             Prefix.Add("leftBufferSize -= 2;");
 
@@ -64,7 +64,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Suffix.Add("    if ((i+1) < obj." + Template.PropertyName + ".Count) {");
             Suffix.Add("        leftBufferSize--;");
             Suffix.Add("        if (leftBufferSize < 0)");
-            Suffix.Add("            throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED);");
+            Suffix.Add("            throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);");
             Suffix.Add("        *pBuffer++ = (byte)',';");
             Suffix.Add("    }");
             Suffix.Add("}"); // end of loop

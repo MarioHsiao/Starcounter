@@ -6,10 +6,10 @@
 
 using System.Collections.Generic;
 using NUnit.Framework;
-using Starcounter.Client;
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using System;
+using Starcounter.XSON.CodeGeneration;
 
 namespace Starcounter.Client.Tests.Application {
 
@@ -20,7 +20,7 @@ namespace Starcounter.Client.Tests.Application {
     public class AppTests {
         [TestFixtureSetUp]
         public static void Setup() {
-            Obj.Factory = new JsonFactoryImpl();
+            Obj.Factory = new TypedJsonFactory();
         }
 
         /// <summary>

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
-using Starcounter.Internal;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
@@ -28,19 +26,19 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             return index;
         }
 
-        private static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsUrlDecoding) {
+        private static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsJsonDecoding) {
             byte current;
             int index = 0;
 
-            needsUrlDecoding = false;
+            needsJsonDecoding = false;
             while (index < fragmentSize) {
                 current = pfrag[index];
-                //if (current == '%') {
-                //    needsUrlDecoding = true;
-                //    index += 2;
-                //    continue;
-                //}
 
+                if (current == '\\') {
+                    needsJsonDecoding = true;
+                    index += 2;
+                    continue;
+                }
                 if (pfrag[index] == '"')
                     break;
                 index++;
@@ -236,18 +234,27 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     }
                 }
 
-                buffer = new byte[valueSize];
-                Marshal.Copy((IntPtr)pfrag, buffer, 0, valueSize);
+                if (!needsDecoding) {
+                    buffer = new byte[valueSize];
+                    Marshal.Copy((IntPtr)pfrag, buffer, 0, valueSize);
+                    value = Encoding.UTF8.GetString(buffer, 0, valueSize);
+                }
+                else {
+                    byte current;
+                    int bufferOffset = 0;
+                    buffer = new byte[valueSize];
+                    for (int i = 0; i < valueSize; i++) {
+                        current = *(pfrag + i);
+                        if (current == '\\') {
+                            i++;
+                            buffer[bufferOffset++] = *(pfrag + i);
+                            continue;
+                        }
 
-                //fixed (byte* pbuf = buffer) {
-                //    Intrinsics.MemCpy((void*)pbuf, (void*)pfrag, (uint)valueSize);
-                //}
-            }
-
-            if (needsDecoding) {
-                value = DecodeString(buffer);
-            } else {
-                value = Encoding.UTF8.GetString(buffer, 0, valueSize);
+                        buffer[bufferOffset++] = current;
+                    }
+                    value = Encoding.UTF8.GetString(buffer, 0, bufferOffset);
+                } 
             }
 
             valueSize += extraSize;

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Reflection.Emit;
 using NUnit.Framework;
+using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.CodeGeneration;
 
 namespace Starcounter.Apps.CodeGeneration.Tests {
     /// <summary>
@@ -15,7 +13,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
     public static class JsonSerializeTest {
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            Obj.Factory = new JsonFactoryImpl();
+            Obj.Factory = new TypedJsonFactory();
         }
 
         [Test]
@@ -41,11 +39,12 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             TObj objTemplate;
 
             objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
+            objTemplate.ClassName = "PreGenerated";
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate).GenerateCsSourceCode());
         }
 
         [Test]
-        public static void DebugPregeneratedCode() {
+        public static void DebugPregeneratedSerializationCode() {
             TObj objTemplate;
 
             objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
@@ -55,15 +54,21 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             item.AccountId = 123;
 
             byte[] buffer = new byte[4096];
+            TypedJsonSerializer serializer = new __starcountergenerated__.PreGeneratedSerializer();
+            int usedBufferSize;
+            int usedAfterPopulation;
 
             unsafe {
                 fixed (byte* p = buffer) {
-                    int i = simple.ToJson((IntPtr)p, buffer.Length);
+                    usedBufferSize = serializer.Serialize((IntPtr)p, buffer.Length, simple);
 
-                    simple = (Json)objTemplate.CreateInstance(null);
-                    i = simple.Populate((IntPtr)p, i);                       
+                    simple = objTemplate.CreateInstance(null);
+                    usedAfterPopulation = serializer.PopulateFromJson((IntPtr)p, usedBufferSize, simple);
+
+                    Assert.AreEqual(usedBufferSize, usedAfterPopulation);
                 }
             }
+
         }
     }
 }

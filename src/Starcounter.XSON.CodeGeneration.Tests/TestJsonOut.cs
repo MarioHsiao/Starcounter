@@ -6,23 +6,23 @@
 
 using System;
 using NUnit.Framework;
+using Starcounter.Internal;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.CodeGeneration;
 
 namespace Starcounter.Client.Tests.Application
 {
-
     /// <summary>
     /// Class TestJson
     /// </summary>
     [TestFixture]
     public class TestJson
     {
-        private static IJsonFactory factory;
+        private static ITypedJsonFactory factory;
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            factory = new JsonFactoryImpl();
+            factory = new TypedJsonFactory();
         }
 
         /// <summary>
