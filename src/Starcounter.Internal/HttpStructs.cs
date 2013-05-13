@@ -124,7 +124,7 @@ namespace HttpStructs
         }
 
         // Checks if this session is active.
-        public Boolean IsActive()
+        public Boolean IsAlive()
         {
             return linear_index_ != Request.INVALID_APPS_SESSION_INDEX;
         }

@@ -53,6 +53,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Errors", "Starcounter.ErrorCodes\Starcounter.Errors\Starcounter.Errors.csproj", "{1F4D1E72-C615-42B1-9B29-D5A9CEDE09E0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Bootstrap", "Starcounter.Bootstrap\Starcounter.Bootstrap.csproj", "{8278B17C-E0E9-49B7-8BDA-F15282445D45}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterThanJson", "FasterThanJson\FasterThanJson.csproj", "{DD181012-DD9C-410F-AD8E-01D062CAC820}"
 EndProject

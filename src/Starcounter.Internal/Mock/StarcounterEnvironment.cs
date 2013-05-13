@@ -8,6 +8,7 @@ using Starcounter.Internal;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security;
 using System.Xml;
 
@@ -18,6 +19,25 @@ namespace Starcounter.Internal
     /// </summary>
     public static class StarcounterEnvironment
     {
+        /// <summary>
+        /// Gets the number of schedulers.
+        /// </summary>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        unsafe extern static UInt32 cm3_get_cpun(void* h_opt, Byte* pcpun);
+
+        /// <summary>
+        /// Obtains current scheduler id.
+        /// </summary>
+        public static Byte GetCurrentSchedulerId()
+        {
+            unsafe
+            {
+                Byte cpun;
+                cm3_get_cpun(null, &cpun);
+                return cpun;
+            }
+        }
+
         /// <summary>
         /// The system directory
         /// </summary>
