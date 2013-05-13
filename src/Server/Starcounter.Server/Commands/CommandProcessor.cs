@@ -168,8 +168,8 @@ namespace Starcounter.Server.Commands {
             this.Errors = errors;
             this.Status = CommandStatus.Failed;
 
-            SignalCompletion();
             NotifyStatusChanged();
+            SignalCompletion();
         }
 
         /// <summary>
@@ -180,9 +180,8 @@ namespace Starcounter.Server.Commands {
             this.Status = CommandStatus.Completed;
 
             EndAllProgress();
-            SignalCompletion();
-
             NotifyStatusChanged();
+            SignalCompletion();
         }
 
         /// <inheritdoc />
