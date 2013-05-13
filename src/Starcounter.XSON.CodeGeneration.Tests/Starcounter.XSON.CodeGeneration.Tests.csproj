@@ -118,7 +118,7 @@
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.CompilerService.Mono\Starcounter.CompilerService.Mono.csproj">
+    <ProjectReference Include="..\Starcounter.XSON.Compiler.Mono\Starcounter.XSON.Compiler.Mono.csproj">
       <Project>{c5bcb67d-df0d-457c-8b05-68556fbc9dda}</Project>
       <Name>Starcounter.CompilerService.Mono</Name>
     </ProjectReference>

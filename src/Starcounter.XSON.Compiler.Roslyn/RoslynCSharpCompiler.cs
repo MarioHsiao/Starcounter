@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
-using Starcounter.Templates.Interfaces;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.CompilerService.Roslyn {
+namespace Starcounter.XSON.Compiler.Roslyn {
     public class RoslynCSharpCompiler {
         //public object Compile(string code) {
         //    return Compile(code, new string[0]);

@@ -11,7 +11,7 @@ using System.Text;
 using Roslyn.Compilers.CSharp;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.CompilerService.Roslyn {
+namespace Starcounter.XSON.Compiler.Roslyn {
     /// <summary>
     /// Class CodeBehindAnalyzer
     /// </summary>

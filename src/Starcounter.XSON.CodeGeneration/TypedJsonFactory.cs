@@ -1,12 +1,11 @@
 ﻿using System;
 using System.IO;
-using Starcounter.CompilerService.Mono;
-using Starcounter.CompilerService.Roslyn;
 using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
 
 namespace Starcounter.XSON.CodeGeneration {

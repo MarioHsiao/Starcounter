@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Starcounter.CompilerService.Mono")]
+[assembly: AssemblyTitle("Starcounter.XSON.Compiler.Roslyn")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Starcounter.CompilerService.Mono")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyProduct("Starcounter.XSON.Compiler.Roslyn")]
+[assembly: AssemblyCopyright("Copyright ©  Starcounter AB 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("807acddd-c048-4c76-8e2d-1166077b869a")]
+[assembly: Guid("fb013e81-9307-4a9e-9a61-df1f24f7171b")]
 
 // Version information for an assembly consists of the following four values:
 //
