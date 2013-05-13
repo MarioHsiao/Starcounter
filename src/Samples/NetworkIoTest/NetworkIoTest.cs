@@ -397,7 +397,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_WEBSOCKETS_URIS:
                 {
-                    for (Byte i = 0; i < Db.Environment.SchedulersNumber; i++)
+                    for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
                         WebSocketSessions[i] = new List<Session>();
 
                     DbSession dbSession = new DbSession();
@@ -405,7 +405,7 @@ namespace NetworkIoTestApp
                     WebSocketSessionsTimer = new Timer((state) =>
                     {
                         // Schedule a job to check once for inactive sessions on each scheduler.
-                        for (Byte i = 0; i < Db.Environment.SchedulersNumber; i++)
+                        for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
                         {
                             // NOTE: Very important to make a copy of looped variable here!
                             Byte k = i;
@@ -444,7 +444,7 @@ namespace NetworkIoTestApp
                     {
                         if (session != null)
                         {
-                            Byte schedId = StarcounterEnvironment.GetCurrentSchedulerId();
+                            Byte schedId = ThreadData.Current.Scheduler.Id;
 
                             // Adding session if its not yet added.
                             if (!WebSocketSessions[schedId].Contains(session))
@@ -467,7 +467,7 @@ namespace NetworkIoTestApp
             }
         }
 
-        static List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulersNumber];
+        static List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulerCount];
         static volatile Int32 TimerSeconds = 0;
 
         // NOTE: Timer should be static, otherwise its garbage collected.

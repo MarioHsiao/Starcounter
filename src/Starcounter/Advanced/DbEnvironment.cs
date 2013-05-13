@@ -21,7 +21,7 @@ namespace Starcounter.Advanced {
             {
                 Byte cpuc = 0;
                 cm3_get_cpuc(null, &cpuc);
-                SchedulersNumber = cpuc;
+                SchedulerCount = cpuc;
             }
         }
 
@@ -44,6 +44,6 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Gets the number of schedulers.
         /// </summary>
-        public Byte SchedulersNumber { get; private set; }
+        public Byte SchedulerCount { get; private set; }
     }
 }

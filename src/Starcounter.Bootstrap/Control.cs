@@ -183,7 +183,7 @@ namespace StarcounterInternal.Bootstrap
             }
 
             // Query module.
-            Scheduler.Setup((byte)schedulerCount);
+            Scheduler.Setup((Byte)schedulerCount);
             if (withdb_)
             {
                 Starcounter.Query.QueryModule.Initiate(
