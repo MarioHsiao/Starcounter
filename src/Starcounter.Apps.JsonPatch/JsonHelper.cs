@@ -260,23 +260,33 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="tmpArr"></param>
         /// <returns></returns>
         public static int WriteString(IntPtr ptr, int size, string value) {
+            byte c;
             byte[] valueArr;
+            int usedSize;
 
             unsafe {
                 byte* pfrag = (byte*)ptr;
 
                 if (value != null) {
                     valueArr = Encoding.UTF8.GetBytes(value);
-                    if (size < (valueArr.Length + 2))
+
+                    // initial size. The end result might be higher if there are character we need to encode.
+                    usedSize = valueArr.Length + 2;
+                    if (size < usedSize)
                         return -1;
 
                     *pfrag++ = (byte)'"';
-                    fixed (byte* src = valueArr) {
-                        BitsAndBytes.MemCpy(pfrag, src, (uint)valueArr.Length);
+                    for (int i = 0; i < valueArr.Length; i++) {
+                        c = valueArr[i];
+
+                        if (c == '\\' || c == '"') {
+                            *pfrag++ = (byte)'\\';
+                            usedSize++;
+                        }
+                        *pfrag++ = c;
                     }
-                    pfrag += valueArr.Length;
                     *pfrag = (byte)'"';
-                    return valueArr.Length + 2;
+                    return usedSize;
                 } else {
                     return WriteNull(pfrag, size);
                 }
