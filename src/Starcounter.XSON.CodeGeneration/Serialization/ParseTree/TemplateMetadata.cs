@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Text;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
@@ -14,10 +15,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     internal class TemplateMetadata  {
         private byte[] nameArr = null;
 
+        internal const byte END_OF_PROPERTY = (byte)'"';
+
         /// <summary>
         /// The name of the template.
         /// </summary>
-        internal string TemplateName { get { return Template.PropertyName; } }
+        internal string TemplateName { get { return Template.TemplateName; } }
 
         /// <summary>
         /// The name of the template converted to a UTF8 bytearray.
@@ -40,7 +43,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="template"></param>
         internal TemplateMetadata(Template template) {
             Template = template;
-            nameArr = System.Text.Encoding.UTF8.GetBytes(Template.PropertyName);
+
+            int size = Encoding.UTF8.GetByteCount(Template.PropertyName);
+            nameArr = new byte[size + 1];
+
+            Encoding.UTF8.GetBytes(Template.PropertyName, 0, size, nameArr, 0);
+            nameArr[nameArr.Length - 1] = END_OF_PROPERTY;
         }
     }
 

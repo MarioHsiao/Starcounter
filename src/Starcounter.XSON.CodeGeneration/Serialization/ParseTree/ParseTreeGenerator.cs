@@ -54,7 +54,40 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 AllTemplates = templates
             };
             CreateChildren(n, templates, templates, 0);
+            PostProcess(n);
+            SortTree(n);
             return n;
+        }
+
+        private static void PostProcess(ParseNode node) {
+            if (node.DetectedType != NodeType.Heureka) {
+                node.TemplateIndex = -1;
+            }
+            foreach (var candidate in node.Candidates) {
+                PostProcess(candidate);
+            }
+        }
+
+        private static void SortTree(ParseNode node) {
+            if (node.Candidates.Count > 1) {
+                node.Candidates.Sort((a, b) => {
+                    if (a.TemplateIndex == -1 || b.TemplateIndex == -1)
+                        return 0;
+
+                    int anl = a.Template.TemplateNameArr.Length;
+                    int bnl = b.Template.TemplateNameArr.Length;
+                    if (anl > bnl)
+                        return 1;
+
+                    if (anl < bnl)
+                        return -1;
+                    return 0;
+                });
+            }
+
+            foreach (var candidate in node.Candidates) {
+                SortTree(candidate);
+            }
         }
 
         /// <summary>
@@ -138,9 +171,14 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     var groups = Group(templates, characterIndex);
                     foreach (var g in groups) {
                         var n = new ParseNode() {
-                            Match = g.Key,
                             AllTemplates = allTemplates
                         };
+
+                        n.Match = g.Key;
+                        if (n.Match == TemplateMetadata.END_OF_PROPERTY){
+                            n.Match = (byte)'"';
+                        }
+
                         node.Candidates.Add(n);
                         n.Parent = node;
                         if (g.Value.Count == 1 && n.DetectedType == NodeType.Heureka) {

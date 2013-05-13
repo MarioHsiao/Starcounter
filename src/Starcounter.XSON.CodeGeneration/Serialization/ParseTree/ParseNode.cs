@@ -91,6 +91,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         internal int MatchCharInTemplateRelative;
 
         /// <summary>
+        /// Used by the AstTree generator
+        /// </summary>
+        internal bool TagAsVerified = false;
+
+        /// <summary>
         /// The index relative to the first character of the verb and uri template
         /// </summary>
         /// <value>The match char in template absolute.</value>
@@ -144,7 +149,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
                     if (count > 0) {
                         templateName = GetAnyCandidateTemplate().TemplateName;
-                        fragment = templateName.Substring(start, count);
+
+                        try {
+                            fragment = templateName.Substring(start, count);
+                        } catch (Exception) {
+                            fragment = "<ERROR>";
+                        }
                     }
 
                     if (Match != 0)
@@ -175,9 +185,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             sb.Append("{ Match: \'");
             if (Match != 0)
                 sb.Append((char)Match);
-            sb.Append("', DebugMatch: \"");
-            sb.Append(DebugMatchFragment);
-            sb.Append("\"");
+            sb.Append("'");
+            //sb.Append("', DebugMatch: \"");
+            //sb.Append(DebugMatchFragment);
+            //sb.Append("\"");
             
             if (TemplateIndex != -1 && Candidates.Count == 0) {
                 sb.Append(", ");
