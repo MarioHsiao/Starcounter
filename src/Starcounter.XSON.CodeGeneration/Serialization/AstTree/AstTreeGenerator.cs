@@ -141,6 +141,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             };
 
             if (input.Candidates.Count > 0 && input.Candidates[0].DetectedType == NodeType.CharMatchNode) {
+                CreateVerificationNode(nextParent, input.Candidates[0]);
+
                 nextParent = new AstSwitch() {
                     ParseNode = input.Candidates[0],
                     Parent = nextParent
@@ -159,7 +161,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     Parent = nextParent
                 };
                 var fnFail = new AstProcessFail() {
-                    Message = "Property not belonging to this app found in content.",
+                    ExceptionCode = CreateExceptionMessage(input),
                     Parent = dc
                 };
             }
@@ -184,7 +186,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     var cn = new AstCase();
                     cn.Parent = parent;
                     cn.ParseNode = pn;
+                    nextParent = cn;
+
                     if (pn.Candidates.Count > 1) {
+                        CreateVerificationNode(cn, pn.Candidates[0]);
+
                         var nsn = new AstSwitch() {
                             Parent = cn,
                             ParseNode = pn.Candidates[0]
@@ -205,19 +211,16 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                             Parent = nextParent
                         };
                         var fnFail = new AstProcessFail() {
-                            Message = "Property not belonging to this app found in content.",
+                            ExceptionCode = CreateExceptionMessage(pn),
                             Parent = dc
                         };
                     }
 
                     break;
                 case NodeType.Heureka:
-                    //nextParent = new AstElseIfList() {
-                    //    ParseNode = pn,
-                    //    Parent = parent
-                    //};
                     nextParent = parent;
-
+                    CreateVerificationNode(nextParent, pn);
+                    
                     new AstGotoValue() {
                         Parent = nextParent
                     };
@@ -257,6 +260,23 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     };
                     break;
             }
+        }
+
+        private static void CreateVerificationNode(AstNode parent, ParseNode node) {
+            if (!node.TagAsVerified) {
+                int vlen = node.MatchCharInTemplateAbsolute;
+                if (vlen > 0) {
+                    new AstVerifier() {
+                        Parent = parent,
+                        ParseNode = node
+                    };
+                }
+                node.TagAsVerified = true;
+            }
+        }
+
+        private static string CreateExceptionMessage(ParseNode node) {
+            return "ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED, \"char: '\" + (char)*pBuffer + \"', offset: \" + (bufferSize - leftBufferSize) + \"\");";
         }
     }
 

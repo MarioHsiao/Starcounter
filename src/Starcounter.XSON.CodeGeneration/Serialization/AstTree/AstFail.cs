@@ -12,12 +12,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// Class AstProcessFail
     /// </summary>
     internal class AstProcessFail : AstNode {
-        internal String Message { get; set; }
+        internal String ExceptionCode { get; set; }
 
         internal override string DebugString {
             get {
-                if (Message != null)
-                    return "Fail: " + Message;
+                if (ExceptionCode != null)
+                    return "Fail: " + ExceptionCode;
                 return "Fail";
             }
         }
@@ -26,8 +26,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            if (Message != null)
-                Prefix.Add("throw new Exception(\"" + Message + "\");");
+            if (ExceptionCode != null)
+                Prefix.Add("throw " + ExceptionCode);
             else
                 Prefix.Add("throw new Exception(\"Deserialization of App failed.\");");
         }
