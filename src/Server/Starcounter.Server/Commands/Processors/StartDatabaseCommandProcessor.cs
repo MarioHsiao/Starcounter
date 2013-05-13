@@ -71,8 +71,6 @@ namespace Starcounter.Server.Commands.Processors {
             WithinTask(Task.AwaitCodeHostOnline, (task) => {
                 Engine.CurrentPublicModel.UpdateDatabase(database);
 
-                var node = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
-                node.InternalSetLocalNodeForUnitTests(false);
                 var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
                 var keepTrying = true;
                 var hostJustStarted = started;
@@ -86,7 +84,7 @@ namespace Starcounter.Server.Commands.Processors {
 
                 while (keepTrying) {
                     try {
-                        var response = node.GET(serviceUris.Host, null, null);
+                        var response = Node.LocalhostSystemPortNode.GET(serviceUris.Host, null, null);
                         response.FailIfNotSuccessOr(503, 404);
                         if (response.StatusCode == 404) {
                             Thread.Sleep(100);
