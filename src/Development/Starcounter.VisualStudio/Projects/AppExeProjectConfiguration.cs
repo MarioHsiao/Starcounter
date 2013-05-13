@@ -13,6 +13,7 @@ namespace Starcounter.VisualStudio.Projects {
     using Starcounter.Advanced;
     using Starcounter.CommandLine;
     using Starcounter.CommandLine.Syntax;
+    using Starcounter.Rest.ExtensionMethods;
     using Starcounter.Server.Rest;
     using Starcounter.Server.Rest.Representations.JSON;
     using System.Net.Sockets;

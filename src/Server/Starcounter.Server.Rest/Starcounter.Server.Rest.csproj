@@ -37,7 +37,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AdminAPI.cs" />
-    <Compile Include="NodeExtensions.cs" />
     <Compile Include="Representations.JSON\Executable.json.cs">
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
@@ -59,7 +58,6 @@
     <Compile Include="Representations.JSON\EngineCollection.json.cs">
       <DependentUpon>EngineCollection.json</DependentUpon>
     </Compile>
-    <Compile Include="ResponseExtensions.cs" />
     <Compile Include="SharedCLI.cs" />
   </ItemGroup>
   <ItemGroup>
