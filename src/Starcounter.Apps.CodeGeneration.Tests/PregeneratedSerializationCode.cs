@@ -3,7 +3,7 @@
 using System;
 using Starcounter;
 using Starcounter.Internal;
-using Starcounter.Internal.JsonPatch;
+using Starcounter.Internal.Application.CodeGeneration;
 
 namespace __starcountergenerated__ {
     public class Serializer : CodegeneratedJsonSerializer {

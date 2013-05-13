@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using Starcounter.Internal;
 
-namespace Starcounter.Internal.JsonPatch {
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// 
     /// </summary>
@@ -236,9 +237,11 @@ namespace Starcounter.Internal.JsonPatch {
                 }
 
                 buffer = new byte[valueSize];
-                fixed (byte* pbuf = buffer) {
-                    Intrinsics.MemCpy((void*)pbuf, (void*)pfrag, (uint)valueSize);
-                }
+                Marshal.Copy((IntPtr)pfrag, buffer, 0, valueSize);
+
+                //fixed (byte* pbuf = buffer) {
+                //    Intrinsics.MemCpy((void*)pbuf, (void*)pfrag, (uint)valueSize);
+                //}
             }
 
             if (needsDecoding) {

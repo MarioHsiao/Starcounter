@@ -45,7 +45,6 @@ namespace Starcounter.CompilerService.Mono {
             CompilerSettings settings = new CompilerSettings();
 
             settings.AssemblyReferences.Add("Starcounter.dll");
-            settings.AssemblyReferences.Add("Starcounter.Apps.JsonPatch.dll");
             settings.AssemblyReferences.Add("Starcounter.Internal.dll");
             settings.AssemblyReferences.Add("Starcounter.BitsAndBytes.Native.dll");
             settings.AssemblyReferences.Add("Starcounter.XSON.dll");

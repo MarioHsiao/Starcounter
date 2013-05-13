@@ -70,7 +70,6 @@
     <Compile Include="AppServer.cs" />
     <Compile Include="HttpPatchBuilder.cs" />
     <Compile Include="InternalHandlers.cs" />
-    <Compile Include="JsonHelper.cs" />
     <Compile Include="JsonPatch.cs" />
     <Compile Include="JsonPointer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
