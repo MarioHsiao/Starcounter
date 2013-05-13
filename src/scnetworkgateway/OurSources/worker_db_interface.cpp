@@ -107,11 +107,10 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             }
 
             // Process the chunk.
-            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES);
+            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-            // Setting database index and unique number.
-            sd->set_db_index(db_index_);
-            sd->set_db_unique_seq_num(g_gateway.GetDatabase(db_index_)->get_unique_num());
+            // Setting the database index and sequence number.
+            sd->AttachToDatabase(db_index_);
 
             // Checking for socket data correctness.
             GW_ASSERT(sd->get_socket() < g_gateway.setting_max_connections());
@@ -131,8 +130,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                 sd->CreateWSABuffers(
                     this,
                     smc,
-                    MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES + sd->get_user_data_offset(),
-                    bmx::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset(),
+                    MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + sd->get_user_data_offset_in_socket_data(),
+                    MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data(),
                     sd->get_user_data_written_bytes());
 
                 GW_ASSERT(sd->get_num_chunks() > 2);
@@ -147,10 +146,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 #ifdef GW_CHUNKS_DIAG
             GW_PRINT_WORKER << "Popping chunk: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
-
-            // Checking if this socket data is for send only.
-            if (sd->get_socket_just_send_flag())
-                goto JUST_SEND_SOCKET_DATA;
 
 #ifndef GW_NEW_SESSIONS_APPROACH
 
@@ -246,24 +241,13 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                 }
             }
 
-#else
-            // Checking if we have session related socket.
-            if (sd->HasActiveSession())
-            {
-                // Creating global session on this socket.
-                g_gateway.SetGlobalSessionDataCopy(sd->get_socket(), *(sd->GetSessionStruct()));
-            }
-
 #endif
 
-JUST_SEND_SOCKET_DATA:
+            // Checking if we have session related socket.
+            sd->SetGlobalSessionIfEmpty();
 
-            // TODO: Research if needed at all!
-            // Resetting the data buffer.
-            //sd->get_accum_buf()->Init(SOCKET_DATA_BLOB_SIZE_BYTES, sd->get_data_blob(), true);
-
-            // Setting the database index and sequence number.
-            sd->AttachToDatabase(db_index_);
+            // Resetting the accumulative buffer.
+            sd->InitAccumBufferFromUserData();
 
             // Put the chunk into from database queue.
             err_code = gw->RunFromDbHandlers(sd);
@@ -304,10 +288,10 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 {
     // Maximum number of bytes that will be written in this call.
     uint32_t num_bytes_to_write = buf_len_bytes;
-    uint32_t num_bytes_first_chunk = starcounter::bmx::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+    uint32_t num_bytes_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
 
     // Number of chunks to use.
-    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::bmx::CHUNK_MAX_DATA_BYTES) + 1;
+    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
     assert(num_extra_chunks_to_use > 0);
 
     // Checking if more than maximum chunks we can take at once.
@@ -334,21 +318,21 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 
     // Checking if we should just send the chunks.
     if (just_sending_flag)
-        *(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
+        (*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
 
     // Setting the number of written bytes.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
 
     // Going through each linked chunk and write data there.
     uint32_t left_bytes_to_write = num_bytes_to_write;
-    uint32_t num_bytes_to_write_in_chunk = starcounter::bmx::CHUNK_MAX_DATA_BYTES;
+    uint32_t num_bytes_to_write_in_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
     // Writing to first chunk.
     memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_first_chunk);
     left_bytes_to_write -= num_bytes_first_chunk;
 
     // Checking how many bytes to write next time.
-    if (left_bytes_to_write < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+    if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
     {
         // Checking if we copied everything.
         if (left_bytes_to_write <= 0)
@@ -376,7 +360,7 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
         left_bytes_to_write -= num_bytes_to_write_in_chunk;
 
         // Checking how many bytes to write next time.
-        if (left_bytes_to_write < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
         {
             // Checking if we copied everything.
             if (left_bytes_to_write <= 0)

@@ -3364,6 +3364,9 @@
     <code hex="001B" severity="Error" name="ScErrUnexpSQLScanner">
       <message>An unexpected error occurred in scanner of SQL Parser.</message>
     </code>
+    <code hex="001C" severity="Error" name="ScErrInvalidOffsetKey">
+      <message>Offset key is invalid for given query.</message>
+    </code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">

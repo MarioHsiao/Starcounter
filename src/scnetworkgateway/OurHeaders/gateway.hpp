@@ -191,10 +191,10 @@ const int32_t MAX_PROXIED_URIS = 32;
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
-const int32_t SOCKET_DATA_BLOB_OFFSET_BYTES = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
+const int32_t SOCKET_DATA_OFFSET_BLOB = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
 
 // Length of blob data in bytes.
-const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = bmx::CHUNK_MAX_DATA_BYTES - MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES - SOCKET_DATA_BLOB_OFFSET_BYTES;
+const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES;
 
 // Size of OVERLAPPED structure.
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
@@ -702,7 +702,10 @@ public:
     }
 
     // Initializes accumulative buffer.
-    void Init(ULONG buf_total_len_bytes, uint8_t* orig_buf_ptr, bool reset_accum_len)
+    void Init(
+        ULONG buf_total_len_bytes,
+        uint8_t* orig_buf_ptr,
+        bool reset_accum_len)
     {
         orig_buf_len_bytes_ = buf_total_len_bytes;
         buf_len_bytes_ = buf_total_len_bytes;
@@ -743,23 +746,15 @@ public:
     }
 
     // Setting the data pointer for the next operation.
-    void SetDataPointer(uint8_t *dataPointer)
+    void SetDataPointer(uint8_t *data_ptr)
     {
-        cur_buf_ptr_ = dataPointer;
+        cur_buf_ptr_ = data_ptr;
     }
 
     // Adds accumulated bytes.
     void AddAccumulatedBytes(int32_t numBytes)
     {
         accum_len_bytes_ += numBytes;
-    }
-
-    // Preparing socket buffer for the new communication.
-    void ResetBufferForNewOperation()
-    {
-        cur_buf_ptr_ = orig_buf_ptr_;
-        accum_len_bytes_ = 0;
-        buf_len_bytes_ = orig_buf_len_bytes_;
     }
 
     // Prepare buffer to send outside.
@@ -993,11 +988,8 @@ _declspec(align(64)) struct ScSessionStructPlus
     // Active socket flag.
     uint64_t active_socket_flag_;
 
-    // WebSockets opcode type.
-    uint32_t ws_opcode_;
-
-    // Padding to cache size.
-    uint32_t pad_;
+    // Pad.
+    uint64_t pad_;
 };
 
 // Represents an active database.
@@ -1475,6 +1467,12 @@ class Gateway
 
     // Monitor shared interface.
     core::monitor_interface_ptr shm_monitor_interface_;
+
+    // Gateway pid.
+    core::pid_type gateway_pid_;
+
+    // Gateway owner id.
+    core::owner_id gateway_owner_id_;
 
     // Shared memory monitor interface name.
     std::string shm_monitor_int_name_;
@@ -2473,7 +2471,7 @@ public:
     }
 
     // Gets session data by index.
-    void SetGlobalSessionDataCopy(
+    void SetGlobalSessionCopy(
         session_index_type session_index,
         ScSessionStruct session_copy)
     {

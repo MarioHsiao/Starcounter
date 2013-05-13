@@ -19,13 +19,14 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     IQueryComparer comparer;
     IEnumerator<Row> enumerator;
 
-    internal Sort(RowTypeBinding rowTypeBind, 
+    internal Sort(byte nodeId, RowTypeBinding rowTypeBind, 
         IExecutionEnumerator subEnum,
         IQueryComparer comp,
         VariableArray varArr,
         String query,
-        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
-        : base(rowTypeBind, varArr)
+        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
+        Boolean topNode)
+        : base(nodeId, EnumeratorNodeType.Sorting, rowTypeBind, varArr, topNode)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -237,7 +238,7 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
-    public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+    public unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
     {
         return globalOffset;
     }
@@ -265,8 +266,9 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
         if (fetchOffsetExpr != null)
             fetchOffsetExprClone = fetchOffsetExpr.CloneToNumerical(varArrClone);
 
-        return new Sort(rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
-            fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone);
+        return new Sort(nodeId, rowTypeBindClone, subEnumerator.Clone(rowTypeBindClone, varArrClone), comparer.Clone(varArrClone), varArrClone, query, 
+            fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
+            TopNode);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

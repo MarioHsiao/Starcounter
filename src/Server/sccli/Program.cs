@@ -14,6 +14,7 @@ using System.Net.Sockets;
 
 namespace star {
     using Starcounter.Advanced;
+    using Starcounter.Rest.ExtensionMethods;
     using EngineReference = EngineCollection.EnginesApp;
     using ExecutableReference = Engine.ExecutablesApp.ExecutingApp;
     using Option = SharedCLI.Option;

@@ -1547,7 +1547,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// The RECREATIO n_ KE y_ MA x_ BYTES
         /// </summary>
-        internal const UInt32 RECREATION_KEY_MAX_BYTES = 4096; // Maximum length in bytes of recreation key.
+        internal const UInt16 RECREATION_KEY_MAX_BYTES = 4096; // Maximum length in bytes of recreation key.
         /// <summary>
         /// The MA x_ HIT s_ PE r_ PAG e_ SORTING
         /// </summary>

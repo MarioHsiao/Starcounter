@@ -52,33 +52,14 @@ namespace bmx
 {
     typedef uint32_t BMX_SUBPORT_TYPE;
 
-    // Flag indicating that multiple chunks are passed.
-    const uint8_t LINKED_CHUNKS_FLAG = 1;
-
-    // Scheduler spin count.
-    const uint32_t SCHEDULER_SPIN_COUNT = 1000000;
-
-    // Chunk reserved bytes at the end.
-    // TODO: Fix when non null value.
-    const uint32_t CHUNK_TAIL_RESERVED_BYTES = 0;
-
-    // Constants needed for chunks processing.
-    const uint32_t CHUNK_MAX_DATA_BYTES = starcounter::core::chunk_size - shared_memory_chunk::link_size - CHUNK_TAIL_RESERVED_BYTES;
-
     // NOTE: Excluding original chunk since its for extra linked.
-    const uint32_t MAX_EXTRA_LINKED_WSABUFS = CHUNK_MAX_DATA_BYTES / sizeof(WSABUF) - 1;
-    const uint32_t MAX_BYTES_EXTRA_LINKED_WSABUFS = MAX_EXTRA_LINKED_WSABUFS * CHUNK_MAX_DATA_BYTES;
+    const uint32_t MAX_EXTRA_LINKED_WSABUFS = MixedCodeConstants::CHUNK_MAX_DATA_BYTES / sizeof(WSABUF) - 1;
+    const uint32_t MAX_BYTES_EXTRA_LINKED_WSABUFS = MAX_EXTRA_LINKED_WSABUFS * MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
-    const uint32_t BMX_HEADER_MAX_SIZE_BYTES = MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES;
-
-    // Some socket data constants.
-    const uint32_t SOCKET_DATA_NUM_CLONE_BYTES = 136;
-
-    const uint32_t BMX_NUM_CLONE_BYTES = BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_NUM_CLONE_BYTES;
-    const uint32_t CHUNK_OFFSET_BMX_HTTP_REQUEST = BMX_HEADER_MAX_SIZE_BYTES + MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST;
-    const uint32_t SOCKET_DATA_MAX_SIZE = starcounter::core::chunk_size - BMX_HEADER_MAX_SIZE_BYTES - shared_memory_chunk::link_size;
-
+    // Invalid BMX handler info.
     const BMX_HANDLER_TYPE BMX_INVALID_HANDLER_INFO = ~((BMX_HANDLER_TYPE) 0);
+
+    // Invalid BMX handler index.
     const BMX_HANDLER_INDEX_TYPE BMX_INVALID_HANDLER_INDEX = ~((BMX_HANDLER_INDEX_TYPE) 0);
 
     // Predefined BMX management handler.
