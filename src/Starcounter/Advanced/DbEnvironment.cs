@@ -1,5 +1,7 @@
 ﻿
 using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 namespace Starcounter.Advanced {
     
     /// <summary>
@@ -14,6 +16,13 @@ namespace Starcounter.Advanced {
 
             DatabaseName = databaseName;
             HasDatabase = hasDatabase;
+
+            unsafe
+            {
+                Byte cpuc = 0;
+                cm3_get_cpuc(null, &cpuc);
+                SchedulersNumber = cpuc;
+            }
         }
 
         /// <summary>
@@ -21,10 +30,20 @@ namespace Starcounter.Advanced {
         /// </summary>
         public string DatabaseName { get; private set; }
 
-
         /// <summary>
         /// Gets a value indicating whether there is a database attached to the current applet
         /// </summary>
         public bool HasDatabase { get; private set; }
+
+        /// <summary>
+        /// Gets the number of schedulers.
+        /// </summary>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        unsafe extern static UInt32 cm3_get_cpuc(void* h_opt, Byte* pcpuc);
+
+        /// <summary>
+        /// Gets the number of schedulers.
+        /// </summary>
+        public Byte SchedulersNumber { get; private set; }
     }
 }

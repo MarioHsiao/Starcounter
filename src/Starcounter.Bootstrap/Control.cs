@@ -21,6 +21,7 @@ using HttpStructs;
 using System.Text.RegularExpressions;
 using System.IO;
 using Starcounter.Internal.JsonPatch;
+using Starcounter.Bootstrap.Management;
 
 namespace StarcounterInternal.Bootstrap
 {
@@ -150,9 +151,6 @@ namespace StarcounterInternal.Bootstrap
             // Initializing REST.
             RequestHandler.InitREST();
 
-            // Initialize the Db environment (database name)
-            Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
-
             // Configuring host environment.
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();
@@ -161,6 +159,9 @@ namespace StarcounterInternal.Bootstrap
             hsched_ = ConfigureScheduler(configuration, mem, hmenv, schedulerCount);
             mem += (1024 + (schedulerCount * 512));
             OnSchedulerConfigured();
+
+            // Initialize the Db environment (database name)
+            Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
             // Initializing AppsBootstrapper.
             AppsBootstrapper.InitAppsBootstrapper(
@@ -222,57 +223,7 @@ namespace StarcounterInternal.Bootstrap
 
             OnAppDomainConfigured();
 
-            // Install handlers for the type of requests we accept.
-
-            // Handles execution requests for executables that support
-            // launching into Starcounter from the OS shell. This handler
-            // requires only a single parameter - the path to the assembly
-            // file - and will use the defaults based on that.
-            server.Handle("Exec", delegate(Starcounter.ABCIPC.Request r)
-            {
-                try
-                {
-                    Loader.ExecApp(hsched_, r.GetParameter<string>(), stopwatch_);
-                }
-                catch (LoaderException ex)
-                {
-                    r.Respond(false, ex.Message);
-                }
-            });
-
-            server.Handle("Exec2", delegate(Starcounter.ABCIPC.Request r)
-            {
-                try
-                {
-                    var properties = r.GetParameter<Dictionary<string, string>>();
-                    string assemblyPath = properties["AssemblyPath"];
-                    string workingDirectory = null;
-                    string argsString = null;
-                    string[] args = null;
-
-                    properties.TryGetValue("WorkingDir", out workingDirectory);
-                    if (properties.TryGetValue("Args", out argsString))
-                    {
-                        args = KeyValueBinary.ToArray(argsString);
-                    }
-
-                    Loader.ExecApp(hsched_, assemblyPath, stopwatch_, workingDirectory, args);
-
-                }
-                catch (LoaderException ex)
-                {
-                    r.Respond(false, ex.Message);
-                }
-            });
-
-            // Ping, allowing clients to check the responsiveness of the
-            // code host.
-
-            server.Handle("Ping", delegate(Starcounter.ABCIPC.Request request)
-            {
-                request.Respond(true);
-            });
-
+            ManagementService.Setup(configuration.DefaultSystemHttpPort, configuration.Name, hsched_, !configuration.NoNetworkGateway);
             OnServerCommandHandlersRegistered();
 
             if (withdb_)
@@ -345,7 +296,7 @@ namespace StarcounterInternal.Bootstrap
                 
             // Receive until we are told to shutdown.
 
-            server.Receive();
+            ManagementService.RunUntilShutdown();
 
             } finally { OnEndRun(); }
         }
