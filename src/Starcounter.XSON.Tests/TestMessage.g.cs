@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using Starcounter.Advanced;
 using Starcounter;
 using Starcounter.Internal;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Templates;
 
 namespace MySampleNamespace {
