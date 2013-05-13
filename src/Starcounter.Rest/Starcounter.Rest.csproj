@@ -78,6 +78,8 @@
     <Reference Include="System.Net.Http.WebRequest" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExtensionMethods\NodeExtensions.cs" />
+    <Compile Include="ExtensionMethods\ResponseExtensions.cs" />
     <Compile Include="Http\HttpRequestNext.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
     <Compile Include="RequestHandler\AstTree\AstTreeGenerator.VerificationBytes.cs" />

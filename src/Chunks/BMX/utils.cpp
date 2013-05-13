@@ -36,7 +36,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_obtain_new_chunk(
     uint8_t** new_chunk_mem)
 {
     // Obtaining chunk memory.
-    return cm_get_shared_memory_chunk(*new_chunk_index, new_chunk_mem);
+    return cm_acquire_shared_memory_chunk(new_chunk_index, new_chunk_mem);
 }
 
 // Writing linked chunks data to a given buffer and releasing all chunks except first.
@@ -212,7 +212,7 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
 
     // Checking if we should just send the chunks.
     if (just_sending_flag)
-        *(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
+        (*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
 
     // Setting the number of written bytes.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;

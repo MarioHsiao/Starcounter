@@ -534,7 +534,7 @@ uint32_t BmxData::UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* 
 }
 
 // Number of schedulers.
-static uint8_t g_cpun = 0;
+static uint8_t g_schedulers_count = 0;
 
 // Registers push channel and send the response.
 uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
@@ -553,11 +553,11 @@ uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK
     InterlockedIncrement(&num_registered_push_channels_);
 
     // Getting number of schedulers if needed.
-    if (!g_cpun)
-        cm3_get_cpuc(NULL, &g_cpun);
+    if (!g_schedulers_count)
+        cm3_get_cpuc(NULL, &g_schedulers_count);
 
     // Checking if all push channels are registered.
-    if (get_num_registered_push_channels() >= g_cpun)
+    if (get_num_registered_push_channels() >= g_schedulers_count)
         set_push_ready();
 
     response_chunk_part *response = smc->get_response_chunk();

@@ -158,123 +158,127 @@ namespace Starcounter.Internal.JsonPatch {
             resultJson.queryPlan = null;
 
             try {
-                sqle = (Starcounter.SqlEnumerator<object>)Db.SlowSQL(query).GetEnumerator();
 
-                resultJson.queryPlan = sqle.ToString();
+                SqlResult<dynamic> sqlResult = Db.SlowSQL(query);
+                if (sqlResult != null) {
+                    sqle = (Starcounter.SqlEnumerator<object>)sqlResult.GetEnumerator();
 
-                #region Retrive Columns
+                    resultJson.queryPlan = sqle.ToString();
 
-                if (sqle.ProjectionTypeCode != null) {
-
-                    SingleProjectionBinding singleProjectionBinding = new SingleProjectionBinding() { TypeCode = (DbTypeCode)sqle.ProjectionTypeCode };
-
-                    props = new IPropertyBinding[1];
-                    props[0] = singleProjectionBinding;
-
-                    singleProjectionBinding.Name = sqle.ProjectionTypeCode.ToString();
-                    resultJson.columns[0] = new { title = props[0].Name, value = props[0].Name, type = props[0].TypeCode.ToString() };
-                }
-                else {
-                    resultBinding = sqle.TypeBinding;
-                    props = new IPropertyBinding[resultBinding.PropertyCount];
-                    for (int i = 0; i < resultBinding.PropertyCount; i++) {
-                        PropertyMapping pm = (PropertyMapping)resultBinding.GetPropertyBinding(i);
-                        props[i] = pm;
-                        resultJson.columns[i] = new { title = pm.DisplayName, value = "_" + props[i].Name, type = props[i].TypeCode.ToString() };
-                    }
-                }
-                #endregion
-
-                #region Retrive Rows
-                int index = 0;
-                while (sqle.MoveNext()) {
-
-                    object row = sqle.Current;
-                    resultJson.rows[index] = new object { };
+                    #region Retrive Columns
 
                     if (sqle.ProjectionTypeCode != null) {
 
-                        if (sqle.ProjectionTypeCode == DbTypeCode.Object && row != null) {
-                            resultJson.rows[index][props[0].Name] = DbHelper.GetObjectNo(row);
-                        }
-                        else {
-                            resultJson.rows[index][props[0].Name] = row;
-                        }
+                        SingleProjectionBinding singleProjectionBinding = new SingleProjectionBinding() { TypeCode = (DbTypeCode)sqle.ProjectionTypeCode };
+
+                        props = new IPropertyBinding[1];
+                        props[0] = singleProjectionBinding;
+
+                        singleProjectionBinding.Name = sqle.ProjectionTypeCode.ToString();
+                        resultJson.columns[0] = new { title = props[0].Name, value = props[0].Name, type = props[0].TypeCode.ToString() };
                     }
                     else {
-
-                        IObjectView obj = (IObjectView)row;
-
-                        foreach (IPropertyBinding prop in props) {
-                            object value = null;
-                            switch (prop.TypeCode) {
-                                case DbTypeCode.Binary:
-                                    value = obj.GetBinary(prop.Index);
-                                    break;
-                                case DbTypeCode.Boolean:
-                                    value = obj.GetBoolean(prop.Index);
-                                    break;
-                                case DbTypeCode.Byte:
-                                    value = obj.GetByte(prop.Index);
-                                    break;
-                                case DbTypeCode.DateTime:
-                                    value = obj.GetDateTime(prop.Index);
-                                    break;
-                                case DbTypeCode.Decimal:
-                                    value = obj.GetDecimal(prop.Index);
-                                    break;
-                                case DbTypeCode.Double:
-                                    value = obj.GetDouble(prop.Index);
-                                    break;
-                                case DbTypeCode.Int16:
-                                    value = obj.GetInt16(prop.Index);
-                                    break;
-                                case DbTypeCode.Int32:
-                                    value = obj.GetInt32(prop.Index);
-                                    break;
-                                case DbTypeCode.Int64:
-                                    value = obj.GetInt64(prop.Index);
-                                    break;
-                                case DbTypeCode.LargeBinary:
-                                    value = obj.GetBinary(prop.Index);
-                                    break;
-                                case DbTypeCode.Object:
-
-                                    value = obj.GetObject(prop.Index);
-                                    if (value != null) {
-                                        value = DbHelper.GetObjectNo(value);
-                                    }
-                                    break;
-                                case DbTypeCode.SByte:
-                                    value = obj.GetSByte(prop.Index);
-                                    break;
-                                case DbTypeCode.Single:
-                                    value = obj.GetSingle(prop.Index);
-                                    break;
-                                case DbTypeCode.String:
-                                    value = obj.GetString(prop.Index);
-                                    break;
-                                case DbTypeCode.UInt16:
-                                    value = obj.GetUInt16(prop.Index);
-                                    break;
-                                case DbTypeCode.UInt32:
-                                    value = obj.GetUInt32(prop.Index);
-                                    break;
-                                case DbTypeCode.UInt64:
-                                    value = obj.GetUInt64(prop.Index);
-                                    break;
-                                default:
-                                    // ERROR
-                                    throw new Exception("Unknown column type");
-                            }
-                            resultJson.rows[index]["_" + prop.Name] = value;
+                        resultBinding = sqle.TypeBinding;
+                        props = new IPropertyBinding[resultBinding.PropertyCount];
+                        for (int i = 0; i < resultBinding.PropertyCount; i++) {
+                            PropertyMapping pm = (PropertyMapping)resultBinding.GetPropertyBinding(i);
+                            props[i] = pm;
+                            resultJson.columns[i] = new { title = pm.DisplayName, value = "_" + props[i].Name, type = props[i].TypeCode.ToString() };
                         }
                     }
-                    index++;
+                    #endregion
 
+                    #region Retrive Rows
+                    int index = 0;
+                    while (sqle.MoveNext()) {
+
+                        object row = sqle.Current;
+                        resultJson.rows[index] = new object { };
+
+                        if (sqle.ProjectionTypeCode != null) {
+
+                            if (sqle.ProjectionTypeCode == DbTypeCode.Object && row != null) {
+                                resultJson.rows[index][props[0].Name] = DbHelper.GetObjectNo(row);
+                            }
+                            else {
+                                resultJson.rows[index][props[0].Name] = row;
+                            }
+                        }
+                        else {
+
+                            IObjectView obj = (IObjectView)row;
+
+                            foreach (IPropertyBinding prop in props) {
+                                object value = null;
+                                switch (prop.TypeCode) {
+                                    case DbTypeCode.Binary:
+                                        value = obj.GetBinary(prop.Index);
+                                        break;
+                                    case DbTypeCode.Boolean:
+                                        value = obj.GetBoolean(prop.Index);
+                                        break;
+                                    case DbTypeCode.Byte:
+                                        value = obj.GetByte(prop.Index);
+                                        break;
+                                    case DbTypeCode.DateTime:
+                                        value = obj.GetDateTime(prop.Index);
+                                        break;
+                                    case DbTypeCode.Decimal:
+                                        value = obj.GetDecimal(prop.Index);
+                                        break;
+                                    case DbTypeCode.Double:
+                                        value = obj.GetDouble(prop.Index);
+                                        break;
+                                    case DbTypeCode.Int16:
+                                        value = obj.GetInt16(prop.Index);
+                                        break;
+                                    case DbTypeCode.Int32:
+                                        value = obj.GetInt32(prop.Index);
+                                        break;
+                                    case DbTypeCode.Int64:
+                                        value = obj.GetInt64(prop.Index);
+                                        break;
+                                    case DbTypeCode.LargeBinary:
+                                        value = obj.GetBinary(prop.Index);
+                                        break;
+                                    case DbTypeCode.Object:
+
+                                        value = obj.GetObject(prop.Index);
+                                        if (value != null) {
+                                            value = DbHelper.GetObjectNo(value);
+                                        }
+                                        break;
+                                    case DbTypeCode.SByte:
+                                        value = obj.GetSByte(prop.Index);
+                                        break;
+                                    case DbTypeCode.Single:
+                                        value = obj.GetSingle(prop.Index);
+                                        break;
+                                    case DbTypeCode.String:
+                                        value = obj.GetString(prop.Index);
+                                        break;
+                                    case DbTypeCode.UInt16:
+                                        value = obj.GetUInt16(prop.Index);
+                                        break;
+                                    case DbTypeCode.UInt32:
+                                        value = obj.GetUInt32(prop.Index);
+                                        break;
+                                    case DbTypeCode.UInt64:
+                                        value = obj.GetUInt64(prop.Index);
+                                        break;
+                                    default:
+                                        // ERROR
+                                        throw new Exception("Unknown column type");
+                                }
+                                resultJson.rows[index]["_" + prop.Name] = value;
+                            }
+                        }
+                        index++;
+
+                    }
+
+                    #endregion
                 }
-
-                #endregion
 
             }
             catch (Starcounter.SqlException ee) {

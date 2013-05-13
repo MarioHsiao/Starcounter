@@ -555,11 +555,10 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Called when GC destroys this object.
+        /// Releases resources.
         /// </summary>
         ~Response()
         {
-            // TODO: Consult what is better for Apps auto-destructor or manual call to Destroy.
             Destroy();
         }
 

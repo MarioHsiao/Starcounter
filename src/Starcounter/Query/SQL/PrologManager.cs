@@ -313,9 +313,9 @@ namespace Starcounter.Query.Sql
         {
             Scheduler scheduler = null;
             PrologSession prologSession = null;
-            for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
+            for (Byte schedId = 0; schedId < Scheduler.SchedulerCount; schedId++)
             {
-                scheduler = Scheduler.GetInstance(cpuNumber);
+                scheduler = Scheduler.GetInstance(schedId);
                 prologSession = scheduler.PrologSession;
                 if (prologSession == null)
                 {
@@ -334,9 +334,9 @@ namespace Starcounter.Query.Sql
         private static void DisconnectPrologSessions()
         {
             PrologSession prologSession = null;
-            for (Byte cpuNumber = 0; cpuNumber < Scheduler.SchedulerCount; cpuNumber++)
+            for (Byte schedId = 0; schedId < Scheduler.SchedulerCount; schedId++)
             {
-                prologSession = Scheduler.GetInstance(cpuNumber).PrologSession;
+                prologSession = Scheduler.GetInstance(schedId).PrologSession;
                 if (prologSession != null)
                 {
                     prologSession.disconnect();
