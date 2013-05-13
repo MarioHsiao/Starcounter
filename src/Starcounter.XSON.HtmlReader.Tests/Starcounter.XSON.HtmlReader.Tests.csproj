@@ -7,8 +7,8 @@
     <ProjectGuid>{2042C9E2-BEA5-4745-8EC1-EFF5CFDF08EA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Starcounter.Internal.Application.HtmlReader.Tests</RootNamespace>
-    <AssemblyName>Starcounter.Apps.HtmlReader.Tests</AssemblyName>
+    <RootNamespace>Starcounter.XSON.HtmlReader.Tests</RootNamespace>
+    <AssemblyName>Starcounter.XSON.HtmlReader.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -78,9 +78,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Starcounter.Apps.HtmlReader\Starcounter.Apps.HtmlReader.csproj">
+    <ProjectReference Include="..\Starcounter.XSON.HtmlReader\Starcounter.XSON.HtmlReader.csproj">
       <Project>{5546e8c2-844a-4662-84fa-b47d88e515ce}</Project>
-      <Name>Starcounter.Apps.HtmlReader</Name>
+      <Name>Starcounter.XSON.HtmlReader</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

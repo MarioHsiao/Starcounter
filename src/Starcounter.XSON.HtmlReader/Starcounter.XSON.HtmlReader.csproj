@@ -7,8 +7,8 @@
     <ProjectGuid>{5546E8C2-844A-4662-84FA-B47D88E515CE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Starcounter.Internal.Application.HtmlReader</RootNamespace>
-    <AssemblyName>Starcounter.Apps.HtmlReader</AssemblyName>
+    <RootNamespace>Starcounter.XSON.HtmlReader</RootNamespace>
+    <AssemblyName>Starcounter.XSON.HtmlReader</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -57,7 +57,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>..\..\bin\Release\Starcounter.Apps.HtmlReader.XML</DocumentationFile>
+    <DocumentationFile>..\..\bin\Release\Starcounter.XSON.HtmlReader.xml</DocumentationFile>
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
   <ItemGroup>

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Starcounter.Internal.Application.HtmlReader.Tests")]
+[assembly: AssemblyTitle("Starcounter.XSON.HtmlReader.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Starcounter AB")]
-[assembly: AssemblyProduct("Starcounter.Internal.Application.HtmlReader.Tests")]
+[assembly: AssemblyProduct("Starcounter.XSON.HtmlReader.Tests")]
 [assembly: AssemblyCopyright("Copyright © Starcounter AB 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
