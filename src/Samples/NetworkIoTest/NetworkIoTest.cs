@@ -397,15 +397,81 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_WEBSOCKETS_URIS:
                 {
-                    Handle.GET(8181, "/ws", () =>
+                    for (Byte i = 0; i < Db.Environment.SchedulersNumber; i++)
+                        WebSocketSessions[i] = new List<Session>();
+
+                    DbSession dbSession = new DbSession();
+                    Int32 interval = 5000;
+                    WebSocketSessionsTimer = new Timer((state) =>
                     {
-                        return "Hello!";
+                        // Schedule a job to check once for inactive sessions on each scheduler.
+                        for (Byte i = 0; i < Db.Environment.SchedulersNumber; i++)
+                        {
+                            // NOTE: Very important to make a copy of looped variable here!
+                            Byte k = i;
+
+                            // Getting sessions for current scheduler.
+                            dbSession.RunAsync(() =>
+                            {
+                                // NOTE: Very important to make a copy of looped variable here!
+                                Byte sched = k;
+
+                                // Going through all registered sessions for this scheduler.
+                                for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++)
+                                {
+                                    Session s = WebSocketSessions[sched][m];
+
+                                    // Checking if session is not yet dead.
+                                    if (s.IsAlive())
+                                    {
+                                        String pushMsg = "Scheduler: " + sched + ", seconds: " + TimerSeconds + " and session: " + s.SessionIdString;
+                                        s.Push(Encoding.UTF8.GetBytes(pushMsg));
+                                    }
+                                    else
+                                    {
+                                        // Removing dead session from broadcast.
+                                        WebSocketSessions[sched].Remove(s);
+                                    }
+                                }
+
+                            }, i);
+                        }
+                        TimerSeconds += 1;
+
+                    }, null, interval, interval);
+
+                    Handle.GET("/ws", (Request req, Session session) =>
+                    {
+                        if (session != null)
+                        {
+                            Byte schedId = StarcounterEnvironment.GetCurrentSchedulerId();
+
+                            // Adding session if its not yet added.
+                            if (!WebSocketSessions[schedId].Contains(session))
+                            {
+                                Console.WriteLine("Add new session: " + session.SessionIdString);
+
+                                WebSocketSessions[schedId].Add(session);
+                            }
+
+                            session.Push(req.GetBodyByteArray_Slow());
+                        }
+
+                        String body = req.GetRequestStringUtf8_Slow();
+                        Console.WriteLine(body);
+                        return body;
                     });
 
                     break;
                 }
             }
         }
+
+        static List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulersNumber];
+        static volatile Int32 TimerSeconds = 0;
+
+        // NOTE: Timer should be static, otherwise its garbage collected.
+        static Timer WebSocketSessionsTimer = null;
 
         private static Boolean OnRawPortEcho(PortHandlerParams p)
         {

@@ -99,12 +99,6 @@ public:
         sub_protocol_len_ = newSubProtocolLen;
     }
 
-    // Initializes WebSocket structure.
-    void Init()
-    {
-        Reset();
-    }
-
     // Resets the structure.
     void Reset()
     {

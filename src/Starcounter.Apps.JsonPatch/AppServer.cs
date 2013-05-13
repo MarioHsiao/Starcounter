@@ -153,6 +153,7 @@ namespace Starcounter.Internal.Web {
         /// <returns>The bytes according to the appropriate protocol</returns>
         public override Response HandleRequest(Request request) {
             Object result;
+            UInt32 errCode;
 
             switch (request.ProtocolType)
             {
@@ -188,24 +189,24 @@ namespace Starcounter.Internal.Web {
                         // Checking if we are in session already.
                         if (!request.HasSession)
                         {
-                            // Generating new session if it does not exist.
-                            Session session = Session.CreateNewEmptySession();
-
-                            UInt32 errorCode = request.GenerateNewSession(session);
-                            if (errorCode != 0)
-                                throw ErrorCode.ToException(errorCode);
+                            // Creating session on Request as well.
+                            errCode = request.GenerateNewSession(Session.CreateNewEmptySession());
+                            if (errCode != 0)
+                                throw ErrorCode.ToException(errCode);
                         }
                         else
                         {
+                            // Start using specific session.
                             Session.Start((Session)request.AppsSessionInterface);
                         }
 
-                        // Updating session information.
+                        // Updating session information (sockets info, WebSockets, etc).
                         request.UpdateSessionDetails();
 
                         // Invoking original user delegate with parameters here.
                         UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
 
+                        // Handling result.
                         if (result != null)
                         {
                             Byte[] byte_result = null;
@@ -215,6 +216,7 @@ namespace Starcounter.Internal.Web {
                             else if (result is String)
                                 byte_result = Encoding.UTF8.GetBytes((String)result);
 
+                            // Creating a standard Response from result.
                             return new Response() { Uncompressed = byte_result };
                         }
 

@@ -578,7 +578,6 @@ public:
     void Init()
     {
         // Initializing WebSocket data.
-        ws_proto_.Init();
         Reset();
         sd_ref_ = NULL;
     }

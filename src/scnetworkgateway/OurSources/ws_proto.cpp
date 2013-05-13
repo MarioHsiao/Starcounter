@@ -62,6 +62,7 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BM
     *is_handled = true;
 
     uint32_t err_code = 0;
+    bool receive_already_cloned = false;
 
     // TODO: Make multi-chunks support.
     GW_ASSERT(1 == sd->get_num_chunks());
@@ -69,14 +70,6 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BM
     // Obtaining saved user handler id.
     user_handler_id = sd->get_saved_user_handler_id();
     GW_ASSERT_DEBUG(bmx::BMX_INVALID_HANDLER_INFO != user_handler_id);
-
-    // Data is complete, creating parallel receive clone.
-    if (sd->HasActiveSession())
-    {
-        err_code = sd->CloneToReceive(gw);
-        if (err_code)
-            return err_code;
-    }
 
     SocketDataChunk* new_sd = NULL;
     uint8_t* orig_data_ptr = sd->get_accum_buf()->get_orig_buf_ptr();
@@ -137,6 +130,17 @@ uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BM
             case WS_OPCODE_TEXT:
             case WS_OPCODE_BINARY:
             {
+                // Data is complete, creating parallel receive clone.
+                if ((!receive_already_cloned) && (sd->HasActiveSession()))
+                {
+                    // Doing cloning only once.
+                    receive_already_cloned = true;
+
+                    err_code = sd->CloneToReceive(gw);
+                    if (err_code)
+                        return err_code;
+                }
+
                 // Unmasking data.
                 MaskUnMask(frame_info_.payload_len_, frame_info_.mask_, (uint64_t *)payload);
 
@@ -215,6 +219,10 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Handled successfully.
     *is_handled = true;
 
+    // Checking if this socket data is for send only.
+    if (sd->get_socket_just_send_flag())
+        goto JUST_SEND_SOCKET_DATA;
+
     // Getting user data.
     uint8_t *payload = sd->UserDataBuffer();
 
@@ -229,6 +237,8 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
 
     // Prepare buffer to send outside.
     sd->get_accum_buf()->PrepareForSend(payload, payload_len);
+
+JUST_SEND_SOCKET_DATA:
 
     // Sending data.
     uint32_t err_code = gw->Send(sd);
@@ -277,11 +287,13 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     // Setting fixed handler id.
     sd->set_saved_user_handler_id(user_handler_id);
 
-    // Prepare buffer to send outside.
-    sd->get_accum_buf()->PrepareForSend(resp_data_begin, kWsHsResponseLen);
-
     // TODO: Check the strategy about creating session.
-    /*
+#if 0
+
+    // Setting user data information so its applied to accumulating buffer on the way back.
+    sd->set_user_data_offset_in_socket_data(resp_data_begin - (uint8_t*)sd);
+    sd->set_user_data_written_bytes(kWsHsResponseLen);
+
     // Just sending on way back.
     sd->set_socket_just_send_flag(true);
 
@@ -289,12 +301,18 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     err_code = gw->GetWorkerDb(sd->get_db_index())->PushSessionCreate(sd);
     if (err_code)
         return err_code;
-    */
+
+#else
+
+    // Prepare buffer to send outside.
+    sd->get_accum_buf()->PrepareForSend(resp_data_begin, kWsHsResponseLen);
 
     // Sending data.
     err_code = gw->Send(sd);
     if (err_code)
         return err_code;
+
+#endif
 
     // Printing the outgoing packet.
 #ifdef GW_WEBSOCKET_DIAG

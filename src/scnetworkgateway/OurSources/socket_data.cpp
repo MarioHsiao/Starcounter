@@ -444,6 +444,19 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
     return false;
 }
 
+// Deletes global session and sends message to database to delete session there.
+uint32_t SocketDataChunk::SendDeleteSession(GatewayWorker* gw)
+{
+    // Verifying that session is correct and sending delete session to database.
+    if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
+    {
+        ScSessionStruct s = g_gateway.GetGlobalSessionCopy(sock_);
+        return (gw->GetWorkerDb(db_index_)->PushSessionDestroy(s.linear_index_, s.random_salt_, s.scheduler_id_));
+    }
+
+    return 0;
+}
+
 #ifdef GW_LOOPED_TEST_MODE
 
 // Pushing given sd to network emulation queue.

@@ -192,7 +192,41 @@ public:
     {
         return g_gateway.CompareUniqueSocketId(sock_, unique_socket_id_);
     }
+
+    // Sets session if socket is correct.
+    void SetGlobalSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId() && (!g_gateway.IsGlobalSessionActive(sock_)))
+            g_gateway.SetGlobalSessionCopy(sock_, session_);
+    }
+
+    // Sets session if socket is correct.
+    void SetSdSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if ((!session_.IsActive()) && CompareUniqueSocketId() && (g_gateway.IsGlobalSessionActive(sock_)))
+            session_ = g_gateway.GetGlobalSessionCopy(sock_);
+    }
+
+    // Deletes global session.
+    void DeleteGlobalSession()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
+            g_gateway.DeleteGlobalSession(sock_);
+    }
+
+    // Checks if global session data is active.
+    bool CompareGlobalSessionSalt()
+    {
+        return g_gateway.CompareGlobalSessionSalt(sock_, session_.random_salt_);
+    }
+
 #endif
+
+    // Deletes global session and sends message to database to delete session there.
+    uint32_t SendDeleteSession(GatewayWorker* gw);
 
     // Clone current socket data to another database.
     uint32_t CloneToAnotherDatabase(

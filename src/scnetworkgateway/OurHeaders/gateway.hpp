@@ -2471,7 +2471,7 @@ public:
     }
 
     // Gets session data by index.
-    void SetGlobalSessionDataCopy(
+    void SetGlobalSessionCopy(
         session_index_type session_index,
         ScSessionStruct session_copy)
     {
