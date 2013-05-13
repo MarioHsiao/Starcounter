@@ -194,16 +194,17 @@ namespace Starcounter.Internal.Test
                     fixed (MixedCodeConstants.UserDelegateParamInfo* p2 = paramsInfo)
                     {
                         Byte[] requestStrNoContent = Encoding.ASCII.GetBytes("GET /dashboard/123\r\n\r\n");
-                        Byte[] requestStrWithContent = Encoding.ASCII.GetBytes("GET /dashboard/123\r\nContent-Length:" 
-                                                            + Encoding.ASCII.GetByteCount(jsonContent) 
-                                                            + "\r\n\r\n" 
-                                                            + jsonContent);
+                        Byte[] requestStrWithContent =
+                            Encoding.ASCII.GetBytes("GET /dashboard/123\r\nContent-Length:" 
+                            + Encoding.ASCII.GetByteCount(jsonContent) 
+                            + "\r\n\r\n" 
+                            + jsonContent);
 
                         Assert.IsTrue("UserFunc1!" == (String)genDel1(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
-                        Assert.IsTrue("UserFunc2!" == (String)genDel2(null, (IntPtr)p1, (IntPtr)p2));
+                        Assert.IsTrue("UserFunc2!" == (String)genDel2(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
                         Assert.IsTrue("UserFunc3!" == (String)genDel3(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
                         Assert.IsTrue("UserFunc4!" == (String)genDel4(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
-                        Assert.IsTrue("UserFunc5!" == (String)genDel5(null, (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc5!" == (String)genDel5(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)(p2 + 7)));
 
                         Request req = new Request(requestStrWithContent);
                         req.ArgMessageObjectType = typeof(PersonMessage);
@@ -212,7 +213,7 @@ namespace Starcounter.Internal.Test
                         Assert.IsTrue("UserFunc7!" == (String)genDel7(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
                         Assert.IsTrue("UserFunc8!" == (String)genDel8(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
 
-                        Assert.IsTrue("UserFunc9!" == (String)genDel9(new Request(requestStrWithContent), (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc9!" == (String)genDel9(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
                         Assert.IsTrue("UserFunc10!" == (String)genDel10(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
                     }
                 }
