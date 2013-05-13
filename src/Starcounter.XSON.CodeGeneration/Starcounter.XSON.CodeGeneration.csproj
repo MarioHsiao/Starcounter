@@ -47,6 +47,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>
     </DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
@@ -59,6 +60,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>..\..\bin\Release\Starcounter.XSON.CodeGeneration.xml</DocumentationFile>
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -91,6 +93,7 @@
     <Compile Include="Serialization\AstTree\ToJson\AstJsonObject.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonProperty.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonPropertyValue.cs" />
+    <Compile Include="Serialization\JsonHelper.cs" />
     <Compile Include="Serialization\ParseTree\ParseNode.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -124,6 +127,10 @@
     <Compile Include="SimpleDomGenerator\DomGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
+      <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
+      <Name>BitsAndBytes.Unsafe</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.CompilerService.Mono\Starcounter.CompilerService.Mono.csproj">
       <Project>{c5bcb67d-df0d-457c-8b05-68556fbc9dda}</Project>
       <Name>Starcounter.CompilerService.Mono</Name>

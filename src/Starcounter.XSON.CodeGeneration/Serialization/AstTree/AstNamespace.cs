@@ -36,7 +36,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Prefix.Add("using System;");
             Prefix.Add("using Starcounter;");
             Prefix.Add("using Starcounter.Internal;");
-            Prefix.Add("using Starcounter.Internal.JsonPatch;");
             Prefix.Add("");
             var sb = new StringBuilder();
             sb.Append("namespace ");
