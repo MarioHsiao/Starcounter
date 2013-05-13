@@ -8,7 +8,7 @@ namespace Starcounter.Query.Execution {
     /// Enumerator with unique access for an object based on ObjectId, which
     /// either given numerical as ObjectNo or string as ObjectID.
     /// </summary>
-    internal class ObjectIdenittyAccess : ExecutionEnumerator, IExecutionEnumerator {
+    internal class ObjectIdentityLookup : ExecutionEnumerator, IExecutionEnumerator {
         Int32 extentNumber;
         Row contextObject;
         ulong currectObjectId;
@@ -25,15 +25,15 @@ namespace Starcounter.Query.Execution {
 
         //Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.
         Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
-        internal ObjectIdenittyAccess(byte nodeId, RowTypeBinding rowTypeBind,
+        internal ObjectIdentityLookup(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
         IValueExpression expr,
         ILogicalExpression cond,
         INumericalExpression fetchNumExpr,
         INumericalExpression fetchOffsetExpr,
         IBinaryExpression fetchOffsetKeyExpr,
-        VariableArray varArr, String query)
-            : base(nodeId, EnumeratorNodeType.ObjectIdentityLookup, rowTypeBind, varArr) {
+        VariableArray varArr, String query, Boolean topNode)
+            : base(nodeId, EnumeratorNodeType.ObjectIdentityLookup, rowTypeBind, varArr, topNode) {
             if (rowTypeBind == null)
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
             if (varArr == null)
@@ -159,6 +159,7 @@ namespace Starcounter.Query.Execution {
         public Boolean MoveNext() {
             // Since this enumerator emits up to one object, it is not possible to use offset key and not stay at it.
             if (useOffsetkey && !stayAtOffsetkey && fetchOffsetKeyExpr != null) {
+                SameAsOffsetkeyOrNull(null);
                 currentObject = null;
                 return false;
             }
@@ -239,21 +240,24 @@ namespace Starcounter.Query.Execution {
         }
 
         private unsafe Byte* ValidateAndGetRecreateKey(Byte* rk) {
-            Byte* staticDataOffset = rk + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
+            Byte* staticDataOffset = ValidateAndGetStaticKeyOffset(rk);
             UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
             Debug.Assert(dynDataOffset != 0);
-            Byte* staticData = rk + (*(UInt16*)(staticDataOffset));
-            ValidateNodeType((*(Byte*)staticData));
             return rk + dynDataOffset;
         }
 
         internal Boolean SameAsOffsetkeyOrNull(IObjectView obj) {
             if (useOffsetkey && fetchOffsetKeyExpr != null) {
+                // In order to skip enumerator recreation next time.
+                triedEnumeratorRecreation = true;
                 unsafe {
-                    fixed (Byte* recrKey = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
+                    fixed (Byte* recrKeyBuffer = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
+                        Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
                         // Checking if recreation key is valid.
                         if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
                             Byte* recreationKey = ValidateAndGetRecreateKey(recrKey);
+                            if (obj == null) // Moving out from offset key on first MoveNext
+                                return false;
                             // Check if current object matches stored in the recreation key
                             if (currectObjectId == (*(ulong*)recreationKey))
                                 isAtRecreatedKey = true;
@@ -332,6 +336,7 @@ namespace Starcounter.Query.Execution {
             contextObject = obj;
             currentObject = null;
             counter = 0;
+            triedEnumeratorRecreation = false;
 
             if (obj == null) {
                 stayAtOffsetkey = false;
@@ -356,9 +361,9 @@ namespace Starcounter.Query.Execution {
             else
                 expressionClone = (expression as IStringExpression).CloneToString(varArrClone);
 
-            return new ObjectIdenittyAccess(nodeId, rowTypeBindClone, extentNumber, expressionClone,
+            return new ObjectIdentityLookup(nodeId, rowTypeBindClone, extentNumber, expressionClone,
                 condition.Clone(varArrClone), fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
-                varArrClone, query);
+                varArrClone, query, TopNode);
         }
 
         public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs) {

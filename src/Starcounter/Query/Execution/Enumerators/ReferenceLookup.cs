@@ -21,6 +21,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     IObjectExpression expression;
     ILogicalExpression condition;
 
+    Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
     Boolean stayAtOffsetkey = false;
     public Boolean StayAtOffsetkey { get { return stayAtOffsetkey; } set { stayAtOffsetkey = value; } }
     Boolean useOffsetkey = true;
@@ -31,8 +32,9 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         IObjectExpression expr,
         ILogicalExpression cond,
         INumericalExpression fetchNumExpr,
+        IBinaryExpression fetchOffsetkeyExpr,
         VariableArray varArr, String query)
-        : base(nodeId, EnumeratorNodeType.ReferenceLookup, rowTypeBind, varArr)
+        : base(nodeId, EnumeratorNodeType.ReferenceLookup, rowTypeBind, varArr, false)
     {
         if (rowTypeBind == null)
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect rowTypeBind.");
@@ -51,6 +53,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         condition = cond;
 
         fetchNumberExpr = fetchNumExpr;
+        fetchOffsetKeyExpr = fetchOffsetkeyExpr;
 
         this.query = query;
     }
@@ -169,54 +172,34 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
-    public Boolean MoveNext()
-    {
+    public Boolean MoveNext() {
         if (useOffsetkey && !stayAtOffsetkey) {
+            ValidOffsetkeyOrNull(null);
             currentObject = null;
             return false;
         }
 
-        if (counter == 0)
-        {
-            if (fetchNumberExpr != null && (fetchNumberExpr.EvaluateToInteger(null) == null || fetchNumberExpr.EvaluateToInteger(null).Value <= 0))
-            {
+        if (counter == 0) {
+            if (fetchNumberExpr != null && (fetchNumberExpr.EvaluateToInteger(null) == null || fetchNumberExpr.EvaluateToInteger(null).Value <= 0)) {
                 currentObject = null;
                 return false;
             }
-
-            //// Instantiate expression.
-            //IObjectExpression instExpression = expression.Instantiate(contextObject);
-            //// Lookup object.
-            //IObjectView obj = null;
-            //if ((instExpression is ObjectLiteral) || (instExpression is ObjectVariable))
-            //{
-            //    obj = instExpression.EvaluateToObject(null);
-            //}
-            //else
-            //{
-            //    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect instExpression: " + instExpression);
-            //}
 
             // Lookup object.
             IObjectView obj = expression.EvaluateToObject(contextObject);
 
             // Check for null, that the object is in the current extent and check condition.
-            if (obj == null || InCurrentExtent(obj) == false || condition.Instantiate(contextObject).Filtrate(obj) == false)
-            {
+            if (obj == null || InCurrentExtent(obj) == false || !ValidOffsetkeyOrNull(obj) || condition.Instantiate(contextObject).Filtrate(obj) == false) {
                 currentObject = null;
                 return false;
-            }
-            else
-            {
+            } else {
                 // Create new currentObject.
                 currentObject = new Row(rowTypeBinding);
                 currentObject.AttachObject(extentNumber, obj);
                 counter++;
                 return true;
             }
-        }
-        else
-        {
+        } else {
             currentObject = null;
             return false;
         }
@@ -244,11 +227,76 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         }
     }
 
+    private unsafe void ValidateAndGetRecreateKey(Byte* rk) {
+        ValidateAndGetStaticKeyOffset(rk);
+#if false // Not in use
+        UInt16 dynDataOffset = (*(UInt16*)(staticDataOffset + 2));
+        Debug.Assert(dynDataOffset != 0);
+        return rk + dynDataOffset;
+#endif
+    }
+
+    internal Boolean ValidOffsetkeyOrNull(IObjectView obj) {
+        if (useOffsetkey && fetchOffsetKeyExpr != null) {
+            // In order to skip enumerator recreation next time.
+            triedEnumeratorRecreation = true;
+            unsafe {
+                fixed (Byte* recrKeyBuffer = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
+                    Byte* recrKey = recrKeyBuffer + 4; // Skip buffer length
+                    // Checking if recreation key is valid.
+                    if ((*(UInt16*)recrKey) > IteratorHelper.RK_EMPTY_LEN) {
+                        ValidateAndGetRecreateKey(recrKey);
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     /// <summary>
     /// Saves the underlying enumerator state.
     /// </summary>
-    public unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
+    public unsafe UInt16 SaveEnumerator(Byte* keyData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
     {
+        // Immediately preventing further accesses to current object.
+        currentObject = null;
+
+        // If we already tried to recreate the enumerator and we want to write static data,
+        // just return first dynamic data offset.
+        if (triedEnumeratorRecreation && (!saveDynamicDataOnly))
+            return (*(UInt16*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET));
+
+        UInt16 origGlobalOffset = globalOffset;
+
+        // Position of enumerator.
+        UInt16 enumGlobalOffset = (ushort)((nodeId << 2) + IteratorHelper.RK_HEADER_LEN);
+
+        // Writing static data.
+        if (!saveDynamicDataOnly) {
+            // In order to exclude double copy of last key.
+            //rangeChanged = false;
+
+            // Emptying static data position for this enumerator.
+            (*(UInt16*)(keyData + enumGlobalOffset)) = 0;
+
+            // Saving type of this node
+            *((byte*)(keyData + globalOffset)) = (byte)NodeType;
+            globalOffset += 1;
+
+            // Saving position of the data for current extent.
+            (*(UInt16*)(keyData + enumGlobalOffset)) = origGlobalOffset;
+
+            // Saving absolute position of the first dynamic data.
+            (*(UInt16*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET)) = globalOffset;
+        } else {
+            // Writing dynamic data.
+
+            // Points to dynamic data offset.
+            UInt16* dynDataOffset = (UInt16*)(keyData + enumGlobalOffset + 2);
+
+            // Emptying dynamic data position for this enumerator.
+            (*dynDataOffset) = 0;
+        }
         return globalOffset;
     }
 
@@ -261,6 +309,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         contextObject = obj;
         currentObject = null;
         counter = 0;
+        triedEnumeratorRecreation = false;
 
         if (obj == null) {
             stayAtOffsetkey = false;
@@ -297,9 +346,12 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
         INumericalExpression fetchNumberExprClone = null;
         if (fetchNumberExpr != null)
             fetchNumberExprClone = fetchNumberExpr.CloneToNumerical(varArrClone);
+        IBinaryExpression fetchOffsetKeyExprClone = null;
+        if (fetchOffsetKeyExpr != null)
+            fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
 
         return new ReferenceLookup(nodeId, rowTypeBindClone, extentNumber, expression.CloneToObject(varArrClone),
-            condition.Clone(varArrClone), fetchNumberExprClone, varArrClone, query);
+            condition.Clone(varArrClone), fetchNumberExprClone, fetchOffsetKeyExprClone, varArrClone, query);
     }
 
     public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)

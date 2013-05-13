@@ -79,13 +79,13 @@ namespace Starcounter
         /// Offset in bytes for number of enumerators.
         /// Skips length of the offset.
         /// </summary>
-        public const UInt16 RK_ENUM_NUM_OFFSET = 2;
+        public const UInt16 RK_NODE_NUM_OFFSET = 2;
 
         /// <summary>
         /// Offset in bytes for dynamic data.
         /// Skips number of nodes.
         /// </summary>
-        public const UInt16 RK_FIRST_DYN_DATA_OFFSET = RK_ENUM_NUM_OFFSET + 1;
+        public const UInt16 RK_FIRST_DYN_DATA_OFFSET = RK_NODE_NUM_OFFSET + 1;
 
         /// <summary>
         /// Length of recreation key header in bytes.
