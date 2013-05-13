@@ -168,8 +168,9 @@ namespace Starcounter.Server.Commands {
             this.Errors = errors;
             this.Status = CommandStatus.Failed;
 
-            SignalCompletion();
+            EndAllProgress(true);
             NotifyStatusChanged();
+            SignalCompletion();
         }
 
         /// <summary>
@@ -180,9 +181,8 @@ namespace Starcounter.Server.Commands {
             this.Status = CommandStatus.Completed;
 
             EndAllProgress();
-            SignalCompletion();
-
             NotifyStatusChanged();
+            SignalCompletion();
         }
 
         /// <inheritdoc />
@@ -644,6 +644,8 @@ namespace Starcounter.Server.Commands {
         /// Ends a single progress info.
         /// </summary>
         /// <param name="info">The progress to end.</param>
+        /// <param name="cancel">Indicates if the progress should be considered
+        /// cancelled or not.</param>
         private void EndSingleProgress(ProgressInfo info, bool cancel = false) {
             if (cancel) {
                 info.Cancel();
@@ -662,11 +664,13 @@ namespace Starcounter.Server.Commands {
         /// state/status is published; therefore, don't invoke
         /// notification of any change here.
         /// </remarks>
-        private void EndAllProgress() {
+        /// <param name="cancel">Indicates if any outstanding progress
+        /// should be considered cancelled or not.</param>
+        private void EndAllProgress(bool cancel = false) {
             if (progress != null) {
                 foreach (var p in progress.Values) {
                     if (!p.IsCompleted) {
-                        EndSingleProgress(p);
+                        EndSingleProgress(p, cancel);
                     }
                 }
             }
