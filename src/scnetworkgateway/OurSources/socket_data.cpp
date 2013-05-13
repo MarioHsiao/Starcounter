@@ -50,6 +50,9 @@ void SocketDataChunk::Init(
 
     // Initializing HTTP/WEBSOCKETS data structures.
     http_ws_proto_.Init();
+
+    // Configuring data buffer.
+    ResetAccumBuffer();
 }
 
 // Resetting socket.
@@ -75,8 +78,8 @@ void SocketDataChunk::Reset()
     // Resetting HTTP/WS stuff.
     http_ws_proto_.Reset();
 
-    // Resetting buffer data pointers.
-    accum_buf_.ResetBufferForNewOperation();
+    // Configuring data buffer.
+    ResetAccumBuffer();
 }
 
 // Continues accumulation if needed.
@@ -112,7 +115,7 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
             cur_smc->set_link(extra_chunk_index_);
 
             // Setting new chunk as a new buffer.
-            accum_buf_.Init(bmx::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
+            accum_buf_.Init(MixedCodeConstants::CHUNK_MAX_DATA_BYTES, (uint8_t*)new_smc, false);
         }
         else
         {
@@ -193,10 +196,10 @@ uint32_t SocketDataChunk::CloneToSend(
 
     // Copying chunk data.
     memcpy(new_smc, get_smc(),
-        bmx::BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_BLOB_OFFSET_BYTES + get_accum_buf()->get_accum_len_bytes());
+        MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB + get_accum_buf()->get_accum_len_bytes());
 
     // Socket data inside chunk.
-    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Changing new chunk index.
     (*new_sd)->set_chunk_index(new_chunk_index);
@@ -233,10 +236,10 @@ uint32_t SocketDataChunk::CloneToAnotherDatabase(
 
     // Copying chunk data.
     memcpy(new_smc, get_smc(),
-        bmx::BMX_HEADER_MAX_SIZE_BYTES + SOCKET_DATA_BLOB_OFFSET_BYTES + get_accum_buf()->get_accum_len_bytes());
+        MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB + get_accum_buf()->get_accum_len_bytes());
 
     // Socket data inside chunk.
-    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + bmx::BMX_HEADER_MAX_SIZE_BYTES);
+    (*new_sd) = (SocketDataChunk*)((uint8_t*)new_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Attaching to new database.
     (*new_sd)->AttachToDatabase(new_db_index);
@@ -264,8 +267,8 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     // Looping through all chunks and creating corresponding
     // WSA buffers in the first chunk data blob.
     uint32_t cur_chunk_data_size = bytes_left;
-    if (cur_chunk_data_size > starcounter::bmx::CHUNK_MAX_DATA_BYTES)
-        cur_chunk_data_size = starcounter::bmx::CHUNK_MAX_DATA_BYTES;
+    if (cur_chunk_data_size > starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
+        cur_chunk_data_size = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
     // Getting shared interface pointer.
     core::shared_interface* shared_int = worker_db->get_shared_int();
@@ -304,7 +307,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
         // Decreasing number of bytes left to be processed.
         bytes_left -= head_chunk_num_bytes;
-        if (bytes_left < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
             cur_chunk_data_size = bytes_left;
     }
 
@@ -322,7 +325,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
         // Decreasing number of bytes left to be processed.
         bytes_left -= cur_chunk_data_size;
-        if (bytes_left < starcounter::bmx::CHUNK_MAX_DATA_BYTES)
+        if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
             cur_chunk_data_size = bytes_left;
 
         // Getting next chunk in chain.
@@ -361,7 +364,7 @@ uint32_t SocketDataChunk::ReturnExtraLinkedChunks(GatewayWorker* gw)
     extra_chunk_index_ = INVALID_CHUNK_INDEX;
 
     // Restoring accumulative buffer.
-    accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
+    ResetAccumBuffer();
 
     // Returning all linked chunks back to pool.
     db->ReturnLinkedChunksToPool(num_chunks_ - 1, first_linked_chunk);
@@ -439,6 +442,19 @@ CORRECT_STATISTICS_AND_RELEASE_CHUNK:
 #endif
 
     return false;
+}
+
+// Deletes global session and sends message to database to delete session there.
+uint32_t SocketDataChunk::SendDeleteSession(GatewayWorker* gw)
+{
+    // Verifying that session is correct and sending delete session to database.
+    if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
+    {
+        ScSessionStruct s = g_gateway.GetGlobalSessionCopy(sock_);
+        return (gw->GetWorkerDb(db_index_)->PushSessionDestroy(s.linear_index_, s.random_salt_, s.scheduler_id_));
+    }
+
+    return 0;
 }
 
 #ifdef GW_LOOPED_TEST_MODE

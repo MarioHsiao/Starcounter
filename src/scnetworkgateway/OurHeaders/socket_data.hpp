@@ -56,9 +56,9 @@ class SocketDataChunk
     // 4 bytes aligned data.
     /////////////////////////
 
-    // Offset in bytes from the beginning of the chunk to place
+    // Offset in bytes from the beginning of the socket data to place
     // where user data should be written.
-    uint32_t user_data_offset_;
+    uint32_t user_data_offset_in_socket_data_;
 
     // Maximum bytes that user code can write to this chunk.
     uint32_t max_user_data_bytes_;
@@ -131,6 +131,9 @@ public:
         GW_ASSERT(8 == sizeof(BMX_HANDLER_TYPE));
         GW_ASSERT(4 == sizeof(core::chunk_index));
 
+        GW_ASSERT(MixedCodeConstants::SHM_CHUNK_SIZE == starcounter::core::chunk_size);
+        GW_ASSERT(MixedCodeConstants::CHUNK_LINK_SIZE == shared_memory_chunk::link_size);
+
         GW_ASSERT((&session_.scheduler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_SCHEDULER_ID);
         GW_ASSERT(((uint8_t*)&session_.linear_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_LINEAR_INDEX);
         GW_ASSERT(((uint8_t*)&session_.random_salt_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
@@ -142,17 +145,19 @@ public:
 
         GW_ASSERT((accept_data_or_params_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
 
-        GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_BLOB_OFFSET_BYTES);
+        GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_OFFSET_BLOB);
 
         GW_ASSERT(((uint8_t*)&flags_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS);
 
         GW_ASSERT(((uint8_t*)http_ws_proto_.get_http_request() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_HTTP_REQUEST);
 
-        GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == bmx::SOCKET_DATA_NUM_CLONE_BYTES);
+        GW_ASSERT((&http_ws_proto_.get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+
+        GW_ASSERT(((uint8_t*)(&accum_buf_) - sd) == MixedCodeConstants::SOCKET_DATA_NUM_CLONE_BYTES);
 
         GW_ASSERT(((uint8_t*)&num_chunks_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_NUM_CHUNKS);
 
-        GW_ASSERT(((uint8_t*)&user_data_offset_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA);
+        GW_ASSERT(((uint8_t*)&user_data_offset_in_socket_data_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
         GW_ASSERT(((uint8_t*)&max_user_data_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_MAX_USER_DATA_BYTES);
 
@@ -187,7 +192,41 @@ public:
     {
         return g_gateway.CompareUniqueSocketId(sock_, unique_socket_id_);
     }
+
+    // Sets session if socket is correct.
+    void SetGlobalSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId() && (!g_gateway.IsGlobalSessionActive(sock_)))
+            g_gateway.SetGlobalSessionCopy(sock_, session_);
+    }
+
+    // Sets session if socket is correct.
+    void SetSdSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if ((!session_.IsActive()) && CompareUniqueSocketId() && (g_gateway.IsGlobalSessionActive(sock_)))
+            session_ = g_gateway.GetGlobalSessionCopy(sock_);
+    }
+
+    // Deletes global session.
+    void DeleteGlobalSession()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
+            g_gateway.DeleteGlobalSession(sock_);
+    }
+
+    // Checks if global session data is active.
+    bool CompareGlobalSessionSalt()
+    {
+        return g_gateway.CompareGlobalSessionSalt(sock_, session_.random_salt_);
+    }
+
 #endif
+
+    // Deletes global session and sends message to database to delete session there.
+    uint32_t SendDeleteSession(GatewayWorker* gw);
 
     // Clone current socket data to another database.
     uint32_t CloneToAnotherDatabase(
@@ -498,7 +537,7 @@ public:
     // Returns SMC representing this chunk.
     shared_memory_chunk* get_smc()
     {
-        return (shared_memory_chunk*)((uint8_t*)this - bmx::BMX_HEADER_MAX_SIZE_BYTES);
+        return (shared_memory_chunk*)((uint8_t*)this - MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
     }
 
     // Set new chunk index.
@@ -517,12 +556,6 @@ public:
     uint8_t* get_data_blob()
     {
         return data_blob_;
-    }
-
-    // Gets chunk data beginning.
-    uint8_t* get_chunk_start()
-    {
-        return (uint8_t*)(this) - bmx::BMX_HEADER_MAX_SIZE_BYTES;
     }
 
     // Returns number of used chunks.
@@ -586,16 +619,16 @@ public:
 
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
-    void set_user_data_offset(uint32_t user_data_offset)
+    void set_user_data_offset_in_socket_data(uint32_t user_data_offset_in_socket_data)
     {
-        user_data_offset_ = user_data_offset;
+        user_data_offset_in_socket_data_ = user_data_offset_in_socket_data;
     }
 
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
-    uint32_t get_user_data_offset()
+    uint32_t get_user_data_offset_in_socket_data()
     {
-        return user_data_offset_;
+        return user_data_offset_in_socket_data_;
     }
 
     // Setting maximum user data size.
@@ -620,6 +653,21 @@ public:
     AccumBuffer* get_accum_buf()
     {
         return &accum_buf_;
+    }
+
+    // Initializes accumulated data buffer based on chunk data.
+    void InitAccumBufferFromUserData()
+    {
+        accum_buf_.Init(
+            user_data_written_bytes_,
+            (uint8_t*)this + user_data_offset_in_socket_data_,
+            true);
+    }
+
+    // Resets accumulating buffer to its default socket data values.
+    void ResetAccumBuffer()
+    {
+        accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
     }
 
     // Index into databases array.
@@ -689,13 +737,13 @@ public:
     // Returns pointer to the beginning of user data.
     uint8_t* UserDataBuffer()
     {
-        return ((uint8_t *)this) + user_data_offset_;
+        return (uint8_t*)this + user_data_offset_in_socket_data_;
     }
 
     // Resets user data offset.
     void ResetUserDataOffset()
     {
-        user_data_offset_ = data_blob_ - ((uint8_t *)this);
+        user_data_offset_in_socket_data_ = data_blob_ - (uint8_t*)this;
     }
 
     // Resets max user data buffer.

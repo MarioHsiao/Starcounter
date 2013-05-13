@@ -416,69 +416,65 @@ internal class ExtentNode : IOptimizationNode
         return EXTENT_SCAN_COST;
     }
 
-    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
-    {
-        if (hintedIndexInfo != null)
-        {
-            return CreateIndexScan(hintedIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
+        Boolean topNode, ref Byte nodeId) {
+        if (hintedIndexInfo != null) {
+            return CreateIndexScan(nodeId++, hintedIndexInfo, SortOrder.Ascending,
+                fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
 
-        if (sortIndexInfo != null)
-        {
-            return CreateIndexScan(sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+        if (sortIndexInfo != null) {
+            return CreateIndexScan(nodeId++, sortIndexInfo.IndexInfo, sortIndexInfo.SortOrdering,
+                fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
 
-        if (refLookUpExpression != null)
-        {
-            return new ReferenceLookup(rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, variableArr, query);
+        if (refLookUpExpression != null) {
+            return new ReferenceLookup(nodeId++, rowTypeBind, extentNumber, refLookUpExpression, GetCondition(), fetchNumExpr, fetchOffsetKeyExpr, variableArr, query);
         }
 
         if (identityExpression != null)
-            return new ObjectIdenittyAccess(rowTypeBind, extentNumber, identityExpression, GetCondition(), 
-                fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, variableArr, query);
+            return new ObjectIdentityLookup(nodeId++, rowTypeBind, extentNumber, identityExpression, GetCondition(),
+                fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, variableArr, query, topNode);
 
-        if (bestIndexInfo != null)
-        {
-            return CreateIndexScan(bestIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+        if (bestIndexInfo != null) {
+            return CreateIndexScan(nodeId++, bestIndexInfo, SortOrder.Ascending,
+                fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
 
-        if (extentIndexInfo != null)
-        {
-            if (conditionList.Count > 0 && canCodeGen)
-            {
+        if (extentIndexInfo != null) {
+            if (conditionList.Count > 0 && canCodeGen) {
                 // Trying to create a scan which uses native filter code generation.
-                try
-                {
-                    IExecutionEnumerator exec_enum = new FullTableScan(rowTypeBind,
+                try {
+                    IExecutionEnumerator exec_enum = new FullTableScan(nodeId, rowTypeBind,
                         extentNumber,
                         extentIndexInfo,
                         GetCondition(),
                         SortOrder.Ascending,
-                        fetchNumExpr, 
+                        fetchNumExpr,
                         fetchOffsetExpr,
                         fetchOffsetKeyExpr,
-                        InnermostExtent, 
-                        null, variableArr, query);
+                        InnermostExtent,
+                        null, variableArr, query, topNode);
 
-                    if (exec_enum != null)
-                    {
+                    if (exec_enum != null) {
+                        nodeId++;
                         return exec_enum;  // Returning result only on successful execution
                     }
-                }
-                catch
-                {
+                } catch {
                     //Console.WriteLine("Filter code generation for the query \"" + query + "\" has failed. Launching managed-level full table scan...");
                 }
             }
 
             // Proceeding with the worst case: full table scan on managed code level.
-            return CreateIndexScan(extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+            return CreateIndexScan(nodeId++, extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
         ITypeBinding typeBind = rowTypeBind.GetTypeBinding(extentNumber);
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "There is no index for type: " + typeBind.Name);
     }
 
-    private IExecutionEnumerator CreateIndexScan(IndexInfo indexInfo, SortOrder sortOrdering, INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
+    private IExecutionEnumerator CreateIndexScan(byte nodeId, IndexInfo indexInfo, SortOrder sortOrdering, 
+        INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
+        Boolean topNode)
     {
         List<String> strPathList = new List<String>();
         String strPath = null;
@@ -545,7 +541,7 @@ internal class ExtentNode : IOptimizationNode
         }
 
         // Creating index scan enumerator.
-        return new IndexScan(rowTypeBind,
+        return new IndexScan(nodeId, rowTypeBind,
                              extentNumber,
                              indexInfo,
                              strPathList,
@@ -553,13 +549,14 @@ internal class ExtentNode : IOptimizationNode
                              sortOrdering, 
                              fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, 
                              InnermostExtent, 
-                             variableArr, query);
+                             variableArr, query, topNode);
     }
 
-    private IExecutionEnumerator CreateFullTableScan(IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IIntegerExpression fetchOffsetExpr, 
+#if false // not used anywhere, not maintained
+    private IExecutionEnumerator CreateFullTableScan(byte nodeId, IndexInfo indexInfo, IIntegerExpression fetchNumExpr, IIntegerExpression fetchOffsetExpr, 
         IBinaryExpression fetchOffsetKeyExpr)
     {
-        return new FullTableScan(rowTypeBind,
+        return new FullTableScan(nodeId, rowTypeBind,
                                  extentNumber,
                                  indexInfo,
                                  GetCondition(),
@@ -570,6 +567,7 @@ internal class ExtentNode : IOptimizationNode
                                  InnermostExtent, 
                                  null, variableArr, query);
     }
+#endif
 
     internal IndexInfo GetIndexInfo(String indexName)
     {

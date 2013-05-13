@@ -258,9 +258,9 @@ namespace Starcounter.Advanced {
         {
             unsafe { return (http_request_struct_ == null) && (session_ == null); }
         }
-
+        
         /// <summary>
-        /// Called when GC destroys this object.
+        /// Releases resources.
         /// </summary>
         ~Request()
         {
@@ -692,20 +692,6 @@ namespace Starcounter.Advanced {
             }
         }
 
-        // New session creation indicator.
-        Boolean newSession_ = false;
-
-        /// <summary>
-        /// Indicates if new session was created.
-        /// </summary>
-        public Boolean HasNewSession 
-        {
-            get 
-            {
-                return newSession_;
-            }
-        }
-
         /// <summary>
         /// Generates session number and writes it to response.
         /// </summary>
@@ -713,9 +699,6 @@ namespace Starcounter.Advanced {
         {
             unsafe
             {
-                // Indicating that new session was created.
-                newSession_ = true;
-
                 // Simply generating new session.
                 return GlobalSessions.AllGlobalSessions.CreateNewSession(
                     session_->scheduler_id_,
@@ -731,19 +714,35 @@ namespace Starcounter.Advanced {
         /// </summary>
         public void UpdateSessionDetails()
         {
+            // Don't do anything on internal requests.
             if (is_internal_request_)
                 return;
 
             unsafe
             {
+                // Fetching session information.
                 ScSessionClass s = GlobalSessions.AllGlobalSessions.GetSessionClass(
                     session_->scheduler_id_,
                     session_->linear_index_,
                     session_->random_salt_);
 
-                s.socket_num_ = *(UInt64*) (http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_NUMBER);
-                s.socket_unique_id_ = *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
-                s.port_index_ = *(Int32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PORT_INDEX);
+                // Checking that session exists.
+                if (null != s)
+                {
+                    s.socket_num_ = *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_NUMBER);
+                    s.socket_unique_id_ = *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
+                    s.port_index_ = *(Int32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PORT_INDEX);
+
+                    switch (protocol_type_)
+                    {
+                        case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                            break;
+
+                        case MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS:
+                            s.ws_opcode_ = *(Byte*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE);
+                            break;
+                    }
+                }
             }
         }
 
@@ -768,9 +767,6 @@ namespace Starcounter.Advanced {
 
             unsafe 
             {
-                // Indicating that session was destroyed.
-                newSession_ = false;
-
                 // Simply generating new session.
                 err_code = GlobalSessions.AllGlobalSessions.DestroySession(
                     session_->scheduler_id_,
