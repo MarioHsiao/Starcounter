@@ -1,11 +1,11 @@
 ﻿using System;
 using Mono.CSharp;
-using Starcounter.CompilerService.Roslyn;
 using Starcounter.Internal;
 using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Compiler.Roslyn;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.CompilerService.Mono {
+namespace Starcounter.XSON.Compiler.Mono {
     public class MonoCSharpCompiler {
         private RoslynCSharpCompiler roslynCompiler;
         private CompilerSettings settings;

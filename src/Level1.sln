@@ -299,9 +299,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server.Rest", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HttpParser32", "HTTP\HttpParser\HttpParser32.vcxproj", "{D68C4E4A-AA5A-4592-9DB0-D2D95649AACF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.CompilerService.Mono", "Starcounter.CompilerService.Mono\Starcounter.CompilerService.Mono.csproj", "{C5BCB67D-DF0D-457C-8B05-68556FBC9DDA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.Compiler.Mono", "Starcounter.XSON.Compiler.Mono\Starcounter.XSON.Compiler.Mono.csproj", "{C5BCB67D-DF0D-457C-8B05-68556FBC9DDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.CompilerService.Roslyn", "Starcounter.CompilerService.Roslyn\Starcounter.CompilerService.Roslyn.csproj", "{01382BC3-096B-466F-A115-6AE04766DA3D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.Compiler.Roslyn", "Starcounter.XSON.Compiler.Roslyn\Starcounter.XSON.Compiler.Roslyn.csproj", "{01382BC3-096B-466F-A115-6AE04766DA3D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.Interfaces", "Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj", "{710365C1-63CC-4C65-B3D1-FF1BE8E1D276}"
 EndProject
