@@ -38,7 +38,7 @@ namespace Starcounter.Bootstrap.Management {
                 userArgs[i] = exe.Arguments[i].dummy;
             }
 
-            Loader.ExecApp(schedulerHandle, exe.Path, null, null, userArgs);
+            Loader.ExecApp(schedulerHandle, exe.Path, null, null, userArgs, !exe.RunEntrypointAsynchronous);
             return 204;
         }
     }
