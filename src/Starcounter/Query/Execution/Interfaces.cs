@@ -1031,9 +1031,6 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     // Initializes all query variables from given buffer.
     unsafe void InitVariablesFromBuffer(Byte * queryParamsBuf);
 
-    // Does the continuous object ETIs and IDs fill up into the dedicated buffer.
-    unsafe UInt32 FillupFoundObjectIDs(Byte * results, UInt32 resultsMaxBytes, UInt32 * resultsNum, UInt32 * flags);
-
     // Populates needed query flags, such as if it includes sorting, fetch statement, projection, etc.
     unsafe void PopulateQueryFlags(UInt32 * flags);
 
