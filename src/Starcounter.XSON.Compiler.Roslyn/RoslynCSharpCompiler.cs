@@ -2,15 +2,30 @@
 using Starcounter.XSON.Metadata;
 
 namespace Starcounter.XSON.Compiler.Roslyn {
+    /// <summary>
+    /// 
+    /// </summary>
     public class RoslynCSharpCompiler {
         //public object Compile(string code) {
         //    return Compile(code, new string[0]);
         //}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="className"></param>
+        /// <param name="codeBehindFile"></param>
+        /// <returns></returns>
         public CodeBehindMetadata AnalyzeCodeBehind(string className, string codeBehindFile) {
             return CodeBehindAnalyzer.Analyze(className, codeBehindFile);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
         public object GenerateJsonSerializer(string code, string typeName) {
             throw new NotImplementedException();
 

@@ -62,6 +62,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         /// 
         /// </summary>
         /// <param name="classDecl"></param>
+        /// <param name="jsonInstanceName"></param>
         /// <param name="genericArgument"></param>
         /// <returns></returns>
         private static bool IsBoundToEntity(ClassDeclarationSyntax classDecl, string jsonInstanceName, out string genericArgument) {
@@ -210,6 +211,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         /// </summary>
         /// <param name="className">Name of the class.</param>
         /// <param name="node">The node.</param>
+        /// <param name="jsonInstanceName"></param>
         /// <param name="list">The list.</param>
         private static void FillListWithJsonMapInfo(String className, SyntaxNode node, string jsonInstanceName, List<JsonMapInfo> list) {
             AttributeSyntax attribute;
@@ -228,11 +230,11 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         }
 
         /// <summary>
-        /// Creates a JsonMapInfo object with values taken from the specified
-        /// attributenode.
+        /// 
         /// </summary>
-        /// <param name="attributeNode">The attribute node.</param>
-        /// <returns>JsonMapInfo.</returns>
+        /// <param name="attributeNode"></param>
+        /// <param name="jsonInstanceName"></param>
+        /// <returns></returns>
         private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode, string jsonInstanceName) {
             bool autoBindToDataObject;
             ClassDeclarationSyntax classDecl;
