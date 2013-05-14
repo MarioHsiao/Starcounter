@@ -49,7 +49,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     UInt64 keyOID, keyETI; // Saved OID, ETI from recreation key.
     Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.
     Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
-    Boolean usedNativeFillUp = false; // Indicating that native fill up functionality was used.
 
     Boolean stayAtOffsetkey = false;
     public Boolean StayAtOffsetkey { get { return stayAtOffsetkey; } set { stayAtOffsetkey = value; } }
@@ -598,8 +597,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// <summary>
     /// Used to populate the recreation key.
     /// </summary>
-    public unsafe UInt16 SaveEnumerator(Byte* keyData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
-    {
+    public unsafe UInt16 SaveEnumerator(Byte* keyData, UInt16 globalOffset, Boolean saveDynamicDataOnly) {
         // Immediately preventing further accesses to current object.
         currentObject = null;
 
@@ -614,8 +612,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         UInt16 enumGlobalOffset = (ushort)((nodeId << 2) + IteratorHelper.RK_HEADER_LEN);
 
         // Writing static data.
-        if (!saveDynamicDataOnly)
-        {
+        if (!saveDynamicDataOnly) {
             // In order to exclude double copy of last key.
             //dataStreamChanged = false;
 
@@ -631,11 +628,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
             // Saving absolute position of the first dynamic data.
             (*(UInt16*)(keyData + IteratorHelper.RK_FIRST_DYN_DATA_OFFSET)) = globalOffset;
-        }
-        else // Writing dynamic data.
-        {
+        } else {
+            // Writing dynamic data.
+
             // Points to dynamic data offset.
-            UInt16 *dynDataOffset = (UInt16*)(keyData + enumGlobalOffset + 2);
+            UInt16* dynDataOffset = (UInt16*)(keyData + enumGlobalOffset + 2);
 
             // Emptying dynamic data position for this enumerator.
             (*dynDataOffset) = 0;
@@ -644,34 +641,16 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             Byte* createdKey = null;
             UInt32 err = 0;
 
-            // Checking if we are in inner-most extent.
-            if (usedNativeFillUp)
-            {
-                // Getting next position of the iterator.
-                err = sccoredb.sc_get_recreate_key_and_free_iterator(
-                    enumerator.CursorHandle,
-                    enumerator.CursorVerify,
-                    0,
+            // TODO/Entity:
+            IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
+            if (dbObject != null) {
+                // Getting current position of the object in iterator.
+                err = sccoredb.sc_get_index_position_key(
+                    indexInfo.Handle,
+                    dbObject.Identity,
+                    dbObject.ThisHandle,
                     &createdKey
                     );
-
-                // Disposing iterator on error.
-                if (err != 0)
-                    enumerator.Dispose();
-            }
-            else
-            {
-                // TODO/Entity:
-                IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
-                if (dbObject != null)
-                {
-                    // Getting current position of the object in iterator.
-                    err = sccoredb.sc_get_index_position_key(
-                        indexInfo.Handle,
-                        dbObject.Identity,
-                        dbObject.ThisHandle,
-                        &createdKey
-                        );
 
 #if false
                     // Placing local time of the iterator into recreation key.
@@ -680,11 +659,10 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                     // Saving local time of the iterator.
                     (*(UInt32*)(createdKey + (*(UInt32*)createdKey) - 4)) = itLocalTime;
 #endif
-                }
-
-                // Disposing iterator.
-                enumerator.Dispose();
             }
+
+            // Disposing iterator.
+            enumerator.Dispose();
 
             // Checking the error.
             if (err != 0)
@@ -750,7 +728,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
         currentObject = null;
         contextObject = obj;
-        usedNativeFillUp = false;
 
         counter = 0;
         privateFilter.ResetCached(); // Reseting private filters.
@@ -805,34 +782,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }
-
-#if false
-    // Does the continuous object ETIs and IDs fill up into the dedicated buffer.
-    public override unsafe UInt32 FillupFoundObjectIDs(Byte* results, UInt32 resultsMaxBytes, UInt32* resultsNum, UInt32* flags)
-    {
-        // Calling enumerator creation code (ranges, flags, etc.).
-        if (!enumeratorCreated)
-        {
-            // Failure to create enumerator can only be caused
-            // by being in last position in the index tree.
-            if (!CreateEnumerator())
-            {
-                (*(UInt32*)results) = 8;
-                *resultsNum = 0;
-                return 0;
-            }
-        }
-
-        // Just setting current object to null, to be sure that its not accessed.
-        currentObject = null;
-
-        // Indicating that native fill up functionality was used.
-        usedNativeFillUp = true;
-
-        // Just calling the underlying enumerator for function implementation.
-        return enumerator.NativeFillupFoundObjectIDs(results, resultsMaxBytes, resultsNum, flags);
-    }
-#endif
 
     /// <summary>
     /// Generates compilable code representation of this data structure.
