@@ -10,6 +10,7 @@ using Starcounter.Templates;
 using Starcounter.Advanced;
 using HttpStructs;
 using Starcounter.Internal;
+using System.Text;
 
 namespace Starcounter {
     /// <summary>
@@ -116,6 +117,15 @@ namespace Starcounter {
                 return null;
 
             return dataLocationUri + SessionIdString;
+        }
+
+        /// <summary>
+        /// Pushes data on existing session.
+        /// </summary>
+        /// <param name="data"></param>
+        public void Push(String data)
+        {
+            Push(Encoding.UTF8.GetBytes(data));
         }
 
         /// <summary>

@@ -440,22 +440,20 @@ namespace NetworkIoTestApp
 
                     }, null, interval, interval);
 
+                    // Registering WebSocket handler.
                     Handle.GET("/ws", (Request req, Session session) =>
                     {
-                        if (session != null)
+                        Byte schedId = ThreadData.Current.Scheduler.Id;
+
+                        // Adding session if its not yet added.
+                        if (!WebSocketSessions[schedId].Contains(session))
                         {
-                            Byte schedId = ThreadData.Current.Scheduler.Id;
+                            Console.WriteLine("Add new session: " + session.SessionIdString);
 
-                            // Adding session if its not yet added.
-                            if (!WebSocketSessions[schedId].Contains(session))
-                            {
-                                Console.WriteLine("Add new session: " + session.SessionIdString);
-
-                                WebSocketSessions[schedId].Add(session);
-                            }
-
-                            session.Push(req.GetBodyByteArray_Slow());
+                            WebSocketSessions[schedId].Add(session);
                         }
+
+                        session.Push(req.GetBodyByteArray_Slow());
 
                         String body = req.GetRequestStringUtf8_Slow();
                         Console.WriteLine(body);
