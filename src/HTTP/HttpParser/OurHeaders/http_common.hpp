@@ -86,7 +86,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case CONTENT_LENGTH_HEADER_VALUE_8BYTES:
         {
-            if (*(int64_t*)(at + 8) == *(int64_t*)"Length: ")
+            if (*(int64_t*)(at + 6) == *(int64_t*)"t-Length")
                 return CONTENT_LENGTH_FIELD; // Content-Length
 
             break;
