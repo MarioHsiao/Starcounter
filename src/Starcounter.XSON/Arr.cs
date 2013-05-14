@@ -68,6 +68,25 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="item"></param>
+        public void Add(T item) {
+            base.Add(item);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
+        public override void Add(Obj item) {
+            var t = ((TObjArr)Template).App.GetType();
+            if (!t.Equals(item.Template.GetType()))
+                throw new Exception("Cannot add item. Invalid type for this array.");
+            base.Add(item);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public T Add(IBindable data) {
@@ -298,7 +317,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="item"></param>
-        public void Add(Obj item) {
+        public virtual void Add(Obj item) {
             Int32 index;
 
 #if QUICKTUPLE
