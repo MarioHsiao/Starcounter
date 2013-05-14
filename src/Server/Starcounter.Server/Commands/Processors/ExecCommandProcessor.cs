@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="ExecAppCommandProcessor.cs" company="Starcounter AB">
+// <copyright file="ExecCommandProcessor.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -94,9 +94,6 @@ namespace Starcounter.Server.Commands {
                 }
             });
 
-            var client = this.Engine.DatabaseHostService.GetHostingInterface(database);
-            OnHostingInterfaceConnected();
-
             WithinTask(Task.Run, (task) => {
                 try {
 
@@ -110,6 +107,7 @@ namespace Starcounter.Server.Commands {
                             exe.Arguments.Add().dummy = arg;
                         }
                     }
+                    exe.RunEntrypointAsynchronous = command.RunEntrypointAsynchronous;
 
                     var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
                     response.FailIfNotSuccess();
