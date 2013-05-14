@@ -37,19 +37,22 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arr.cs" />
     <Compile Include="ChangeLog.cs" />
+    <Compile Include="CodeBehindMetaData\CodeBehindMetadata.cs" />
+    <Compile Include="CodeBehindMetaData\InputBindingInfo.cs" />
+    <Compile Include="CodeBehindMetaData\JsonMapInfo.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="DataBindingFactory.cs" />
     <Compile Include="DynamicJson.cs" />
+    <Compile Include="ITypedJsonFactory.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
     <Compile Include="JSON\JSON.cs" />
@@ -107,6 +110,10 @@
     <ProjectReference Include="..\Starcounter.Logging\Starcounter.Logging.csproj">
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
+      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
+      <Name>Starcounter.XSON.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
       <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
