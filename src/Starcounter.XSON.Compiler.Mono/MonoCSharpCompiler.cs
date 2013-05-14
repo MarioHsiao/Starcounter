@@ -6,12 +6,18 @@ using Starcounter.XSON.Compiler.Roslyn;
 using Starcounter.XSON.Metadata;
 
 namespace Starcounter.XSON.Compiler.Mono {
+    /// <summary>
+    /// 
+    /// </summary>
     public class MonoCSharpCompiler {
         private RoslynCSharpCompiler roslynCompiler;
         private CompilerSettings settings;
         private CompilerContext context;
 //        private Evaluator evaluator;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public MonoCSharpCompiler() {
             roslynCompiler = new RoslynCSharpCompiler();
             settings = new CompilerSettings() {
@@ -53,6 +59,12 @@ namespace Starcounter.XSON.Compiler.Mono {
         //    return o;
         //}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
         public TypedJsonSerializer GenerateJsonSerializer(string code, string typeName) {
             settings.AssemblyReferences.Clear();
             settings.AssemblyReferences.Add("Starcounter.Internal.dll");
@@ -67,6 +79,12 @@ namespace Starcounter.XSON.Compiler.Mono {
             return (TypedJsonSerializer)eval.Evaluate("new " + typeName + "();");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="className"></param>
+        /// <param name="codeBehindFile"></param>
+        /// <returns></returns>
         public CodeBehindMetadata AnalyzeCodeBehind(string className, string codeBehindFile) {
             return roslynCompiler.AnalyzeCodeBehind(className, codeBehindFile);
         }
