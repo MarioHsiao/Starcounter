@@ -10,6 +10,7 @@ using Starcounter.Templates;
 using Starcounter.Advanced;
 using HttpStructs;
 using Starcounter.Internal;
+using System.Text;
 
 namespace Starcounter {
     /// <summary>
@@ -122,8 +123,21 @@ namespace Starcounter {
         /// Pushes data on existing session.
         /// </summary>
         /// <param name="data"></param>
+        public void Push(String data)
+        {
+            Push(Encoding.UTF8.GetBytes(data));
+        }
+
+        /// <summary>
+        /// Pushes data on existing session.
+        /// </summary>
+        /// <param name="data"></param>
         public void Push(Byte[] data)
         {
+            // TODO
+            if (data.Length > 3000)
+                throw new ArgumentException("Current WebSockets implementation supports messages only up to 3000 bytes.");
+
             Request req = GatewayHandlers.GenerateNewRequest(
                 InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS);
 
