@@ -1209,16 +1209,6 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// </summary>
-        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 get_recreate_key_and_free_filter_iterator(
-            UInt64 h,
-            UInt64 v,
-            UInt32 flags,
-            Byte** precreate_key
-            );
-
-        /// <summary>
         /// Sc_get_index_position_keys the specified index_addr.
         /// </summary>
         /// <param name="index_addr">The index_addr.</param>

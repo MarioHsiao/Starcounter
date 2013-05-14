@@ -659,6 +659,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             // Checking if we are in inner-most extent.
             if (usedNativeFillUp)
             {
+#if false
                 // Getting next position of the iterator.
                 err = sccoredb.get_recreate_key_and_free_filter_iterator(
                     enumerator.CursorHandle,
@@ -670,6 +671,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 // Disposing iterator on error.
                 if (err != 0)
                     enumerator.Dispose();
+#endif
+
+                // Not supported for filter iterator.
+                enumerator.Dispose();
+                throw new NotSupportedException();
             }
             else
             {
