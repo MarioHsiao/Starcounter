@@ -18,7 +18,8 @@ namespace Starcounter.Templates {
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
         private TypedJsonSerializer jsonSerializer;
-        private bool shouldUseCodegeneratedSerializer = true;
+//        private bool shouldUseCodegeneratedSerializer = true;
+        private bool shouldUseCodegeneratedSerializer = false; // disabled the codegenerated serializer per default until bug is fixed.
 
         /// <summary>
         /// 
