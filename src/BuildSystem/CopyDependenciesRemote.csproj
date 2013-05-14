@@ -41,6 +41,7 @@
       <RemoteMinGW64Binaries Include="$(BinariesFTP)\SCDev\ThirdParty\MinGW_x64\**\*" />
       <RemoteParserToolsBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\ParserTools\**\*" />
       <RemoteCRTBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\x64\$(Configuration)\*" />
+      <RemoteMixedRootExecutables Include="$(BinariesFTP)\SCDev\ThirdParty\*.exe" />
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
@@ -51,6 +52,7 @@
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteMinGW64Binaries)" DestinationFiles="@(RemoteMinGW64Binaries->'$(OutputPath)\MinGW\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteParserToolsBinaries)" DestinationFiles="@(RemoteParserToolsBinaries->'..\packages\ParserTools\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRTBinaries)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteMixedRootExecutables)" DestinationFolder="$(OutputPath)" />
 
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

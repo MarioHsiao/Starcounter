@@ -148,9 +148,11 @@ namespace Starcounter.Server {
                 eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset, eventName);
 
                 var startInfo = GetDatabaseStartInfo(database);
-                var process = DoStartEngineProcess(startInfo, database);
 
-                var done = eventHandle.WaitOne(10 * 1000);
+                var timeout = 10 * 1000;
+                var process = Process.Start(startInfo);
+
+                var done = eventHandle.WaitOne(timeout);
                 if (!done) {
                     // We really never expect the database to take this kind of
                     // time, but lets have a timeout here to assure we never lock

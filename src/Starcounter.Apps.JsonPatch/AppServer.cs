@@ -216,6 +216,10 @@ namespace Starcounter.Internal.Web {
                             else if (result is String)
                                 byte_result = Encoding.UTF8.GetBytes((String)result);
 
+                            // TODO
+                            if (byte_result.Length > 3000)
+                                throw new ArgumentException("Current WebSockets implementation supports messages only up to 3000 bytes.");
+
                             // Creating a standard Response from result.
                             return new Response() { Uncompressed = byte_result };
                         }
