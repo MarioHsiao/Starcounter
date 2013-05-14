@@ -261,11 +261,9 @@ namespace Starcounter.Server {
             // The process is alive; we should tell it to shut down and
             // release the reference.
 
-            var node = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
-            node.InternalSetLocalNodeForUnitTests(false);
             var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-            
-            var response = node.DELETE(serviceUris.Host, null, null, null); 
+
+            var response = Node.LocalhostSystemPortNode.DELETE(serviceUris.Host, null, null, null); 
             if (!response.IsSuccessStatusCode) {
                 // If the host actively refused to shut down, we never try to
                 // kill it by force. Instead, we raise an exception that will later

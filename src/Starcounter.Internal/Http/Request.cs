@@ -236,8 +236,9 @@ namespace Starcounter.Advanced {
                 if (is_internal_request_)
                 {
                     // Releasing internal resources here.
+                    // NOTE: Socket_data_ points to complete memory including http_request_struct_,
+                    // so freeing it frees everything.
                     BitsAndBytes.Free((IntPtr)http_request_struct_->socket_data_);
-                    http_request_struct_->socket_data_ = null;
                 }
                 else
                 {
