@@ -13,7 +13,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         internal override string DebugString {
             get {
                 if (ShouldVerify)
-                    return "Verify(" + VerifyOffset + ", " + VerifyCount + ")";
+                    return "Verify(" + VerifyStart + ", " + VerifyEnd + ", count: " + VerifyCount + ")";
                 return "<NoVerificationNeeded>";
             }
         }
@@ -26,7 +26,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }
         }
 
-        private int VerifyOffset {
+        private int VerifyStart {
             get {
                 if (ParseNode.Parent.Parent == null) {
                     // This is the toplevel. We are in no switch and cannot skip any characters for verifying.
@@ -37,17 +37,15 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }
         }
 
+        private int VerifyEnd {
+            get {
+                return ParseNode.MatchCharInTemplateAbsolute; 
+            }
+        }
+
         private int VerifyCount {
             get {
-                if (ParseNode.DetectedType == NodeType.Heureka) {
-                    // Verify the last bit of the property. We want the last 
-                    // character as well (the one that is switched in other cases).
-                    return ParseNode.MatchCharInTemplateAbsolute - VerifyOffset; 
-                }
-
-                // Not in the end. We skip the last character since we will be switching
-                // on that in the next step.
-                return (ParseNode.MatchCharInTemplateAbsolute - 1) - VerifyOffset; 
+                return VerifyEnd - VerifyStart;
             }
         }
 
@@ -65,7 +63,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             if (!ShouldVerify)
                 return;
 
-            verifyOffset = VerifyOffset;
+            verifyOffset = VerifyStart;
             numberToVerify = VerifyCount;
 
             if (numberToVerify > 0) {
@@ -108,8 +106,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     Prefix.Add("pver++;");
                 }
 
-                Prefix.Add("leftBufferSize--;");
-                Prefix.Add("pBuffer++;");
+                //Prefix.Add("leftBufferSize--;");
+                //Prefix.Add("pBuffer++;");
             }
         }
 

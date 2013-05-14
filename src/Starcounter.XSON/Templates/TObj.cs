@@ -18,8 +18,7 @@ namespace Starcounter.Templates {
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
         private TypedJsonSerializer jsonSerializer;
-//        private bool shouldUseCodegeneratedSerializer = true;
-        private bool shouldUseCodegeneratedSerializer = false; // disabled the codegenerated serializer per default until bug is fixed.
+        private bool shouldUseCodegeneratedSerializer = true;
 
         /// <summary>
         /// 
@@ -35,7 +34,19 @@ namespace Starcounter.Templates {
         /// 
         /// </summary>
         public bool UseCodegeneratedSerializer {
-            get { return (shouldUseCodegeneratedSerializer && Obj.Factory != null); }
+            get {
+                TContainer parent;
+                if (Obj.Factory == null)
+                    return false;
+
+                parent = Parent;
+                while (parent != null) {
+                    if (parent is TObj)
+                        return ((TObj)parent).UseCodegeneratedSerializer;
+                    parent = parent.Parent;
+                }
+                return shouldUseCodegeneratedSerializer;
+            }
             set { shouldUseCodegeneratedSerializer = value; }
         }
 
