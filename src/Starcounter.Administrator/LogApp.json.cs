@@ -47,7 +47,7 @@ namespace Starcounter.Administrator {
                 if (++i > limit) break;
 
                 LogEntries.Add(
-                    new LogEntryApp() {
+                    new LogEntriesApp() {
                         DateTimeStr = le.DateTime.ToString(),
                         TypeStr = le.Severity.ToString(),
                         HostName = le.HostName,
