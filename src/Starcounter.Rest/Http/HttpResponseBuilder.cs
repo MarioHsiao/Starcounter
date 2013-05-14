@@ -306,13 +306,54 @@ namespace Starcounter.Internal.Web
         return Encoding.UTF8.GetBytes(headers);
     }
        
+    /// <summary>
+    /// Determines the content type based on Accept header in Request.
+    /// </summary>
+    /// <param name="req"></param>
+    /// <returns></returns>
+    static String DetermineContentType(Request req)
+    {
+        unsafe
+        {
+            IntPtr accept;
+            UInt32 acceptLen;
 
-    // TODO!
-    //    public static byte[] FromText(string text) {
-    //       return FromText(text, SessionID.NullSession);
-    //    }
+            // Getting raw accept header.
+            req.GetRawAccept(out accept, out acceptLen);
 
-    static readonly Byte[] AcceptHeaderBytes = Encoding.ASCII.GetBytes("Accept");
+            // Checking if Accept header exists.
+            if (acceptLen <= 0)
+                return "text/plain";
+
+            Byte* p = (Byte*) accept;
+            switch (p[0])
+            {
+                case (Byte)'t':
+                {
+                    switch (*(UInt64*)(p + 1))
+                    {
+                        case 7813028919379261541:
+                            return "text/html";
+                    }
+
+                    break;
+                }
+
+                case (Byte)'a':
+                {
+                    switch (*(UInt64*)(p + 8))
+                    {
+                        case 7957705966486450025:
+                            return "application/json";
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        return "text/plain";
+    }
 
     /// <summary>
     /// From the text.
@@ -320,34 +361,17 @@ namespace Starcounter.Internal.Web
     /// <param name="text">The text.</param>
     /// <returns>System.Byte[][].</returns>
     public static byte[] FromText(Request req, string text) {
+
         byte[] contentBytes = Encoding.UTF8.GetBytes(text);
 
-        // Checking Accept header.
-        String encodingType = "text/plain";
-        // TODO: Fix support.
-        /*unsafe
-        {
-            String acceptHeader = req["Accept"];
-            if (acceptHeader != null)
-            {
-                // Searching for types.
-                if (acceptHeader.Contains("text/html"))
-                {
-                    encodingType = "text/html";
-                }
-                else if (acceptHeader.Contains("application/json"))
-                {
-                    encodingType = "application/json";
-                }
-            }
-        }*/
+        // Getting content type.
+        String contentType = DetermineContentType(req);
           
         String responseStr =
             "HTTP/1.1 200 OK" + CRLF +
             "Server: SC" + CRLF +
             "Content-Length: " + contentBytes.Length + CRLF +
-            "Content-Encoding: " + encodingType + CRLF +
-            "Content-Type: text/plain;charset=UTF-8" + CRLFCRLF;
+            "Content-Type: " + contentType + ";charset=UTF-8" + CRLFCRLF;
 
         byte[] headersBytes = Encoding.ASCII.GetBytes(responseStr);
         var responseBytes = new byte[headersBytes.Length + contentBytes.Length];
