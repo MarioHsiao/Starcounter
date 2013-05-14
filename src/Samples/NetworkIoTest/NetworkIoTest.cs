@@ -16,7 +16,7 @@ namespace NetworkIoTestApp
     /// <summary>
     /// Some Apps handlers.
     /// </summary>
-    public class AppsClass : Puppet
+    public class AppsClass : Json
     {
         /// <summary>
         /// Initializes some Apps handlers.

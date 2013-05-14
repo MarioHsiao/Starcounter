@@ -96,7 +96,9 @@ namespace Starcounter {
                 if (_parent != null && _parent != value) {
                     throw new Exception("Cannot change parent in Apps");
                 }
-                value.OnSetParent(this);
+
+                if (value != null)
+                    value.OnSetParent(this);
             }
         }
 

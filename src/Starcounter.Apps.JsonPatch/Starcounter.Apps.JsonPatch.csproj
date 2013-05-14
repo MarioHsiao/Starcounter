@@ -70,7 +70,6 @@
     <Compile Include="AppServer.cs" />
     <Compile Include="HttpPatchBuilder.cs" />
     <Compile Include="InternalHandlers.cs" />
-    <Compile Include="JsonHelper.cs" />
     <Compile Include="JsonPatch.cs" />
     <Compile Include="JsonPointer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -81,10 +80,6 @@
       <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
       <Name>FasterThanJson</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
-      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
-      <Name>Starcounter.Apps</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
@@ -92,10 +87,6 @@
     <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.Apps.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
