@@ -10,6 +10,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Starcounter.Templates;
 using Starcounter.Internal;
+using System.Runtime.InteropServices;
 
 namespace Starcounter {
     /// <summary>
@@ -51,7 +52,15 @@ namespace Starcounter {
             if (codeGenSerializer != null) {
                 return codeGenSerializer.Serialize(buffer, bufferSize, this);
             } else {
-                throw new NotSupportedException("This function is only supported when using codegenerated serializer.");
+                string json = ToJson_Slow();
+                byte[] jsonArr = Encoding.UTF8.GetBytes(json);
+
+                if (jsonArr.Length > bufferSize) {
+                    throw new Exception("Unable to create json. Not enough space in buffer.");
+                }
+
+                Marshal.Copy(jsonArr, 0, buffer, jsonArr.Length);
+                return jsonArr.Length;
             }
         }
 
@@ -75,14 +84,17 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="buffer"></param>
-        /// <param name="bufferSize"></param>
+        /// <param name="jsonSize"></param>
         /// <returns></returns>
-        public int PopulateFromJson(IntPtr buffer, int bufferSize) {
+        public int PopulateFromJson(IntPtr buffer, int jsonSize) {
             var codeGenSerializer = Template.GetJsonSerializer();
             if (codeGenSerializer != null) {
-                return codeGenSerializer.PopulateFromJson(buffer, bufferSize, this);
+                return codeGenSerializer.PopulateFromJson(buffer, jsonSize, this);
             } else {
-                throw new NotSupportedException("This function is only supported when using codegenerated serializer.");
+                byte[] jsonArr = new byte[jsonSize];
+                Marshal.Copy(buffer, jsonArr, 0, jsonSize);
+                PopulateFromJson_Slow(Encoding.UTF8.GetString(jsonArr));
+                return jsonSize;
             }
         }
 
