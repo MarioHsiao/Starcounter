@@ -12,7 +12,7 @@ using System;
 /// <summary>
 /// Class Master
 /// </summary>
-partial class Master : Puppet {
+partial class Master : Json {
 
     /// <summary>
     /// Handles the specified test.

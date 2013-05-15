@@ -16,7 +16,7 @@ namespace NetworkIoTestApp
     /// <summary>
     /// Some Apps handlers.
     /// </summary>
-    public class AppsClass : Puppet
+    public class AppsClass : Json
     {
         /// <summary>
         /// Initializes some Apps handlers.
@@ -397,7 +397,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_WEBSOCKETS_URIS:
                 {
-                    for (Byte i = 0; i < Db.Environment.SchedulersNumber; i++)
+                    for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
                         WebSocketSessions[i] = new List<Session>();
 
                     DbSession dbSession = new DbSession();
@@ -405,7 +405,7 @@ namespace NetworkIoTestApp
                     WebSocketSessionsTimer = new Timer((state) =>
                     {
                         // Schedule a job to check once for inactive sessions on each scheduler.
-                        for (Byte i = 0; i < Db.Environment.SchedulersNumber; i++)
+                        for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
                         {
                             // NOTE: Very important to make a copy of looped variable here!
                             Byte k = i;
@@ -440,22 +440,20 @@ namespace NetworkIoTestApp
 
                     }, null, interval, interval);
 
+                    // Registering WebSocket handler.
                     Handle.GET("/ws", (Request req, Session session) =>
                     {
-                        if (session != null)
+                        Byte schedId = ThreadData.Current.Scheduler.Id;
+
+                        // Adding session if its not yet added.
+                        if (!WebSocketSessions[schedId].Contains(session))
                         {
-                            Byte schedId = StarcounterEnvironment.GetCurrentSchedulerId();
+                            Console.WriteLine("Add new session: " + session.SessionIdString);
 
-                            // Adding session if its not yet added.
-                            if (!WebSocketSessions[schedId].Contains(session))
-                            {
-                                Console.WriteLine("Add new session: " + session.SessionIdString);
-
-                                WebSocketSessions[schedId].Add(session);
-                            }
-
-                            session.Push(req.GetBodyByteArray_Slow());
+                            WebSocketSessions[schedId].Add(session);
                         }
+
+                        session.Push(req.GetBodyByteArray_Slow());
 
                         String body = req.GetRequestStringUtf8_Slow();
                         Console.WriteLine(body);
@@ -467,7 +465,7 @@ namespace NetworkIoTestApp
             }
         }
 
-        static List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulersNumber];
+        static List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulerCount];
         static volatile Int32 TimerSeconds = 0;
 
         // NOTE: Timer should be static, otherwise its garbage collected.

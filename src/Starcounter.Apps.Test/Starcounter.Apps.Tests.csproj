@@ -46,7 +46,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>
@@ -100,18 +100,6 @@
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
       <Name>Starcounter.Apps.JsonPatch</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.JsonReader\Starcounter.Apps.JsonReader.csproj">
-      <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
-      <Name>Starcounter.Apps.JsonReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps\Starcounter.Apps.csproj">
-      <Project>{bbaad98c-2661-42dc-85e4-3f2d11bbe010}</Project>
-      <Name>Starcounter.Apps</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.Interfaces\Starcounter.Apps.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.Apps.Interfaces</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
@@ -127,6 +115,18 @@
     <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
       <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
       <Name>Starcounter.Hypermedia</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.CodeGeneration\Starcounter.XSON.CodeGeneration.csproj">
+      <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>
+      <Name>Starcounter.XSON.CodeGeneration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
+      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
+      <Name>Starcounter.XSON.Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsonReader\Starcounter.XSON.JsonReader.csproj">
+      <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
+      <Name>Starcounter.XSON.JsonReader</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

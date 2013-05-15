@@ -4,7 +4,8 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.ABCIPC;
+using Starcounter.Bootstrap.Management;
+using Starcounter.Internal;
 using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel;
 using System;
@@ -15,9 +16,6 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
-using Starcounter.Internal;
-using Starcounter.Server.PublicModel.Commands;
-using Starcounter.Bootstrap.Management;
 
 namespace Starcounter.Server {
 
@@ -28,6 +26,7 @@ namespace Starcounter.Server {
     /// what exact input to use.
     /// </summary>
     internal sealed class DatabaseEngine {
+        
         private static class Win32 {
             internal static UInt32 EVENT_MODIFY_STATE = 0x0002;
 
@@ -36,6 +35,11 @@ namespace Starcounter.Server {
 
             [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
             internal static extern Int32 CloseHandle(IntPtr hObject);
+        }
+
+        static class ScDataEvents {
+            public const string SC_S2MM_CONTROL_EVENT_NAME_BASE = "SCDATA_EXE_";
+            public const string SC_S2MM_PMONLINE_EVENT_NAME_BASE = "SC_S2MM_PMONLINE_";
         }
 
         internal const string DatabaseExeFileName = StarcounterConstants.ProgramNames.ScData + ".exe";
@@ -119,33 +123,46 @@ namespace Starcounter.Server {
         /// <returns>Returns true if the database was actually started, false
         /// if it was not (i.e. it was already running).</returns>
         internal bool StartDatabaseProcess(Database database) {
+            string eventName;
+            EventWaitHandle eventHandle;
             bool databaseRunning;
-            try {
-                string processControlEventName;
-                EventWaitHandle processControlEvent;
 
-                processControlEventName = GetDatabaseControlEventName(database);
-                processControlEvent = EventWaitHandle.OpenExisting(
-                    processControlEventName,
-                    System.Security.AccessControl.EventWaitHandleRights.Synchronize
-                    );
-                databaseRunning = !processControlEvent.WaitOne(0);
-                processControlEvent.Close();
+            eventName = GetDatabaseControlEventName(database);
+            try {
+                eventHandle = EventWaitHandle.OpenExisting(eventName, EventWaitHandleRights.Synchronize);
+                databaseRunning = !eventHandle.WaitOne(0);
+                eventHandle.Close();
 
                 if (!databaseRunning) {
                     // Process is shutting down. Wait for shutdown to complete and
                     // restart it.
 
-                    WaitForDatabaseProcessToExit(processControlEventName);
+                    WaitForDatabaseProcessToExit(eventName);
                 }
             } catch (WaitHandleCannotBeOpenedException) {
                 databaseRunning = false;
             }
 
             if (!databaseRunning) {
-                ProcessStartInfo startInfo;
-                startInfo = GetDatabaseStartInfo(database);
-                DoStartEngineProcess(startInfo, database);
+                eventName = GetDatabaseOnlineEventName(database);
+                eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset, eventName);
+
+                var startInfo = GetDatabaseStartInfo(database);
+
+                var timeout = 10 * 1000;
+                var process = Process.Start(startInfo);
+
+                var done = eventHandle.WaitOne(timeout);
+                if (!done) {
+                    // We really never expect the database to take this kind of
+                    // time, but lets have a timeout here to assure we never lock
+                    // the server down, waiting for a faulty, ill-behaving data
+                    // process.
+                    throw ErrorCode.ToException(
+                        Error.SCERRWAITTIMEOUT,
+                        string.Format("Database process ({0}) didnt come online in time.", DatabaseEngine.DatabaseExeFileName));
+                }
+                eventHandle.Close();
             }
 
             return !databaseRunning;
@@ -261,11 +278,9 @@ namespace Starcounter.Server {
             // The process is alive; we should tell it to shut down and
             // release the reference.
 
-            var node = new Node("127.0.0.1", NewConfig.Default.SystemHttpPort);
-            node.InternalSetLocalNodeForUnitTests(false);
             var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-            
-            var response = node.DELETE(serviceUris.Host, null, null, null); 
+
+            var response = Node.LocalhostSystemPortNode.DELETE(serviceUris.Host, null, null, null); 
             if (!response.IsSuccessStatusCode) {
                 // If the host actively refused to shut down, we never try to
                 // kill it by force. Instead, we raise an exception that will later
@@ -376,20 +391,17 @@ namespace Starcounter.Server {
         }
 
         string GetDatabaseControlEventName(Database database) {
-#if false
-            ScUri uri = ScUri.FromString(database.Uri);
-            string processControlEventName = string.Format(
-                "SCDATA_EXE_{0}_{1}",
-                uri.ServerName.ToUpperInvariant(),
-                uri.DatabaseName.ToUpperInvariant()
+            string processControlEventName = string.Concat(
+                ScDataEvents.SC_S2MM_CONTROL_EVENT_NAME_BASE,
+                database.Name.ToUpperInvariant()
                 );
             return processControlEventName;
-#endif
+        }
 
-            ScUri uri = ScUri.FromString(database.Uri);
-            string processControlEventName = string.Format(
-                "SCDATA_EXE_{0}",
-                uri.DatabaseName.ToUpperInvariant()
+        string GetDatabaseOnlineEventName(Database database) {
+            string processControlEventName = string.Concat(
+                ScDataEvents.SC_S2MM_PMONLINE_EVENT_NAME_BASE,
+                database.Name.ToUpperInvariant()
                 );
             return processControlEventName;
         }
