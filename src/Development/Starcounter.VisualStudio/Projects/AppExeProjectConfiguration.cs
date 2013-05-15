@@ -233,12 +233,17 @@ namespace Starcounter.VisualStudio.Projects {
 
             this.WriteDebugLaunchStatus("Starting executable");
             var exe = new Executable();
+            exe.IsTool = false;
             exe.Path = debugConfig.AssemblyPath;
             exe.StartedBy = "Per Samuelsson (per@starcounter.com)";
             foreach (var arg in args.CommandParameters.ToArray()) {
                 exe.Arguments.Add().dummy = arg;
             }
-            headers = string.Format("Expect: {0}{1}", "202-accepted", HTTPHelp.CRLF);
+            
+            // To run the whole starting of the executable asynchrnously,
+            // enable the following header:
+            // headers = string.Format("Expect: {0}{1}", "202-accepted", HTTPHelp.CRLF);
+            headers = null;
             response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), headers, null);
             response.FailIfNotSuccess();
 
