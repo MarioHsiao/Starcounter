@@ -16,6 +16,8 @@ namespace Weaver {
 
         static Verbosity OutputVerbosity = Verbosity.Default;
         static string ErrorParcelID = string.Empty;
+        static int MaxErrors = 0;
+        static int ErrorCount = 0;
 
         internal static bool IsCreatingParceledErrors {
             get { return !string.IsNullOrEmpty(Program.ErrorParcelID); }
@@ -294,6 +296,15 @@ namespace Weaver {
             if (arguments.TryGetProperty("errorparcelid", out propertyValue)) {
                 Program.ErrorParcelID = propertyValue;
             }
+
+            if (arguments.TryGetProperty("maxerrors", out propertyValue)) {
+                int maxErrors = 0;
+                try {
+                    maxErrors = int.Parse(propertyValue);
+                    if (maxErrors < 0) maxErrors = 0;
+                } catch { }
+                Program.MaxErrors = maxErrors;
+            }
         }
 
         static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
@@ -322,6 +333,16 @@ namespace Weaver {
             syntaxDefinition.DefineFlag(
                 "attachdebugger",
                 "Attaches a debugger to the process during startup."
+                );
+
+            // Define a property that allows instructing the weaver to
+            // exit after a specified number of errors have occured. If
+            // not set, or if the value is 0 or negative, the weaver will
+            // run until all errors have been detected.
+
+            syntaxDefinition.DefineProperty(
+                "MaxErrors".ToLowerInvariant(),
+                "Specifies the maximum number of errors the weaver should detect before exiting."
                 );
 
             // Define the global flag allowing callers to specify that all
@@ -502,13 +523,21 @@ namespace Weaver {
             uint errorCode,
             string message,
             params object[] parameters) {
+            var result = false;
+            
             WriteError(message, parameters);
             if (Environment.ExitCode == 0) {
                 Environment.ExitCode = (int)errorCode;
-                return true;
+                result = true;
+            } else {
+                result = false;
             }
 
-            return false;
+            if (++Program.ErrorCount == Program.MaxErrors) {
+                Environment.Exit(Environment.ExitCode);
+            }
+
+            return result;
         }
 
         /// <summary>
