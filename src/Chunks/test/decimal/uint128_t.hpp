@@ -13,10 +13,6 @@
 namespace starcounter {
 namespace numerics {
 
-/// Exception class when conversion from CLR decimal to Starcounter X6 decimal
-/// cannot be done because data would be lost.
-class remainder_not_zero {};
-
 class uint128_t {
 public:
 	// Type definitions.
@@ -28,13 +24,15 @@ public:
 	//uint128_t(const uint64_t low);
 	uint128_t(const int64_t low);
 	uint128_t(const uint64_t high, const uint64_t low);
+	uint128_t(const uint32_t bit_127_to_96, const uint32_t bit_95_to_64,
+	const uint32_t bit_63_to_32, const uint32_t bit_31_to_0);
 	
 	//uint128_t& operator=(const uint128_t& rhs);
 	
 	// Assignment from param_type.
 	//uint128_t& operator=(const uint64_t low);
 	uint128_t& operator=(const int64_t low);
-	uint128_t& assign(uint64_t high, uint64_t low);
+	uint128_t& assign(const uint64_t high, const uint64_t low);
 	
 	// Access to representation.
 	const uint64_t low() const;
@@ -63,11 +61,15 @@ public:
 	uint128_t& operator>>=(uint64_t shift);
 	uint128_t& operator<<=(uint64_t shift);
 	
-	// Special function that don't belong in uint128_t, used when doing
-	// CLR decimal to Starcounter X6 decimal conversion.
-	// These functions will throw the exception remainder_not_zero if the
-	// remainder is not zero, meaning there will be data loss when dividing.
-	uint128_t& divide_and_throw_if_remainder_not_zero(const uint128_t& divisor);
+	// divide_and_get_remainder() is similar to operator/=(). It is a special
+	// function that don't belong in uint128_t. It is used when doing CLR
+	// decimal to Starcounter X6 decimal conversion. If the remainder is 0 there
+	// is no data loss.
+	/**
+	 * @param divisor The divisor.
+	 * @return the Remainder.
+	 */
+	uint128_t divide_and_get_remainder(const uint128_t& divisor);
 	
 	// Unary operators.
 	

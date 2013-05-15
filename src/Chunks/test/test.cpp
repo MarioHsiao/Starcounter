@@ -8,6 +8,9 @@
 // This IPC test is for the Windows platform.
 //
 
+#include <cstdint>
+#include <iostream>
+#include <iomanip>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/sync/interprocess_condition.hpp>
@@ -68,23 +71,165 @@ const starcounter::numerics::uint128_t _1e28(0x00000000204FCE5EULL, 0x3E25026110
 
 } // namespace
 
+// 08-Hosting have DbState.cs with the functions:
+// public static Decimal ReadDecimal(ulong oid, ulong address, Int32 index);
+// public static void WriteDecimal(ulong oid, ulong address, Int32 index, Decimal value);
+
+// Currently those functions call the kernel functions:
+// sccoredb.SCObjectReadDecimal2(oid, address, index, &pArray4);
+// sccoredb.Mdb_ObjectWriteDecimal(oid, address, index, bits[0], bits[1], bits[2], bits[3]);
+
+// Instead, those functions shall call conversion functions in
+// 07-VMDBMS, where a C++ DLL shall be created. It shall have the conversion functions:
+// starcounter_x6_decimal_to_clr_decimal();
+// clr_decimal_to_starcounter_x6_decimal();
+// and these conversion functions will call the kernel functions.
+
+// Before proceeding, I shall test the conversion functions here.
+
+// I will simulate a CLR decimal with a C++ class for that.
+// It will have output functions to see the bit pattern of the 128-bit CLR decimal, etc.
+
+///=============================================================================
+/// This is to be placed in 07-VMDBMS, in the new C++ DLL project scdecimal.
+///=============================================================================
+
+namespace {
+
+const int64_t x6_decimal_max = +4398046511103999999LL;
+const int64_t x6_decimal_min = -4398046511103999999LL;
+
+} // namespace
+
+typedef int32_t* clr_decimal_pointer;
+typedef clr_decimal_pointer* clr_decimal_handle;
+typedef uint16_t data_value_flags_type;
+
+
+/// Reading a decimal requires type conversion from starcounter X6 decimal to
+/// CLR decimal. This function is called by ReadDecimal() in DbState.cs.
+/**
+ * @param object_id Object ID.
+ * @param object_eti The object ETI (address.)
+ * @param index The index.
+ * @param clr_decimal_handle A handle to a CLR Decimal.
+ * @return Data value flags.
+ */
+data_value_flags_type convert_x6_decimal_to_clr_decimal(uint64_t object_id,
+uint64_t object_eti, int32_t index, clr_decimal_handle clr_decimal_handle) {
+	data_value_flags_type flags = 0;
+	
+	// No data loss can occur. No multiplication or division is needed.
+	// Store the x6 decimal 63-bit value in the integer part of CLR decimal,
+	// and the x6 decimal sign flag (bit 63) in the sign flag (bit 127) of the
+	// CLR decimal, and set the exponent to 6 in the CLR decimal.
+
+	// Simulating that we got the x6 decimal (in raw format) via a kernel function.
+	uint64_t x6_raw_decimal = x6_decimal_max;
+
+	// Where is the storage of the CLR decimal going to be? clr_decimal shall
+	// be directed to that.
+
+	*clr_decimal_handle = new int32_t[4]; // Simulating. This is a bad idéa in C++.
+	(*clr_decimal_handle)[0] = 0x11111111;
+	(*clr_decimal_handle)[1] = 0x22222222;
+	(*clr_decimal_handle)[2] = 0x33333333;
+	(*clr_decimal_handle)[3] = 0x80060000;
+
+	return flags;
+}
+
+/// Writing a decimal requires type conversion from CLR decimal to starcounter
+/// X6 decimal. This function is called by WriteDecimal() in DbState.cs.
+/**
+ * @return An error code. If there would be a data loss, etc.
+ */
+data_value_flags_type convert_clr_decimal_to_x6_decimal() {
+	data_value_flags_type flags = 0;
+	//...
+	// Data loss may occur while doing multiplication or division, which is
+	// needed if the exponent is not 6.
+	//...
+	return flags;
+}
+
+///=============================================================================
+/// Here I simulate the ReadDecimal() and WriteDecimal() functions found in
+/// DbState.cs under 08-Hosting.
+
+typedef starcounter::numerics::clr::decimal Decimal;
+
+/// Exception class.
+class convert_x6_decimal_to_clr_decimal_excption {
+public:
+	typedef uint32_t error_code_type;
+	
+	explicit convert_x6_decimal_to_clr_decimal_excption(error_code_type err)
+	: err_(err) {}
+	
+	error_code_type error_code() const {
+		return err_;
+	}
+	
+private:
+	error_code_type err_;
+};
+
+Decimal ReadDecimal(uint64_t oid, uint64_t address, int32_t index) {
+	uint32_t ec;
+
+	{ // unsafe
+		int32_t* pArray4;
+		uint16_t flags = convert_x6_decimal_to_clr_decimal(oid, address, index,
+		&pArray4);
+
+		if ((flags & Mdb_DataValueFlag_Exceptional) == 0) {
+			return /* new */ Decimal(
+			pArray4[0],
+			pArray4[1],
+			pArray4[2],
+			pArray4[3] >> 31,
+			pArray4[3] >> 16);
+		}
+	}
+
+	ec = 999L; // ec = sccoredb.Mdb_GetLastError();
+	throw convert_x6_decimal_to_clr_decimal_excption(ec);
+}
+
+void WriteDecimal();
+
+///=============================================================================
+
+/// This represents C# user code calling ReadDecimal() and WriteDecimal(), etc.
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
-#if 1
-    using namespace starcounter::numerics;
-
+	using namespace starcounter::numerics;
+	
 	try {
-		uint128_t a(_1e28);
-		a *= 7;
-		uint128_t x = a;
-		x.divide_and_throw_if_remainder_not_zero(_1e22);
-		std::cout << "x = " << x << std::endl;
+		Decimal my_clr_decimal = ReadDecimal(0, 0, 0);
+		my_clr_decimal.print();
+		return 0;
 	}
-	catch (remainder_not_zero) {
-		std::cout << "remainder_not_zero" << std::endl;
+	catch (convert_x6_decimal_to_clr_decimal_excption) {
+		std::cout << "error: convert_x6_decimal_to_clr_decimal_excption caught." << std::endl;
 	}
-    return 0;
 
+#if 0
+	//uint128_t a(_1e28);
+	uint128_t a(1234);
+	//a *= 7;
+	uint128_t x = a;
+	uint128_t remainder(x.divide_and_get_remainder(1235));
+	
+	if (remainder == 0) {
+		std::cout << "No data loss. x = " << x << std::endl;
+	}
+	else {
+		std::cout << "Data loss. x = " << x << std::endl;
+		std::cout << "remainder = " << remainder << std::endl;
+	}
+#endif
 #if 0
 	void vec_u128_divide(
 	const uint128_t* numerator,
@@ -103,7 +248,7 @@ try {
 #endif
 
 #if 1
-	decimal x6;
+	clr::decimal ae;
 	return 0;
 #endif
 
