@@ -315,9 +315,6 @@ namespace Starcounter.Server {
 
                 command = new ExecCommand(this.engine, exePath, workingDirectory, argsArray);
                 command.EnableWaiting = synchronous;
-                if (properties.ContainsKey("PrepareOnly")) {
-                    command.PrepareOnly = true;
-                }
 
                 var info = runtime.Execute(command);
                 if (synchronous) {
