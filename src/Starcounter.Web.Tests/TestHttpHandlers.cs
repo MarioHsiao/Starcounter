@@ -302,9 +302,7 @@ namespace Starcounter.Internal.Test {
             ast.Namespace = "__big_urimatcher__";
             var compiler = umb.CreateCompiler();
             var str = compiler.GenerateRequestProcessorCSharpSourceCode( ast );
-
             Console.WriteLine( str );
-
         }
 
 
