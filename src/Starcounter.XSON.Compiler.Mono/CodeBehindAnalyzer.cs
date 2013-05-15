@@ -229,10 +229,19 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// </summary>
         /// <param name="mce"></param>
         private static void AnalyzeNamespaceNode(MonoCSharpEnumerator mce){
+            string ns = "";
+
             // Read the name of the namespace.
-            mce.MoveNext();
-            mce.PushNamespace(mce.Value);
-            SkipToOpenBrace(mce);
+            while (mce.MoveNext()) {
+                if (mce.Token == CSharpToken.OPEN_BRACE) {
+                    mce.PushNamespace(ns);
+                    break;
+                } else if (mce.Token == CSharpToken.IDENTIFIER) {
+                    ns += mce.Value;
+                } else if (mce.Token == CSharpToken.DOT) {
+                    ns += ".";
+                }
+            }
         }
 
         /// <summary>
