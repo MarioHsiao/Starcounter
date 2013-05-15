@@ -1,8 +1,5 @@
-﻿using System;
-using Mono.CSharp;
+﻿using Mono.CSharp;
 using Starcounter.Internal;
-using Starcounter.Templates.Interfaces;
-using Starcounter.XSON.Compiler.Roslyn;
 using Starcounter.XSON.Metadata;
 
 namespace Starcounter.XSON.Compiler.Mono {
@@ -10,54 +7,20 @@ namespace Starcounter.XSON.Compiler.Mono {
     /// 
     /// </summary>
     public class MonoCSharpCompiler {
-        private RoslynCSharpCompiler roslynCompiler;
         private CompilerSettings settings;
         private CompilerContext context;
-//        private Evaluator evaluator;
 
         /// <summary>
         /// 
         /// </summary>
         public MonoCSharpCompiler() {
-            roslynCompiler = new RoslynCSharpCompiler();
             settings = new CompilerSettings() {
                 Unsafe = true,
                 GenerateDebugInfo = false,
                 Optimize = true
             };
             context = new CompilerContext(settings, new ConsoleReportPrinter());
-
         }
-
-        //public object Compile(string code) {
-        //    // TODO:
-        //    // Adding debug assembly references for testing.
-        //    return Compile(code,
-        //                   "Starcounter.dll",
-        //                   "Starcounter.Apps.JsonPatch.dll",
-        //                   "Starcounter.Internal.dll",
-        //                   "Starcounter.BitsAndBytes.Native.dll",
-        //                   "Starcounter.XSON.dll");
-        //}
-
-        //public object Compile(string code, params string[] assemblyRefs) {
-        //    object o = null;
-        //    CompilerSettings settings = new CompilerSettings();
-
-        //    foreach (var assRef in assemblyRefs) {
-        //        settings.AssemblyReferences.Add(assRef);
-        //    }
-        //    settings.Unsafe = true;
-        //    settings.GenerateDebugInfo = true;
-
-        //    CompilerContext ctx = new CompilerContext(settings, new ConsoleReportPrinter());
-        //    Evaluator eval = new Evaluator(ctx);
-        //    CompiledMethod cm;
-        //    string hmm = eval.Compile(code, out cm);
-
-        //    //            o = eval.Evaluate("new " + fullClassName + "();");
-        //    return o;
-        //}
 
         /// <summary>
         /// 
@@ -86,7 +49,7 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// <param name="codeBehindFile"></param>
         /// <returns></returns>
         public CodeBehindMetadata AnalyzeCodeBehind(string className, string codeBehindFile) {
-            return roslynCompiler.AnalyzeCodeBehind(className, codeBehindFile);
+            return CodeBehindAnalyzer.Analyze(className, codeBehindFile);
         }
     }
 }
