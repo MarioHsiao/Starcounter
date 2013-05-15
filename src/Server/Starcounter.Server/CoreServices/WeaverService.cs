@@ -20,6 +20,7 @@ namespace Starcounter.Server {
     /// Encapsulates the services provided by the Starcounter weaver.
     /// </summary>
     internal sealed class WeaverService {
+        const string WeaverErrorParcelId = "A4A7D6FA-EB34-442A-B579-DBB1DBB859E3";
         readonly ServerEngine engine;
 
         /// <summary>
@@ -90,7 +91,9 @@ namespace Starcounter.Server {
             string arguments;
 
             weaverExe = Path.Combine(engine.InstallationDirectory, StarcounterConstants.ProgramNames.ScWeaver + ".exe");
-            arguments = string.Format("--maxerrors=1 Weave \"{0}\" --outdir=\"{1}\"", givenAssembly, runtimeDirectory);
+            arguments = string.Format(
+                "--maxerrors=1 --ErrorParcelId={0} Weave \"{1}\" --outdir=\"{2}\"", 
+                WeaverErrorParcelId, givenAssembly, runtimeDirectory);
             
             ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
 
