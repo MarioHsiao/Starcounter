@@ -135,10 +135,11 @@ namespace Starcounter.Server {
             Process process = new Process {
                 StartInfo = processStartInfo
             };
-            List<string> output = new List<string>();
-            DataReceivedEventHandler dataReceivedEventHandler = (sender, e) => ReceiveOutput(toolName, output, e.Data);
-            process.ErrorDataReceived += dataReceivedEventHandler;
-            process.OutputDataReceived += dataReceivedEventHandler;
+
+            var output = new List<string>();
+            var error = new List<string>();
+            process.ErrorDataReceived += (sender, e) => { error.Add(e.Data); };
+            process.OutputDataReceived += (sender, e) => { output.Add(e.Data); };
 
             try {
                 process.Start();
@@ -153,6 +154,8 @@ namespace Starcounter.Server {
             if (!process.HasExited) {
                 process.WaitForExit();
             }
+
+            output.AddRange(error);
 
             if (ToolCompleted != null)
                 ToolCompleted(process, EventArgs.Empty);
