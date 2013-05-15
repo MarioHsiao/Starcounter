@@ -25,6 +25,11 @@ inline uint128_t::uint128_t(const int64_t low)
 inline uint128_t::uint128_t(const uint64_t high, const uint64_t low)
 : high_(high), low_(low) {}
 
+inline uint128_t::uint128_t(const uint32_t bit_127_to_96, const uint32_t bit_95_to_64,
+const uint32_t bit_63_to_32, const uint32_t bit_31_to_0)
+: high_((uint64_t(bit_127_to_96) << 32) | uint64_t(bit_95_to_64)),
+low_((uint64_t(bit_63_to_32) << 32) | uint64_t(bit_31_to_0)) {}
+
 //inline uint128_t& uint128_t::operator=(const uint128_t& rhs) {
 //	high_ = rhs.high_;
 //	low_ = rhs.low_;
@@ -39,7 +44,7 @@ inline uint128_t& uint128_t::operator=(const int64_t low) {
 	return assign(-(low < 0), low);
 }
 
-inline uint128_t& uint128_t::assign(uint64_t high, uint64_t low) {
+inline uint128_t& uint128_t::assign(const uint64_t high, const uint64_t low) {
 	low_ = low;
 	high_ = high;
 	return *this;
@@ -69,6 +74,7 @@ inline uint128_t& uint128_t::operator-=(const uint128_t& subtrahend) {
 }
 
 #if 0 // TODO: Vectorise multiplication with something like:
+#include <emmintrin.h>
 inline __m128i vec_mul_128(const __m128i& a, const __m128i& b) {
 	__m128i xmm0 = _mm_mul_epu32(a, b);
 	__m128i xmm1 = _mm_mul_epu32(_mm_srli_si128(a, 4), _mm_srli_si128(b, 4));
@@ -179,8 +185,7 @@ inline uint128_t& uint128_t::operator/=(const uint128_t& divisor) {
 	return *this;
 }
 
-inline uint128_t& uint128_t::divide_and_throw_if_remainder_not_zero
-(const uint128_t& divisor) {
+inline uint128_t uint128_t::divide_and_get_remainder(const uint128_t& divisor) {
 	// Simplify divisors that are powers of 2.
 	uint32_t s = 0;
 	uint128_t d(divisor);
@@ -211,15 +216,9 @@ inline uint128_t& uint128_t::divide_and_throw_if_remainder_not_zero
 		quotient += t;
 	}
 	
-	if (n == 0) {
-		low_ = quotient.low();
-		high_ = quotient.high();
-	}
-	else {
-		throw remainder_not_zero();
-	}
-	
-	return *this;
+	low_ = quotient.low();
+	high_ = quotient.high();
+	return n;
 }
 
 inline uint128_t& uint128_t::operator%=(const uint128_t& rhs) {
