@@ -90,8 +90,8 @@ namespace Starcounter.Server {
             string arguments;
 
             weaverExe = Path.Combine(engine.InstallationDirectory, StarcounterConstants.ProgramNames.ScWeaver + ".exe");
-            arguments = string.Format("Weave \"{0}\" --outdir=\"{1}\"", givenAssembly, runtimeDirectory);
-
+            arguments = string.Format("--maxerrors=1 Weave \"{0}\" --outdir=\"{1}\"", givenAssembly, runtimeDirectory);
+            
             ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
 
             return Path.Combine(runtimeDirectory, Path.GetFileName(givenAssembly));
