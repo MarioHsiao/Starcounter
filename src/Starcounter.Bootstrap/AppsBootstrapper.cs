@@ -2,14 +2,12 @@
 using HttpStructs;
 using Starcounter.Advanced;
 using Starcounter.Apps.Bootstrap;
-using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.Web;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading;
+
 namespace Starcounter.Internal {
 
     /// <summary>
@@ -27,6 +25,7 @@ namespace Starcounter.Internal {
             get { return AppServer_; }
         }
 
+        // NOTE: Timer should be static, otherwise its garbage collected.
         private static Timer sessionCleanupTimer;
 
         // private static StaticWebServer fileServer;
@@ -50,6 +49,9 @@ namespace Starcounter.Internal {
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
 
+            // Dependency injection for json codegeneration
+            Obj.Factory = new Starcounter.XSON.CodeGeneration.TypedJsonFactory();
+
             // Setting the response handler.
             Node.SetHandleResponse(AppServer_.HandleResponse);
 
@@ -65,16 +67,16 @@ namespace Starcounter.Internal {
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
             DbSession dbSession = new DbSession();
             int interval = 1000 * 60 * SchedulerSessions.DefaultSessionTimeoutMinutes;
-            Timer timer = new Timer((state) => {
+            sessionCleanupTimer = new Timer((state) => {
                     // Schedule a job to check once for inactive sessions on each scheduler.
-                    for (Byte i = 0; i < numSchedulers; i++) {
+                    for (Byte i = 0; i < numSchedulers; i++)
+                    {
                         // Getting sessions for current scheduler.
                         SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
                         dbSession.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
                     }                                
                 }, 
                 null, interval, interval);
-            sessionCleanupTimer = timer;
         }
 
         /// <summary>
@@ -165,6 +167,8 @@ namespace Starcounter.Internal {
 
             if (response != null)
                 request.SendResponse(response.Uncompressed, 0, response.Uncompressed.Length);
+
+            request.Destroy();
 
             return true;
         }

@@ -73,6 +73,9 @@ namespace HttpStructs
         // Port index.
         public Int32 port_index_;
 
+        // WebSockets opcode.
+        public Byte ws_opcode_;
+
         // Last active time tick.
         public UInt64 LastActiveTimeTick { get; set; }
 
@@ -89,6 +92,12 @@ namespace HttpStructs
                 return apps_session_int_.IsBeingUsed();
 
             return false;
+        }
+
+        // Checks if session is alive.
+        public Boolean IsAlive()
+        {
+            return session_struct_.IsAlive();
         }
 
         // Destroys the instance.
@@ -406,7 +415,8 @@ namespace HttpStructs
 
                 UInt32 num_checked_sessions = 0;
                 LinkedListNode<UInt32> used_session_index_node = used_session_indexes_.First;
-                while (used_session_index_node != null) {
+                while (used_session_index_node != null)
+                {
                     LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
 
                     // Getting session instance.
@@ -416,7 +426,7 @@ namespace HttpStructs
                     if (s != null) 
                     {
                         // Checking that session is active at all.
-                        if (s.session_struct_.IsActive()) 
+                        if (s.session_struct_.IsAlive()) 
                         {
                             // Checking that there is an Apps session at all.
                             if (s.apps_session_int_ != null)

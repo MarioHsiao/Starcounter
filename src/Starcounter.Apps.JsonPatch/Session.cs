@@ -10,6 +10,7 @@ using Starcounter.Templates;
 using Starcounter.Advanced;
 using HttpStructs;
 using Starcounter.Internal;
+using System.Text;
 
 namespace Starcounter {
     /// <summary>
@@ -51,6 +52,8 @@ namespace Starcounter {
         /// <returns></returns>
         public static Session CreateNewEmptySession()
         {
+            Debug.Assert(current == null);
+
             current = new Session();
             ChangeLog.CurrentOnThread = current.changeLog;
 
@@ -120,8 +123,21 @@ namespace Starcounter {
         /// Pushes data on existing session.
         /// </summary>
         /// <param name="data"></param>
+        public void Push(String data)
+        {
+            Push(Encoding.UTF8.GetBytes(data));
+        }
+
+        /// <summary>
+        /// Pushes data on existing session.
+        /// </summary>
+        /// <param name="data"></param>
         public void Push(Byte[] data)
         {
+            // TODO
+            if (data.Length > 3000)
+                throw new ArgumentException("Current WebSockets implementation supports messages only up to 3000 bytes.");
+
             Request req = GatewayHandlers.GenerateNewRequest(
                 InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS);
 
@@ -132,7 +148,8 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="session"></param>
-        internal static void Start(Session session) {
+        internal static void Start(Session session)
+        {
             Debug.Assert(current == null);
 
             // Session still can be null, e.g. did not pass the verification.
@@ -146,7 +163,8 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        internal static void End() {
+        internal static void End()
+        {
             if (current != null)
             {
                 current.changeLog.Clear();
@@ -194,9 +212,19 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Checks if session is active.
         /// </summary>
-        public void Destroy() {
+        /// <returns></returns>
+        public Boolean IsAlive()
+        {
+            return (InternalSession != null) && (InternalSession.IsAlive());
+        }
+
+        /// <summary>
+        /// Destroys the session.
+        /// </summary>
+        public void Destroy()
+        {
             if (root != null) {
                 DisposeJsonRecursively(root);
             }

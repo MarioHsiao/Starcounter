@@ -77,13 +77,14 @@ internal class AggregationNode : IOptimizationNode
         return (subCost * Convert.ToInt32(Math.Log(Convert.ToDouble(subCost), 2)));
     }
 
-    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr)
+    public IExecutionEnumerator CreateExecutionEnumerator(INumericalExpression fetchNumExpr, INumericalExpression fetchOffsetExpr, IBinaryExpression fetchOffsetKeyExpr,
+        Boolean topNode, ref Byte nodeId)
     {
         // For aggregations we ignore the fetch specification. Instead we return the complete result set.
-        IExecutionEnumerator subEnumerator = subNode.CreateExecutionEnumerator(null, null, null);
+        IExecutionEnumerator subEnumerator = subNode.CreateExecutionEnumerator(null, null, null, false, ref nodeId);
         IQueryComparer comparer = sortSpec.CreateComparer();
-        return new Aggregation(rowTypeBind, extentNumber, subEnumerator, comparer, setFunctionList, havingCondition, 
-            variableArr, query, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr);
+        return new Aggregation(nodeId++, rowTypeBind, extentNumber, subEnumerator, comparer, setFunctionList, havingCondition, 
+            variableArr, query, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
     }
 
 #if DEBUG

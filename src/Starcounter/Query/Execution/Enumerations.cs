@@ -130,4 +130,15 @@ namespace Starcounter.Query.Execution
         CompOpLessOrEqual,
         Unsupported
     };
+
+    internal enum EnumeratorNodeType : byte {
+        FullTableScan,
+        IndexScan,
+        ReferenceLookup,
+        ObjectIdentityLookup,
+        Join,
+        Aggregate,
+        Sorting,
+        LikeExec
+    }
 }

@@ -11,12 +11,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Text;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Execution
 {
 // Implementation for base execution enumerator class.
 internal abstract class ExecutionEnumerator
 {
+    protected readonly byte nodeId; // Unique node identifier in execution tree. Top node has largest nodeId.
     protected Row currentObject = null; // Represents latest successfully retrieved object.
     protected VariableArray variableArray = null; // Array with variables from query.
     protected Int64 counter = 0; // Number of successful hits (retrieved objects).
@@ -27,6 +29,15 @@ internal abstract class ExecutionEnumerator
     protected UInt64 uniqueQueryID = 0; // Uniquely identifies query it belongs to.
     protected String uniqueGenName = null; // Uniquely identifies the scan during code generation.
     protected Boolean hasCodeGeneration = false; // Indicates if code generation is done for this enumerator.
+
+#if false // Not in use or not needed
+    protected byte totalNodeNr = 0; // Total number of nodes in execution tree if it is the top node (i.e., nodeId=0);
+    internal byte TotalNodeNr { get { return totalNodeNr; } set { totalNodeNr = value; } }
+    protected byte[] staticOffsetKeyPart; // Stores static part of the offset key related only to this node
+    protected int staticOffsetKeyPartLength = 0; // Stores the length of the offset key static part
+#endif
+    internal readonly EnumeratorNodeType NodeType;
+    internal readonly Boolean TopNode = false;
 
     protected INumericalExpression fetchNumberExpr = null; // Represents fetch literal or variable.
     protected Int64 fetchNumber = Int64.MaxValue; // Maximum fetch number.
@@ -43,10 +54,14 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Default constructor.
     /// </summary>
-    internal ExecutionEnumerator(RowTypeBinding rowTypeBind, VariableArray varArray)
+    internal ExecutionEnumerator(Byte nodeId, EnumeratorNodeType nodeType, RowTypeBinding rowTypeBind, VariableArray varArray,
+        Boolean topNode)
     {
+        this.nodeId = nodeId;
+        NodeType = nodeType;
         rowTypeBinding = rowTypeBind;
         variableArray = varArray;
+        TopNode = topNode;
 
         if (varArray != null && (varArray.QueryFlags & QueryFlags.SingletonProjection) != 0)
         {
@@ -54,6 +69,8 @@ internal abstract class ExecutionEnumerator
             projectionTypeCode = propertyBinding.TypeCode;
         }
     }
+
+    public byte NodeId { get { return nodeId; } }
 
     /// <summary>
     /// Sets the transaction handle value.
@@ -275,23 +292,22 @@ internal abstract class ExecutionEnumerator
         if (currentObject == null)
             return null;
 
-        Int32 globalOffset = 0;
+        UInt16 globalOffset = 0;
         IExecutionEnumerator execEnum = this as IExecutionEnumerator;
 
         // Getting the amount of leaves in execution tree.
-        Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
+        //Int32 leavesNum = execEnum.RowTypeBinding.ExtentOrder.Count;
+        byte nodesNum = (byte)(NodeId + 1);
         // Offset to first enumerator static data
-        globalOffset = ((leavesNum << 3) + IteratorHelper.RK_HEADER_LEN);
+        globalOffset = (ushort)((nodesNum << 2) + IteratorHelper.RK_HEADER_LEN);
 
         // Using cache temp buffer.
         Byte[] tempBuffer = Scheduler.GetInstance().SqlEnumCache.TempBuffer;
 
-        unsafe
-        {
-            fixed (Byte* recreationKey = tempBuffer)
-            {
+        unsafe {
+            fixed (Byte* recreationKey = tempBuffer) {
                 // Saving number of enumerators.
-                (*(Int32*)(recreationKey + IteratorHelper.RK_ENUM_NUM_OFFSET)) = leavesNum;
+                (*(byte*)(recreationKey + IteratorHelper.RK_NODE_NUM_OFFSET)) = nodesNum;
 
                 // Saving static data (or obtaining absolute position of the first dynamic data).
                 globalOffset = execEnum.SaveEnumerator(recreationKey, globalOffset, false);
@@ -300,25 +316,36 @@ internal abstract class ExecutionEnumerator
                 globalOffset = execEnum.SaveEnumerator(recreationKey, globalOffset, true);
 
                 // Saving full recreation key length.
-                (*(Int32*)recreationKey) = globalOffset;
+                (*(UInt16*)recreationKey) = globalOffset;
 
                 // Successfully recreated the key.
-                if (globalOffset > IteratorHelper.RK_EMPTY_LEN)
-                {
-                    // Allocating space for offset key.
-                    Byte[] offsetKey = new Byte[globalOffset];
+                Debug.Assert(globalOffset > IteratorHelper.RK_EMPTY_LEN);
+                // Allocating space for offset key.
+                Byte[] offsetKey = new Byte[globalOffset];
 
-                    // Copying the recreation key into provided user buffer.
-                    Buffer.BlockCopy(tempBuffer, 0, offsetKey, 0, globalOffset);
+                // Copying the recreation key into provided user buffer.
+                Buffer.BlockCopy(tempBuffer, 0, offsetKey, 0, globalOffset);
 
-                    // Returning the key.
-                    return offsetKey;
-                }
+                // Returning the key.
+                return offsetKey;
             }
         }
+    }
 
-        // Was not able to fetch the key.
-        return null;
+    protected unsafe Byte* ValidateAndGetStaticKeyOffset(byte* key) {
+        if (TopNode) {
+            byte nodeNrs = (*(Byte*)(key + IteratorHelper.RK_NODE_NUM_OFFSET));
+            if (nodeNrs != (NodeId+1))
+                throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected number of nodes in execution plan. Actual number of nodes is " +
+                    (NodeId+1) + ", while the offset key contains " + nodeNrs + " nodes.");
+        }
+        Byte* staticDataOffset = key + (nodeId << 2) + IteratorHelper.RK_HEADER_LEN;
+        Byte* staticData = key + (*(UInt16*)(staticDataOffset));
+        EnumeratorNodeType keyNodeType = (EnumeratorNodeType)(*staticData);
+        if (keyNodeType != NodeType)
+            throw ErrorCode.ToException(Error.SCERRINVALIDOFFSETKEY, "Unexpected node type in execution plan. Current node type " +
+                NodeType.ToString() + ", while the offset key contains node type " + (keyNodeType).ToString() + ".");
+        return staticDataOffset;
     }
 
     /// <summary>
@@ -400,91 +427,6 @@ internal abstract class ExecutionEnumerator
         newExecEnum.AttachToCache(enumCacheListFrom);
 
         return newExecEnum;
-    }
-
-    /// <summary>
-    /// Does the continuous object properties fill up into the dedicated buffer.
-    /// </summary>
-    /// <param name="results">The results.</param>
-    /// <param name="resultsMaxBytes">The results max bytes.</param>
-    /// <param name="resultsNum">The results num.</param>
-    /// <param name="flags">The flags.</param>
-    /// <returns>UInt32.</returns>
-    public virtual unsafe UInt32 FillupFoundObjectIDs(Byte * results, UInt32 resultsMaxBytes, UInt32 * resultsNum, UInt32 * flags)
-    {
-        UInt64 slotsNum = 0;
-        UInt32 hitsCount = 0;
-        UInt64 *slotsBuf = ((UInt64 *) results) + 1;
-        UInt32 bytesWritten = 8;
-
-        // Checking how many hits we can process.
-        UInt32 maxSlotsNum = resultsMaxBytes / 24;
-        slotsNum = *resultsNum;
-
-        // Determining maximum slots number.
-        if ((slotsNum <= 0) || (maxSlotsNum < slotsNum))
-        {
-            slotsNum = maxSlotsNum;
-        }
-
-        // Taking this object as ISqlEnumerator.
-        IExecutionEnumerator thisEnum = this as IExecutionEnumerator;
-
-#if false
-        // Checking if we need to recreate the enumerator and move to the last position.
-        if (variableArray.RecreationKeyData != null)
-        {
-            //Application.Profiler.Start("Recreation MoveNext", 4);
-            thisEnum.MoveNext();
-            //Application.Profiler.Stop(4);
-
-            // Resetting the recreation key data.
-            variableArray.RecreationKeyData = null;
-        }
-#endif
-
-        // Just filling up the array.
-        //Application.Profiler.Start("Cycled MoveNext", 5);
-        while ((slotsNum > 0) && (thisEnum.MoveNext()))
-        {
-            // TODO/Entity;
-            IObjectProxy dbObject = thisEnum.Current as IObjectProxy;
-
-            // Checking if object is not null.
-            if (dbObject != null)
-            {
-                slotsBuf[0] = dbObject.ThisHandle;
-                slotsBuf[1] = dbObject.Identity;
-                slotsBuf[2] = ((TypeBinding)dbObject.TypeBinding).TableId;
-            }
-            else
-            {
-                slotsBuf[0] = 0;
-                slotsBuf[1] = 0;
-                slotsBuf[2] = 0;
-            }
-
-            slotsBuf += 3;
-            bytesWritten += 24;
-
-            slotsNum--;
-            hitsCount++;
-        }
-        //Application.Profiler.Stop(5);
-
-        // Checking if more objects exist.
-        if (slotsNum <= 0)
-        {
-            *flags |= SqlConnectivityInterface.FLAG_MORE_RESULTS;
-        }
-
-        // Copying the number of copied object infos.
-        * resultsNum = hitsCount;
-
-        // Setting the length in bytes.
-        ( *(UInt32 *)results) = bytesWritten;
-
-        return 0;
     }
 
     // Concrete build string method should be defined in every execution enumerator.

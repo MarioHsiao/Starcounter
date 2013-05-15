@@ -130,6 +130,11 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_OFFSET_PORT_INDEX = 124;
 
         /// <summary>
+        /// WebSockets frame opcode.
+        /// </summary>
+        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 585;
+
+        /// <summary>
         /// Invalid chunk index.
         /// </summary>
         public const uint INVALID_CHUNK_INDEX = 0xFFFFFFFF;
@@ -142,12 +147,12 @@ namespace Starcounter.Internal
         /// <summary>
         /// Offset in bytes for the session.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 632;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 624;
 
         /// <summary>
         /// Offset of data blob in socket data.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_BLOB = 696;
+        public const int SOCKET_DATA_OFFSET_BLOB = 688;
 
         /// <summary>
         /// HTTP request offset in socket data.
@@ -212,6 +217,11 @@ namespace Starcounter.Internal
         /// MAX_PREPARSED_HTTP_REQUEST_HEADERS
         /// </summary>
         public const int MAX_PREPARSED_HTTP_REQUEST_HEADERS = 16;
+
+        /// <summary>
+        /// Size of socket data blob.
+        /// </summary>
+        public const int SOCKET_DATA_BLOB_SIZE_BYTES = SOCKET_DATA_MAX_SIZE - SOCKET_DATA_OFFSET_BLOB;
 
         /// <summary>
         /// MAX_PREPARSED_HTTP_RESPONSE_HEADERS

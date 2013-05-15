@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Starcounter.Advanced;
+using Starcounter.Internal;
 using Starcounter.XSON;
 
 namespace Starcounter.Templates {
@@ -16,6 +17,45 @@ namespace Starcounter.Templates {
     public abstract class TObj : TContainer {
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
+        private TypedJsonSerializer jsonSerializer;
+        private bool shouldUseCodegeneratedSerializer = true;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal TypedJsonSerializer GetJsonSerializer() {
+            if (UseCodegeneratedSerializer && jsonSerializer == null)
+                jsonSerializer = Obj.Factory.CreateJsonSerializer(this);
+            return jsonSerializer;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool UseCodegeneratedSerializer {
+            get {
+                TContainer parent;
+                if (Obj.Factory == null)
+                    return false;
+
+                parent = Parent;
+                while (parent != null) {
+                    if (parent is TObj)
+                        return ((TObj)parent).UseCodegeneratedSerializer;
+                    parent = parent.Parent;
+                }
+                return shouldUseCodegeneratedSerializer;
+            }
+            set { shouldUseCodegeneratedSerializer = value; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal void InvalidateSerializer() {
+            jsonSerializer = null;
+        }
 
         /// <summary>
         /// The _ class name
