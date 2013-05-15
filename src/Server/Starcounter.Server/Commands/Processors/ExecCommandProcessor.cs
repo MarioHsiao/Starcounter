@@ -109,8 +109,12 @@ namespace Starcounter.Server.Commands {
                     }
                     exe.RunEntrypointAsynchronous = command.RunEntrypointAsynchronous;
 
-                    var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
-                    response.FailIfNotSuccess();
+                    if (exe.RunEntrypointAsynchronous) {
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, (ignored) => { return null; });
+                    } else {
+                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
+                        response.FailIfNotSuccess();
+                    }
                     OnCodeHostExecRequestProcessed();
 
                     // The app is successfully loaded in the worker process. We should
