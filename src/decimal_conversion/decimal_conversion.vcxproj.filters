@@ -11,4 +11,7 @@
       <UniqueIdentifier>{39c01a69-3920-48b3-bf07-9603da22536e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="decimal_conversion.cpp" />
+  </ItemGroup>
 </Project>

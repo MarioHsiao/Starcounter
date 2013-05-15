@@ -2,7 +2,7 @@
 // test.cpp
 // IPC test
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 // This IPC test is for the Windows platform.
@@ -93,7 +93,7 @@ const starcounter::numerics::uint128_t _1e28(0x00000000204FCE5EULL, 0x3E25026110
 ///=============================================================================
 /// This is to be placed in 07-VMDBMS, in the new C++ DLL project scdecimal.
 ///=============================================================================
-
+#if 0
 namespace {
 
 const int64_t x6_decimal_max = +4398046511103999999LL;
@@ -198,6 +198,7 @@ Decimal ReadDecimal(uint64_t oid, uint64_t address, int32_t index) {
 }
 
 void WriteDecimal();
+#endif
 
 ///=============================================================================
 
@@ -205,7 +206,7 @@ void WriteDecimal();
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	using namespace starcounter::numerics;
-	
+#if 0
 	try {
 		Decimal my_clr_decimal = ReadDecimal(0, 0, 0);
 		my_clr_decimal.print();
@@ -214,7 +215,7 @@ try {
 	catch (convert_x6_decimal_to_clr_decimal_excption) {
 		std::cout << "error: convert_x6_decimal_to_clr_decimal_excption caught." << std::endl;
 	}
-
+#endif
 #if 0
 	//uint128_t a(_1e28);
 	uint128_t a(1234);
