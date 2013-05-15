@@ -21,6 +21,7 @@ namespace Starcounter.Server {
             : this(string.Format("Error invoking \"\"{0}\" {1}\": exit code is 0x{2:x}. Tool output:\n\n {3}",
                                  result.FileName, result.Arguments, result.ExitCode, string.Join(Environment.NewLine, result.GetOutput()))) {
             this.ExitCode = result.ExitCode;
+            this.Result = result;
         }
 
         /// <summary>
@@ -52,6 +53,15 @@ namespace Starcounter.Server {
         /// Gets the process exit code.
         /// </summary>
         public int ExitCode {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="ToolInvocationResult"/> for exceptions
+        /// that stem from such.
+        /// </summary>
+        internal ToolInvocationResult Result {
             get;
             private set;
         }
