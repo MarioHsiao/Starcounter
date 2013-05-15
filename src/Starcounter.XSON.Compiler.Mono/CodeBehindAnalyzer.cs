@@ -21,7 +21,7 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// structure used to generate code for json Apps.
         /// </summary>
         /// <param name="className">Name of the class.</param>
-        /// <param name="codeBehindFilename">The code behind filename.</param>
+        /// <param name="codeBehindFilename">The codebehind filename.</param>
         /// <returns>CodeBehindMetadata.</returns>
         internal static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
             CodeBehindMetadata metadata;

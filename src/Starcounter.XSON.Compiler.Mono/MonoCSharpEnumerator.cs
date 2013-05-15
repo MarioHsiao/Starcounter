@@ -6,7 +6,7 @@ using Mono.CSharp;
 
 namespace Starcounter.XSON.Compiler.Mono {
     internal class MonoCSharpEnumerator {
-        private string code;
+        private string filePath;
         private Tokenizer tokenizer;
         private CSharpToken currentToken;
         private Stack<string> nsStack;
@@ -14,7 +14,7 @@ namespace Starcounter.XSON.Compiler.Mono {
         private Stack<CSharpToken> tokenStack;
 
         internal MonoCSharpEnumerator(string filePath) {
-            code = File.ReadAllText(filePath);
+            this.filePath = filePath;
             currentToken = CSharpToken.UNDEFINED;
             nsStack = new Stack<string>();
             classStack = new Stack<string>();
@@ -32,7 +32,11 @@ namespace Starcounter.XSON.Compiler.Mono {
 
         internal string Value {
             get {
-                return ((Tokenizer.LocatedToken)tokenizer.Value).Value;
+                var locatedToken = tokenizer.Value as Tokenizer.LocatedToken;
+                if (locatedToken != null)
+                    return locatedToken.Value;
+
+                return null;
             }
         }
 
@@ -109,14 +113,22 @@ namespace Starcounter.XSON.Compiler.Mono {
         }
 
         private void CreateMonoTokenizer() {
+            List<SourceFile> sfList = new List<SourceFile>();
+            sfList.Add(new SourceFile(Path.GetFileNameWithoutExtension(filePath), filePath, 0));
+            Location.Initialize(sfList);
+
             CompilerSettings settings = new CompilerSettings();
             CompilerContext ctx = new CompilerContext(settings, new ConsoleReportPrinter());
             ModuleContainer module = new ModuleContainer(ctx);
             CompilationSourceFile file = new CompilationSourceFile(module, null);
+
+            string code = File.ReadAllText(filePath);
             MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(code));
             SeekableStreamReader seekable = new SeekableStreamReader(stream, Encoding.UTF8, null);
             tokenizer = new Tokenizer(seekable, file, new ParserSession());
             tokenizer.PropertyParsing = false;
+            tokenizer.TypeOfParsing = false;
+            tokenizer.EventParsing = false;
         }
     }
 }
