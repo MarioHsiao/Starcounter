@@ -15,7 +15,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
     /// <summary>
     /// Class CodeBehindAnalyzer
     /// </summary>
-    public static class CodeBehindAnalyzer {
+    internal static class CodeBehindAnalyzer {
         /// <summary>
         /// Parses the specified c# file using Roslyn and builds a metadata
         /// structure used to generate code for json Apps.
@@ -23,7 +23,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         /// <param name="className">Name of the class.</param>
         /// <param name="codeBehindFilename">The code behind filename.</param>
         /// <returns>CodeBehindMetadata.</returns>
-        public static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
+        internal static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
             bool autoBindToDataObject;
             ClassDeclarationSyntax classDecl;
             List<JsonMapInfo> mapList;
@@ -55,7 +55,13 @@ namespace Starcounter.XSON.Compiler.Roslyn {
             inputList = new List<InputBindingInfo>();
             FillListWithHandleInputInfo(root, inputList);
 
-            return new CodeBehindMetadata(ns, genericArg, autoBindToDataObject, mapList, inputList);
+            return new CodeBehindMetadata() {
+                RootNamespace = ns,
+                GenericArgument = genericArg,
+                AutoBindToDataObject = autoBindToDataObject,
+                JsonPropertyMapList = mapList,
+                InputBindingList = inputList
+            };
         }
 
         /// <summary>
@@ -194,7 +200,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
             paramType = null;
             foreach (ParameterSyntax par in methodNode.ParameterList.ChildNodes()) {
                 if (paramType != null)
-                    throw new Exception("Only one parameter is allowed on an app Handle method.");
+                    throw new Exception("Only one parameter is allowed on an json Handle method.");
                 paramType = par.Type.ToString();
             }
 
@@ -202,7 +208,11 @@ namespace Starcounter.XSON.Compiler.Roslyn {
             className = classDecl.Identifier.ValueText;
             classNs = FindNamespaceForClassDeclaration(classDecl);
 
-            return new InputBindingInfo(classNs, className, paramType);
+            return new InputBindingInfo() {
+                DeclaringClassNamespace = classNs,
+                DeclaringClassName = className,
+                FullInputTypeName = paramType
+            };
         }
 
         /// <summary>
@@ -255,14 +265,14 @@ namespace Starcounter.XSON.Compiler.Roslyn {
                 parentClassDecl = FindClass(parentClassDecl.Parent);
             }
 
-            return new JsonMapInfo(
-                        FindNamespaceForClassDeclaration(classDecl),
-                        classDecl.Identifier.ValueText,
-                        genericArg,
-                        autoBindToDataObject,
-                        parentClassNames,
-                        attributeNode.Name.ToString()
-                   );
+            return new JsonMapInfo() {
+                Namespace = FindNamespaceForClassDeclaration(classDecl),
+                ClassName = classDecl.Identifier.ValueText,
+                GenericArgument = genericArg,
+                AutoBindToDataObject = autoBindToDataObject,
+                ParentClasses = parentClassNames,
+                JsonMapName = attributeNode.Name.ToString()
+            };
         }
 
         /// <summary>
