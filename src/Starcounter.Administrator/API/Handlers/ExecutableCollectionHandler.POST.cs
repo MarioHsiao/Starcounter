@@ -40,6 +40,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var cmd = new ExecCommand(engine, exe.Path, null, userArgs);
             cmd.DatabaseName = name;
             cmd.EnableWaiting = !async;
+            cmd.RunEntrypointAsynchronous = !exe.IsTool;
 
             var commandInfo = runtime.Execute(cmd);
             Trace.Assert(commandInfo.ProcessorToken == ExecCommand.DefaultProcessor.Token);
@@ -101,6 +102,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var exeCreated = ExecutableHandler.JSON.CreateRepresentation(result, cmd.ExecutablePath, headers);
             exeCreated.StartedBy = exe.StartedBy;
             exeCreated.Arguments = exe.Arguments;
+            exeCreated.IsTool = exe.IsTool;
             headers.Add("Location", exeCreated.Uri);
 
             return RESTUtility.JSON.CreateResponse(exeCreated.ToJson(), 201, headers);
