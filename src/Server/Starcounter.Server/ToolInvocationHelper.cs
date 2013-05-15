@@ -110,8 +110,9 @@ namespace Starcounter.Server {
                 return process.ExitCode;
             }
 
+            var empty = new List<string>();
             throw new ToolInvocationException(
-                new ToolInvocationResult(process.StartInfo.FileName, process.StartInfo.Arguments, process.ExitCode, new List<string>()));
+                new ToolInvocationResult(process.StartInfo.FileName, process.StartInfo.Arguments, process.ExitCode, empty, empty));
         }
 
         /// <summary>
@@ -155,12 +156,10 @@ namespace Starcounter.Server {
                 process.WaitForExit();
             }
 
-            output.AddRange(error);
-
             if (ToolCompleted != null)
                 ToolCompleted(process, EventArgs.Empty);
 
-            ToolInvocationResult result = new ToolInvocationResult(processStartInfo.FileName, processStartInfo.Arguments, process.ExitCode, output);
+            ToolInvocationResult result = new ToolInvocationResult(processStartInfo.FileName, processStartInfo.Arguments, process.ExitCode, output, error);
             if (checkExitCode && result.ExitCode != 0) {
                 throw new ToolInvocationException(result);
             }
@@ -235,7 +234,8 @@ namespace Starcounter.Server {
     /// and its output (<see cref="GetOutput"/>).
     /// </summary>
     internal sealed class ToolInvocationResult {
-        private readonly List<string> output = new List<string>();
+        private readonly List<string> standardOutput;
+        private readonly List<string> errorOutput;
 
         /// <summary>
         /// Initializes a new <see cref="ToolInvocationResult"/>.
@@ -243,10 +243,12 @@ namespace Starcounter.Server {
         /// <param name="fileName">Process file name.</param>
         /// <param name="arguments">Process arguments.</param>
         /// <param name="exitCode">Process exit code.</param>
-        /// <param name="output">Output of the process to the console.</param>
-        public ToolInvocationResult(string fileName, string arguments, int exitCode, List<string> output) {
+        /// <param name="standardOut">Standard output of the process to the console.</param>
+        /// <param name="errorOut">Errot output of the process to the console.</param>
+        public ToolInvocationResult(string fileName, string arguments, int exitCode, List<string> standardOut, List<string> errorOut) {
             this.ExitCode = exitCode;
-            this.output = output;
+            this.standardOutput = standardOut;
+            this.errorOutput = errorOut;
             this.FileName = fileName;
             this.Arguments = arguments;
         }
@@ -281,7 +283,26 @@ namespace Starcounter.Server {
         /// </summary>
         /// <returns>An array of strings, each element corresponding to one line of output.</returns>
         public string[] GetOutput() {
-            return output.ToArray();
+            var result = new string[standardOutput.Count + errorOutput.Count];
+            int index = 0;
+
+            foreach (var item in standardOutput) {
+                result[index] = item;
+                index++;
+            }
+            foreach (var item in errorOutput) {
+                result[index] = item;
+                index++;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the error output of the process.
+        /// </summary>
+        /// <returns>An array of strings, each element corresponding to one line of output.</returns>
+        public string[] GetErrorOutput() {
+            return errorOutput.ToArray();
         }
     }
 }
