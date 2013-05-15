@@ -1,0 +1,8 @@
+﻿{
+    "Uri": "http://example.com/codehost/foo/executables/foo.exe-123456789",
+    "Path": "C:\\path\to\\the\\prepared\\exe\\foo.exe",
+	"ServerKey":"foo.exe-123456789",
+	"Arguments": [{"dummy":""}],
+    "ResourceDirectories": [{"dummy":""}],
+	"RunEntrypointAsynchronous":true
+}

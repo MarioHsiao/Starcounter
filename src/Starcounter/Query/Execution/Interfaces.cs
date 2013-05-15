@@ -890,6 +890,11 @@ internal interface IPathComparer : ISingleComparer
 internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
 {
     /// <summary>
+    /// Gets node id, which is unique for an execution tree.
+    /// </summary>
+    byte NodeId { get; }
+
+    /// <summary>
     /// Sets a null value to an SQL variable.
     /// </summary>
     /// <param name="index">The order number of the variable starting at 0.</param>
@@ -1026,9 +1031,6 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     // Initializes all query variables from given buffer.
     unsafe void InitVariablesFromBuffer(Byte * queryParamsBuf);
 
-    // Does the continuous object ETIs and IDs fill up into the dedicated buffer.
-    unsafe UInt32 FillupFoundObjectIDs(Byte * results, UInt32 resultsMaxBytes, UInt32 * resultsNum, UInt32 * flags);
-
     // Populates needed query flags, such as if it includes sorting, fetch statement, projection, etc.
     unsafe void PopulateQueryFlags(UInt32 * flags);
 
@@ -1040,8 +1042,14 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
         UInt32 maxBytes,
         UInt32 * outLenBytes);
 
-    // Saves the enumerator being in the current state.
-    unsafe Int32 SaveEnumerator(Byte * keysData, Int32 globalOffset, Boolean saveDynamicDataOnly);
+    /// <summary>
+    /// Used to populate the recreation key.
+    /// </summary>
+    /// <param name="keyData">Pointer to the beginning of the key to populate.</param>
+    /// <param name="globalOffset">The offset to place where to store static/dynamic data.</param>
+    /// <param name="saveDynamicDataOnly">Specifies if dynamic or static data should be written.</param>
+    /// <returns>The offset directly after data were stored or the offset to first dynamic data (reusing the key).</returns>
+    unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly);
 
     // Flags describing whether the query includes literal, aggregation etc.
     QueryFlags QueryFlags

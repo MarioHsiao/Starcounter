@@ -74,37 +74,10 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
-        /// Gets or sets a value instructing the processor of this command to
-        /// prepare the hosting of the specified assembly, but never issue the
-        /// call to actually host it.
+        /// Instructs the processor of this command to run the
+        /// entrypoint of the executable in an asynchronous fashion.
         /// </summary>
-        /// <remarks>
-        /// Used by the infrastructure in the development integration to be
-        /// able to run everything up until hosting, and then attach the debugger
-        /// before actually hosting the assembly.
-        /// </remarks>
-        public bool PrepareOnly {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating if the server should apply
-        /// the "LogSteps" switch to the code host process in which the
-        /// executable represented by this command is to be hosted.
-        /// </summary>
-        public bool LogSteps {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Sets a value indicating if the server is allowed to automatically
-        /// create a database if a database with the given identity does not
-        /// exist.
-        /// </summary>
-        /// <value>Default is true.</value>
-        public bool CanAutoCreateDb {
+        public bool RunEntrypointAsynchronous {
             get;
             set;
         }
@@ -144,7 +117,6 @@ namespace Starcounter.Server.PublicModel.Commands {
             }
             this.WorkingDirectory = workingDirectory;
             this.Arguments = arguments;
-            this.CanAutoCreateDb = true;
         }
 
         /// <inheritdoc />
@@ -171,10 +143,6 @@ namespace Starcounter.Server.PublicModel.Commands {
 
             if (this.NoDb == false) {
                 this.NoDb = scargs.Contains<string>("NoDb", StringComparer.InvariantCultureIgnoreCase);
-            }
-
-            if (this.LogSteps == false) {
-                this.LogSteps = scargs.Contains<string>("LogSteps", StringComparer.InvariantCultureIgnoreCase);
             }
 
             base.GetReadyToEnqueue();

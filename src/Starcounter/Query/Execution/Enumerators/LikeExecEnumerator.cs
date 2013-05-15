@@ -19,9 +19,9 @@ namespace Starcounter.Query.Execution
         Int32 bestEnumIndex = 0; // Indicates best possible execution enumerator variant.
         Boolean enumeratorCreated = false; // Indicates if enumerator was already created.
 
-        internal LikeExecEnumerator(String sqlQuery,
+        internal LikeExecEnumerator(byte nodeId, String sqlQuery,
             IExecutionEnumerator[] subExecEnumsClone,
-            Int32[] likeVarIndexRef) : base(null, null)
+            Int32[] likeVarIndexRef) : base(nodeId, EnumeratorNodeType.LikeExec, null, null, true)
         {
             query = sqlQuery;
             subExecEnums = subExecEnumsClone;
@@ -251,7 +251,7 @@ namespace Starcounter.Query.Execution
         /// <summary>
         /// Saves the underlying enumerator state.
         /// </summary>
-        public unsafe Int32 SaveEnumerator(Byte* keysData, Int32 globalOffset, Boolean saveDynamicDataOnly)
+        public unsafe UInt16 SaveEnumerator(Byte* keysData, UInt16 globalOffset, Boolean saveDynamicDataOnly)
         {
             return currentExecEnum.SaveEnumerator(keysData, globalOffset, saveDynamicDataOnly);
         }
@@ -294,7 +294,7 @@ namespace Starcounter.Query.Execution
                     subExecEnumsClone[i] = subExecEnums[i].CloneCached();
             }
 
-            return new LikeExecEnumerator(query, subExecEnumsClone, likeVarIndexes);
+            return new LikeExecEnumerator(nodeId, query, subExecEnumsClone, likeVarIndexes);
         }
 
         public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
