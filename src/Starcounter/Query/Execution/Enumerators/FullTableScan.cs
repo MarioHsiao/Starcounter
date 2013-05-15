@@ -653,12 +653,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             Byte* createdKey = null;
             UInt32 err = 0;
 
-#if false
-#endif
-
-                // Not supported for filter iterator.
-                enumerator.Dispose();
-                throw new NotSupportedException();
             // TODO/Entity:
             IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
             if (dbObject != null) {
