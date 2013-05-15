@@ -64,10 +64,6 @@
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.1\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Starcounter.XSON.Compiler.Roslyn, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\bin\Debug\Starcounter.XSON.Compiler.Roslyn.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -142,6 +138,10 @@
     <ProjectReference Include="..\Starcounter.XSON.CodeGeneration\Starcounter.XSON.CodeGeneration.csproj">
       <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>
       <Name>Starcounter.XSON.CodeGeneration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.Compiler.Roslyn\Starcounter.XSON.Compiler.Roslyn.csproj">
+      <Project>{01382bc3-096b-466f-a115-6ae04766da3d}</Project>
+      <Name>Starcounter.XSON.Compiler.Roslyn</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
