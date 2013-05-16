@@ -52,11 +52,6 @@
     <Compile Include="TestDecimal.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\bin\$(Configuration)\decimal_conversion.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
