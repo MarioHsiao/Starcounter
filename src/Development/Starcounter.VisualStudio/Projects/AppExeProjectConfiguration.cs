@@ -1,4 +1,4 @@
-﻿
+
 using EnvDTE;
 using EnvDTE90;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -28,13 +28,6 @@ namespace Starcounter.VisualStudio.Projects {
     /// </summary>
     static class HTTPHelp {
         public const string CRLF = "\r\n";
-
-        public static void HandleUnexpectedResponse(Response response) {
-            // Check for an error detail as part of the body?
-            // And build a message from that.
-            // TODO:
-            ResponseExtensions.DefaultErrorHandler(response);
-        }
     }
 
     [ComVisible(false)]
@@ -55,6 +48,21 @@ namespace Starcounter.VisualStudio.Projects {
             // in project settings
             appSyntax.DefineCommand("exec", "Executes the application", 0, int.MaxValue);
             AppExeProjectConfiguration.commandLineSyntax = appSyntax.CreateSyntax();
+        }
+
+        void HandleUnexpectedResponse(Response response) {
+            try {
+                var detail = new ErrorDetail();
+                detail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                
+                var msg = ErrorMessage.Parse(detail.Text);
+                this.ReportError(msg.Message);
+
+            } catch {
+                // With any kind of failure interpreting the response
+                // message, we use the default handler as a fallback.
+                ResponseExtensions.DefaultErrorHandler(response);
+            }
         }
 
         public AppExeProjectConfiguration(VsPackage package, IVsHierarchy project, IVsProjectCfg baseConfiguration, IVsProjectFlavorCfg innerConfiguration)
@@ -135,7 +143,7 @@ namespace Starcounter.VisualStudio.Projects {
             int statusCode;
             string headers;
 
-            ResponseExtensions.OnUnexpectedResponse = HTTPHelp.HandleUnexpectedResponse;
+            ResponseExtensions.OnUnexpectedResponse = this.HandleUnexpectedResponse;
             SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
             SharedCLI.ResolveDatabase(args, out databaseName);
             var admin = new AdminAPI();
