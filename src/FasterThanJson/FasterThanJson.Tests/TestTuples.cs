@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using Starcounter;
 using Starcounter.Internal;
-using Newtonsoft.Json;
 using System.Diagnostics;
 
 namespace Starcounter.Internal
@@ -134,11 +133,13 @@ namespace Starcounter.Internal
           root.SealTuple();
       }
 
+#if false // Excluded due to use of Newtonsoft.Json
        [Test]
       public static void BenchmarkJson() {
           Test test = new Test() { FirstName = "Hello" };
           Console.WriteLine(JsonConvert.SerializeObject(test));
       }
+#endif
    }
 
    class Test {
