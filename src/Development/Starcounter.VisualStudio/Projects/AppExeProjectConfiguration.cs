@@ -239,7 +239,9 @@ namespace Starcounter.VisualStudio.Projects {
 
             if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0) {
                 this.WriteDebugLaunchStatus("Attaching debugger");
-                AttachDebugger(engine);
+                if (!AttachDebugger(engine)) {
+                    return false;
+                }
             }
 
             this.WriteDebugLaunchStatus("Starting executable");
@@ -261,7 +263,7 @@ namespace Starcounter.VisualStudio.Projects {
             return true;
         }
 
-        void AttachDebugger(Engine engine) {
+        bool AttachDebugger(Engine engine) {
             DTE dte;
             bool attached;
             string errorMessage;
@@ -285,8 +287,10 @@ namespace Starcounter.VisualStudio.Projects {
                         engine.Database.Name,
                         engine.CodeHostProcess.PID
                         );
-                    return;
                 }
+
+                return attached;
+
             } catch (COMException comException) {
                 if (comException.ErrorCode == -2147221447) {
                     // "Exception from HRESULT: 0x80040039"
@@ -307,7 +311,13 @@ namespace Starcounter.VisualStudio.Projects {
                         "and run it as an administrator, or make sure the database runs in non-elevated mode.";
 
                     this.ReportError(errorMessage);
-                    return;
+                    return false;
+
+                } else if (comException.ErrorCode == -2147221503) {
+                    // The COM exception raised when trying to attach to a
+                    // process with a debugger already attached to it.
+                    this.ReportError((ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGGERALREADYATTACHED));
+                    return false;
                 }
 
                 throw comException;
