@@ -121,6 +121,7 @@ namespace Starcounter.Internal.Web {
                         };
                     } else if (x is Response) {
                         response = x as Response;
+                        response.ConstructFromFields();
                     } else if (x is string) {
                         response = new Response() { Uncompressed = HttpResponseBuilder.FromText(request, (string)x/*, sid*/) };
                     } else {

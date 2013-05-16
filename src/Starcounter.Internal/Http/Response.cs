@@ -133,15 +133,6 @@ namespace Starcounter.Advanced
         /// <remarks>The offset is only valid in the uncompressed response.</remarks>
         public int SessionIdOffset { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Response" /> class.
-        /// </summary>
-        /// <param name="content">The content.</param>
-        /// <exception cref="System.Exception"></exception>
-        public Response(string body) {
-            throw new Exception();
-        }
-
         #region BodyInjection
         /// <summary>
         /// Used for content injection.
@@ -186,20 +177,253 @@ namespace Starcounter.Advanced
         #endregion
 
         /// <summary>
+        /// Indicates if user wants to send custom response.
+        /// </summary>
+        Boolean customFields_;
+
+        UInt16 statusCode_;
+
+        /// <summary>
         /// HTTP response status code.
         /// </summary>
         public UInt16 StatusCode
         {
             get
             {
-                unsafe
+                if (0 == statusCode_)
                 {
-                    if (http_response_struct_ != null)
-                        return http_response_struct_->status_code_;
+                    unsafe
+                    {
+                        if (null == http_response_struct_)
+                            throw new ArgumentException("HTTP response not initialized.");
+
+                        statusCode_ = http_response_struct_->status_code_;
+                    }
                 }
 
-                return 0;
+                return statusCode_;
             }
+
+            set
+            {
+                customFields_ = true;
+                statusCode_ = value;
+            }
+        }
+
+        String statusDescription_;
+
+        /// <summary>
+        /// Status description.
+        /// </summary>
+        public String StatusDescription
+        {
+            get
+            {
+                if (null == statusDescription_)
+                {
+                    unsafe
+                    {
+                        if (null == http_response_struct_)
+                            throw new ArgumentException("HTTP response not initialized.");
+
+                        statusDescription_ = http_response_struct_->GetStatusDescription();
+                    }
+                }
+
+                return statusDescription_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                statusDescription_ = value;
+            }
+        }
+
+        String contentType_;
+
+        /// <summary>
+        /// Content type.
+        /// </summary>
+        public String ContentType
+        {
+            get
+            {
+                if (null == contentType_)
+                    contentType_ = this["Content-Type"];
+
+                return contentType_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                contentType_ = value;
+            }
+        }
+
+        String contentEncoding_;
+
+        /// <summary>
+        /// Content encoding.
+        /// </summary>
+        public String ContentEncoding
+        {
+            get
+            {
+                if (null == contentEncoding_)
+                    contentEncoding_ = this["Content-Encoding"];
+
+                return contentEncoding_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                contentEncoding_ = value;
+            }
+        }
+
+        String bodyString_;
+
+        /// <summary>
+        /// Body string.
+        /// </summary>
+        public String Body
+        {
+            get
+            {
+                if (null == bodyString_)
+                    bodyString_ = GetBodyStringUtf8_Slow();
+
+                return bodyString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                bodyString_ = value;
+            }
+        }
+
+        String headersString_;
+
+        /// <summary>
+        /// Headers string.
+        /// </summary>
+        public String Headers
+        {
+            get
+            {
+                if (null == headersString_)
+                    throw new ArgumentException("Headers field is not set.");
+
+                return headersString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                headersString_ = value;
+            }
+        }
+
+        String setCookiesString_;
+
+        /// <summary>
+        /// Set-Cookie string.
+        /// </summary>
+        public String SetCookie
+        {
+            get
+            {
+                if (null == setCookiesString_)
+                    setCookiesString_ = this["Set-Cookie"];
+
+                return setCookiesString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                setCookiesString_ = value;
+            }
+        }
+
+        /// <summary>
+        /// Resets all custom fields.
+        /// </summary>
+        public void ResetAllCustomFields()
+        {
+            customFields_ = false;
+
+            setCookiesString_ = null;
+            headersString_ = null;
+            bodyString_ = null;
+            contentType_ = null;
+            contentEncoding_ = null;
+            statusDescription_ = null;
+            statusCode_ = 0;
+        }
+
+        /// <summary>
+        /// Constructs Response from fields that are set.
+        /// </summary>
+        public void ConstructFromFields()
+        {
+            // Checking if we have a custom response.
+            if (!customFields_)
+                return;
+
+            String str = "HTTP/1.1 ";
+            
+            if (statusCode_ > 0)
+            {
+                if (null == statusDescription_)
+                    throw new ArgumentException("When setting StatusCode you have to set StatusDescription as well.");
+
+                str += statusCode_;
+                str += " ";
+                str += statusDescription_ + StarcounterConstants.NetworkConstants.CRLF;
+            }
+            else
+            {
+                if (null != statusDescription_)
+                    throw new ArgumentException("When setting StatusDescription you have to set StatusCode as well.");
+
+                str += "200 OK" + StarcounterConstants.NetworkConstants.CRLF;
+            }
+
+            str += "Server: SC" + StarcounterConstants.NetworkConstants.CRLF;
+
+            if (null != headersString_)
+                str += headersString_;
+
+            if (null != contentType_)
+                str += "Content-Type: " + contentType_ + StarcounterConstants.NetworkConstants.CRLF;
+
+            if (null != contentEncoding_)
+                str += "Content-Encoding: " + contentEncoding_ + StarcounterConstants.NetworkConstants.CRLF;
+
+            if (null != setCookiesString_)
+                str += "Set-Cookie: " + setCookiesString_ + StarcounterConstants.NetworkConstants.CRLF;
+
+            Int32 contentLength = 0;
+
+            if (null != bodyString_)
+                contentLength = bodyString_.Length;
+
+            str += "Content-Length: " + contentLength + StarcounterConstants.NetworkConstants.CRLF;
+
+            str += StarcounterConstants.NetworkConstants.CRLF;
+
+            if (null != bodyString_)
+                str += bodyString_;
+
+            // Finally setting the uncompressed bytes.
+            Uncompressed = Encoding.UTF8.GetBytes(str);
+            customFields_ = false;
         }
 
         /// <summary>
@@ -232,17 +456,17 @@ namespace Starcounter.Advanced
                 if (UncompressedBodyLength_ > 0)
                     return UncompressedBodyLength_;
 
-                unsafe { return http_response_struct_->content_len_bytes_; }
+                unsafe
+                {
+                    if (null == http_response_struct_)
+                        throw new ArgumentException("HTTP response not initialized.");
+
+                    return http_response_struct_->content_len_bytes_;
+                }
             }
             set
             {
                 UncompressedBodyLength_ = value;
-
-                unsafe
-                { 
-                    if (http_response_struct_ != null)
-                        http_response_struct_->content_len_bytes_ = value;
-                }
             }
         }
 
@@ -269,16 +493,16 @@ namespace Starcounter.Advanced
         {
             get
             {
-                unsafe
-                {
-                    if (http_response_struct_ != null)
-                        return (Int32)http_response_struct_->response_len_bytes_;
-                }
-
                 if (uncompressed_response_ != null)
                     return uncompressed_response_.Length;
 
-                return 0;
+                unsafe
+                {
+                    if (null == http_response_struct_)
+                        throw new ArgumentException("HTTP response not initialized.");
+
+                    return (Int32)http_response_struct_->response_len_bytes_;
+                }
             }
         }
 
@@ -677,7 +901,13 @@ namespace Starcounter.Advanced
         /// <param name="sizeBytes">The size bytes.</param>
         public UInt32 GetHeadersLength()
         {
-            unsafe { return http_response_struct_->GetHeadersLength(); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->GetHeadersLength();
+            }
         }
 
         /// <summary>
@@ -687,7 +917,13 @@ namespace Starcounter.Advanced
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetBodyRaw(out IntPtr ptr, out Int32 sizeBytes)
         {
-            unsafe { http_response_struct_->GetBodyRaw(out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                http_response_struct_->GetBodyRaw(out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -698,20 +934,14 @@ namespace Starcounter.Advanced
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
-            unsafe { return http_response_struct_->GetBodyByteArray_Slow(); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->GetBodyByteArray_Slow();
+            }
         }
-
-        /*
-        /// <summary>
-        /// Gets the response as byte array.
-        /// </summary>
-        /// <returns>Response bytes.</returns>
-        public Byte[] GetResponseByteArray_Slow()
-        {
-            // TODO: Provide a more efficient interface with existing Byte[] and offset.
-
-            unsafe { return http_response_struct_->GetResponseByteArray_Slow(); }
-        }*/
 
         /// <summary>
         /// Gets the response as byte array.
@@ -738,7 +968,43 @@ namespace Starcounter.Advanced
         /// <returns>UTF8 string.</returns>
         public String GetBodyStringUtf8_Slow()
         {
-            unsafe { return http_response_struct_->GetBodyStringUtf8_Slow(); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->GetBodyStringUtf8_Slow();
+            }
+        }
+
+        /// <summary>
+        /// Gets headers as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetHeadersStringUtf8_Slow()
+        {
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->GetHeadersStringUtf8_Slow();
+            }
+        }
+
+        /// <summary>
+        /// Gets cookies as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetCookiesStringUtf8_Slow()
+        {
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->GetCookiesStringUtf8_Slow();
+            }
         }
 
         /// <summary>
@@ -759,7 +1025,13 @@ namespace Starcounter.Advanced
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetResponseRaw(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_response_struct_->GetResponseRaw(out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                http_response_struct_->GetResponseRaw(out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -768,7 +1040,13 @@ namespace Starcounter.Advanced
         /// <returns>UTF8 string.</returns>
         public String GetResponseStringUtf8_Slow()
         {
-            unsafe { return http_response_struct_->GetResponseStringUtf8_Slow(); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->GetResponseStringUtf8_Slow();
+            }
         }
 
         /// <summary>
@@ -778,7 +1056,13 @@ namespace Starcounter.Advanced
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_response_struct_->GetRawHeaders(out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                http_response_struct_->GetRawHeaders(out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -788,7 +1072,13 @@ namespace Starcounter.Advanced
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawCookies(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_response_struct_->GetRawSetCookies(out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                http_response_struct_->GetRawSetCookies(out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -798,7 +1088,13 @@ namespace Starcounter.Advanced
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_response_struct_->GetRawSessionString(out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                http_response_struct_->GetRawSessionString(out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -809,7 +1105,13 @@ namespace Starcounter.Advanced
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_response_struct_->GetHeaderValue(key, out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                http_response_struct_->GetHeaderValue(key, out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -821,7 +1123,13 @@ namespace Starcounter.Advanced
         {
             get
             {
-                unsafe { return http_response_struct_->GetHeaderValue(name); }
+                unsafe
+                {
+                    if (null == http_response_struct_)
+                        throw new ArgumentException("HTTP response not initialized.");
+
+                    return http_response_struct_->GetHeaderValue(name);
+                }
             }
         }
 
@@ -901,7 +1209,13 @@ namespace Starcounter.Advanced
         /// <returns>A string that represents the current object.</returns>
         public override String ToString()
         {
-            unsafe { return http_response_struct_->ToString(); }
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->ToString();
+            }
         }
     }
 
@@ -911,90 +1225,62 @@ namespace Starcounter.Advanced
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct HttpResponseInternal
     {
-        /// <summary>
-        /// Response offset.
-        /// </summary>
+        // Response offset.
         public UInt32 response_offset_;
-
-        /// <summary>
-        /// The response_len_bytes_
-        /// </summary>
         public UInt32 response_len_bytes_;
 
-        /// <summary>
-        /// Content offset.
-        /// </summary>
+        // Content offset.
         public UInt32 content_offset_;
-
-        /// <summary>
-        /// The content_len_bytes_
-        /// </summary>
         public Int32 content_len_bytes_;
 
-        /// <summary>
-        /// Key-value header offset.
-        /// </summary>
+        // Key-value header offset.
         public UInt32 headers_offset_;
-
-        /// <summary>
-        /// The headers_len_bytes_
-        /// </summary>
         public UInt32 headers_len_bytes_;
 
-        /// <summary>
-        /// Cookie value offset.
-        /// </summary>
+        // Cookie value offset.
         public UInt32 set_cookies_offset_;
-
-        /// <summary>
-        /// The cookies_len_bytes_
-        /// </summary>
         public UInt32 set_cookies_len_bytes_;
 
-        /// <summary>
-        /// Session ID string offset.
-        /// </summary>
+        // Session ID string offset.
         public UInt32 session_string_offset_;
-
-        /// <summary>
-        /// The session_string_len_bytes_
-        /// </summary>
         public UInt32 session_string_len_bytes_;
 
-        /// <summary>
-        /// Header offsets.
-        /// </summary>
+        // Header offsets.
         public fixed UInt32 header_offsets_[MixedCodeConstants.MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
-
-        /// <summary>
-        /// The header_len_bytes_
-        /// </summary>
         public fixed UInt32 header_len_bytes_[MixedCodeConstants.MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
-
-        /// <summary>
-        /// The header_value_offsets_
-        /// </summary>
         public fixed UInt32 header_value_offsets_[MixedCodeConstants.MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
-
-        /// <summary>
-        /// The header_value_len_bytes_
-        /// </summary>
         public fixed UInt32 header_value_len_bytes_[MixedCodeConstants.MAX_PREPARSED_HTTP_RESPONSE_HEADERS];
 
-        /// <summary>
-        /// The num_headers_
-        /// </summary>
+        // The num_headers_
         public UInt32 num_headers_;
 
-        /// <summary>
-        /// HTTP response status code.
-        /// </summary>
+        // HTTP response status code.
         public UInt16 status_code_;
 
-        /// <summary>
-        /// Socket data pointer.
-        /// </summary>
+        // Socket data pointer.
         public unsafe Byte* socket_data_;
+
+        /// <summary>
+        /// Get status description.
+        /// </summary>
+        public String GetStatusDescription()
+        {
+            SByte* cur = (SByte*) socket_data_ + response_offset_;
+            cur += 12; // Skipping "HTTP/1.1 XXX"
+
+            // Skipping until first space after StatusCode.
+            while (*cur != (Byte)' ') cur++;
+            cur++;
+            SByte* status_descr_start = cur;
+
+            // Skipping until first character return.
+            while (*cur != (Byte)'\r') cur++;
+
+            // Calculating length of the status string.
+            Int32 len = (Int32)(cur - status_descr_start);
+
+            return new String(status_descr_start, 0, len, Encoding.ASCII);
+        }
 
         /// <summary>
         /// Gets the raw response.
@@ -1074,6 +1360,37 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Gets the cookies as byte array.
+        /// </summary>
+        /// <returns>Cookies bytes.</returns>
+        public Byte[] GetCookiesByteArray_Slow()
+        {
+            // Checking if there are cookies.
+            if (set_cookies_len_bytes_ <= 0)
+                return null;
+
+            // TODO: Provide a more efficient interface with existing Byte[] and offset.
+
+            Byte[] cookies_bytes = new Byte[(Int32)set_cookies_len_bytes_];
+            Marshal.Copy((IntPtr)(socket_data_ + set_cookies_offset_), cookies_bytes, 0, (Int32)set_cookies_len_bytes_);
+
+            return cookies_bytes;
+        }
+
+        /// <summary>
+        /// Gets cookies as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetCookiesStringUtf8_Slow()
+        {
+            // Checking if there are cookies.
+            if (set_cookies_len_bytes_ <= 0)
+                return null;
+
+            return new String((SByte*)(socket_data_ + set_cookies_offset_), 0, (Int32)set_cookies_len_bytes_, Encoding.ASCII);
+        }
+
+        /// <summary>
         /// Gets the raw headers.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
@@ -1086,6 +1403,19 @@ namespace Starcounter.Advanced
                 ptr = new IntPtr(socket_data_ + headers_offset_);
 
             sizeBytes = headers_len_bytes_;
+        }
+
+        /// <summary>
+        /// Gets headers as ASCII string.
+        /// </summary>
+        /// <returns>ASCII string.</returns>
+        public String GetHeadersStringUtf8_Slow()
+        {
+            // Checking if there are cookies.
+            if (headers_len_bytes_ <= 0)
+                return null;
+
+            return new String((SByte*)(socket_data_ + headers_offset_), 0, (Int32)headers_len_bytes_, Encoding.ASCII);
         }
 
         /// <summary>

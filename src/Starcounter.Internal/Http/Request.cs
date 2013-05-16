@@ -36,6 +36,11 @@ namespace Starcounter.Advanced {
             return new Request(RawGET(uri));
         }
 
+        public Request()
+        {
+
+        }
+
         /// <summary>
         /// Internal structure with HTTP request information.
         /// </summary>
@@ -257,7 +262,10 @@ namespace Starcounter.Advanced {
         /// <returns>True if destroyed.</returns>
         public bool IsDestroyed()
         {
-            unsafe { return (http_request_struct_ == null) && (session_ == null); }
+            unsafe
+            {
+                return (http_request_struct_ == null) && (session_ == null);
+            }
         }
         
         /// <summary>
@@ -313,6 +321,9 @@ namespace Starcounter.Advanced {
         {
             unsafe
             {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
                 if (!is_internal_request_)
                     return (IntPtr)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
 
@@ -331,7 +342,13 @@ namespace Starcounter.Advanced {
             {
                 case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                 {
-                    unsafe { return http_request_struct_->GetRawMethodAndUri(); }
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+
+                        return http_request_struct_->GetRawMethodAndUri();
+                    }
                 }
 
                 default:
@@ -378,6 +395,271 @@ namespace Starcounter.Advanced {
         public byte[] ViewModel { get; set; }
 
         /// <summary>
+        /// Indicates if user wants to send custom request.
+        /// </summary>
+        Boolean customFields_;
+
+        /// <summary>
+        /// Bytes that represent custom request.
+        /// </summary>
+        Byte[] customBytes_;
+
+        String contentType_;
+
+        /// <summary>
+        /// Content type.
+        /// </summary>
+        public String ContentType
+        {
+            get
+            {
+                if (null == contentType_)
+                    contentType_ = this["Content-Type"];
+
+                return contentType_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                contentType_ = value;
+            }
+        }
+
+        String contentEncoding_;
+
+        /// <summary>
+        /// Content encoding.
+        /// </summary>
+        public String ContentEncoding
+        {
+            get
+            {
+                if (null == contentEncoding_)
+                    contentEncoding_ = this["Content-Encoding"];
+
+                return contentEncoding_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                contentEncoding_ = value;
+            }
+        }
+
+        String bodyString_;
+
+        /// <summary>
+        /// Body string.
+        /// </summary>
+        public String Body
+        {
+            get
+            {
+                if (null == bodyString_)
+                    bodyString_ = GetBodyStringUtf8_Slow();
+
+                return bodyString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                bodyString_ = value;
+            }
+        }
+
+        String headersString_;
+
+        /// <summary>
+        /// Headers string.
+        /// </summary>
+        public String Headers
+        {
+            get
+            {
+                if (null == headersString_)
+                    throw new ArgumentException("Headers field is not set.");
+
+                return headersString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                headersString_ = value;
+            }
+        }
+
+        String cookieString_;
+
+        /// <summary>
+        /// Cookie string.
+        /// </summary>
+        public String Cookie
+        {
+            get
+            {
+                if (null == cookieString_)
+                    cookieString_ = GetCookiesStringUtf8_Slow();
+
+                return cookieString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                cookieString_ = value;
+            }
+        }
+
+        String methodString_;
+
+        /// <summary>
+        /// Method string.
+        /// </summary>
+        public String Method
+        {
+            get
+            {
+                return methodString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                methodString_ = value;
+            }
+        }
+
+        String uriString_;
+
+        /// <summary>
+        /// Uri string.
+        /// </summary>
+        public String Uri
+        {
+            get
+            {
+                if (null == uriString_)
+                {
+                    switch (protocol_type_)
+                    {
+                        case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                        {
+                            unsafe
+                            {
+                                if (null == http_request_struct_)
+                                    throw new ArgumentException("HTTP request not initialized.");
+
+                                uriString_ = http_request_struct_->Uri;
+                            }
+
+                            return uriString_;
+                        }
+                    }
+
+                    throw new NotSupportedException("Network protocol does not support this method call.");
+                }
+
+                return uriString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                uriString_ = value;
+            }
+        }
+
+        String hostNameString_;
+
+        /// <summary>
+        /// HostName string.
+        /// </summary>
+        public String HostName
+        {
+            get
+            {
+                return hostNameString_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                hostNameString_ = value;
+            }
+        }
+
+        /// <summary>
+        /// Resets all custom fields.
+        /// </summary>
+        public void ResetAllCustomFields()
+        {
+            customFields_ = false;
+
+            cookieString_ = null;
+            headersString_ = null;
+            bodyString_ = null;
+            contentType_ = null;
+            contentEncoding_ = null;
+            hostNameString_ = null;
+            uriString_ = null;
+            methodString_ = null;
+        }
+
+        /// <summary>
+        /// Constructs Response from fields that are set.
+        /// </summary>
+        public void ConstructFromFields()
+        {
+            // Checking if we have a custom response.
+            if (!customFields_)
+                return;
+
+            if (null == uriString_)
+                throw new ArgumentException("Relative URI should be set when creating custom Request.");
+
+            if (null == hostNameString_)
+                throw new ArgumentException("Host name should be set when creating custom Request.");
+
+            if (null == methodString_)
+                methodString_ = "GET";
+
+            String str = methodString_ + " " + uriString_ + " HTTP/1.1" + StarcounterConstants.NetworkConstants.CRLF;
+            str += "Host:" + hostNameString_ + StarcounterConstants.NetworkConstants.CRLF;
+
+            if (null != headersString_)
+                str += headersString_;
+
+            if (null != contentType_)
+                str += "Content-Type: " + contentType_ + StarcounterConstants.NetworkConstants.CRLF;
+
+            if (null != contentEncoding_)
+                str += "Content-Encoding: " + contentEncoding_ + StarcounterConstants.NetworkConstants.CRLF;
+
+            if (null != cookieString_)
+                str += "Cookie: " + cookieString_ + StarcounterConstants.NetworkConstants.CRLF;
+
+            Int32 contentLength = 0;
+
+            if (null != bodyString_)
+                contentLength = bodyString_.Length;
+
+            str += "Content-Length: " + contentLength + StarcounterConstants.NetworkConstants.CRLF;
+
+            str += StarcounterConstants.NetworkConstants.CRLF;
+
+            if (null != bodyString_)
+                str += bodyString_;
+
+            // Finally setting the request bytes.
+            customBytes_ = Encoding.UTF8.GetBytes(str);
+            customFields_ = false;
+        }
+
+        /// <summary>
         /// Gets a value indicating whether this instance can use static response.
         /// </summary>
         /// <value><c>true</c> if this instance can use static response; otherwise, <c>false</c>.</value>
@@ -393,7 +675,13 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes)
         {
-            unsafe { http_request_struct_->GetBodyRaw(out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+                
+                http_request_struct_->GetBodyRaw(out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -404,7 +692,13 @@ namespace Starcounter.Advanced {
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
-            unsafe { return http_request_struct_->GetBodyByteArray_Slow(); }
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                return http_request_struct_->GetBodyByteArray_Slow();
+            }
         }
 
         /// <summary>
@@ -415,7 +709,13 @@ namespace Starcounter.Advanced {
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
-            unsafe { return http_request_struct_->GetRequestByteArray_Slow(); }
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                return http_request_struct_->GetRequestByteArray_Slow();
+            }
         }
 
         /// <summary>
@@ -434,7 +734,13 @@ namespace Starcounter.Advanced {
         /// <returns>UTF8 string.</returns>
         public String GetBodyStringUtf8_Slow()
         {
-            unsafe { return http_request_struct_->GetBodyStringUtf8_Slow(); }
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                return http_request_struct_->GetBodyStringUtf8_Slow();
+            }
         }
 
         /// <summary>
@@ -445,7 +751,13 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                unsafe { return http_request_struct_->content_len_bytes_; }
+                unsafe
+                {
+                    if (null == http_request_struct_)
+                        throw new ArgumentException("HTTP request not initialized.");
+
+                    return http_request_struct_->content_len_bytes_;
+                }
             }
         }
 
@@ -467,7 +779,13 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) 
         {
-            unsafe { http_request_struct_->GetRequestRaw(out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                http_request_struct_->GetRequestRaw(out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -476,7 +794,13 @@ namespace Starcounter.Advanced {
         /// <returns>UTF8 string.</returns>
         public String GetRequestStringUtf8_Slow() 
         {
-            unsafe { return http_request_struct_->GetRequestStringUtf8_Slow(); }
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                return http_request_struct_->GetRequestStringUtf8_Slow();
+            }
         }
 
         /// <summary>
@@ -490,7 +814,14 @@ namespace Starcounter.Advanced {
             {
                 case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                 {
-                    unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+
+                        http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes);
+                    }
+
                     return;
                 }
             }
@@ -509,7 +840,14 @@ namespace Starcounter.Advanced {
             {
                 case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                 {
-                    unsafe { http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes); }
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+
+                        http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes);
+                    }
+
                     sizeBytes += 1;
                     return;
                 }
@@ -529,8 +867,38 @@ namespace Starcounter.Advanced {
             {
                 case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                 {
-                    unsafe { http_request_struct_->GetRawHeaders(out ptr, out sizeBytes); }
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+
+                        http_request_struct_->GetRawHeaders(out ptr, out sizeBytes);
+                    }
+
                     return;
+                }
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
+        }
+
+        /// <summary>
+        /// Gets headers as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetHeadersStringUtf8_Slow()
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+
+                        return http_request_struct_->GetHeadersStringUtf8_Slow();
+                    }
                 }
             }
 
@@ -548,8 +916,38 @@ namespace Starcounter.Advanced {
             {
                 case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                 {
-                    unsafe { http_request_struct_->GetRawCookies(out ptr, out sizeBytes); }
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+                        
+                        http_request_struct_->GetRawCookies(out ptr, out sizeBytes);
+                    }
+
                     return;
+                }
+            }
+
+            throw new NotSupportedException("Network protocol does not support this method call.");
+        }
+
+        /// <summary>
+        /// Gets cookies as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetCookiesStringUtf8_Slow()
+        {
+            switch (protocol_type_)
+            {
+                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                {
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+
+                        return http_request_struct_->GetCookiesStringUtf8_Slow();
+                    }
                 }
             }
 
@@ -567,7 +965,14 @@ namespace Starcounter.Advanced {
             {
                 case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                 {
-                    unsafe { http_request_struct_->GetRawAccept(out ptr, out sizeBytes); }
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+
+                        http_request_struct_->GetRawAccept(out ptr, out sizeBytes);
+                    }
+
                     return;
                 }
             }
@@ -582,7 +987,13 @@ namespace Starcounter.Advanced {
         /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes) 
         {
-            unsafe { http_request_struct_->GetRawSessionString(out ptr, out sizeBytes); }
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                http_request_struct_->GetRawSessionString(out ptr, out sizeBytes);
+            }
         }
 
         /// <summary>
@@ -597,7 +1008,14 @@ namespace Starcounter.Advanced {
             {
                 case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                 {
-                    unsafe { http_request_struct_->GetHeaderValue(key, out ptr, out sizeBytes); }
+                    unsafe
+                    {
+                        if (null == http_request_struct_)
+                            throw new ArgumentException("HTTP request not initialized.");
+
+                        http_request_struct_->GetHeaderValue(key, out ptr, out sizeBytes);
+                    }
+
                     return;
                 }
             }
@@ -618,7 +1036,13 @@ namespace Starcounter.Advanced {
                 {
                     case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                     {
-                        unsafe { return http_request_struct_->GetHeaderValue(name); }
+                        unsafe
+                        {
+                            if (null == http_request_struct_)
+                                throw new ArgumentException("HTTP request not initialized.");
+
+                            return http_request_struct_->GetHeaderValue(name);
+                        }
                     }
                 }
 
@@ -816,26 +1240,6 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets the HTTP method.
-        /// </summary>
-        /// <value>The HTTP method.</value>
-        public HTTP_METHODS HttpMethod
-        {
-            get 
-            {
-                switch (protocol_type_)
-                {
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                    {
-                        unsafe { return http_request_struct_->http_method_; }
-                    }
-                }
-
-                throw new NotSupportedException("Network protocol does not support this method call.");
-            }
-        }
-
-        /// <summary>
         /// Gets the is gzip accepted.
         /// </summary>
         /// <value>The is gzip accepted.</value>
@@ -847,27 +1251,13 @@ namespace Starcounter.Advanced {
                 {
                     case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
                     {
-                        unsafe { return http_request_struct_->is_gzip_accepted_; }
-                    }
-                }
+                        unsafe
+                        {
+                            if (null == http_request_struct_)
+                                throw new ArgumentException("HTTP request not initialized.");
 
-                throw new NotSupportedException("Network protocol does not support this method call.");
-            }
-        }
-
-        /// <summary>
-        /// Gets the URI.
-        /// </summary>
-        /// <value>The URI.</value>
-        public String Uri
-        {
-            get
-            {
-                switch (protocol_type_)
-                {
-                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                    {
-                        unsafe { return http_request_struct_->Uri; }
+                            return http_request_struct_->is_gzip_accepted_;
+                        }
                     }
                 }
 
@@ -881,7 +1271,13 @@ namespace Starcounter.Advanced {
         /// <returns>A string that represents the current object.</returns>
         public override String ToString()
         {
-            unsafe { return http_request_struct_->ToString(); }
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                return http_request_struct_->ToString();
+            }
         }
     }
 
@@ -891,119 +1287,54 @@ namespace Starcounter.Advanced {
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct HttpRequestInternal {
-        /// <summary>
-        /// Request offset.
-        /// </summary>
-        public UInt32 request_offset_;
 
-        /// <summary>
-        /// The request_len_bytes_
-        /// </summary>
+        // Request offset.
+        public UInt32 request_offset_;
         public UInt32 request_len_bytes_;
 
-        /// <summary>
-        /// Content offset.
-        /// </summary>
+        // Content offset.
         public UInt32 content_offset_;
-
-        /// <summary>
-        /// The content_len_bytes_
-        /// </summary>
         public UInt32 content_len_bytes_;
 
-        /// <summary>
-        /// Resource URI offset.
-        /// </summary>
+        // Resource URI offset.
         public UInt32 uri_offset_;
-
-        /// <summary>
-        /// The uri_len_bytes_
-        /// </summary>
         public UInt32 uri_len_bytes_;
 
-        /// <summary>
-        /// Key-value header offset.
-        /// </summary>
+        // Key-value header offset.
         public UInt32 headers_offset_;
-
-        /// <summary>
-        /// The headers_len_bytes_
-        /// </summary>
         public UInt32 headers_len_bytes_;
 
-        /// <summary>
-        /// Cookie value offset.
-        /// </summary>
+        // Cookie value offset.
         public UInt32 cookies_offset_;
-
-        /// <summary>
-        /// The cookies_len_bytes_
-        /// </summary>
         public UInt32 cookies_len_bytes_;
 
-        /// <summary>
-        /// Accept value offset.
-        /// </summary>
+        // Accept value offset.
         public UInt32 accept_value_offset_;
-
-        /// <summary>
-        /// The accept_value_len_bytes_
-        /// </summary>
         public UInt32 accept_value_len_bytes_;
 
-        /// <summary>
-        /// Session ID string offset.
-        /// </summary>
+        // Session ID string offset.
         public UInt32 session_string_offset_;
-
-        /// <summary>
-        /// The session_string_len_bytes_
-        /// </summary>
         public UInt32 session_string_len_bytes_;
 
-        /// <summary>
-        /// Header offsets.
-        /// </summary>
+        // Header offsets.
         public fixed UInt32 header_offsets_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
-
-        /// <summary>
-        /// The header_len_bytes_
-        /// </summary>
         public fixed UInt32 header_len_bytes_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
-
-        /// <summary>
-        /// The header_value_offsets_
-        /// </summary>
         public fixed UInt32 header_value_offsets_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
-
-        /// <summary>
-        /// The header_value_len_bytes_
-        /// </summary>
         public fixed UInt32 header_value_len_bytes_[MixedCodeConstants.MAX_PREPARSED_HTTP_REQUEST_HEADERS];
 
-        /// <summary>
-        /// The num_headers_
-        /// </summary>
+        // The num_headers_
         public UInt32 num_headers_;
 
-        /// <summary>
-        /// HTTP method.
-        /// </summary>
+        // HTTP method.
         public HTTP_METHODS http_method_;
 
-        /// <summary>
-        /// Is Gzip accepted.
-        /// </summary>
+        // Is Gzip accepted.
         public bool is_gzip_accepted_;
 
-        /// <summary>
-        /// Socket data pointer.
-        /// </summary>
+        // Socket data pointer.
         public unsafe Byte* socket_data_;
 
-        /// <summary>
-        /// Pointer to parameters structure.
-        /// </summary>
+        // Pointer to parameters structure.
         public unsafe Byte* params_info_ptr_;
 
         /// <summary>
@@ -1123,6 +1454,50 @@ namespace Starcounter.Advanced {
                 ptr = new IntPtr(socket_data_ + headers_offset_);
 
             sizeBytes = headers_len_bytes_;
+        }
+
+        /// <summary>
+        /// Gets headers as ASCII string.
+        /// </summary>
+        /// <returns>ASCII string.</returns>
+        public String GetHeadersStringUtf8_Slow()
+        {
+            // Checking if there are cookies.
+            if (headers_len_bytes_ <= 0)
+                return null;
+
+            return new String((SByte*)(socket_data_ + headers_offset_), 0, (Int32)headers_len_bytes_, Encoding.ASCII);
+        }
+
+        /// <summary>
+        /// Gets the cookies as byte array.
+        /// </summary>
+        /// <returns>Cookies bytes.</returns>
+        public Byte[] GetCookiesByteArray_Slow()
+        {
+            // Checking if there are cookies.
+            if (cookies_len_bytes_ <= 0)
+                return null;
+
+            // TODO: Provide a more efficient interface with existing Byte[] and offset.
+
+            Byte[] cookies_bytes = new Byte[(Int32)cookies_len_bytes_];
+            Marshal.Copy((IntPtr)(socket_data_ + cookies_offset_), cookies_bytes, 0, (Int32)cookies_len_bytes_);
+
+            return cookies_bytes;
+        }
+
+        /// <summary>
+        /// Gets cookies as UTF8 string.
+        /// </summary>
+        /// <returns>UTF8 string.</returns>
+        public String GetCookiesStringUtf8_Slow()
+        {
+            // Checking if there are cookies.
+            if (cookies_len_bytes_ <= 0)
+                return null;
+
+            return new String((SByte*)(socket_data_ + cookies_offset_), 0, (Int32)cookies_len_bytes_, Encoding.ASCII);
         }
 
         /// <summary>
