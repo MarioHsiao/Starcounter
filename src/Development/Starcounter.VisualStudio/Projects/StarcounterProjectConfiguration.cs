@@ -121,6 +121,15 @@ namespace Starcounter.VisualStudio.Projects {
             this.package.ErrorList.Show();
         }
 
+        protected void ReportError(ErrorMessage msg) {
+            var task = package.ErrorList.NewTask(ErrorTaskSource.Debug, msg);
+            task.CanDelete = true;
+
+            this.package.ErrorList.Tasks.Add(task);
+            this.package.ErrorList.Refresh();
+            this.package.ErrorList.Show();
+        }
+
         protected virtual void WriteDebugLaunchStatus(string status) {
             string text;
 
@@ -255,7 +264,7 @@ namespace Starcounter.VisualStudio.Projects {
             try {
                 launchResult = BeginDebug((__VSDBGLAUNCHFLAGS)grfLaunch);
             }catch (TimeoutException) {
-                this.ReportError(ErrorCode.ToMessage(Error.SCERRDEBUGFAILEDCONNECTTOSERVER));
+                this.ReportError((ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGFAILEDCONNECTTOSERVER));
                 launchResult = false;
             } catch (Exception unexpectedException) {
                 // Don't let exceptions slip throuh to the IDE and make
@@ -276,7 +285,7 @@ namespace Starcounter.VisualStudio.Projects {
                         if (!ErrorCode.TryGetCodedMessage(unexpectedException, out error)) {
                             error = ErrorCode.ToMessage(code);
                         }
-                        this.ReportError(error.Message);
+                        this.ReportError((ErrorMessage)error);
                     }
 
                 } else {

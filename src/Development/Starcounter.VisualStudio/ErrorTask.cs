@@ -76,7 +76,11 @@ namespace Starcounter.VisualStudio {
 
         protected override void OnNavigate(EventArgs e) {
             if (this.ErrorMessage != null) {
-                ShowInUserMessageWindow();
+                try {
+                    ShowInUserMessageWindow();
+                } catch {
+                    ShowInBrowser();
+                }
             }
             base.OnNavigate(e);
         }
