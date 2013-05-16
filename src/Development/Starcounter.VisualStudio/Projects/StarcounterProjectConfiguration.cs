@@ -115,6 +115,15 @@ namespace Starcounter.VisualStudio.Projects {
             var task = package.ErrorList.NewTask(ErrorTaskSource.Debug);
             task.Text = description;
             task.CanDelete = true;
+            
+            this.package.ErrorList.Tasks.Add(task);
+            this.package.ErrorList.Refresh();
+            this.package.ErrorList.Show();
+        }
+
+        protected void ReportError(ErrorMessage msg) {
+            var task = package.ErrorList.NewTask(ErrorTaskSource.Debug, msg);
+            task.CanDelete = true;
 
             this.package.ErrorList.Tasks.Add(task);
             this.package.ErrorList.Refresh();
@@ -255,19 +264,45 @@ namespace Starcounter.VisualStudio.Projects {
             try {
                 launchResult = BeginDebug((__VSDBGLAUNCHFLAGS)grfLaunch);
             }catch (TimeoutException) {
-                this.ReportError(ErrorCode.ToMessage(Error.SCERRDEBUGFAILEDCONNECTTOSERVER));
+                this.ReportError((ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGFAILEDCONNECTTOSERVER));
                 launchResult = false;
             } catch (Exception unexpectedException) {
                 // Don't let exceptions slip throuh to the IDE and make
                 // sure we restore the debug launch pending control flag.
+                uint code;
 
-                this.ReportError(
-                    "Unexpected exception when trying to run the debugging launch sequence: {0}", unexpectedException.Message);
+                if (!ErrorCode.TryGetCode(unexpectedException, out code))
+                    code = 0;
+
+                if (code > 0) {
+                    // Exceptions encoded by ourselves, we report not as unexpected.
+                    // We use the error message at hand. We reserve a special code,
+                    // "ScErrDebugFailedReported", to allow the project implementation
+                    // to report errors already reported.
+
+                    if (code != Error.SCERRDEBUGFAILEDREPORTED) {
+                        ErrorMessage error;
+                        if (!ErrorCode.TryGetCodedMessage(unexpectedException, out error)) {
+                            error = ErrorCode.ToMessage(code);
+                        }
+                        this.ReportError((ErrorMessage)error);
+                    }
+
+                } else {
+                    this.ReportError("Unexpected exception in the debugging launch sequence: {0}", unexpectedException.Message);
+                }
+
                 launchResult = false;
             } finally {
                 debugLaunchPending = false;
                 debugLaunchDescription = "";
                 WriteDebugLaunchStatus(null);
+            }
+
+            if (!launchResult) {
+                this.package.ErrorList.Refresh();
+                this.package.ErrorList.BringToFront();
+                this.package.ErrorList.ForceShowErrors();
             }
 
             return launchResult ? VSConstants.S_OK : VSConstants.S_FALSE;
