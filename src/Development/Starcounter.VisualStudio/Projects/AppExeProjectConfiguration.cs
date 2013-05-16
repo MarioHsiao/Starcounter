@@ -51,20 +51,21 @@ namespace Starcounter.VisualStudio.Projects {
         }
 
         void HandleUnexpectedResponse(Response response) {
+            ErrorMessage msg;
             try {
                 var detail = new ErrorDetail();
                 detail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
-                
-                var msg = ErrorMessage.Parse(detail.Text);
-                this.ReportError(msg.Message);
-                
-                throw ErrorCode.ToException(Error.SCERRDEBUGFAILEDREPORTED);
+                msg = ErrorMessage.Parse(detail.Text);
 
             } catch {
                 // With any kind of failure interpreting the response
-                // message, we use the default handler as a fallback.
-                ResponseExtensions.DefaultErrorHandler(response);
+                // message, we use the general error code and include the
+                // full response as the postfix in the message.
+                msg = ErrorCode.ToMessage(Error.SCERRDEBUGFAILEDREPORTED, response.ToString());
             }
+
+            this.ReportError((ErrorMessage)msg);
+            throw ErrorCode.ToException(Error.SCERRDEBUGFAILEDREPORTED);
         }
 
         public AppExeProjectConfiguration(VsPackage package, IVsHierarchy project, IVsProjectCfg baseConfiguration, IVsProjectFlavorCfg innerConfiguration)
@@ -120,7 +121,7 @@ namespace Starcounter.VisualStudio.Projects {
                 SharedCLI.ResolveAdminServer(cmdLine, out serverHost, out serverPort, out serverName);
                 var serverInfo = string.Format("\"{0}\" at {1}:{2}", serverName, serverHost, serverPort);
 
-                this.ReportError(ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)).Message);
+                this.ReportError((ErrorMessage)ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)));
                 result = false;
             }
 
