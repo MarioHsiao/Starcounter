@@ -38,6 +38,89 @@ namespace Starcounter.Internal.Test
     }
 
     /// <summary>
+    /// Tests user HTTP delegates registration and usage with custom responses.
+    /// </summary>
+    [TestFixture]
+    public class CustomResponseTests
+    {
+        /// <summary>
+        /// Tests simple correct HTTP request.
+        /// </summary>
+        [Test]
+        public void TestLocalNode()
+        {
+            // Node that is used for tests.
+            Node localNode = new Node("127.0.0.1", 8080);
+            localNode.InternalSetLocalNodeForUnitTests();
+
+            Handle.GET("/response1", () =>
+            {
+                return new Response()
+                {
+                    StatusCode = 404,
+                    StatusDescription = "Not Found",
+                    ContentType = "text/html",
+                    ContentEncoding = "gzip",
+                    Headers = "Allow: GET, HEAD\r\n",
+                    SetCookie = "MyCookie1=123; MyCookie2=456",
+                    Body = "response1"
+                };
+            });
+
+            Response resp = localNode.GET("/response1", null, null);
+
+            resp.ResetAllCustomFields();
+
+            Assert.IsTrue(404 == resp.StatusCode);
+            Assert.IsTrue("Not Found" == resp.StatusDescription);
+            Assert.IsTrue("text/html" == resp.ContentType);
+            Assert.IsTrue("gzip" == resp.ContentEncoding);
+            Assert.IsTrue("MyCookie1=123; MyCookie2=456" == resp.SetCookie);
+            Assert.IsTrue(9 == resp.ContentLength);
+            Assert.IsTrue("SC" == resp["Server"]);
+            Assert.IsTrue("response1" == resp.Body);
+
+            Handle.GET("/response2", () =>
+            {
+                return new Response()
+                {
+                    StatusCode = 203,
+                    StatusDescription = "Non-Authoritative Information",
+                };
+            });
+
+            resp = localNode.GET("/response2", null, null);
+
+            resp.ResetAllCustomFields();
+
+            Assert.IsTrue(203 == resp.StatusCode);
+            Assert.IsTrue("Non-Authoritative Information" == resp.StatusDescription);
+            Assert.IsTrue(null == resp.ContentType);
+            Assert.IsTrue(null == resp.ContentEncoding);
+            Assert.IsTrue(null == resp.SetCookie);
+            Assert.IsTrue(0 == resp.ContentLength);
+            Assert.IsTrue("SC" == resp["Server"]);
+            Assert.IsTrue(null == resp.Body);
+
+            Handle.GET("/response3", () =>
+            {
+                return new Response()
+                {
+                    StatusCode = 204,
+                    StatusDescription = "No Content",
+                };
+            });
+
+            resp = localNode.GET("/response3", null, null);
+
+            resp.ResetAllCustomFields();
+
+            Assert.IsTrue(204 == resp.StatusCode);
+            Assert.IsTrue("No Content" == resp.StatusDescription);
+        }
+    }
+
+    /// <summary>
     /// Tests user HTTP delegates registration and usage.
     /// </summary>
     [TestFixture]
