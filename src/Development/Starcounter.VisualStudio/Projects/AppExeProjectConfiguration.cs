@@ -57,6 +57,8 @@ namespace Starcounter.VisualStudio.Projects {
                 
                 var msg = ErrorMessage.Parse(detail.Text);
                 this.ReportError(msg.Message);
+                
+                throw ErrorCode.ToException(Error.SCERRDEBUGFAILEDREPORTED);
 
             } catch {
                 // With any kind of failure interpreting the response
