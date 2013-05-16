@@ -66,7 +66,7 @@
 //
 // Restrict on a pointer promises the compiler that it has no aliases: nothing
 // else in the function points to that same data. Thus the compiler knows that
-// if it writes data to a pointer, it doesnâ€™t need to read it back into a
+// if it writes data to a pointer, it doesn’t need to read it back into a
 // register later on because nothing else could have written to that address.
 //
 // Without restrict, the compiler is forced to read data from every pointer
