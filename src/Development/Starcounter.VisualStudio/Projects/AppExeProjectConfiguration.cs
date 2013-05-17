@@ -51,18 +51,21 @@ namespace Starcounter.VisualStudio.Projects {
         }
 
         void HandleUnexpectedResponse(Response response) {
+            ErrorMessage msg;
             try {
                 var detail = new ErrorDetail();
                 detail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
-                
-                var msg = ErrorMessage.Parse(detail.Text);
-                this.ReportError(msg.Message);
+                msg = ErrorMessage.Parse(detail.Text);
 
             } catch {
                 // With any kind of failure interpreting the response
-                // message, we use the default handler as a fallback.
-                ResponseExtensions.DefaultErrorHandler(response);
+                // message, we use the general error code and include the
+                // full response as the postfix in the message.
+                msg = ErrorCode.ToMessage(Error.SCERRDEBUGFAILEDREPORTED, response.ToString());
             }
+
+            this.ReportError((ErrorMessage)msg);
+            throw ErrorCode.ToException(Error.SCERRDEBUGFAILEDREPORTED);
         }
 
         public AppExeProjectConfiguration(VsPackage package, IVsHierarchy project, IVsProjectCfg baseConfiguration, IVsProjectFlavorCfg innerConfiguration)
@@ -118,7 +121,7 @@ namespace Starcounter.VisualStudio.Projects {
                 SharedCLI.ResolveAdminServer(cmdLine, out serverHost, out serverPort, out serverName);
                 var serverInfo = string.Format("\"{0}\" at {1}:{2}", serverName, serverHost, serverPort);
 
-                this.ReportError(ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)).Message);
+                this.ReportError((ErrorMessage)ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)));
                 result = false;
             }
 
@@ -236,7 +239,9 @@ namespace Starcounter.VisualStudio.Projects {
 
             if ((flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0) {
                 this.WriteDebugLaunchStatus("Attaching debugger");
-                AttachDebugger(engine);
+                if (!AttachDebugger(engine)) {
+                    return false;
+                }
             }
 
             this.WriteDebugLaunchStatus("Starting executable");
@@ -258,7 +263,7 @@ namespace Starcounter.VisualStudio.Projects {
             return true;
         }
 
-        void AttachDebugger(Engine engine) {
+        bool AttachDebugger(Engine engine) {
             DTE dte;
             bool attached;
             string errorMessage;
@@ -282,8 +287,10 @@ namespace Starcounter.VisualStudio.Projects {
                         engine.Database.Name,
                         engine.CodeHostProcess.PID
                         );
-                    return;
                 }
+
+                return attached;
+
             } catch (COMException comException) {
                 if (comException.ErrorCode == -2147221447) {
                     // "Exception from HRESULT: 0x80040039"
@@ -304,7 +311,13 @@ namespace Starcounter.VisualStudio.Projects {
                         "and run it as an administrator, or make sure the database runs in non-elevated mode.";
 
                     this.ReportError(errorMessage);
-                    return;
+                    return false;
+
+                } else if (comException.ErrorCode == -2147221503) {
+                    // The COM exception raised when trying to attach to a
+                    // process with a debugger already attached to it.
+                    this.ReportError((ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGGERALREADYATTACHED));
+                    return false;
                 }
 
                 throw comException;

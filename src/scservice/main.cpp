@@ -113,6 +113,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	}
 
 	wprintf(L"Starting Starcounter %s engine...\n", srv_name);
+	wprintf(L"Press CTRL-C to exit.\n\n");
 
 	// Getting executable directory.
 	if(logsteps != 0 ) { 
@@ -533,6 +534,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		LogVerboseMessage(L"About to create console ctrl-c event listener");
 	}
 
+	DeleteMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
 	if (_set_shutdown_event_handler(__shutdown_event_handler) == false ) {
 		goto log_winerr;
 	}
