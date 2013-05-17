@@ -269,6 +269,7 @@ namespace star {
             exe = new Executable();
             exe.Path = exePath;
             exe.StartedBy = ProgramNameAndContext;
+            exe.IsTool = args.ContainsFlag(StarOption.WaitForEntrypoint);
             if (userArgs != null) {
                 foreach (var arg in userArgs) {
                     exe.Arguments.Add().dummy = arg;
