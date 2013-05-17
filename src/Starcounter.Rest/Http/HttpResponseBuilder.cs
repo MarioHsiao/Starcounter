@@ -100,6 +100,10 @@ namespace Starcounter.Internal.Web
                 msgHeader += header;
                 header = string.Concat("Content-Length: ", bodyLength, CRLF);
                 msgHeader += header;   
+            } else {
+                // Content-Length must always be included!
+                header = string.Concat("Content-Length: 0", CRLF);
+                msgHeader += header;
             }
 
             msgHeader += CRLF;
