@@ -117,6 +117,21 @@ namespace Starcounter.Internal.Test
 
             Assert.IsTrue(204 == resp.StatusCode);
             Assert.IsTrue("No Content" == resp.StatusDescription);
+
+            Handle.GET("/response4", () =>
+            {
+                return new Response()
+                {
+                    StatusCode = 201
+                };
+            });
+
+            resp = localNode.GET("/response4", null, null);
+
+            resp.ResetAllCustomFields();
+
+            Assert.IsTrue(201 == resp.StatusCode);
+            Assert.IsTrue("OK" == resp.StatusDescription);
         }
     }
 

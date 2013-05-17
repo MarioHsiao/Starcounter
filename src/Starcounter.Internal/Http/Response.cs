@@ -380,19 +380,22 @@ namespace Starcounter.Advanced
             
             if (statusCode_ > 0)
             {
-                if (null == statusDescription_)
-                    throw new ArgumentException("When setting StatusCode you have to set StatusDescription as well.");
-
                 str += statusCode_;
                 str += " ";
-                str += statusDescription_ + StarcounterConstants.NetworkConstants.CRLF;
+
+                // Checking if Status Description is set.
+                if (null != statusDescription_)
+                    str += statusDescription_ + StarcounterConstants.NetworkConstants.CRLF;
+                else
+                    str += "OK" + StarcounterConstants.NetworkConstants.CRLF;
             }
             else
             {
+                // Checking if Status Description is set.
                 if (null != statusDescription_)
-                    throw new ArgumentException("When setting StatusDescription you have to set StatusCode as well.");
-
-                str += "200 OK" + StarcounterConstants.NetworkConstants.CRLF;
+                    str += "200 " + statusDescription_ + StarcounterConstants.NetworkConstants.CRLF;
+                else
+                    str += "200 OK" + StarcounterConstants.NetworkConstants.CRLF;
             }
 
             str += "Server: SC" + StarcounterConstants.NetworkConstants.CRLF;
