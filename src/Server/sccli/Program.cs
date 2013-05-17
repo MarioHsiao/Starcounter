@@ -269,6 +269,7 @@ namespace star {
             exe = new Executable();
             exe.Path = exePath;
             exe.StartedBy = ProgramNameAndContext;
+            exe.IsTool = args.ContainsFlag(StarOption.WaitForEntrypoint);
             if (userArgs != null) {
                 foreach (var arg in userArgs) {
                     exe.Arguments.Add().dummy = arg;
@@ -436,6 +437,7 @@ namespace star {
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoDb), "Tells the host to load and run the executable");
             Console.WriteLine(formatting, "", "without loading any database into the process.");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoAutoCreateDb), "Prevents automatic creation of database.");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.WaitForEntrypoint), "Runs the entrypoint fully before returning.");
             if (extended) {
                 Console.WriteLine(formatting, string.Format("--{0} level", StarOption.Verbosity), "Sets the verbosity level of star.exe (quiet, ");
                 Console.WriteLine(formatting, "", "minimal, verbose, diagnostic). Minimal is the default.");
@@ -493,6 +495,10 @@ namespace star {
                 "Prints information about Starcounter and star.exe",
                 OptionAttributes.Default,
                 new string[] { "i" }
+                );
+            appSyntax.DefineFlag(
+                StarOption.WaitForEntrypoint,
+                "Waits for the entrypoint to execute fully before returning."
                 );
 
             // Extended, advanced functionality
