@@ -207,6 +207,8 @@ namespace Starcounter.Internal.Web {
                         // Invoking original user delegate with parameters here.
                         UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
 
+                        Response resp;
+
                         // Handling result.
                         if (result != null)
                         {
@@ -222,10 +224,15 @@ namespace Starcounter.Internal.Web {
                                 throw new ArgumentException("Current WebSockets implementation supports messages only up to 3000 bytes.");
 
                             // Creating a standard Response from result.
-                            return new Response() { Uncompressed = byte_result };
+                            resp = new Response() { Uncompressed = byte_result };
+                        }
+                        else
+                        {
+                            // Creating an error Response from result.
+                            resp = new Response() { Uncompressed = new Byte[] {} };
                         }
 
-                        return null;
+                        return resp;
                     }
                     finally
                     {

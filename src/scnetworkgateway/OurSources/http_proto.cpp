@@ -597,7 +597,13 @@ uint32_t HttpWsProto::HttpUriDispatcher(
 
         // Checking if we failed to find again.
         if (matched_index < 0)
-            return SCERRREQUESTONUNREGISTEREDURI;
+        {
+            // Sending resource not found and closing the connection.
+            sd->set_disconnect_after_send_flag(true);
+            err_code = gw->SendPredefinedMessage(sd, kHttpNotFound, kHttpNotFoundLength);
+            if (err_code)
+                return err_code;
+        }
 
         // Getting matched URI index.
         RegisteredUri* matched_uri = port_uris->GetEntryByIndex(matched_index);
@@ -876,6 +882,19 @@ ALL_DATA_ACCUMULATED:
         if (sd->IsWebSocket())
             return ws_proto_.ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
 
+        // Handled successfully.
+        *is_handled = true;
+
+        // Checking if we want to disconnect.
+        if (sd->get_disconnect_flag())
+        {
+            // NOTE: Socket must be closed.
+            sd->set_socket_representer_flag(true);
+
+            gw->DisconnectAndReleaseChunk(sd);
+            return 0;
+        }
+
 #ifndef GW_NEW_SESSIONS_APPROACH
         // Correcting the session cookie.
         if (sd->get_new_session_flag())
@@ -912,9 +931,6 @@ ALL_DATA_ACCUMULATED:
         // Sending data.
         err_code = gw->Send(sd);
         GW_ERR_CHECK(err_code);
-
-        // Handled successfully.
-        *is_handled = true;
 
         return 0;
     }

@@ -110,6 +110,11 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_FLAGS_JUST_SEND = 64;
 
         /// <summary>
+        /// Just disconnect flag.
+        /// </summary>
+        public const int SOCKET_DATA_FLAGS_DISCONNECT = 128;
+
+        /// <summary>
         /// Type of network operation.
         /// </summary>
         public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 133;

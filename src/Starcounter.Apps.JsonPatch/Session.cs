@@ -28,6 +28,9 @@ namespace Starcounter {
 
         private ChangeLog changeLog;
 
+        // Destroy session delegate.
+        public Action<Session> destroy_user_delegate_;
+
         /// <summary>
         /// Returns the current active session.
         /// </summary>
@@ -221,6 +224,24 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Set user destroy callback.  
+        /// </summary>
+        /// <param name="destroy_user_delegate"></param>
+        public void SetDestroyCallback(Action<Session> destroy_user_delegate)
+        {
+            destroy_user_delegate_ = destroy_user_delegate;
+        }
+
+        /// <summary>
+        /// Gets destroy callback if it was supplied before.
+        /// </summary>
+        /// <returns></returns>
+        public Action<Session> GetDestroyCallback()
+        {
+            return destroy_user_delegate_;
+        }
+
+        /// <summary>
         /// Destroys the session.
         /// </summary>
         public void Destroy()
@@ -229,6 +250,14 @@ namespace Starcounter {
                 DisposeJsonRecursively(root);
             }
             root = null;
+
+            // Checking if destroy callback is supplied.
+            if (null != destroy_user_delegate_)
+            {
+                destroy_user_delegate_(this);
+                destroy_user_delegate_ = null;
+            }
+
             changeLog = null;
             Session.current = null;
         }
