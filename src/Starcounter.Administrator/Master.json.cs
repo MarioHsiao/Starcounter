@@ -180,7 +180,7 @@ namespace Starcounter.Administrator {
                         json.transactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
 
                         json.sqlAggregationSupport = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SqlAggregationSupport;
-                        json.sqlProcessPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SQLProcessPort;
+                        //json.sqlProcessPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SQLProcessPort;
                         json.collationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
 
                         json.collationFiles = new object[] { };
@@ -598,7 +598,7 @@ namespace Starcounter.Administrator {
                                 httpPort = databases[i].Configuration.Runtime.DefaultUserHttpPort,
                                 schedulerCount = databases[i].Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                 chunksNumber = databases[i].Configuration.Runtime.ChunksNumber,
-                                sqlProcessPort = databases[i].Configuration.Runtime.SQLProcessPort,
+                                //sqlProcessPort = databases[i].Configuration.Runtime.SQLProcessPort,
                                 sqlAggregationSupport = databases[i].Configuration.Runtime.SqlAggregationSupport
                             };
                         }
@@ -653,7 +653,7 @@ namespace Starcounter.Administrator {
                                 httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
                                 schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                 chunksNumber = database.Configuration.Runtime.ChunksNumber,
-                                sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
+                                //sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
                                 sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport
 
                             };
@@ -746,10 +746,10 @@ namespace Starcounter.Administrator {
                         }
 
                         // sqlProcessPort
-                        ushort sqlProcessPort;
-                        if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
-                            resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
-                        }
+                        //ushort sqlProcessPort;
+                        //if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
+                        //    resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
+                        //}
 
                         // Collation File
                         if (string.IsNullOrEmpty(incomingJson.collationFile)) {
@@ -790,7 +790,7 @@ namespace Starcounter.Administrator {
                             command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = incomingJson.transactionLogDirectory;
 
                             command.SetupProperties.Configuration.Runtime.SqlAggregationSupport = sqlAggregationSupport;
-                            command.SetupProperties.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
+                            //command.SetupProperties.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
 
                             command.SetupProperties.StorageConfiguration.CollationFile = incomingJson.collationFile;
 
@@ -887,10 +887,10 @@ namespace Starcounter.Administrator {
                             }
 
                             // sqlProcessPort
-                            ushort sqlProcessPort;
-                            if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
-                                resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
-                            }
+                            //ushort sqlProcessPort;
+                            //if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
+                            //    resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
+                            //}
 
                             #endregion
 
@@ -902,7 +902,7 @@ namespace Starcounter.Administrator {
                                 database.Configuration.Runtime.SchedulerCount = schedulerCount;
                                 database.Configuration.Runtime.ChunksNumber = chunksNumber;
                                 database.Configuration.Runtime.SqlAggregationSupport = sqlAggregationSupport;
-                                database.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
+                                //database.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
 
                                 database.Configuration.Save();
                                 resultJson.message = "Settings saved. The new settings will be used at the next start of the database";
@@ -931,7 +931,7 @@ namespace Starcounter.Administrator {
                                         httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
                                         schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                         chunksNumber = database.Configuration.Runtime.ChunksNumber,
-                                        sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
+                                        //sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
                                         sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport
                                     };
 
