@@ -1,6 +1,4 @@
-﻿<!-- Modal (external ./partials/modal.html or inline ng-template) -->
-<div class="modal-header">
-    <!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>-->
+﻿<div class="modal-header">
     <h3>{{header}}</h3>
 </div>
 <div class="modal-body">
@@ -13,7 +11,7 @@
 
     <div ng-hide="stackTrace == null || stackTrace == ''">
 
-    <accordion close-others="oneAtATime">
+        <accordion close-others="oneAtATime">
   
     <accordion-group heading="Stacktrace" >
          <p>{{stackTrace}}</p>  
@@ -22,12 +20,8 @@
     </div>
 
 
-
-
 </div>
 
 <div class="modal-footer">
-    <!--<button type="button" class="btn" ng-click="dismiss()">Close</button>-->
-    <!--<button class="btn btn-primary" ng-click="modal.saved=true;dismiss()">Save changes</button>-->
     <button ng-click="close(result)" class="btn btn-primary">Close</button>
 </div>
