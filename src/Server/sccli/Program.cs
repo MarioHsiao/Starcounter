@@ -1,42 +1,25 @@
 ﻿
 using Starcounter;
+using Starcounter.CLI;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
-using Starcounter.Server.Rest;
-using Starcounter.Server.Rest.Representations.JSON;
 using Starcounter.Server.Setup;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 
 namespace star {
-    using Starcounter.Advanced;
-    using Starcounter.CLI;
-    using Starcounter.Rest.ExtensionMethods;
-    using EngineReference = EngineCollection.EnginesApp;
-    using ExecutableReference = Engine.ExecutablesApp.ExecutingApp;
-    using Option = Starcounter.CLI.SharedCLI.Option;
 
     class Program {
-        const string ProgramName = "star.exe";
-        static string ProgramNameAndContext {
-            get {
-                try { return string.Format("{0}@{1} (via {2})", Environment.UserName.ToLowerInvariant(), Environment.MachineName.ToLowerInvariant(), ProgramName);
-                } catch {
-                    return Program.ProgramName;
-                }
-            }
-        }
        
         static void Main(string[] args) {
             ApplicationArguments appArgs;
             int serverPort;
             string serverName;
             string serverHost;
-            string database;
-
+            
             if (args.Length == 0) {
                 Usage(null);
                 return;
@@ -49,7 +32,7 @@ namespace star {
             // Process global options that has precedence
 
             if (appArgs.ContainsFlag(SharedCLI.UnofficialOptions.Debug)) {
-                System.Diagnostics.Debugger.Launch();
+                Debugger.Launch();
             }
 
             if (appArgs.ContainsFlag(StarOption.NoColor)) {
@@ -113,139 +96,42 @@ namespace star {
             // exist? We shouldnt take away the ability for the server to do so
             // by validating if the file exist here.
             // So bottomline: a client with "full" transparency.
-            
-            try {
-                SharedCLI.ResolveAdminServer(appArgs, out serverHost, out serverPort, out serverName);
-                SharedCLI.ResolveDatabase(appArgs, out database);
-                
-                // Aware of the client transparency guideline stated previously,
-                // we still do resolve the path of the given executable based on
-                // the location of the client. It's most likely what the user
-                // intended.
-                // On top of that, we check if we can find the file once resolved
-                // and if we can't, we do a try on the given name + the .exe file
-                // extension. If we find such file, we assume the user meant that
-                // to be the file.
-                //   After this resolving has taken place, if we still can't find
-                // the file, the correct thing to do is to pass it to the server,
-                // at least in theory. We have no way of knowing how the server do
-                // handle a file that does not exist. Maybe it can create something
-                // on the fly, or using some default?
-                //  However, in practice, it's probably a decent thing to fail
-                // upfront, right here and now, to offload the server and dont have
-                // a lot of processing being done when the file is missing. So that
-                // is what we do. If we find we must be more strict to theory later
-                // on, we should implement a swich that allows this to be turned of.
-                var exePath = appArgs.CommandParameters[0];
-                exePath = Path.GetFullPath(exePath);
-                if (!File.Exists(exePath)) {
-                    var executableEx = appArgs.CommandParameters[0] + ".exe";
-                    executableEx = Path.GetFullPath(executableEx);
-                    if (File.Exists(executableEx)) {
-                        exePath = executableEx;
-                    }
+            //
+            // Aware of the client transparency guideline stated previously,
+            // we still do resolve the path of the given executable based on
+            // the location of the client. It's most likely what the user
+            // intended.
+            // On top of that, we check if we can find the file once resolved
+            // and if we can't, we do a try on the given name + the .exe file
+            // extension. If we find such file, we assume the user meant that
+            // to be the file.
+            //   After this resolving has taken place, if we still can't find
+            // the file, the correct thing to do is to pass it to the server,
+            // at least in theory. We have no way of knowing how the server do
+            // handle a file that does not exist. Maybe it can create something
+            // on the fly, or using some default?
+            //  However, in practice, it's probably a decent thing to fail
+            // upfront, right here and now, to offload the server and dont have
+            // a lot of processing being done when the file is missing. So that
+            // is what we do. If we find we must be more strict to theory later
+            // on, we should implement a swich that allows this to be turned of.
+            var exePath = appArgs.CommandParameters[0];
+            exePath = Path.GetFullPath(exePath);
+            if (!File.Exists(exePath)) {
+                var executableEx = appArgs.CommandParameters[0] + ".exe";
+                executableEx = Path.GetFullPath(executableEx);
+                if (File.Exists(executableEx)) {
+                    exePath = executableEx;
                 }
-                if (!File.Exists(exePath)) {
-                    ShowErrorAndSetExitCode(
-                        ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", exePath)), true);
-                }
-
-                RequestHandler.InitREST();
-                var node = new Node(serverHost, (ushort)serverPort);
-
-                ShowHeadline(
-                    string.Format("[Starting \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
-                    Path.GetFileName(exePath),
-                    database,
-                    serverName,
-                    node.BaseAddress.Host,
-                    node.BaseAddress.Port));
-
-                try {
-                    Engine engine;
-                    Executable exe;
-                    Exec(node, new AdminAPI(), exePath, database, appArgs, out engine, out exe);
-                    ShowResultAndSetExitCode(engine, exe, appArgs);
-                } catch (SocketException se) {
-                    ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
-                    return;
-                }
-                
-            } catch (Exception e) {
-                ShowErrorAndSetExitCode(e, true, false);
-                return;
             }
-        }
-
-        static void Exec(
-            Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, out Engine engine, out Executable exe) {
-            ErrorDetail errorDetail;
-            EngineReference engineRef;
-            int statusCode;
-            var uris = admin.Uris;
-
-            ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse; 
-
-            // GET or START the engine
-            ShowStatus("Retreiving engine status");
-            var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
-            statusCode = response.FailIfNotSuccessOr(404);
-            if (statusCode == 404) {
-                errorDetail = new ErrorDetail();
-                errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
-                if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
-                    var allowed = !args.ContainsFlag(Option.NoAutoCreateDb);
-                    if (!allowed) {
-                        var notAllowed =
-                            ErrorCode.ToMessage(Error.SCERRDATABASENOTFOUND, 
-                            string.Format("Database: \"{0}\". Remove --{1} to create automatically.", databaseName, Option.NoAutoCreateDb));
-                        ShowErrorAndSetExitCode(notAllowed, true);
-                    }
-
-                    ShowStatus("Creating database");
-                    CreateDatabase(node, uris, databaseName);
-                }
-
-                ShowStatus("Starting engine");
-                engineRef = new EngineReference();
-                engineRef.Name = databaseName;
-                engineRef.NoDb = args.ContainsFlag(Option.NoDb);
-                engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
-                response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
-                response.FailIfNotSuccess();
+            if (!File.Exists(exePath)) {
+                SharedCLI.ShowErrorAndSetExitCode(
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", exePath)), true);
             }
-            engine = new Engine();
-            engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
-            var engineETag = response["ETag"];
-
-            // Restart the engine if the executable is already running
-
-            ExecutableReference exeRef = engine.GetExecutable(exePath);
-            if (exeRef != null) {
-                ShowStatus("Stopping engine");
-                response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), null, null, null);
-                response.FailIfNotSuccessOr(404);
-
-                ShowStatus("Starting engine");
-                engineRef = new EngineReference();
-                engineRef.Name = databaseName;
-                engineRef.NoDb = args.ContainsFlag(Option.NoDb);
-                engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
-
-                response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
-                response.FailIfNotSuccess();
-                engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
-            }
-
-            // Go ahead and run the exe.
-            // We could make this final step conditional, only allowing it
-            // to succeed on an engine snapshot based on the one we have
-            // from above (where we know for sure this executable is not
-            // running). But right now, I find no real need to do so.
 
             string[] userArgs = null;
-            if (args.CommandParameters != null) {
-                int userArgsCount = args.CommandParameters.Count;
+            if (appArgs.CommandParameters != null) {
+                int userArgsCount = appArgs.CommandParameters.Count;
 
                 // Check if we have more arguments than one. Remember that we
                 // reserve the first argument as the name/path of the executable
@@ -255,150 +141,14 @@ namespace star {
                 if (userArgsCount > 1) {
                     userArgsCount--;
                     userArgs = new string[userArgsCount];
-                    args.CommandParameters.CopyTo(1, userArgs, 0, userArgsCount);
+                    appArgs.CommandParameters.CopyTo(1, userArgs, 0, userArgsCount);
                 }
             }
 
-            ShowStatus("Starting executable");
-            exe = new Executable();
-            exe.Path = exePath;
-            exe.StartedBy = ProgramNameAndContext;
-            exe.IsTool = args.ContainsFlag(StarOption.WaitForEntrypoint);
-            if (userArgs != null) {
-                foreach (var arg in userArgs) {
-                    exe.Arguments.Add().dummy = arg;
-                }
-            }
+            // Turn to the shared CLI library to do the bulk of the
+            // work executing.
 
-            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null);
-            response.FailIfNotSuccess();
-            exe.PopulateFromJson(response.GetBodyStringUtf8_Slow());
-        }
-
-        static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
-            var db = new Database();
-            db.Name = databaseName;
-            var response = node.POST(uris.Databases, db.ToJson(), null, null);
-            response.FailIfNotSuccess();
-        }
-
-        static void HandleUnexpectedResponse(Response response) {
-            var red = ConsoleColor.Red;
-            int exitCode = response.StatusCode;
-
-            Console.WriteLine();
-            ConsoleUtil.ToConsoleWithColor("Unexpected response from server - unable to continue.", red);
-            ConsoleUtil.ToConsoleWithColor(string.Format("  Response status code: {0}", response.StatusCode), red);
-            
-            // Try extracting an error detail from the body, but make
-            // sure that if we fail doing so, we just dump out the full
-            // content in it's rawest format (dictated by the
-            // Response.ToString implementation).
-            try {
-                var detail = new ErrorDetail();
-                detail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
-                ConsoleUtil.ToConsoleWithColor(string.Format("  Starcounter error code: {0}", detail.ServerCode), red);
-                ConsoleUtil.ToConsoleWithColor(string.Format("  Error message: {0}", detail.Text), red);
-                ConsoleUtil.ToConsoleWithColor(string.Format("  Help link: {0}", detail.Helplink), red);
-                exitCode = (int)detail.ServerCode;
-            } catch {
-                ConsoleUtil.ToConsoleWithColor("  Response:", red);
-                ConsoleUtil.ToConsoleWithColor(response.ToString(), red);
-            } finally {
-                Environment.Exit(exitCode);
-            }
-        }
-
-        static void ShowHeadline(string headline) {
-            ConsoleUtil.ToConsoleWithColor(headline, ConsoleColor.DarkGray);
-        }
-
-        static void ShowStatus(string status) {
-            ConsoleUtil.ToConsoleWithColor(string.Format("  - {0}", status), ConsoleColor.DarkGray);
-        }
-
-        static void ShowErrorAndSetExitCode(ErrorMessage msg, bool exit = false) {
-            ConsoleColor red = ConsoleColor.Red;
-            int exitCode = (int)msg.Code;
-            Console.WriteLine();
-            ConsoleUtil.ToConsoleWithColor(msg.ToString(), red);
-            if (exit) Environment.Exit(exitCode);
-            else Environment.ExitCode = exitCode;
-        }
-
-        static void ShowErrorAndSetExitCode(Exception e, bool showStackTrace = true, bool exit = false) {
-            ErrorMessage msg;
-            bool result;
-            uint errorCode;
-
-            result = ErrorCode.TryGetCodedMessage(e, out msg);
-            if (result) {
-                ShowErrorAndSetExitCode(msg, false);
-                errorCode = msg.Code;
-            } else {
-                if (!ErrorCode.TryGetCode(e, out errorCode)) {
-                    errorCode = Error.SCERRUNSPECIFIED;
-                }
-                Console.WriteLine();
-                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
-                Environment.ExitCode = (int)errorCode;
-            }
-
-            if (showStackTrace) {
-                var stackTraceColor = ConsoleColor.DarkGray;
-                Console.WriteLine();
-                ConsoleUtil.ToConsoleWithColor("Stack trace:", stackTraceColor);
-                ConsoleUtil.ToConsoleWithColor(e.StackTrace, stackTraceColor);
-            }
-            
-            if (exit) Environment.Exit((int)errorCode);
-        }
-
-        static void ShowResultAndSetExitCode(Engine engine, Executable exe, ApplicationArguments args) {
-            var color = ConsoleColor.Green;
-            ConsoleUtil.ToConsoleWithColor(
-                string.Format("Successfully started \"{0}\" (engine PID:{1})", Path.GetFileName(exe.Path), engine.CodeHostProcess.PID), color);
-            color = ConsoleColor.DarkGray;
-            ConsoleUtil.ToConsoleWithColor(string.Format("Started by \"{0}\"", exe.StartedBy), color);
-            //if (args.ContainsFlag(StarOption.AttatchCodeHostDebugger)) {
-            //    Process.Start("vsjitdebugger.exe", "-p " + responseBody.DatabaseHostPID);
-            //    Console.ReadLine();
-            //}
-            Environment.ExitCode = 0;
-        }
-
-        static void ShowSocketErrorAndSetExitCode(SocketException ex, Uri serverUri, string serverName) {
-            
-            // Map the socket level error code to a correspoding Starcounter
-            // error code. Try to be as specific as possible.
-
-            uint scErrorCode;
-            switch(ex.SocketErrorCode) {
-                case SocketError.ConnectionRefused:
-                    scErrorCode = Error.SCERRSERVERNOTRUNNING;
-                    break;
-                default:
-                    scErrorCode = Error.SCERRSERVERNOTAVAILABLE;
-                    break;     
-            }
-
-            try {
-                var serverInfo = string.Format("\"{0}\" at {1}:{2}", serverName, serverUri.Host, serverUri.Port);
-                var socketError = string.Format("{0}/{1}: {2}", ex.SocketErrorCode, ex.ErrorCode, ex.Message);
-
-                Console.WriteLine();
-                ConsoleUtil.ToConsoleWithColor(
-                    ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)),
-                    ConsoleColor.Red);
-                Console.WriteLine();
-                ConsoleUtil.ToConsoleWithColor(
-                    string.Format("(Socket error: {0})", socketError), ConsoleColor.DarkGray);
-
-            } finally {
-                // If any unexpected problem when constructing the error information
-                // or writing them to the console, at least always set the error code.
-                Environment.ExitCode = (int)scErrorCode;
-            }
+            ExeCLI.Exec(exePath, appArgs, userArgs);
         }
 
         static void ShowVersionInfo() {
