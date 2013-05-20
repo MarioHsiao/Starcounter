@@ -66,7 +66,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\..\Level0\src\include;..\..\..\..\Level0\src\shared</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\Level0\src\include;..\..\..\Level0\src\shared</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;DECIMAL_CONVERSION_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>
@@ -74,7 +74,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OutputPath)$(SolutionDir)..\bin\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutputPath)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sccoredb.lib;coalmine.lib;sccorelib.lib;sccorelog.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>decimal_conversion.def</ModuleDefinitionFile>
       <SubSystem>Windows</SubSystem>
