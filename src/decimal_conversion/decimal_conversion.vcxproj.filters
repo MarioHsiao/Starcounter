@@ -5,6 +5,7 @@
     <ClInclude Include="impl\uint128_t.hpp">
       <Filter>impl</Filter>
     </ClInclude>
+    <ClInclude Include="macro_definitions.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="impl">
