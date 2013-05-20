@@ -558,7 +558,6 @@ namespace NetworkIoTestApp
                 p.ToString() +
                 "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
                 "<h1>Host: " + p["Host"] + "</h1>" +
-                "<h1>Method: " + p.HttpMethod + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
 
@@ -593,7 +592,6 @@ namespace NetworkIoTestApp
                 p.ToString() +
                 "<h1>Presented cookies: " + p["Cookie"] + "</h1>" +
                 "<h1>Host: " + p["Host"] + "</h1>" +
-                "<h1>Method: " + p.HttpMethod + "</h1>" +
                 "</body>\r\n" +
                 "</html>\r\n";
 

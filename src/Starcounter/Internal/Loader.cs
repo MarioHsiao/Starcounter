@@ -113,12 +113,15 @@ namespace Starcounter.Internal
             Boolean isObjectID = false;
             Boolean isObjectNo = false;
 
+            string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
+
+            // Add column definition for implicit key column.
+            columnDefs.Add(new ColumnDef("__id", DbTypeCode.Key, false, baseName == null ? false : true));
+
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
             LoaderHelper.MapPropertyDefsToColumnDefs(columnDefArray, propertyDefArray);
-
-            string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
             
             var tableDef = new TableDef(databaseClass.Name, baseName, columnDefArray);
             var typeDef = new TypeDef(databaseClass.Name, baseName, propertyDefArray, typeLoader, tableDef);
