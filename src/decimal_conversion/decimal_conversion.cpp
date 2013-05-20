@@ -11,6 +11,7 @@
 #include <sccoredbg.h>
 #include <record\impl\dec_decode.hpp>
 #include <record\impl\dec_encode.hpp>
+#include "../Starcounter.ErrorCodes/scerrres/scerrres.h"
 
 typedef __dataValueFlags data_value_flags_type;
 
@@ -251,8 +252,7 @@ write_decimal:
 	}
 	else {
 		// The value doesn't fit in a X6 decimal.
-		/// TODO: Error code for range error.
-		return 999L; // SCERRCONVERTDECIMALRANGEERROR
+		return SCERRCLRDECTOX6DECRANGEERROR;
 	}
 }
 
@@ -403,6 +403,6 @@ write_decimal:
 	else {
 		// The value doesn't fit in a X6 decimal.
 		/// TODO: Error code for range error.
-		return 999L; // SCERRCONVERTDECIMALRANGEERROR
+		return SCERRCLRDECTOX6DECRANGEERROR;
 	}
 }
