@@ -4010,6 +4010,27 @@
         detailed information.
       </message>
     </code>
+    <code hex="000C" severity="Error" name="ScErrDebugFailedReported">
+      <!--
+      Used internally to communicate the failure of the debug sequence using an
+      exception. Indicates the debug sequence has failed, but that the raising component
+      has logged detailed error messages to the error list and hence, no such action
+      must be taken by the catching party.
+      -->
+      <message>
+        The debug sequence failed. Consult the Visual Studio error list for more information.
+      </message>
+    </code>
+    <code hex="000D" severity="Error" name="ScErrDebuggerAlreadyAttached">
+      <!--
+      Indicates the debugging of a Starcounter application failed b/c attaching the
+      debugger was not possible, since a debugger was already attached to the database
+      code host process the about-to-be-debugged application targets.
+      -->
+      <message>
+        Unable to attach a debugger to the code host process. A debugger is already attached.
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->

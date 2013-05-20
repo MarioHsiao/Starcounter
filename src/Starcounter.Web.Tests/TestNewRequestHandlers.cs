@@ -145,6 +145,22 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestUserHttpHandlers()
         {
+            Byte[] textHtml = Encoding.ASCII.GetBytes("ext/html");
+            Byte[] applicationJson = Encoding.ASCII.GetBytes("ion/json");
+            unsafe
+            {
+                fixed (Byte* textHtmlp = textHtml)
+                {
+                    UInt64 textHtmlNum = *(UInt64*)textHtmlp;
+                }
+
+                fixed (Byte* applicationJsonp = applicationJson)
+                {
+                    UInt64 applicationJsonNum = *(UInt64*)applicationJsonp;
+                }
+            }
+
+
             const Int32 numTests = 11;
             MixedCodeConstants.UserDelegateParamInfo[] paramsInfo = new MixedCodeConstants.UserDelegateParamInfo[numTests]
             {

@@ -15,28 +15,21 @@ namespace Starcounter.XSON.Metadata {
         /// <summary>
         /// Initializes a new instance of the <see cref="InputBindingInfo" /> class.
         /// </summary>
-        /// <param name="classNs">The class ns.</param>
-        /// <param name="className">Name of the class.</param>
-        /// <param name="fullInputTypename">The full input typename.</param>
-        public InputBindingInfo(String classNs, String className, String fullInputTypename) {
-            DeclaringClassNamespace = classNs;
-            DeclaringClassName = className;
-            FullInputTypeName = fullInputTypename;
-        }
+        public InputBindingInfo() { }
 
         /// <summary>
         /// The namespace of the class where the Handle method is declared.
         /// </summary>
-        public readonly String DeclaringClassNamespace;
+        public String DeclaringClassNamespace;
 
         /// <summary>
         /// The name of the class where the Handle method is declared.
         /// </summary>
-        public readonly String DeclaringClassName;
+        public String DeclaringClassName;
 
         /// <summary>
         /// The fullname of the inputtype specified in the Handle method.
         /// </summary>
-        public readonly String FullInputTypeName;
+        public String FullInputTypeName;
     }
 }

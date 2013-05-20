@@ -67,6 +67,11 @@
     <ClCompile Include="tiny_tuple\record_data.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="decimal\decimal.hpp" />
+    <ClInclude Include="decimal\impl\decimal.hpp" />
+    <ClInclude Include="decimal\impl\uint128_t.hpp" />
+    <ClInclude Include="decimal\macro_definitions.hpp" />
+    <ClInclude Include="decimal\uint128_t.hpp" />
     <ClInclude Include="test.hpp" />
     <ClInclude Include="impl\test.hpp" />
     <ClInclude Include="impl\worker.hpp" />

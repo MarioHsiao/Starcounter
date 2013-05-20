@@ -23,13 +23,15 @@
     <ItemGroup>
       <All32BitDllsToCopy Include="
           $(OutputPath)\FasterThanJson.dll;
-          $(OutputPath)\Roslyn.Compilers.dll;
-          $(OutputPath)\Roslyn.Compilers.CSharp.dll;
           $(OutputPath)\Starcounter.BitsAndBytes.dll;
           $(OutputPath)\Starcounter.BitsAndBytes.Native.dll;
           $(OutputPath)\Starcounter.Internal.dll;
           $(OutputPath)\Starcounter.Logging.dll;
-          $(OutputPath)\Starcounter.XSON.dll" />
+          $(OutputPath)\Starcounter.XSON.dll;
+          $(OutputPath)\Starcounter.XSON.CodeGeneration.dll;
+          $(OutputPath)\Starcounter.XSON.Compiler.Mono.dll;
+          $(OutputPath)\Mono.CSharp.dll;
+          $(OutputPath)\Mono.Cecil.dll" />
     </ItemGroup>
 
     <!-- Coyping selected files. -->

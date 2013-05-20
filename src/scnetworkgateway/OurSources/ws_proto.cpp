@@ -219,6 +219,16 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Handled successfully.
     *is_handled = true;
 
+    // Checking if we want to disconnect.
+    if (sd->get_disconnect_flag())
+    {
+        // NOTE: Socket must be closed.
+        sd->set_socket_representer_flag(true);
+
+        gw->DisconnectAndReleaseChunk(sd);
+        return 0;
+    }
+
     // Checking if this socket data is for send only.
     if (sd->get_socket_just_send_flag())
         goto JUST_SEND_SOCKET_DATA;

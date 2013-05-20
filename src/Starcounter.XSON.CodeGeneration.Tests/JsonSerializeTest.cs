@@ -47,6 +47,32 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         }
 
         [Test]
+        public static void SerializingSpecialCharactersTest() {
+            var tPerson1 = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
+            var tPerson2 = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
+            tPerson1.UseCodegeneratedSerializer = false;
+            tPerson2.UseCodegeneratedSerializer = true;
+            
+            dynamic person1 = tPerson1.CreateInstance(null);
+            dynamic person2 = tPerson2.CreateInstance(null);
+
+            person1.FirstName = "1\b2\f3\n4\r5\t6";
+            person2.FirstName = "1\b2\f3\n4\r5\t6";
+
+            byte[] json = person1.ToJsonUtf8();
+            byte[] codeGenJson = person2.ToJsonUtf8();
+
+            Assert.AreEqual(json, codeGenJson);
+
+            person2 = tPerson2.CreateInstance(null);
+            person2.PopulateFromJson(Encoding.UTF8.GetString(codeGenJson));
+            tPerson2.UseCodegeneratedSerializer = false;
+            byte[] afterPopulate = person2.ToJsonUtf8();
+
+            Assert.AreEqual(json, afterPopulate);
+        }
+
+        [Test]
         public static void DebugPregeneratedSerializationCode() {
             byte[] jsonArr;
             int size;
