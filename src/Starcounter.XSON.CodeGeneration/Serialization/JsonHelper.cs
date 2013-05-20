@@ -10,6 +10,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     public static class JsonHelper {
         private static byte[] null_value = { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pfrag"></param>
+        /// <param name="fragmentSize"></param>
+        /// <returns></returns>
         private static unsafe int SizeToDelimiterOrEnd(byte* pfrag, int fragmentSize) {
             byte current;
             int index = 0;
@@ -26,9 +32,17 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             return index;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pfrag"></param>
+        /// <param name="fragmentSize"></param>
+        /// <param name="needsJsonDecoding"></param>
+        /// <returns></returns>
         private static unsafe int SizeToDelimiterOrEndString(byte* pfrag, int fragmentSize, out bool needsJsonDecoding) {
             byte current;
             int index = 0;
+
 
             needsJsonDecoding = false;
             while (index < fragmentSize) {
@@ -44,15 +58,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 index++;
             }
             return index;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static string DecodeString(byte[] buffer) {
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -203,7 +208,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             return success;
         }
 
-
         /// <summary>
         /// Parses the string and decodes it if needed.
         /// </summary>
@@ -238,41 +242,68 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     buffer = new byte[valueSize];
                     Marshal.Copy((IntPtr)pfrag, buffer, 0, valueSize);
                     value = Encoding.UTF8.GetString(buffer, 0, valueSize);
+                } else {
+                    value = DecodeString(pfrag, size, valueSize);
                 }
-                else {
-                    byte current;
-                    int bufferOffset = 0;
-                    buffer = new byte[valueSize];
-                    for (int i = 0; i < valueSize; i++) {
-                        current = pfrag[i];
-                        if (current == '\\') {
-                            i++;
-                            current = pfrag[i];
-
-                            if (current == '\\' || current == '"') {
-                                buffer[bufferOffset++] = current;
-                            } else if (current == 'b') {
-                                buffer[bufferOffset++] = (byte)'\b';
-                            } else if (current == 'f') {
-                                buffer[bufferOffset++] = (byte)'\f';
-                            } else if (current == 'n') {
-                                buffer[bufferOffset++] = (byte)'\n';
-                            } else if (current == 'r') {
-                                buffer[bufferOffset++] = (byte)'\r';
-                            } else if (current == 't') {
-                                buffer[bufferOffset++] = (byte)'\t';
-                            }
-                            continue;
-                        }
-
-                        buffer[bufferOffset++] = current;
-                    }
-                    value = Encoding.UTF8.GetString(buffer, 0, bufferOffset);
-                } 
             }
 
             valueSize += extraSize;
             return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pfrag"></param>
+        /// <param name="srcSize"></param>
+        /// <param name="valueSize"></param>
+        /// <returns></returns>
+        private static unsafe string DecodeString(byte* pfrag, int srcSize, int valueSize) {
+            byte current;
+            int bufferOffset = 0;
+            byte[] buffer = new byte[valueSize];
+            for (int i = 0; i < valueSize; i++) {
+                current = pfrag[i];
+
+                if (current != '\\') {
+                    buffer[bufferOffset++] = current;
+                } else {
+                    i++;
+                    current = pfrag[i];
+                    switch (current) {
+                        case (byte)'\\':
+                        case (byte)'"':
+                            buffer[bufferOffset++] = current;
+                            break;
+                        case (byte)'b':
+                            buffer[bufferOffset++] = (byte)'\b';
+                            break;
+                        case (byte)'f':
+                            buffer[bufferOffset++] = (byte)'\f';
+                            break;
+                        case (byte)'n':
+                            buffer[bufferOffset++] = (byte)'\n';
+                            break;
+                        case (byte)'r':
+                            buffer[bufferOffset++] = (byte)'\r';
+                            break;
+                        case (byte)'t':
+                            buffer[bufferOffset++] = (byte)'\t';
+                            break;
+                        case (byte)'u':
+                            int unicode = 0;
+                            unicode += (HexToInt(pfrag[i + 1]) << 12);
+                            unicode += (HexToInt(pfrag[i + 2]) << 8);
+                            unicode += (HexToInt(pfrag[i + 3]) << 4);
+                            unicode += (HexToInt(pfrag[i + 4]));
+                            i += 4;
+                            buffer[bufferOffset++] = (byte)unicode;
+                            break;
+                    }
+                }
+                continue;
+            }
+            return Encoding.UTF8.GetString(buffer, 0, bufferOffset);
         }
 
         /// <summary>
@@ -283,61 +314,87 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="value"></param>
         /// <param name="tmpArr"></param>
         /// <returns></returns>
-        public static int WriteString(IntPtr ptr, int size, string value) {
+        public static int WriteString(IntPtr buffer, int bufferSize, string value) {
             byte c;
             byte[] valueArr;
             int usedSize;
 
             unsafe {
-                byte* pfrag = (byte*)ptr;
+                byte* pfrag = (byte*)buffer;
 
                 if (value != null) {
                     valueArr = Encoding.UTF8.GetBytes(value);
 
+                    // TODO:
                     // initial size. The end result might be higher if there are character we need to encode.
+                    // How do we make sure we have enough space? 
                     usedSize = valueArr.Length + 2;
-                    if (size < usedSize)
+                    if (bufferSize < usedSize)
                         return -1;
 
                     *pfrag++ = (byte)'"';
                     for (int i = 0; i < valueArr.Length; i++) {
                         c = valueArr[i];
 
-                        // TODO:
-                        // Add support for encoding unicode characters.
+                        if (c >= ' ' && c < 128 && c != '\\' && c != '"') {
+                            *pfrag++ = c;
+                            continue;
+                        }
 
-                        // TODO: 
-                        // Better implementation
-                        if (c == '\\' || c == '"') {
-                            *pfrag++ = (byte)'\\';
-                            usedSize++;
-                        } else if (c == '\b') {
-                            *pfrag++ = (byte)'\\';
-                            usedSize++;
-                            c = (byte)'b';
-                        } else if (c == '\f') {
-                            *pfrag++ = (byte)'\\';
-                            usedSize++;
-                            c = (byte)'f';
-                        } else if (c == '\n') {
-                            *pfrag++ = (byte)'\\';
-                            usedSize++;
-                            c = (byte)'n';
-                        } else if (c == '\r') {
-                            *pfrag++ = (byte)'\\';
-                            usedSize++;
-                            c = (byte)'r';
-                        } else if (c == '\t') {
-                            *pfrag++ = (byte)'\\';
-                            usedSize++;
-                            c = (byte)'t';
-                        } 
-                        *pfrag++ = c;
+                        switch (c){
+                            case (byte)'\\':
+                            case (byte)'"':
+                                *pfrag++ = (byte)'\\';
+                                *pfrag++ = c;
+                                usedSize++;
+                                break;
+                            case (byte)'\b':
+                                *pfrag++ = (byte)'\\';
+                                *pfrag++ = (byte)'b';
+                                usedSize++;
+                                break;
+                            case (byte)'\f':
+                                *pfrag++ = (byte)'\\';
+                                *pfrag++ = (byte)'f';
+                                usedSize++;
+                                break;
+                            case (byte)'\n':
+                                *pfrag++ = (byte)'\\';
+                                *pfrag++ = (byte)'n';
+                                usedSize++;
+                                break;
+                            case (byte)'\r':
+                                *pfrag++ = (byte)'\\';
+                                *pfrag++ = (byte)'r';
+                                usedSize++;
+                                break;
+                            case (byte)'\t':
+                                *pfrag++ = (byte)'\\';
+                                *pfrag++ = (byte)'t';
+                                usedSize++;
+                                break;
+                            default:
+                                if (c <= '\u001f') {
+                                    usedSize += 5;
+                                    if (usedSize > bufferSize)
+                                        return -1;
+
+                                    *pfrag++ = (byte)'\\';
+                                    *pfrag++ = (byte)'u';
+                                    *pfrag++ = IntToHex((c >> 12) & '\x000f');
+                                    *pfrag++ = IntToHex((c >> 8) & '\x000f');
+                                    *pfrag++ = IntToHex((c >> 4) & '\x000f');
+                                    *pfrag++ = IntToHex(c & '\x000f');
+                                } else {
+                                    *pfrag++ = c;
+                                }
+                                break;
+                        }
                     }
                     *pfrag = (byte)'"';
                     return usedSize;
                 } else {
-                    return WriteNull(pfrag, size);
+                    return WriteNull(pfrag, bufferSize);
                 }
             }
         }
@@ -377,6 +434,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pfrag"></param>
+        /// <param name="size"></param>
+        /// <param name="valueAsStr"></param>
+        /// <returns></returns>
         private unsafe static int WriteStringNoQuotations(byte* pfrag, int size, string valueAsStr) {
             byte[] valueArr = Encoding.UTF8.GetBytes(valueAsStr);
             if (size < valueArr.Length)
@@ -463,6 +527,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pfrag"></param>
+        /// <param name="valueSize"></param>
+        /// <returns></returns>
         private unsafe static bool IsNullValue(byte* pfrag, int valueSize) {
             if (valueSize == 4 && pfrag[0] == 'n') {
                 if (pfrag[1] == 'u' && pfrag[2] == 'l' && pfrag[3] == 'l') {
@@ -472,12 +542,35 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pfrag"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         private static unsafe int WriteNull(byte* pfrag, int size) {
             *pfrag++ = (byte)'n';
             *pfrag++ = (byte)'u';
             *pfrag++ = (byte)'l';
             *pfrag++ = (byte)'l';
             return 4;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        private static byte IntToHex(int n) {
+            if (n <= 9)
+                return (byte)(n + 48);
+            return (byte)((n - 10) + 97);
+        }
+
+        private static byte HexToInt(byte h) {
+            if (h >= 97)
+                return (byte)((h + 10) - 97);
+            return (byte)(h - 48);
         }
     }
 }
