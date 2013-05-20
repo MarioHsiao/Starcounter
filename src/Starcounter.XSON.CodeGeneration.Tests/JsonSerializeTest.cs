@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
@@ -15,6 +16,46 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         [TestFixtureSetUp]
         public static void InitializeTest() {
             Obj.Factory = new TypedJsonFactory();
+        }
+
+        [Test]
+        public static void EncodeAndDecodeJsonStrings() {
+            // "standard" special characters.
+            EncodeDecodeString("1\b2\f3\n4\r5\t6\"7\\");
+
+            // Low unicode characters.
+            EncodeDecodeString("UnicodeChars:\u001a\u0006");
+
+            // High unicode characters.
+            EncodeDecodeString("UnicodeChars:\u2031");
+        }
+
+        private static void EncodeDecodeString(string value) {
+            byte[] buffer = new byte[1024];
+            byte[] expected;
+            int count;
+            int used;
+            string decodedString;
+
+            unsafe {
+                fixed (byte* p = buffer) {
+                    count = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
+                    JsonHelper.ParseString((IntPtr)p, buffer.Length, out decodedString, out used);
+                }
+            }
+            expected = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value));
+            Assert.AreEqual(expected.Length, count);
+            CompareArrays(expected, buffer, count);
+
+            Assert.AreEqual(count, used);
+            Assert.AreEqual(value, decodedString);
+        }
+
+        private static void CompareArrays(byte[] expected, byte[] actual, int count) {
+            for (int i = 0; i < count; i++) {
+                if (expected[i] != actual[i])
+                    throw new AssertionException("Expected '" + expected[i] + "' but found '" + actual[i] + "' at position " + i + ".");
+            }
         }
 
         [Test]
@@ -44,32 +85,6 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("person.json"));
             objTemplate.ClassName = "PreGenerated";
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate).GenerateCsSourceCode());
-        }
-
-        [Test]
-        public static void SerializingSpecialCharactersTest() {
-            var tPerson1 = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
-            var tPerson2 = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
-            tPerson1.UseCodegeneratedSerializer = false;
-            tPerson2.UseCodegeneratedSerializer = true;
-            
-            dynamic person1 = tPerson1.CreateInstance(null);
-            dynamic person2 = tPerson2.CreateInstance(null);
-
-            person1.FirstName = "1\b2\f3\n4\r5\t6";
-            person2.FirstName = "1\b2\f3\n4\r5\t6";
-
-            byte[] json = person1.ToJsonUtf8();
-            byte[] codeGenJson = person2.ToJsonUtf8();
-
-            Assert.AreEqual(json, codeGenJson);
-
-            person2 = tPerson2.CreateInstance(null);
-            person2.PopulateFromJson(Encoding.UTF8.GetString(codeGenJson));
-            tPerson2.UseCodegeneratedSerializer = false;
-            byte[] afterPopulate = person2.ToJsonUtf8();
-
-            Assert.AreEqual(json, afterPopulate);
         }
 
         [Test]
