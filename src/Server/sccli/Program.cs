@@ -496,10 +496,6 @@ namespace star {
                 OptionAttributes.Default,
                 new string[] { "i" }
                 );
-            appSyntax.DefineFlag(
-                StarOption.WaitForEntrypoint,
-                "Waits for the entrypoint to execute fully before returning."
-                );
 
             // Extended, advanced functionality
 
