@@ -151,6 +151,33 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Parses the given argument set in <paramref name="args"/> using
+        /// the given <paramref name="syntax"/>.
+        /// </summary>
+        /// <param name="args">The command line arguments to parse.</param>
+        /// <param name="syntax">The syntax to use</param>
+        /// <param name="appArgs">Parsed arguments.</param>
+        /// <returns><c>true</c> if the parsing succeeded; <c>false</c>
+        /// otherwise.
+        /// </returns>
+        /// <remarks>
+        /// If parsing fails, this method will write a message to the console
+        /// and set the environment exit code accordingly.
+        /// </remarks>
+        public static bool TryParse(string[] args, IApplicationSyntax syntax, out ApplicationArguments appArgs) {
+            try {
+                appArgs = new Parser(args).Parse(syntax);
+            } catch (InvalidCommandLineException e) {
+                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
+                Environment.ExitCode = (int)e.ErrorCode;
+                appArgs = null;
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Resolves the admin server host, port and well-known name from a given
         /// set of command-line arguments.
         /// </summary>

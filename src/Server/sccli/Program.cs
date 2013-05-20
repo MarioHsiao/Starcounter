@@ -43,14 +43,8 @@ namespace star {
             }
 
             var syntax = DefineCommandLineSyntax();
-            var parser = new Parser(args);
-            try {
-                appArgs = parser.Parse(syntax);
-            } catch (InvalidCommandLineException e) {
-                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
-                Environment.ExitCode = (int)e.ErrorCode;
+            if (!SharedCLI.TryParse(args, syntax, out appArgs))
                 return;
-            }
 
             // Process global options that has precedence
 
