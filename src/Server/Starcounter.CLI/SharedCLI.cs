@@ -9,7 +9,7 @@ using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System.Net;
 
-namespace Starcounter.Server {
+namespace Starcounter.CLI {
 
     /// <summary>
     /// Provides a set of utilities that can be used by applications
@@ -41,12 +41,37 @@ namespace Starcounter.Server {
         /// Defines well-known options, offered by most CLI tools.
         /// </summary>
         public static class Option {
+            /// <summary>
+            /// Gets the option name of the server port.
+            /// </summary>
             public const string Serverport = "serverport";
+            /// <summary>
+            /// Gets the option name of the user-friendly server name.
+            /// </summary>
             public const string Server = "server";
+            /// <summary>
+            /// Gets the option name of the server host.
+            /// </summary>
             public const string ServerHost = "serverhost";
+            /// <summary>
+            /// Gets the option name of the database.
+            /// </summary>
             public const string Db = "database";
+            /// <summary>
+            /// Gets the option name of the paremeter indicating boot
+            /// sequence steps to be logged.
+            /// </summary>
             public const string LogSteps = "logsteps";
+            /// <summary>
+            /// Gets the option name of the parameter specifying no
+            /// database should be connected to.
+            /// </summary>
             public const string NoDb = "nodb";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
+            /// infrastructure never to automatically create a database
+            /// when such does not exist with a given name.
+            /// </summary>
             public const string NoAutoCreateDb = "noautocreate";
         }
 
@@ -58,6 +83,10 @@ namespace Starcounter.Server {
         /// All unofficial options should begin with sc-*.
         /// </remarks>
         public static class UnofficialOptions {
+            /// <summary>
+            /// Gets the option name of the debug switch, allowing the
+            /// debugger to be attached to the active CLI client.
+            /// </summary>
             public const string Debug = "sc-debug";
         }
 

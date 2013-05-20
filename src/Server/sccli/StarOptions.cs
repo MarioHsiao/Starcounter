@@ -1,5 +1,5 @@
 ﻿
-using Starcounter.Server;
+using Starcounter.CLI;
 
 namespace star {
 
