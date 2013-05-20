@@ -398,6 +398,7 @@ write_decimal:
 		// The value fits in a X6 decimal.
 		int64_t raw_value = decimal.low() | (uint64_t(scale_sign) >> 31) << 63;
 		*encoded_x6_decimal_ptr = encode_dec(raw_value);
+		return 0;
 	}
 	else {
 		// The value doesn't fit in a X6 decimal.
