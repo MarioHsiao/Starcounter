@@ -255,21 +255,17 @@ namespace Starcounter.Internal
 		/// <param name="recordAddr"></param>
 		/// <param name="columnIndex"></param>
         /// <returns></returns>
-		public static Decimal ReadDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex)
-		{
+		public static Decimal ReadDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex) {
             UInt16 flags;
 
-            unsafe
-			{
+            unsafe {
 				Int32[] decimalPart = new Int32[4];
 
-				fixed (Int32* decimalPartPtr = decimalPart)
-				{
+				fixed (Int32* decimalPartPtr = decimalPart) {
 					flags = convert_x6_decimal_to_clr_decimal(recordID, recordAddr, columnIndex,
 					decimalPartPtr);
 
-					if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0)
-					{
+					if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
 						return new Decimal(decimalPart[0], decimalPart[1], decimalPart[2],
 						(decimalPart[3] & 0x80000000) != 0, (Byte)(decimalPart[3] >> 16));
 					}
@@ -1393,19 +1389,15 @@ namespace Starcounter.Internal
         /// </summary>
 		/// <param name="clrDecimal"></param>
         /// <returns></returns>
-		public static Int64 CLRDecimalToEncodedX6Decimal(Decimal clrDecimal)
-		{
-			unsafe
-			{
+		public static Int64 CLRDecimalToEncodedX6Decimal(Decimal clrDecimal) {
+			unsafe {
 				Int32[] decimalPart = Decimal.GetBits(clrDecimal);
 				Int64 encodedX6Decimal = 0;
 
-				fixed (Int32* decimalPartPtr = decimalPart)
-				{
+				fixed (Int32* decimalPartPtr = decimalPart) {
 					// clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
 					// without data loss, the value will be written to encodedX6Decimal.
-					if ((clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal)) == 0)
-					{
+					if ((clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal)) == 0) {
 						return encodedX6Decimal;
 					}
 				}
@@ -1420,15 +1412,12 @@ namespace Starcounter.Internal
 		/// <param name="clrDecimal"></param>
 		/// <param name="encodedX6Decimal"></param>
 		/// <returns></returns>
-		public static UInt32 CLRDecimalToEncodedX6Decimal(Decimal clrDecimal, out Int64 encodedX6Decimal)
-		{
-            unsafe
-			{
+		public static UInt32 CLRDecimalToEncodedX6Decimal(Decimal clrDecimal, out Int64 encodedX6Decimal) {
+            unsafe {
 				Int32[] decimalPart = Decimal.GetBits(clrDecimal);
 				encodedX6Decimal = 0;
 				
-				fixed (Int32* decimalPartPtr = decimalPart)
-				{
+				fixed (Int32* decimalPartPtr = decimalPart) {
 					// clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
 					// without data loss, the value will be written to encodedX6Decimal.
 					return clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
