@@ -54,6 +54,18 @@
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Rest\Starcounter.Rest.csproj">
+      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
+      <Name>Starcounter.Rest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
+      <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
+      <Name>Starcounter.XSON</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Server.Rest\Starcounter.Server.Rest.csproj">
+      <Project>{60aae92e-e384-45ff-96f3-3d6b38462e3c}</Project>
+      <Name>Starcounter.Server.Rest</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

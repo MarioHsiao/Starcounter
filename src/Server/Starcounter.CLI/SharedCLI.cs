@@ -8,6 +8,7 @@ using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System.Net;
+using System.Diagnostics;
 
 namespace Starcounter.CLI {
 
@@ -95,6 +96,34 @@ namespace Starcounter.CLI {
             /// </summary>
             public const string Debug = "sc-debug";
         }
+
+        /// <summary>
+        /// Provides information about the calling client context.
+        /// </summary>
+        public static class ClientContext {
+            /// <summary>
+            /// Gets a string including the user information and the
+            /// file/process name of the calling client.
+            /// </summary>
+            /// <remarks>
+            /// <example>per@per-vaio (via foo.exe)</example>
+            /// </remarks>
+            public static string UserAndProgram {
+                get {
+                    var program = Process.GetCurrentProcess().MainModule.ModuleName;
+                    try {
+                        return string.Format("{0}@{1} (via {2})",
+                            Environment.UserName.ToLowerInvariant(), 
+                            Environment.MachineName.ToLowerInvariant(), program
+                            );
+                    } catch {
+                        return program;
+                    }
+                }
+            }
+        }
+
+        
 
         /// <summary>
         /// Defines and includes the well-known, shared CLI options in
@@ -295,6 +324,63 @@ namespace Starcounter.CLI {
                 database = SharedCLI.DefaultDatabaseName;
             }
             name = database;
+        }
+
+        /// <summary>
+        /// Writes <paramref name="msg"/> to the console using the default
+        /// shared CLI error color and formatting, setting the exit code to
+        /// the error given in the strongly typed error message. Possibly
+        /// also exits the process, depending on the <paramref name="exit"/>
+        /// flag.
+        /// </summary>
+        /// <param name="msg">The message to write.</param>
+        /// <param name="exit">If <c>true</c>, exits the process with the exit code
+        /// fetched from the strongly typed error message.</param>
+        public static void ShowErrorAndSetExitCode(ErrorMessage msg, bool exit = false) {
+            ConsoleColor red = ConsoleColor.Red;
+            int exitCode = (int)msg.Code;
+            Console.WriteLine();
+            ConsoleUtil.ToConsoleWithColor(msg.ToString(), red);
+            if (exit) Environment.Exit(exitCode);
+            else Environment.ExitCode = exitCode;
+        }
+
+        /// <summary>
+        /// Writes the exception <paramref name="e"/> to the console, after first
+        /// formatting it to an error message. Sets the exit code to according to
+        /// the exception.
+        /// </summary>
+        /// <param name="e">The exception to act upon.</param>
+        /// <param name="showStackTrace">Pass <c>true</c> to have this method
+        /// include the stacktrace when writing to the console.</param>
+        /// <param name="exit">If <c>true</c>, exits the process with the exit code
+        /// fetched from the strongly typed error message.</param>
+        public static void ShowErrorAndSetExitCode(Exception e, bool showStackTrace = true, bool exit = false) {
+            ErrorMessage msg;
+            bool result;
+            uint errorCode;
+
+            result = ErrorCode.TryGetCodedMessage(e, out msg);
+            if (result) {
+                ShowErrorAndSetExitCode(msg, false);
+                errorCode = msg.Code;
+            } else {
+                if (!ErrorCode.TryGetCode(e, out errorCode)) {
+                    errorCode = Error.SCERRUNSPECIFIED;
+                }
+                Console.WriteLine();
+                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
+                Environment.ExitCode = (int)errorCode;
+            }
+
+            if (showStackTrace) {
+                var stackTraceColor = ConsoleColor.DarkGray;
+                Console.WriteLine();
+                ConsoleUtil.ToConsoleWithColor("Stack trace:", stackTraceColor);
+                ConsoleUtil.ToConsoleWithColor(e.StackTrace, stackTraceColor);
+            }
+
+            if (exit) Environment.Exit((int)errorCode);
         }
     }
 }
