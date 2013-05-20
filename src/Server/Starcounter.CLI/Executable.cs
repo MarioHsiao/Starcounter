@@ -10,7 +10,7 @@ namespace Starcounter.CLI {
     /// Provides the principal entrypoint to use when a CLI client
     /// want to use the common way to start an executable.
     /// </summary>
-    public static class Executable {
+    public static class ExeCLI {
         /// <summary>
         /// Runs the executable as
         /// </summary>

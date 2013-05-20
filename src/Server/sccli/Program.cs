@@ -3,7 +3,6 @@ using Starcounter;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
-using Starcounter.Server;
 using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.Representations.JSON;
 using Starcounter.Server.Setup;
@@ -14,10 +13,11 @@ using System.Net.Sockets;
 
 namespace star {
     using Starcounter.Advanced;
+    using Starcounter.CLI;
     using Starcounter.Rest.ExtensionMethods;
     using EngineReference = EngineCollection.EnginesApp;
     using ExecutableReference = Engine.ExecutablesApp.ExecutingApp;
-    using Option = SharedCLI.Option;
+    using Option = Starcounter.CLI.SharedCLI.Option;
 
     class Program {
         const string ProgramName = "star.exe";
