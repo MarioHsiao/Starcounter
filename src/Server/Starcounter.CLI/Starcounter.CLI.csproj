@@ -43,7 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Executable.cs" />
+    <Compile Include="ExeCLI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SharedCLI.cs" />
   </ItemGroup>
