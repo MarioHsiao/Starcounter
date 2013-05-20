@@ -11,33 +11,12 @@
         </div>
     </div>
 
-<!--    <div class="control-group" ng-class="{error: myForm.schedulerCount.$invalid}">
-        <label class="control-label" for="schedulerCount">Scheduler Count</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="schedulerCount" id="schedulerCount" placeholder="Scheduler Count" ng-model="database.schedulerCount" required>
-            <span ng-show="myForm.schedulerCount.$error.validationError" class="help-inline">Invalid format</span>
-            <span ng-show="myForm.schedulerCount.$error.required" class="help-inline">Required</span>
-            <span class="help-block">Number of schedulers the database host should utilize.</span>
-        </div>
-    </div>-->
-
-
-    <div class="control-group" ng-class="{error: myForm.sqlProcessPort.$invalid}">
-        <label class="control-label" for="sqlProcessPort">SQL Process Port</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="sqlProcessPort" id="sqlProcessPort" placeholder="SQL Process port" ng-model="database.sqlProcessPort" required>
-            <span ng-show="myForm.sqlProcessPort.$error.validationError" class="help-inline">Invalid format</span>
-            <span ng-show="myForm.sqlProcessPort.$error.required" class="help-inline">Required</span>
-        </div>
-    </div>
-
     <div class="control-group" ng-class="{error: myForm.sqlAggregationSupport.$invalid}">
         <div class="controls">
             <label class="checkbox">
                 <input ng-disabled="isBusy == true" type="checkbox" name="sqlAggregationSupport" id="sqlAggregationSupport" ng-model="database.sqlAggregationSupport">SQL Aggregation Support</label>
         </div>
     </div>
-
 
     <div class="control-group" ng-class="{error: myForm.schedulerCount.$invalid}">
         <label class="control-label" for="schedulerCount">Scheduler Count</label>
@@ -60,12 +39,8 @@
     </div>
 
 
-
-
-
-
     <div class="form-actions">
-        <button type="submit" ng-disabled="myForm.$invalid || isBusy == true || myForm.$dirty == false" class="btn btn-success" ng-click="btnClick_saveSettings()">Save</button>
+        <button type="submit" ng-disabled="myForm.$invalid || isBusy == true || myForm.$dirty == false" class="btn btn-success" ng-click="btnSave()">Save</button>
     </div>
 
 </form>

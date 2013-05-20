@@ -1,0 +1,34 @@
+﻿
+<form name="myForm" class="form-horizontal  well well-small">
+
+    <legend>Start Executable</legend>
+
+    <div class="control-group" ng-class="{error: myForm.file.$invalid}">
+        <label class="control-label" for="file">File</label>
+        <div class="controls">
+            <input ng-disabled='isBusy == true' name="file" id="file" class="span10" placeholder="path to the executable" id="appendedInputButton" type="text" ng-model="file" required>
+            <span class="help-block">Full path to the executable (relative to the server).</span>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="database">Database</label>
+        <div class="controls">
+
+            <select class="input-large" name="database" id="database" ui-select2 ng-model="selectedDatabaseName" required>
+                <option value="">-- select a database --</option>
+                <option value="{{database.name}}" ng-repeat="database in databases">{{database.name}}</option>
+            </select>
+
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" ng-disabled="myForm.$invalid || selectedDatabaseName == ''" class="btn btn-success" ng-click="btn_startExecutable()" type="button">Start Executable</button>
+    </div>
+
+</form>
+
+
+
+

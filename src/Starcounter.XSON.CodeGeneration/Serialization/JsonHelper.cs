@@ -244,10 +244,24 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     int bufferOffset = 0;
                     buffer = new byte[valueSize];
                     for (int i = 0; i < valueSize; i++) {
-                        current = *(pfrag + i);
+                        current = pfrag[i];
                         if (current == '\\') {
                             i++;
-                            buffer[bufferOffset++] = *(pfrag + i);
+                            current = pfrag[i];
+
+                            if (current == '\\' || current == '"') {
+                                buffer[bufferOffset++] = current;
+                            } else if (current == 'b') {
+                                buffer[bufferOffset++] = (byte)'\b';
+                            } else if (current == 'f') {
+                                buffer[bufferOffset++] = (byte)'\f';
+                            } else if (current == 'n') {
+                                buffer[bufferOffset++] = (byte)'\n';
+                            } else if (current == 'r') {
+                                buffer[bufferOffset++] = (byte)'\r';
+                            } else if (current == 't') {
+                                buffer[bufferOffset++] = (byte)'\t';
+                            }
                             continue;
                         }
 
@@ -289,10 +303,35 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     for (int i = 0; i < valueArr.Length; i++) {
                         c = valueArr[i];
 
+                        // TODO:
+                        // Add support for encoding unicode characters.
+
+                        // TODO: 
+                        // Better implementation
                         if (c == '\\' || c == '"') {
                             *pfrag++ = (byte)'\\';
                             usedSize++;
-                        }
+                        } else if (c == '\b') {
+                            *pfrag++ = (byte)'\\';
+                            usedSize++;
+                            c = (byte)'b';
+                        } else if (c == '\f') {
+                            *pfrag++ = (byte)'\\';
+                            usedSize++;
+                            c = (byte)'f';
+                        } else if (c == '\n') {
+                            *pfrag++ = (byte)'\\';
+                            usedSize++;
+                            c = (byte)'n';
+                        } else if (c == '\r') {
+                            *pfrag++ = (byte)'\\';
+                            usedSize++;
+                            c = (byte)'r';
+                        } else if (c == '\t') {
+                            *pfrag++ = (byte)'\\';
+                            usedSize++;
+                            c = (byte)'t';
+                        } 
                         *pfrag++ = c;
                     }
                     *pfrag = (byte)'"';
@@ -329,7 +368,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public static int WriteDecimal(IntPtr ptr, int size, decimal value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture));
+
+                if (value == 0) {
+                    return WriteStringNoQuotations(pfrag, size, "0.0");
+                } else {
+                    return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture));
+                }
             }
         }
 

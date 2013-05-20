@@ -20,6 +20,7 @@ namespace Starcounter.Server {
     /// Encapsulates the services provided by the Starcounter weaver.
     /// </summary>
     internal sealed class WeaverService {
+        const string WeaverErrorParcelId = "A4A7D6FA-EB34-442A-B579-DBB1DBB859E3";
         readonly ServerEngine engine;
 
         /// <summary>
@@ -90,11 +91,80 @@ namespace Starcounter.Server {
             string arguments;
 
             weaverExe = Path.Combine(engine.InstallationDirectory, StarcounterConstants.ProgramNames.ScWeaver + ".exe");
-            arguments = string.Format("Weave \"{0}\" --outdir=\"{1}\"", givenAssembly, runtimeDirectory);
+            arguments = string.Format(
+                "--maxerrors=1 --ErrorParcelId={0} Weave \"{1}\" --outdir=\"{2}\"", 
+                WeaverErrorParcelId, givenAssembly, runtimeDirectory);
 
-            ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
+            try {
+                ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
+            } catch (ToolInvocationException e) {
+                ConvertAndRaiseExceptionFromFailingWeaver(e);
+            }
 
             return Path.Combine(runtimeDirectory, Path.GetFileName(givenAssembly));
+        }
+
+        public static void ExtractParcelledErrors(string[] content, string parcelID, List<string> errors, int maxCount = -1) {
+            string currentParcel;
+
+            currentParcel = null;
+
+            foreach (var inputString in content) {
+                if (inputString == null)
+                    continue;
+
+                // Are we currently parsing a multi-line parcel?
+
+                if (currentParcel != null) {
+                    // Yes we are.
+                    // Check if we have reached the final line.
+
+                    if (inputString.EndsWith(parcelID)) {
+                        // End the parcel.
+
+                        currentParcel += " " + inputString.Substring(0, inputString.Length - parcelID.Length);
+                        errors.Add(currentParcel);
+                        if (errors.Count == maxCount)
+                            return;
+
+                        currentParcel = null;
+                    } else {
+                        // Append the current line to the already
+                        // identified parcel content and continue.
+
+                        currentParcel += " " + inputString;
+                    }
+                } else {
+                    // We are currently not in the middle of parsing a
+                    // parcel. Check the input.
+
+                    if (inputString.StartsWith(parcelID)) {
+                        // Beginning of a new parcel. Create it.
+
+                        currentParcel = inputString.Substring(parcelID.Length);
+
+                        // Check if it's a one-line parcel and if it is,
+                        // terminate it.
+
+                        if (inputString.EndsWith(parcelID)) {
+                            currentParcel = currentParcel.Substring(0, currentParcel.Length - parcelID.Length);
+                            errors.Add(currentParcel);
+                            if (errors.Count == maxCount)
+                                return;
+
+                            currentParcel = null;
+                        }
+                    }
+                }
+            }
+        }
+
+        void ConvertAndRaiseExceptionFromFailingWeaver(ToolInvocationException e) {
+            var errors = new List<string>(1);
+            ExtractParcelledErrors(e.Result.GetErrorOutput(), WeaverErrorParcelId, errors, 1);
+            Trace.Assert(errors.Count == 1);
+
+            throw ErrorMessage.Parse(errors[0]).ToException();
         }
     }
 }

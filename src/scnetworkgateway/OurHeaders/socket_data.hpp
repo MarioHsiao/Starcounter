@@ -16,10 +16,11 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 8,
     SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 16,
     SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
-    SOCKET_DATA_FLAGS_JUST_SEND = 64,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 128,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 256,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 512
+    SOCKET_DATA_FLAGS_JUST_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND,
+    SOCKET_DATA_FLAGS_JUST_DISCONNECT = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 256,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 512,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 1024    
 };
 
 // Socket data chunk.
@@ -140,8 +141,6 @@ public:
         GW_ASSERT(((uint8_t*)&session_.view_model_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_VIEWMODEL_INDEX);
 
         GW_ASSERT(((uint8_t*)&saved_user_handler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
-
-        GW_ASSERT(SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_SEND == starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND);
 
         GW_ASSERT((accept_data_or_params_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
 
@@ -402,6 +401,21 @@ public:
             flags_ |= SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
         else
             flags_ &= ~SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
+    // Getting disconnect flag.
+    bool get_disconnect_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_JUST_DISCONNECT;
+    }
+
+    // Setting disconnect flag.
+    void set_disconnect_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_JUST_DISCONNECT;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_JUST_DISCONNECT;
     }
 
     // Getting new session flag.
