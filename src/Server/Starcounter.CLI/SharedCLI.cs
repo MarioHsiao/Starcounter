@@ -73,6 +73,12 @@ namespace Starcounter.CLI {
             /// when such does not exist with a given name.
             /// </summary>
             public const string NoAutoCreateDb = "noautocreate";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
+            /// client not to return until the full entrypoint of the
+            /// executable has finished.
+            /// </summary>
+            public const string WaitForEntrypoint = "wait";
         }
 
         /// <summary>
@@ -130,6 +136,10 @@ namespace Starcounter.CLI {
             definition.DefineFlag(
                 Option.NoAutoCreateDb,
                 "Specifies that a database can not be automatically created if it doesn't exist."
+                );
+            definition.DefineFlag(
+                Option.WaitForEntrypoint,
+                "Waits for the entrypoint to execute fully before returning."
                 );
 
             if (includeUnofficial) {
