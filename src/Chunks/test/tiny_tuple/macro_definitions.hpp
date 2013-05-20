@@ -5,6 +5,8 @@
 #ifndef MACRO_DEFINITIONS_HPP
 #define MACRO_DEFINITIONS_HPP
 
+#define STARCOUNTER_LITTLE_ENDIAN_ORDER
+
 // Processor cache, vector register size, and vm page constants.
 #define CACHE_LINE_SIZE 64
 #define VM_PAGE_SIZE 4096
