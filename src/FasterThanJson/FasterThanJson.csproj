@@ -53,6 +53,7 @@
     <Compile Include="Base16Int.cs" />
     <Compile Include="Base256Int.cs" />
     <Compile Include="Base32Int.cs" />
+    <Compile Include="Base64Binary.cs" />
     <Compile Include="Base64Int.cs" />
     <Compile Include="Intrinsics.cs" />
     <Compile Include="SessionBlob.cs" />
