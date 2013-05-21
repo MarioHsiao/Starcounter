@@ -7,6 +7,7 @@ using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using Starcounter.XSON.CodeGeneration;
+using Starcounter.XSON.Serializers;
 
 namespace Starcounter.Apps.CodeGeneration.Tests {
     /// <summary>
@@ -16,6 +17,94 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
         [TestFixtureSetUp]
         public static void InitializeTest() {
             Obj.Factory = new TypedJsonFactory();
+        }
+
+        [Test]
+        public static void TestDefaultSerializer() {
+            byte[] correctJson;
+            byte[] defaultJson;
+            TObj tPerson;
+
+            var newtonSerializer = new NewtonsoftSerializer();
+            var defaultSerializer = DefaultSerializer.Instance;
+
+            tPerson = Obj.Factory.CreateJsonTemplateFromFile("person.json");
+            tPerson.UseCodegeneratedSerializer = false;
+
+            dynamic person = tPerson.CreateInstance();
+            SetDefaultPersonValues(person);
+
+            // We use the NewtonSoft implementation as a verifier for correct input and output.
+            TObj.FallbackSerializer = newtonSerializer;
+            correctJson = person.ToJsonUtf8();
+
+            TObj.FallbackSerializer = defaultSerializer;
+            int count = person.ToJsonUtf8(out defaultJson);
+
+            AssertAreEqual(correctJson, defaultJson, count);
+
+            Console.WriteLine(Encoding.UTF8.GetString(correctJson));
+        }
+
+        [Test]
+        public static void BenchmarkSerializers() {
+            string newtonJson;
+            byte[] defaultJson;
+            TObj tPerson;
+
+            DateTime start;
+            DateTime stop;
+            int amount = 100000;
+
+            var newtonSerializer = new NewtonsoftSerializer();
+            var defaultSerializer = DefaultSerializer.Instance;
+
+            tPerson = Obj.Factory.CreateJsonTemplateFromFile("person.json");
+            tPerson.UseCodegeneratedSerializer = false;
+
+            dynamic person = tPerson.CreateInstance();
+            SetDefaultPersonValues(person);
+
+            // We use the NewtonSoft implementation as a verifier for correct input and output.
+            TObj.FallbackSerializer = newtonSerializer;
+
+            // Running once to make sure everything is initialized.
+            newtonJson = person.ToJson();
+            Console.WriteLine("JSON: " + newtonJson);
+            Console.WriteLine();
+
+            start = DateTime.Now;
+            for (int i = 0; i < amount; i++) {
+                newtonJson = person.ToJson();
+            }
+            stop = DateTime.Now;
+
+            Console.WriteLine("Serializing " + amount + " number of times.");
+            Console.WriteLine("NewtonSoft:" + (stop-start).TotalMilliseconds + " ms.");
+
+            TObj.FallbackSerializer = defaultSerializer;
+            person.ToJsonUtf8(out defaultJson);
+
+            start = DateTime.Now;
+            for (int i = 0; i < amount; i++) {
+                person.ToJsonUtf8(out defaultJson);
+            }
+            stop = DateTime.Now;
+
+            Console.WriteLine("Default:" + (stop - start).TotalMilliseconds + " ms.");
+
+            tPerson.UseCodegeneratedSerializer = true;
+            person.ToJsonUtf8(out defaultJson);
+
+            start = DateTime.Now;
+            for (int i = 0; i < amount; i++) {
+                person.ToJsonUtf8(out defaultJson);
+            }
+            stop = DateTime.Now;
+
+            Console.WriteLine("Codegenerated:" + (stop - start).TotalMilliseconds + " ms.");
+
+
         }
 
         [Test]
@@ -44,14 +133,14 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
                 }
             }
             expected = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value));
-            Assert.AreEqual(expected.Length, count);
-            CompareArrays(expected, buffer, count);
+            AssertAreEqual(expected, buffer, count);
 
             Assert.AreEqual(count, used);
             Assert.AreEqual(value, decodedString);
         }
 
-        private static void CompareArrays(byte[] expected, byte[] actual, int count) {
+        private static void AssertAreEqual(byte[] expected, byte[] actual, int count) {
+            Assert.AreEqual(expected.Length, count);
             for (int i = 0; i < count; i++) {
                 if (expected[i] != actual[i])
                     throw new AssertionException("Expected '" + expected[i] + "' but found '" + actual[i] + "' at position " + i + ".");
@@ -95,11 +184,11 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             string correctJson;
             string codegenJson;
             TObj tPerson;
-            
+
             tPerson = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
             dynamic person = (Json)tPerson.CreateInstance(null);
             SetDefaultPersonValues(person);
-            
+
             byte[] buffer = new byte[4096];
             TypedJsonSerializer serializer = new __starcountergenerated__.PreGeneratedSerializer();
 
@@ -110,11 +199,13 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             // Then we do the same but use codegeneration. We use the pregenerated serializer here
             // to be able to debug it, but we will get the same result by enabling codegenerated serializer 
             // on the template.
-            tPerson.UseCodegeneratedSerializer = true;
+            tPerson.UseCodegeneratedSerializer = false;
             jsonArr = new byte[4096];
+
             unsafe {
                 fixed (byte* p = jsonArr) {
-                    size = serializer.Serialize((IntPtr)p, jsonArr.Length, person);
+                    size = serializer.ToJson(person, (IntPtr)p, jsonArr.Length);
+//                    size = person.ToJson((IntPtr)p, jsonArr.Length);
                 }
             }
             codegenJson = Encoding.UTF8.GetString(jsonArr, 0, size);
@@ -123,10 +214,12 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             // Now we populate a new person instance with values from the serializer json.
             // And compare it to the original.
             // All values should be identical.
+            //jsonArr = File.ReadAllBytes("person.json");
             dynamic person2 = tPerson.CreateInstance(null);
             unsafe {
                 fixed (byte* p = jsonArr) {
-                    sizeAfterPopulate = serializer.PopulateFromJson((IntPtr)p, size, person2);
+                    sizeAfterPopulate = serializer.PopulateFromJson(person2, (IntPtr)p, size);
+//                    sizeAfterPopulate = person2.PopulateFromJson((IntPtr)p, size);
                 }
             }
 
