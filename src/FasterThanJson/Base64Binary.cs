@@ -16,9 +16,9 @@ namespace Starcounter.Internal {
         }
         
         public static unsafe uint GetUIntForTriple(Byte* value) {
-            uint twin = *(ushort*)value;
-            byte last = *(byte*)(value+2);
-            uint triple = (twin << 8) | last;
+            uint triple = *(byte*)value;
+            triple = (triple << 8) | (*(byte*)(value + 1));
+            triple = (triple << 8) | (*(byte*)(value + 2));
             return triple;
         }
 
@@ -29,7 +29,7 @@ namespace Starcounter.Internal {
             
             byte* toWrite = value;
             for (uint i = 0; i <triplesNr; i++) {
-                Base64Int.WriteBase64x4(GetUIntForTriple(value), buffer);
+                Base64Int.WriteBase64x4(GetUIntForTriple(toWrite), buffer);
                 Debug.Assert(sizeof(Base64x4) == 4);
                 writtenLength += 4;
                 buffer+= 4;
@@ -40,13 +40,13 @@ namespace Starcounter.Internal {
                     Debug.Assert(toWrite == value + length);
                     return writtenLength;
                 case 1:
-                    Base64Int.WriteBase64x2(*(byte*)value, buffer);
+                    Base64Int.WriteBase64x2(*(byte*)toWrite, buffer);
                     writtenLength += 2;
                     toWrite += 1;
                     Debug.Assert(toWrite == value + length);
                     return writtenLength;
                 case 2:
-                    Base64Int.WriteBase64x3(*(ushort*)value, buffer);
+                    Base64Int.WriteBase64x3(*(ushort*)toWrite, buffer);
                     writtenLength += 3;
                     toWrite += 2;
                     Debug.Assert(toWrite == value + length);
@@ -64,11 +64,11 @@ namespace Starcounter.Internal {
                 uint triple = (uint)Base64Int.ReadBase64x4(ptr);
                 ptr += 4;
                 Debug.Assert((triple & 0xFF000000) == 0);
-                ushort twin = (ushort)(triple >> 4);
-                *(ushort*)writing = twin;
-                writing += 2;
-                byte last = (byte)(triple & 0x000000FF);
-                *(byte*)writing = last;
+                *(byte*)writing = (byte)(triple >> 16);
+                writing++;
+                *(byte*)writing = (byte)((triple & 0x0000FF00) >> 8);
+                writing++;
+                *(byte*)writing = (byte)(triple & 0x000000FF);
                 writing++;
             }
             switch (reminder) {
