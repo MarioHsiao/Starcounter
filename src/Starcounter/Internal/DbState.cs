@@ -275,39 +275,38 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="oid"></param>
-        /// <param name="address"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public static Nullable<Decimal> ReadNullableDecimal(ulong oid, ulong address, Int32 index) {
-            UInt16 flags;
-            UInt32 ec;
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="recordID"></param>
+		/// <param name="recordAddr"></param>
+		/// <param name="columnIndex"></param>
+		/// <returns></returns>
+		public static Nullable<Decimal> ReadNullableDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex) {
+			UInt16 flags;
+			UInt32 ec;
 
-            unsafe {
-                Int32* pArray4;
-                flags = sccoredb.SCObjectReadDecimal2(oid, address, index, &pArray4);
+			unsafe {
+				Int32[] decimalPart = new Int32[4];
 
-                if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                    if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                        return new Decimal(
-                            pArray4[0],
-                            pArray4[1],
-                            pArray4[2],
-                            (pArray4[3] & 0x80000000) != 0,
-                            (Byte)(pArray4[3] >> 16)
-                            );
-                    } else {
-                        return null;
-                    }
-                }
-            }
+				fixed (Int32* decimalPartPtr = decimalPart) {
+					flags = convert_x6_decimal_to_clr_decimal(recordID, recordAddr, columnIndex,
+					decimalPartPtr);
 
-            ec = sccoredb.Mdb_GetLastError();
-            throw ErrorCode.ToException(ec);
-        }
+					if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
+						if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
+							return new Decimal(decimalPart[0], decimalPart[1], decimalPart[2],
+							(decimalPart[3] & 0x80000000) != 0, (Byte)(decimalPart[3] >> 16));
+						} else {
+							return null;
+						}
+					}
+				}
+			}
+
+			ec = sccoredb.Mdb_GetLastError();
+			throw ErrorCode.ToException(ec);
+		}
 
         /// <summary>
         /// 
