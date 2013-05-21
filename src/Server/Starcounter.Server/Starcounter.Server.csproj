@@ -74,7 +74,6 @@
     <Compile Include="Commands\Processors\StartDatabaseCommandProcessor.Meta.cs" />
     <Compile Include="Commands\Processors\StopDatabaseCommandProcessor.cs" />
     <Compile Include="Commands\Processors\StopDatabaseCommandProcessor.Meta.cs" />
-    <Compile Include="CoreServices\AppsService.cs" />
     <Compile Include="Commands\CommandDispatcher.cs" />
     <Compile Include="Commands\CommandProcessor.cs" />
     <Compile Include="Commands\CommandProcessorAttribute.cs" />
@@ -134,7 +133,6 @@
     <Compile Include="ServerHost.cs" />
     <Compile Include="ServerLogSources.cs" />
     <Compile Include="ServerEngine.cs" />
-    <Compile Include="ServerServices.cs" />
     <Compile Include="Setup\RepositorySetup.cs" />
     <Compile Include="Setup\RepositoryStructure.cs" />
     <Compile Include="ToolInvocationException.cs" />
