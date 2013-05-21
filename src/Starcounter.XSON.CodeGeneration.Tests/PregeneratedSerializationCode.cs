@@ -5,9 +5,10 @@ using System.Runtime.InteropServices;
 using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
+using Starcounter.XSON.Serializers;
 
 namespace __starcountergenerated__ {
-    public class PreGeneratedSerializer : TypedJsonSerializer {
+    public class PreGeneratedSerializer : CodegenTypedJsonSerializer {
     #pragma warning disable 0219
     #pragma warning disable 0168
 
@@ -27,9 +28,10 @@ namespace __starcountergenerated__ {
             Marshal.Copy(VerificationBytes, 0, PointerVerificationBytes, VerificationBytes.Length);
         }
 
-        public override int Serialize(IntPtr buffer, int bufferSize, dynamic obj) {
+        public override int ToJson(Obj realObj, IntPtr buffer, int bufferSize) {
             int valueSize;
             Obj childObj;
+            dynamic obj = realObj;
             unsafe {
                 byte* pBuffer = (byte*)buffer;
                 byte* pver = null;
@@ -167,8 +169,9 @@ namespace __starcountergenerated__ {
                 return (bufferSize - leftBufferSize);
             }
         }
-        public override int PopulateFromJson(IntPtr buffer, int bufferSize, dynamic obj) {
+        public override int PopulateFromJson(Obj realObj, IntPtr buffer, int bufferSize) {
             int valueSize;
+            dynamic obj = realObj;
             unsafe {
                 byte* pBuffer = (byte*)buffer;
                 byte* pver = null;
