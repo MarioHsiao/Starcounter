@@ -1,7 +1,6 @@
 ﻿
 using HttpStructs;
 using Starcounter.Advanced;
-using Starcounter.Apps.Bootstrap;
 using Starcounter.Internal.Web;
 using System;
 using System.Collections.Generic;
@@ -85,9 +84,6 @@ namespace Starcounter.Internal {
         static AppsBootstrapper() {
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppServer_ = new HttpAppServer(fileServer);
-
-            // Checking if we are inside the database worker process.
-            AppProcess.AssertInDatabaseOrSendStartRequest();
         }
 
         /// <summary>

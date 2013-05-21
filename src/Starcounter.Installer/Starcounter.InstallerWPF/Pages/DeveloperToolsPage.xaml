@@ -7,8 +7,6 @@
     DisplayName="Developer Tools"
 >
 
-
-
     <pages:BasePage.Resources>
         <converters:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
         <converters:CommandToVisibilityConverter x:Key="commandToVisibilityConverter"/>
@@ -17,11 +15,7 @@
         <converters:ScrollBarVisibilityToPadding x:Key="scrollBarVisibilityToPadding" />
     </pages:BasePage.Resources>
 
-
-
     <pages:BasePage.Content>
-
-
 
         <Grid Style="{DynamicResource PagePanel_Style}">
 
@@ -61,7 +55,7 @@
                     <Grid Grid.Row="1" Style="{DynamicResource Page_Content_Panel_Style}">
 
                         <!-- VisualStudio 2010 Extension -->
-                        <StackPanel Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2010Integration]}">
+                        <StackPanel Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2010Integration]}" Visibility="Collapsed">
 
                             <!--<CheckBox IsChecked="{Binding ExecuteCommand}" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">-->
 
@@ -105,7 +99,7 @@
                         </StackPanel>
 
                         <!-- VisualStudio 2012 Extension -->
-                        <StackPanel Margin="0,100,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2012Integration]}">
+                        <StackPanel  Margin="0,7.5,0,7.5"  Grid.IsSharedSizeScope="True" DataContext="{Binding Components[VisualStudio2012Integration]}">
 
                             <!--<CheckBox IsChecked="{Binding ExecuteCommand}" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">-->
 
