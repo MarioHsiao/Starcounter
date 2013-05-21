@@ -44,6 +44,68 @@ namespace Starcounter.Internal.Test
     public class CustomResponseTests
     {
         /// <summary>
+        /// Tests some helper functions.
+        /// </summary>
+        [Test]
+        public void TestHelperFunctions()
+        {
+            Byte[] b = Encoding.ASCII.GetBytes("-1");
+            Int64 r = Utf8Helper.IntFastParseFromAscii(b, 0, 2);
+            Assert.IsTrue(r == -1);
+
+            b = Encoding.ASCII.GetBytes("0");
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, 1);
+            Assert.IsTrue(r == 0);
+
+            b = Encoding.ASCII.GetBytes("-0");
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, 2);
+            Assert.IsTrue(r == 0);
+
+            b = Encoding.ASCII.GetBytes("-12345");
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, 6);
+            Assert.IsTrue(r == -12345);
+
+            b = Encoding.ASCII.GetBytes("12345");
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, 5);
+            Assert.IsTrue(r == 12345);
+
+            unsafe
+            {
+                b = Encoding.ASCII.GetBytes("0");
+                fixed (Byte* pb = b)
+                {
+                    IntPtr p = (IntPtr) pb;
+                    Boolean is_num = Utf8Helper.IntFastParseFromAscii(p, 1, out r);
+                    Assert.IsTrue(is_num && r == 0);
+                }
+
+                b = Encoding.ASCII.GetBytes("-0");
+                fixed (Byte* pb = b)
+                {
+                    IntPtr p = (IntPtr)pb;
+                    Boolean is_num = Utf8Helper.IntFastParseFromAscii(p, 2, out r);
+                    Assert.IsTrue(is_num && r == 0);
+                }
+
+                b = Encoding.ASCII.GetBytes("-12345");
+                fixed (Byte* pb = b)
+                {
+                    IntPtr p = (IntPtr)pb;
+                    Boolean is_num = Utf8Helper.IntFastParseFromAscii(p, 6, out r);
+                    Assert.IsTrue(is_num && r == -12345);
+                }
+
+                b = Encoding.ASCII.GetBytes("12345a");
+                fixed (Byte* pb = b)
+                {
+                    IntPtr p = (IntPtr)pb;
+                    Boolean is_num = Utf8Helper.IntFastParseFromAscii(p, 6, out r);
+                    Assert.IsTrue(!is_num);
+                }
+            }
+        }
+
+        /// <summary>
         /// Tests simple correct HTTP request.
         /// </summary>
         [Test]

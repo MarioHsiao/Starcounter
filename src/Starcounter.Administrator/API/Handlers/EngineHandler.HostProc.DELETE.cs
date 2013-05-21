@@ -40,7 +40,7 @@ namespace Starcounter.Administrator.API.Handlers {
             // know that fingerprints will never be reused so as soon as
             // the change, we can be 100% sure they will not get back to
             // how they once were (i.e. the fingerprint we have) on entering.
-            var conditionFailed = JSON.CreateConditionBasedResponse(request, applicationEngine);
+            var conditionFailed = JSON.CreateConditionBasedResponse(request, applicationEngine, false);
             if (conditionFailed != null) return conditionFailed;
             var etag = request["If-Match"];
 
