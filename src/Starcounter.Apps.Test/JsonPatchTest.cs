@@ -8,7 +8,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using NUnit.Framework;
-using Starcounter.Apps;
 using Starcounter.Internal;
 using Starcounter.Templates;
 using System.IO;

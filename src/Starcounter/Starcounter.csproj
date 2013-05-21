@@ -57,7 +57,6 @@
     <Compile Include="Advanced\DbEnvironment.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
-    <Compile Include="Apps\Bootstrap\AppProcess.cs" />
     <Compile Include="Apps\NetworkDataStream.cs" />
     <Compile Include="Binary.cs" />
     <Compile Include="Binding\BinaryPropertyBinding.cs" />
