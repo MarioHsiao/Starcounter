@@ -8,7 +8,6 @@ using System;
 using System.IO;
 using System.Linq;
 using Starcounter.Internal;
-using Starcounter.Apps.Bootstrap;
 using Starcounter.Server.Commands;
 
 namespace Starcounter.Server.PublicModel.Commands {
@@ -83,22 +82,6 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
-        /// Gets all arguments targeting Starcounter.
-        /// </summary>
-        internal string[] ArgumentsToStarcounter {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets all arguments targeting the about-to-be started application.
-        /// </summary>
-        internal string[] ArgumentsToApplication {
-            get;
-            private set;
-        }
-
-        /// <summary>
         /// Initializes an instance of <see cref="ExecCommand"/>.
         /// </summary>
         /// <param name="engine">The <see cref="ServerEngine"/> where this command
@@ -121,30 +104,6 @@ namespace Starcounter.Server.PublicModel.Commands {
 
         /// <inheritdoc />
         internal override void GetReadyToEnqueue() {
-            string[] scargs;
-            string[] appargs;
-
-            AppProcess.ParseArguments(this.Arguments, out scargs, out appargs);
-            this.ArgumentsToStarcounter = scargs;
-            this.ArgumentsToApplication = appargs;
-            
-            if (string.IsNullOrEmpty(this.DatabaseName)) {
-                string databaseArg;
-                databaseArg = scargs.FirstOrDefault<string>(delegate(string candidate) {
-                    return candidate != null && candidate.StartsWith("Db=");
-                });
-                if (databaseArg != null) {
-                    databaseArg = databaseArg.Substring(databaseArg.IndexOf("=") + 1);
-                    this.DatabaseName = databaseArg;
-                } else {
-                    this.DatabaseName = StarcounterConstants.DefaultDatabaseName;
-                }
-            }
-
-            if (this.NoDb == false) {
-                this.NoDb = scargs.Contains<string>("NoDb", StringComparer.InvariantCultureIgnoreCase);
-            }
-
             base.GetReadyToEnqueue();
         }
     }
