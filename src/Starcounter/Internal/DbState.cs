@@ -1389,7 +1389,7 @@ namespace Starcounter.Internal
         /// </summary>
 		/// <param name="clrDecimal"></param>
         /// <returns></returns>
-		public static Int64 CLRDecimalToEncodedX6Decimal(Decimal clrDecimal) {
+		public static Int64 ClrDecimalToEncodedX6Decimal(Decimal clrDecimal) {
 			unsafe {
 				Int32[] decimalPart = Decimal.GetBits(clrDecimal);
 				Int64 encodedX6Decimal = 0;
@@ -1412,7 +1412,7 @@ namespace Starcounter.Internal
 		/// <param name="clrDecimal"></param>
 		/// <param name="encodedX6Decimal"></param>
 		/// <returns></returns>
-		public static UInt32 CLRDecimalToEncodedX6Decimal(Decimal clrDecimal, out Int64 encodedX6Decimal) {
+		public static UInt32 ClrDecimalToEncodedX6Decimal(Decimal clrDecimal, out Int64 encodedX6Decimal) {
             unsafe {
 				Int32[] decimalPart = Decimal.GetBits(clrDecimal);
 				encodedX6Decimal = 0;
