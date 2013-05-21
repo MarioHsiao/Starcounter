@@ -19,7 +19,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <value></value>
         internal override string DebugString {
             get {
-                return "int Populate(...)";
+                return "int PopulateFromJson(...)";
             }
         }
 
@@ -27,8 +27,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("public override int PopulateFromJson(IntPtr buffer, int bufferSize, dynamic obj) {");
+            Prefix.Add("public override int PopulateFromJson(Obj realObj, IntPtr buf, int bufferSize) {");
             Prefix.Add("    int valueSize;");
+            Prefix.Add("    dynamic obj = realObj;");
             Suffix.Add("}");
         }
     }

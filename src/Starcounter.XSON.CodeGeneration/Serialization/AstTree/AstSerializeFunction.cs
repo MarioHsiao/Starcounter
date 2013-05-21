@@ -12,15 +12,16 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     internal class AstSerializeFunction : AstNode {
         internal override string DebugString {
             get {
-                return "int Serialize(...)";
+                return "int ToJson(...)";
             }
         }
 
         internal override void GenerateCsCodeForNode() {
             Prefix.Add("");
-            Prefix.Add("public override int Serialize(IntPtr buffer, int bufferSize, dynamic obj) {");
+            Prefix.Add("public override int ToJson(Obj realObj, IntPtr buf, int bufferSize) {");
             Prefix.Add("    int valueSize;");
             Prefix.Add("    Obj childObj;");
+            Prefix.Add("    dynamic obj = realObj;");
             Suffix.Add("}");
         }
     }
