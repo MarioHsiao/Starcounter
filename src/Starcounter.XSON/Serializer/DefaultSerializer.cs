@@ -193,115 +193,73 @@ restart:
                 while (bufferSize < (offset + needed))
                     bufferSize *= 2;
             }
-
 //            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
-
             tmpBuffer = new byte[bufferSize];
             Buffer.BlockCopy(current, 0, tmpBuffer, 0, offset);
             return tmpBuffer;
         }
 
         public override int PopulateFromJson(Obj obj, string json) {
-            //using (JsonTextReader reader = new JsonTextReader(new StringReader(json))) {
-            //    if (reader.Read()) {
-
-            //        if (!(reader.TokenType == JsonToken.StartObject)) {
-            //            throw new Exception("Invalid json data. Cannot populate object");
-            //        }
-            //        PopulateObject(obj, reader);
-            //    }
-            //    return -1;
-            //}
-            return -1;
+            byte[] buf = Encoding.UTF8.GetBytes(json);
+            return PopulateFromJson(obj, buf, buf.Length);
         }
 
         public override int PopulateFromJson(Obj obj, byte[] buffer, int bufferSize) {
-            return PopulateFromJson(obj, Encoding.UTF8.GetString(buffer, 0, bufferSize));
+            int count;
+
+            unsafe {
+                fixed (byte* p = buffer) {
+                    count = PopulateFromJson(obj, (IntPtr)p, bufferSize);
+                }
+            }
+            return count;
         }
 
         public override int PopulateFromJson(Obj obj, IntPtr buffer, int jsonSize) {
-            byte[] jsonArr = new byte[jsonSize];
-            Marshal.Copy(buffer, jsonArr, 0, jsonSize);
-            return PopulateFromJson(obj, jsonArr, jsonSize);
-        }
+            string propertyName;
+            var reader = new ApaJsonReader(buffer, jsonSize);
+            Arr arr;
+            Obj childObj;
+            TObj tObj = obj.Template;
+            Template tProperty;
 
-        ///// <summary>
-        ///// Poplulates the object with values from read from the jsonreader. This method is recursively
-        ///// called for each new object that is parsed from the json.
-        ///// </summary>
-        ///// <param name="obj">The object to set the parsed values in</param>
-        ///// <param name="reader">The JsonReader containing the json to be parsed.</param>
-        //private void PopulateObject(Obj obj, JsonReader reader) {
-        //    bool insideArray = false;
-        //    Template tChild = null;
-        //    TObj tobj = obj.Template;
-            
-        //    try {
-        //        while (reader.Read()) {
-        //            switch (reader.TokenType) {
-        //                case JsonToken.StartObject:
-        //                    Obj newObj;
-        //                    if (insideArray) {
-        //                        newObj = obj.Get((TObjArr)tChild).Add();
-        //                    } else {
-        //                        newObj = obj.Get((TObj)tChild);
-        //                    }
-        //                    PopulateObject(newObj, reader);
-        //                    break;
-        //                case JsonToken.EndObject:
-        //                    return;
-        //                case JsonToken.PropertyName:
-        //                    var tname = (string)reader.Value;
-        //                    tChild = tobj.Properties.GetTemplateByName(tname);
-        //                    if (tChild == null) {
-        //                        throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\"", tname), (msg, e) => {
-        //                            return new FormatException(msg, e);
-        //                        });
-        //                    }
-        //                    break;
-        //                case JsonToken.String:
-        //                    obj.Set((TString)tChild, (string)reader.Value);
-        //                    break;
-        //                case JsonToken.Integer:
-        //                    obj.Set((TLong)tChild, (long)reader.Value);
-        //                    break;
-        //                case JsonToken.Boolean:
-        //                    obj.Set((TBool)tChild, (bool)reader.Value);
-        //                    break;
-        //                case JsonToken.Float:
-        //                    if (tChild is TDecimal) {
-        //                        obj.Set((TDecimal)tChild, Convert.ToDecimal(reader.Value));
-        //                    } else {
-        //                        obj.Set((TDouble)tChild, (double)reader.Value);
-        //                    }
-        //                    break;
-        //                case JsonToken.StartArray:
-        //                    insideArray = true;
-        //                    break;
-        //                case JsonToken.EndArray:
-        //                    insideArray = false;
-        //                    break;
-        //                default:
-        //                    throw new NotImplementedException();
-        //            }
-        //        }
-        //    } catch (InvalidCastException castException) {
-        //        switch (reader.TokenType) {
-        //            case JsonToken.String:
-        //            case JsonToken.Integer:
-        //            case JsonToken.Boolean:
-        //            case JsonToken.Float:
-        //                throw ErrorCode.ToException(
-        //                    Error.SCERRJSONVALUEWRONGTYPE,
-        //                    castException,
-        //                    string.Format("Property=\"{0} ({1})\", Value=\"{2}\"", tChild.PropertyName, tChild.JsonType, reader.Value.ToString()),
-        //                    (msg, e) => {
-        //                        return new FormatException(msg, e);
-        //                    });
-        //            default:
-        //                throw;
-        //        }
-        //    }
-        //}
+            while (reader.GotoProperty()) {
+                propertyName = reader.ReadString();
+                tProperty = tObj.Properties.GetTemplateByName(propertyName);
+                if (tProperty == null) {
+                    throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\""));
+                }
+
+                reader.GotoValue();
+                try {
+                    if (tProperty is TBool) {
+                        obj.Set((TBool)tProperty, reader.ReadBool());
+                    } else if (tProperty is TDecimal) {
+                        obj.Set((TDecimal)tProperty, reader.ReadDecimal());
+                    } else if (tProperty is TDouble) {
+                        obj.Set((TDouble)tProperty, reader.ReadDouble());
+                    } else if (tProperty is TLong) {
+                        obj.Set((TLong)tProperty, reader.ReadLong());
+                    } else if (tProperty is TString) {
+                        obj.Set((TString)tProperty, reader.ReadString());
+                    } else if (tProperty is TObj) {
+                        childObj = obj.Get((TObj)tProperty);
+                        reader.PopulateObject(childObj);
+                    } else if (tProperty is TObjArr) {
+                        arr = obj.Get((TObjArr)tProperty);
+                        while (reader.GotoNextObjectInArray()) {
+                            childObj = arr.Add();
+                            reader.PopulateObject(childObj);
+                        }
+                    }
+                } catch (Exception ex) {
+                    throw ErrorCode.ToException(
+                            Error.SCERRJSONVALUEWRONGTYPE,
+                            ex,
+                            string.Format("Property=\"{0} ({1})\", Value=\"{2}\"", tProperty.PropertyName, tProperty.JsonType));
+                }
+            }
+            return reader.Offset;
+        }
     }
 }

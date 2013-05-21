@@ -26,35 +26,8 @@ namespace Starcounter.Internal {
         }
 
         public override int ToJsonUtf8(Obj obj, out byte[] apa) {
-            int startBufferSize = 4096;
-            int incAmount = 1;
-            byte[] buffer;
-            int usedSize = -1;
-
-            // TODO:
-            // Rewrite generation of serialization code. Buffer should automatically be increased.
-
-            while (true) {
-                buffer = new byte[startBufferSize * incAmount];
-                try {
-                    unsafe {
-                        fixed (byte* p = buffer) {
-                            usedSize = ToJson(obj, (IntPtr)p, buffer.Length);
-                        }
-                    }
-                    break;
-                } catch (Exception ex) {
-                    if (ErrorCode.IsFromErrorCode(ex)) {
-                        incAmount = incAmount * 4;
-                        if (incAmount > 4096)
-                            throw;
-                    } else
-                        throw;
-                }
-            }
-
-            apa = buffer;
-            return usedSize;
+            apa = null;
+            return -1;
         }
 
         public override byte[] ToJsonUtf8(Obj obj) {
