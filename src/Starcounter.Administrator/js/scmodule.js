@@ -629,7 +629,7 @@ executableModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$
 
     $scope.prepareExecutable = function (job, engineName, successCallback, errorCallback) {
 
-        $scope.assureEngine(job, engineName, function () { 
+        $scope.assureEngine(job, engineName, function () {
             // success
 
             // Engine is running
@@ -1644,11 +1644,17 @@ function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
 
     }
 
+    $scope.getEngineExecutableListCounter = 0;  // TODO: Hack to get around "If-None-Match" 501 Not Implemented
     $scope.getEngineExecutableList = function (engine, successCallback, errorCallback) {
+
+        $scope.getEngineExecutableListCounter++;      // TODO: Hack to get around "If-None-Match" 501 Not Implemented
 
         Engine.get({ name: engine.name }, function (response) {
             // Success
             var executables = [];
+
+            $scope.getEngineExecutableListCounter = 0;      // TODO: Hack to get around "If-None-Match" 501 Not Implemented
+
             // Add Executables to list
             for (var n = 0; n < response.Executables.Executing.length ; n++) {
                 var remoteExecutable = response.Executables.Executing[n];
@@ -1688,7 +1694,15 @@ function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
             else {
 
                 if (response.status == 501) {
-                    $scope.showException("Could not retrive the engine " + engine.name + " (501 Not Implemented)", null, null);
+
+                    // TODO: Hack to get around "If-None-Match" 501 Not Implemented
+                    if ($scope.getEngineExecutableListCounter < 2) {                
+                        $scope.getEngineExecutableList(engine, successCallback, errorCallback);
+                        return;
+                    }
+                    else {
+                        $scope.showException("Could not retrive the engine " + engine.name + " (501 Not Implemented)", null, null);
+                    }
                 }
                 else {
                     $scope.showException(response.data, null, null);

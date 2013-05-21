@@ -22,6 +22,7 @@ using System.Threading;
 using System.Windows.Threading;
 using Starcounter.InstallerWPF.DemoSequence;
 using Starcounter.Internal;
+using System.Windows.Documents;
 
 namespace Starcounter.InstallerWPF {
     /// <summary>
@@ -88,13 +89,18 @@ namespace Starcounter.InstallerWPF {
                 return;
             }
 
+            if (e.OriginalSource is Hyperlink && !string.IsNullOrEmpty(e.Parameter as string)) {
+                e.CanExecute = true;
+                e.Handled = true;
+                return;
+            }
+
             if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
                 BasePage page = this.pages_lb.Items.CurrentItem as BasePage;
                 e.CanExecute = page.CanGoNext;
                 e.Handled = true;
                 return;
             }
-
 
             if (e.Parameter is BasePage) {
                 e.Handled = true;
@@ -110,6 +116,30 @@ namespace Starcounter.InstallerWPF {
         }
 
         private void Executed_GoToPage_Command(object sender, ExecutedRoutedEventArgs e) {
+
+            if (e.Handled == false && e.OriginalSource is Hyperlink && !string.IsNullOrEmpty(e.Parameter as string)) {
+                // Used to go to web page
+
+                try {
+                    Process.Start(new ProcessStartInfo(e.Parameter as string));
+                    e.Handled = true;
+                }
+                catch (Win32Exception) {
+
+                    try {
+                        Process.Start(new ProcessStartInfo("explorer.exe", e.Parameter as string));
+                        e.Handled = true;
+                    }
+                    catch (Win32Exception ee) {
+                        string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                        this.OnError(new Exception(message));
+                    }
+
+                }
+                return;
+            }
+
+
             if (e.Parameter is Exception) {
                 // Remove finish page
                 foreach (BasePage page in this.Pages) {
@@ -128,10 +158,6 @@ namespace Starcounter.InstallerWPF {
                 return;
             }
 
-
-
-
-
             foreach (BasePage page in this.Pages) {
                 if (page.GetType().Name.Equals(e.Parameter)) {
                     this.pages_lb.Items.MoveCurrentTo(page);
@@ -144,27 +170,6 @@ namespace Starcounter.InstallerWPF {
                 BasePage page = this.RegisterPage(e.Parameter as BasePage);
                 this.pages_lb.Items.MoveCurrentTo(page);
                 e.Handled = true;
-            }
-
-
-            // Used to go to web page
-            if (e.Handled == false && !string.IsNullOrEmpty(e.Parameter as string)) {
-                try {
-                    Process.Start(new ProcessStartInfo(e.Parameter as string));
-                    e.Handled = true;
-                }
-                catch (Win32Exception) {
-
-                    try {
-                        Process.Start(new ProcessStartInfo("explorer.exe", e.Parameter as string));
-                        e.Handled = true;
-                    }
-                    catch (Win32Exception ee) {
-                        string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
-                        this.OnError(new Exception(message));
-                    }
-
-                }
             }
 
         }
