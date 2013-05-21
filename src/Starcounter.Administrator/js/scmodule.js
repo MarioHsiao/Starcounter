@@ -1626,7 +1626,6 @@ function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
 
                 var engine = $scope.engines[i];
 
-
                 $scope.getEngineExecutableList(engine, function (executables) {
                     // Success
 
@@ -1644,16 +1643,11 @@ function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
 
     }
 
-    $scope.getEngineExecutableListCounter = 0;  // TODO: Hack to get around "If-None-Match" 501 Not Implemented
     $scope.getEngineExecutableList = function (engine, successCallback, errorCallback) {
 
-        $scope.getEngineExecutableListCounter++;      // TODO: Hack to get around "If-None-Match" 501 Not Implemented
-
-        Engine.get({ name: engine.name }, function (response) {
+        Engine.get({ name: engine.name }, function (response, headers) {
             // Success
             var executables = [];
-
-            $scope.getEngineExecutableListCounter = 0;      // TODO: Hack to get around "If-None-Match" 501 Not Implemented
 
             // Add Executables to list
             for (var n = 0; n < response.Executables.Executing.length ; n++) {
@@ -1687,22 +1681,18 @@ function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
 
         }, function (response) {
             // Error
-            //console.log("GOT error response");
             if (response instanceof SyntaxError) {
                 $scope.showException(response.message, null, response.stack);
             }
             else {
 
                 if (response.status == 501) {
-
-                    // TODO: Hack to get around "If-None-Match" 501 Not Implemented
-                    if ($scope.getEngineExecutableListCounter < 2) {                
-                        $scope.getEngineExecutableList(engine, successCallback, errorCallback);
-                        return;
-                    }
-                    else {
-                        $scope.showException("Could not retrive the engine " + engine.name + " (501 Not Implemented)", null, null);
-                    }
+                    // 501 Not Implemented
+                    $scope.showException("Could not retrive the engine " + engine.name + " (501 Not Implemented)", null, null);
+                }
+                else if (response.status == 404) {
+                    // 404	Not Found
+                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.Helplink });
                 }
                 else {
                     $scope.showException(response.data, null, null);
