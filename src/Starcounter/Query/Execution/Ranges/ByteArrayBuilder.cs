@@ -313,16 +313,8 @@ public sealed class ByteArrayBuilder
         Decimal value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
-        fixed (Byte *buf = dataBuffer)
-        {
-            // First byte is non-zero for defined values.
-            *(buf + position) = embedType;
-
-            // Copying actual data bytes.
-            *(Decimal *) (buf + position + 1) = value;
-        }
-
-        position += 17; // Decimal is 128-bits long.
+        Int64 value2 = DbState.ClrDecimalToEncodedX6Decimal(value);
+        AppendNonNullValue(value2, embedType);
     }
 
     private unsafe static void AppendNonNullValue(
@@ -330,14 +322,8 @@ public sealed class ByteArrayBuilder
         Byte[] dataArray,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
-        fixed (Byte *buf = dataArray)
-        {
-            // First byte is non-zero for defined values.
-            *buf = embedType;
-
-            // Copying actual data bytes.
-            *(Decimal *) (buf + 1) = value;
-        }
+        Int64 value2 = DbState.ClrDecimalToEncodedX6Decimal(value);
+        AppendNonNullValue(value2, dataArray, embedType);
     }
 
     internal void Append(
