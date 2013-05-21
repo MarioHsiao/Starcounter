@@ -188,7 +188,7 @@ namespace __urimatcher__ {
             //                handler =  null;
             //                return false;
             //            }
-            int i = (int)Utf8Helper.IntFastParseFromAscii(fragment, 13u, (uint)(fragment.Length - 13));
+            int i = (int)Utf8Helper.IntFastParseFromAscii(fragment, 13u, fragment.Length - 13);
             if (!invoke)
                 resource = null;
             else
@@ -215,7 +215,7 @@ namespace __urimatcher__ {
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public override bool Process(byte[] fragment, int fragmentOffset, bool invoke, HttpRequest request, out SingleRequestProcessorBase handler, out object resource) {
             // GET /dashboard/123
-            int i = (int)Utf8Helper.IntFastParseFromAscii(fragment, 15u, (uint)(fragment.Length - 15));
+            int i = (int)Utf8Helper.IntFastParseFromAscii(fragment, 15u, fragment.Length - 15);
             if (invoke)
                 resource = Code.Invoke(i);
             else
@@ -278,7 +278,7 @@ namespace __urimatcher__ {
                     HttpRequest request,
                     out SingleRequestProcessorBase handler,
                     out object resource) {
-            int i = (int)Utf8Helper.IntFastParseFromAscii(fragment, 13u, (uint)(fragment.Length - 13));
+            int i = (int)Utf8Helper.IntFastParseFromAscii(fragment, 13u, fragment.Length - 13);
             if (invoke)
                 resource = Code.Invoke(i, request);
             else

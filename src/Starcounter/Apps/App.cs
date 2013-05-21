@@ -4,8 +4,6 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Apps.Bootstrap;
-
 namespace Starcounter {
 
     /// <summary>
@@ -18,7 +16,6 @@ namespace Starcounter {
         /// </summary>
         static AppNew()
         {
-            AppProcess.AssertInDatabaseOrSendStartRequest();
         }
     }
 }
