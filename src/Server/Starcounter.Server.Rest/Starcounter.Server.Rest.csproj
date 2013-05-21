@@ -58,7 +58,6 @@
     <Compile Include="Representations.JSON\EngineCollection.json.cs">
       <DependentUpon>EngineCollection.json</DependentUpon>
     </Compile>
-    <Compile Include="SharedCLI.cs" />
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="Representations.JSON\Executable.json">
