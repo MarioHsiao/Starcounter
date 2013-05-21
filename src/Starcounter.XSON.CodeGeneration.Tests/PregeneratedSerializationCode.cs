@@ -28,7 +28,7 @@ namespace __starcountergenerated__ {
             Marshal.Copy(VerificationBytes, 0, PointerVerificationBytes, VerificationBytes.Length);
         }
 
-        public override int ToJson(Obj realObj, IntPtr buffer, int bufferSize) {
+        public int ToJson(Obj realObj, IntPtr buffer, int bufferSize) {
             int valueSize;
             Obj childObj;
             dynamic obj = realObj;
@@ -130,7 +130,7 @@ namespace __starcountergenerated__ {
                 if (childObj == null)
                     valueSize = JsonHelper.WriteNull((IntPtr)pBuffer, leftBufferSize);
                 else
-                    valueSize = childObj.ToJson((IntPtr)pBuffer, leftBufferSize);
+                    valueSize = -1; //childObj.ToJson((IntPtr)pBuffer, leftBufferSize);
                 if (valueSize == -1)
                     throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
                 leftBufferSize -= valueSize;
@@ -160,7 +160,7 @@ namespace __starcountergenerated__ {
                 if (childObj == null)
                     valueSize = JsonHelper.WriteNull((IntPtr)pBuffer, leftBufferSize);
                 else
-                    valueSize = childObj.ToJson((IntPtr)pBuffer, leftBufferSize);
+                    valueSize = -1; //childObj.ToJson((IntPtr)pBuffer, leftBufferSize);
                 if (valueSize == -1)
                     throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
                 leftBufferSize -= valueSize;

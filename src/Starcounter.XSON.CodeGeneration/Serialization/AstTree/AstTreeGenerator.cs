@@ -52,7 +52,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 ParseNode = input
             };
            
-            CreateSerializerFunction(input, jsClass);
+//            CreateSerializerFunction(input, jsClass);
             CreateDeserializerFunction(input, jsClass);
 
             return astNs;
