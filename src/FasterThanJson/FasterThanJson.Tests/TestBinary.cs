@@ -5,7 +5,7 @@ namespace Starcounter.Internal {
     [TestFixture]
     public class TestBinary {
         [Test]
-        public void TestBinaryWrite() {
+        public void TestBinaryWriteSimple() {
             byte[] value = new byte[3];
             for (int i = 0; i <3; i++)
                 value[i]= 0xFF;
@@ -21,6 +21,63 @@ namespace Starcounter.Internal {
             Assert.AreEqual(decoded.Length, 3);
             for (int i = 0; i < 3; i++)
                 Assert.AreEqual(value[i], decoded[i]);
+        }
+
+        internal void ConvertByteArray(byte[] value, uint valueLength, byte[] encoded, uint expectedEncodedLength) {
+            byte[] decoded;
+            unsafe {
+                fixed (byte* valuePtr = value, encodedPtr = encoded) {
+                    uint length = Base64Binary.Write((IntPtr)encodedPtr, valuePtr, valueLength);
+                    Assert.AreEqual(length, expectedEncodedLength);
+                    decoded = Base64Binary.Read(expectedEncodedLength, (IntPtr)encodedPtr);
+                }
+            }
+            Assert.AreEqual(decoded.Length, valueLength);
+            for (int i = 0; i < valueLength; i++)
+                Assert.AreEqual(value[i], decoded[i]);
+        }
+
+        [Test]
+        public void TestConvertBinaryMaxValues() {
+            byte[] value = new byte[3];
+            for (int i = 0; i < 3; i++)
+                value[i] = 0xFF;
+            byte[] encoded = new byte[4];
+            ConvertByteArray(value, 3, encoded, 4);
+
+            value = new byte[2];
+            for (int i = 0; i < 2; i++)
+                value[i] = 0xFF;
+            ConvertByteArray(value, 2, encoded, 3);
+
+            value = new byte[1] {0xFF};
+            ConvertByteArray(value, 1, encoded, 2);
+
+#if false // no control of writing input
+            value = new byte[4];
+            for (int i = 0; i < 4; i++)
+                value[i] = 0xFF;
+            ConvertByteArray(value, 4, encoded, 6);
+#endif
+            value = new byte[6];
+            for (int i = 0; i < 6; i++)
+                value[i] = 0xFF;
+            encoded = new byte[8];
+            ConvertByteArray(value, 6, encoded, 8);
+
+            value = new byte[4];
+            for (int i = 0; i < 4; i++)
+                value[i] = 0xFF;
+            ConvertByteArray(value, 4, encoded, 6);
+
+            value = new byte[5];
+            for (int i = 0; i < 5; i++)
+                value[i] = 0xFF;
+            ConvertByteArray(value, 5, encoded, 7);
+        }
+
+        [Test]
+        public void TestConvertBinaryRandom() {
         }
     }
 }
