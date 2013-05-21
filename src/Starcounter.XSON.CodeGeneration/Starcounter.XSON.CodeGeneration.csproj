@@ -94,7 +94,6 @@
     <Compile Include="Serialization\AstTree\ToJson\AstJsonObject.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonProperty.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonPropertyValue.cs" />
-    <Compile Include="Serialization\JsonHelper.cs" />
     <Compile Include="Serialization\ParseTree\ParseNode.cs">
       <SubType>Code</SubType>
     </Compile>

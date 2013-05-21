@@ -6,28 +6,65 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.XSON;
+using Starcounter.XSON.Serializers;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
     public abstract class TObj : TContainer {
+        internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
+
+        private static object syncRoot = new object();
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
-        private TypedJsonSerializer jsonSerializer;
+        private TypedJsonSerializer codegenSerializer;
         private bool shouldUseCodegeneratedSerializer = true;
+        private bool codeGenStarted = false;
+
+        private void GenerateSerializer(object state){
+            TypedJsonSerializer tjs;
+
+            //lock (syncRoot) {
+                tjs = Obj.Factory.CreateJsonSerializer(this);
+            //}
+
+            // it doesn't really matter if setting the variable in the template is synchronized 
+            // or not since if the serializer is null a fallback serializer will be offset instead.
+            this.codegenSerializer = tjs;
+        }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        internal TypedJsonSerializer GetJsonSerializer() {
-            if (UseCodegeneratedSerializer && jsonSerializer == null)
-                jsonSerializer = Obj.Factory.CreateJsonSerializer(this);
-            return jsonSerializer;
+        public TypedJsonSerializer Serializer {
+            get {
+                if (codegenSerializer != null) {
+                    return codegenSerializer;
+                } else {
+                    if (UseCodegeneratedSerializer) {
+                        // TODO:
+                        // Is this lock needed? Want to make sure only one serializer is generated 
+                        // per template instance, but maybe we can assume that it is only accessed 
+                        // by one thread at a time. It doesn't really matter either if a serializer
+                        // is generated more than once (other than unnecessary resource usage)
+                        //lock (this) {
+                        if (!codeGenStarted) {
+                            codeGenStarted = true;
+//                            ThreadPool.QueueUserWorkItem(this.GenerateSerializer);
+                            GenerateSerializer(null);
+                            return codegenSerializer;
+                        }
+                        //}
+                    }
+                    return FallbackSerializer;
+                }
+            }
         }
 
         /// <summary>
@@ -35,26 +72,38 @@ namespace Starcounter.Templates {
         /// </summary>
         public bool UseCodegeneratedSerializer {
             get {
-                TContainer parent;
                 if (Obj.Factory == null)
                     return false;
-
-                parent = Parent;
-                while (parent != null) {
-                    if (parent is TObj)
-                        return ((TObj)parent).UseCodegeneratedSerializer;
-                    parent = parent.Parent;
-                }
-                return shouldUseCodegeneratedSerializer;
+                return GetRootTemplate().shouldUseCodegeneratedSerializer;
             }
-            set { shouldUseCodegeneratedSerializer = value; }
+            set {
+                TObj root = GetRootTemplate();
+                root.shouldUseCodegeneratedSerializer = value;
+                if (!value) {
+                    root.InvalidateSerializer();
+                }
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
         internal void InvalidateSerializer() {
-            jsonSerializer = null;
+            //lock (this) {
+                codeGenStarted = false;
+                codegenSerializer = null;
+            //}
+        }
+
+        /// <summary>
+        /// Returns the topmost instance of the typedjson templatetree
+        /// </summary>
+        /// <returns></returns>
+        private TObj GetRootTemplate() {
+            TContainer current = this;
+            while (current.Parent != null)
+                current = current.Parent;
+            return (TObj)current;
         }
 
         /// <summary>
