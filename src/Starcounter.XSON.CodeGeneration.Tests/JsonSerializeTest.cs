@@ -40,21 +40,24 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
 
             TObj.FallbackSerializer = defaultSerializer;
             int count = person.ToJsonUtf8(out defaultJson);
-
             AssertAreEqual(correctJson, defaultJson, count);
 
-            Console.WriteLine(Encoding.UTF8.GetString(correctJson));
+            dynamic person2 = tPerson.CreateInstance();
+            person2.PopulateFromJson(defaultJson, count);
+
+            AssertAreEqualPersons(person, person2);
         }
 
         [Test]
         public static void BenchmarkSerializers() {
+            int count;
             string newtonJson;
             byte[] defaultJson;
             TObj tPerson;
-
-            DateTime start;
-            DateTime stop;
-            int amount = 100000;
+            double newtonTime;
+            double defaultTime;
+            double codegenTime;
+            int nrOfTimes = 100000;
 
             var newtonSerializer = new NewtonsoftSerializer();
             var defaultSerializer = DefaultSerializer.Instance;
@@ -63,48 +66,72 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             tPerson.UseCodegeneratedSerializer = false;
 
             dynamic person = tPerson.CreateInstance();
-            SetDefaultPersonValues(person);
+//            SetDefaultPersonValues(person);
 
-            // We use the NewtonSoft implementation as a verifier for correct input and output.
             TObj.FallbackSerializer = newtonSerializer;
-
-            // Running once to make sure everything is initialized.
-            newtonJson = person.ToJson();
-            Console.WriteLine("JSON: " + newtonJson);
-            Console.WriteLine();
-
-            start = DateTime.Now;
-            for (int i = 0; i < amount; i++) {
-                newtonJson = person.ToJson();
-            }
-            stop = DateTime.Now;
-
-            Console.WriteLine("Serializing " + amount + " number of times.");
-            Console.WriteLine("NewtonSoft:" + (stop-start).TotalMilliseconds + " ms.");
+            newtonJson = person.ToJson(); 
+            newtonTime = BenchmarkSerializer(person, nrOfTimes);
 
             TObj.FallbackSerializer = defaultSerializer;
-            person.ToJsonUtf8(out defaultJson);
+            count = person.ToJsonUtf8(out defaultJson);
+            defaultTime = BenchmarkSerializer(person, nrOfTimes);
 
-            start = DateTime.Now;
-            for (int i = 0; i < amount; i++) {
-                person.ToJsonUtf8(out defaultJson);
-            }
-            stop = DateTime.Now;
+            //tPerson.UseCodegeneratedSerializer = true;
+            //person.ToJsonUtf8(out defaultJson);
+            //codegenTime = BenchmarkSerializer(person, nrOfTimes);
+            codegenTime = 0;
 
-            Console.WriteLine("Default:" + (stop - start).TotalMilliseconds + " ms.");
+            Console.WriteLine("Serializing " + nrOfTimes + " number of times.");
+            Console.WriteLine("NewtonSoft:" + newtonTime + " ms.");
+            Console.WriteLine("Default:" + defaultTime + " ms.");
+            Console.WriteLine("Codegenerated:" + codegenTime + " ms.");
+            Console.WriteLine();
+
+            TObj.FallbackSerializer = newtonSerializer;
+            person.PopulateFromJson(newtonJson);
+            newtonTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
+
+            TObj.FallbackSerializer = defaultSerializer;
+            person.PopulateFromJson(defaultJson, count);
+            defaultTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
 
             tPerson.UseCodegeneratedSerializer = true;
-            person.ToJsonUtf8(out defaultJson);
+            person.PopulateFromJson(defaultJson, count);
+            codegenTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
+            
+            Console.WriteLine("Deserializing " + nrOfTimes + " number of times.");
+            Console.WriteLine("NewtonSoft:" + newtonTime + " ms.");
+            Console.WriteLine("Default:" + defaultTime + " ms.");
+            Console.WriteLine("Codegenerated:" + codegenTime + " ms.");
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine(newtonJson);
+
+        }
+
+        private static double BenchmarkSerializer(Obj person, int nrOfTimes) {
+            DateTime start;
+            DateTime stop;
 
             start = DateTime.Now;
-            for (int i = 0; i < amount; i++) {
-                person.ToJsonUtf8(out defaultJson);
+            for (int i = 0; i < nrOfTimes; i++) {
+                var apa = person.ToJson();
             }
             stop = DateTime.Now;
+            return (stop - start).TotalMilliseconds;
+        }
 
-            Console.WriteLine("Codegenerated:" + (stop - start).TotalMilliseconds + " ms.");
+        private static double BenchmarkDeserializer(Obj person, byte[] json, int jsonSize, int nrOfTimes) {
+            DateTime start;
+            DateTime stop;
 
-
+            start = DateTime.Now;
+            for (int i = 0; i < nrOfTimes; i++) {
+                person.PopulateFromJson(json, jsonSize);
+            }
+            stop = DateTime.Now;
+            return (stop - start).TotalMilliseconds;
         }
 
         [Test]
@@ -202,9 +229,10 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             tPerson.UseCodegeneratedSerializer = false;
             jsonArr = new byte[4096];
 
+            size = 0;
             unsafe {
                 fixed (byte* p = jsonArr) {
-                    size = serializer.ToJson(person, (IntPtr)p, jsonArr.Length);
+//                    size = serializer.ToJson(person, (IntPtr)p, jsonArr.Length);
 //                    size = person.ToJson((IntPtr)p, jsonArr.Length);
                 }
             }
