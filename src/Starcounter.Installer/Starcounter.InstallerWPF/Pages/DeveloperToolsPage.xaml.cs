@@ -20,7 +20,6 @@ namespace Starcounter.InstallerWPF.Pages
     public partial class DeveloperToolsPage : BasePage
     {
 
-
         public override bool CanGoNext
         {
             get
@@ -42,37 +41,5 @@ namespace Starcounter.InstallerWPF.Pages
             InitializeComponent();
         }
 
-    }
-
-    public class VisualStudioInstalled : IValueConverter
-    {
-        #region IValueConverter Members
-
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            bool isInstalled;
-            if ("2010".Equals((string)parameter))
-            {
-
-                isInstalled = DependenciesCheck.VStudio2010Installed();
-            }
-            else
-            {
-                isInstalled = false;
-            }
-
-            if (isInstalled)
-            {
-                return Visibility.Visible;
-            }
-            return Visibility.Collapsed;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "ConvertBack function.");
-        }
-
-        #endregion
     }
 }

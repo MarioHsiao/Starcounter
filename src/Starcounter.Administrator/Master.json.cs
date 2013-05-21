@@ -55,9 +55,6 @@ namespace Starcounter.Administrator {
             Master.ServerEngine.Setup();
             Master.ServerInterface = Master.ServerEngine.Start();
 
-            // Start Engine services
-            StartListeningService();
-
             // Start listening on log-events
             ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
 
@@ -1123,33 +1120,6 @@ namespace Starcounter.Administrator {
 
         }
 
-        #region ServerServices
-
-        static void StartListeningService() {
-            System.Threading.ThreadPool.QueueUserWorkItem(ServerServicesThread);
-        }
-
-        static private void ServerServicesThread(object state) {
-            ServerServices services;
-            string pipeName;
-            pipeName = ScUriExtensions.MakeLocalServerPipeString(Master.ServerEngine.Name);
-            var ipcServer = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
-            ipcServer.ReceivedRequest += OnIPCServerReceivedRequest;
-            services = new ServerServices(Master.ServerEngine, ipcServer);
-            ToConsoleWithColor(string.Format("Accepting service calls on pipe '{0}'...", pipeName), ConsoleColor.DarkGray);
-
-            services.Setup();
-            // Start the engine and run the configured services.
-            Master.ServerEngine.Run(services);
-
-        }
-
-        static void OnIPCServerReceivedRequest(object sender, string e) {
-            ToConsoleWithColor(string.Format("Request: {0}", e), ConsoleColor.Yellow);
-        }
-
-        #endregion
-
         static public string EncodeTo64(string toEncode) {
             byte[] toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
             string returnValue = System.Convert.ToBase64String(toEncodeAsBytes);
@@ -1161,18 +1131,6 @@ namespace Starcounter.Administrator {
             string returnValue = System.Text.ASCIIEncoding.ASCII.GetString(encodedDataAsBytes);
             return returnValue;
         }
-
-        static void ToConsoleWithColor(string text, ConsoleColor color) {
-            try {
-                Console.ForegroundColor = color;
-                Console.WriteLine(text);
-            }
-            finally {
-                Console.ResetColor();
-            }
-        }
-
-
     }
 
 

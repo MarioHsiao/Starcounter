@@ -2,8 +2,8 @@
 using EnvDTE;
 using EnvDTE90;
 using Microsoft.VisualStudio.Shell.Interop;
+using Starcounter.CLI;
 using Starcounter.Internal;
-using Starcounter.Server;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +19,7 @@ namespace Starcounter.VisualStudio.Projects {
     using System.Net.Sockets;
     using EngineReference = Starcounter.Server.Rest.Representations.JSON.EngineCollection.EnginesApp;
     using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesApp.ExecutingApp;
-    using Option = Starcounter.Server.SharedCLI.Option;
+    using Option = Starcounter.CLI.SharedCLI.Option;
 
     /// <summary>
     /// Provides a set of methods that governs the handling category
