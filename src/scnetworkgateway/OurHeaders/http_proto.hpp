@@ -680,6 +680,14 @@ const char* const kHttpBadRequest =
 
 const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest) + 1;
 
+const char* const kHttpNotFound =
+    "HTTP/1.1 404 Not Found\r\n"
+    "Content-Length: 33\r\n"
+    "\r\n"
+    "Requested URI resource not found.";
+
+const int32_t kHttpNotFoundLength = strlen(kHttpNotFound) + 1;
+
 const char* const kHttpServiceUnavailable =
     "HTTP/1.1 503 Service Unavailable\r\n"
     "Content-Length: 0\r\n"

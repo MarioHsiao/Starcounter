@@ -55,9 +55,6 @@ namespace Starcounter.Administrator {
             Master.ServerEngine.Setup();
             Master.ServerInterface = Master.ServerEngine.Start();
 
-            // Start Engine services
-            StartListeningService();
-
             // Start listening on log-events
             ServerInfo serverInfo = Master.ServerInterface.GetServerInfo();
 
@@ -180,7 +177,7 @@ namespace Starcounter.Administrator {
                         json.transactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
 
                         json.sqlAggregationSupport = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SqlAggregationSupport;
-                        json.sqlProcessPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SQLProcessPort;
+                        //json.sqlProcessPort = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.SQLProcessPort;
                         json.collationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
 
                         json.collationFiles = new object[] { };
@@ -598,7 +595,7 @@ namespace Starcounter.Administrator {
                                 httpPort = databases[i].Configuration.Runtime.DefaultUserHttpPort,
                                 schedulerCount = databases[i].Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                 chunksNumber = databases[i].Configuration.Runtime.ChunksNumber,
-                                sqlProcessPort = databases[i].Configuration.Runtime.SQLProcessPort,
+                                //sqlProcessPort = databases[i].Configuration.Runtime.SQLProcessPort,
                                 sqlAggregationSupport = databases[i].Configuration.Runtime.SqlAggregationSupport
                             };
                         }
@@ -653,7 +650,7 @@ namespace Starcounter.Administrator {
                                 httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
                                 schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                 chunksNumber = database.Configuration.Runtime.ChunksNumber,
-                                sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
+                                //sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
                                 sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport
 
                             };
@@ -746,10 +743,10 @@ namespace Starcounter.Administrator {
                         }
 
                         // sqlProcessPort
-                        ushort sqlProcessPort;
-                        if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
-                            resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
-                        }
+                        //ushort sqlProcessPort;
+                        //if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
+                        //    resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
+                        //}
 
                         // Collation File
                         if (string.IsNullOrEmpty(incomingJson.collationFile)) {
@@ -790,7 +787,7 @@ namespace Starcounter.Administrator {
                             command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = incomingJson.transactionLogDirectory;
 
                             command.SetupProperties.Configuration.Runtime.SqlAggregationSupport = sqlAggregationSupport;
-                            command.SetupProperties.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
+                            //command.SetupProperties.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
 
                             command.SetupProperties.StorageConfiguration.CollationFile = incomingJson.collationFile;
 
@@ -887,10 +884,10 @@ namespace Starcounter.Administrator {
                             }
 
                             // sqlProcessPort
-                            ushort sqlProcessPort;
-                            if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
-                                resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
-                            }
+                            //ushort sqlProcessPort;
+                            //if (!ushort.TryParse(incomingJson.sqlProcessPort.ToString(), out sqlProcessPort) || port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort) {
+                            //    resultJson.validationErrors[validationErrors++] = new { property = "sqlProcessPort", message = "invalid port number" };
+                            //}
 
                             #endregion
 
@@ -902,7 +899,7 @@ namespace Starcounter.Administrator {
                                 database.Configuration.Runtime.SchedulerCount = schedulerCount;
                                 database.Configuration.Runtime.ChunksNumber = chunksNumber;
                                 database.Configuration.Runtime.SqlAggregationSupport = sqlAggregationSupport;
-                                database.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
+                                //database.Configuration.Runtime.SQLProcessPort = sqlProcessPort;
 
                                 database.Configuration.Save();
                                 resultJson.message = "Settings saved. The new settings will be used at the next start of the database";
@@ -931,7 +928,7 @@ namespace Starcounter.Administrator {
                                         httpPort = database.Configuration.Runtime.DefaultUserHttpPort,
                                         schedulerCount = database.Configuration.Runtime.SchedulerCount ?? Environment.ProcessorCount,
                                         chunksNumber = database.Configuration.Runtime.ChunksNumber,
-                                        sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
+                                        //sqlProcessPort = database.Configuration.Runtime.SQLProcessPort,
                                         sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport
                                     };
 
@@ -1123,33 +1120,6 @@ namespace Starcounter.Administrator {
 
         }
 
-        #region ServerServices
-
-        static void StartListeningService() {
-            System.Threading.ThreadPool.QueueUserWorkItem(ServerServicesThread);
-        }
-
-        static private void ServerServicesThread(object state) {
-            ServerServices services;
-            string pipeName;
-            pipeName = ScUriExtensions.MakeLocalServerPipeString(Master.ServerEngine.Name);
-            var ipcServer = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
-            ipcServer.ReceivedRequest += OnIPCServerReceivedRequest;
-            services = new ServerServices(Master.ServerEngine, ipcServer);
-            ToConsoleWithColor(string.Format("Accepting service calls on pipe '{0}'...", pipeName), ConsoleColor.DarkGray);
-
-            services.Setup();
-            // Start the engine and run the configured services.
-            Master.ServerEngine.Run(services);
-
-        }
-
-        static void OnIPCServerReceivedRequest(object sender, string e) {
-            ToConsoleWithColor(string.Format("Request: {0}", e), ConsoleColor.Yellow);
-        }
-
-        #endregion
-
         static public string EncodeTo64(string toEncode) {
             byte[] toEncodeAsBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
             string returnValue = System.Convert.ToBase64String(toEncodeAsBytes);
@@ -1161,18 +1131,6 @@ namespace Starcounter.Administrator {
             string returnValue = System.Text.ASCIIEncoding.ASCII.GetString(encodedDataAsBytes);
             return returnValue;
         }
-
-        static void ToConsoleWithColor(string text, ConsoleColor color) {
-            try {
-                Console.ForegroundColor = color;
-                Console.WriteLine(text);
-            }
-            finally {
-                Console.ResetColor();
-            }
-        }
-
-
     }
 
 

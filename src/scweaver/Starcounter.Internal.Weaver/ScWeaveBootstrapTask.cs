@@ -7,7 +7,6 @@ using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.Collections;
 using PostSharp.Sdk.CodeWeaver;
 using PostSharp.Sdk.Extensibility;
-using Starcounter.Apps.Bootstrap;
 
 namespace Starcounter.Internal.Weaver {
 
@@ -55,7 +54,7 @@ namespace Starcounter.Internal.Weaver {
         public override bool Execute() {
             var module = this.Project.Module;
             var entrypoint = module.EntryPoint;
-            var bootstrapperMethod = module.FindMethod(typeof(AppProcess).GetMethod("AssertInDatabaseOrSendStartRequest"), BindingOptions.Default);
+            var bootstrapperMethod = module.FindMethod(typeof(Starcounter.CLI.Shell).GetMethod("BootInHost"), BindingOptions.Default);
             var methods = new List<MethodDefDeclaration>(1);
             methods.Add(entrypoint);
 

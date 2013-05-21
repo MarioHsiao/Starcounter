@@ -25,17 +25,6 @@
             </div>
         </div>
 
-        <!--    <div class="control-group" ng-class="{error: myForm.collationFile.$invalid}">
-        <label class="control-label" for="collationFile">Collation File</label>
-        <div class="controls">
-            <input ng-disabled="isBusy == true" type="text" name="collationFile" id="collationFile" placeholder="Collation File" ng-model="settings.collationFile" required>
-            <span ng-show="myForm.collationFile.$error.validationError" class="help-inline">Invalid format</span>
-            <span ng-show="myForm.collationFile.$error.required" class="help-inline">Required</span>
-        </div>
-    </div>-->
-
-        
-
         <div class="control-group" ng-class="{error: myForm.collationFile.$invalid}">
             <label class="control-label" for="collationFile">Collation</label>
             <div class="controls">
@@ -48,7 +37,7 @@
                 <span ng-show="myForm.collationFile.$error.required" class="help-inline">Required</span>
             </div>
         </div>
-    
+
         <div class="control-group" ng-class="{error: myForm.maxImageSize.$invalid}">
             <label class="control-label" for="maxImageSize">Max Image Size</label>
             <div class="controls">
@@ -110,15 +99,6 @@
                 <span ng-show="myForm.dumpDirectory.$error.validationError" class="help-inline">Invalid format</span>
                 <span ng-show="myForm.dumpDirectory.$error.required" class="help-inline">Required</span>
                 <span class="help-block">Full path of the directory containing dump files (relative to the server).</span>
-            </div>
-        </div>
-
-        <div class="control-group" ng-class="{error: myForm.sqlProcessPort.$invalid}">
-            <label class="control-label" for="sqlProcessPort">SQL Process Port</label>
-            <div class="controls">
-                <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="sqlProcessPort" id="sqlProcessPort" placeholder="SQL Process port" ng-model="settings.sqlProcessPort" required>
-                <span ng-show="myForm.sqlProcessPort.$error.validationError" class="help-inline">Invalid format</span>
-                <span ng-show="myForm.sqlProcessPort.$error.required" class="help-inline">Required</span>
             </div>
         </div>
 
