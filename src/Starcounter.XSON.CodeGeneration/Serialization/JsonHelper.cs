@@ -64,7 +64,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
         public static bool ParseInt(IntPtr ptr, int size, out long value, out int valueSize) {
-            ulong result;
+            long result;
 
             unsafe {
                 byte* pfrag = (byte*)ptr;
@@ -76,7 +76,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }
 
             if (Utf8Helper.IntFastParseFromAscii(ptr, valueSize, out result)) {
-                value = (long)result;
+                value = result;
                 return true;
             }
             value = -1;
