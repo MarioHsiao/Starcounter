@@ -369,6 +369,10 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     uint32_t chunk_user_data_offset = *(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA) +
         starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA;
 
+    // Checking if socket data should be disconnected.
+    if (0 == buf_len_bytes)
+        (*(uint32_t*)(src_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT;
+
     uint32_t remaining_bytes_in_orig_chunk = (starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - chunk_user_data_offset);
 
     // Setting non-bmx-management chunk type.

@@ -1,0 +1,41 @@
+﻿<div ng-hide='isBusy == true'>
+
+    <legend>Engine - {{name}}</legend>
+
+    <div>
+        <dl class="dl-horizontal">
+            <dt>NoDb</dt>
+            <dd>{{engine.NoDb}}</dd>
+
+            <dt>Database</dt>
+            <dd><a href="#/databases/{{engine.Database.Name}}">{{engine.Database.Name}}</a><span ng-show="databaseProcess.Running" class="Running"> (Running)</span></dd>
+
+            <dt>Codehost PID</dt>
+            <dd>{{hostProcess.PID}}</dd>
+        </dl>
+
+        <h5>Running Executables</h5>
+
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Path</th>
+                    <th>Uri</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr ng-repeat="executable in engine.Executables.Executing">
+                    <td>{{executable.Path}}</td>
+                    <td>{{executable.Uri}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+
+
+

@@ -6,7 +6,7 @@
         <button type="button" ng-disabled="isBusy == true" class="btn btn-warning" ng-model="filterModel.warning" btn-checkbox>Warning</button>
         <button type="button" ng-disabled="isBusy == true" class="btn btn-danger" ng-model="filterModel.error" btn-checkbox>Error</button>
     </div>
-    <button class="btn pull-right" ng-disabled="isBusy == true" ng-click="btnClick_refresh()"><i class="icon-repeat"></i></button>
+    <button class="btn pull-right" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="icon-repeat"></i></button>
 </div>
 
 
@@ -34,9 +34,9 @@
 
 </table>-->
 
-<div ng-show='isBusy == true' class="progress progress-striped active">
+<!--<div ng-show='isBusy == true' class="progress progress-striped active">
     <div class="bar" style="width: 100%;"></div>
-</div>
+</div>-->
 
 <div ng-hide='isBusy == true'>
 
@@ -63,26 +63,3 @@
     </ui-handsontable>
 </div>
 
-
-<!--
-    <div id="example1" style="width: 400px; height: 300px; overflow: scroll; border: 2px solid red" class="handsontable"></div>
-
-    <script>
-
-    $(document).ready(function () {
-        var border = 2;
-        var windowHeight = $(window).height();
-        var topOffset = $("#example1").position().top;
-        $("#example1").height(windowHeight - topOffset - 2 * border);
-
-        // for the window resize
-        $(window).resize(function () {
-            var windowHeight = $(window).height();
-            var topOffset = $("#example1").position().top;
-            $("#example1").height(windowHeight - topOffset - 2 * border);
-        });
-
-
-    });
-
-</script>-->

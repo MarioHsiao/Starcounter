@@ -1676,6 +1676,9 @@ uint32_t Gateway::InitSharedMemory(
     // the shared structure.
     database_shared_memory_parameters_ptr db_shm_params(shm_params_name.c_str());
 
+    // TODO: Register client process issue.
+#if 1
+
     // Send registration request to the monitor and try to acquire an owner_id.
     // Without an owner_id we can not proceed and have to exit.
     // Get process id and store it in the monitor_interface.
@@ -1689,6 +1692,8 @@ uint32_t Gateway::InitSharedMemory(
         GW_COUT << "Can't register client process, error code: " << error_code << GW_ENDL;
         return error_code;
     }
+
+#endif
 
     // Open the database shared memory segment.
     if (db_shm_params->get_sequence_number() == 0)
