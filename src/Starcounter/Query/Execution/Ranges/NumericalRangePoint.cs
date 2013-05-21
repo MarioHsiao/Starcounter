@@ -9,6 +9,7 @@ using Starcounter.Query;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
@@ -223,8 +224,9 @@ internal class NumericalRangePoint : RangePoint
         }
 
         // Value < Decimal.MinValue.
-        if (floor == null && ceiling == Decimal.MinValue)
-        {
+        if (floor == null && ceiling == Decimal.MinValue) {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "It is not expected to hit it");
+#if false
             switch (compOp)
             {
                 case ComparisonOperator.Equal:
@@ -237,17 +239,19 @@ internal class NumericalRangePoint : RangePoint
                 case ComparisonOperator.GreaterThan:
                 case ComparisonOperator.GreaterThanOrEqual:
                     {
-                        cachedDecRangeValue.SetValue(ComparisonOperator.GreaterThanOrEqual, ceiling);
+                        cachedDecRangeValue.SetValue(ComparisonOperator.GreaterThanOrEqual, DbState.X6DECIMALMIN);
                         return cachedDecRangeValue;
                     }
                 default:
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compOp: " + compOp);
             }
+#endif
         }
 
         // Value > Decimal.MaxValue.
-        if (floor == Decimal.MaxValue && ceiling == null)
-        {
+        if (floor == Decimal.MaxValue && ceiling == null) {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "It is not expected to hit it");
+#if false
             switch (compOp)
             {
                 case ComparisonOperator.Equal:
@@ -260,12 +264,13 @@ internal class NumericalRangePoint : RangePoint
                 case ComparisonOperator.LessThan:
                 case ComparisonOperator.LessThanOrEqual:
                     {
-                        cachedDecRangeValue.SetValue(ComparisonOperator.LessThanOrEqual, floor);
+                        cachedDecRangeValue.SetValue(ComparisonOperator.LessThanOrEqual, DbState.X6DECIMALMAX);
                         return cachedDecRangeValue;
                     }
                 default:
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect compOp: " + compOp);
             }
+#endif
         }
 
         // Decimal.MinValue <= value <= Decimal.MaxValue.
@@ -275,22 +280,34 @@ internal class NumericalRangePoint : RangePoint
                 {
                     if (ceiling == floor)
                     {
-                        cachedDecRangeValue.SetValue(compOp, ceiling);
+                        try {
+                            cachedDecRangeValue.SetValue(compOp, ceiling);
+                        } catch {
+                            cachedDecRangeValue.ResetValueToMin(compOp);
+                        }
                         return cachedDecRangeValue;
                     }
-                    cachedDecRangeValue.ResetValueToMin(compOp);
+                    cachedDecRangeValue.ResetValueToMin(compOp); // Null
                     return cachedDecRangeValue;
                 }
             case ComparisonOperator.GreaterThan:
             case ComparisonOperator.LessThanOrEqual:
                 {
-                    cachedDecRangeValue.SetValue(compOp, floor);
+                    try {
+                        cachedDecRangeValue.SetValue(compOp, floor);
+                    } catch {
+                        cachedDecRangeValue.ResetValueToMin(compOp);
+                    }
                     return cachedDecRangeValue;
                 }
             case ComparisonOperator.GreaterThanOrEqual:
             case ComparisonOperator.LessThan:
                 {
-                    cachedDecRangeValue.SetValue(compOp, ceiling);
+                    try {
+                        cachedDecRangeValue.SetValue(compOp, ceiling);
+                    } catch {
+                        cachedDecRangeValue.ResetValueToMax(compOp);
+                    }
                     return cachedDecRangeValue;
                 }
             default:

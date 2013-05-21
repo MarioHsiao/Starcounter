@@ -9,15 +9,16 @@ using Starcounter.Query.Execution;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution
 {
 internal class DecimalRangeValue : RangeValue, IComparable<DecimalRangeValue>
 {
-    public static readonly Nullable<Decimal> MIN_VALUE = null;
-    public static readonly Nullable<Decimal> MAX_VALUE = Decimal.MaxValue;
+    public static readonly Nullable<Int64> MIN_VALUE = null;
+    public static readonly Nullable<Int64> MAX_VALUE = DbState.X6DECIMALMAX;
 
-    private Nullable<Decimal> value;
+    private Nullable<Int64> value;
 
     internal DecimalRangeValue()
     {
@@ -25,7 +26,7 @@ internal class DecimalRangeValue : RangeValue, IComparable<DecimalRangeValue>
         value = null;
     }
 
-    internal Nullable<Decimal> GetValue
+    internal Nullable<Int64> GetValue
     {
         get
         {
@@ -47,6 +48,14 @@ internal class DecimalRangeValue : RangeValue, IComparable<DecimalRangeValue>
 
     public void SetValue(ComparisonOperator compOper, Nullable<Decimal> newValue)
     {
+        compOp = compOper;
+        if (newValue == null)
+            value = null;
+        else
+            value = DbState.ClrDecimalToEncodedX6Decimal((Decimal)newValue);
+    }
+
+    public void SetValue(ComparisonOperator compOper, Nullable<Int64> newValue) {
         compOp = compOper;
         value = newValue;
     }
