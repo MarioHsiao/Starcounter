@@ -8,8 +8,9 @@ using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using System.Net;
+using System.Diagnostics;
 
-namespace Starcounter.Server {
+namespace Starcounter.CLI {
 
     /// <summary>
     /// Provides a set of utilities that can be used by applications
@@ -41,13 +42,44 @@ namespace Starcounter.Server {
         /// Defines well-known options, offered by most CLI tools.
         /// </summary>
         public static class Option {
+            /// <summary>
+            /// Gets the option name of the server port.
+            /// </summary>
             public const string Serverport = "serverport";
+            /// <summary>
+            /// Gets the option name of the user-friendly server name.
+            /// </summary>
             public const string Server = "server";
+            /// <summary>
+            /// Gets the option name of the server host.
+            /// </summary>
             public const string ServerHost = "serverhost";
+            /// <summary>
+            /// Gets the option name of the database.
+            /// </summary>
             public const string Db = "database";
+            /// <summary>
+            /// Gets the option name of the paremeter indicating boot
+            /// sequence steps to be logged.
+            /// </summary>
             public const string LogSteps = "logsteps";
+            /// <summary>
+            /// Gets the option name of the parameter specifying no
+            /// database should be connected to.
+            /// </summary>
             public const string NoDb = "nodb";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
+            /// infrastructure never to automatically create a database
+            /// when such does not exist with a given name.
+            /// </summary>
             public const string NoAutoCreateDb = "noautocreate";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
+            /// client not to return until the full entrypoint of the
+            /// executable has finished.
+            /// </summary>
+            public const string WaitForEntrypoint = "wait";
         }
 
         /// <summary>
@@ -58,8 +90,40 @@ namespace Starcounter.Server {
         /// All unofficial options should begin with sc-*.
         /// </remarks>
         public static class UnofficialOptions {
+            /// <summary>
+            /// Gets the option name of the debug switch, allowing the
+            /// debugger to be attached to the active CLI client.
+            /// </summary>
             public const string Debug = "sc-debug";
         }
+
+        /// <summary>
+        /// Provides information about the calling client context.
+        /// </summary>
+        public static class ClientContext {
+            /// <summary>
+            /// Gets a string including the user information and the
+            /// file/process name of the calling client.
+            /// </summary>
+            /// <remarks>
+            /// <example>per@per-vaio (via foo.exe)</example>
+            /// </remarks>
+            public static string UserAndProgram {
+                get {
+                    var program = Process.GetCurrentProcess().MainModule.ModuleName;
+                    try {
+                        return string.Format("{0}@{1} (via {2})",
+                            Environment.UserName.ToLowerInvariant(), 
+                            Environment.MachineName.ToLowerInvariant(), program
+                            );
+                    } catch {
+                        return program;
+                    }
+                }
+            }
+        }
+
+        
 
         /// <summary>
         /// Defines and includes the well-known, shared CLI options in
@@ -102,6 +166,10 @@ namespace Starcounter.Server {
                 Option.NoAutoCreateDb,
                 "Specifies that a database can not be automatically created if it doesn't exist."
                 );
+            definition.DefineFlag(
+                Option.WaitForEntrypoint,
+                "Waits for the entrypoint to execute fully before returning."
+                );
 
             if (includeUnofficial) {
                 definition.DefineFlag(
@@ -109,6 +177,33 @@ namespace Starcounter.Server {
                     "Attaches a debugger to the target program just after the parsing of the command-line is complete."
                     );
             }
+        }
+
+        /// <summary>
+        /// Parses the given argument set in <paramref name="args"/> using
+        /// the given <paramref name="syntax"/>.
+        /// </summary>
+        /// <param name="args">The command line arguments to parse.</param>
+        /// <param name="syntax">The syntax to use</param>
+        /// <param name="appArgs">Parsed arguments.</param>
+        /// <returns><c>true</c> if the parsing succeeded; <c>false</c>
+        /// otherwise.
+        /// </returns>
+        /// <remarks>
+        /// If parsing fails, this method will write a message to the console
+        /// and set the environment exit code accordingly.
+        /// </remarks>
+        public static bool TryParse(string[] args, IApplicationSyntax syntax, out ApplicationArguments appArgs) {
+            try {
+                appArgs = new Parser(args).Parse(syntax);
+            } catch (InvalidCommandLineException e) {
+                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
+                Environment.ExitCode = (int)e.ErrorCode;
+                appArgs = null;
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -229,6 +324,63 @@ namespace Starcounter.Server {
                 database = SharedCLI.DefaultDatabaseName;
             }
             name = database;
+        }
+
+        /// <summary>
+        /// Writes <paramref name="msg"/> to the console using the default
+        /// shared CLI error color and formatting, setting the exit code to
+        /// the error given in the strongly typed error message. Possibly
+        /// also exits the process, depending on the <paramref name="exit"/>
+        /// flag.
+        /// </summary>
+        /// <param name="msg">The message to write.</param>
+        /// <param name="exit">If <c>true</c>, exits the process with the exit code
+        /// fetched from the strongly typed error message.</param>
+        public static void ShowErrorAndSetExitCode(ErrorMessage msg, bool exit = false) {
+            ConsoleColor red = ConsoleColor.Red;
+            int exitCode = (int)msg.Code;
+            Console.WriteLine();
+            ConsoleUtil.ToConsoleWithColor(msg.ToString(), red);
+            if (exit) Environment.Exit(exitCode);
+            else Environment.ExitCode = exitCode;
+        }
+
+        /// <summary>
+        /// Writes the exception <paramref name="e"/> to the console, after first
+        /// formatting it to an error message. Sets the exit code to according to
+        /// the exception.
+        /// </summary>
+        /// <param name="e">The exception to act upon.</param>
+        /// <param name="showStackTrace">Pass <c>true</c> to have this method
+        /// include the stacktrace when writing to the console.</param>
+        /// <param name="exit">If <c>true</c>, exits the process with the exit code
+        /// fetched from the strongly typed error message.</param>
+        public static void ShowErrorAndSetExitCode(Exception e, bool showStackTrace = true, bool exit = false) {
+            ErrorMessage msg;
+            bool result;
+            uint errorCode;
+
+            result = ErrorCode.TryGetCodedMessage(e, out msg);
+            if (result) {
+                ShowErrorAndSetExitCode(msg, false);
+                errorCode = msg.Code;
+            } else {
+                if (!ErrorCode.TryGetCode(e, out errorCode)) {
+                    errorCode = Error.SCERRUNSPECIFIED;
+                }
+                Console.WriteLine();
+                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
+                Environment.ExitCode = (int)errorCode;
+            }
+
+            if (showStackTrace) {
+                var stackTraceColor = ConsoleColor.DarkGray;
+                Console.WriteLine();
+                ConsoleUtil.ToConsoleWithColor("Stack trace:", stackTraceColor);
+                ConsoleUtil.ToConsoleWithColor(e.StackTrace, stackTraceColor);
+            }
+
+            if (exit) Environment.Exit((int)errorCode);
         }
     }
 }

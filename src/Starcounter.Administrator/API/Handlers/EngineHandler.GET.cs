@@ -29,7 +29,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
 
-            var conditionFailed = JSON.CreateConditionBasedResponse(request, engineState);
+            var conditionFailed = JSON.CreateConditionBasedResponse(request, engineState, true);
             if (conditionFailed != null) return conditionFailed;
 
             var headers = new Dictionary<string, string>(1);

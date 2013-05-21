@@ -38,7 +38,7 @@ namespace Weaver {
 
             appsInitializerMethod = typeof(AppsBootstrapper).GetMethod("Bootstrap", new Type[] { typeof(String), typeof(UInt16) });
             appsInitializerMethRef = assembly.MainModule.Import(appsInitializerMethod);
-            appsShellBootstrapper = typeof(Starcounter.Apps.Bootstrap.AppProcess).GetMethod("AssertInDatabaseOrSendStartRequest");
+            appsShellBootstrapper = typeof(Starcounter.CLI.Shell).GetMethod("BootInHost");
             appsShellBootstrapMethRef = assembly.MainModule.Import(appsShellBootstrapper);
 
             // Define and implement the infrastructure initializer method we'll
