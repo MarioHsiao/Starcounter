@@ -61,6 +61,8 @@ namespace Starcounter.Administrator.API.Handlers {
             }
 
             internal static Response CreateConditionBasedResponse(Request request, EngineInfo engineInfo, bool isGETorHEAD) {
+                var status = 0;
+
                 // From RFC2616:
                 //
                 // "If the request would, without the If-Match header field, result
@@ -77,21 +79,13 @@ namespace Starcounter.Administrator.API.Handlers {
                     return RESTUtility.JSON.CreateResponse(null, 501);
 
                 var etag = request["If-Match"];
-                if (etag != null) {
-                    var return412 = false;
+                if (etag != null) {    
                     if (etag.Equals("*")) {
-                        return412 = engineInfo == null;
+                        status = engineInfo == null ? 412 : 0;
                     }
                     else if (engineInfo == null || !engineInfo.Fingerprint.Equals(etag)) {
-                        return412 = true;
+                        status = 412;
                     }
-
-                    if (return412) {
-                        var errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDPRECONDITIONFAILED);
-                        return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 412);
-                    }
-
-                    return null;
                 }
 
                 etag = request["If-None-Match"];
@@ -118,17 +112,23 @@ namespace Starcounter.Administrator.API.Handlers {
                         // [...] exists, and SHOULD be performed if the representation does
                         // not exist".
                         if (engineInfo != null) {
-                            // Return 304 or 412.
-                            // TODO:
+                            status = isGETorHEAD ? 304 : 412;
                         }
                     }
                     else if (engineInfo != null && engineInfo.Fingerprint.Equals(etag)) {
-                        // Return 304 or 412.
-                        // TODO:
+                        status = isGETorHEAD ? 304 : 412;
                     }
                 }
 
-                return null;
+                if (status == 0) {
+                    return null;
+                } else if (status == 412) {
+                    var errDetail = RESTUtility.JSON.CreateError(Error.SCERRCOMMANDPRECONDITIONFAILED);
+                    return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 412);
+                } else {
+                    Trace.Assert(status == 304);
+                    return RESTUtility.JSON.CreateResponse(null, 304);
+                }
             }
         }
 
