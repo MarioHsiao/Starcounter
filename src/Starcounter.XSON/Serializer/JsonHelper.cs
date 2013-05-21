@@ -2,8 +2,9 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using Starcounter.Internal;
 
-namespace Starcounter.Internal.Application.CodeGeneration {
+namespace Starcounter.XSON.Serializers {
     /// <summary>
     /// 
     /// </summary>
@@ -64,7 +65,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as an int.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -92,7 +93,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as a decimal.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -115,7 +116,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as a double.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -138,7 +139,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as a boolean.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -189,7 +190,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as a DateTime.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -211,8 +212,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// Parses the string and decodes it if needed.
         /// </summary>
-        /// <param name="ptr">A pointer to the current position in the buffer.</param>
-        /// <param name="size">The size left to the end of the buffer.</param>
+        /// <param name="ptr">A pointer to the current position in the buf.</param>
+        /// <param name="size">The size left to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if parsing was succesful, <c>false</c> otherwise</returns>
