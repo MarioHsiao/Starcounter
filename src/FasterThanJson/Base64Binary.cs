@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Internal {
     public class Base64Binary {
+        public static unsafe uint MeasureNeededSizeToEncode(UInt32 length) {
+            return 4 * (length / 3) + ((length % 3 == 0) ? 0 : length % 3 + 1);
+        }
+
+        public static unsafe uint MeasureNeededSizeToDecode(UInt32 length) {
+            return 3 * (length / 4) + (length % 4 == 0 ? 0 : length % 4 - 1);
+        }
+        
         public static unsafe uint GetUIntForTriple(Byte* value) {
             uint twin = *(ushort*)value;
             byte last = *(byte*)(value+2);
@@ -18,9 +26,9 @@ namespace Starcounter.Internal {
             uint triplesNr = length / 3;
             uint reminder = length % 3;
             uint writtenLength = 0;
+            
             byte* toWrite = value;
             for (uint i = 0; i <triplesNr; i++) {
-                var c = (Base64x4*)buffer;
                 Base64Int.WriteBase64x4(GetUIntForTriple(value), buffer);
                 Debug.Assert(sizeof(Base64x4) == 4);
                 writtenLength += 4;
@@ -47,38 +55,44 @@ namespace Starcounter.Internal {
             return writtenLength; // Not reached
         }
 
-        public static unsafe byte[] Read(uint size, IntPtr ptr) {
+        public static unsafe uint Read(uint size, IntPtr ptr, byte* value) {
             uint quarNr = size / 4;
             uint reminder = size % 4;
             Debug.Assert(reminder != 1);
-            uint length = quarNr * 3 + (reminder == 0 ? 0 : reminder - 1);
-            byte[] value = new byte[length];
-            fixed (byte* valuePtr = value) {
-                byte* writing = valuePtr;
-                for (uint i = 0; i < quarNr; i++) {
-                    uint triple = (uint)Base64Int.ReadBase64x4(ptr);
-                    Debug.Assert((triple & 0xFF000000) == 0);
-                    ushort twin = (ushort)(triple >>4);
+            byte* writing = value;
+            for (uint i = 0; i < quarNr; i++) {
+                uint triple = (uint)Base64Int.ReadBase64x4(ptr);
+                ptr += 4;
+                Debug.Assert((triple & 0xFF000000) == 0);
+                ushort twin = (ushort)(triple >> 4);
+                *(ushort*)writing = twin;
+                writing += 2;
+                byte last = (byte)(triple & 0x000000FF);
+                *(byte*)writing = last;
+                writing++;
+            }
+            switch (reminder) {
+                case 2:
+                    ushort single = (ushort)Base64Int.ReadBase64x2(ptr);
+                    Debug.Assert((single & 0xFF00) == 0);
+                    *(byte*)writing = (byte)single;
+                    writing++;
+                    break;
+                case 3:
+                    ushort twin = (ushort)Base64Int.ReadBase64x3(ptr);
                     *(ushort*)writing = twin;
                     writing += 2;
-                    byte last = (byte)(triple & 0x000000FF);
-                    *(byte*)writing = last;
-                    writing++;
-                }
-                switch(reminder) {
-                    case 2:
-                        ushort single = (ushort)Base64Int.ReadBase64x2(ptr);
-                        Debug.Assert((single & 0xFF00) == 0);
-                        *(byte*)writing = (byte)single;
-                        writing++;
-                        break;
-                    case 3:
-                        ushort twin = (ushort)Base64Int.ReadBase64x3(ptr);
-                        *(ushort*)writing = twin;
-                        writing+=2;
-                        break;
-                }
-                Debug.Assert(valuePtr + length == writing);
+                    break;
+            }
+            Debug.Assert(value + MeasureNeededSizeToDecode(size) == writing);
+            return (uint)(writing - value);
+        }
+
+        public static unsafe byte[] Read(uint size, IntPtr ptr) {
+            uint length = MeasureNeededSizeToDecode(size);
+            byte[] value = new byte[length];
+            fixed (byte* valuePtr = value) {
+                Read(size, ptr, valuePtr);
             }
             return value;
         }
