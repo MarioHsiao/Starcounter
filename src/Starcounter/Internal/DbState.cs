@@ -1396,13 +1396,12 @@ namespace Starcounter.Internal
 				fixed (Int32* decimalPartPtr = decimalPart) {
 					// clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
 					// without data loss, the value will be written to encodedX6Decimal.
-					if ((clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal)) == 0) {
-						return encodedX6Decimal;
-					}
+
+                    uint r = clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
+                    if (r == 0) return encodedX6Decimal;
+                    throw ErrorCode.ToException(r);
 				}
 			}
-
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
 		/// <summary>
