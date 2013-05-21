@@ -1425,7 +1425,7 @@ namespace Starcounter.Internal
 			}
 		}
 
-		const Int64 X6DECIMALMAX = +4398046511103999999;
-		const Int64 X6DECIMALMIN = -4398046511103999999;
+		public const Int64 X6DECIMALMAX = +4398046511103999999;
+        public const Int64 X6DECIMALMIN = -4398046511103999999;
 	}
 }
