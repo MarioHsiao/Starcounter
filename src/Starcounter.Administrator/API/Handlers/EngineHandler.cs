@@ -60,7 +60,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 return engine;
             }
 
-            internal static Response CreateConditionBasedResponse(Request request, EngineInfo engineInfo) {
+            internal static Response CreateConditionBasedResponse(Request request, EngineInfo engineInfo, bool isGETorHEAD) {
                 // From RFC2616:
                 //
                 // "If the request would, without the If-Match header field, result
