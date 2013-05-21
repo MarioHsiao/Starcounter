@@ -3,23 +3,28 @@ using System;
 namespace Starcounter.Internal {
     public class Utf8Helper {
 
-        public static unsafe uint WriteUIntAsUtf8(byte* buf, UInt64 value) {
-            uint numBytes = 0;
+        /// <summary>
+        /// Writes UInt64 as UTF8.
+        /// </summary>
+        public static unsafe UInt32 WriteUIntAsUtf8(Byte* buf, UInt64 value)
+        {
+            UInt32 numBytes = 0;
 
             // Checking for zero value.
             if (value == 0) {
-                buf[0] = (byte)'0';
+                buf[0] = (Byte)'0';
                 return 1;
             }
 
             // Writing integers in reversed order.
             while (value != 0) {
-                buf[numBytes++] = (byte)(value % 10 + 0x30);
+                buf[numBytes++] = (Byte)(value % 10 + (Byte)'0');
                 value = value / 10;
             }
 
             // Reversing the string.
-            for (uint k = 0; k < (numBytes / 2); k++) {
+            for (UInt32 k = 0; k < (numBytes / 2); k++)
+            {
                 byte t = buf[k];
                 buf[k] = buf[numBytes - k - 1];
                 buf[numBytes - k - 1] = t;
@@ -28,24 +33,29 @@ namespace Starcounter.Internal {
             return numBytes;
         }
 
-        public static unsafe uint WriteUIntAsUtf8Man(byte[] buf, uint offset, ulong value) {
-            uint numBytes = 0;
+        /// <summary>
+        /// Writes UInt64 as UTF8.
+        /// </summary>
+        public static unsafe UInt32 WriteUIntAsUtf8Man(Byte[] buf, UInt32 offset, UInt64 value)
+        {
+            UInt32 numBytes = 0;
 
             // Checking for zero value.
             if (value == 0) {
-                buf[offset] = (byte)'0';
+                buf[offset] = (Byte)'0';
                 return 1;
             }
 
             // Writing integers in reversed order.
             while (value != 0) {
-                buf[offset + numBytes++] = (byte)(value % 10 + 0x30);
+                buf[offset + numBytes++] = (Byte)(value % 10 + (Byte)'0');
                 value = value / 10;
             }
 
             // Reversing the string.
-            for (uint k = 0; k < (numBytes / 2); k++) {
-                byte t = buf[offset + k];
+            for (UInt32 k = 0; k < (numBytes / 2); k++)
+            {
+                Byte t = buf[offset + k];
                 buf[offset + k] = buf[offset + numBytes - k - 1];
                 buf[offset + numBytes - k - 1] = t;
             }
@@ -53,62 +63,73 @@ namespace Starcounter.Internal {
             return numBytes;
         }
 
-        static ulong[] mults = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 10000000000, 100000000000, 1000000000000 };
         /// <summary>
-        /// 
+        /// Parses integer from given buffer.
         /// </summary>
-        /// <param name="buf"></param>
-        /// <param name="offset"></param>
-        /// <param name="numChars"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// TODO! Make version that handles signed integers
-        /// </remarks>
-        public static ulong IntFastParseFromAscii(byte[] buf, uint offset, uint numChars) {
-            ulong result = 0, pos = offset + numChars - 1;
+        public static Int64 IntFastParseFromAscii(Byte[] buf, Int32 offset, Int32 numChars)
+        {
+            Int64 mult = 1, result = 0;
+            Boolean neg = false;
 
-            for (int i = 0; i < numChars; i++) {
-                result += ((ulong)buf[pos] - 0x30) * (mults[i]);
-                pos--;
+            Int32 start = offset;
+            if (buf[offset] == (Byte)'-')
+            {
+                neg = true;
+                start++;
             }
+
+            Int32 cur = offset + numChars - 1;
+            do
+            {
+                result += mult * (buf[cur] - (Byte)'0');
+                mult *= 10;
+                cur--;
+            }
+            while (cur >= start);
+
+            if (neg)
+                result = -result;
 
             return result;
         }
 
         /// <summary>
-        /// 
+        /// Tries to parse integer from ASCII pointed string.
         /// </summary>
-        /// <param name="ptr"></param>
-        /// <param name="numChars"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool IntFastParseFromAscii(IntPtr ptr, int numChars, out ulong value) {
-            bool success = true;
-            int i = numChars - 1;
-            ulong result = 0;
-            ulong mult = 1;
+        public static Boolean IntFastParseFromAscii(IntPtr ptr, Int32 numChars, out Int64 result)
+        {
+            Int64 mult = 1;
+            result = 0;
+            Boolean neg = false;
 
+            unsafe
+            {
+                Byte* start = (Byte*)ptr;
+                if (*start == (Byte)'-')
+                    neg = true;
+                else
+                    start--;
 
-            unsafe {
-                byte* bptr = (byte*)ptr;
+                Byte* cur = (Byte*)ptr + numChars - 1;
+                do
+                {
+                    Byte curb = *cur;
 
-                while (true) {
-                    if (!(bptr[i] >= 48 && bptr[i] <= 57)) {
-                        success = false;
-                        break;
-                    }
+                    // Checking if every character is a digit.
+                    if ((curb > (Byte)'9') || (curb < (Byte)'0'))
+                        return false;
 
-                    result += ((ulong)bptr[i] - '0') * mult;
-                    --i;
-                    if (i < 0)
-                        break;
-
+                    result += mult * (curb - (Byte)'0');
                     mult *= 10;
+                    cur--;
                 }
+                while (cur > start);
+
+                if (neg)
+                    result = -result;
             }
 
-            value = result;
-            return success;
+            return true;
         }
     }
 }
