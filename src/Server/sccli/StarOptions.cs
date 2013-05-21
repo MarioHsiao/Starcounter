@@ -1,5 +1,5 @@
 ﻿
-using Starcounter.Server;
+using Starcounter.CLI;
 
 namespace star {
 
@@ -15,7 +15,7 @@ namespace star {
         public const string LogSteps = SharedCLI.Option.LogSteps;
         public const string NoDb = SharedCLI.Option.NoDb;
         public const string NoAutoCreateDb = SharedCLI.Option.NoAutoCreateDb;
-        public const string WaitForEntrypoint = "wait";
+        public const string WaitForEntrypoint = SharedCLI.Option.WaitForEntrypoint;
         public const string Verbosity = "verbosity";
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";

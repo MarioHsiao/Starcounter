@@ -98,12 +98,6 @@ namespace Starcounter.Server {
         internal PublicModelProvider CurrentPublicModel { get; private set; }
 
         /// <summary>
-        /// Gets the current <see cref="AppsService"/> running as part of
-        /// any engine.
-        /// </summary>
-        internal AppsService AppsService { get; private set; }
-
-        /// <summary>
         /// Gets the <see cref="ExecutableService"/> used when the current
         /// server engine needs operate on executables.
         /// </summary>
@@ -147,7 +141,6 @@ namespace Starcounter.Server {
             this.Databases = new Dictionary<string, Database>(StringComparer.InvariantCultureIgnoreCase);
             this.DatabaseEngine = new DatabaseEngine(this);
             this.Dispatcher = new CommandDispatcher(this);
-            this.AppsService = new Server.AppsService(this);
             this.WeaverService = new Server.WeaverService(this);
             this.StorageService = new DatabaseStorageService(this);
             this.DatabaseHostService = new DatabaseHostingService(this);
@@ -199,14 +192,10 @@ namespace Starcounter.Server {
             this.DatabaseDefaultValues.Update(this.Configuration);
             SetupDatabases();
             this.CurrentPublicModel = new PublicModelProvider(this);
-            this.AppsService.Setup();
             this.ExecutableService.Setup();
             this.WeaverService.Setup();
             this.StorageService.Setup();
             this.DatabaseHostService.Setup();
-            // TODO: Remove!
-            //this.SharedMemoryMonitor.Setup();
-            //this.GatewayService.Setup();
         }
 
         /// <summary>
@@ -222,38 +211,7 @@ namespace Starcounter.Server {
         /// allowing the host to interact with the now running server.
         /// </returns>
         public IServerRuntime Start() {
-            // TODO: Remove!
-            //this.SharedMemoryMonitor.Start();
-            //this.GatewayService.Start();
-
             return this.CurrentPublicModel;
-        }
-
-        /// <summary>
-        /// Runs the server, blocking the calling thread, until it receives
-        /// a notification to stop. Only core services are exposed.
-        /// </summary>
-        /// <seealso cref="Run(ServerServices)"/>
-        public void Run() {
-            // When ran without any services configured, we make sure at least
-            // the core services are exposed, using named pipes on the local
-            // machine, based on the server name.
-            var ipcServer = ABCIPC.Internal.ClientServerFactory.CreateServerUsingNamedPipes(this.DefaultServicePipeName);
-            var coreServices = new ServerServices(this, ipcServer);
-            
-            coreServices.Setup(ServerServices.ServiceClass.Core);
-
-            Run(coreServices);
-        }
-
-        /// <summary>
-        /// Runs the server, blocking the calling thread, until it receives
-        /// a notification to stop. All services defined in the given
-        /// <see cref="ServerServices"/> set are exposed.
-        /// </summary>
-        /// <seealso cref="Run(ServerServices)"/>
-        public void Run(ServerServices services) {
-            services.Start();
         }
 
         /// <summary>
@@ -261,11 +219,6 @@ namespace Starcounter.Server {
         /// engine will get a request to stop.
         /// </summary>
         public void Stop() {
-            this.AppsService.Stop();
-
-            // Stop all other built-in standard components, like the gateway,
-            // the process monitor, etc.
-            // TODO:
         }
 
         /// <summary>
