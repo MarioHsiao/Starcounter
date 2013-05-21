@@ -78,6 +78,23 @@ namespace Starcounter.Internal {
 
         [Test]
         public void TestConvertBinaryRandom() {
+            Random rnd = new Random(1);
+            int nrTests = 1000;
+            for (int i = 0; i < nrTests; i++) {
+                uint valueLength = (uint)rnd.Next(1024);
+                uint valueArrayLength = valueLength;
+                if (rnd.Next(0, 1) == 1)
+                    valueArrayLength += (uint)rnd.Next(100);
+                uint encodedLength = Base64Binary.MeasureNeededSizeToEncode(valueLength);
+                uint encodedArrayLength = encodedLength;
+                if (rnd.Next(0, 1) == 1)
+                    encodedArrayLength += (uint)rnd.Next(200);
+                byte[] value = new byte[valueArrayLength];
+                byte[] encoded = new byte[encodedArrayLength];
+                for (int j = 0; j < valueLength; j++)
+                    value[j] = (byte)rnd.Next(byte.MinValue, byte.MaxValue);
+                ConvertByteArray(value, valueLength, encoded, encodedLength);
+            }
         }
     }
 }
