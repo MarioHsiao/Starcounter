@@ -82,6 +82,15 @@ namespace Starcounter.CLI {
                 exePath = Path.Combine(workingDirectory, exePath);
             }
             exePath = Path.GetFullPath(exePath);
+            if (!File.Exists(exePath)) {
+                // Windows allows running an executable from the shell in
+                // a commandline window just by specifying the name of the file
+                // without an extension. But in such case, it doesn't add the
+                // extension to the environment either. We maintain a lightweight
+                // fallback for this, just trying to add a .exe extension and
+                // pass it on to the server.
+                exePath += ".exe";
+            }
 
             // Define the syntax, parse the command-line in accordance to it
             // and pass it along to the Exec.
@@ -105,11 +114,10 @@ namespace Starcounter.CLI {
             appSyntax = new ApplicationSyntaxDefinition();
             appSyntax.ProgramDescription = "scshell";
             appSyntax.DefaultCommand = "exec";
-            SharedCLI.DefineWellKnownOptions(appSyntax, true);
-
             commandSyntax = appSyntax.DefineCommand(
-                "exec", 
+                "exec",
                 "Executes an application", 0, int.MaxValue);
+            SharedCLI.DefineWellKnownOptions(commandSyntax, true);
 
             return appSyntax.CreateSyntax();
         }
