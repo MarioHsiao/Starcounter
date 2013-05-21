@@ -21,11 +21,9 @@ namespace Test {
     /// </summary>
     [TestFixture]
     public class TestTemplates {
-        private static ITypedJsonFactory factory;
-
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            factory = new TypedJsonFactory();
+            Obj.Factory = new TypedJsonFactory();
         }
 
         /// <summary>
@@ -33,7 +31,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void CreateCsFromJsFile() {
-            TJson templ = (TJson)factory.CreateJsonTemplateFromFile("MySampleApp.json");
+            TJson templ = (TJson)Obj.Factory.CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.NotNull(templ);
         }
 
@@ -42,7 +40,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCs() {
-            TJson actual = (TJson)factory.CreateJsonTemplateFromFile("MySampleApp.json");
+            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.IsInstanceOf(typeof(TJson), actual);
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
             var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
@@ -53,7 +51,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
-            TJson actual = (TJson)factory.CreateJsonTemplateFromFile("simple.json");
+            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile("simple.json");
             actual.ClassName = "PlayerApp";
 
             var file = new System.IO.StreamReader("simple.facit.cs");
@@ -72,7 +70,7 @@ namespace Test {
         /// </summary>
         [Test]
         public static void GenerateCsFromSuperSimpleJs() {
-            TJson actual = (TJson)factory.CreateJsonTemplateFromFile("supersimple.json");
+            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
             actual.ClassName = "PlayerApp";
 
             Assert.IsInstanceOf(typeof(TJson), actual);
@@ -89,7 +87,7 @@ namespace Test {
 
             CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.CreateCodeBehindMetadata(className, className + ".json.cs");
 
-            TJson actual = (TJson)factory.CreateJsonTemplate(File.ReadAllText(className + ".json"));
+            TJson actual = (TJson)Obj.Factory.CreateJsonTemplate(File.ReadAllText(className + ".json"));
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
@@ -109,7 +107,7 @@ namespace Test {
             String className = "MySampleApp";
             CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.CreateCodeBehindMetadata(className, className + ".json.cs");
 
-            TJson actual = (TJson)factory.CreateJsonTemplateFromFile(className + ".json");
+            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
