@@ -9,11 +9,8 @@ namespace Starcounter.InstallerEngine
 {
     public class VS2012Integration : VSIntegration
     {
-        DevEnv devEnv;
-
         public VS2012Integration()
         {
-            devEnv = new DevEnv(VisualStudioVersion.VS2012);
         }
 
         /// <inheritdoc/>
@@ -61,9 +58,6 @@ namespace Starcounter.InstallerEngine
 
             // Check if Visual Studio is running.
             CheckVStudioRunning();
-
-            // Starting visual studio once before installation.
-            devEnv.InstallTemplates(false);
 
             String installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
 
@@ -142,11 +136,6 @@ namespace Starcounter.InstallerEngine
 
                 if (!ignoreException)
                     throw;
-            }
-            finally
-            {
-                // Starting visual studio once before installation.
-                devEnv.InstallTemplates(false);
             }
 
             // Updating progress.
