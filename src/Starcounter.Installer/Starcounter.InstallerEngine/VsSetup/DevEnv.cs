@@ -26,11 +26,7 @@ namespace Starcounter.InstallerEngine.VsSetup
         public DevEnv(VisualStudioVersion version)
         {
             this.Version = version;
-            
-            if (VisualStudioVersion.VS2010.BuildNumber.Equals(version.BuildNumber))
-                this.FilePath = Path.GetFullPath(ConstantsBank.VS2010DevEnvPath);
-            else
-                this.FilePath = Path.GetFullPath(ConstantsBank.VS2012DevEnvPath);
+            this.FilePath = Path.GetFullPath(ConstantsBank.VS2012DevEnvPath);
         }
 
         internal void InstallTemplates(bool developmentInstallation)
