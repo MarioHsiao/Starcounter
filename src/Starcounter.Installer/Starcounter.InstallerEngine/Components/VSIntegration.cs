@@ -103,9 +103,6 @@ namespace Starcounter.InstallerEngine
         {
             get
             {
-                if (VisualStudioVersion.VS2010.BuildNumber.Equals(this.BuildNumber))
-                    return Path.GetFullPath(ConstantsBank.VS2010DevEnvPath);
-
                 return Path.GetFullPath(ConstantsBank.VS2012DevEnvPath);
             }
         }
