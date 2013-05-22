@@ -15,13 +15,6 @@ CMD /C "kill_all.bat" 2>NUL
 IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 
-:: Building special version of Level1 solution.
-IF NOT "%SC_RUN_TESTS_LOCALLY%"=="True" (
-"C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe" "..\..\src\Level1.sln" /p:Configuration=BuildServerTest;Platform=x64 /maxcpucount
-IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
-CMD /C "timeout 2" 2>NUL
-)
-
 :: Creating database.
 sccreatedb.exe -ip %DB_DIR% -lp %DB_DIR% %DB_NAME%
 
