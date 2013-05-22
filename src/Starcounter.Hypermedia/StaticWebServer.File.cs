@@ -30,6 +30,10 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         public List<string> WorkingDirectories = new List<string>();
 
+        /// <summary>
+        /// Object used for locking.
+        /// </summary>
+        String LockObject = "LockObject";
 
         /// <summary>
         /// Reads the file system to find the resource addressed by an uri without using any cached version.
@@ -224,7 +228,6 @@ namespace Starcounter.Internal.Web {
             header.CopyTo(response, 0);
 
             if (shouldBeCached && cached == null) {
-                CacheOnUri[relativeUri] = fres;
                 fres.Uris.Add(relativeUri);
                 string path = (dir + "\\" + fileName + "." + fileExtension);
                 string fileSignature = path.ToUpper();
@@ -235,6 +238,7 @@ namespace Starcounter.Internal.Web {
                 if (!is404) {
                     fres.FileModified = File.GetLastWriteTime(path);
                 }
+                CacheOnUri[relativeUri] = fres;
                 CacheOnFilePath[fileSignature] = fres;
                 WatchChange(dir, fileName + "." + fileExtension); //.DirectoryName,fi.Name);
             }
@@ -263,8 +267,7 @@ namespace Starcounter.Internal.Web {
                     fsw.IncludeSubdirectories = false;
                     fsw.Changed += new FileSystemEventHandler(FileHasChanged);
                     fsw.EnableRaisingEvents = true;
-                }
-                else {
+                } else {
                     fsw = null;
                 }
                 WatchedPaths[fileSpecifier] = fsw;
@@ -280,13 +283,17 @@ namespace Starcounter.Internal.Web {
         internal void FileHasChanged(object sender, FileSystemEventArgs e) {
             string fileSignature = e.FullPath.ToUpper();
             Response cached;
-            if (CacheOnFilePath.TryGetValue(fileSignature, out cached)) {
 
-                foreach (var uri in cached.Uris) {
-                    Console.WriteLine("(decache) " + uri);
-                    CacheOnUri.Remove(uri);
+            // Locking because execution is done in separate thread.
+            lock (LockObject) {
+                if (CacheOnFilePath.TryGetValue(fileSignature, out cached)) {
+
+                    foreach (var uri in cached.Uris) {
+                        Console.WriteLine("(decache) " + uri);
+                        CacheOnUri.Remove(uri);
+                    }
+                    CacheOnFilePath.Remove(fileSignature);
                 }
-                CacheOnFilePath.Remove(fileSignature);
             }
         }
 
