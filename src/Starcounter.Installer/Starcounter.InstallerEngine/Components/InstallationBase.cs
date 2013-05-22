@@ -245,9 +245,9 @@ public class CInstallationBase : CComponentBase
 
         contentFilePath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.ScExceptionAssistantContentFileName);
 
-        if (Directory.Exists(ConstantsBank.VS2010ExceptionAssistantDirectory))
+        if (Directory.Exists(ConstantsBank.VS2012ExceptionAssistantDirectory))
         {
-            contentFileTargetPath = Path.Combine(ConstantsBank.VS2010ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
+            contentFileTargetPath = Path.Combine(ConstantsBank.VS2012ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
             File.Copy(contentFilePath, contentFileTargetPath, true);
         }
     }
@@ -256,9 +256,9 @@ public class CInstallationBase : CComponentBase
     {
         string contentFileTargetPath;
 
-        if (Directory.Exists(ConstantsBank.VS2010ExceptionAssistantDirectory))
+        if (Directory.Exists(ConstantsBank.VS2012ExceptionAssistantDirectory))
         {
-            contentFileTargetPath = Path.Combine(ConstantsBank.VS2010ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
+            contentFileTargetPath = Path.Combine(ConstantsBank.VS2012ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
             File.Delete(contentFileTargetPath);
         }
     }
