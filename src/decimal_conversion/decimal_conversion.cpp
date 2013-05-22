@@ -401,6 +401,14 @@ write_decimal:
 		return 0;
 	}
 	else {
+		// Temporary fix - check if 0.
+		if (decimal == 0) {
+			// The value fits in a X6 decimal.
+			int64_t raw_value = decimal.low() | (uint64_t(scale_sign) >> 31) << 63;
+			*encoded_x6_decimal_ptr = encode_dec(raw_value);
+			return 0;
+		}
+
 		// The value doesn't fit in a X6 decimal.
 		/// TODO: Error code for range error.
 		return SCERRCLRDECTOX6DECRANGEERROR;
