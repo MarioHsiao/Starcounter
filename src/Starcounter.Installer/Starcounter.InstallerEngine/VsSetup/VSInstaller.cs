@@ -7,28 +7,17 @@ using Starcounter;
 
 namespace Starcounter.InstallerEngine.VsSetup
 {
-    static class VSInstaller
+    /// <summary>
+    /// Provides the principal entrypoints for the installing and
+    /// uninstalling of the Starcounter extension.
+    /// </summary>
+    public static class VSInstaller
     {
-        public static void InstallVs2010(string binDirectory)
-        {
-            InstallUsingVSIXInstaller(
-                Path.Combine(ConstantsBank.VS2010IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
-                Path.Combine(binDirectory, VSIXPackageInfo.VS2010.FileName),
-                "10.0",
-                "Pro"
-                );
-        }
-
-        public static void UninstallVs2010(string binDirectory)
-        {
-            UninstallUsingVSIXInstaller(
-                Path.Combine(ConstantsBank.VS2010IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
-                VSIXPackageInfo.VS2010.ExtensionIdentity,
-                "10.0",
-                "Pro"
-                );
-        }
-
+        /// <summary>
+        /// Installs the Starcounter VS extension in VS 2012.
+        /// </summary>
+        /// <param name="binDirectory">Full path to the Starcounter
+        /// installation folder.</param>
         public static void InstallVs2012(string binDirectory)
         {
             InstallUsingVSIXInstaller(
@@ -39,6 +28,11 @@ namespace Starcounter.InstallerEngine.VsSetup
                 );
         }
 
+        /// <summary>
+        /// Uninstalls the Starcounter VS extension from VS 2012.
+        /// </summary>
+        /// <param name="binDirectory">Full path to the Starcounter
+        /// installation folder.</param>
         public static void UninstallVs2012(string binDirectory)
         {
             UninstallUsingVSIXInstaller(
@@ -138,6 +132,9 @@ namespace Starcounter.InstallerEngine.VsSetup
             result = process.ExitCode;
             if (result != 0)
             {
+                // Installing
+                // 2001: When it can't find the VSIX file.
+                // 1001: When we are installing and the extension is already installed.
                 throw ErrorCode.ToException(Error.SCERRVSIXENGINEFAILED,
                     string.Format(
                     "Process exit code={0}, Engine path={1}, Arguments={2}",
@@ -212,6 +209,9 @@ namespace Starcounter.InstallerEngine.VsSetup
             result = process.ExitCode;
             if (result != 0)
             {
+                // 2003: The extension with that ID was not installed in the given version
+                // 2003: When specifiyng no particular SKU/version, the same code indicates it's not installed.
+
                 if (UninstallEngine.CompleteCleanupSetting && result == 2003)
                 {
                     // 2003 is the exit code indicating that a package was not installed.
