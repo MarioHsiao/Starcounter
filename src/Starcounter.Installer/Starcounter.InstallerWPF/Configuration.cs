@@ -256,12 +256,6 @@ namespace Starcounter.InstallerWPF
                 elem.InnerText = systemServer.DefaultPrologSqlProcessPort.ToString();
                 subRootElem.AppendChild(elem);
 
-                // VisualStudio2010
-                VisualStudio2010Integration visualStudio2010Integration = this.GetComponent(VisualStudio2010Integration.Identifier) as VisualStudio2010Integration;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2010Integration);
-                elem.InnerText = visualStudio2010Integration.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
-
                 // VisualStudio2012
                 VisualStudio2012Integration visualStudio2012Integration = this.GetComponent(VisualStudio2012Integration.Identifier) as VisualStudio2012Integration;
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2012Integration);
@@ -283,12 +277,6 @@ namespace Starcounter.InstallerWPF
                 SystemServer systemServer = this.GetComponent(SystemServer.Identifier) as SystemServer;
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveSystemServer);
                 elem.InnerText = systemServer.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
-
-                // VisualStudio2010Integration
-                VisualStudio2010Integration visualStudio2010Integration = this.GetComponent(VisualStudio2010Integration.Identifier) as VisualStudio2010Integration;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveVS2010Integration);
-                elem.InnerText = visualStudio2010Integration.ExecuteCommand.ToString();
                 subRootElem.AppendChild(elem);
 
                 // VisualStudio2012Integration

@@ -106,7 +106,6 @@
     <Compile Include="Components\PersonalServer.cs" />
     <Compile Include="Components\SamplesDemos.cs" />
     <Compile Include="Components\SystemServer.cs" />
-    <Compile Include="Components\VS2010Integration.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
