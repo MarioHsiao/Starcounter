@@ -18,7 +18,7 @@ namespace Starcounter.InstallerEngine.VsSetup {
             InstallUsingVSIXInstaller(
                 Path.Combine(ConstantsBank.VS2012IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
                 Path.Combine(binDirectory, VSIXPackageInfo.VS2012.FileName),
-                "11.0",
+                VisualStudioVersion.VS2012.BuildNumber,
                 "Pro"
                 );
         }
@@ -32,7 +32,7 @@ namespace Starcounter.InstallerEngine.VsSetup {
             UninstallUsingVSIXInstaller(
                 Path.Combine(ConstantsBank.VS2012IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
                 VSIXPackageInfo.VS2012.ExtensionIdentity,
-                "11.0",
+                VisualStudioVersion.VS2012.BuildNumber,
                 "Pro"
                 );
         }
