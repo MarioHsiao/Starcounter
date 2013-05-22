@@ -925,8 +925,7 @@ namespace Starcounter.Internal
         /// <param name="recordAddr"></param>
         /// <param name="columnIndex"></param>
         /// <param name="value"></param>
-        public static void WriteDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex, Decimal value)
-		{
+        public static void WriteDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex, Decimal value) {
 			Int32[] decimalPart = Decimal.GetBits(value);
             UInt32 errorCode;
 
@@ -934,8 +933,7 @@ namespace Starcounter.Internal
 			// it will be written. If it doesn't fit it will not be written and an error code is
 			// returned.
 			if ((errorCode = convert_clr_decimal_to_x6_decimal(recordID, recordAddr, columnIndex,
-			decimalPart[0], decimalPart[1], decimalPart[2], decimalPart[3])) == 0)
-			{
+			decimalPart[0], decimalPart[1], decimalPart[2], decimalPart[3])) == 0) {
 				// The value was written.
                 return;
             }
