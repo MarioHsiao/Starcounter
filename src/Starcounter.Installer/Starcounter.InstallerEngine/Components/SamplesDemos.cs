@@ -161,9 +161,7 @@ public class CSamplesDemos : CComponentBase
         String[] sampleDbNames = { /*"MyMusic"*/ };
 
         // Checking installation of Visual Studio plugin.
-        if ((!InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled()) &&
-            (!InstallerMain.VS2010IntegrationComponent.IsInstalled()) &&
-            (!InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) &&
+        if ((!InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) &&
             (!InstallerMain.VS2012IntegrationComponent.IsInstalled()) &&
             (!Utilities.RunningOnBuildServer()))
         {
@@ -337,13 +335,7 @@ public class CSamplesDemos : CComponentBase
             InstallerMain.VS2012IntegrationComponent.IsInstalled())
         {
             vsNumberVersion = "11.0";
-            vsYearVersion = "2010";
-        }
-        else if (InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled() ||
-            InstallerMain.VS2010IntegrationComponent.IsInstalled())
-        {
-            vsNumberVersion = "10.0";
-            vsYearVersion = "2010";
+            vsYearVersion = "2012";
         }
         else
         {
@@ -374,9 +366,7 @@ public class CSamplesDemos : CComponentBase
     internal static void StartDemoPreBuilt()
     {
         // Checking Starcounter Visual Studio integration.
-        if ((InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled()) ||
-            (InstallerMain.VS2010IntegrationComponent.IsInstalled()) ||
-            (InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) ||
+        if ((InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) ||
             (InstallerMain.VS2012IntegrationComponent.IsInstalled()) ||
             (Utilities.RunningOnBuildServer()))
         {
@@ -421,9 +411,6 @@ public class CSamplesDemos : CComponentBase
         if (installedComponents[(Int32)ComponentsCheck.Components.SystemServer])
             remainingComponents[(Int32)ComponentsCheck.Components.SystemServer] = true;
 
-        if (installedComponents[(Int32)ComponentsCheck.Components.VS2010Integration])
-            remainingComponents[(Int32)ComponentsCheck.Components.VS2010Integration] = true;
-
         if (installedComponents[(Int32)ComponentsCheck.Components.VS2012Integration])
             remainingComponents[(Int32)ComponentsCheck.Components.VS2012Integration] = true;
 
@@ -434,9 +421,6 @@ public class CSamplesDemos : CComponentBase
 
             if (InstallerMain.SystemServerComponent.ShouldBeRemoved())
                 remainingComponents[(Int32)ComponentsCheck.Components.SystemServer] = false;
-
-            if (InstallerMain.VS2010IntegrationComponent.ShouldBeRemoved())
-                remainingComponents[(Int32)ComponentsCheck.Components.VS2010Integration] = false;
 
             if (InstallerMain.VS2012IntegrationComponent.ShouldBeRemoved())
                 remainingComponents[(Int32)ComponentsCheck.Components.VS2012Integration] = false;
@@ -531,7 +515,6 @@ public class CSamplesDemos : CComponentBase
     {
         return (InstallerMain.PersonalServerComponent.ShouldBeInstalled() ||
             InstallerMain.SystemServerComponent.ShouldBeInstalled() ||
-            InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled() ||
             InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled());
     }
 
