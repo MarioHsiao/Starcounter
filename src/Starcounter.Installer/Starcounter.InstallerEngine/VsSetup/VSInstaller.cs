@@ -148,10 +148,8 @@ namespace Starcounter.InstallerEngine.VsSetup {
             string targetEdition) {
             Process process;
             string arguments;
-            int timeoutInMilliseconds;
             int result;
-            bool completed;
-
+            
             if (!File.Exists(installerEnginePath)) {
                 throw ErrorCode.ToException(
                     Error.SCERRVSIXENGINENOTFOUND,
@@ -171,33 +169,31 @@ namespace Starcounter.InstallerEngine.VsSetup {
                 vsixExtensionIdentity
                 );
 
-            try {
-                process = Process.Start(installerEnginePath, arguments);
-            } catch (Exception startupException) {
-                throw ErrorCode.ToException(Error.SCERRVSIXENGINECOULDNOTSTART,
-                    startupException,
-                    string.Format(
-                    "Exception message={0}, Engine path={1}, Arguments={2}",
-                    startupException.Message,
-                    installerEnginePath,
-                    arguments)
-                    );
-            }
-
-            timeoutInMilliseconds = 120 * 1000;
-            completed = process.WaitForExit(timeoutInMilliseconds);
-            if (!completed) {
-                throw ErrorCode.ToException(Error.SCERRVSIXENGINETIMEDOUT,
-                    string.Format(
-                    "Timeout time={0} ms, Engine path={1}, Arguments={2}",
-                    timeoutInMilliseconds,
-                    installerEnginePath,
-                    arguments)
-                    );
-            }
-
+            process = RunVSIXInstaller(installerEnginePath, arguments);
             result = process.ExitCode;
-            if (result != 0) {
+            if (result == 0) {
+                // The VSIX installer uninstalls using a strategy that first
+                // marks the extension as installed, returning 0. The marking
+                // is done in the registry, at:
+                // HKCU\Software\Microsoft\VisualStudio\11.0\ExtensionManager\PendingDeletions
+                // Then, on a second run (or when starting VS), the extension
+                // is acutally removed from the system.
+                // We employ a second run instantly, to force the removal of
+                // the extension. This makes sure our IsInstalled algorithm works
+                // as we expect.
+                process = RunVSIXInstaller(installerEnginePath, arguments);
+                result = process.ExitCode;
+                if (result != 2003) {
+                    throw ErrorCode.ToException(Error.SCERRVSIXENGINEFAILED,
+                        string.Format(
+                        "Process exit code={0}, Engine path={1}, Arguments={2}",
+                        result,
+                        installerEnginePath,
+                        arguments)
+                        );
+                }
+            }
+            else {
                 // 2003: The extension with that ID was not installed in the given version
                 // 2003: When specifiyng no particular SKU/version, the same code indicates it's not installed.
 
@@ -224,6 +220,37 @@ namespace Starcounter.InstallerEngine.VsSetup {
                         );
                 }
             }
+        }
+
+        static Process RunVSIXInstaller(string installerEnginePath, string arguments, bool wait = true) {
+            Process process;
+            try {
+                process = Process.Start(installerEnginePath, arguments);
+            } catch (Exception startupException) {
+                throw ErrorCode.ToException(Error.SCERRVSIXENGINECOULDNOTSTART,
+                    startupException,
+                    string.Format(
+                    "Exception message={0}, Engine path={1}, Arguments={2}",
+                    startupException.Message,
+                    installerEnginePath,
+                    arguments)
+                    );
+            }
+
+            if (wait) {
+                var completed = process.WaitForExit(60 * 1000);
+                if (!completed) {
+                    throw ErrorCode.ToException(Error.SCERRVSIXENGINETIMEDOUT,
+                        string.Format(
+                        "Timeout time={0} ms, Engine path={1}, Arguments={2}",
+                        60 * 1000,
+                        installerEnginePath,
+                        arguments)
+                        );
+                }
+            }
+
+            return process;
         }
     }
 }
