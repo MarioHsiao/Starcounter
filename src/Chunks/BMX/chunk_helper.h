@@ -8,7 +8,6 @@
 
 #include <iostream>
 #include <stdint.h>
-#include "sccoredata.h"
 #include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
 #include "../common/config_param.hpp"
 #include "../common/chunk.hpp"
