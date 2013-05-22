@@ -54,7 +54,7 @@ const char *kWsBadProto =
     "Pragma: no-cache\r\n"
     "\r\n";
 
-const int32_t kWsBadProtoLen = strlen(kWsBadProto) + 1;
+const int32_t kWsBadProtoLen = strlen(kWsBadProto);
 
 uint32_t WsProto::ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
 {
