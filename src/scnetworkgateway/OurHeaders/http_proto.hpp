@@ -671,14 +671,14 @@ const char* const kHttpNoContent =
     "Content-Length: 0\r\n"
     "\r\n";
 
-const int32_t kHttpNoContentLength = strlen(kHttpNoContent) + 1;
+const int32_t kHttpNoContentLength = strlen(kHttpNoContent);
 
 const char* const kHttpBadRequest =
     "HTTP/1.1 400 Bad Request\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
 
-const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest) + 1;
+const int32_t kHttpBadRequestLength = strlen(kHttpBadRequest);
 
 const char* const kHttpNotFound =
     "HTTP/1.1 404 Not Found\r\n"
@@ -686,14 +686,14 @@ const char* const kHttpNotFound =
     "\r\n"
     "Requested URI resource not found.";
 
-const int32_t kHttpNotFoundLength = strlen(kHttpNotFound) + 1;
+const int32_t kHttpNotFoundLength = strlen(kHttpNotFound);
 
 const char* const kHttpServiceUnavailable =
     "HTTP/1.1 503 Service Unavailable\r\n"
     "Content-Length: 0\r\n"
     "\r\n";
 
-const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable) + 1;
+const int32_t kHttpServiceUnavailableLength = strlen(kHttpServiceUnavailable);
 
 const char* const kHttpTooBigUpload =
     "HTTP/1.1 413 Request Entity Too Large\r\n"
@@ -702,7 +702,7 @@ const char* const kHttpTooBigUpload =
     "\r\n"
     "Maximum supported HTTP request content size is 32 Mb!";
 
-const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload) + 1;
+const int32_t kHttpTooBigUploadLength = strlen(kHttpTooBigUpload);
 
 } // namespace network
 } // namespace starcounter
