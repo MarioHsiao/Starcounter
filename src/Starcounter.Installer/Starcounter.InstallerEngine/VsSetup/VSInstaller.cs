@@ -3,21 +3,18 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
-namespace Starcounter.InstallerEngine.VsSetup
-{
+namespace Starcounter.InstallerEngine.VsSetup {
     /// <summary>
     /// Provides the principal entrypoints for the installing and
     /// uninstalling of the Starcounter extension.
     /// </summary>
-    public static class VSInstaller
-    {
+    public static class VSInstaller {
         /// <summary>
         /// Installs the Starcounter VS extension in VS 2012.
         /// </summary>
         /// <param name="binDirectory">Full path to the Starcounter
         /// installation folder.</param>
-        public static void InstallVs2012(string binDirectory)
-        {
+        public static void InstallVs2012(string binDirectory) {
             InstallUsingVSIXInstaller(
                 Path.Combine(ConstantsBank.VS2012IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
                 Path.Combine(binDirectory, VSIXPackageInfo.VS2012.FileName),
@@ -31,8 +28,7 @@ namespace Starcounter.InstallerEngine.VsSetup
         /// </summary>
         /// <param name="binDirectory">Full path to the Starcounter
         /// installation folder.</param>
-        public static void UninstallVs2012(string binDirectory)
-        {
+        public static void UninstallVs2012(string binDirectory) {
             UninstallUsingVSIXInstaller(
                 Path.Combine(ConstantsBank.VS2012IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
                 VSIXPackageInfo.VS2012.ExtensionIdentity,
@@ -57,19 +53,17 @@ namespace Starcounter.InstallerEngine.VsSetup
         /// </param>
         static void InstallUsingVSIXInstaller(
             string installerEnginePath,
-            string vsixPackageFile, 
+            string vsixPackageFile,
             string targetVersion,
-            string targetEdition 
-            )
-        {
+            string targetEdition
+            ) {
             Process process;
             string arguments;
             int timeoutInMilliseconds;
             int result;
             bool completed;
 
-            if (!File.Exists(installerEnginePath))
-            {
+            if (!File.Exists(installerEnginePath)) {
                 throw ErrorCode.ToException(
                     Error.SCERRVSIXENGINENOTFOUND,
                     string.Format("Engine path={0}, Target version={1}, Target edition={2}",
@@ -78,8 +72,7 @@ namespace Starcounter.InstallerEngine.VsSetup
                     targetEdition));
             }
 
-            if (!File.Exists(vsixPackageFile))
-            {
+            if (!File.Exists(vsixPackageFile)) {
                 throw ErrorCode.ToException(
                     Error.SCERRVSIXPACKAGENOTFOUND,
                     string.Format("Package path={0}, Target version={1}, Target edition={2}",
@@ -90,7 +83,7 @@ namespace Starcounter.InstallerEngine.VsSetup
 
             // Example command-line:
             // VSIXInstaller.exe /quiet /skuName:Pro /skuVersion:11.0 "C:\Program Files\Starcounter\Starcounter.VisualStudio.11.0.vsix"
-            
+
             arguments = string.Format(
                 "/quiet /skuName:{0} /skuVersion:{1} \"{2}\"",
                 targetEdition,
@@ -98,12 +91,9 @@ namespace Starcounter.InstallerEngine.VsSetup
                 vsixPackageFile
                 );
 
-            try
-            {
+            try {
                 process = Process.Start(installerEnginePath, arguments);
-            }
-            catch (Exception startupException)
-            {
+            } catch (Exception startupException) {
                 throw ErrorCode.ToException(Error.SCERRVSIXENGINECOULDNOTSTART,
                     startupException,
                     string.Format(
@@ -115,9 +105,8 @@ namespace Starcounter.InstallerEngine.VsSetup
             }
 
             timeoutInMilliseconds = 120 * 1000;
-            completed = process.WaitForExit(timeoutInMilliseconds);            
-            if (!completed)
-            {
+            completed = process.WaitForExit(timeoutInMilliseconds);
+            if (!completed) {
                 throw ErrorCode.ToException(Error.SCERRVSIXENGINETIMEDOUT,
                     string.Format(
                     "Timeout time={0} ms, Engine path={1}, Arguments={2}",
@@ -128,18 +117,27 @@ namespace Starcounter.InstallerEngine.VsSetup
             }
 
             result = process.ExitCode;
-            if (result != 0)
-            {
+            if (result != 0) {
                 // Installing
                 // 2001: When it can't find the VSIX file.
                 // 1001: When we are installing and the extension is already installed.
-                throw ErrorCode.ToException(Error.SCERRVSIXENGINEFAILED,
-                    string.Format(
-                    "Process exit code={0}, Engine path={1}, Arguments={2}",
-                    result,
-                    installerEnginePath,
-                    arguments)
-                    );
+                if (result == 1001) {
+                    Utilities.LogMessage(
+                        ErrorCode.ToMessage(Error.SCERRVSIXENGINEFAILED,
+                        string.Format(
+                        "The VSIX installer indicated the extension was already installed. Ignoring this. Process exit code={0}, Engine path={1}, Arguments={2}",
+                        result,
+                        installerEnginePath,
+                        arguments)));
+                } else {
+                    throw ErrorCode.ToException(Error.SCERRVSIXENGINEFAILED,
+                        string.Format(
+                        "Process exit code={0}, Engine path={1}, Arguments={2}",
+                        result,
+                        installerEnginePath,
+                        arguments)
+                        );
+                }
             }
         }
 
@@ -147,16 +145,14 @@ namespace Starcounter.InstallerEngine.VsSetup
             string installerEnginePath,
             string vsixExtensionIdentity,
             string targetVersion,
-            string targetEdition)
-        {
+            string targetEdition) {
             Process process;
             string arguments;
             int timeoutInMilliseconds;
             int result;
             bool completed;
 
-            if (!File.Exists(installerEnginePath))
-            {
+            if (!File.Exists(installerEnginePath)) {
                 throw ErrorCode.ToException(
                     Error.SCERRVSIXENGINENOTFOUND,
                     string.Format("Engine path={0}, Target version={1}, Target edition={2}",
@@ -175,12 +171,9 @@ namespace Starcounter.InstallerEngine.VsSetup
                 vsixExtensionIdentity
                 );
 
-            try
-            {
+            try {
                 process = Process.Start(installerEnginePath, arguments);
-            }
-            catch (Exception startupException)
-            {
+            } catch (Exception startupException) {
                 throw ErrorCode.ToException(Error.SCERRVSIXENGINECOULDNOTSTART,
                     startupException,
                     string.Format(
@@ -193,8 +186,7 @@ namespace Starcounter.InstallerEngine.VsSetup
 
             timeoutInMilliseconds = 120 * 1000;
             completed = process.WaitForExit(timeoutInMilliseconds);
-            if (!completed)
-            {
+            if (!completed) {
                 throw ErrorCode.ToException(Error.SCERRVSIXENGINETIMEDOUT,
                     string.Format(
                     "Timeout time={0} ms, Engine path={1}, Arguments={2}",
@@ -205,13 +197,11 @@ namespace Starcounter.InstallerEngine.VsSetup
             }
 
             result = process.ExitCode;
-            if (result != 0)
-            {
+            if (result != 0) {
                 // 2003: The extension with that ID was not installed in the given version
                 // 2003: When specifiyng no particular SKU/version, the same code indicates it's not installed.
 
-                if (UninstallEngine.CompleteCleanupSetting && result == 2003)
-                {
+                if (result == 2003) {
                     // 2003 is the exit code indicating that a package was not installed.
                     // If we execute in the context of a full cleanup, we have no certain
                     // state (i.e. the installation can be corrupt) and so we let this
@@ -220,13 +210,11 @@ namespace Starcounter.InstallerEngine.VsSetup
                     Utilities.LogMessage(
                         ErrorCode.ToMessage(Error.SCERRVSIXENGINEFAILED,
                         string.Format(
-                        "The result was ignored due to the uninstaller indicating we are doing a full cleanup. Process exit code={0}, Engine path={1}, Arguments={2}",
+                        "The VSIX installer indicated the extension was already uninstalled. Ignoring this. Process exit code={0}, Engine path={1}, Arguments={2}",
                         result,
                         installerEnginePath,
                         arguments)));
-                }
-                else
-                {
+                } else {
                     throw ErrorCode.ToException(Error.SCERRVSIXENGINEFAILED,
                         string.Format(
                         "Process exit code={0}, Engine path={1}, Arguments={2}",
