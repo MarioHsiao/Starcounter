@@ -36,18 +36,20 @@ namespace Starcounter.InstallerEngine.VsSetup {
                 var extensionManifest = Path.Combine(extensionFolder, "extension.vsixmanifest");
                 if (!File.Exists(extensionManifest)) continue;
                 try {
-                    using (var reader = XmlReader.Create(new FileStream(extensionManifest, FileMode.Open))) {
-                        while (reader.Read()) {
-                            if (reader.NodeType == XmlNodeType.Element) {
-                                if (reader.Name == "Identifier") {
-                                    if (reader.MoveToAttribute("Id")) {
-                                        if (reader.Value.Equals(extensionId)) {
-                                            return extensionManifest;
+                    using (var file = new FileStream(extensionManifest, FileMode.Open)) {
+                        using (var reader = XmlReader.Create(file)) {
+                            while (reader.Read()) {
+                                if (reader.NodeType == XmlNodeType.Element) {
+                                    if (reader.Name == "Identifier") {
+                                        if (reader.MoveToAttribute("Id")) {
+                                            if (reader.Value.Equals(extensionId)) {
+                                                return extensionManifest;
+                                            }
                                         }
+                                        // As soon as we've found th identifier, just break reading
+                                        // and jump to the next file.
+                                        break;
                                     }
-                                    // As soon as we've found th identifier, just break reading
-                                    // and jump to the next file.
-                                    break;
                                 }
                             }
                         }
