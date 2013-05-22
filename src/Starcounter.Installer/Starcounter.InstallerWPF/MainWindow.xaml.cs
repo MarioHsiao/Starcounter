@@ -264,17 +264,11 @@ namespace Starcounter.InstallerWPF {
                 if (!string.IsNullOrEmpty(demoPath)) {
                     // Getting personal server installation path.
 
-                    VisualStudio2010Integration visualStudio2010IntegrationComponent = this.Configuration.Components[VisualStudio2010Integration.Identifier] as VisualStudio2010Integration;
                     VisualStudio2012Integration visualStudio2012IntegrationComponent = this.Configuration.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
                     PersonalServer personalServerComponent = this.Configuration.Components[PersonalServer.Identifier] as PersonalServer;
                     SystemServer systemServerComponent = this.Configuration.Components[SystemServer.Identifier] as SystemServer;
 
                     String postDemoType = String.Empty;
-
-                    if ((visualStudio2010IntegrationComponent != null && visualStudio2010IntegrationComponent.IsAvailable) &&
-                        (personalServerComponent != null && personalServerComponent.IsAvailable)) {
-                        postDemoType = PostDemoTypeEnum.VS2010.ToString();
-                    }
 
                     if ((visualStudio2012IntegrationComponent != null && visualStudio2012IntegrationComponent.IsAvailable) &&
                         (personalServerComponent != null && personalServerComponent.IsAvailable)) {
@@ -546,9 +540,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         private void SetupComponents() {
             // Pre
-            VisualStudio2010 visualStudio2010 = new VisualStudio2010(this._InternalComponents);
-            this._InternalComponents.Add(visualStudio2010);
-
+            
             VisualStudio2012 visualStudio2012 = new VisualStudio2012(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2012);
 
@@ -585,9 +577,7 @@ namespace Starcounter.InstallerWPF {
             //this._InternalComponents.Add(liveObjects);
 
             // Developer tools
-            VisualStudio2010Integration visualStudio2010Integration = new VisualStudio2010Integration(this._InternalComponents);
-            this._InternalComponents.Add(visualStudio2010Integration);
-
+            
             VisualStudio2012Integration visualStudio2012Integration = new VisualStudio2012Integration(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2012Integration);
 
@@ -692,9 +682,6 @@ namespace Starcounter.InstallerWPF {
 
                     if (InstalledComponents[(int)ComponentsCheck.Components.SystemServer])
                         foundComponents += " - System Server Installation." + Environment.NewLine;
-
-                    if (InstalledComponents[(int)ComponentsCheck.Components.VS2010Integration])
-                        foundComponents += " - Visual Studio 2010 Integration.";
 
                     if (InstalledComponents[(int)ComponentsCheck.Components.VS2012Integration])
                         foundComponents += " - Visual Studio 2012 Integration.";
