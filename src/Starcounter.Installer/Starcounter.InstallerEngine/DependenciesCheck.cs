@@ -177,25 +177,6 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
-        /// Simply checks if Visual Studio 2010 is installed.
-        /// </summary>
-        /// <returns></returns>
-        public static Boolean VStudio2010Installed()
-        {
-            List<String> allInstalledProgs = GetInstalledPrograms();
-            Regex rgx = new Regex(@"Microsoft Visual Studio 2010.+\-.*", RegexOptions.IgnoreCase);
-            foreach (String progRepr in allInstalledProgs)
-            {
-                String[] progReprArray = progRepr.Split('@');
-                if (rgx.IsMatch(progReprArray[0])) // Matching only name here.
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
         /// Simply checks if Visual Studio 2012 is installed.
         /// </summary>
         /// <returns></returns>
