@@ -94,6 +94,7 @@
     <Compile Include="VsSetup\VisualStudioEdition.cs" />
     <Compile Include="VsSetup\VisualStudioVersion.cs" />
     <Compile Include="VsSetup\VSIXPackageInfo.cs" />
+    <Compile Include="VsSetup\VSIXUtilities.cs" />
     <Compile Include="Win32Error.cs" />
     <Compile Include="Win32Kernel.cs" />
     <Compile Include="Win32Security.cs" />
