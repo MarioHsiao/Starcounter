@@ -159,18 +159,10 @@ namespace Starcounter.InstallerEngine
         /// <returns>True if already installed.</returns>
         public override Boolean IsInstalled()
         {
-            // Check registry value indicating the VS 2012 integration is actually
-            // installed for the current user.
-
-            RegistryKey installedProductKey = Registry.CurrentUser.OpenSubKey(ConstantsBank.RegistryVS2012StarcounterInstalledProductKey);
-            if (installedProductKey == null)
-            {
-                //Debugger.Launch();
-                return false;
-            }
-
-            installedProductKey.Close();
-            return true;
+            var manifest = VSIXUtilities.FindManifestFile(
+                ConstantsBank.GetUserExtensionsRootFolder(VisualStudioVersion.VS2012),
+                VSIXPackageInfo.VS2012.ExtensionIdentity);
+            return manifest != null;
         }
 
         /// <summary>
