@@ -22,12 +22,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("if ((leftBufferSize - 2) < 0)");
-            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);");
-            Prefix.Add("leftBufferSize -= 2;");
+//            Prefix.Add("if ((leftBufferSize - 2) < 0)");
+//            Prefix.Add("    goto restart;");
+//            Prefix.Add("leftBufferSize -= 2;");
 
-            Prefix.Add("*pBuffer++ = (byte)'{';");
-            Suffix.Add("*pBuffer++ = (byte)'}';");
+//            Prefix.Add("*pBuffer++ = (byte)'{';");
+            Suffix.Add("offset++;");
+            Suffix.Add("*buf++ = (byte)'}';");
         }
     }
 }
