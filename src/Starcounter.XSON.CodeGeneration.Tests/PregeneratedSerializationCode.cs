@@ -5,169 +5,24 @@ using System.Runtime.InteropServices;
 using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
+using Starcounter.Templates;
 using Starcounter.XSON.Serializers;
 
 namespace __starcountergenerated__ {
-    public class PreGeneratedSerializer : CodegenTypedJsonSerializer {
-    #pragma warning disable 0219
-    #pragma warning disable 0168
+    public class PreGeneratedSerializer : TypedJsonSerializerBase {
+#pragma warning disable 0219
+#pragma warning disable 0168
 
-        #pragma warning disable 0414
-        private static int VerificationOffset0 = 0; // FirstName$
-        private static int VerificationOffset1 = 10; // LastName
-        private static int VerificationOffset2 = 18; // Age
-        private static int VerificationOffset3 = 21; // Stats
-        private static int VerificationOffset4 = 26; // Fields
-        private static int VerificationOffset5 = 32; // ExtraInfo
-        #pragma warning restore 0414
-        private static byte[] VerificationBytes = new byte[] {(byte)'F',(byte)'i',(byte)'r',(byte)'s',(byte)'t',(byte)'N',(byte)'a',(byte)'m',(byte)'e',(byte)'$',(byte)'L',(byte)'a',(byte)'s',(byte)'t',(byte)'N',(byte)'a',(byte)'m',(byte)'e',(byte)'A',(byte)'g',(byte)'e',(byte)'S',(byte)'t',(byte)'a',(byte)'t',(byte)'s',(byte)'F',(byte)'i',(byte)'e',(byte)'l',(byte)'d',(byte)'s',(byte)'E',(byte)'x',(byte)'t',(byte)'r',(byte)'a',(byte)'I',(byte)'n',(byte)'f',(byte)'o'};
+#pragma warning disable 0414
+        private static int VerificationOffset0 = 0; // Value1
+        private static int VerificationOffset1 = 6; // Value2
+#pragma warning restore 0414
+        private static byte[] VerificationBytes = new byte[] { (byte)'V', (byte)'a', (byte)'l', (byte)'u', (byte)'e', (byte)'1', (byte)'V', (byte)'a', (byte)'l', (byte)'u', (byte)'e', (byte)'2' };
         private static IntPtr PointerVerificationBytes;
 
-        public PreGeneratedSerializer() {
+        static PreGeneratedSerializer() {
             PointerVerificationBytes = Marshal.AllocHGlobal(VerificationBytes.Length); // TODO. Free when program exists
             Marshal.Copy(VerificationBytes, 0, PointerVerificationBytes, VerificationBytes.Length);
-        }
-
-        public int ToJson(Obj realObj, IntPtr buffer, int bufferSize) {
-            int valueSize;
-            Obj childObj;
-            dynamic obj = realObj;
-            unsafe {
-                byte* pBuffer = (byte*)buffer;
-                byte* pver = null;
-                int leftBufferSize = bufferSize;
-                if ((leftBufferSize - 2) < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= 2;
-                *pBuffer++ = (byte)'{';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "FirstName$");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, obj.FirstName);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)',';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "LastName");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, obj.LastName);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)',';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "Age");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                valueSize = JsonHelper.WriteInt((IntPtr)pBuffer, leftBufferSize, obj.Age);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)',';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "Stats");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                valueSize = JsonHelper.WriteDecimal((IntPtr)pBuffer, leftBufferSize, obj.Stats);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)',';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "Fields");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                if ((leftBufferSize - 2) < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)'[';
-                leftBufferSize -= 2;
-                for(int i = 0; i < obj.Fields.Count; i++) {
-                    childObj = obj.Fields[i];
-                if (childObj == null)
-                    valueSize = JsonHelper.WriteNull((IntPtr)pBuffer, leftBufferSize);
-                else
-                    valueSize = -1; //childObj.ToJson((IntPtr)pBuffer, leftBufferSize);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                    if ((i+1) < obj.Fields.Count) {
-                        leftBufferSize--;
-                        if (leftBufferSize < 0)
-                            throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                        *pBuffer++ = (byte)',';
-                    }
-                }
-                *pBuffer++ = (byte)']';
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)',';
-                valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, "ExtraInfo");
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                leftBufferSize--;
-                if (leftBufferSize < 0)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                *pBuffer++ = (byte)':';
-                childObj = obj.ExtraInfo;
-                if (childObj == null)
-                    valueSize = JsonHelper.WriteNull((IntPtr)pBuffer, leftBufferSize);
-                else
-                    valueSize = -1; //childObj.ToJson((IntPtr)pBuffer, leftBufferSize);
-                if (valueSize == -1)
-                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                leftBufferSize -= valueSize;
-                pBuffer += valueSize;
-                *pBuffer++ = (byte)'}';
-                return (bufferSize - leftBufferSize);
-            }
         }
         public override int PopulateFromJson(Obj realObj, IntPtr buffer, int bufferSize) {
             int valueSize;
@@ -189,171 +44,33 @@ namespace __starcountergenerated__ {
                         pBuffer++;
                         leftBufferSize--;
                         if (leftBufferSize < 0)
-                             throw new Exception("Deserialization failed.");
+                            throw new Exception("Deserialization failed.");
                     }
                     pBuffer++;
                     leftBufferSize--;
                     if (leftBufferSize < 0)
                         throw new Exception("Deserialization failed.");
+                    pver = ((byte*)PointerVerificationBytes + VerificationOffset1 + 0);
+                    leftBufferSize -= 4;
+                    if (leftBufferSize < 0 || (*(UInt32*)pBuffer) != (*(UInt32*)pver))
+                        throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
+                    pBuffer += 4;
+                    pver += 4;
+                    leftBufferSize--;
+                    if (leftBufferSize < 0 || (*pBuffer) != (*pver))
+                        throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
+                    pBuffer++;
+                    pver++;
                     switch (*pBuffer) {
-                        case (byte)'F':
+                        case (byte)'2':
                             pBuffer++;
                             leftBufferSize--;
-                            pver = ((byte*)PointerVerificationBytes + VerificationOffset0 + 1);
-                            leftBufferSize --;
-                            if (leftBufferSize < 0 || (*pBuffer) != (*pver) )
-                                throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                            pBuffer++;
-                            pver++;
-                            switch (*pBuffer) {
-                                case (byte)'r':
-                                    pBuffer++;
-                                    leftBufferSize--;
-                                    pver = ((byte*)PointerVerificationBytes + VerificationOffset0 + 3);
-                                    leftBufferSize -= 4;
-                                    if (leftBufferSize < 0 || (*(UInt32*)pBuffer) !=  (*(UInt32*)pver) )
-                                        throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                                    pBuffer += 4;
-                                    pver += 4;
-                                    leftBufferSize -= 2;
-                                    if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver) )
-                                        throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                                    pBuffer += 2;
-                                    pver += 2;
-                                    // Skip until start of value to parse.
-                                    while (*pBuffer != ':') {
-                                        pBuffer++;
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                             throw new Exception("Deserialization failed.");
-                                    }
-                                    pBuffer++; // Skip ':' or ','
-                                    leftBufferSize--;
-                                    if (leftBufferSize < 0)
-                                        throw new Exception("Deserialization failed.");
-                                    while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                        pBuffer++;
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                             throw new Exception("Deserialization failed.");
-                                    }
-                                    String val0;
-                                    if (JsonHelper.ParseString((IntPtr)pBuffer, leftBufferSize, out val0, out valueSize)) {
-                                        obj.FirstName = val0;
-                                        leftBufferSize -= valueSize;
-                                        if (leftBufferSize < 0) {
-                                            throw new Exception("Unable to deserialize App. Unexpected end of content");
-                                        }
-                                        pBuffer += valueSize;
-                                    } else {
-                                        throw new Exception("Unable to deserialize App. Content not compatible.");
-                                    }
-                                   break;
-                                case (byte)'e':
-                                    pBuffer++;
-                                    leftBufferSize--;
-                                    pver = ((byte*)PointerVerificationBytes + VerificationOffset4 + 3);
-                                    leftBufferSize -= 2;
-                                    if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver) )
-                                        throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                                    pBuffer += 2;
-                                    pver += 2;
-                                    leftBufferSize --;
-                                    if (leftBufferSize < 0 || (*pBuffer) != (*pver) )
-                                        throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                                    pBuffer++;
-                                    pver++;
-                                    // Skip until start of value to parse.
-                                    while (*pBuffer != ':') {
-                                        pBuffer++;
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                             throw new Exception("Deserialization failed.");
-                                    }
-                                    pBuffer++; // Skip ':' or ','
-                                    leftBufferSize--;
-                                    if (leftBufferSize < 0)
-                                        throw new Exception("Deserialization failed.");
-                                    while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                        pBuffer++;
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                             throw new Exception("Deserialization failed.");
-                                    }
-                                    if (*pBuffer++ == '[') {
-                                        leftBufferSize--;
-                                        while (*pBuffer != '{' && *pBuffer != ']') { // find first object or end of array
-                                            pBuffer++;
-                                            leftBufferSize--;
-                                        }
-                                        if (*pBuffer != ']') {
-                                        while (leftBufferSize > 0) {
-                                            var val4 = obj.Fields.Add();
-                                            valueSize =  val4.PopulateFromJson((IntPtr)pBuffer, leftBufferSize);
-                                            if (valueSize != -1) {
-                                                leftBufferSize -= valueSize;
-                                                if (leftBufferSize < 0) {
-                                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
-                                                }
-                                                pBuffer += valueSize;
-                                            } else {
-                                                throw new Exception("Unable to deserialize App. Content not compatible.");
-                                            }
-                                                // Skip until start of value to parse.
-                                                while (*pBuffer != ',') {
-                                                    if (*pBuffer == ']')
-                                                        break;
-                                                    pBuffer++;
-                                                    leftBufferSize--;
-                                                    if (leftBufferSize < 0)
-                                                         throw new Exception("Deserialization failed.");
-                                                }
-                                                if (*pBuffer == ']')
-                                                    break;
-                                                pBuffer++; // Skip ':' or ','
-                                                leftBufferSize--;
-                                                if (leftBufferSize < 0)
-                                                    throw new Exception("Deserialization failed.");
-                                                while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                                    pBuffer++;
-                                                    leftBufferSize--;
-                                                    if (leftBufferSize < 0)
-                                                         throw new Exception("Deserialization failed.");
-                                                }
-                                        }
-                                        }
-                                    } else
-                                        throw new Exception("Invalid array value");
-                                   break;
-                                default:
-                                    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED, "char: '" + (char)*pBuffer + "', offset: " + (bufferSize - leftBufferSize) + "");
-                            }
-                           break;
-                        case (byte)'L':
-                            pBuffer++;
-                            leftBufferSize--;
-                            pver = ((byte*)PointerVerificationBytes + VerificationOffset1 + 1);
-                            leftBufferSize -= 4;
-                            if (leftBufferSize < 0 || (*(UInt32*)pBuffer) !=  (*(UInt32*)pver) )
-                                throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                            pBuffer += 4;
-                            pver += 4;
-                            leftBufferSize -= 2;
-                            if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver) )
-                                throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                            pBuffer += 2;
-                            pver += 2;
-                            leftBufferSize --;
-                            if (leftBufferSize < 0 || (*pBuffer) != (*pver) )
-                                throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                            pBuffer++;
-                            pver++;
                             // Skip until start of value to parse.
                             while (*pBuffer != ':') {
                                 pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
+                                    throw new Exception("Deserialization failed.");
                             }
                             pBuffer++; // Skip ':' or ','
                             leftBufferSize--;
@@ -363,11 +80,11 @@ namespace __starcountergenerated__ {
                                 pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
+                                    throw new Exception("Deserialization failed.");
                             }
                             String val1;
                             if (JsonHelper.ParseString((IntPtr)pBuffer, leftBufferSize, out val1, out valueSize)) {
-                                obj.LastName = val1;
+                                obj.Value2 = val1;
                                 leftBufferSize -= valueSize;
                                 if (leftBufferSize < 0) {
                                     throw new Exception("Unable to deserialize App. Unexpected end of content");
@@ -376,22 +93,16 @@ namespace __starcountergenerated__ {
                             } else {
                                 throw new Exception("Unable to deserialize App. Content not compatible.");
                             }
-                           break;
-                        case (byte)'A':
+                            break;
+                        case (byte)'1':
                             pBuffer++;
                             leftBufferSize--;
-                            pver = ((byte*)PointerVerificationBytes + VerificationOffset2 + 1);
-                            leftBufferSize -= 2;
-                            if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver) )
-                                throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                            pBuffer += 2;
-                            pver += 2;
                             // Skip until start of value to parse.
                             while (*pBuffer != ':') {
                                 pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
+                                    throw new Exception("Deserialization failed.");
                             }
                             pBuffer++; // Skip ':' or ','
                             leftBufferSize--;
@@ -401,11 +112,11 @@ namespace __starcountergenerated__ {
                                 pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
+                                    throw new Exception("Deserialization failed.");
                             }
-                            Int64 val2;
-                            if (JsonHelper.ParseInt((IntPtr)pBuffer, leftBufferSize, out val2, out valueSize)) {
-                                obj.Age = val2;
+                            Int64 val0;
+                            if (JsonHelper.ParseInt((IntPtr)pBuffer, leftBufferSize, out val0, out valueSize)) {
+                                obj.Value1 = val0;
                                 leftBufferSize -= valueSize;
                                 if (leftBufferSize < 0) {
                                     throw new Exception("Unable to deserialize App. Unexpected end of content");
@@ -414,83 +125,7 @@ namespace __starcountergenerated__ {
                             } else {
                                 throw new Exception("Unable to deserialize App. Content not compatible.");
                             }
-                           break;
-                        case (byte)'S':
-                            pBuffer++;
-                            leftBufferSize--;
-                            pver = ((byte*)PointerVerificationBytes + VerificationOffset3 + 1);
-                            leftBufferSize -= 4;
-                            if (leftBufferSize < 0 || (*(UInt32*)pBuffer) !=  (*(UInt32*)pver) )
-                                throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                            pBuffer += 4;
-                            pver += 4;
-                            // Skip until start of value to parse.
-                            while (*pBuffer != ':') {
-                                pBuffer++;
-                                leftBufferSize--;
-                                if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
-                            }
-                            pBuffer++; // Skip ':' or ','
-                            leftBufferSize--;
-                            if (leftBufferSize < 0)
-                                throw new Exception("Deserialization failed.");
-                            while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                pBuffer++;
-                                leftBufferSize--;
-                                if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
-                            }
-                            Decimal val3;
-                            if (JsonHelper.ParseDecimal((IntPtr)pBuffer, leftBufferSize, out val3, out valueSize)) {
-                                obj.Stats = val3;
-                                leftBufferSize -= valueSize;
-                                if (leftBufferSize < 0) {
-                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
-                                }
-                                pBuffer += valueSize;
-                            } else {
-                                throw new Exception("Unable to deserialize App. Content not compatible.");
-                            }
-                           break;
-                        case (byte)'E':
-                            pBuffer++;
-                            leftBufferSize--;
-                            pver = ((byte*)PointerVerificationBytes + VerificationOffset5 + 1);
-                            leftBufferSize -= 8;
-                            if (leftBufferSize < 0 || (*(UInt64*)pBuffer) != (*(UInt64*)pver) )
-                                throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                            pBuffer += 8;
-                            pver += 8;
-                            // Skip until start of value to parse.
-                            while (*pBuffer != ':') {
-                                pBuffer++;
-                                leftBufferSize--;
-                                if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
-                            }
-                            pBuffer++; // Skip ':' or ','
-                            leftBufferSize--;
-                            if (leftBufferSize < 0)
-                                throw new Exception("Deserialization failed.");
-                            while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                pBuffer++;
-                                leftBufferSize--;
-                                if (leftBufferSize < 0)
-                                     throw new Exception("Deserialization failed.");
-                            }
-                            var val5 = obj.ExtraInfo;
-                            valueSize =  val5.PopulateFromJson((IntPtr)pBuffer, leftBufferSize);
-                            if (valueSize != -1) {
-                                leftBufferSize -= valueSize;
-                                if (leftBufferSize < 0) {
-                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
-                                }
-                                pBuffer += valueSize;
-                            } else {
-                                throw new Exception("Unable to deserialize App. Content not compatible.");
-                            }
-                           break;
+                            break;
                         default:
                             throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED, "char: '" + (char)*pBuffer + "', offset: " + (bufferSize - leftBufferSize) + "");
                     }
@@ -498,7 +133,9 @@ namespace __starcountergenerated__ {
             }
             throw new Exception("Deserialization of App failed.");
         }
-    #pragma warning restore 0168
-    #pragma warning restore 0219
+#pragma warning restore 0168
+#pragma warning restore 0219
     }
 }
+
+
