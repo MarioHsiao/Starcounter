@@ -1,6 +1,7 @@
 ﻿using Mono.CSharp;
 using Starcounter.Internal;
 using Starcounter.XSON.Metadata;
+using Starcounter.XSON.Serializers;
 
 namespace Starcounter.XSON.Compiler.Mono {
     /// <summary>
