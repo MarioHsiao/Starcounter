@@ -411,7 +411,7 @@ namespace Starcounter.XSON.Serializers {
         public static int WriteDouble(IntPtr ptr, int size, double value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture));
+                return WriteStringNoQuotations(pfrag, size, value.ToString("0.0###########################", CultureInfo.InvariantCulture));
             }
         }
 
@@ -426,12 +426,7 @@ namespace Starcounter.XSON.Serializers {
         public static int WriteDecimal(IntPtr ptr, int size, decimal value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
-
-                if (value == 0) {
-                    return WriteStringNoQuotations(pfrag, size, "0.0");
-                } else {
-                    return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture));
-                }
+                return WriteStringNoQuotations(pfrag, size, value.ToString("0.0###########################", CultureInfo.InvariantCulture));
             }
         }
 
