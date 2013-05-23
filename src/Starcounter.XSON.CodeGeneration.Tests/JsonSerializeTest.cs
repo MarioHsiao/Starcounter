@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using Starcounter.XSON.CodeGeneration;
@@ -28,12 +26,21 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
 
         [Test]
         public static void DefaultSerializerTest() {
-            TestSerializationFor("person.json");
-            TestSerializationFor("supersimple.json");
-            TestSerializationFor("TestMessage.json");
+            TestSerializationFor(File.ReadAllText("person.json"));
+            TestSerializationFor(File.ReadAllText("supersimple.json"));
+            TestSerializationFor(File.ReadAllText("simple.json"));
+            TestSerializationFor(File.ReadAllText("TestMessage.json"));
         }
 
-        private static void TestSerializationFor(string jsonFilePath) {
+        [Test]
+        public static void CodegenSerializerTest() {
+            TestSerializationFor(File.ReadAllText("person.json"), true);
+            TestSerializationFor(File.ReadAllText("supersimple.json"), true);
+            TestSerializationFor(File.ReadAllText("simple.json"), true);
+            TestSerializationFor(File.ReadAllText("TestMessage.json"), true);
+        }
+
+        private static void TestSerializationFor(string json, bool useCodegen = false) {
             byte[] correctJson;
             byte[] defaultJson;
             int count;
@@ -41,16 +48,18 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             Obj actualObj;
             TObj tObj;
 
-            tObj = Obj.Factory.CreateJsonTemplateFromFile(jsonFilePath);
-            tObj.UseCodegeneratedSerializer = false;
+            tObj = Obj.Factory.CreateJsonTemplate(json);
+            TObj.UseCodegeneratedSerializer = false;
             correctObj = (Obj)tObj.CreateInstance();
 
             // We use the NewtonSoft implementation as a verifier for correct input and output.
             TObj.FallbackSerializer = newtonSerializer;
-            correctObj.PopulateFromJson(File.ReadAllText(jsonFilePath));
+            correctObj.PopulateFromJson(json);
             correctJson = correctObj.ToJsonUtf8();
 
             TObj.FallbackSerializer = defaultSerializer;
+            TObj.UseCodegeneratedSerializer = useCodegen;
+            TObj.DontCreateSerializerInBackground = true;
             count = correctObj.ToJsonUtf8(out defaultJson);
             AssertAreEqual(correctJson, defaultJson, count);
 
@@ -76,7 +85,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             var defaultSerializer = DefaultSerializer.Instance;
 
             tPerson = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
-            tPerson.UseCodegeneratedSerializer = false;
+            TObj.UseCodegeneratedSerializer = false;
 
             dynamic person = tPerson.CreateInstance();
             person.PlayerId = 35684;
@@ -93,7 +102,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             defaultTime = BenchmarkSerializer(person, nrOfTimes);
 
 //            TObj.FallbackSerializer = new __starcountergenerated__.PreGeneratedSerializer();
-            tPerson.UseCodegeneratedSerializer = true;
+            TObj.UseCodegeneratedSerializer = true;
             count = person.ToJsonUtf8(out defaultJson); // Run once to start the codegen.
             Thread.Sleep(1000);
             count = person.ToJsonUtf8(out defaultJson); // And then again to make sure everything is initialized.
@@ -108,7 +117,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             Console.WriteLine("Count : " + count);
             Console.WriteLine(Encoding.UTF8.GetString(defaultJson, 0, count));
 
-            tPerson.UseCodegeneratedSerializer = false;
+            TObj.UseCodegeneratedSerializer = false;
             TObj.FallbackSerializer = newtonSerializer;
             person.PopulateFromJson(newtonJson);
             newtonTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
@@ -117,7 +126,7 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             person.PopulateFromJson(defaultJson, count);
             defaultTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
 
-            tPerson.UseCodegeneratedSerializer = true;
+            TObj.UseCodegeneratedSerializer = true;
             person.PopulateFromJson(defaultJson, count);
             codegenTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
 
@@ -241,13 +250,13 @@ namespace Starcounter.Apps.CodeGeneration.Tests {
             TypedJsonSerializer serializer = new __starcountergenerated__.PreGeneratedSerializer();
 
             // First use fallback serializer (Newtonsoft) to create a correct json string.
-            tPerson.UseCodegeneratedSerializer = false;
+            TObj.UseCodegeneratedSerializer = false;
             correctJson = person.ToJson();
 
             // Then we do the same but use codegeneration. We use the pregenerated serializer here
             // to be able to debug it, but we will get the same result by enabling codegenerated serializer 
             // on the template.
-            tPerson.UseCodegeneratedSerializer = true;
+            TObj.UseCodegeneratedSerializer = true;
 
             size = serializer.ToJsonUtf8(person, out jsonArr);
 //            size = person.ToJsonUtf8(out jsonArr);
