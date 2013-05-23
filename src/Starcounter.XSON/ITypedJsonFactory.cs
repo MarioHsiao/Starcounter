@@ -7,6 +7,7 @@
 using System;
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
+using Starcounter.XSON.Serializers;
 
 namespace Starcounter.Internal {
     /// <summary>

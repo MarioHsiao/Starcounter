@@ -7,6 +7,7 @@ using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
 using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
+using Starcounter.XSON.Serializers;
 
 namespace Starcounter.XSON.CodeGeneration {
     public class TypedJsonFactory : ITypedJsonFactory {
