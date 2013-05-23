@@ -5,12 +5,7 @@
 // ***********************************************************************
 
 using System;
-using System.IO;
-using System.Text;
-using Newtonsoft.Json;
 using Starcounter.Templates;
-using Starcounter.Internal;
-using System.Runtime.InteropServices;
 
 namespace Starcounter {
     /// <summary>
