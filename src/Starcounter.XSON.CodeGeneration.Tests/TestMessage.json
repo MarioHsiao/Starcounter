@@ -27,7 +27,8 @@
             "ANumber": 1337
         }
     ],
-    "ADecimal": 23.90,
+    "AZeroDec": 0.0,
+    "ADecimal": 23.00,
     "ADouble": 2e4,
     "UserLink": "/users/admin",
 }
