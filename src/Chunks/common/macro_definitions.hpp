@@ -26,7 +26,7 @@
 /// Define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
 /// to activate the use of one overflow queue per channel, based on linked lists.
 /// Warning: There is a bug causing access violation if this macro is defined.
-//#define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
+#define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
 
 /// Define CONNECTIVITY_MONITOR_SHOW_ACTIVITY in order for the connectivity monitor
 /// to show the activity in shared memory between database(s) and client(s).
