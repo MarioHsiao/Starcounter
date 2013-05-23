@@ -6,8 +6,9 @@ using System.Text;
 using Newtonsoft.Json;
 using Starcounter.Internal;
 using Starcounter.Templates;
+using Starcounter.XSON.Serializers;
 
-namespace Starcounter.XSON.Serializers {
+namespace Starcounter.Apps.CodeGeneration.Tests {
     public class NewtonsoftSerializer : TypedJsonSerializer {
         public override string ToJson(Obj obj) {
             bool needsComma;
