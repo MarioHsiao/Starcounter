@@ -1,12 +1,12 @@
 ﻿using System;
 
 namespace Starcounter.XSON.Serializers {
-    internal unsafe class ApaJsonReader {
+    internal unsafe class JsonReader {
         private byte* pBuffer;
         private int offset;
         private int bufferSize;
 
-        internal ApaJsonReader(IntPtr buffer, int bufferSize) {
+        internal JsonReader(IntPtr buffer, int bufferSize) {
             this.pBuffer = (byte*)buffer;
             this.bufferSize = bufferSize;
         }

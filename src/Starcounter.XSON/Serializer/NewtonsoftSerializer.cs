@@ -97,7 +97,7 @@ namespace Starcounter.XSON.Serializers {
         /// </summary>
         /// <param name="obj">The object to set the parsed values in</param>
         /// <param name="reader">The JsonReader containing the json to be parsed.</param>
-        private void PopulateObject(Obj obj, JsonReader reader) {
+        private void PopulateObject(Obj obj, Newtonsoft.Json.JsonReader reader) {
             bool insideArray = false;
             Template tChild = null;
             TObj tobj = obj.Template;
