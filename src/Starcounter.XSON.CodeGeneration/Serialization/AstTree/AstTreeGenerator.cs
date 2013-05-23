@@ -21,6 +21,16 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="puppletTemplate"></param>
         /// <returns></returns>
         internal static AstNamespace BuildAstTree(TObj objTemplate) {
+            return BuildAstTree(objTemplate, false);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objTemplate"></param>
+        /// <param name="createChildSerializers"></param>
+        /// <returns></returns>
+        internal static AstNamespace BuildAstTree(TObj objTemplate, bool createChildSerializers) {
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
 
             string ns = objTemplate.Namespace;
@@ -28,7 +38,46 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 ns = "__starcountergenerated__";
             }
 
-            return BuildAstTree(parseTree, ns, objTemplate.ClassName + "Serializer");
+            AstNamespace astNs = new AstNamespace() {
+                Namespace = ns
+            };
+
+            string className = objTemplate.ClassName;
+            if (String.IsNullOrEmpty(className))
+                className = objTemplate.PropertyName;
+
+            AstNode node = BuildAstTree(parseTree, objTemplate.ClassName + "Serializer");
+            node.Parent = astNs;
+
+            if (createChildSerializers) {
+                CreateChildSerializers(objTemplate, node);
+            }
+
+            return astNs;
+        }
+
+        private static void CreateChildSerializers(TObj objTemplate, AstNode parent) {
+            AstNode node;
+            TObj tChildObj;
+            string className;
+
+            foreach (Template child in objTemplate.Properties) {
+                tChildObj = null;
+                if (child is TObj) {
+                    tChildObj = (TObj)child;
+                } else if (child is TObjArr) {
+                    tChildObj = ((TObjArr)child).App;
+                }
+
+                if (tChildObj != null) {
+                    className = tChildObj.ClassName;
+                    if (string.IsNullOrEmpty(className))
+                        className = tChildObj.PropertyName;
+                    node = BuildAstTree(ParseTreeGenerator.BuildParseTree(tChildObj), className + "Serializer");
+                    node.Parent = parent;
+                    CreateChildSerializers(tChildObj, node);
+                }
+            }
         }
 
         /// <summary>
@@ -36,13 +85,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns>An AstRequestProcessorClass node.</returns>
-        private static AstNamespace BuildAstTree(ParseNode input, string ns, string className) {
-            AstNamespace astNs = new AstNamespace() {
-                Namespace = ns
-            };
-
+        private static AstNode BuildAstTree(ParseNode input, string className) {
             AstJsonSerializerClass jsClass = new AstJsonSerializerClass() {
-                Parent = astNs,
                 ParseNode = input,
                 ClassName = className
             };
@@ -51,11 +95,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 Parent = jsClass,
                 ParseNode = input
             };
-           
+  
+            // Removed the serializer function since the hardcoded one is almost as fast and even
+            // faster in certain circumstances.
 //            CreateSerializerFunction(input, jsClass);
             CreateDeserializerFunction(input, jsClass);
 
-            return astNs;
+            return jsClass;
         }
 
         /// <summary>
@@ -65,50 +111,76 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="jsClass"></param>
         private static AstSerializeFunction CreateSerializerFunction(ParseNode input, AstJsonSerializerClass jsClass) {
             Template template;
-
+            AstNode nextParent;
+            
             var sf = new AstSerializeFunction() {
                 Parent = jsClass
             };
             jsClass.SerializeFunction = sf;
-            
-            var astUnsafe = new AstUnsafe() {
-                ParseNode = input,
-                Parent = sf
+            nextParent = sf;
+
+            //var astUnsafe = new AstUnsafe() {
+            //    ParseNode = input,
+            //    Parent = nextParent
+            //};
+
+            nextParent = new AstLabel(){
+                Parent = nextParent,
+                Label = "restart"
             };
 
+            new AstRecreateBuffer() {
+                Parent = nextParent
+            };
+
+            nextParent = new AstFixed() {
+                Parent = nextParent
+            };
+            
             var astObj = new AstJsonObject() {
-                Parent = astUnsafe
+                Parent = nextParent
             };
             
             for (int i = 0; i < input.AllTemplates.Count; i++) {
                 template = input.AllTemplates[i].Template;
-                
+
+                nextParent = new AstCheckAlreadyProcessed() {
+                    Index = i,
+                    Parent = astObj
+                };
+
                 new AstJsonProperty() {
                     Template = template,
-                    Parent = astObj
+                    Parent = nextParent
                 };
 
-                new AstJsonDelimiter() {
-                    Delimiter = ':',
-                    Parent = astObj
-                };
-
-                new AstJsonPropertyValue() {
-                    Template = template,
-                    Parent = astObj
-                };
+                if (template is TObj) {
+                    new AstJsonObjectValue(){
+                        Template = template,
+                        Parent = nextParent
+                    };
+                } else if (template is TObjArr) {
+                    new AstJsonObjectArrayValue() {
+                        Template = template,
+                        Parent = nextParent
+                    };
+                } else {
+                    new AstJsonPropertyValue() {
+                        Template = template,
+                        Parent = nextParent
+                    };
+                }
                 
                 if ((i + 1) < input.AllTemplates.Count) {
                     new AstJsonDelimiter() {
                         Delimiter = ',',
-                        Parent = astObj
+                        Parent = nextParent
                     };
                 }
             }
 
-            new AstCodeStatement() {
-                Statement = "return (bufferSize - leftBufferSize);",
-                Parent = astUnsafe
+            new AstReturn() {
+                Parent = sf
             };
 
             return sf;

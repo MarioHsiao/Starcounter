@@ -54,7 +54,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         internal override void GenerateCsCodeForNode() {
             var sb = new StringBuilder();
-            Prefix.Add("public class " + ClassName + " : CodegenTypedJsonSerializer {");
+            Prefix.Add("public class " + ClassName + " : TypedJsonSerializerBase {");
             Prefix.Add("#pragma warning disable 0219");
             Prefix.Add("#pragma warning disable 0168");
         
