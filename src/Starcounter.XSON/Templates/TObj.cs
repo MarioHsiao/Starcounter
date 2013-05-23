@@ -18,24 +18,17 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract class TObj : TContainer {
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
+        private static bool shouldUseCodegeneratedSerializer;
 
-        private static object syncRoot = new object();
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
         private TypedJsonSerializer codegenSerializer;
-        private bool shouldUseCodegeneratedSerializer = true;
         private bool codeGenStarted = false;
 
-        private void GenerateSerializer(object state){
-            TypedJsonSerializer tjs;
-
-            //lock (syncRoot) {
-                tjs = Obj.Factory.CreateJsonSerializer(this);
-            //}
-
+        internal void GenerateSerializer(object state){
             // it doesn't really matter if setting the variable in the template is synchronized 
             // or not since if the serializer is null a fallback serializer will be offset instead.
-            this.codegenSerializer = tjs;
+            this.codegenSerializer = Obj.Factory.CreateJsonSerializer(this);
         }
 
         /// <summary>
@@ -44,67 +37,48 @@ namespace Starcounter.Templates {
         /// <returns></returns>
         public TypedJsonSerializer Serializer {
             get {
-                if (codegenSerializer != null) {
-                    return codegenSerializer;
-                } else {
-                    if (UseCodegeneratedSerializer) {
-                        // TODO:
-                        // Is this lock needed? Want to make sure only one serializer is generated 
-                        // per template instance, but maybe we can assume that it is only accessed 
-                        // by one thread at a time. It doesn't really matter either if a serializer
-                        // is generated more than once (other than unnecessary resource usage)
-                        //lock (this) {
-                        if (!codeGenStarted) {
-                            codeGenStarted = true;
-//                            ThreadPool.QueueUserWorkItem(this.GenerateSerializer);
+                if (UseCodegeneratedSerializer) {
+                    if (codegenSerializer != null)
+                        return codegenSerializer;
+
+                    // This check might give the wrong answer if the same instance of this template
+                    // is used from different threads. However the worst thing that can happen
+                    // is that the serializer is generated more than once in the background, but
+                    // the fallback serializer will be used instead so it's better than locking.
+                    if (!codeGenStarted) {
+                        codeGenStarted = true;
+                        if (!DontCreateSerializerInBackground)
+                            ThreadPool.QueueUserWorkItem(GenerateSerializer);
+                        else {
                             GenerateSerializer(null);
                             return codegenSerializer;
                         }
-                        //}
                     }
-                    return FallbackSerializer;
                 }
+                return FallbackSerializer;
             }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public bool UseCodegeneratedSerializer {
+        public static bool UseCodegeneratedSerializer {
             get {
                 if (Obj.Factory == null)
                     return false;
-                return GetRootTemplate().shouldUseCodegeneratedSerializer;
+                return shouldUseCodegeneratedSerializer;
             }
             set {
-                TObj root = GetRootTemplate();
-                root.shouldUseCodegeneratedSerializer = value;
-                if (!value) {
-                    root.InvalidateSerializer();
-                }
+                shouldUseCodegeneratedSerializer = value;        
             }
         }
 
         /// <summary>
-        /// 
+        /// If set to true the codegeneration for the serializer will not be done in a background
+        /// and execution will wait until the generated serializer is ready to be used. This is 
+        /// used by for example unittests, where you want to test the genererated code specifically.
         /// </summary>
-        internal void InvalidateSerializer() {
-            //lock (this) {
-                codeGenStarted = false;
-                codegenSerializer = null;
-            //}
-        }
-
-        /// <summary>
-        /// Returns the topmost instance of the typedjson templatetree
-        /// </summary>
-        /// <returns></returns>
-        private TObj GetRootTemplate() {
-            TContainer current = this;
-            while (current.Parent != null)
-                current = current.Parent;
-            return (TObj)current;
-        }
+        internal static bool DontCreateSerializerInBackground { get; set; }
 
         /// <summary>
         /// The _ class name
