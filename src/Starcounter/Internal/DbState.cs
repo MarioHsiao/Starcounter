@@ -1395,13 +1395,18 @@ namespace Starcounter.Internal
 					// clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
 					// without data loss, the value will be written to encodedX6Decimal.
 
-                    uint r = clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
-                    if (r == 0) return encodedX6Decimal;
-                    throw ErrorCode.ToException(r);
+                    UInt32 error_code = clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
+
+					if (error_code == 0) {
+						return encodedX6Decimal;
+					}
+
+					throw ErrorCode.ToException(error_code);
 				}
 			}
         }
-
+		
+#if false
 		/// <summary>
 		/// 
 		/// </summary>
@@ -1420,7 +1425,8 @@ namespace Starcounter.Internal
 				}
 			}
 		}
-
+#endif
+		
 		public const Int64 X6DECIMALMAX = +4398046511103999999;
         public const Int64 X6DECIMALMIN = -4398046511103999999;
 	}

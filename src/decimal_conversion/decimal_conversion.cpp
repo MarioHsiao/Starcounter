@@ -110,7 +110,7 @@ uint64_t record_addr, int32_t column_index, int32_t* decimal_part_ptr) {
 uint32_t convert_clr_decimal_to_x6_decimal(uint64_t record_id, uint64_t record_addr, int32_t column_index,
 int32_t low, int32_t middle, int32_t high, int32_t scale_sign) {
 	using namespace starcounter::numerics;
-
+	
 	// Constructing a decimal as a 128-bit value with the integer part of the CLR Decimal, bit 95:0.
 	// The value is treated as positive, so testing that it is not > x6_decimal_max is the same as
 	// testing that the value is not < x6_decimal_min when the CLR Decimal holds a negative value.
@@ -263,7 +263,7 @@ uint32_t clr_decimal_to_encoded_x6_decimal(int32_t* decimal_part_ptr, int64_t* e
 	// Constructing a decimal as a 128-bit value with the integer part of the CLR Decimal, bit 95:0.
 	// The value is treated as positive, so testing that it is not > x6_decimal_max is the same as
 	// testing that the value is not < x6_decimal_min when the CLR Decimal holds a negative value.
-	uint128_t decimal(scale_sign, decimal_part_ptr[2], decimal_part_ptr[1], decimal_part_ptr[0]);
+	uint128_t decimal(0 /*scale_sign*/, decimal_part_ptr[2], decimal_part_ptr[1], decimal_part_ptr[0]);
 	bool range_error;
 	
 	// The exponent (scale) value is 0 to 28. Change to 6 decimals if not already 6 decimals.
@@ -401,16 +401,172 @@ write_decimal:
 		return 0;
 	}
 	else {
-		// Temporary fix - check if 0.
-		if (decimal == 0) {
-			// The value fits in a X6 decimal.
-			int64_t raw_value = decimal.low() | (uint64_t(scale_sign) >> 31) << 63;
-			*encoded_x6_decimal_ptr = encode_dec(raw_value);
-			return 0;
-		}
-
 		// The value doesn't fit in a X6 decimal.
 		/// TODO: Error code for range error.
+		return SCERRCLRDECTOX6DECRANGEERROR;
+	}
+}
+
+///=============================================================================
+/// Test functions.
+///=============================================================================
+
+data_value_flags_type convert_x6_decimal_to_clr_decimal_test(int32_t* decimal_part_ptr,
+int64_t encoded_value) {
+	int64_t raw_value = decode_dec(encoded_value);
+	*((uint64_t*) decimal_part_ptr) = raw_value & 0x7FFFFFFFFFFFFFFFULL;
+	*((uint64_t*) decimal_part_ptr +1) = raw_value & 0x8000000000000000ULL
+	| 0x0006000000000000ULL;
+	
+	return data_value_flags_type(0);
+}
+
+uint32_t convert_clr_decimal_to_x6_decimal_test(int32_t low, int32_t middle, int32_t high, int32_t scale_sign,
+int64_t* encoded_value) {
+	using namespace starcounter::numerics;
+	
+	// Constructing a decimal as a 128-bit value with the integer part of the CLR Decimal, bit 95:0.
+	// The value is treated as positive, so testing that it is not > x6_decimal_max is the same as
+	// testing that the value is not < x6_decimal_min when the CLR Decimal holds a negative value.
+	uint128_t decimal(0, high, middle, low);
+	bool range_error;
+	
+	// The exponent (scale) value is 0 to 28. Change to 6 decimals if not already 6 decimals.
+	switch ((scale_sign >> 16) & 255) {
+	case 0: goto multiply_by_1e6;
+	case 1: goto multiply_by_1e5;
+	case 2: goto multiply_by_1e4;
+	case 3: goto multiply_by_1e3;
+	case 4: goto multiply_by_1e2;
+	case 5: goto multiply_by_1e1;
+	case 6: goto already_6_decimals;
+	case 7: goto divide_by_1e1;
+	case 8: goto divide_by_1e2;
+	case 9: goto divide_by_1e3;
+	case 10: goto divide_by_1e4;
+	case 11: goto divide_by_1e5;
+	case 12: goto divide_by_1e6;
+	case 13: goto divide_by_1e7;
+	case 14: goto divide_by_1e8;
+	case 15: goto divide_by_1e9;
+	case 16: goto divide_by_1e10;
+	case 17: goto divide_by_1e11;
+	case 18: goto divide_by_1e12;
+	case 19: goto divide_by_1e13;
+	case 20: goto divide_by_1e14;
+	case 21: goto divide_by_1e15;
+	case 22: goto divide_by_1e16;
+	case 23: goto divide_by_1e17;
+	case 24: goto divide_by_1e18;
+	case 25: goto divide_by_1e19;
+	case 26: goto divide_by_1e20;
+	case 27: goto divide_by_1e21;
+	case 28: goto divide_by_1e22;
+	default: UNREACHABLE;
+	}
+multiply_by_1e6:
+	decimal *= _1e6;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e5:
+	decimal *= _1e5;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e4:
+	decimal *= _1e4;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e3:
+	decimal *= _1e3;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e2:
+	decimal *= _1e2;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e1:
+	decimal *= _1e1;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+already_6_decimals:
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e1:
+	range_error = decimal.divide_and_get_remainder(_1e1) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e2:
+	range_error = decimal.divide_and_get_remainder(_1e2) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e3:
+	range_error = decimal.divide_and_get_remainder(_1e3) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e4:
+	range_error = decimal.divide_and_get_remainder(_1e4) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e5:
+	range_error = decimal.divide_and_get_remainder(_1e5) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e6:
+	range_error = decimal.divide_and_get_remainder(_1e6) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e7:
+	range_error = decimal.divide_and_get_remainder(_1e7) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e8:
+	range_error = decimal.divide_and_get_remainder(_1e8) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e9:
+	range_error = decimal.divide_and_get_remainder(_1e9) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e10:
+	range_error = decimal.divide_and_get_remainder(_1e10) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e11:
+	range_error = decimal.divide_and_get_remainder(_1e11) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e12:
+	range_error = decimal.divide_and_get_remainder(_1e12) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e13:
+	range_error = decimal.divide_and_get_remainder(_1e13) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e14:
+	range_error = decimal.divide_and_get_remainder(_1e14) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e15:
+	range_error = decimal.divide_and_get_remainder(_1e15) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e16:
+	range_error = decimal.divide_and_get_remainder(_1e16) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e17:
+	range_error = decimal.divide_and_get_remainder(_1e17) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e18:
+	range_error = decimal.divide_and_get_remainder(_1e18) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e19:
+	range_error = decimal.divide_and_get_remainder(_1e19) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e20:
+	range_error = decimal.divide_and_get_remainder(_1e20) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e21:
+	range_error = decimal.divide_and_get_remainder(_1e21) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e22:
+	range_error = decimal.divide_and_get_remainder(_1e22) != 0 | decimal > x6_decimal_max;
+write_decimal:
+	// TODO: Test if < x6_decimal_min
+
+	if (range_error == false) {
+		// The value fits in a X6 decimal.
+		int64_t raw_value = decimal.low() | (uint64_t(scale_sign) >> 31) << 63;
+		*encoded_value = encode_dec(raw_value);
+		return 0;
+	}
+	else {
+		// The value doesn't fit in a X6 decimal.
 		return SCERRCLRDECTOX6DECRANGEERROR;
 	}
 }
