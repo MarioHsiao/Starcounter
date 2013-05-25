@@ -2399,8 +2399,6 @@ namespace Starcounter.Query.Sql
             if (literalTerm.Name != "null")
             {
                 value = literalTerm.Name;
-                value = value.Substring(1, value.Length - 2);
-                value = value.Replace("''", "'");
             }
             return new StringLiteral(value);
         }

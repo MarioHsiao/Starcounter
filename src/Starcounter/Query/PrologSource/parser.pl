@@ -6,6 +6,8 @@
 *  the specification of the ANSI-standard SQL92. 
 */
 
+/* 13-05-23: Added support of double-quote delimited identifiers ("..."). */
+/* 13-05-23: Removed support of double-quote text strings ("..."). */
 /* 13-02-07: Removed support of object-variable as first operand to istype-predicate. */
 /* 13-02-04: Added support of offset not only offsetkey in fetch clause. */
 /* 13-01-28: Added support of is-type comparison by adding istype_predicate/3. */
@@ -101,6 +103,8 @@ empty_string_literal(literal(string,Literal)):- /* "" */
 
 /* Unlike SQL92 identifiers are allowed to start with an underscore. */
 
+/* regular_identifier */
+
 regular_identifier([Token|_],_,_):- 
 	tokenizer:reserved_word(Token), !, 
 	fail.
@@ -108,24 +112,52 @@ regular_identifier([Token|Ts],Ts,id(Token)):-
 	atom_codes(Token,Codes), 
 	identifier_body_code(Codes,[]), !.
 
-identifier_body_code(Ts1,Ts3):- 
-	identifier_start_code(Ts1,Ts2), 
-	identifier_body_code2(Ts2,Ts3), !.
+identifier_body_code(Cs1,Cs3):- 
+	identifier_start_code(Cs1,Cs2), 
+	identifier_body_code2(Cs2,Cs3), !.
 
-identifier_body_code2(Ts1,Ts3):- 
-	identifier_part_code(Ts1,Ts2), !, 
-	identifier_body_code2(Ts2,Ts3), !.
-identifier_body_code2(Ts,Ts):- !.
+identifier_body_code2(Cs1,Cs3):- 
+	identifier_part_code(Cs1,Cs2), !, 
+	identifier_body_code2(Cs2,Cs3), !.
+identifier_body_code2(Cs,Cs):- !.
 
-identifier_start_code(Ts1,Ts2):- 
-	simple_latin_letter_code(Ts1,Ts2), !.
-identifier_start_code(Ts1,Ts2):- 
-	underscore_code(Ts1,Ts2), !. 
+identifier_start_code(Cs1,Cs2):- 
+	simple_latin_letter_code(Cs1,Cs2), !.
+identifier_start_code(Cs1,Cs2):- 
+	underscore_code(Cs1,Cs2), !. 
 
-identifier_part_code(Ts1,Ts2):- 
-	identifier_start_code(Ts1,Ts2), !.
-identifier_part_code(Ts1,Ts2):- 
-	digit_code(Ts1,Ts2), !.
+identifier_part_code(Cs1,Cs2):- 
+	identifier_start_code(Cs1,Cs2), !.
+identifier_part_code(Cs1,Cs2):- 
+	digit_code(Cs1,Cs2), !.
+
+/* delimited_identifier */
+
+delimited_identifier([Token1|Ts],Ts,id(Token2)):- 
+	atom_codes(Token1,Codes1), 
+	delimited_identifier_code(Codes1,[],Codes2), 
+	atom_codes(Token2,Codes2), !.
+
+delimited_identifier_code(Cs1,Cs4,Codes):-
+	double_quote_code(Cs1,Cs2), 
+	delimited_identifier_body_code(Cs2,Cs3,Codes), 
+	double_quote_code(Cs3,Cs4), !.
+
+delimited_identifier_body_code([Code|Cs1],Cs3,[Code|Codes]):-
+	delimited_identifier_part_code([Code|Cs1],Cs2), 
+	delimited_identifier_body_code(Cs2,Cs3,Codes), !.
+delimited_identifier_body_code(Cs,Cs,[]):- !.
+
+delimited_identifier_part_code(Cs1,Cs2):-
+	non_double_quote_code(Cs1,Cs2), !.
+delimited_identifier_part_code(Cs1,Cs3):-
+	double_quote_code(Cs1,Cs2), 
+	double_quote_code(Cs2,Cs3), !.
+
+non_double_quote_code(Cs1,Cs2):- 
+	double_quote_code(Cs1,Cs2), !, 
+	fail.
+non_double_quote_code([_|Cs],Cs):- !.
 
 
 /*===== 5.3 <literal>. =====*/
@@ -228,54 +260,34 @@ datetime_literal(Ts1,Ts3,literal(datetime,String)):-
 	terminal(Ts1,'<TIMESTAMP>',Ts2), 
 	string_literal(Ts2,Ts3,literal(string,String)), !.
 
-string_literal([Token|Ts],Ts,literal(string,Token)):- 
-	atom_codes(Token,Codes), 
-	string_codes(Codes,[]), !.
+string_literal([Token1|Ts],Ts,literal(string,Token2)):- 
+	atom_codes(Token1,Codes1), 
+	string_literal_code(Codes1,[],Codes2), 
+	atom_codes(Token2,Codes2), !.
 
-string_codes(Cs1,Cs4):- /* String of format '...'. */
+string_literal_code(Cs1,Cs4,Codes):- /* String of format '...'. */
 	single_quote_code(Cs1,Cs2), 
-	string_codes_single(Cs2,Cs3), 
+	string_literal_code2(Cs2,Cs3,Codes), 
 	single_quote_code(Cs3,Cs4), !.
-string_codes(Cs1,Cs4):- /* String of format "...". */
-	double_quote_code(Cs1,Cs2), 
-	string_codes_double(Cs2,Cs3), 
-	double_quote_code(Cs3,Cs4), !.
 
-string_codes_single(Cs1,Cs3):- 
-	character_representation_code_single(Cs1,Cs2), 
-	string_codes_single(Cs2,Cs3), !.
-string_codes_single(Cs,Cs):- !.
+string_literal_code2([Code|Cs1],Cs3,[Code|Codes]):- 
+	character_representation_code([Code|Cs1],Cs2), 
+	string_literal_code2(Cs2,Cs3,Codes), !.
+string_literal_code2(Cs,Cs,[]):- !.
 
-character_representation_code_single(Cs1,Cs2):- 
-	non_quote_character_code_single(Cs1,Cs2), !.
-character_representation_code_single(Cs1,Cs2):- 
-	quote_symbol_code_single(Cs1,Cs2), !.
+character_representation_code(Cs1,Cs2):- 
+	non_single_quote_code(Cs1,Cs2), !.
+character_representation_code(Cs1,Cs2):- 
+	single_quote_symbol_code(Cs1,Cs2), !.
 
-non_quote_character_code_single(Cs1,Cs2):- 
-	single_quote_code(Cs1,Cs2), !, fail.
-non_quote_character_code_single([_|Cs],Cs):- !.
+non_single_quote_code(Cs1,Cs2):- 
+	single_quote_code(Cs1,Cs2), !, 
+	fail.
+non_single_quote_code([_|Cs],Cs):- !.
 
-quote_symbol_code_single(Cs1,Cs3):- 
+single_quote_symbol_code(Cs1,Cs3):- 
 	single_quote_code(Cs1,Cs2), 
 	single_quote_code(Cs2,Cs3), !.
-
-string_codes_double(Cs1,Cs3):- 
-	character_representation_code_double(Cs1,Cs2), 
-	string_codes_double(Cs2,Cs3), !.
-string_codes_double(Cs,Cs):- !.
-
-character_representation_code_double(Cs1,Cs2):- 
-	non_quote_character_code_double(Cs1,Cs2), !.
-character_representation_code_double(Cs1,Cs2):- 
-	quote_symbol_code_double(Cs1,Cs2), !.
-
-non_quote_character_code_double(Cs1,Cs2):- 
-	double_quote_code(Cs1,Cs2), !, fail.
-non_quote_character_code_double([_|Cs],Cs):- !.
-
-quote_symbol_code_double(Cs1,Cs3):- 
-	double_quote_code(Cs1,Cs2), 
-	double_quote_code(Cs2,Cs3), !.
 
 /* Object literal (not SQL92). */
 
@@ -304,6 +316,8 @@ variable(Ts1,Ts3, variable(any,Num)):-
 
 identifier(Ts1,Ts2,Identifier):- 
 	regular_identifier(Ts1,Ts2,Identifier), !.
+identifier(Ts1,Ts2,Identifier):- 
+	delimited_identifier(Ts1,Ts2,Identifier), !.
 
 table_name(Ts1,Ts2,extent(any,TypeAtom)):- 
 	type_name(Ts1,Ts2,TypeAtom), !.

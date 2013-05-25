@@ -11,15 +11,15 @@ namespace QueryProcessingTest {
             // Test query with FETCH and ORDER BY
             decimal amounts = 0;
             int nrs = 0;
-            var accounts = Db.SQL("select a from account a order by a.updated desc fetch ?", 10);
+            var accounts = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
             Account acc = accounts.First;
-            foreach (Account a in Db.SQL("select a from account a order by a.updated desc fetch ?", 10)) {
+            foreach (Account a in Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10)) {
                 amounts += a.Amount;
                 nrs++;
             }
             Trace.Assert(nrs == 10);
             nrs = 0;
-            foreach (Account a in Db.SQL("select a from account a order by a.updated desc fetch ?", 20))
+            foreach (Account a in Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 20))
                 nrs++;
             Trace.Assert(nrs == 20);
             nrs = 0;
@@ -27,11 +27,11 @@ namespace QueryProcessingTest {
                 nrs++;
             Trace.Assert(nrs == 10);
             nrs = 0;
-            foreach (IObjectView obj in Db.SlowSQL("select client, count(updated) from account group by client order by client fetch ?", 10))
+            foreach (IObjectView obj in Db.SlowSQL("select client, count(\"when\") from account group by client order by client fetch ?", 10))
                 nrs++;
             Trace.Assert(nrs == 10);
             nrs = 0;
-            foreach (IObjectView obj in Db.SlowSQL("select client, count(updated) from account group by client order by client fetch ?", 20))
+            foreach (IObjectView obj in Db.SlowSQL("select client, count(\"when\") from account group by client order by client fetch ?", 20))
                 nrs++;
             Trace.Assert(nrs == 20);
             TestOffsetkeyWithSorting();
