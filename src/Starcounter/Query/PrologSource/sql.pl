@@ -65,7 +65,7 @@
 
 :- load_files([tokenizer,parser,rewriter,controller,modifyer,platform]).
 
-sql_version('130412').
+sql_version('130523').
 
 
 /*===== Stand-alone executable. =====*/

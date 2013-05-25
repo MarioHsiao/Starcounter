@@ -24,7 +24,7 @@ namespace QueryProcessingTest {
                         BirthDay = new DateTime(rnd.Next(OldestBirthYear, YoungestBirthYear), rnd.Next(1, 12), rnd.Next(1, 28))
                     };
                     for (int j = 0; j < nrAccountPerUser; j++)
-                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m * j, Client = newUser, Updated = DateTime.Now };
+                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m * j, Client = newUser, When = DateTime.Now };
                 }
             });
         }
@@ -42,7 +42,7 @@ namespace QueryProcessingTest {
                         BirthDay = new DateTime(rnd.Next(1950, 1985), rnd.Next(1, 12), rnd.Next(1, 28))
                     };
                     for (int j = 0; j < nrAccountPerUser; j++)
-                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m * j, Client = newUser, Updated = DateTime.Now };
+                        new Account { AccountId = i * nrAccountPerUser + j, Amount = 100.0m * j, Client = newUser, When = DateTime.Now };
                 });
         }
 
