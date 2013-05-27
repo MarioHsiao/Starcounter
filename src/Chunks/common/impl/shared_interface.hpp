@@ -164,6 +164,11 @@ uint32_t timeout_milliseconds) {
 	// The number of owned channels counter is incremented.
 	client_interface().increment_number_of_allocated_channels();
 	
+#if defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
+    // Set the chunk base address relative to the clients address space.
+	channel_[temp_channel_number].in_overflow().set_chunk_ptr(chunk_);
+#endif // defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
+    
 	// Set index to the scheduler_interface.
 	channel_[temp_channel_number].set_scheduler_number(the_scheduler_number);
 	
