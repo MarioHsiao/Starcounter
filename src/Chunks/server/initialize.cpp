@@ -126,12 +126,8 @@ is_system, uint32_t chunks_total_number) try {
 	// scheduler_interface[s] channel_number_
 	+sizeof(channel_number) * channels * max_number_of_schedulers
 	
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-#else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	
 	// scheduler_interface[s] overflow_pool_
 	+sizeof(chunk_index) * chunks_total_number * max_number_of_schedulers
-#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	
 	// client_interface[s]
 	+sizeof(client_interface_type) * max_number_of_clients
