@@ -2306,8 +2306,6 @@ namespace Starcounter.Query.Sql
         private static DateTimeLiteral CreateDateTimeLiteral(Term literalTerm)
         {
             String literal = literalTerm.Name;
-            Int32 length = literal.Length;
-            literal = literal.Substring(1, length - 2);
             Nullable<DateTime> value = null;
             if (literalTerm.Name != "null")
             {
