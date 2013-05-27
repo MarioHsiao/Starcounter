@@ -100,7 +100,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Compiler\TestCodeCompile.cs" />
-    <Compile Include="TestJsonOut.cs" />
     <Compile Include="TestMessage.g.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
