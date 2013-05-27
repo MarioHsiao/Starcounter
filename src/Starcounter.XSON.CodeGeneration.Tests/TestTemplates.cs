@@ -15,7 +15,7 @@ using Starcounter.XSON.Metadata;
 using Starcounter.Internal;
 using Starcounter.XSON.CodeGeneration;
 
-namespace Test {
+namespace Starcounter.XSON.CodeGeneration.Tests {
     /// <summary>
     /// Class TestTemplates
     /// </summary>
