@@ -302,7 +302,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                         // If the value to parse is a list we need to add some additional 
                         // code for looping and checking end of array.
                         nextParent = new AstParseJsonObjectArray() {
-                            Parent = nextParent
+                            Parent = nextParent,
+                            Template = pn.Template.Template
                         };
 
                         nextParent = new AstWhile() {

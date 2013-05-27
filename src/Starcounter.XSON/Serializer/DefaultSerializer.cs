@@ -18,10 +18,10 @@ namespace Starcounter.XSON.Serializers {
             Template tProperty;
 
             while (reader.GotoProperty()) {
-                propertyName = reader.ReadString();
+                propertyName = reader.CurrentPropertyName;
                 tProperty = tObj.Properties.GetTemplateByName(propertyName);
                 if (tProperty == null) {
-                    throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\""));
+                    JsonHelper.ThrowPropertyNotFoundException(propertyName);
                 }
 
                 reader.GotoValue();
@@ -46,11 +46,8 @@ namespace Starcounter.XSON.Serializers {
                             reader.PopulateObject(childObj);
                         }
                     }
-                } catch (Exception ex) {
-                    throw ErrorCode.ToException(
-                            Error.SCERRJSONVALUEWRONGTYPE,
-                            ex,
-                            string.Format("Property=\"{0} ({1})\", Value=\"{2}\"", tProperty.PropertyName, tProperty.JsonType));
+                } catch (InvalidCastException ex) {
+                    JsonHelper.ThrowWrongValueTypeException(ex, tProperty.TemplateName, tProperty.JsonType, reader.ReadString());
                 }
             }
             return reader.Offset;

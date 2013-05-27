@@ -5,6 +5,7 @@ namespace Starcounter.XSON.Serializers {
         private byte* pBuffer;
         private int offset;
         private int bufferSize;
+        private string currentPropertyName;
 
         internal JsonReader(IntPtr buffer, int bufferSize) {
             this.pBuffer = (byte*)buffer;
@@ -22,13 +23,13 @@ namespace Starcounter.XSON.Serializers {
             string value;
 
             if (!JsonHelper.ParseString((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                throw new Exception("Apapapa");
+                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "String", ReadString());
 
             pBuffer += valueSize;
             offset += valueSize;
 
             if (bufferSize < offset)
-                throw new Exception("Deserialization failed.");
+                JsonHelper.ThrowUnexpectedEndOfContentException();
 
             return value;
         }
@@ -38,13 +39,13 @@ namespace Starcounter.XSON.Serializers {
             bool value;
 
             if (!JsonHelper.ParseBoolean((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                throw new Exception("Apapapa");
+                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Boolean", ReadString());
 
             pBuffer += valueSize;
             offset += valueSize;
 
             if (bufferSize < offset)
-                throw new Exception("Deserialization failed.");
+                JsonHelper.ThrowUnexpectedEndOfContentException();
 
             return value;
         }
@@ -54,13 +55,13 @@ namespace Starcounter.XSON.Serializers {
             decimal value;
 
             if (!JsonHelper.ParseDecimal((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                throw new Exception("Apapapa");
+                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Decimal", ReadString());
 
             pBuffer += valueSize;
             offset += valueSize;
 
             if (bufferSize < offset)
-                throw new Exception("Deserialization failed.");
+                JsonHelper.ThrowUnexpectedEndOfContentException();
 
             return value;
         }
@@ -70,13 +71,13 @@ namespace Starcounter.XSON.Serializers {
             double value;
 
             if (!JsonHelper.ParseDouble((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                throw new Exception("Apapapa");
+                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Double", ReadString());
 
             pBuffer += valueSize;
             offset += valueSize;
 
             if (bufferSize < offset)
-                throw new Exception("Deserialization failed.");
+                JsonHelper.ThrowUnexpectedEndOfContentException();
 
             return value;
         }
@@ -86,13 +87,13 @@ namespace Starcounter.XSON.Serializers {
             long value;
 
             if (!JsonHelper.ParseInt((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                throw new Exception("Apapapa");
+                JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Int64", ReadString());
 
             pBuffer += valueSize;
             offset += valueSize;
 
             if (bufferSize < offset)
-                throw new Exception("Deserialization failed.");
+                JsonHelper.ThrowUnexpectedEndOfContentException();
 
             return value;
         }
@@ -101,15 +102,14 @@ namespace Starcounter.XSON.Serializers {
             int valueSize;
             
             valueSize = obj.PopulateFromJson((IntPtr)pBuffer, bufferSize - offset);
-
             if (valueSize == -1)
-                throw new Exception("Apapapa");
+                JsonHelper.ThrowUnexpectedEndOfContentException();
 
             pBuffer += valueSize;
             offset += valueSize;
 
             if (bufferSize < offset)
-                throw new Exception("Deserialization failed.");
+                JsonHelper.ThrowUnexpectedEndOfContentException();
         }
 
         internal bool GotoProperty() {
@@ -123,9 +123,17 @@ namespace Starcounter.XSON.Serializers {
                 pBuffer++;
                 offset++;
                 if (bufferSize < offset)
-                    throw new Exception("Deserialization failed.");
+                    JsonHelper.ThrowUnexpectedEndOfContentException();
             }
+
+            currentPropertyName = ReadString();
             return true;
+        }
+
+        internal string CurrentPropertyName {
+            get {
+                return currentPropertyName;
+            }
         }
 
         internal void GotoValue() {
@@ -133,18 +141,18 @@ namespace Starcounter.XSON.Serializers {
                 pBuffer++;
                 offset++;
                 if (bufferSize < offset)
-                    throw new Exception("Deserialization failed.");
+                    JsonHelper.ThrowUnexpectedEndOfContentException();
             }
             pBuffer++; // Skip ':' or ','
             offset++;
             if (bufferSize < offset)
-                throw new Exception("Deserialization failed.");
+                JsonHelper.ThrowUnexpectedEndOfContentException();
 
             while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
                 pBuffer++;
                 offset++;
                 if (bufferSize < offset)
-                    throw new Exception("Deserialization failed.");
+                    JsonHelper.ThrowUnexpectedEndOfContentException();
             }
         }
 
@@ -160,7 +168,7 @@ namespace Starcounter.XSON.Serializers {
                 pBuffer++;
                 offset++;
                 if (bufferSize < offset)
-                    throw new Exception("Deserialization failed.");
+                    JsonHelper.ThrowUnexpectedEndOfContentException();
             }
         }
     }
