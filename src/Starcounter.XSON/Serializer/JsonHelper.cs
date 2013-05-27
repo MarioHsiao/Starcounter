@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using Starcounter.Internal;
+using Starcounter.Templates;
 
 namespace Starcounter.XSON.Serializers {
     /// <summary>
@@ -567,6 +568,43 @@ namespace Starcounter.XSON.Serializers {
             if (h >= 97)
                 return (byte)((h + 10) - 97);
             return (byte)(h - 48);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="innerException"></param>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        internal static void ThrowWrongValueTypeException(Exception innerException, string name, string type, string value) {
+            throw ErrorCode.ToException(
+                            Error.SCERRJSONVALUEWRONGTYPE,
+                            innerException,
+                            string.Format("Property=\"{0} ({1})\", Value=\"{2}\"", name, type, value),
+                            (msg, e) => {
+                                return new FormatException(msg, e);
+                            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        internal static void ThrowPropertyNotFoundException(string name) {
+            throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\""));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static void ThrowUnexpectedEndOfContentException() {
+            throw ErrorCode.ToException(
+                            Error.SCERRJSONUNEXPECTEDENDOFCONTENT,
+                            "",
+                            (msg, e) => {
+                                return new FormatException(msg, e);
+                            });
         }
     }
 }
