@@ -2261,8 +2261,6 @@ namespace Starcounter.Query.Sql
         private static BinaryLiteral CreateBinaryLiteral(Term literalTerm)
         {
             String literal = literalTerm.Name;
-            Int32 length = literal.Length;
-            literal = literal.Substring(1, length - 2);
             Nullable<Binary> value = null;
             if (literalTerm.Name != "null")
             {
