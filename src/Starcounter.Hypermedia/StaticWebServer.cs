@@ -139,7 +139,17 @@ namespace Starcounter.Internal.Web {
              return resource;
          }
 
-         resource = GetFileResource(resource, relativeUri, request);
+         // Locking because of possible multi-threaded calls.
+         lock (LockObject) {
+
+             // Checking again if already processed the file..
+             if (CacheOnUri.TryGetValue(relativeUri, out resource)) {
+                 return resource;
+             }
+
+            resource = GetFileResource(resource, relativeUri, request);
+         }
+         
 
          //            Cache[relativeUri] = body;
 //         if (request.WantsCompressed) {

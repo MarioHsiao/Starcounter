@@ -72,9 +72,6 @@ namespace Starcounter.InstallerEngine
             if (installedComponents[(Int32) ComponentsCheck.Components.SystemServer])
                 remainingComponents[(Int32)ComponentsCheck.Components.SystemServer] = true;
 
-            if (installedComponents[(Int32) ComponentsCheck.Components.VS2010Integration])
-                remainingComponents[(Int32)ComponentsCheck.Components.VS2010Integration] = true;
-
             if (installedComponents[(Int32)ComponentsCheck.Components.VS2012Integration])
                 remainingComponents[(Int32)ComponentsCheck.Components.VS2012Integration] = true;
 
@@ -85,9 +82,6 @@ namespace Starcounter.InstallerEngine
 
                 if (InstallerMain.SystemServerComponent.ShouldBeRemoved())
                     remainingComponents[(Int32)ComponentsCheck.Components.SystemServer] = false;
-
-                if (InstallerMain.VS2010IntegrationComponent.ShouldBeRemoved())
-                    remainingComponents[(Int32)ComponentsCheck.Components.VS2010Integration] = false;
 
                 if (InstallerMain.VS2012IntegrationComponent.ShouldBeRemoved())
                     remainingComponents[(Int32)ComponentsCheck.Components.VS2012Integration] = false;
@@ -183,7 +177,6 @@ namespace Starcounter.InstallerEngine
             // Looking for components that were tried to be installed.
             if (InstallerMain.PersonalServerComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
             if (InstallerMain.SystemServerComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
-            if (InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
             if (InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
 
             // Getting percentage step value.
@@ -274,7 +267,6 @@ namespace Starcounter.InstallerEngine
                 // Loading settings.
                 if (InstallerMain.PersonalServerComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
                 if (InstallerMain.SystemServerComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
-                if (InstallerMain.VS2010IntegrationComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
                 if (InstallerMain.VS2012IntegrationComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
 
                 // Getting percentage step value.

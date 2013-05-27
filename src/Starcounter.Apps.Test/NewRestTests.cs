@@ -584,7 +584,7 @@ namespace Starcounter.Internal.Test
                 return testInfos27.ReturnStr;
             });
 
-            resp = localNode.PUT(testInfos27.TestUri, null, null, null);
+            resp = localNode.PUT(testInfos27.TestUri, (String)null, null, null);
             Assert.IsTrue(testInfos27.ReturnStr == resp.GetBodyStringUtf8_Slow());
 
             ///////////////////////////////////////////
@@ -595,7 +595,7 @@ namespace Starcounter.Internal.Test
                 return testInfos28.ReturnStr;
             });
 
-            resp = localNode.POST(testInfos28.TestUri, null, null, null);
+            resp = localNode.POST(testInfos28.TestUri, (String)null, null, null);
             Assert.IsTrue(testInfos28.ReturnStr == resp.GetBodyStringUtf8_Slow());
 
             ///////////////////////////////////////////
@@ -606,7 +606,7 @@ namespace Starcounter.Internal.Test
                 return testInfos29.ReturnStr;
             });
 
-            resp = localNode.POST(testInfos29.TestUri, null, null, null);
+            resp = localNode.POST(testInfos29.TestUri, (String)null, null, null);
             Assert.IsTrue(testInfos29.ReturnStr == resp.GetBodyStringUtf8_Slow());
 
             ///////////////////////////////////////////
@@ -619,7 +619,7 @@ namespace Starcounter.Internal.Test
                 return testInfos30.ReturnStr;
             });
 
-            resp = localNode.POST(testInfos30.TestUri, null, null, null);
+            resp = localNode.POST(testInfos30.TestUri, (String)null, null, null);
             Assert.IsTrue(testInfos30.ReturnStr == resp.GetBodyStringUtf8_Slow());
 
             ///////////////////////////////////////////
@@ -629,7 +629,7 @@ namespace Starcounter.Internal.Test
                 return testInfos31.ReturnStr;
             });
 
-            resp = localNode.DELETE(testInfos31.TestUri, null, null, null);
+            resp = localNode.DELETE(testInfos31.TestUri, (String)null, null, null);
             Assert.IsTrue(testInfos31.ReturnStr == resp.GetBodyStringUtf8_Slow());
 
             ///////////////////////////////////////////
@@ -922,7 +922,7 @@ namespace Starcounter.Internal.Test
                 return testInfos53.ReturnStr;
             });
 
-            resp = localNode.POST(testInfos53.TestUri, null, null, null);
+            resp = localNode.POST(testInfos53.TestUri, (String)null, null, null);
             Assert.IsTrue(testInfos53.ReturnStr == resp.GetBodyStringUtf8_Slow());
 
             ///////////////////////////////////////////
@@ -934,7 +934,7 @@ namespace Starcounter.Internal.Test
                 return testInfos54.ReturnStr;
             });
 
-            resp = localNode.POST(testInfos54.TestUri, null, null, null);
+            resp = localNode.POST(testInfos54.TestUri, (String)null, null, null);
             Assert.IsTrue(testInfos54.ReturnStr == resp.GetBodyStringUtf8_Slow());
         }
     }

@@ -80,6 +80,9 @@ EXTERN_C void sc_release_channel(void *port, unsigned long channel_index);
 namespace starcounter {
 namespace core {
 
+extern shared_memory_object global_segment_shared_memory_object;
+extern mapped_region global_mapped_region;
+
 class server_port {
 	typedef uint64_t mask_type;
 
@@ -108,8 +111,6 @@ class server_port {
 	scheduler_channel_type *scheduler_signal_channel_;
 	chunk_type *chunk_;
 	shared_chunk_pool_type* shared_chunk_pool_;
-	starcounter::core::shared_memory_object shared_memory_object_;
-	starcounter::core::mapped_region mapped_region_;
 	std::size_t id_;
 
 	// TODO: Remove gotoxy() - used during debug.
@@ -398,23 +399,15 @@ private:
 	}
 };
 
+
 unsigned long server_port::init(const char* database_name, std::size_t id, owner_id oid) {
 	try {
-		// Open the database shared memory segment.
-		shared_memory_object_.init_open(database_name);
-		
-		if (!shared_memory_object_.is_valid()) {
-			return SCERRSERVERPORTINITINVALIDSHMOBJ;
-		}
-		
-		mapped_region_.init(shared_memory_object_);
-		
-		if (!mapped_region_.is_valid()) {
-			return SCERRSERVERPORTINITINVALIDMAPREG;
+		if (!global_mapped_region.is_valid()) {
+			return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
 		}
 		
 		id_ = id;
-		simple_shared_memory_manager *pm = new (mapped_region_.get_address())
+		simple_shared_memory_manager *pm = new (global_mapped_region.get_address())
 		simple_shared_memory_manager;
 		
 		// Find the chunks.
