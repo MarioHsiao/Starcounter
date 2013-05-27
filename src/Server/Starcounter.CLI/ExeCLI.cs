@@ -118,7 +118,7 @@ namespace Starcounter.CLI {
             ExecutableReference exeRef = engine.GetExecutable(exePath);
             if (exeRef != null) {
                 ShowStatus("Stopping engine");
-                response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), null, null, null);
+                response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), (String)null, null, null);
                 response.FailIfNotSuccessOr(404);
 
                 ShowStatus("Starting engine");
