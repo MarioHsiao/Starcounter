@@ -5,6 +5,7 @@ using System.Text;
 using Starcounter;
 using System.IO;
 using Starcounter.Internal;
+using Starcounter.InstallerEngine.VsSetup;
 
 namespace Starcounter.InstallerEngine
 {
@@ -93,37 +94,6 @@ namespace Starcounter.InstallerEngine
 
         // Defines the path to the key holding the "installed product"
         // information in the registry representing an installed integration
-        // under the current users VS 2010 config (and in this case, the
-        // Starcounter key in particular).
-        internal const String RegistryVS2010StarcounterInstalledProductKey = @"SOFTWARE\Microsoft\VisualStudio\10.0_Config\InstalledProducts\Starcounter";
-
-        /// <summary>
-        /// Gets the path to the Visual Studio 2010 (10.0) installation directory.
-        /// </summary>
-        internal static string VS2010InstallationDirectory { get { return GetVisualStudioInstallationDirectory("10.0"); } }
-
-        /// <summary>
-        /// Gets the path to the Visual Studio 2010 (10.0) IDE directory.
-        /// </summary>
-        internal static string VS2010IDEDirectory { get { return Path.Combine(VS2010InstallationDirectory, @"Common7\IDE"); } }
-
-        /// <summary>
-        /// Gets the path to the Visual Studio 2010 (10.0) exception assistant content
-        /// directory.
-        /// </summary>
-        /// <remarks>
-        /// The path returned here is the path to the English, standard directory, i.e.
-        /// the result is not localized.
-        /// </remarks>
-        internal static string VS2010ExceptionAssistantDirectory { get { return Path.Combine(VS2010IDEDirectory, @"ExceptionAssistantContent\1033"); } }
-
-        /// <summary>
-        /// Gets the path to the Visual Studio 2010 (10.0) IDE executable file (i.e. "devenv.exe")
-        /// </summary>
-        internal static string VS2010DevEnvPath { get { return Path.Combine(VS2010IDEDirectory, "devenv.exe"); } }
-
-        // Defines the path to the key holding the "installed product"
-        // information in the registry representing an installed integration
         // under the current users VS 2012 config (and in this case, the
         // Starcounter key in particular).
         internal const String RegistryVS2012StarcounterInstalledProductKey = @"SOFTWARE\Microsoft\VisualStudio\11.0_Config\InstalledProducts\Starcounter";
@@ -157,6 +127,24 @@ namespace Starcounter.InstallerEngine
         /// Gets the name of the VSIX installer executable file (i.e. currently "VSIXInstaller.exe").
         /// </summary>
         internal const string VSIXInstallerEngineExecutable = "VSIXInstaller.exe";
+
+        /// <summary>
+        /// Gets the full path to the Visual Studio user extension root folder for
+        /// the given <paramref name="version"/> and the current, non-roaming user.
+        /// </summary>
+        /// <param name="version">The Visual Studio version whose user extension
+        /// root folder is queried.</param>
+        /// <returns>Full path to the user extension root folder for the current,
+        /// non-roaming user.</returns>
+        /// <remarks>
+        /// For more information, consult:
+        /// http://blogs.msdn.com/b/visualstudio/archive/2010/02/19/how-vsix-extensions-are-discovered-and-loaded-in-vs-2010.aspx
+        /// </remarks>
+        public static string GetUserExtensionsRootFolder(VisualStudioVersion version) {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var relativeExtensionPath = @"Microsoft\VisualStudio\{0}\Extensions";
+            return Path.Combine(localAppData, string.Format(relativeExtensionPath, version.BuildNumber));
+        }
 
         /// <summary>
         /// Returns the root path to the Visual Studio installation directory for a
