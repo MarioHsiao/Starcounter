@@ -469,6 +469,7 @@ internal abstract class ExecutionEnumerator
         return stringBuilder.ToString();
     }
 
+#if false
     /// <summary>
     /// Initializes all query variables from given buffer.
     /// </summary>
@@ -480,6 +481,7 @@ internal abstract class ExecutionEnumerator
             variableArray.InitFromBuffer(queryParamsBuf);
         }
     }
+#endif
 
     /// <summary>
     /// Sets a value to an SQL variable.

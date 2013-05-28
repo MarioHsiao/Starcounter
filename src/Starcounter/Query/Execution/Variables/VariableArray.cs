@@ -159,6 +159,7 @@ internal class VariableArray
         variableArray[index] = variable;
     }
 
+#if false
     /// <summary>
     /// Initializes all query variables from given buffer.
     /// </summary>
@@ -175,6 +176,7 @@ internal class VariableArray
             queryVar.InitFromBuffer(ref queryParamsBufOrig);
         }
     }
+#endif
 
     /// <summary>
     /// Retrieves variable from certain position in the array.

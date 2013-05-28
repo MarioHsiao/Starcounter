@@ -890,6 +890,7 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetNumericalVariableValue();");
     }
 
+#if false
     /// <summary>
     /// Initializes variable from byte buffer.
     /// </summary>
@@ -948,6 +949,7 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
             }
         }
     }
+#endif
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
