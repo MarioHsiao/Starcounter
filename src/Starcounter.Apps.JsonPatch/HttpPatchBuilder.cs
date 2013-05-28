@@ -106,7 +106,7 @@ namespace Starcounter.Internal.JsonPatch
             int offset;
 
             contentLengthBuffer = new Byte[10];
-            contentLengthLength = (Int32)Utf8Helper.WriteUIntAsUtf8Man(contentLengthBuffer, 0, (UInt64)content.Length);
+            contentLengthLength = (Int32)Utf8Helper.WriteIntAsUtf8Man(contentLengthBuffer, 0, content.Length);
 
             totalLength = responseType.Length
                              + contentLengthLength
