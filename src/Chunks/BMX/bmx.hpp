@@ -25,7 +25,7 @@
 #include "coalmine.h"
 #include "chunk_helper.h"
 #include "..\common\chunk.hpp"
-#include "sccorensm.h"
+//#include "sccorensm.h"
 
 // BMX task information.
 struct TASK_INFO_TYPE {
@@ -35,7 +35,7 @@ struct TASK_INFO_TYPE {
     uint8_t fill1;
     starcounter::core::chunk_index chunk_index;
     uint64_t transaction_handle;
-    SC_SESSION_ID session_id;
+//    SC_SESSION_ID session_id;
 };
 
 // User handler callback.
@@ -553,7 +553,7 @@ namespace bmx
         }
 
         // Checks if session has changed from current one.
-        uint32_t CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t session_id);
+//        uint32_t CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t session_id);
 
         // Pushes unregistered handler.
         uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info);
