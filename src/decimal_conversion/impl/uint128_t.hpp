@@ -443,7 +443,9 @@ inline uint128_t uint128_t::operator~() const {
 }
 
 inline bool uint128_t::operator!() const {
+#pragma warning (disable: 4800)
 	return !bool(low() | high());
+#pragma warning (default: 4800)
 }
 
 const uint128_t& uint128_t::print_binary() const {

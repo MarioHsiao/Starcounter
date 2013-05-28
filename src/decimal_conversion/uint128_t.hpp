@@ -8,6 +8,7 @@
 #ifndef STARCOUNTER_NUMERICS_UINT128_T_HPP
 #define STARCOUNTER_NUMERICS_UINT128_T_HPP
 
+#include <iostream>
 #include "macro_definitions.hpp"
 
 namespace starcounter {

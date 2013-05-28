@@ -2,4 +2,7 @@
 LIBRARY "decimal_conversion"
 
 EXPORTS
-
+	convert_x6_decimal_to_clr_decimal
+	convert_clr_decimal_to_x6_decimal
+	clr_decimal_to_encoded_x6_decimal
+	

@@ -295,6 +295,7 @@ namespace Starcounter.Binding
                         case DbTypeCode.LargeBinary:
                             output.Add(new LargeBinaryColumnValueTransfer(oi, ni));
                             break;
+                        case DbTypeCode.Key: break;
                         default:
                             throw new NotSupportedException();
                         }
@@ -456,6 +457,7 @@ namespace Starcounter.Binding
                             uint sl = *((uint*)s) + 4;
                             for (uint si = 0; si < sl; si++) *h++ = *s++;
                             break;
+                        case DbTypeCode.Key: break;
                         case DbTypeCode.Binary:
                             throw new NotImplementedException();
                         default:

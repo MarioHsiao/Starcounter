@@ -715,8 +715,10 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     TASK_INFO_TYPE task_info;
 
     // Initializing task information.
+#if 0
     task_info.session_id.high = 0;
     task_info.session_id.low = 0;
+#endif
     cm3_get_cpun(0, &task_info.scheduler_number);
     task_info.chunk_index = (uint32_t)task_data->Output2;
 
@@ -789,16 +791,19 @@ finish:
 
     // Resetting current transaction.
     sccoredb_set_current_transaction(0, 0, 0); // You may comment this line to avoid throwing an exception when using NODB.
-    if (task_info.session_id.low != 0)
+#if 0
+	if (task_info.session_id.low != 0)
     {
         sccorensm_leave_session(task_info.session_id.high);
         task_info.session_id.low = 0;
     }
+#endif
 
     return err_code;
 
 }
 
+#if 0
 // Checks if session has changed from current one.
 uint32_t BmxData::CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t session_id)
 {
@@ -832,6 +837,7 @@ uint32_t BmxData::CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t sess
 
     return 0;
 }
+#endif
 
 // Pushes unregistered handler.
 uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info)
