@@ -14,10 +14,10 @@ namespace __starcountergenerated__ {
 #pragma warning disable 0168
 
 #pragma warning disable 0414
-        private static int VerificationOffset0 = 0; // Value1
-        private static int VerificationOffset1 = 6; // Value2
+        private static int VerificationOffset0 = 0; // PlayerId
+        private static int VerificationOffset1 = 8; // Accounts
 #pragma warning restore 0414
-        private static byte[] VerificationBytes = new byte[] { (byte)'V', (byte)'a', (byte)'l', (byte)'u', (byte)'e', (byte)'1', (byte)'V', (byte)'a', (byte)'l', (byte)'u', (byte)'e', (byte)'2' };
+        private static byte[] VerificationBytes = new byte[] { (byte)'P', (byte)'l', (byte)'a', (byte)'y', (byte)'e', (byte)'r', (byte)'I', (byte)'d', (byte)'A', (byte)'c', (byte)'c', (byte)'o', (byte)'u', (byte)'n', (byte)'t', (byte)'s' };
         private static IntPtr PointerVerificationBytes;
 
         static PreGeneratedSerializer() {
@@ -44,94 +44,146 @@ namespace __starcountergenerated__ {
                         pBuffer++;
                         leftBufferSize--;
                         if (leftBufferSize < 0)
-                            throw new Exception("Deserialization failed.");
+                            JsonHelper.ThrowUnexpectedEndOfContentException();
                     }
                     pBuffer++;
                     leftBufferSize--;
                     if (leftBufferSize < 0)
-                        throw new Exception("Deserialization failed.");
-                    pver = ((byte*)PointerVerificationBytes + VerificationOffset1 + 0);
-                    leftBufferSize -= 4;
-                    if (leftBufferSize < 0 || (*(UInt32*)pBuffer) != (*(UInt32*)pver))
-                        throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                    pBuffer += 4;
-                    pver += 4;
-                    leftBufferSize--;
-                    if (leftBufferSize < 0 || (*pBuffer) != (*pver))
-                        throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);
-                    pBuffer++;
-                    pver++;
+                        JsonHelper.ThrowUnexpectedEndOfContentException();
                     switch (*pBuffer) {
-                        case (byte)'2':
+                        case (byte)'A':
                             pBuffer++;
                             leftBufferSize--;
+                            pver = ((byte*)PointerVerificationBytes + VerificationOffset1 + 1);
+                            leftBufferSize -= 4;
+                            if (leftBufferSize < 0 || (*(UInt32*)pBuffer) != (*(UInt32*)pver))
+                                JsonHelper.ThrowPropertyNotFoundException("");
+                            pBuffer += 4;
+                            pver += 4;
+                            leftBufferSize -= 2;
+                            if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver))
+                                JsonHelper.ThrowPropertyNotFoundException("");
+                            pBuffer += 2;
+                            pver += 2;
+                            leftBufferSize--;
+                            if (leftBufferSize < 0 || (*pBuffer) != (*pver))
+                                JsonHelper.ThrowPropertyNotFoundException("");
+                            pBuffer++;
+                            pver++;
                             // Skip until start of value to parse.
                             while (*pBuffer != ':') {
                                 pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
-                                    throw new Exception("Deserialization failed.");
+                                    JsonHelper.ThrowUnexpectedEndOfContentException();
                             }
                             pBuffer++; // Skip ':' or ','
                             leftBufferSize--;
                             if (leftBufferSize < 0)
-                                throw new Exception("Deserialization failed.");
+                                JsonHelper.ThrowUnexpectedEndOfContentException();
                             while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
                                 pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
-                                    throw new Exception("Deserialization failed.");
+                                    JsonHelper.ThrowUnexpectedEndOfContentException();
                             }
-                            String val1;
-                            if (JsonHelper.ParseString((IntPtr)pBuffer, leftBufferSize, out val1, out valueSize)) {
-                                obj.Value2 = val1;
-                                leftBufferSize -= valueSize;
-                                if (leftBufferSize < 0) {
-                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
+                            if (*pBuffer++ == '[') {
+                                leftBufferSize--;
+                                while (*pBuffer != '{' && *pBuffer != ']') { // find first object or end of array
+                                    pBuffer++;
+                                    leftBufferSize--;
                                 }
-                                pBuffer += valueSize;
-                            } else {
-                                throw new Exception("Unable to deserialize App. Content not compatible.");
-                            }
+                                if (*pBuffer != ']') {
+                                    while (leftBufferSize > 0) {
+                                        var val1 = obj.Accounts.Add();
+                                        valueSize = val1.PopulateFromJson((IntPtr)pBuffer, leftBufferSize);
+                                        if (valueSize != -1) {
+                                            leftBufferSize -= valueSize;
+                                            if (leftBufferSize < 0) {
+                                                JsonHelper.ThrowUnexpectedEndOfContentException();
+                                            }
+                                            pBuffer += valueSize;
+                                        } else {
+                                            JsonHelper.ThrowWrongValueTypeException(null, "Accounts", "Arr`1", "");
+                                        }
+                                        // Skip until start of value to parse.
+                                        while (*pBuffer != ',') {
+                                            if (*pBuffer == ']')
+                                                break;
+                                            pBuffer++;
+                                            leftBufferSize--;
+                                            if (leftBufferSize < 0)
+                                                JsonHelper.ThrowUnexpectedEndOfContentException();
+                                        }
+                                        if (*pBuffer == ']')
+                                            break;
+                                        pBuffer++; // Skip ':' or ','
+                                        leftBufferSize--;
+                                        if (leftBufferSize < 0)
+                                            JsonHelper.ThrowUnexpectedEndOfContentException();
+                                        while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
+                                            pBuffer++;
+                                            leftBufferSize--;
+                                            if (leftBufferSize < 0)
+                                                JsonHelper.ThrowUnexpectedEndOfContentException();
+                                        }
+                                    }
+                                }
+                            } else
+                                JsonHelper.ThrowWrongValueTypeException(null, "Accounts", "Arr`1", "");
                             break;
-                        case (byte)'1':
+                        case (byte)'P':
                             pBuffer++;
                             leftBufferSize--;
+                            pver = ((byte*)PointerVerificationBytes + VerificationOffset0 + 1);
+                            leftBufferSize -= 4;
+                            if (leftBufferSize < 0 || (*(UInt32*)pBuffer) != (*(UInt32*)pver))
+                                JsonHelper.ThrowPropertyNotFoundException("");
+                            pBuffer += 4;
+                            pver += 4;
+                            leftBufferSize -= 2;
+                            if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver))
+                                JsonHelper.ThrowPropertyNotFoundException("");
+                            pBuffer += 2;
+                            pver += 2;
+                            leftBufferSize--;
+                            if (leftBufferSize < 0 || (*pBuffer) != (*pver))
+                                JsonHelper.ThrowPropertyNotFoundException("");
+                            pBuffer++;
+                            pver++;
                             // Skip until start of value to parse.
                             while (*pBuffer != ':') {
                                 pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
-                                    throw new Exception("Deserialization failed.");
+                                    JsonHelper.ThrowUnexpectedEndOfContentException();
                             }
                             pBuffer++; // Skip ':' or ','
                             leftBufferSize--;
                             if (leftBufferSize < 0)
-                                throw new Exception("Deserialization failed.");
+                                JsonHelper.ThrowUnexpectedEndOfContentException();
                             while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
                                 pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
-                                    throw new Exception("Deserialization failed.");
+                                    JsonHelper.ThrowUnexpectedEndOfContentException();
                             }
                             Int64 val0;
                             if (JsonHelper.ParseInt((IntPtr)pBuffer, leftBufferSize, out val0, out valueSize)) {
-                                obj.Value1 = val0;
+                                obj.PlayerId = val0;
                                 leftBufferSize -= valueSize;
                                 if (leftBufferSize < 0) {
-                                    throw new Exception("Unable to deserialize App. Unexpected end of content");
+                                    JsonHelper.ThrowUnexpectedEndOfContentException();
                                 }
                                 pBuffer += valueSize;
                             } else {
-                                throw new Exception("Unable to deserialize App. Content not compatible.");
+                                JsonHelper.ThrowWrongValueTypeException(null, "PlayerId", "Int64", "");
                             }
                             break;
-                        default:
-                            throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED, "char: '" + (char)*pBuffer + "', offset: " + (bufferSize - leftBufferSize) + "");
                     }
                 }
+                throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED, "char: '" + (char)*pBuffer + "', offset: " + (bufferSize - leftBufferSize) + "");
             }
-            throw new Exception("Deserialization of App failed.");
         }
 #pragma warning restore 0168
 #pragma warning restore 0219

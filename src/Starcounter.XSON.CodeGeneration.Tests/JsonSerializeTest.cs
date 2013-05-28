@@ -64,7 +64,10 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             AssertAreEqual(correctJson, defaultJson, count);
 
             actualObj = (Obj)tObj.CreateInstance();
-            count = actualObj.PopulateFromJson(correctJson, correctJson.Length);
+
+//            count = actualObj.PopulateFromJson(correctJson, correctJson.Length);
+            actualObj.PopulateFromJson(json);
+
             Assert.AreEqual(correctJson.Length, count);
 
             AssertAreEqual(correctObj, actualObj);
@@ -91,7 +94,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             person.PlayerId = 35684;
 //            var account = person.Accounts.Add();
 //            account.AccountId = 35684;
-//            SetDefaultPersonValues(person);
+            SetDefaultPersonValues(person);
 
             TObj.FallbackSerializer = newtonSerializer;
             newtonJson = person.ToJson(); 
