@@ -462,7 +462,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public static int WriteInt(IntPtr ptr, int size, long value) {
             unsafe {
                 byte* p = (byte*)ptr;
-                return (int)Utf8Helper.WriteUIntAsUtf8(p, (UInt64)value);
+                return (int)Utf8Helper.WriteIntAsUtf8(p, value);
             }
         }
 
