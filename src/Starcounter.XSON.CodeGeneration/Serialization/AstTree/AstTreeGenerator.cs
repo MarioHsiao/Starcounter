@@ -199,13 +199,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             };
             jsClass.DeserializeFunction = df;
 
-            nextParent = new AstUnsafe() {
+            var astUnsafe = new AstUnsafe() {
                 ParseNode = input,
                 Parent = df
             };
 
             nextParent = new AstWhile() {
-                Parent = nextParent
+                Parent = astUnsafe
             };
 
             new AstGotoProperty() {
@@ -225,22 +225,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 CreateCodeNode(cand, nextParent);
             }
 
-            if (nextParent is AstSwitch) {
-                // Add a default case for unknown properties.
-                var dc = new AstCase() {
-                    IsDefault = true,
-                    ParseNode = null,
-                    Parent = nextParent
-                };
-                var fnFail = new AstProcessFail() {
-                    ExceptionCode = CreateExceptionMessage(input),
-                    Parent = dc
-                };
-            }
-
             if (input.TemplateIndex == -1) {
                 var fnFail = new AstProcessFail() {
-                    Parent = df
+                    Parent = astUnsafe
                 };
             }
         }
@@ -273,19 +260,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     }
                     foreach (var cand in pn.Candidates) {
                         CreateCodeNode(cand, nextParent);
-                    }
-
-                    if (nextParent is AstSwitch) {
-                        // Add a default case for unknown properties.
-                        var dc = new AstCase() {
-                            IsDefault = true,
-                            ParseNode = null,
-                            Parent = nextParent
-                        };
-                        var fnFail = new AstProcessFail() {
-                            ExceptionCode = CreateExceptionMessage(pn),
-                            Parent = dc
-                        };
                     }
 
                     break;
@@ -348,9 +322,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             }
         }
 
-        private static string CreateExceptionMessage(ParseNode node) {
-            return "ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED, \"char: '\" + (char)*pBuffer + \"', offset: \" + (bufferSize - leftBufferSize) + \"\");";
-        }
     }
 
     /// <summary>

@@ -577,7 +577,7 @@ namespace Starcounter.XSON.Serializers {
         /// <param name="name"></param>
         /// <param name="type"></param>
         /// <param name="value"></param>
-        internal static void ThrowWrongValueTypeException(Exception innerException, string name, string type, string value) {
+        public static void ThrowWrongValueTypeException(Exception innerException, string name, string type, string value) {
             throw ErrorCode.ToException(
                             Error.SCERRJSONVALUEWRONGTYPE,
                             innerException,
@@ -591,14 +591,14 @@ namespace Starcounter.XSON.Serializers {
         /// 
         /// </summary>
         /// <param name="name"></param>
-        internal static void ThrowPropertyNotFoundException(string name) {
-            throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\""));
+        public static void ThrowPropertyNotFoundException(string name) {
+            throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\"", name));
         }
 
         /// <summary>
         /// 
         /// </summary>
-        internal static void ThrowUnexpectedEndOfContentException() {
+        public static void ThrowUnexpectedEndOfContentException() {
             throw ErrorCode.ToException(
                             Error.SCERRJSONUNEXPECTEDENDOFCONTENT,
                             "",
