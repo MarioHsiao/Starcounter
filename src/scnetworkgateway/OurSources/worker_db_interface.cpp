@@ -378,16 +378,15 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 
 // Push given chunk to database queue.
 void WorkerDbInterface::PushLinkedChunksToDb(
-    core::chunk_index chunk_index,
+    core::chunk_index the_chunk_index,
     int32_t stats_num_chunks,
-    int16_t scheduler_id,
-    bool not_overflow_chunk = true)
+    int16_t scheduler_id)
 {
     // Assuring that session goes to correct scheduler.
     if (scheduler_id >= num_schedulers_)
     {
         // Returning linked multiple chunks.
-        ReturnLinkedChunksToPool(stats_num_chunks, chunk_index);
+        ReturnLinkedChunksToPool(stats_num_chunks, the_chunk_index);
 
         return;
     }
@@ -395,42 +394,18 @@ void WorkerDbInterface::PushLinkedChunksToDb(
     // Obtaining the channel.
     core::channel_type& the_channel = shared_int_.channel(channels_[scheduler_id]);
 
-    // Is overflow pool empty?
-    bool overflow_is_empty = private_overflow_pool_.empty();
-    if (!not_overflow_chunk)
-        overflow_is_empty = true;
-
-    // Trying to push given chunk into channel.
-    if (overflow_is_empty && (the_channel.in.try_push_front(chunk_index) == true))
-    {
-        // A message on channel ch was received. Notify the database
-        // that the out queue in this channel is not full.
-#if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-		the_channel.scheduler()->notify(shared_int_.scheduler_work_event
-		(the_channel.get_scheduler_number()));
-#else // !defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Boost.Interprocess.
-        the_channel.scheduler()->notify();
-#endif // defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.
-
-#ifdef GW_CHUNKS_DIAG
-        GW_PRINT_WORKER << "   successfully pushed: chunk " << chunk_index << GW_ENDL;
-#endif
-    }
-    else
+    // Trying to push chunk if overflow is empty.
+    if ((!the_channel.in_overflow().empty()) ||
+        (!TryPushToChannel(the_channel, the_chunk_index, stats_num_chunks)))
     {
 #ifdef GW_CHUNKS_DIAG
         GW_PRINT_WORKER << "Couldn't push chunk into channel. Putting to overflow pool." << GW_ENDL;
 #endif
 
-        // Could not push the request to the channels in
-        // queue - push it to the overflow_pool_ instead.
-        private_overflow_pool_.push_front(scheduler_id << 24 | chunk_index);
-
-        return;
+        // The in_overflow queue is not empty so the message is first pushed to
+        // the in_overflow queue, to preserve the order of production.
+        the_channel.in_overflow().push(the_chunk_index);
     }
-
-    // Chunk was pushed successfully either to channel or overflow pool.
-    ChangeNumUsedChunks(-stats_num_chunks);
 }
 
 // Returns given socket data chunk to private chunk pool.
@@ -681,7 +656,6 @@ WorkerDbInterface::WorkerDbInterface(
 
     // Setting private/overflow chunk pool capacity.
     private_chunk_pool_.set_capacity(core::chunks_total_number_max);
-    private_overflow_pool_.set_capacity(core::chunks_total_number_max);
 
     db_index_ = new_db_index;
     worker_id_ = worker_id;
