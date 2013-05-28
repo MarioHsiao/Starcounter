@@ -73,7 +73,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Prefix.Add("private static IntPtr PointerVerificationBytes;");
             Prefix.Add(""); 
 
-            Prefix.Add("public " + jsClass.ClassName + "() {");
+            Prefix.Add("static " + jsClass.ClassName + "() {");
             Prefix.Add("    PointerVerificationBytes = Marshal.AllocHGlobal(VerificationBytes.Length); // TODO. Free when program exists");
             Prefix.Add("    Marshal.Copy(VerificationBytes, 0, PointerVerificationBytes, VerificationBytes.Length);");
             Suffix.Add("}");

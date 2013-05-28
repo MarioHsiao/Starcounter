@@ -9,15 +9,11 @@ using System.Text;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
-    /// Class AstProcessFail
+    /// 
     /// </summary>
     internal class AstProcessFail : AstNode {
-        internal String ExceptionCode { get; set; }
-
         internal override string DebugString {
             get {
-                if (ExceptionCode != null)
-                    return "Fail: " + ExceptionCode;
                 return "Fail";
             }
         }
@@ -26,12 +22,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            if (ExceptionCode != null)
-                Prefix.Add("throw " + ExceptionCode);
-            else
-                Prefix.Add("throw new Exception(\"Deserialization of App failed.\");");
+            Prefix.Add("throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED, \"char: '\" + (char)*pBuffer + \"', offset: \" + (bufferSize - leftBufferSize) + \"\");");
         }
-
     }
 }
 

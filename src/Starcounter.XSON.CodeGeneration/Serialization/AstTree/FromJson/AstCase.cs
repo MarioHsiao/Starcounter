@@ -10,14 +10,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     internal class AstCase : AstNode {
         internal ParseNode ParseNode { get; set; }
 
-        internal bool IsDefault { get; set; }
-
         internal override string DebugString {
             get {
-                if (IsDefault) {
-                    return "default:";
-                }
-
                 if (ParseNode.Match == 0) {
                     return "case '':";
                 }
@@ -26,27 +20,21 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         internal override void GenerateCsCodeForNode() {
-            if (IsDefault) {
-                Prefix.Add("default:");
-            } else {
-                var sb = new StringBuilder();
-                sb.Append("case (byte)'");
-                sb.Append((char)ParseNode.Match);
-                sb.Append("':");
-                Prefix.Add(sb.ToString());
+            var sb = new StringBuilder();
+            sb.Append("case (byte)'");
+            sb.Append((char)ParseNode.Match);
+            sb.Append("':");
+            Prefix.Add(sb.ToString());
 
-                if (ParseNode.Match == (byte)' ') {
-                    Prefix.Add("case (byte)'\"':");
-                }
-
-                // Skip the character we switched on.
-                Prefix.Add("    pBuffer++;");
-                Prefix.Add("    leftBufferSize--;");
+            if (ParseNode.Match == (byte)' ') {
+                Prefix.Add("case (byte)'\"':");
             }
 
-            // AstFail throws exception so we cannot add a break if the child is a fail.
-            if (!(this.Children.Count == 1 && this.Children[0] is AstProcessFail))
-                Suffix.Add("   break;");
+            // Skip the character we switched on.
+            Prefix.Add("    pBuffer++;");
+            Prefix.Add("    leftBufferSize--;");
+            
+            Suffix.Add("   break;");
         }
     }
 }
