@@ -741,6 +741,20 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
+        /// Gets the whole request size.
+        /// </summary>
+        public UInt32 GetRequestLength()
+        {
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                return http_request_struct_->request_len_bytes_;
+            }
+        }
+
+        /// <summary>
         /// Byte array of the request.
         /// </summary>
         /// <param name="r"></param>
