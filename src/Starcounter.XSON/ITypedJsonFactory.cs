@@ -7,13 +7,9 @@
 using System;
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
+using Starcounter.XSON.Serializers;
 
 namespace Starcounter.Internal {
-    public abstract class TypedJsonSerializer {
-        public abstract int Serialize(IntPtr buffer, int bufferSize, dynamic obj);
-        public abstract int PopulateFromJson(IntPtr buffer, int bufferSize, dynamic obj);
-    }
-
     /// <summary>
     /// 
     /// </summary>

@@ -1,7 +1,7 @@
 //
 // channel.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -79,8 +79,11 @@ public:
 	client_interface_(0),
 	server_refs_(0),
 	is_to_be_released_(false)
+#if defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
+	, in_overflow_()
+#endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	, overflow_()
+	, out_overflow_()
 #endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	{}
 	
@@ -170,8 +173,7 @@ public:
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	//--------------------------------------------------------------------------
 	// The queue here is synchronized enough by the operation of the
-	// co-operative scheduler threads. Its purpose is to replaces the other
-	// overflow buffer (in scheduler_interface[s]).
+	// co-operative scheduler threads.
 	
 	class queue {
 	public:
@@ -281,8 +283,8 @@ public:
 		chunk_type& chunk(chunk_index n) {
 			return chunk_[n];
 		}
-	private:
 
+	private:
 		link_type front_;
 		link_type back_;
 
@@ -291,19 +293,20 @@ public:
 		chunk_type* chunk_;
 	};
 	
-	queue& overflow() {
-		return overflow_;
+	queue& in_overflow() {
+		return in_overflow_;
 	}
 
-	const queue& overflow() const {
-		return overflow_;
+ 	const queue& in_overflow() const {
+		return in_overflow_;
 	}
-	
-	// During initialization of the channel, the chunk pointer
-	// is set relative to the scheduler process address space, so
-	// only the scheduler process that manages this channel can use it.
-	void set_chunk_ptr(chunk_type* p) {
-		overflow().set_chunk_ptr(p);
+
+	queue& out_overflow() {
+		return out_overflow_;
+	}
+
+	const queue& out_overflow() const {
+		return out_overflow_;
 	}
 #endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	
@@ -343,11 +346,19 @@ private:
 	+sizeof(bool) // is_to_be_released_
 	) % CACHE_LINE_SIZE];
 
-#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	queue overflow_;
+#if defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
+	queue in_overflow_;
 
 	char cache_line_pad_1_[CACHE_LINE_SIZE -(
-	+sizeof(queue) // overflow_
+	+sizeof(queue) // in_overflow_
+	) % CACHE_LINE_SIZE];
+#endif // defined (IPC_HANDLE_CHANNEL_IN_BUFFER_FULL)
+    
+#if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
+	queue out_overflow_;
+
+	char cache_line_pad_2_[CACHE_LINE_SIZE -(
+	+sizeof(queue) // out_overflow_
 	) % CACHE_LINE_SIZE];
 #endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 };

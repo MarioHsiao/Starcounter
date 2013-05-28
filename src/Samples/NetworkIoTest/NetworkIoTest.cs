@@ -194,7 +194,8 @@ namespace NetworkIoTestApp
             MODE_APPS_URIS,
             MODE_APPS_URIS_SESSION,
             MODE_HTTP_REST_CLIENT,
-            MODE_WEBSOCKETS_URIS
+            MODE_WEBSOCKETS_URIS,
+            MODE_NODE_TESTS
         }
 
         // Performance related counters.
@@ -391,6 +392,16 @@ namespace NetworkIoTestApp
                     handler_uri = "/testrest";
                     GatewayHandlers.RegisterUriHandler(port_number, handler_uri, handler_uri + " ", null, OnTestRest, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
+
+                    break;
+                }
+
+                case TestTypes.MODE_NODE_TESTS:
+                {
+                    Handle.POST(8080, "/nodetest", (Request req) =>
+                    {
+                        return new Response() { BodyBytes = req.BodyBytes };
+                    });
 
                     break;
                 }
