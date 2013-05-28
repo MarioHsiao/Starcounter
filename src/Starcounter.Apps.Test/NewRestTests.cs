@@ -91,6 +91,16 @@ namespace Starcounter.Internal.Test
                     ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
                     Assert.IsTrue("1" == ss);
 
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, -1);
+                    Assert.IsTrue(2 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("-1" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, -7);
+                    Assert.IsTrue(2 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("-7" == ss);
+
                     num_bytes = Utf8Helper.WriteIntAsUtf8(tt, 17);
                     Assert.IsTrue(2 == num_bytes);
                     ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
@@ -127,6 +137,16 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(1 == num_bytes);
             ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
             Assert.IsTrue("1" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, -1);
+            Assert.IsTrue(2 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("-1" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, -7);
+            Assert.IsTrue(2 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("-7" == ss);
 
             num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, 3);
             Assert.IsTrue(1 == num_bytes);
