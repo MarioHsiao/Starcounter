@@ -1753,20 +1753,5 @@ namespace Starcounter.Advanced {
                 return null;
             }
         }
-
-        /// <summary>
-        /// Returns the fully qualified type name of this instance.
-        /// </summary>
-        /// <returns>A <see cref="T:System.String" /> containing a fully qualified type name.</returns>
-        public override String ToString() {
-            return "<h1>HttpMethod: " + http_method_ + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
-                   "<h1>URI: " + Uri + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
-                   "<h1>GZip accepted: " + is_gzip_accepted_ + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
-                   "<h1>Host: " + GetHeaderValue("Host") + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
-                   "<h1>Session string: " + GetSessionString() + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
-                   "<h1>ContentLength: " + content_len_bytes_ + "</h1>" + StarcounterConstants.NetworkConstants.CRLF +
-                   "<h1>Body: " + GetBodyStringUtf8_Slow() + "</h1>" + StarcounterConstants.NetworkConstants.CRLF
-                   ;
-        }
     }
 }
