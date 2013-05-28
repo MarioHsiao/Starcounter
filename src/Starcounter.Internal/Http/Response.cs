@@ -307,6 +307,28 @@ namespace Starcounter.Advanced
             }
         }
 
+        Byte[] bodyBytes_;
+
+        /// <summary>
+        /// Body bytes.
+        /// </summary>
+        public Byte[] BodyBytes
+        {
+            get
+            {
+                if (null == bodyBytes_)
+                    bodyBytes_ = GetBodyBytes_Slow();
+
+                return bodyBytes_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                bodyBytes_ = value;
+            }
+        }
+
         String headersString_;
 
         /// <summary>
@@ -412,20 +434,45 @@ namespace Starcounter.Advanced
             if (null != setCookiesString_)
                 str += "Set-Cookie: " + setCookiesString_ + StarcounterConstants.NetworkConstants.CRLF;
 
-            Int32 contentLength = 0;
-
             if (null != bodyString_)
-                contentLength = bodyString_.Length;
+            {
+                if (null != bodyBytes_)
+                    throw new ArgumentException("Either body string or body bytes can be set for Response.");
 
-            str += "Content-Length: " + contentLength + StarcounterConstants.NetworkConstants.CRLF;
+                str += "Content-Length: " + bodyString_.Length + StarcounterConstants.NetworkConstants.CRLF;
+                str += StarcounterConstants.NetworkConstants.CRLF;
 
-            str += StarcounterConstants.NetworkConstants.CRLF;
-
-            if (null != bodyString_)
+                // Adding the body.
                 str += bodyString_;
 
-            // Finally setting the uncompressed bytes.
-            Uncompressed = Encoding.UTF8.GetBytes(str);
+                // Finally setting the uncompressed bytes.
+                Uncompressed = Encoding.UTF8.GetBytes(str);
+            }
+            else if (null != bodyBytes_)
+            {
+                str += "Content-Length: " + bodyBytes_.Length + StarcounterConstants.NetworkConstants.CRLF;
+                str += StarcounterConstants.NetworkConstants.CRLF;
+
+                Byte[] headersBytes = Encoding.UTF8.GetBytes(str);
+
+                // Adding the body.
+                Byte[] responseBytes = new Byte[headersBytes.Length + bodyBytes_.Length];
+
+                System.Buffer.BlockCopy(headersBytes, 0, responseBytes, 0, headersBytes.Length);
+                System.Buffer.BlockCopy(bodyBytes_, 0, responseBytes, headersBytes.Length, bodyBytes_.Length);
+
+                // Finally setting the uncompressed bytes.
+                Uncompressed = responseBytes;
+            }
+            else
+            {
+                str += "Content-Length: 0" + StarcounterConstants.NetworkConstants.CRLF;
+                str += StarcounterConstants.NetworkConstants.CRLF;
+
+                // Finally setting the uncompressed bytes.
+                Uncompressed = Encoding.UTF8.GetBytes(str);
+            }
+
             customFields_ = false;
         }
 
@@ -914,6 +961,20 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Gets the whole response size.
+        /// </summary>
+        public UInt32 GetResponseLength()
+        {
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->response_len_bytes_;
+            }
+        }
+
+        /// <summary>
         /// Gets the content raw pointer.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
@@ -977,6 +1038,20 @@ namespace Starcounter.Advanced
                     throw new ArgumentException("HTTP response not initialized.");
 
                 return http_response_struct_->GetBodyStringUtf8_Slow();
+            }
+        }
+
+        /// <summary>
+        /// Gets body bytes.
+        /// </summary>
+        public Byte[] GetBodyBytes_Slow()
+        {
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                return http_response_struct_->GetBodyByteArray_Slow();
             }
         }
 

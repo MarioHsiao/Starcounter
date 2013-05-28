@@ -200,7 +200,7 @@ namespace Starcounter.VisualStudio.Projects {
                 var restart = true;
                 headers = string.Format("ETag: {0}{1}", engineETag, HTTPHelp.CRLF);
                 this.WriteDebugLaunchStatus("Stopping engine");
-                response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), null, headers, null);
+                response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), (String)null, headers, null);
                 response.FailIfNotSuccessOr(404, 412);
                 if (response.StatusCode == 412) {
                     // Precondition failed. We expect someone else to have stopped
