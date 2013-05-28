@@ -961,6 +961,20 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Gets the whole response size.
+        /// </summary>
+        public UInt32 GetResponseLength()
+        {
+            unsafe
+            {
+                if (null == http_response_struct_)
+                    throw new ArgumentException("HTTP response not initialized.");
+
+                return http_response_struct_->response_len_bytes_;
+            }
+        }
+
+        /// <summary>
         /// Gets the content raw pointer.
         /// </summary>
         /// <param name="ptr">The PTR.</param>

@@ -25,7 +25,7 @@
 
 /// Define IPC_HANDLE_CHANNEL_IN_BUFFER_FULL
 /// to activate the use of one overflow queue per channel, based on linked lists.
-//#define IPC_HANDLE_CHANNEL_IN_BUFFER_FULL
+#define IPC_HANDLE_CHANNEL_IN_BUFFER_FULL
 
 /// Define IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL
 /// to activate the use of one overflow queue per channel, based on linked lists.
