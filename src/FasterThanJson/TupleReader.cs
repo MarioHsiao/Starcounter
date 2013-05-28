@@ -182,6 +182,21 @@ namespace Starcounter.Internal
          return str;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe byte[] ReadByteArray() {
+#if BASE64
+          uint len = (uint)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
+          len -= ValueOffset;
+          uint valueLength = Base64Binary.MeasureNeededSizeToDecode(len);
+          byte[] value = Base64Binary.Read(len, (IntPtr)AtEnd);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
+#endif
+          AtOffsetEnd += OffsetElementSize;
+          AtEnd += len;
+          ValueOffset += len;
+          return value;
+      }
 
       /// <summary>
       /// Gets the read byte count.

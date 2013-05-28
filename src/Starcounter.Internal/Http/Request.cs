@@ -470,6 +470,28 @@ namespace Starcounter.Advanced {
             }
         }
 
+        Byte[] bodyBytes_;
+
+        /// <summary>
+        /// Body bytes.
+        /// </summary>
+        public Byte[] BodyBytes
+        {
+            get
+            {
+                if (null == bodyBytes_)
+                    bodyBytes_ = GetBodyBytes_Slow();
+
+                return bodyBytes_;
+            }
+
+            set
+            {
+                customFields_ = true;
+                bodyBytes_ = value;
+            }
+        }
+
         String headersString_;
 
         /// <summary>
@@ -731,7 +753,6 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Gets body as UTF8 string.
         /// </summary>
-        /// <returns>UTF8 string.</returns>
         public String GetBodyStringUtf8_Slow()
         {
             unsafe
@@ -740,6 +761,20 @@ namespace Starcounter.Advanced {
                     throw new ArgumentException("HTTP request not initialized.");
 
                 return http_request_struct_->GetBodyStringUtf8_Slow();
+            }
+        }
+
+        /// <summary>
+        /// Gets body bytes.
+        /// </summary>
+        public Byte[] GetBodyBytes_Slow()
+        {
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                return http_request_struct_->GetBodyByteArray_Slow();
             }
         }
 

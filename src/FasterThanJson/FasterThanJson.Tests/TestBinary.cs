@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using NUnit.Framework;
 
 namespace Starcounter.Internal {
@@ -83,18 +84,71 @@ namespace Starcounter.Internal {
             for (int i = 0; i < nrTests; i++) {
                 uint valueLength = (uint)rnd.Next(1024);
                 uint valueArrayLength = valueLength;
-                if (rnd.Next(0, 1) == 1)
+                if (rnd.Next(0, 2) == 1)
                     valueArrayLength += (uint)rnd.Next(100);
                 uint encodedLength = Base64Binary.MeasureNeededSizeToEncode(valueLength);
                 uint encodedArrayLength = encodedLength;
-                if (rnd.Next(0, 1) == 1)
+                if (rnd.Next(0, 2) == 1)
                     encodedArrayLength += (uint)rnd.Next(200);
                 byte[] value = new byte[valueArrayLength];
                 byte[] encoded = new byte[encodedArrayLength];
                 for (int j = 0; j < valueLength; j++)
-                    value[j] = (byte)rnd.Next(byte.MinValue, byte.MaxValue);
+                    value[j] = (byte)rnd.Next(byte.MinValue, byte.MaxValue+1);
                 ConvertByteArray(value, valueLength, encoded, encodedLength);
             }
+        }
+
+        internal void BenchmarkABinary(int nrIterations, byte[] value) {
+            Stopwatch timer = new Stopwatch();
+            uint valueLength = (uint)value.Length;
+            uint encodedLength = Base64Binary.MeasureNeededSizeToEncode(valueLength);
+            byte[] encoded = new byte[encodedLength];
+            unsafe {
+                fixed (byte* encodedPtr = encoded, valuePtr = value) {
+                    timer.Start();
+                    for (int i = 0; i < nrIterations; i++)
+                        Base64Binary.Write((IntPtr)encodedPtr, valuePtr, valueLength);
+                    timer.Stop();
+                }
+            }
+            Console.WriteLine(nrIterations + " writes of byte array with length " +
+                valueLength + " takes " + timer.ElapsedMilliseconds + " ms, i.e., " +
+                (1000000 * timer.ElapsedMilliseconds) / nrIterations + " ns per write.");
+            timer.Reset();
+            byte[] decoded = new byte[valueLength];
+            unsafe {
+                fixed (byte* decodedPtr = decoded, encodedPtr = encoded) {
+                    timer.Start();
+                    for (int i = 0; i < nrIterations; i++)
+                        Base64Binary.Read(encodedLength, (IntPtr)encodedPtr, decodedPtr);
+                    timer.Stop();
+                }
+            }
+            for (int i=0; i<valueLength;i++)
+                Assert.AreEqual(value[i], decoded[i]);
+            Console.WriteLine(nrIterations + " reads of byte array with length " +
+                valueLength + " takes " + timer.ElapsedMilliseconds + " ms, i.e., " +
+                (1000000 * timer.ElapsedMilliseconds) / nrIterations + " ns per read.");
+        }
+
+        [Test]
+        public void BenchmarkBinaries() {
+            Random rnd = new Random(2);
+            uint valueLength = 10;
+            byte[] value = new byte[valueLength];
+            for (int i = 0; i < valueLength; i++)
+                value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue + 1);
+            BenchmarkABinary(1000000, value);
+            valueLength = 100;
+            value = new byte[valueLength];
+            for (int i = 0; i < valueLength; i++)
+                value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue + 1);
+            BenchmarkABinary(1000000, value);
+            valueLength = 1000;
+            value = new byte[valueLength];
+            for (int i = 0; i < valueLength; i++)
+                value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue + 1);
+            BenchmarkABinary(100000, value);
         }
     }
 }

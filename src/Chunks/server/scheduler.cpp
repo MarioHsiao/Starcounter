@@ -80,6 +80,9 @@ EXTERN_C void sc_release_channel(void *port, unsigned long channel_index);
 namespace starcounter {
 namespace core {
 
+extern shared_memory_object global_segment_shared_memory_object;
+extern mapped_region global_mapped_region;
+
 class server_port {
 	typedef uint64_t mask_type;
 
@@ -108,8 +111,6 @@ class server_port {
 	scheduler_channel_type *scheduler_signal_channel_;
 	chunk_type *chunk_;
 	shared_chunk_pool_type* shared_chunk_pool_;
-	starcounter::core::shared_memory_object shared_memory_object_;
-	starcounter::core::mapped_region mapped_region_;
 	std::size_t id_;
 
 	// TODO: Remove gotoxy() - used during debug.
@@ -398,23 +399,15 @@ private:
 	}
 };
 
+
 unsigned long server_port::init(const char* database_name, std::size_t id, owner_id oid) {
 	try {
-		// Open the database shared memory segment.
-		shared_memory_object_.init_open(database_name);
-		
-		if (!shared_memory_object_.is_valid()) {
-			return SCERRSERVERPORTINITINVALIDSHMOBJ;
-		}
-		
-		mapped_region_.init(shared_memory_object_);
-		
-		if (!mapped_region_.is_valid()) {
-			return SCERRSERVERPORTINITINVALIDMAPREG;
+		if (!global_mapped_region.is_valid()) {
+			return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
 		}
 		
 		id_ = id;
-		simple_shared_memory_manager *pm = new (mapped_region_.get_address())
+		simple_shared_memory_manager *pm = new (global_mapped_region.get_address())
 		simple_shared_memory_manager;
 		
 		// Find the chunks.
@@ -656,15 +649,15 @@ check_next_channel:
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 					// An attempt to improve the flow of messages circulating in
 					// the system is that the scheduler shall attempts to move
-					// all items (if any) from the overflow queue in the given
+					// all items (if any) from the out overflow queue in the given
 					// channel to the out queue - before trying to get a new
 					// task from the in queue. The question is if this improves
 					// or degrades the performance. Cancel out this code to see
 					// if there is a difference. I'm not sure the quality of the
 					// implemention is good enough either.
-					while (!the_channel.overflow().empty()) {
+					while (!the_channel.out_overflow().empty()) {
 						if (!the_channel.out.try_push_front(the_channel
-						.overflow().front())) {
+						.out_overflow().front())) {
 							// Failed to push the item. Not removing it from
 							// the overflow queue.
 							break;
@@ -672,7 +665,7 @@ check_next_channel:
 
 						// The item was successfully pushed to the out buffer.
 						// Removing the item from the overflow queue.
-						the_channel.overflow().pop();
+						the_channel.out_overflow().pop();
 
 						// Notify that the out queue is not empty, here?
 						the_channel.client()->notify();
@@ -820,44 +813,44 @@ chunk_index the_chunk_index) {
 	channel_type& the_channel = channel_[the_channel_index];
 	
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	// If the channels overflow queue is empty (assumed), then try to push to
+	// If the channels out_overflow queue is empty (assumed), then try to push to
 	// the out queue. If that succeeds (assumed), return. If it fails, the
-	// item is pushed to the overflow queue.
-	// If the overflow queue is not empty (assumed), the item is pushed to the overflow
-	// queue and then try to move the whole overflow queue to the out queue.
-	// If the overflow queue is empty (assumed), the item is pushed to the overflow
+	// item is pushed to the out_overflow queue.
+	// If the out_overflow queue is not empty (assumed), the item is pushed to the out_overflow
+	// queue and then try to move the whole out_overflow queue to the out queue.
+	// If the out_overflow queue is empty (assumed), the item is pushed to the out_overflow
 
 	//	If out is full, the client may be dead - check if marked for clean-up?
-	//	With the new infinite overflow queue per channel, I decide not to care about checking this.
+	//	With the new infinite out_overflow queue per channel, I decide not to care about checking this.
 	
-	if (the_channel.overflow().empty()) {
+	if (the_channel.out_overflow().empty()) {
 		if (the_channel.out.try_push_front(the_chunk_index)) {
 			// Successfully pushed the response message to the channel.
 			return;
 		}
 		else {
-			// The channels out buffer is full. The message is pushed to this channels overflow queue instead.
-			the_channel.overflow().push(the_chunk_index);
+			// The channels out buffer is full. The message is pushed to this channels out_overflow queue instead.
+			the_channel.out_overflow().push(the_chunk_index);
 			return;
 		}
 	}
 	else {
-		// The overflow queue is not empty so the message is first pushed to
-		// the overflow queue, to preserve the order of production.
-		the_channel.overflow().push(the_chunk_index);
+		// The out_overflow queue is not empty so the message is first pushed to
+		// the out_overflow queue, to preserve the order of production.
+		the_channel.out_overflow().push(the_chunk_index);
 
-		// Try to move all items from the overflow queue to the out buffer.
-		while (!the_channel.overflow().empty()) {
+		// Try to move all items from the out_overflow queue to the out buffer.
+		while (!the_channel.out_overflow().empty()) {
 			if (!the_channel.out.try_push_front(the_channel
-			.overflow().front())) {
+			.out_overflow().front())) {
 				// Failed to push the item. Not removing it from
-				// the overflow queue.
+				// the out_overflow queue.
 				return;
 			}
 
 			// The item was successfully pushed to the out buffer.
-			// Removing the item from the overflow queue.
-			the_channel.overflow().pop();
+			// Removing the item from the out_overflow queue.
+			the_channel.out_overflow().pop();
 
 			// Notify that the out queue is not empty, here?
 			the_channel.client()->notify();
@@ -1012,10 +1005,10 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	}
 	
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-	// Remove chunk indices from the overflow queue in this channel.
-	while (!channel.overflow().empty()) {
-		// Removing the item from the overflow queue.
-		channel.overflow().pop();
+	// Remove chunk indices from the out_overflow queue in this channel.
+	while (!channel.out_overflow().empty()) {
+		// Removing the item from the out_overflow queue.
+		channel.out_overflow().pop();
 	}
 
 #else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
@@ -1210,10 +1203,10 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 		/// Remove chunk indices from the overflow_pool targeted for this channel.
 		///=========================================================================
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-		// Remove chunk indices from the overflow queue in this channel.
-		while (!channel.overflow().empty()) {
-			// Removing the item from the overflow queue.
-			channel.overflow().pop();
+		// Remove chunk indices from the out_overflow queue in this channel.
+		while (!channel.out_overflow().empty()) {
+			// Removing the item from the out_overflow queue.
+			channel.out_overflow().pop();
 		}
 
 #else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)

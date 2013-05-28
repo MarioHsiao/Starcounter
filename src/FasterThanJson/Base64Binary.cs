@@ -15,44 +15,35 @@ namespace Starcounter.Internal {
             return 3 * (length / 4) + (length % 4 == 0 ? 0 : length % 4 - 1);
         }
         
-        public static unsafe uint GetUIntForTriple(Byte* value) {
-            uint triple = *(byte*)value;
-            triple = (triple << 8) | (*(byte*)(value + 1));
-            triple = (triple << 8) | (*(byte*)(value + 2));
-            return triple;
-        }
-
         public static unsafe uint Write(IntPtr buffer, Byte* value, UInt32 length) {
+            byte* start = value;
+            
             uint triplesNr = length / 3;
             uint reminder = length % 3;
             uint writtenLength = 0;
             
-            byte* toWrite = value;
             for (uint i = 0; i <triplesNr; i++) {
-                Base64Int.WriteBase64x4(GetUIntForTriple(toWrite), buffer);
-                Debug.Assert(sizeof(Base64x4) == 4);
+                uint triple = *(byte*)value++;
+                triple = (triple << 8) | (*(byte*)value++);
+                triple = (triple << 8) | (*(byte*)value++);
+                Base64Int.WriteBase64x4(triple, buffer);
                 writtenLength += 4;
                 buffer+= 4;
-                toWrite += 3;
             }
             switch (reminder) {
-                case 0:
-                    Debug.Assert(toWrite == value + length);
-                    return writtenLength;
                 case 1:
-                    Base64Int.WriteBase64x2(*(byte*)toWrite, buffer);
+                    Base64Int.WriteBase64x2(*(byte*)value, buffer);
                     writtenLength += 2;
-                    toWrite += 1;
-                    Debug.Assert(toWrite == value + length);
-                    return writtenLength;
+                    value += 1;
+                    break;
                 case 2:
-                    Base64Int.WriteBase64x3(*(ushort*)toWrite, buffer);
+                    Base64Int.WriteBase64x3(*(ushort*)value, buffer);
                     writtenLength += 3;
-                    toWrite += 2;
-                    Debug.Assert(toWrite == value + length);
-                    return writtenLength;
+                    value += 2;
+                    break;
             }
-            return writtenLength; // Not reached
+            Debug.Assert(value == start + length);
+            return writtenLength;
         }
 
         public static unsafe uint Read(uint size, IntPtr ptr, byte* value) {
@@ -73,14 +64,15 @@ namespace Starcounter.Internal {
             }
             switch (reminder) {
                 case 2:
-                    ushort single = (ushort)Base64Int.ReadBase64x2(ptr);
-                    Debug.Assert((single & 0xFF00) == 0);
+                    ulong single = Base64Int.ReadBase64x2(ptr);
+                    Debug.Assert((single & 0xFFFFFFFFFFFFFF00) == 0);
                     *(byte*)writing = (byte)single;
                     writing++;
                     break;
                 case 3:
-                    ushort twin = (ushort)Base64Int.ReadBase64x3(ptr);
-                    *(ushort*)writing = twin;
+                    ulong twin = Base64Int.ReadBase64x3(ptr);
+                    Debug.Assert((twin & 0xFFFFFFFFFFFF0000) == 0);
+                    *(ushort*)writing = (ushort)twin;
                     writing += 2;
                     break;
             }

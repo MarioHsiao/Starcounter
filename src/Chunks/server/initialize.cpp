@@ -53,7 +53,8 @@ namespace core {
 
 /// TODO: The use of static to indicate "local to translation unit" is
 /// deprecated in C++. Use unnamed namespaces instead.
-static shared_memory_object global_segment_shared_memory_object;
+shared_memory_object global_segment_shared_memory_object;
+mapped_region global_mapped_region;
 
 //typedef DWORD affinity_mask; // experimenting
 
@@ -147,10 +148,14 @@ is_system, uint32_t chunks_total_number) try {
 		return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
 	}
 	
-	mapped_region segment_region(global_segment_shared_memory_object);
+	global_mapped_region.init(global_segment_shared_memory_object);
+	
+	if (!global_mapped_region.is_valid()) {
+		return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
+	}
 	
 	simple_shared_memory_manager* psegment_manager
-	= new(segment_region.get_address()) simple_shared_memory_manager;
+	= new(global_mapped_region.get_address()) simple_shared_memory_manager;
 	psegment_manager->reset(shared_memory_segment_size);
 	
 	//--------------------------------------------------------------------------
@@ -168,7 +173,7 @@ is_system, uint32_t chunks_total_number) try {
 	
 	// Initialize shared memory STL-compatible allocator.
 	const shm_alloc_for_the_shared_chunk_pool2 shared_chunk_pool_alloc_inst
-	(segment_region.get_address());
+	(global_mapped_region.get_address());
 	
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_shared_chunk_pool_name,
@@ -190,7 +195,7 @@ is_system, uint32_t chunks_total_number) try {
 	// Construct the common_scheduler_interface in shared memory.
 	
 	const shm_alloc_for_the_common_scheduler_interface2
-	common_scheduler_interface_alloc_inst(segment_region.get_address());
+	common_scheduler_interface_alloc_inst(global_mapped_region.get_address());
 	
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_common_scheduler_interface_name,
@@ -206,14 +211,14 @@ is_system, uint32_t chunks_total_number) try {
 	// Initialize shared memory STL-compatible allocator.
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	const shm_alloc_for_the_scheduler_interfaces2
-	scheduler_interface_alloc_inst(segment_region.get_address()); /// remove?
+	scheduler_interface_alloc_inst(global_mapped_region.get_address()); /// remove?
 #else // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	const shm_alloc_for_the_scheduler_interfaces2
-	scheduler_interface_alloc_inst(segment_region.get_address());
+	scheduler_interface_alloc_inst(global_mapped_region.get_address());
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 	const shm_alloc_for_the_scheduler_interfaces2b
-	scheduler_interface_alloc_inst2(segment_region.get_address());
+	scheduler_interface_alloc_inst2(global_mapped_region.get_address());
 	
 	// Allocate the scheduler_interface array.
 	
@@ -257,7 +262,7 @@ is_system, uint32_t chunks_total_number) try {
 	
 	// Initialize shared memory STL-compatible allocator.
 	const shm_alloc_for_the_client_interfaces2
-	client_interface_alloc_inst(segment_region.get_address());
+	client_interface_alloc_inst(global_mapped_region.get_address());
 	
 	// Allocate the client_interface array.
 	p = psegment_manager->create_named_block
@@ -276,7 +281,7 @@ is_system, uint32_t chunks_total_number) try {
 	
 	// Initialize shared memory STL-compatible allocator.
 	const shm_alloc_for_the_common_client_interface2
-	common_client_interface_alloc_inst(segment_region.get_address());
+	common_client_interface_alloc_inst(global_mapped_region.get_address());
 	
 	// Allocate the common_client_interface.
 	p = psegment_manager->create_named_block
@@ -306,7 +311,7 @@ is_system, uint32_t chunks_total_number) try {
 	
 	// Initialize shared memory STL-compatible allocator.
 	const shm_alloc_for_the_channels2 channels_alloc_inst
-	(segment_region.get_address());
+	(global_mapped_region.get_address());
 	
 	// Allocate the client_interface array.
 	p = psegment_manager->create_named_block
@@ -317,13 +322,13 @@ is_system, uint32_t chunks_total_number) try {
 	for (std::size_t i = 0; i < channels; ++i) {
 		new(channel +i) channel_type(channel_capacity, channels_alloc_inst);
 #if defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
-		channel[i].overflow().set_chunk_ptr(chunk);
+		channel[i].out_overflow().set_chunk_ptr(chunk);
 #endif // defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
 	}
 	
 	// Initialize shared memory STL-compatible allocator.
 	const shm_alloc_for_the_channels2
-	scheduler_channels_alloc_inst(segment_region.get_address());
+	scheduler_channels_alloc_inst(global_mapped_region.get_address());
 	
 	//--------------------------------------------------------------------------
 	// Construct an array of scheduler_channels in shared memory.
