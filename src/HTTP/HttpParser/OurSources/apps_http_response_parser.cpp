@@ -189,8 +189,7 @@ EXTERN_C uint32_t __stdcall sc_parse_http_response(
     // TODO: Check body length.
 
     // Setting response properties.
-    http_response->response_offset_ = 0;
-    http_response->response_len_bytes_ = response_size_bytes;
+    http_response->response_len_bytes_ = http_response->headers_offset_ + http_response->headers_len_bytes_ + 4 + http_response->content_len_bytes_;
 
     // Setting status code.
     http_response->status_code_ = thread_http_response_parser.http_parser_.status_code;

@@ -180,22 +180,47 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     )
 {
     // Maximum number of bytes that will be written in this call.
-    uint32_t num_bytes_to_write = buf_len_bytes;
-    uint32_t num_bytes_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+    uint32_t num_bytes_left_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+
+    // Getting chunk memory address.
+    uint8_t* cur_chunk_buf;
+    uint32_t err_code = cm_get_shared_memory_chunk(cur_chunk_index, &cur_chunk_buf);
+    assert(err_code == 0);
+
+    // Checking if we should just send the chunks.
+    if (just_sending_flag)
+        (*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
+
+    // Checking if data fits in one chunk.
+    if (buf_len_bytes <= num_bytes_left_first_chunk)
+    {
+        // Writing to first chunk.
+        memcpy(cur_chunk_buf + first_chunk_offset, buf, buf_len_bytes);
+
+        // Setting the number of written bytes.
+        *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
+
+        // Setting number of total written bytes.
+        *actual_written_bytes = buf_len_bytes;
+
+        return 0;
+    }
     
     // Number of chunks to use.
-    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
+    uint32_t num_extra_chunks_to_use = ((buf_len_bytes - num_bytes_left_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
     assert(num_extra_chunks_to_use > 0);
+
+    uint32_t num_bytes_to_write = buf_len_bytes;
 
     // Checking if more than maximum chunks we can take at once.
     if (num_extra_chunks_to_use > starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS)
     {
         num_extra_chunks_to_use = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS;
-        num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_first_chunk;
+        num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_left_first_chunk;
     }
 
     // Acquiring linked chunks.
-    uint32_t err_code = cm_acquire_linked_shared_memory_chunks_counted(cur_chunk_index, num_extra_chunks_to_use);
+    err_code = cm_acquire_linked_shared_memory_chunks_counted(cur_chunk_index, num_extra_chunks_to_use);
     if (err_code)
     {
         // Releasing the original chunk.
@@ -205,15 +230,6 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
         return err_code;
     }
 
-    // Getting chunk memory address.
-    uint8_t* cur_chunk_buf;
-    err_code = cm_get_shared_memory_chunk(cur_chunk_index, &cur_chunk_buf);
-    assert(err_code == 0);
-
-    // Checking if we should just send the chunks.
-    if (just_sending_flag)
-        (*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
-
     // Setting the number of written bytes.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
 
@@ -222,8 +238,8 @@ __forceinline uint32_t __stdcall sc_bmx_write_to_chunks(
     uint32_t num_bytes_to_write_in_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
     
     // Writing to first chunk.
-    memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_first_chunk);
-    left_bytes_to_write -= num_bytes_first_chunk;
+    memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_left_first_chunk);
+    left_bytes_to_write -= num_bytes_left_first_chunk;
 
     // Checking how many bytes to write next time.
     if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
@@ -323,6 +339,7 @@ __forceinline uint32_t __stdcall sc_bmx_send_big_buffer(
 
         // Increasing total sent bytes.
         total_processed_bytes += last_written_bytes;
+        assert(total_processed_bytes <= buf_len_bytes);
 
         // Checking if we have processed everything.
         if (total_processed_bytes < buf_len_bytes)
