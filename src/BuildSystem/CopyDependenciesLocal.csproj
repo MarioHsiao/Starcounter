@@ -18,7 +18,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
-    <LocalBlueSolution>..\..\..\Level0\src\Blue.sln</LocalBlueSolution>
+    <LocalBlueSolution>..\..\..\Level0\msbuild\Blue.sln</LocalBlueSolution>
     <LocalKillAllScript>..\BuildSystem\Scripts\kill_all.bat</LocalKillAllScript>
     <LocalGatewayXML>..\scnetworkgateway\scripts\scnetworkgateway.xml</LocalGatewayXML>
     <ScerrresDll>
@@ -36,7 +36,7 @@
     <LocalClangGatewayUriMatcherBinary>..\scnetworkgateway\GatewayClang.dll</LocalClangGatewayUriMatcherBinary>
   </PropertyGroup>
   <PropertyGroup>
-    <LocalBlueBinariesDir>..\..\..\Level0\src\x64\$(Configuration)</LocalBlueBinariesDir>
+    <LocalBlueBinariesDir>..\..\..\Level0\msbuild\x64\$(Configuration)</LocalBlueBinariesDir>
   </PropertyGroup>
   <ItemGroup>
     <LocalGatewayTestFiles Include="..\scnetworkgateway\scripts\gw_test_*" />

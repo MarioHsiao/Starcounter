@@ -546,6 +546,8 @@ private:
 	pid_type pid_;
 	std::string segment_name_;
 	std::string monitor_interface_name_;
+	
+	// Used by client to map shared memory.
 	shared_memory_object segment_;
 	mapped_region mapped_region_;
 	

@@ -9,11 +9,8 @@ namespace Starcounter.InstallerEngine
 {
     public class VS2012Integration : VSIntegration
     {
-        DevEnv devEnv;
-
         public VS2012Integration()
         {
-            devEnv = new DevEnv(VisualStudioVersion.VS2012);
         }
 
         /// <inheritdoc/>
@@ -61,9 +58,6 @@ namespace Starcounter.InstallerEngine
 
             // Check if Visual Studio is running.
             CheckVStudioRunning();
-
-            // Starting visual studio once before installation.
-            devEnv.InstallTemplates(false);
 
             String installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
 
@@ -143,11 +137,6 @@ namespace Starcounter.InstallerEngine
                 if (!ignoreException)
                     throw;
             }
-            finally
-            {
-                // Starting visual studio once before installation.
-                devEnv.InstallTemplates(false);
-            }
 
             // Updating progress.
             InstallerMain.ProgressIncrement();
@@ -159,18 +148,10 @@ namespace Starcounter.InstallerEngine
         /// <returns>True if already installed.</returns>
         public override Boolean IsInstalled()
         {
-            // Check registry value indicating the VS 2012 integration is actually
-            // installed for the current user.
-
-            RegistryKey installedProductKey = Registry.CurrentUser.OpenSubKey(ConstantsBank.RegistryVS2012StarcounterInstalledProductKey);
-            if (installedProductKey == null)
-            {
-                //Debugger.Launch();
-                return false;
-            }
-
-            installedProductKey.Close();
-            return true;
+            var manifest = VSIXUtilities.FindManifestFile(
+                ConstantsBank.GetUserExtensionsRootFolder(VisualStudioVersion.VS2012),
+                VSIXPackageInfo.VS2012.ExtensionIdentity);
+            return manifest != null;
         }
 
         /// <summary>

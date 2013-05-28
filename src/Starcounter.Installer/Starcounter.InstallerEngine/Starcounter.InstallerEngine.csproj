@@ -94,6 +94,7 @@
     <Compile Include="VsSetup\VisualStudioEdition.cs" />
     <Compile Include="VsSetup\VisualStudioVersion.cs" />
     <Compile Include="VsSetup\VSIXPackageInfo.cs" />
+    <Compile Include="VsSetup\VSIXUtilities.cs" />
     <Compile Include="Win32Error.cs" />
     <Compile Include="Win32Kernel.cs" />
     <Compile Include="Win32Security.cs" />
@@ -106,7 +107,6 @@
     <Compile Include="Components\PersonalServer.cs" />
     <Compile Include="Components\SamplesDemos.cs" />
     <Compile Include="Components\SystemServer.cs" />
-    <Compile Include="Components\VS2010Integration.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

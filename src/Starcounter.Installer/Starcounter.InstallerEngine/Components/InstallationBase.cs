@@ -245,9 +245,9 @@ public class CInstallationBase : CComponentBase
 
         contentFilePath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.ScExceptionAssistantContentFileName);
 
-        if (Directory.Exists(ConstantsBank.VS2010ExceptionAssistantDirectory))
+        if (Directory.Exists(ConstantsBank.VS2012ExceptionAssistantDirectory))
         {
-            contentFileTargetPath = Path.Combine(ConstantsBank.VS2010ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
+            contentFileTargetPath = Path.Combine(ConstantsBank.VS2012ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
             File.Copy(contentFilePath, contentFileTargetPath, true);
         }
     }
@@ -256,9 +256,9 @@ public class CInstallationBase : CComponentBase
     {
         string contentFileTargetPath;
 
-        if (Directory.Exists(ConstantsBank.VS2010ExceptionAssistantDirectory))
+        if (Directory.Exists(ConstantsBank.VS2012ExceptionAssistantDirectory))
         {
-            contentFileTargetPath = Path.Combine(ConstantsBank.VS2010ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
+            contentFileTargetPath = Path.Combine(ConstantsBank.VS2012ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
             File.Delete(contentFileTargetPath);
         }
     }
@@ -484,14 +484,12 @@ public class CInstallationBase : CComponentBase
         // Mapping boolean flags to settings.
         Boolean installPersonalServerSetting = InstallerMain.PersonalServerComponent.ShouldBeInstalled();
         Boolean installSystemServerSetting = InstallerMain.SystemServerComponent.ShouldBeInstalled();
-        Boolean installVs2010IntegrationSetting = InstallerMain.VS2010IntegrationComponent.ShouldBeInstalled();
         Boolean installVs2012IntegrationSetting = InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled();
 
         // Depending on the list of installing components
         // we determine if installation base is needed.
         if (installPersonalServerSetting        ||
             installSystemServerSetting          ||
-            installVs2010IntegrationSetting     ||
             installVs2012IntegrationSetting)
             return true;
 

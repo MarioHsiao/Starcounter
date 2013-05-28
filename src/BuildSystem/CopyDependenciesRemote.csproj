@@ -24,7 +24,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <LocalBlueSolution>..\..\..\Level0\src\Blue.sln</LocalBlueSolution>
+    <LocalBlueSolution>..\..\..\Level0\msbuild\Blue.sln</LocalBlueSolution>
   </PropertyGroup>
 
   <Target Name="CopyRemoteFiles">

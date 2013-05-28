@@ -45,7 +45,6 @@ namespace Starcounter.InstallerEngine
             InstallationBase,
             PersonalServer,
             SystemServer,
-            VS2010Integration,
             VS2012Integration
         };
 
@@ -87,9 +86,6 @@ namespace Starcounter.InstallerEngine
             if (InstallerMain.SystemServerComponent.IsInstalled())
                 cachedInstalledComponents[(Int32)Components.SystemServer] = true;
 
-            if (InstallerMain.VS2010IntegrationComponent.IsInstalled())
-                cachedInstalledComponents[(Int32)Components.VS2010Integration] = true;
-
             if (InstallerMain.VS2012IntegrationComponent.IsInstalled())
                 cachedInstalledComponents[(Int32)Components.VS2012Integration] = true;
 
@@ -112,7 +108,6 @@ namespace Starcounter.InstallerEngine
             // Remember that installation base is not considered as an individual component.
             if (installedComponents[(Int32)ComponentsCheck.Components.PersonalServer]) return true;
             if (installedComponents[(Int32)ComponentsCheck.Components.SystemServer]) return true;
-            if (installedComponents[(Int32)ComponentsCheck.Components.VS2010Integration]) return true;
             if (installedComponents[(Int32)ComponentsCheck.Components.VS2012Integration]) return true;
 
             return false;
