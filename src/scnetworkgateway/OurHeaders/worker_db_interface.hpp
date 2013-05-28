@@ -31,9 +31,6 @@ class WorkerDbInterface
     // Private chunk pool.
     core::chunk_pool<core::chunk_index> private_chunk_pool_;
 
-    // Overflow chunk pools.
-    core::chunk_pool<channel_chunk> private_overflow_pool_;
-
     // Database index.
     int32_t db_index_;
 
@@ -206,6 +203,14 @@ public:
         for (std::size_t i = 0; i < num_schedulers_; i++)
         {
             core::channel_type& the_channel = shared_int_.channel(channels_[i]);
+
+            // Remove chunk indices from the in_overflow queue in this channel.
+            while (!the_channel.in_overflow().empty())
+            {
+                // Removing the item from the in_overflow queue.
+                the_channel.in_overflow().pop();
+            }
+
             the_channel.set_to_be_released();
         }
 
@@ -214,42 +219,71 @@ public:
         channels_ = NULL;
     }
 
-    // Checks if there is anything in overflow buffer and pushes all chunks from there.
-    uint32_t PushOverflowChunksIfAny()
+    // Tries pushing to channel and returns try if it did.
+    bool TryPushToChannel(
+        core::channel_type& the_channel,
+        core::chunk_index the_chunk_index,
+        int32_t stats_num_chunks)
     {
-        // Checking if anything is in overflow pool.
-        if (private_overflow_pool_.empty())
-            return 0;
-
-        uint32_t chunk_index_and_scheduler; // This type must be uint32_t.
-        std::size_t current_overflow_size = private_overflow_pool_.size();
-
-        // Try to empty the overflow buffer, but only those elements
-        // that are currently in the buffer. Those that fail to be
-        // pushed are put back in the buffer and those are attempted to
-        // be pushed the next time around.
-        for (std::size_t i = 0; i < current_overflow_size; ++i)
+        // Trying to push chunk if overflow is empty.
+        if (the_channel.in.try_push_front(the_chunk_index))
         {
-            private_overflow_pool_.pop_back(&chunk_index_and_scheduler);
-            core::chunk_index chunk_index = chunk_index_and_scheduler & 0xFFFFFFUL;
-            uint32_t scheduler_id = (chunk_index_and_scheduler >> 24) & 0xFFUL;
+            // Successfully pushed the response message to the channel.
 
-            // Just getting number of chunks to push.
-            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(chunk_index)) + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+            // A message on channel ch was received. Notify the database
+            // that the out queue in this channel is not full.
+            the_channel.scheduler()->notify(shared_int_.scheduler_work_event
+                (the_channel.get_scheduler_number()));
 
-            // Pushing chunk using standard procedure.
-            PushLinkedChunksToDb(chunk_index, sd->get_num_chunks(), scheduler_id, false);
+#ifdef GW_CHUNKS_DIAG
+            GW_PRINT_WORKER << "   successfully pushed: chunk " << the_chunk_index << GW_ENDL;
+#endif
+
+            // Chunk was pushed successfully either to channel or overflow pool.
+            ChangeNumUsedChunks(-stats_num_chunks);
+
+            return true;
         }
 
-        return 0;
+        return false;
+    }
+
+    // Tries to push existing overflow chunks on given scheduler.
+    void PushOverflowedChunksOnScheduler(int32_t sched_id)
+    {
+        // Obtaining the channel.
+        core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
+
+        // Checking if overflow pool is not empty.
+        while (!the_channel.in_overflow().empty())
+        {
+            // Popping back chunk.
+            core::chunk_index the_chunk_index = the_channel.in_overflow().front();
+
+            // Just getting number of chunks to push.
+            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(the_chunk_index)) + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+
+            // Pushing chunk using standard procedure.
+            if (TryPushToChannel(the_channel, the_chunk_index, sd->get_num_chunks()))
+            {
+                // Popping the chunk since it was pushed successfully.
+                the_channel.in_overflow().pop();
+            }
+        }
+    }
+
+    // Checks if there is anything in overflow buffer and pushes all chunks from there.
+    void PushOverflowChunksIfAny()
+    {
+        for (int32_t s = 0; s < num_schedulers_; s++)
+            PushOverflowedChunksOnScheduler(s);
     }
 
     // Push whatever chunks we have to channels.
     void PushLinkedChunksToDb(
         core::chunk_index chunk_index,
         int32_t num_chunks,
-        int16_t scheduler_id,
-        bool not_overflow_chunk);
+        int16_t scheduler_id);
 
     uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
