@@ -13,6 +13,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// 
     /// </summary>
     internal class AstParseJsonObjectArray : AstNode {
+        internal Template Template { get; set; }
+
         /// <summary>
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
@@ -36,7 +38,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Prefix.Add("    if (*pBuffer != ']') {");
             Suffix.Add("    }");
             Suffix.Add("} else");
-            Suffix.Add("    throw new Exception(\"Invalid array value\");");
+            Suffix.Add("    JsonHelper.ThrowWrongValueTypeException(null, \"" + Template.TemplateName + "\", \"" + Template.JsonType + "\", \"\");");
         }
     }
 }
