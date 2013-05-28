@@ -210,7 +210,7 @@ restart:
                 while (bufferSize < (offset + needed))
                     bufferSize *= 2;
             }
-            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
+//            System.Diagnostics.Debug.WriteLine("Increasing buffer, new size: " + bufferSize);
             tmpBuffer = new byte[bufferSize];
             Buffer.BlockCopy(current, 0, tmpBuffer, 0, offset);
             return tmpBuffer;
