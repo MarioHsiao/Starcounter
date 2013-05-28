@@ -18,7 +18,7 @@ namespace Starcounter.Templates {
     /// </summary>
     public abstract class TObj : TContainer {
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
-        private static bool shouldUseCodegeneratedSerializer;
+        private static bool shouldUseCodegeneratedSerializer = true;
 
         private DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
@@ -27,7 +27,7 @@ namespace Starcounter.Templates {
 
         internal void GenerateSerializer(object state){
             // it doesn't really matter if setting the variable in the template is synchronized 
-            // or not since if the serializer is null a fallback serializer will be offset instead.
+            // or not since if the serializer is null a fallback serializer will be used instead.
             this.codegenSerializer = Obj.Factory.CreateJsonSerializer(this);
         }
 
