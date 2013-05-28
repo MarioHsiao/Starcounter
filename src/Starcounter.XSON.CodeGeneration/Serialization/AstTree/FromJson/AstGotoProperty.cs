@@ -26,12 +26,12 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Prefix.Add("    pBuffer++;");
             Prefix.Add("    leftBufferSize--;");
             Prefix.Add("    if (leftBufferSize < 0)");
-            Prefix.Add("         throw new Exception(\"Deserialization failed.\");");
+            Prefix.Add("         JsonHelper.ThrowUnexpectedEndOfContentException();");
             Prefix.Add("}");
             Prefix.Add("pBuffer++;");
             Prefix.Add("leftBufferSize--;");
             Prefix.Add("if (leftBufferSize < 0)");
-            Prefix.Add("    throw new Exception(\"Deserialization failed.\");");
+            Prefix.Add("    JsonHelper.ThrowUnexpectedEndOfContentException();");
         }
     }
 }

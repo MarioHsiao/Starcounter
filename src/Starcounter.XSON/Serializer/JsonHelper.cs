@@ -2,8 +2,10 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using Starcounter.Internal;
+using Starcounter.Templates;
 
-namespace Starcounter.Internal.Application.CodeGeneration {
+namespace Starcounter.XSON.Serializers {
     /// <summary>
     /// 
     /// </summary>
@@ -64,7 +66,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as an int.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -92,7 +94,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as a decimal.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -115,7 +117,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as a double.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -138,7 +140,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as a boolean.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -189,7 +191,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Checks the size of the value and try to parse it as a DateTime.
         /// </summary>
         /// <param name="ptr">Pointer to the start of the value.</param>
-        /// <param name="size">The size to the end of the buffer.</param>
+        /// <param name="size">The size to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
@@ -211,8 +213,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// Parses the string and decodes it if needed.
         /// </summary>
-        /// <param name="ptr">A pointer to the current position in the buffer.</param>
-        /// <param name="size">The size left to the end of the buffer.</param>
+        /// <param name="ptr">A pointer to the current position in the buf.</param>
+        /// <param name="size">The size left to the end of the buf.</param>
         /// <param name="value">The parsed value.</param>
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if parsing was succesful, <c>false</c> otherwise</returns>
@@ -410,7 +412,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public static int WriteDouble(IntPtr ptr, int size, double value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture));
+                return WriteStringNoQuotations(pfrag, size, value.ToString("0.0###########################", CultureInfo.InvariantCulture));
             }
         }
 
@@ -425,12 +427,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public static int WriteDecimal(IntPtr ptr, int size, decimal value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
-
-                if (value == 0) {
-                    return WriteStringNoQuotations(pfrag, size, "0.0");
-                } else {
-                    return WriteStringNoQuotations(pfrag, size, value.ToString(CultureInfo.InvariantCulture));
-                }
+                return WriteStringNoQuotations(pfrag, size, value.ToString("0.0###########################", CultureInfo.InvariantCulture));
             }
         }
 
@@ -462,7 +459,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         public static int WriteInt(IntPtr ptr, int size, long value) {
             unsafe {
                 byte* p = (byte*)ptr;
-                return (int)Utf8Helper.WriteUIntAsUtf8(p, (UInt64)value);
+                return (int)Utf8Helper.WriteIntAsUtf8(p, value);
             }
         }
 
@@ -571,6 +568,43 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             if (h >= 97)
                 return (byte)((h + 10) - 97);
             return (byte)(h - 48);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="innerException"></param>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <param name="value"></param>
+        public static void ThrowWrongValueTypeException(Exception innerException, string name, string type, string value) {
+            throw ErrorCode.ToException(
+                            Error.SCERRJSONVALUEWRONGTYPE,
+                            innerException,
+                            string.Format("Property=\"{0} ({1})\", Value=\"{2}\"", name, type, value),
+                            (msg, e) => {
+                                return new FormatException(msg, e);
+                            });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        public static void ThrowPropertyNotFoundException(string name) {
+            throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\"", name));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void ThrowUnexpectedEndOfContentException() {
+            throw ErrorCode.ToException(
+                            Error.SCERRJSONUNEXPECTEDENDOFCONTENT,
+                            "",
+                            (msg, e) => {
+                                return new FormatException(msg, e);
+                            });
         }
     }
 }
