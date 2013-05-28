@@ -94,7 +94,7 @@ namespace Starcounter.Internal.Web {
                    int partLength = ProtocolAndContentLength.Length;
                    Intrinsics.MemCpy((void*)(buf), ppart, (uint)partLength);
                    buf += partLength;
-                   buf += Utf8Helper.WriteUIntAsUtf8(buf, contentLength);
+                   buf += Utf8Helper.WriteIntAsUtf8(buf, contentLength);
                    *(buf++) = (byte)'\n';
                    *(buf++) = (byte)'\n';
                    fixed (byte* pcontentx = content) {
