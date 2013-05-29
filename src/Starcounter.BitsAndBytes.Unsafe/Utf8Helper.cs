@@ -17,15 +17,25 @@ namespace Starcounter.Internal {
 
             // Checking if number is negative.
             UInt32 extra_symbols = 0;
+            Byte first_digit;
             if (value < 0)
             {
                 buf[0] = (Byte)'-';
                 buf++;
                 extra_symbols = 1;
+                first_digit = (Byte)(-(value % 10));
+                value = value / 10;
                 value = -value;
             }
+            else
+            {
+                first_digit = (Byte)(value % 10);
+                value = value / 10;
+            }
 
+            // Writing first digit.
             UInt32 num_digits = 0;
+            buf[num_digits++] = (Byte)(first_digit + (Byte)'0');
 
             // Writing integers in reversed order.
             while (value != 0)
@@ -59,16 +69,27 @@ namespace Starcounter.Internal {
 
             // Checking if number is negative.
             UInt32 extra_symbols = 0;
+            Byte first_digit;
             if (value < 0)
             {
                 buf[offset] = (Byte)'-';
                 offset++;
                 extra_symbols = 1;
+                first_digit = (Byte) (-(value % 10));
+                value = value / 10;
                 value = -value;
             }
+            else
+            {
+                first_digit = (Byte)(value % 10);
+                value = value / 10;
+            }
+
+            // Writing first digit.
+            UInt32 num_digits = 0;
+            buf[offset + num_digits++] = (Byte)(first_digit + (Byte)'0');
 
             // Writing integers in reversed order.
-            UInt32 num_digits = 0;
             while (value != 0)
             {
                 buf[offset + num_digits++] = (Byte)(value % 10 + (Byte)'0');
@@ -92,12 +113,11 @@ namespace Starcounter.Internal {
         public static Int64 IntFastParseFromAscii(Byte[] buf, Int32 offset, Int32 numChars)
         {
             Int64 mult = 1, result = 0;
-            Boolean neg = false;
 
             Int32 start = offset;
             if (buf[offset] == (Byte)'-')
             {
-                neg = true;
+                mult = -1;
                 start++;
             }
 
@@ -110,9 +130,6 @@ namespace Starcounter.Internal {
             }
             while (cur >= start);
 
-            if (neg)
-                result = -result;
-
             return result;
         }
 
@@ -123,13 +140,12 @@ namespace Starcounter.Internal {
         {
             Int64 mult = 1;
             result = 0;
-            Boolean neg = false;
 
             unsafe
             {
                 Byte* start = (Byte*)ptr;
                 if (*start == (Byte)'-')
-                    neg = true;
+                    mult = -1;
                 else
                     start--;
 
@@ -147,9 +163,6 @@ namespace Starcounter.Internal {
                     cur--;
                 }
                 while (cur > start);
-
-                if (neg)
-                    result = -result;
             }
 
             return true;
