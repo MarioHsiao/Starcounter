@@ -334,6 +334,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterThanJson.Tests", "Fas
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.CLI", "Server\Starcounter.CLI\Starcounter.CLI.csproj", "{C20F6D2A-3988-4ABC-BFC2-95E19ACA3C07}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.Tests", "Starcounter.XSON.Tests\Starcounter.XSON.Tests.csproj", "{265D58EF-871E-4E67-947C-C46B84FF63F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		BuildServerTest|x64 = BuildServerTest|x64
@@ -827,6 +829,10 @@ Global
 		{C20F6D2A-3988-4ABC-BFC2-95E19ACA3C07}.Debug|x64.Build.0 = Debug|Any CPU
 		{C20F6D2A-3988-4ABC-BFC2-95E19ACA3C07}.Release|x64.ActiveCfg = Release|Any CPU
 		{C20F6D2A-3988-4ABC-BFC2-95E19ACA3C07}.Release|x64.Build.0 = Release|Any CPU
+		{265D58EF-871E-4E67-947C-C46B84FF63F4}.BuildServerTest|x64.ActiveCfg = Release|Any CPU
+		{265D58EF-871E-4E67-947C-C46B84FF63F4}.BuildServerTest|x64.Build.0 = Release|Any CPU
+		{265D58EF-871E-4E67-947C-C46B84FF63F4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{265D58EF-871E-4E67-947C-C46B84FF63F4}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -918,5 +924,6 @@ Global
 		{2042C9E2-BEA5-4745-8EC1-EFF5CFDF08EA} = {86990518-2C72-4E1D-AE74-214022BD2E54}
 		{FDC1CC89-8EE8-439D-8F50-16789D742274} = {86990518-2C72-4E1D-AE74-214022BD2E54}
 		{84E160E1-E32F-45F9-BE7B-8E093D68975F} = {86990518-2C72-4E1D-AE74-214022BD2E54}
+		{265D58EF-871E-4E67-947C-C46B84FF63F4} = {86990518-2C72-4E1D-AE74-214022BD2E54}
 	EndGlobalSection
 EndGlobal
