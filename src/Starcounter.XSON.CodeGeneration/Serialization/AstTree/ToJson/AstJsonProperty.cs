@@ -18,11 +18,17 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("valueSize = JsonHelper.WriteString((IntPtr)pBuffer, leftBufferSize, \"" + Template.TemplateName + "\");");
-            Prefix.Add("if (valueSize == -1)");
-            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);");
-            Prefix.Add("leftBufferSize -= valueSize;");
-            Prefix.Add("pBuffer += valueSize;");
+            Prefix.Add("if (!nameWritten) {");
+            Prefix.Add("    valueSize = JsonHelper.WriteString((IntPtr)buf, bufferSize - offset, \"" + Template.TemplateName + "\");");
+            Prefix.Add("    if (valueSize == -1)");
+            Prefix.Add("        goto restart;");
+            Prefix.Add("    if (bufferSize < (offset + valueSize + 1))");
+            Prefix.Add("        goto restart;");
+            Prefix.Add("    nameWritten = true;");
+            Prefix.Add("    offset += valueSize + 1;");
+            Prefix.Add("    buf += valueSize;");
+            Prefix.Add("    *buf++ = (byte)':';");
+            Prefix.Add("}");
         }
     }
 }

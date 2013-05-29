@@ -64,6 +64,9 @@
     <Compile Include="Obj.Json.cs" />
     <Compile Include="Obj.QuickTuple.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serializer\JsonHelper.cs" />
+    <Compile Include="Serializer\JsonReader.cs" />
+    <Compile Include="Serializer\DefaultSerializer.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="Templates\Foundation\PropertyList.cs" />
     <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
@@ -79,6 +82,7 @@
     <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\TString.cs" />
     <Compile Include="Templates\TTrigger.cs" />
+    <Compile Include="Serializer\TypedJsonSerializer.cs" />
     <Compile Include="ValueMetaData\ArrMetadata.cs" />
     <Compile Include="ValueMetaData\BoolMetadata.cs" />
     <Compile Include="ValueMetaData\DecimalMetadata.cs" />
@@ -114,10 +118,6 @@
     <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
       <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
       <Name>Starcounter.XSON.Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
-      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
-      <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

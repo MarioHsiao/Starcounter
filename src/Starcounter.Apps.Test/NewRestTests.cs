@@ -69,6 +69,115 @@ namespace Starcounter.Internal.Test
             r = Utf8Helper.IntFastParseFromAscii(b, 0, 5);
             Assert.IsTrue(r == 12345);
 
+            Byte[] t = new Byte[16];
+            UInt32 num_bytes;
+            String ss;
+            unsafe
+            {
+                fixed (Byte* tt = t)
+                {
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, 0);
+                    Assert.IsTrue(1 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("0" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, 3);
+                    Assert.IsTrue(1 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("3" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, 1);
+                    Assert.IsTrue(1 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("1" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, -1);
+                    Assert.IsTrue(2 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("-1" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, -7);
+                    Assert.IsTrue(2 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("-7" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, 17);
+                    Assert.IsTrue(2 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("17" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, -123);
+                    Assert.IsTrue(4 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("-123" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, -346456456);
+                    Assert.IsTrue(10 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("-346456456" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, 54645);
+                    Assert.IsTrue(5 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("54645" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, 6786787798);
+                    Assert.IsTrue(10 == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue("6786787798" == ss);
+                }
+            }
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, 0);
+            Assert.IsTrue(1 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("0" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, 1);
+            Assert.IsTrue(1 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("1" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, -1);
+            Assert.IsTrue(2 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("-1" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, -7);
+            Assert.IsTrue(2 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("-7" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, 3);
+            Assert.IsTrue(1 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("3" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, 17);
+            Assert.IsTrue(2 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("17" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, -123);
+            Assert.IsTrue(4 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("-123" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, -346456456);
+            Assert.IsTrue(10 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("-346456456" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, 54645);
+            Assert.IsTrue(5 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("54645" == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, 6786787798);
+            Assert.IsTrue(10 == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue("6786787798" == ss);
+
             unsafe
             {
                 b = Encoding.ASCII.GetBytes("0");
