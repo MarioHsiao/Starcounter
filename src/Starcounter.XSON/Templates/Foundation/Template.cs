@@ -237,6 +237,14 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public object CreateInstance() {
+            return CreateInstance(null);
+        }
+
+        /// <summary>
         /// Copies to.
         /// </summary>
         /// <param name="toTemplate">To template.</param>

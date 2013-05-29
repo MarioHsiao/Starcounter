@@ -70,16 +70,22 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Serialization\AstTree\ToJson\AstCheckAlreadyProcessed.cs" />
+    <Compile Include="Serialization\AstTree\ToJson\AstFixed.cs" />
+    <Compile Include="Serialization\AstTree\ToJson\AstJsonObjectArrayValue.cs" />
+    <Compile Include="Serialization\AstTree\ToJson\AstJsonObjectValue.cs" />
+    <Compile Include="Serialization\AstTree\ToJson\AstLabel.cs" />
+    <Compile Include="Serialization\AstTree\ToJson\AstRecreateBuffer.cs" />
+    <Compile Include="Serialization\AstTree\ToJson\AstReturn.cs" />
     <Compile Include="TypedJsonFactory.cs" />
     <Compile Include="CSharpGenerator\CSharpGenerator.cs" />
-    <Compile Include="Serialization\AstTree\AstCodeStatement.cs" />
-    <Compile Include="Serialization\AstTree\AstDeserializeFunction.cs" />
+    <Compile Include="Serialization\AstTree\FromJson\AstDeserializeFunction.cs" />
     <Compile Include="Serialization\AstTree\AstFail.cs" />
     <Compile Include="Serialization\AstTree\AstJSConstructor.cs" />
     <Compile Include="Serialization\AstTree\AstJsonSerializerClass.cs" />
     <Compile Include="Serialization\AstTree\AstNamespace.cs" />
     <Compile Include="Serialization\AstTree\AstNode.cs" />
-    <Compile Include="Serialization\AstTree\AstSerializeFunction.cs" />
+    <Compile Include="Serialization\AstTree\ToJson\AstSerializeFunction.cs" />
     <Compile Include="Serialization\AstTree\AstTreeGenerator.cs" />
     <Compile Include="Serialization\AstTree\AstUnsafe.cs" />
     <Compile Include="Serialization\AstTree\FromJson\AstGotoValue.cs" />
@@ -93,8 +99,7 @@
     <Compile Include="Serialization\AstTree\ToJson\AstJsonDelimiter.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonObject.cs" />
     <Compile Include="Serialization\AstTree\ToJson\AstJsonProperty.cs" />
-    <Compile Include="Serialization\AstTree\ToJson\AstJsonPropertyValue.cs" />
-    <Compile Include="Serialization\JsonHelper.cs" />
+    <Compile Include="Serialization\AstTree\ToJson\AstJsonPrimitiveValue.cs" />
     <Compile Include="Serialization\ParseTree\ParseNode.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -151,10 +156,6 @@
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
-      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
-      <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

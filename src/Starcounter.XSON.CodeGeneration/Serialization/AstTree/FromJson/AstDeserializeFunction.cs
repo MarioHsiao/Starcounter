@@ -9,18 +9,27 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Starcounter.Internal.Application.CodeGeneration {
-    internal class AstSerializeFunction : AstNode {
+    /// <summary>
+    /// Class AstProcessFunction
+    /// </summary>
+    internal class AstDeserializeFunction : AstNode {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <value></value>
         internal override string DebugString {
             get {
-                return "int Serialize(...)";
+                return "int PopulateFromJson(...)";
             }
         }
 
+        /// <summary>
+        /// Generates C# source code for this abstract syntax tree (AST) node
+        /// </summary>
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("");
-            Prefix.Add("public override int Serialize(IntPtr buffer, int bufferSize, dynamic obj) {");
+            Prefix.Add("public override int PopulateFromJson(Obj realObj, IntPtr buffer, int bufferSize) {");
             Prefix.Add("    int valueSize;");
-            Prefix.Add("    Obj childObj;");
+            Prefix.Add("    dynamic obj = realObj;");
             Suffix.Add("}");
         }
     }

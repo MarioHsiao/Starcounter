@@ -62,14 +62,14 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         private void GenerateBufferJumpCode() {
             Prefix.Add("    leftBufferSize -= valueSize;");
             Prefix.Add("    if (leftBufferSize < 0) {");
-            Prefix.Add("        throw new Exception(\"Unable to deserialize App. Unexpected end of content\");");
+            Prefix.Add("        JsonHelper.ThrowUnexpectedEndOfContentException();");
             Prefix.Add("    }");
             Prefix.Add("    pBuffer += valueSize;");
         }
 
         private void GenerateElseExceptionCode() {
              Prefix.Add("} else {");
-             Prefix.Add("    throw new Exception(\"Unable to deserialize App. Content not compatible.\");"); // TODO: pinpoint error in deserializer.
+             Prefix.Add("    JsonHelper.ThrowWrongValueTypeException(null, \"" + Template.TemplateName + "\", \"" + Template.JsonType + "\", \"\");");
              Prefix.Add("}");
         }
 
