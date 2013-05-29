@@ -21,10 +21,10 @@ extern int64_t encode_dec(int64_t value);
 
 extern "C" { // These kernel functions have C linkage.
 
-data_value_flags_type sccoredb_get_decimal(uint64_t record_id,
+data_value_flags_type sccoredb_get_encdec(uint64_t record_id,
 uint64_t record_addr, uint32_t column_index, int64_t* pvalue);
 
-uint32_t sccoredb_put_decimal(uint64_t record_id, uint64_t record_addr,
+uint32_t sccoredb_put_encdec(uint64_t record_id, uint64_t record_addr,
 uint32_t column_index, int64_t value);
 
 }
@@ -84,7 +84,7 @@ data_value_flags_type convert_x6_decimal_to_clr_decimal(uint64_t record_id,
 uint64_t record_addr, int32_t column_index, int32_t* decimal_part_ptr) {
 	int64_t encoded_value;
 
-	data_value_flags_type flags = sccoredb_get_decimal
+	data_value_flags_type flags = sccoredb_get_encdec
 	(record_id, record_addr, column_index, &encoded_value);
 
 	int64_t raw_value = decode_dec(encoded_value);
@@ -248,7 +248,7 @@ write_decimal:
 	if (range_error == false) {
 		// The value fits in a X6 decimal.
 		int64_t raw_value = decimal.low() | (uint64_t(scale_sign) >> 31) << 63;
-		return sccoredb_put_decimal(record_id, record_addr, column_index, encode_dec(raw_value));
+		return sccoredb_put_encdec(record_id, record_addr, column_index, encode_dec(raw_value));
 	}
 	else {
 		// The value doesn't fit in a X6 decimal.
