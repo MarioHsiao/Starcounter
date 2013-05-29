@@ -593,7 +593,9 @@ void ActiveDatabase::PrintInfo(std::stringstream& stats_stream)
     {
         stats_stream << g_gateway.get_worker(w)->NumberUsedChunksPerDatabasePerWorker(db_index_) << " ";
     }
-    stats_stream << ")<br><br>";
+    stats_stream << ")<br>";
+
+    stats_stream << "Overflow chunks: " << g_gateway.NumberOverflowChunksPerDatabase(db_index_) << "<br><br>";
 }
 
 ServerPort::ServerPort()
@@ -852,7 +854,11 @@ uint32_t Gateway::AssertCorrectState()
     if (err_code)
         goto FAILED;
 
+    GW_ASSERT(core::chunk_type::link_size == MixedCodeConstants::CHUNK_LINK_SIZE);
+    GW_ASSERT(sizeof(core::chunk_type::link_type) == MixedCodeConstants::CHUNK_LINK_SIZE / 2);
+
     GW_ASSERT(core::chunk_type::static_header_size == MixedCodeConstants::BMX_HEADER_MAX_SIZE_BYTES);
+    GW_ASSERT(core::chunk_type::static_data_size == MixedCodeConstants::SOCKET_DATA_MAX_SIZE);
 
     // Checking overall gateway stuff.
     GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
@@ -1884,12 +1890,7 @@ int64_t Gateway::NumberUsedSocketsAllWorkersAndDatabases()
     int64_t num_used_sockets = 0;
 
     for (int32_t d = 0; d < num_dbs_slots_; d++)
-    {
-        for (int32_t w = 0; w < setting_num_workers_; w++)
-        {
-            num_used_sockets += gw_workers_[w].NumberUsedSocketPerDatabase(d);
-        }
-    }
+        num_used_sockets += NumberUsedSocketsPerDatabase(d);
 
     return num_used_sockets;
 }
@@ -1900,9 +1901,7 @@ int64_t Gateway::NumberOfReusableConnectSockets()
     int64_t num_reusable_connect_sockets = 0;
 
     for (int32_t w = 0; w < setting_num_workers_; w++)
-    {
         num_reusable_connect_sockets += gw_workers_[w].NumberOfReusableConnectSockets();
-    }
 
     return num_reusable_connect_sockets;
 }
@@ -1913,9 +1912,7 @@ int64_t Gateway::NumberUsedSocketsPerDatabase(int32_t db_index)
     int64_t num_used_sockets = 0;
 
     for (int32_t w = 0; w < setting_num_workers_; w++)
-    {
         num_used_sockets += gw_workers_[w].NumberUsedSocketPerDatabase(db_index);
-    }
 
     return num_used_sockets;
 }
@@ -1926,9 +1923,7 @@ int64_t Gateway::NumberUsedSocketsPerWorker(int32_t worker_id)
     int64_t num_used_sockets = 0;
 
     for (int32_t d = 0; d < num_dbs_slots_; d++)
-    {
         num_used_sockets += gw_workers_[worker_id].NumberUsedSocketPerDatabase(d);
-    }
 
     return num_used_sockets;
 }
@@ -1937,13 +1932,9 @@ int64_t Gateway::NumberUsedSocketsPerWorker(int32_t worker_id)
 int64_t Gateway::NumberUsedChunksAllWorkersAndDatabases()
 {
     int64_t total_used_chunks = 0;
+
     for (int32_t d = 0; d < num_dbs_slots_; d++)
-    {
-        for (int32_t w = 0; w < setting_num_workers_; w++)
-        {
-            total_used_chunks += (gw_workers_[w].NumberUsedChunksPerDatabasePerWorker(d));
-        }
-    }
+        total_used_chunks += NumberUsedChunksPerDatabase(d);
 
     return total_used_chunks;
 }
@@ -1954,11 +1945,31 @@ int64_t Gateway::NumberUsedChunksPerDatabase(int32_t db_index)
     int64_t num_used_chunks = 0;
 
     for (int32_t w = 0; w < setting_num_workers_; w++)
-    {
         num_used_chunks += gw_workers_[w].NumberUsedChunksPerDatabasePerWorker(db_index);
-    }
 
     return num_used_chunks;
+}
+
+// Getting the total number of overflow chunks for all databases.
+int64_t Gateway::NumberOverflowChunksAllWorkersAndDatabases()
+{
+    int64_t num_overflow_chunks = 0;
+
+    for (int32_t d = 0; d < num_dbs_slots_; d++)
+        num_overflow_chunks += NumberOverflowChunksPerDatabase(d);
+
+    return num_overflow_chunks;
+}
+
+// Getting the number of overflow chunks per database.
+int64_t Gateway::NumberOverflowChunksPerDatabase(int32_t db_index)
+{
+    int64_t num_overflow_chunks = 0;
+
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+        num_overflow_chunks += gw_workers_[w].NumberOverflowChunksPerDatabasePerWorker(db_index);
+
+    return num_overflow_chunks;
 }
 
 // Getting the number of used chunks per worker.
@@ -1967,9 +1978,7 @@ int64_t Gateway::NumberUsedChunksPerWorker(int32_t worker_id)
     int64_t num_used_chunks = 0;
 
     for (int32_t d = 0; d < num_dbs_slots_; d++)
-    {
         num_used_chunks += gw_workers_[worker_id].NumberUsedChunksPerDatabasePerWorker(d);
-    }
 
     return num_used_chunks;
 }
@@ -1982,9 +1991,7 @@ int64_t Gateway::NumberOfActiveConnectionsPerPort(int32_t port_index)
     int64_t num_active_conns = 0;
 
     for (int32_t w = 0; w < setting_num_workers_; w++)
-    {
         num_active_conns += gw_workers_[w].NumberOfActiveConnectionsPerPortPerWorker(port_index);
-    }
 
     return num_active_conns;
 }
@@ -2709,6 +2716,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // That's why we enable it only for tests.
 
         global_statistics_stream_ << "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
+            ", overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
 #ifndef GW_NEW_SESSIONS_APPROACH
             ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
 #endif

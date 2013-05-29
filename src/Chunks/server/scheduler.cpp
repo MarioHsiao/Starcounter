@@ -665,7 +665,7 @@ check_next_channel:
 
 						// The item was successfully pushed to the out buffer.
 						// Removing the item from the overflow queue.
-						the_channel.out_overflow().pop();
+						the_channel.out_overflow().pop_front();
 
 						// Notify that the out queue is not empty, here?
 						the_channel.client()->notify();
@@ -830,14 +830,14 @@ chunk_index the_chunk_index) {
 		}
 		else {
 			// The channels out buffer is full. The message is pushed to this channels out_overflow queue instead.
-			the_channel.out_overflow().push(the_chunk_index);
+			the_channel.out_overflow().push_back(the_chunk_index);
 			return;
 		}
 	}
 	else {
 		// The out_overflow queue is not empty so the message is first pushed to
 		// the out_overflow queue, to preserve the order of production.
-		the_channel.out_overflow().push(the_chunk_index);
+		the_channel.out_overflow().push_back(the_chunk_index);
 
 		// Try to move all items from the out_overflow queue to the out buffer.
 		while (!the_channel.out_overflow().empty()) {
@@ -850,7 +850,7 @@ chunk_index the_chunk_index) {
 
 			// The item was successfully pushed to the out buffer.
 			// Removing the item from the out_overflow queue.
-			the_channel.out_overflow().pop();
+			the_channel.out_overflow().pop_front();
 
 			// Notify that the out queue is not empty, here?
 			the_channel.client()->notify();
@@ -1008,7 +1008,7 @@ void server_port::do_release_channel(channel_number the_channel_index) {
 	// Remove chunk indices from the out_overflow queue in this channel.
 	while (!channel.out_overflow().empty()) {
 		// Removing the item from the out_overflow queue.
-		channel.out_overflow().pop();
+		channel.out_overflow().pop_front();
 	}
 
 #else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
@@ -1206,7 +1206,7 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 		// Remove chunk indices from the out_overflow queue in this channel.
 		while (!channel.out_overflow().empty()) {
 			// Removing the item from the out_overflow queue.
-			channel.out_overflow().pop();
+			channel.out_overflow().pop_front();
 		}
 
 #else // !defined (IPC_HANDLE_CHANNEL_OUT_BUFFER_FULL)
