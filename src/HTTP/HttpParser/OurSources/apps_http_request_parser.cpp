@@ -275,8 +275,7 @@ EXTERN_C uint32_t __stdcall sc_parse_http_request(
     // TODO: Check body length.
 
     // Setting request properties.
-    http_request->request_offset_ = 0;
-    http_request->request_len_bytes_ = request_size_bytes;
+    http_request->request_len_bytes_ = http_request->headers_offset_ + http_request->headers_len_bytes_ + 4 + http_request->content_len_bytes_;
 
     return 0;
 }
