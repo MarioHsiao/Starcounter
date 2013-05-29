@@ -226,6 +226,7 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetObjectVariableValue();");
     }
 
+#if false
     /// <summary>
     /// Initializes variable from byte buffer.
     /// </summary>
@@ -254,6 +255,7 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
 
         buffer += 9;
     }
+#endif
 
 #if DEBUG
     private bool AssertEqualsVisited = false;

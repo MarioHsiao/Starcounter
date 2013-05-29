@@ -180,7 +180,7 @@ namespace Starcounter.Internal.Web
         byte[] ret;
         unsafe {
         fixed (byte* pcontentlength = contentLength) {
-            var contentLengthLength = Utf8Helper.WriteUIntAsUtf8(pcontentlength, (uint)len);
+            var contentLengthLength = Utf8Helper.WriteIntAsUtf8(pcontentlength, len);
             var totlen = headerLen + contentLengthLength + HeaderSealing.Length + len;
             ret = new byte[totlen];
             fixed (byte* pret = ret, pok = OkResponseHeader, phseal = HeaderSealing, pcontent = data)
@@ -210,7 +210,7 @@ namespace Starcounter.Internal.Web
         byte[] buffer = new byte[20];
         uint contentLengthLength;
         fixed (byte* pbuf = buffer) {
-            contentLengthLength = Utf8Helper.WriteUIntAsUtf8(pbuf, contentLength);
+            contentLengthLength = Utf8Helper.WriteIntAsUtf8(pbuf, contentLength);
             byte[] ret = new byte[preamble.Length + contentLengthLength + HeaderSealing.Length + contentLength];
             fixed (byte* pre = preamble, pretx = ret, pcont = content) {
                 byte* pret = pretx;
@@ -247,7 +247,7 @@ namespace Starcounter.Internal.Web
         {
             fixed (byte* p = contentLengthBuffer)
             {
-                contentLengthLength = (Int32)Utf8Helper.WriteUIntAsUtf8(p, (UInt32)content.Length);
+                contentLengthLength = (Int32)Utf8Helper.WriteIntAsUtf8(p, content.Length);
             }
         }
 

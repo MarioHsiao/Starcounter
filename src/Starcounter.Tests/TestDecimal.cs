@@ -11,7 +11,7 @@ namespace Starcounter.Tests {
 		/// <summary>
 		/// Function used by DecimalTest(). NOTE: This is a modified copy of the real
 		/// function convert_x6_decimal_to_clr_decimal() with the difference that it
-		/// does not call sccoredb_get_decimal(), since that requires a database.
+		/// does not call sccoredb_get_encdec(), since that requires a database.
 		/// But the unit test must be changed later to use convert_x6_decimal_to_clr_decimal().
 		/// </summary>
 		[DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]
@@ -21,7 +21,7 @@ namespace Starcounter.Tests {
 		/// <summary>
 		/// Function used by DecimalTest(). NOTE: This is a modified copy of the real
 		/// function convert_clr_decimal_to_x6_decimal() with the difference that it
-		/// does not call sccoredb_put_decimal(), since that requires a database.
+		/// does not call sccoredb_put_encdec(), since that requires a database.
 		/// But the unit test must be changed later to use convert_clr_decimal_to_x6_decimal().
 		/// </summary>
 		[DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]

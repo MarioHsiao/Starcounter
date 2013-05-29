@@ -18,10 +18,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("leftBufferSize--;");
-            Prefix.Add("if (leftBufferSize < 0)");
-            Prefix.Add("    throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED);");
-            Prefix.Add("*pBuffer++ = (byte)'" + Delimiter + "';");
+            Prefix.Add("offset++;");
+            Prefix.Add("*buf++ = (byte)'" + Delimiter + "';");
         }
     }
 }

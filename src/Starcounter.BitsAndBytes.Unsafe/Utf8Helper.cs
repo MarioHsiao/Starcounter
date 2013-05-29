@@ -4,63 +4,86 @@ namespace Starcounter.Internal {
     public class Utf8Helper {
 
         /// <summary>
-        /// Writes UInt64 as UTF8.
+        /// Writes Int64 as UTF8.
         /// </summary>
-        public static unsafe UInt32 WriteUIntAsUtf8(Byte* buf, UInt64 value)
+        public static unsafe UInt32 WriteIntAsUtf8(Byte* buf, Int64 value)
         {
-            UInt32 numBytes = 0;
-
             // Checking for zero value.
-            if (value == 0) {
+            if (0 == value)
+            {
                 buf[0] = (Byte)'0';
                 return 1;
             }
 
+            // Checking if number is negative.
+            UInt32 extra_symbols = 0;
+            if (value < 0)
+            {
+                buf[0] = (Byte)'-';
+                buf++;
+                extra_symbols = 1;
+                value = -value;
+            }
+
+            UInt32 num_digits = 0;
+
             // Writing integers in reversed order.
-            while (value != 0) {
-                buf[numBytes++] = (Byte)(value % 10 + (Byte)'0');
+            while (value != 0)
+            {
+                buf[num_digits++] = (Byte)(value % 10 + (Byte)'0');
                 value = value / 10;
             }
 
             // Reversing the string.
-            for (UInt32 k = 0; k < (numBytes / 2); k++)
+            for (UInt32 k = 0; k < (num_digits / 2); k++)
             {
-                byte t = buf[k];
-                buf[k] = buf[numBytes - k - 1];
-                buf[numBytes - k - 1] = t;
+                Byte t = buf[k];
+                buf[k] = buf[num_digits - k - 1];
+                buf[num_digits - k - 1] = t;
             }
 
-            return numBytes;
+            return extra_symbols + num_digits;
         }
 
         /// <summary>
-        /// Writes UInt64 as UTF8.
+        /// Writes Int64 as UTF8.
         /// </summary>
-        public static unsafe UInt32 WriteUIntAsUtf8Man(Byte[] buf, UInt32 offset, UInt64 value)
+        public static unsafe UInt32 WriteIntAsUtf8Man(Byte[] buf, UInt32 offset, Int64 value)
         {
-            UInt32 numBytes = 0;
-
             // Checking for zero value.
-            if (value == 0) {
+            if (0 == value)
+            {
                 buf[offset] = (Byte)'0';
                 return 1;
             }
 
+            // Checking if number is negative.
+            UInt32 extra_symbols = 0;
+            if (value < 0)
+            {
+                buf[offset] = (Byte)'-';
+                offset++;
+                extra_symbols = 1;
+                value = -value;
+            }
+
             // Writing integers in reversed order.
-            while (value != 0) {
-                buf[offset + numBytes++] = (Byte)(value % 10 + (Byte)'0');
+            UInt32 num_digits = 0;
+            while (value != 0)
+            {
+                buf[offset + num_digits++] = (Byte)(value % 10 + (Byte)'0');
                 value = value / 10;
             }
 
             // Reversing the string.
-            for (UInt32 k = 0; k < (numBytes / 2); k++)
+            for (UInt32 k = 0; k < (num_digits / 2); k++)
             {
                 Byte t = buf[offset + k];
-                buf[offset + k] = buf[offset + numBytes - k - 1];
-                buf[offset + numBytes - k - 1] = t;
+                buf[offset + k] = buf[offset + num_digits - k - 1];
+                buf[offset + num_digits - k - 1] = t;
             }
 
-            return numBytes;
+            return extra_symbols + num_digits;
         }
 
         /// <summary>

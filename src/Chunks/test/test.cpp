@@ -213,15 +213,15 @@ const int64_t x6_decimal_min = -4398046511103999999LL;
 
 typedef uint16_t data_value_flags_type;
 
-data_value_flags_type sccoredb_get_decimal(uint64_t record_id, uint64_t record_addr,
+data_value_flags_type sccoredb_get_encdec(uint64_t record_id, uint64_t record_addr,
 uint32_t column_index, int64_t* pvalue) {
 	*pvalue = x6_decimal_min +1;
 	return 0;
 }
 
-uint32_t sccoredb_put_decimal(uint64_t record_id, uint64_t record_addr, uint32_t column_index, int64_t value) {
+uint32_t sccoredb_put_encdec(uint64_t record_id, uint64_t record_addr, uint32_t column_index, int64_t value) {
 	uint32_t error_code = 0;
-	std::cout << "sccoredb_put_decimal(): writing the value " << value << std::endl;
+	std::cout << "sccoredb_put_encdec(): writing the value " << value << std::endl;
 	return error_code;
 }
 
@@ -246,7 +246,7 @@ uint64_t record_addr, int32_t column_index, int32_t* decimal_part_ptr) {
 	int64_t value;
 
 	data_value_flags_type flags
-	= sccoredb_get_decimal(record_id, record_addr, column_index, &value);
+	= sccoredb_get_encdec(record_id, record_addr, column_index, &value);
 
 	bool out_of_range = (value > x6_decimal_max) | (value < x6_decimal_min);
 
@@ -409,7 +409,7 @@ write_decimal:
 	if (range_error == false) {
 		// The value fits in a X6 decimal.
 		int64_t value = decimal.low() | (uint64_t(scale_sign) >> 31) << 63;
-		return sccoredb_put_decimal(record_id, record_addr, column_index, value);
+		return sccoredb_put_encdec(record_id, record_addr, column_index, value);
 	}
 	else {
 		// The value doesn't fit in a X6 decimal.

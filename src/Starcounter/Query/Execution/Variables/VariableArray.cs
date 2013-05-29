@@ -159,6 +159,7 @@ internal class VariableArray
         variableArray[index] = variable;
     }
 
+#if false
     /// <summary>
     /// Initializes all query variables from given buffer.
     /// </summary>
@@ -175,6 +176,7 @@ internal class VariableArray
             queryVar.InitFromBuffer(ref queryParamsBufOrig);
         }
     }
+#endif
 
     /// <summary>
     /// Retrieves variable from certain position in the array.
@@ -328,6 +330,7 @@ internal class VariableArray
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "}" + CodeGenStringGenerator.ENDL);
     }
 
+#if false
     /// <summary>
     /// Converts variables to array.
     /// </summary>
@@ -337,6 +340,7 @@ internal class VariableArray
         for (Int32 i = 0; i < Length; i++)
             variableArray[i].AppendToByteArray(varByteArray, null);
     }
+#endif
 
     /// <summary>
     /// Used for debug purposes.
