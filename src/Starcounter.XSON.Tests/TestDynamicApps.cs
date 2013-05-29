@@ -18,6 +18,9 @@ namespace Starcounter.XSON.Tests {
     /// </summary>
     [TestFixture]
     public class AppTests {
+        /// <summary>
+        /// Sets up the test.
+        /// </summary>
         [TestFixtureSetUp]
         public static void Setup() {
             Obj.Factory = new TypedJsonFactory();
@@ -82,7 +85,10 @@ namespace Starcounter.XSON.Tests {
             ret.Add(tim);
             return ret;
         }
-         
+        
+        /// <summary>
+        /// Tests dynamic.
+        /// </summary>
         [Test]
         public static void TestDynamic() {
             // First, let's create the schema (template)
@@ -182,7 +188,9 @@ namespace Starcounter.XSON.Tests {
             //Assert.AreEqual(4, c.Age);
         }
 
-       
+        /// <summary>
+        /// Tests TestCorrectJsonInstances.
+        /// </summary>
         [Test]
         public static void TestCorrectJsonInstances() {
             TObj personSchema = CreateComplexPersonTemplate();
@@ -197,6 +205,9 @@ namespace Starcounter.XSON.Tests {
 
         }
 
+        /// <summary>
+        /// Tests TestDataBinding.
+        /// </summary>
         [Test]
         public static void TestDataBinding() {
             StarcounterBase._DB = new FakeDbImpl();
