@@ -374,6 +374,10 @@ public sealed class ByteArrayBuilder
         dataBuffer[position] = embedType;
         position++;
 
+        // First byte in value stored is part of header used to store how the
+        // binary value is stored. Must also be included in search key. Always
+        // 0.
+
         var valueLen = value.GetLength();
         var adjustedLen = valueLen + 1;
 
@@ -394,6 +398,10 @@ public sealed class ByteArrayBuilder
     {
         // First byte is non-zero for defined values.
         dataArray[0] = embedType;
+
+        // First byte in value stored is part of header used to store how the
+        // binary value is stored. Must also be included in search key. Always
+        // 0.
 
         var valueLen = value.GetLength();
         var adjustedLen = valueLen + 1;
