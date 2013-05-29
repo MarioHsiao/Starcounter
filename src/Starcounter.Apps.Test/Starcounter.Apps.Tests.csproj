@@ -78,7 +78,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FakeDbImpl.cs" />
     <Compile Include="IRequestHandler.cs" />
     <Compile Include="JsonPatchTest.cs" />
     <Compile Include="NewRestTests.cs" />
@@ -87,7 +86,6 @@
     <Compile Include="Master.json.g.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestApp.cs" />
-    <Compile Include="TestDynamicApps.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
