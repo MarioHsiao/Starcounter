@@ -7,11 +7,11 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Templates;
-using Starcounter.Advanced;
 using System;
 using Starcounter.XSON.CodeGeneration;
+using Starcounter.Advanced;
 
-namespace Starcounter.Client.Tests.Application {
+namespace Starcounter.XSON.Tests {
 
     /// <summary>
     /// Class AppTests
@@ -182,95 +182,19 @@ namespace Starcounter.Client.Tests.Application {
             //Assert.AreEqual(4, c.Age);
         }
 
+       
         [Test]
-        public static void TestSlowSerializeSimpleDynamicApp() {
-            TObj personSchema = CreateSimplePersonTemplate();
-
-
-            dynamic p1 = new Json() { Template = personSchema };
-            p1.FirstName = "Allan";
-            p1.LastName = "Ballan";
-            p1.Age = 19;
-
-            dynamic n = p1.PhoneNumbers.Add();
-            n.Number = "123-555-7890";
-
-            string expectedJson = "{\"FirstName$\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"PhoneNumbers\":[{\"Number\":\"123-555-7890\"}]}";
-            string json = p1.ToJson();
-
-            Assert.AreEqual(expectedJson, json);
-        }
-
-        [Test]
-        public static void TestSlowSerializeComplexDynamicApp() {
+        public static void TestCorrectJsonInstances() {
             TObj personSchema = CreateComplexPersonTemplate();
 
-            dynamic p1 = new Json() { Template = personSchema };
-            p1.FirstName = "Allan";
-            p1.LastName = "Ballan";
-            p1.Age = 19;
-            p1.Stats = 39.4567m;
-
+            dynamic p1 = personSchema.CreateInstance();
             dynamic n1 = p1.Fields.Add();
-            n1.Type = "Phone";
-            n1.Info.Text = "123-555-7890";
-
             dynamic n2 = p1.Fields.Add();
-            n2.Type = "Email";
-            n2.Info.Text = "allanballan@gmail.com";
 
-            p1.ExtraInfo.Text = "Hi ha ho he";
-
+            Assert.IsInstanceOf<Obj>(p1);
             Assert.IsInstanceOf<MyFieldMessage>(n1);
             Assert.IsInstanceOf<MyFieldMessage>(n2);
 
-            string expectedJson = "{\"FirstName$\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"Stats\":39.4567,\"Fields\":[{\"Type\":\"Phone\",\"Info\":{\"Text\":\"123-555-7890\"}},{\"Type\":\"Email\",\"Info\":{\"Text\":\"allanballan@gmail.com\"}}],\"ExtraInfo\":{\"Text\":\"Hi ha ho he\"}}";
-            string json = p1.ToJson();
-
-            Assert.AreEqual(expectedJson, json);
-        }
-
-        [Test]
-        public static void TestSlowDeserializeSimpleDynamicApp() {
-            TObj personSchema = CreateSimplePersonTemplate();
-            string json = "{\"FirstName$\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"PhoneNumbers\":[{\"Number\":\"123-555-7890\"}]}";
-
-            dynamic p1 = new Json() { Template = personSchema };
-            p1.PopulateFromJson(json);
-
-            Assert.AreEqual("Allan", p1.FirstName);
-            Assert.AreEqual("Ballan", p1.LastName);
-            Assert.AreEqual(19, p1.Age);
-            Assert.AreEqual(1, p1.PhoneNumbers.Count);
-            Assert.AreEqual("123-555-7890", p1.PhoneNumbers[0].Number);
-        }
-
-        [Test]
-        public static void TestSlowDeserializeComplexDynamicApp() {
-            TObj personSchema = CreateComplexPersonTemplate();
-            string json = "{\"FirstName$\":\"Allan\",\"LastName\":\"Ballan\",\"Age\":19,\"Stats\":39.4567,\"Fields\":[{\"Type\":\"Phone\",\"Info\":{\"Text\":\"123-555-7890\"}},{\"Type\":\"Email\",\"Info\":{\"Text\":\"allanballan@gmail.com\"}}],\"ExtraInfo\":{\"Text\":\"Hi ha ho he\"}}";
-
-            dynamic p1 = new Json() { Template = personSchema };
-            p1.PopulateFromJson(json);
-
-            Assert.AreEqual("Allan", p1.FirstName);
-            Assert.AreEqual("Ballan", p1.LastName);
-            Assert.AreEqual(19, p1.Age);
-            Assert.AreEqual(39.4567m, p1.Stats);
-
-            Assert.AreEqual(2, p1.Fields.Count);
-
-            var field = p1.Fields[0];
-            Assert.IsInstanceOf<MyFieldMessage>(field);
-            Assert.AreEqual("Phone", field.Type);
-            Assert.AreEqual("123-555-7890", field.Info.Text);
-
-            field = p1.Fields[1];
-            Assert.IsInstanceOf<MyFieldMessage>(field);
-            Assert.AreEqual("Email", field.Type);
-            Assert.AreEqual("allanballan@gmail.com", field.Info.Text);
-
-            Assert.AreEqual("Hi ha ho he", p1.ExtraInfo.Text);
         }
 
         [Test]
