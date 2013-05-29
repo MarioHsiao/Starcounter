@@ -445,7 +445,7 @@ public sealed class ByteArrayBuilder
             return dataArrayForNull;
         }
 
-        Int32 totalLengthBytes = value.Value.GetLength() + 4;
+        Int32 totalLengthBytes = value.Value.GetLength() + 5;
         Byte[] dataArray = new Byte[totalLengthBytes + 1];
         AppendNonNullValue(value.Value, dataArray, embedType);
         return dataArray;
