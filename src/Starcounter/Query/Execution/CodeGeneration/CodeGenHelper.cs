@@ -250,11 +250,6 @@ namespace Starcounter.Query.Execution
             if (installationDir == null)
                 return "Starcounter installation directory was not found. Corrupted Starcounter installation.";
 
-            // Path to compiler executable.
-            String compilerPath = System.IO.Path.Combine(installationDir, @"MinGW\bin\x86_64-w64-mingw32-gcc.exe");
-            if (!File.Exists(compilerPath))
-                return "Compiler was not found. Corrupted Starcounter installation.";
-
             // Creating temporary code generation directory.
             String dbName = "CurrentDB";
             String savingDir = System.IO.Path.Combine(installationDir, System.IO.Path.Combine("GeneratedCode", dbName));
@@ -318,6 +313,11 @@ namespace Starcounter.Query.Execution
 #else
             try
             {
+                // Path to compiler executable.
+                String compilerPath = System.IO.Path.Combine(installationDir, @"MinGW\bin\x86_64-w64-mingw32-gcc.exe");
+                if (!File.Exists(compilerPath))
+                    return "Compiler was not found. Corrupted Starcounter installation.";
+
                 // Creating command line arguments.
                 String compilerParams = "\"" + cppFilePath + "\"" + " -nostdlib -eJustEntryPoint_" + uniqueQueryID + " -shared -pipe -O2 -o " + "\"" + dllFilePath + "\"";
 
