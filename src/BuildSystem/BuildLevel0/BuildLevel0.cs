@@ -13,7 +13,7 @@ namespace BuildLevel0
 
         // Important directories.
         static readonly String Level0_RootDir =
-            Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar) + "\\Level0\\Src";
+            Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar) + "\\Level0\\msbuild";
 
         // Level0 latest stable files directory.
         static readonly String FtpLatestStableDir =
