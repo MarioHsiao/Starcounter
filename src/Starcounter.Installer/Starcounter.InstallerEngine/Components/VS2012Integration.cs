@@ -151,6 +151,7 @@ namespace Starcounter.InstallerEngine
             var manifest = VSIXUtilities.FindManifestFile(
                 ConstantsBank.GetUserExtensionsRootFolder(VisualStudioVersion.VS2012),
                 VSIXPackageInfo.VS2012.ExtensionIdentity);
+
             return manifest != null;
         }
 
