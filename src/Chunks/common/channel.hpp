@@ -186,7 +186,8 @@ public:
 		queue()
 		: front_(link_terminator),
 		back_(link_terminator),
-		chunk_(0) {}
+		chunk_(0),
+		count_(0) {}
 
 		/// set_chunk_ptr() stores the address of the first chunk in an array of chunks,
 		/// so that operations on the queue can be done. The address is relative to the thread
@@ -209,6 +210,14 @@ public:
 		 */
 		bool not_empty() const {
 			return front_ != link_terminator;
+		}
+
+		/// returns number of elements in overflow queue.
+		/**
+		 * @return current number of elements in queue.
+		 */
+		const uint32_t count() const {
+			return count_;
 		}
 
 		/// front() returns a reference to the first element in the queue.
@@ -248,17 +257,17 @@ public:
 		 * @param n Link to the chunk that shall be pushed into the overflow
 		 *		queue.
 		 */
-		void push(link_type n) {
+		void push_back(link_type n) {
 			if (not_empty()) {
 				chunk(back()).set_next(n);
 				back_ = n;
 				chunk(n).set_next(link_terminator);
-			}
-			else {
+			} else {
 				front_ = n;
 				back_ = n;
 				chunk(n).set_next(link_terminator);
 			}
+			count_++;
 		}
 		
 		/// pop_front() will pop chunk(n) at the front of the queue.
@@ -268,13 +277,33 @@ public:
 		 * @return true if successfully popped an item from the queue,
 		 *		false otherwise.
 		 */
-		void pop() {
+		void pop_front() {
 			if (not_empty()) {
 				link_type temp_front = chunk(front()).get_next();
 				chunk(front()).terminate_next();
 				front_ = temp_front;
+				count_--;
 			}
 			// The queue is empty, nothing to pop.
+		}
+
+		/// push_front() will push chunk(n) at the front of the queue.
+		/**
+		 * @param n A reference to the link that will point to the popped chunk
+		 *		if returning true.
+		 * @return true if successfully popped an item from the queue,
+		 *		false otherwise.
+		 */
+		void push_front(link_type n) {
+			if (not_empty()) {
+				chunk(n).set_next(front_);
+				front_ = n;
+			} else {
+				front_ = n;
+				back_ = n;
+				chunk(n).set_next(link_terminator);
+			}
+			count_++;
 		}
 
 		// Returns a reference to chunk[n] relative to the scheduler process
@@ -291,6 +320,9 @@ public:
 		// chunk_ is a pointer relative to the scheduler process address space, so
 		// only the scheduler process that manages this channel can use it.
 		chunk_type* chunk_;
+
+		// current number of elements in queue.
+		uint32_t count_;
 	};
 	
 	queue& in_overflow() {
