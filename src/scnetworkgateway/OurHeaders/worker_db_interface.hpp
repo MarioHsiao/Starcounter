@@ -122,6 +122,23 @@ public:
         return num_used_chunks_;
     }
 
+    // Getting the number of overflowed chunks.
+    int64_t GetNumberOverflowedChunks()
+    {
+        int64_t num_overflow_chunks = 0;
+
+        for (int32_t s = 0; s < num_schedulers_; s++)
+        {
+            // Obtaining the channel.
+            core::channel_type& the_channel = shared_int_.channel(channels_[s]);
+
+            // Getting number of overflowed chunks on this channel.
+            num_overflow_chunks += the_channel.in_overflow().count();
+        }
+
+        return num_overflow_chunks;
+    }
+
     // Tracks certain socket.
     void TrackSocket(SOCKET s)
     {
@@ -200,16 +217,12 @@ public:
     ~WorkerDbInterface()
     {
         // Freeing all occupied channels.
-        for (std::size_t i = 0; i < num_schedulers_; i++)
+        for (std::size_t s = 0; s < num_schedulers_; s++)
         {
-            core::channel_type& the_channel = shared_int_.channel(channels_[i]);
+            core::channel_type& the_channel = shared_int_.channel(channels_[s]);
 
-            // Remove chunk indices from the in_overflow queue in this channel.
-            while (!the_channel.in_overflow().empty())
-            {
-                // Removing the item from the in_overflow queue.
-                the_channel.in_overflow().pop();
-            }
+            // Asserting that there are none overflowed chunks.
+            GW_ASSERT (true == the_channel.in_overflow().empty());
 
             the_channel.set_to_be_released();
         }
@@ -253,27 +266,32 @@ public:
     {
         // Obtaining the channel.
         core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
+        core::channel_type::queue& overflow_queue = the_channel.in_overflow();
 
         // Checking if overflow pool is not empty.
-        while (!the_channel.in_overflow().empty())
+        while (overflow_queue.not_empty())
         {
             // Popping back chunk.
-            core::chunk_index the_chunk_index = the_channel.in_overflow().front();
+            core::chunk_index the_chunk_index = overflow_queue.front();
 
             // Just getting number of chunks to push.
             SocketDataChunk* sd = (SocketDataChunk*)((uint8_t*)(&shared_int_.chunk(the_chunk_index)) + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-            // Pushing chunk using standard procedure.
-            if (TryPushToChannel(the_channel, the_chunk_index, sd->get_num_chunks()))
+            // Popping front chunk.
+            overflow_queue.pop_front();
+
+            // NOTE: If success - chunk is gone, we can't do any operations related to it!
+            // That's why we do pop_front and then push_front.
+            if (!TryPushToChannel(the_channel, the_chunk_index, sd->get_num_chunks()))
             {
-                // Popping the chunk since it was pushed successfully.
-                the_channel.in_overflow().pop();
+                // Pushing chunk back to front since it wasn't pushed on channel.
+                overflow_queue.push_front(the_chunk_index);
             }
         }
     }
 
     // Checks if there is anything in overflow buffer and pushes all chunks from there.
-    void PushOverflowChunksIfAny()
+    void PushOverflowChunks()
     {
         for (int32_t s = 0; s < num_schedulers_; s++)
             PushOverflowedChunksOnScheduler(s);

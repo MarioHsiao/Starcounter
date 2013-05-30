@@ -41,9 +41,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
     core::chunk_index cur_chunk_index;
     uint32_t err_code;
 
-    // Push everything from overflow pool.
-    PushOverflowChunksIfAny();
-
     // Number of popped chunks on all channels.
     int32_t num_popped_chunks = 0;
 
@@ -269,6 +266,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
         }
     }
 
+    // Push everything from overflow queue.
+    PushOverflowChunks();
+
     // Checking if any chunks were popped.
     if (num_popped_chunks > 0)
         next_sleep_interval_ms = 0;
@@ -380,10 +380,10 @@ uint32_t WorkerDbInterface::WriteBigDataToChunks(
 void WorkerDbInterface::PushLinkedChunksToDb(
     core::chunk_index the_chunk_index,
     int32_t stats_num_chunks,
-    int16_t scheduler_id)
+    int16_t sched_id)
 {
     // Assuring that session goes to correct scheduler.
-    if (scheduler_id >= num_schedulers_)
+    if (sched_id >= num_schedulers_)
     {
         // Returning linked multiple chunks.
         ReturnLinkedChunksToPool(stats_num_chunks, the_chunk_index);
@@ -392,19 +392,19 @@ void WorkerDbInterface::PushLinkedChunksToDb(
     }
 
     // Obtaining the channel.
-    core::channel_type& the_channel = shared_int_.channel(channels_[scheduler_id]);
+    core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
 
     // Trying to push chunk if overflow is empty.
-    if ((!the_channel.in_overflow().empty()) ||
+    if ((the_channel.in_overflow().not_empty()) ||
         (!TryPushToChannel(the_channel, the_chunk_index, stats_num_chunks)))
     {
 #ifdef GW_CHUNKS_DIAG
         GW_PRINT_WORKER << "Couldn't push chunk into channel. Putting to overflow pool." << GW_ENDL;
 #endif
 
-        // The in_overflow queue is not empty so the message is first pushed to
-        // the in_overflow queue, to preserve the order of production.
-        the_channel.in_overflow().push(the_chunk_index);
+        // The overflow queue is not empty so the message is first pushed to
+        // the overflow queue, to preserve the order of production.
+        the_channel.in_overflow().push_back(the_chunk_index);
     }
 }
 
@@ -646,7 +646,7 @@ WorkerDbInterface::WorkerDbInterface(
     const core::shared_interface& shared_int,
     const int32_t worker_id)
 {
-	channels_ = 0;
+    channels_ = NULL;
 
     Reset();
 
@@ -672,13 +672,13 @@ WorkerDbInterface::WorkerDbInterface(
 #endif
 
     // Acquiring unique channel for each scheduler.
-    for (std::size_t i = 0; i < num_schedulers_; ++i)
+    for (std::size_t s = 0; s < num_schedulers_; ++s)
     {
-        bool channel_acquired = shared_int_.acquire_channel(&channels_[i], i);
+        bool channel_acquired = shared_int_.acquire_channel(&channels_[s], s);
         GW_ASSERT(true == channel_acquired);
 
 #ifdef GW_DATABASES_DIAG
-        GW_COUT << channels_[i] << ", ";
+        GW_COUT << channels_[s] << ", ";
 #endif
     }
 
