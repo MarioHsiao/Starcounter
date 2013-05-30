@@ -9,15 +9,21 @@ namespace BuildLevel0
     class BuildLevel0
     {
         // Which Level0 version to build.
-        static readonly String level0_BuildBranch = Environment.GetEnvironmentVariable("GIT_LEVEL0_BRANCH");
+        static readonly String Level0_BuildBranch = Environment.GetEnvironmentVariable("GIT_LEVEL0_BRANCH");
 
         // Important directories.
         static readonly String Level0_RootDir =
-            Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar) + "\\Level0\\msbuild";
+            Path.Combine(Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar), "Level0");
+
+        static readonly String Level0_MsbuildDir =
+            Path.Combine(Level0_RootDir, "msbuild");
+
+        static readonly String Level0_IncludeDir =
+            Path.Combine(Level0_RootDir, "src", "include");
 
         // Level0 latest stable files directory.
         static readonly String FtpLatestStableDir =
-            BuildSystem.MappedBuildServerFTP + "\\SCBuilds\\Level0\\" + level0_BuildBranch + "\\LatestStable";
+            BuildSystem.MappedBuildServerFTP + "\\SCBuilds\\Level0\\" + Level0_BuildBranch + "\\LatestStable";
 
         /// <summary>
         /// Core function to build Level0 in a certain configuration and platform.
@@ -40,15 +46,15 @@ namespace BuildLevel0
             {
                 /*
                 FileName = @"C:\Program Files (x86)\Xoreax\IncrediBuild\BuildConsole.exe",
-                Arguments = Path.Combine(Level0_RootDir, "Level0.sln") + " " + buildType +  " /cfg=\"" + configuration + "|" + platform + "\" " + parameters,
+                Arguments = Path.Combine(Level0_MsbuildDir, "Level0.sln") + " " + buildType +  " /cfg=\"" + configuration + "|" + platform + "\" " + parameters,
                 UseShellExecute = false,
-                WorkingDirectory = Level0_RootDir
+                WorkingDirectory = Level0_MsbuildDir
                 */
 
                 FileName = BuildSystem.MsBuildExePath,
-                Arguments = Path.Combine(Level0_RootDir, "Level0.sln") + " /property:Configuration=\"" + configuration + "\";Platform=\"" + platform + "\";GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:normal /maxcpucount /nodeReuse:False " + parameters,
+                Arguments = Path.Combine(Level0_MsbuildDir, "Level0.sln") + " /property:Configuration=\"" + configuration + "\";Platform=\"" + platform + "\";GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:normal /maxcpucount /nodeReuse:False " + parameters,
                 UseShellExecute = false,
-                WorkingDirectory = Level0_RootDir
+                WorkingDirectory = Level0_MsbuildDir
             };
 
             errorOut.WriteLine("Building with IncrediBuild: \"" + ibProcInfo.FileName + "\" " + ibProcInfo.Arguments);
@@ -122,7 +128,7 @@ namespace BuildLevel0
                     {
                         if (BuildSystem.IsPersonalBuild())
                         {
-                            Console.WriteLine("Skipping uploading Level0 '{0}' build artifacts since its a Personal build...", level0_BuildBranch);
+                            Console.WriteLine("Skipping uploading Level0 '{0}' build artifacts since its a Personal build...", Level0_BuildBranch);
                             return 0;
                         }
                         else if (releaseConfBuild)
@@ -132,7 +138,7 @@ namespace BuildLevel0
                                 Directory.CreateDirectory(FtpLatestStableDir);
 
                             // Now we can copy all built files for all configurations.
-                            Console.WriteLine("Uploading Level0 '{0}' build artifacts to mapped FTP directory: '{1}'", level0_BuildBranch, FtpLatestStableDir);
+                            Console.WriteLine("Uploading Level0 '{0}' build artifacts to mapped FTP directory: '{1}'", Level0_BuildBranch, FtpLatestStableDir);
 
                             // Lock file used for files upload synchronization.
                             String lockFile = FtpLatestStableDir + "\\locked";
@@ -150,14 +156,14 @@ namespace BuildLevel0
                                 File.WriteAllText(lockFile, "locked!");
 
                                 // Copying all built files.
-                                BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Release", FtpLatestStableDir + @"\x64\Release");
-                                BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\x64\Debug", FtpLatestStableDir + @"\x64\Debug");
+                                BuildSystem.CopyDirToSharedFtp(Level0_MsbuildDir + @"\x64\Release", FtpLatestStableDir + @"\x64\Release");
+                                BuildSystem.CopyDirToSharedFtp(Level0_MsbuildDir + @"\x64\Debug", FtpLatestStableDir + @"\x64\Debug");
 
-                                // Copying headers directory as well.
-                                BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\include", FtpLatestStableDir + @"\include");
+                                // Copying include directory as well.
+                                BuildSystem.CopyDirToSharedFtp(Level0_IncludeDir, FtpLatestStableDir + @"\include");
 
-                                // BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\Win32\Release", FtpCopyDir + @"\Win32\Release");
-                                // BuildSystem.CopyDirToSharedFtp(Level0_RootDir + @"\Win32\Debug", FtpCopyDir + @"\Win32\Debug");
+                                // BuildSystem.CopyDirToSharedFtp(Level0_MsbuildDir + @"\Win32\Release", FtpCopyDir + @"\Win32\Release");
+                                // BuildSystem.CopyDirToSharedFtp(Level0_MsbuildDir + @"\Win32\Debug", FtpCopyDir + @"\Win32\Debug");
                             }
                             finally
                             {
@@ -172,7 +178,7 @@ namespace BuildLevel0
                 }
 
                 Stopwatch timer = Stopwatch.StartNew();
-                errorOut.WriteLine("Starting Level0 '{0}' Build Process...", level0_BuildBranch);
+                errorOut.WriteLine("Starting Level0 '{0}' Build Process...", Level0_BuildBranch);
 
                 // Checking if user runs special debug build.
                 if (!releaseConfBuild)
@@ -195,7 +201,7 @@ namespace BuildLevel0
 
                 // Calculating total time spent on the building process.
                 timer.Stop();
-                errorOut.WriteLine("Level0 '{0}' build process finished successfully.", level0_BuildBranch);
+                errorOut.WriteLine("Level0 '{0}' build process finished successfully.", Level0_BuildBranch);
 
                 errorOut.WriteLine("Total time spent on the build (ms): " + timer.ElapsedMilliseconds + ".");
                 errorOut.WriteLine("---------------------------------------------------------------");
