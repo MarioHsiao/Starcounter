@@ -14,6 +14,8 @@ ping -n 10 127.0.0.1 > nul
 RMDIR ".db" /S /Q
 RMDIR ".db.output" /S /Q
 RMDIR ".srv" /S /Q
+RMDIR "NetworkIoTest" /S /Q
+RMDIR "s" /S /Q
 
 :: Diagnostics.
 ECHO Build output cleaned up successfully!
