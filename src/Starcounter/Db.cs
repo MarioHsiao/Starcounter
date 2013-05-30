@@ -59,24 +59,28 @@ namespace Starcounter
         {
             unsafe
             {
-                int inheritedColumnCount = 0;
+                int implicitColumnCount;
                 ushort inheritedTableId = UInt16.MaxValue;
-                if (inheritedTableDef != null)
+                if (inheritedTableDef == null)
+                {
+                    implicitColumnCount = 1; // Implicit key column.
+                }
+                else
                 {
                     // TODO:
                     // We're assume that the base table definition is complete
                     // (has definition address) and that the current table
                     // definition and the inherited table definition matches.
-                    
-                    inheritedColumnCount = inheritedTableDef.ColumnDefs.Length;
+
+                    implicitColumnCount = inheritedTableDef.ColumnDefs.Length;
                     inheritedTableId = inheritedTableDef.TableId;
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
-                sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - inheritedColumnCount + 1];
+                sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
                 char* name = null;
                 try
                 {
-                    for (int cc = column_definitions.Length - 1, ci = inheritedColumnCount, di = 0; di < cc; ci++, di++)
+                    for (int cc = column_definitions.Length - 1, ci = implicitColumnCount, di = 0; di < cc; ci++, di++)
                     {
                         column_definitions[di].name = (char *)Marshal.StringToCoTaskMemUni(columns[ci].Name);
                         column_definitions[di].type = BindingHelper.ConvertDbTypeCodeToScTypeCode(columns[ci].Type);

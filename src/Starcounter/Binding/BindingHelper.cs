@@ -43,6 +43,7 @@ namespace Starcounter.Binding
             case DbTypeCode.UInt16: return sccoredb.Mdb_Type_UInt16;
             case DbTypeCode.Binary: return sccoredb.Mdb_Type_Binary;
             case DbTypeCode.LargeBinary: return sccoredb.Mdb_Type_LargeBinary;
+            case DbTypeCode.Key: return sccoredb.Mdb_Type_ObjectKey;
             default: throw new ArgumentException();
             };
         }
@@ -74,6 +75,7 @@ namespace Starcounter.Binding
             case sccoredb.Mdb_Type_UInt16: return DbTypeCode.UInt16;
             case sccoredb.Mdb_Type_Binary: return DbTypeCode.Binary;
             case sccoredb.Mdb_Type_LargeBinary: return DbTypeCode.LargeBinary;
+            case sccoredb.Mdb_Type_ObjectKey: return DbTypeCode.Key;
             default: throw new ArgumentException();
             };
         }
