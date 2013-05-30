@@ -89,7 +89,6 @@ namespace Starcounter.Internal
           byte* nextOffsetPos = AtStart + 1 + index * OffsetElementSize;
           int nextOffset = (int)Base64Int.Read(OffsetElementSize, (IntPtr)nextOffsetPos);
           valueLength = nextOffset - valueOffset;
-          Debug.Assert(valueLength > 0);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
@@ -225,6 +224,21 @@ namespace Starcounter.Internal
          AtEnd += len;
          ValueOffset += len;
          return str;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe string ReadString(int index) {
+          char* buffer = stackalloc char[8192];
+#if BASE64
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+#endif
+          Encoding.UTF8.GetChars(valuePos, valueLength, buffer, 8192);
+          var str = new String(buffer, 0, valueLength);
+          return str;
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
