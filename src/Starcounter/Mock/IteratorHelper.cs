@@ -264,7 +264,7 @@ namespace Starcounter
             UInt32 rangeFlags,
             Byte[] firstKey,
             Byte[] secondKey,
-            Enumerator cachedEnum)
+            FilterEnumerator cachedEnum)
         {
             int retry = 0;
 
@@ -277,7 +277,7 @@ namespace Starcounter
                 fixed (byte* vs = dataStream, fk = firstKey, sk = secondKey)
                 {
                     // Recreating enumerator using key.
-                    err = sccoredb.SCIteratorCreate2(
+                    err = sccoredb.create_filter_iterator(
                         indexHandle,
                         rangeFlags,
                         fk,
@@ -317,7 +317,7 @@ namespace Starcounter
         /// <returns></returns>
         public unsafe Boolean RecreateEnumerator_CodeGenFilter(
             Byte* recreationKey,
-            Enumerator cachedEnum,
+            FilterEnumerator cachedEnum,
             UInt64 filterHandle,
             UInt32 flags,
             Byte[] filterDataStream,
@@ -333,7 +333,7 @@ namespace Starcounter
             //SqlDebugHelper.PrintByteBuffer("FullTableScan Using Recreation Key", recreationKey, true);
             fixed (Byte* varStream = filterDataStream, lastKeyPointer = lastKey) {
                 // Recreating iterator using obtained data.
-                err = sccoredb.sc_recreate_iterator_with_filter(
+                err = sccoredb.recreate_filter_iterator(
                     indexHandle,
                     flags,
                     recreationKey,

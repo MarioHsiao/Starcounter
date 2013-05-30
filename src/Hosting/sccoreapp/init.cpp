@@ -11,7 +11,7 @@ static void *__hlogs = 0;
 
 
 static void __critical_log_handler(void *c, uint32_t error_code);
-static void __stdcall __critical_log_handler(void *c, LPCWSTR message);
+static void __critical_log_handler(void *c, const wchar_t *message);
 static LONG WINAPI __unhandled_exception_filter(EXCEPTION_POINTERS *eps);
 static LONG WINAPI __vectored_exception_handler(EXCEPTION_POINTERS *eps);
 
@@ -20,7 +20,7 @@ void _init(void *hlogs)
 {
 	__hlogs = hlogs;
 
-	_SetCriticalLogHandler(__critical_log_handler, 0);
+	set_critical_log_handler(__critical_log_handler, 0);
     SetUnhandledExceptionFilter(__unhandled_exception_filter);
     AddVectoredExceptionHandler(0, __vectored_exception_handler);
 }
@@ -69,7 +69,7 @@ void __critical_log_handler(void *c, uint32_t error_code)
 	__critical_log_handler(c, message);
 }
 
-void __stdcall __critical_log_handler(void *c, LPCWSTR message)
+void __critical_log_handler(void *c, const wchar_t *message)
 {
 	uint64_t hlogs = (uint64_t)__hlogs;
 	if (hlogs)

@@ -218,10 +218,12 @@ internal abstract class Variable : CodeGenFilterNode
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "This data type can not be indexed.");
     }
 
+#if false
     /// <summary>
     /// Initializes variable from byte buffer.
     /// </summary>
     public abstract unsafe void InitFromBuffer(ref Byte* buffer);
+#endif
 
 #if DEBUG
     internal bool AssertEquals(Variable other) {

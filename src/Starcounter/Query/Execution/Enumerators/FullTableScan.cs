@@ -32,7 +32,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
        enumeratorCreated = false; // True after execution enumerator is created.
        //dataStreamChanged = false; // True if data stream has changed.
 
-    Enumerator enumerator = null; // Handle to execution enumerator.
+    FilterEnumerator enumerator = null; // Handle to execution enumerator.
     Row contextObject = null; // This object comes from the outer loop in joins.
 
     CodeGenFilterPrivate privateFilter = null; // Filter code generator instance.
@@ -95,7 +95,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         iterHelper = IteratorHelper.GetIndex(indexHandle); // Caching index handle.
 
         // Creating empty enumerator at caching time (without any managed post privateFilter).
-        enumerator = new Enumerator(0, 0);
+        enumerator = new FilterEnumerator(0, 0);
 
         // Checking if private filter has already been created for us.
         if (privateFilter == null)
@@ -253,6 +253,18 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                     {
                         firstKeyBuilder.Append(StringRangeValue.MIN_VALUE, false);
                         secondKeyBuilder.Append(StringRangeValue.MAX_VALUE, true);
+                    }
+                    break;
+                }
+
+                case DbTypeCode.Key: {
+                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending) {
+                        firstKeyBuilder.Append(UIntegerRangeValue.MAX_VALUE);
+                        secondKeyBuilder.Append(UIntegerRangeValue.MIN_VALUE);
+                    }
+                    else {
+                        firstKeyBuilder.Append(UIntegerRangeValue.MIN_VALUE);
+                        secondKeyBuilder.Append(UIntegerRangeValue.MAX_VALUE);
                     }
                     break;
                 }

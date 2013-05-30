@@ -85,6 +85,9 @@ namespace Starcounter.Binding
         /// <summary>
         /// The large binary
         /// </summary>
-        LargeBinary
+        LargeBinary,
+        /// <summary>
+        /// </summary>
+        Key
     }
 }

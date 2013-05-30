@@ -75,7 +75,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	// Catching all unhandled exceptions in this thread.
 	_SC_BEGIN_FUNC
-	_SetCriticalLogHandler(LogGatewayCrash, NULL);
+	set_critical_log_handler(LogGatewayCrash, NULL);
 
 	uint32_t r;
 	const wchar_t *srv_name = L"PERSONAL";
