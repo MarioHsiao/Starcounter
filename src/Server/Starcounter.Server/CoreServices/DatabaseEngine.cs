@@ -44,7 +44,6 @@ namespace Starcounter.Server {
 
         internal const string DatabaseExeFileName = StarcounterConstants.ProgramNames.ScData + ".exe";
         internal const string CodeHostExeFileName = StarcounterConstants.ProgramNames.ScCode + ".exe";
-        internal const string MinGWCompilerFileName = "x86_64-w64-mingw32-gcc.exe";
 
         /// <summary>
         /// Gets the server that has instantiated this engine.
@@ -73,14 +72,6 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
-        /// Gets the full path to the MinGW compiler executable.
-        /// </summary>
-        internal string MinGWCompilerPath {
-            get;
-            private set;
-        }
-
-        /// <summary>
         /// Initializes a <see cref="DatabaseEngine"/> for the given
         /// <see cref="ServerEngine"/>.
         /// </summary>
@@ -102,14 +93,9 @@ namespace Starcounter.Server {
             if (!File.Exists(codeHostExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Code host executable not found: {0}", databaseExe));
             }
-            var compilerPath = Path.Combine(this.Server.InstallationDirectory, @"MinGW\bin", MinGWCompilerFileName);
-            if (!File.Exists(compilerPath)) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("MinGW compiler executable not found: {0}", compilerPath));
-            }
 
             this.DatabaseExePath = databaseExe;
             this.CodeHostExePath = codeHostExe;
-            this.MinGWCompilerPath = compilerPath;
 
             this.Monitor.Setup();
         }
@@ -363,7 +349,6 @@ namespace Starcounter.Server {
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
-            args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.CompilerPath + "=\"{0}\"", this.MinGWCompilerPath);
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
             args.AppendFormat(" --" + StarcounterConstants.BootstrapOptionNames.SQLProcessPort + "={0}", database.Configuration.Runtime.SQLProcessPort);
