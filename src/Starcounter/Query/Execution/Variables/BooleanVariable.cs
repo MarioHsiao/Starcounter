@@ -213,6 +213,7 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetBooleanVariableValue();");
     }
 
+#if false
     /// <summary>
     /// Initializes variable from byte buffer.
     /// </summary>
@@ -234,6 +235,7 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
         value = (*(Boolean*)(buffer + 1));
         buffer += 9;
     }
+#endif
 
 #if DEBUG
     public bool AssertEquals(IValueExpression other) {

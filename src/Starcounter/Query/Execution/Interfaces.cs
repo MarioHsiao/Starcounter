@@ -232,8 +232,10 @@ internal interface IVariable : IValueExpression
     void AppendMaxToKey(ByteArrayBuilder key);
     void AppendMinToKey(ByteArrayBuilder key);
 
+#if false
     // Initializes variable from byte buffer.
     unsafe void InitFromBuffer(ref Byte *buffer);
+#endif
 }
 
 /// <summary>
@@ -1028,8 +1030,10 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     // For attaching enumerator to cache.
     void AttachToCache(LinkedList<IExecutionEnumerator> fromCache);
 
+#if false
     // Initializes all query variables from given buffer.
     unsafe void InitVariablesFromBuffer(Byte * queryParamsBuf);
+#endif
 
     // Populates needed query flags, such as if it includes sorting, fetch statement, projection, etc.
     unsafe void PopulateQueryFlags(UInt32 * flags);

@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <iostream>
 #include <iomanip>
+#include <ios>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/sync/interprocess_condition.hpp>
@@ -26,6 +27,7 @@
 #include <sccoreerr.h>
 #include "../common/shared_interface.hpp"
 #include "../common/config_param.hpp"
+#include "../common/macro_definitions.hpp"
 #include "test.hpp"
 
 // For testing tiny tuple
@@ -202,10 +204,253 @@ void WriteDecimal();
 
 ///=============================================================================
 
+namespace {
+
+const int64_t x6_decimal_max = +4398046511103999999LL;
+const int64_t x6_decimal_min = -4398046511103999999LL;
+
+} // namespace
+
+typedef uint16_t data_value_flags_type;
+
+data_value_flags_type sccoredb_get_encdec(uint64_t record_id, uint64_t record_addr,
+uint32_t column_index, int64_t* pvalue) {
+	*pvalue = x6_decimal_min +1;
+	return 0;
+}
+
+uint32_t sccoredb_put_encdec(uint64_t record_id, uint64_t record_addr, uint32_t column_index, int64_t value) {
+	uint32_t error_code = 0;
+	std::cout << "sccoredb_put_encdec(): writing the value " << value << std::endl;
+	return error_code;
+}
+
+#if 0
+DLL_IMPORT extern data_value_flags_type __stdcall
+convert_x6_decimal_to_clr_decimal(uint64_t record_id,
+uint64_t record_addr, int32_t index, int32_t* decimal_part_ptr);
+
+#else
+/// Reading a decimal requires type conversion from starcounter X6 decimal to
+/// CLR decimal. This function is called by ReadDecimal() in DbState.cs.
+/**
+ * @param record_id The ID of the record.
+ * @param record_addr The address of the record.
+ * @param column_index The column index.
+ * @param decimal_part_ptr A pointer to the first element of int32_t[4],
+ *		where the CLR Decimal value will be composed.
+ * @return Data value flags.
+ */
+data_value_flags_type convert_x6_decimal_to_clr_decimal(uint64_t record_id,
+uint64_t record_addr, int32_t column_index, int32_t* decimal_part_ptr) {
+	int64_t value;
+
+	data_value_flags_type flags
+	= sccoredb_get_encdec(record_id, record_addr, column_index, &value);
+
+	bool out_of_range = (value > x6_decimal_max) | (value < x6_decimal_min);
+
+	*((uint64_t*) decimal_part_ptr) = value & 0x7FFFFFFFFFFFFFFFULL;
+	*((uint64_t*) decimal_part_ptr +1) = value & 0x8000000000000000ULL
+	| 0x0006000000000000ULL;
+	
+	return flags;
+}
+#endif
+
+/// Writing a decimal requires type conversion from CLR decimal to starcounter
+/// X6 decimal. This function is called by WriteDecimal() in DbState.cs.
+/**
+ * @param record_id The ID of the record.
+ * @param record_addr The address of the record.
+ * @param column_index The column index.
+ * @param low Bit 31:0 of the 96-bit value.
+ * @param middle Bit 63:32 of the 96-bit value.
+ * @param high Bit 95:64 of the 96-bit value.
+ * @param scale_sign Contains the scale (exponent) and the sign flag.
+ * @return An error code.
+ */
+uint32_t convert_clr_decimal_to_x6_decimal(uint64_t record_id, uint64_t record_addr, int32_t column_index,
+int32_t low, int32_t middle, int32_t high, int32_t scale_sign) {
+	using namespace starcounter::numerics;
+
+	// Constructing a decimal as a 128-bit value with the integer part of the CLR Decimal, bit 95:0.
+	// The value is treated as positive, so testing that it is not > x6_decimal_max is the same as
+	// testing that the value is not < x6_decimal_min when the CLR Decimal holds a negative value.
+	uint128_t decimal(0, high, middle, low);
+	bool range_error;
+	
+	// The exponent (scale) value is 0 to 28. Change to 6 decimals if not already 6 decimals.
+	switch ((scale_sign >> 16) & 255) {
+	case 0: goto multiply_by_1e6;
+	case 1: goto multiply_by_1e5;
+	case 2: goto multiply_by_1e4;
+	case 3: goto multiply_by_1e3;
+	case 4: goto multiply_by_1e2;
+	case 5: goto multiply_by_1e1;
+	case 6: goto already_6_decimals;
+	case 7: goto divide_by_1e1;
+	case 8: goto divide_by_1e2;
+	case 9: goto divide_by_1e3;
+	case 10: goto divide_by_1e4;
+	case 11: goto divide_by_1e5;
+	case 12: goto divide_by_1e6;
+	case 13: goto divide_by_1e7;
+	case 14: goto divide_by_1e8;
+	case 15: goto divide_by_1e9;
+	case 16: goto divide_by_1e10;
+	case 17: goto divide_by_1e11;
+	case 18: goto divide_by_1e12;
+	case 19: goto divide_by_1e13;
+	case 20: goto divide_by_1e14;
+	case 21: goto divide_by_1e15;
+	case 22: goto divide_by_1e16;
+	case 23: goto divide_by_1e17;
+	case 24: goto divide_by_1e18;
+	case 25: goto divide_by_1e19;
+	case 26: goto divide_by_1e20;
+	case 27: goto divide_by_1e21;
+	case 28: goto divide_by_1e22;
+	default: UNREACHABLE;
+	}
+multiply_by_1e6:
+	decimal *= _1e6;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e5:
+	decimal *= _1e5;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e4:
+	decimal *= _1e4;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e3:
+	decimal *= _1e3;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e2:
+	decimal *= _1e2;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+multiply_by_1e1:
+	decimal *= _1e1;
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+already_6_decimals:
+	range_error = decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e1:
+	range_error = decimal.divide_and_get_remainder(_1e1) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e2:
+	range_error = decimal.divide_and_get_remainder(_1e2) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e3:
+	range_error = decimal.divide_and_get_remainder(_1e3) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e4:
+	range_error = decimal.divide_and_get_remainder(_1e4) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e5:
+	range_error = decimal.divide_and_get_remainder(_1e5) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e6:
+	range_error = decimal.divide_and_get_remainder(_1e6) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e7:
+	range_error = decimal.divide_and_get_remainder(_1e7) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e8:
+	range_error = decimal.divide_and_get_remainder(_1e8) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e9:
+	range_error = decimal.divide_and_get_remainder(_1e9) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e10:
+	range_error = decimal.divide_and_get_remainder(_1e10) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e11:
+	range_error = decimal.divide_and_get_remainder(_1e11) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e12:
+	range_error = decimal.divide_and_get_remainder(_1e12) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e13:
+	range_error = decimal.divide_and_get_remainder(_1e13) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e14:
+	range_error = decimal.divide_and_get_remainder(_1e14) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e15:
+	range_error = decimal.divide_and_get_remainder(_1e15) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e16:
+	range_error = decimal.divide_and_get_remainder(_1e16) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e17:
+	range_error = decimal.divide_and_get_remainder(_1e17) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e18:
+	range_error = decimal.divide_and_get_remainder(_1e18) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e19:
+	range_error = decimal.divide_and_get_remainder(_1e19) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e20:
+	range_error = decimal.divide_and_get_remainder(_1e20) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e21:
+	range_error = decimal.divide_and_get_remainder(_1e21) != 0 | decimal > x6_decimal_max;
+	goto write_decimal;
+divide_by_1e22:
+	range_error = decimal.divide_and_get_remainder(_1e22) != 0 | decimal > x6_decimal_max;
+write_decimal:
+	if (range_error == false) {
+		// The value fits in a X6 decimal.
+		int64_t value = decimal.low() | (uint64_t(scale_sign) >> 31) << 63;
+		return sccoredb_put_encdec(record_id, record_addr, column_index, value);
+	}
+	else {
+		// The value doesn't fit in a X6 decimal.
+		/// TODO: Error code for range error.
+		return 999L;
+	}
+}
+
 /// This represents C# user code calling ReadDecimal() and WriteDecimal(), etc.
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	using namespace starcounter::numerics;
+	data_value_flags_type data_value_flags;
+	int32_t decimal_part[4];
+	
+	uint32_t exponent;
+	uint32_t sign;
+
+	/// READ
+	data_value_flags = convert_x6_decimal_to_clr_decimal(0, 0, 0, decimal_part);
+	uint128_t d(decimal_part[3], decimal_part[2], decimal_part[1], decimal_part[0]);
+	//decimal_part[2] = 1; // Force range error - test.
+
+	exponent = decimal_part[3] >> 16 & 255;
+	sign = decimal_part[3] >> 31 & 1;
+	std::cout << "CLR decimal value (dec): " << std::dec << d << "\n";
+	std::cout << "CLR decimal exponent: " << exponent << "\n";
+	std::cout << "CLR decimal sign: " << sign << "\n";
+
+	/// WRITE
+	bool result = convert_clr_decimal_to_x6_decimal(0, 0, 0,
+	decimal_part[0], decimal_part[1], decimal_part[2], decimal_part[3]);
+
+	exponent = decimal_part[3] >> 16 & 255;
+	sign = decimal_part[3] >> 31 & 1;
+	std::cout << "CLR decimal value (dec): " << std::dec << d << "\n";
+	std::cout << "CLR decimal exponent: " << exponent << "\n";
+	std::cout << "CLR decimal sign: " << sign << "\n";
+	
+	//std::cout << "data_value_flags: " << data_value_flags << std::endl;
+
 #if 0
 	try {
 		Decimal my_clr_decimal = ReadDecimal(0, 0, 0);

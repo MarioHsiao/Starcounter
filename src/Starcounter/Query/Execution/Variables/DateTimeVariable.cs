@@ -208,6 +208,7 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetDateTimeVariableValue();");
     }
 
+#if false
     /// <summary>
     /// Initializes variable from byte buffer.
     /// </summary>
@@ -229,6 +230,7 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
         value = new DateTime((*(Int64*)(buffer + 1)));
         buffer += 9;
     }
+#endif
 
 #if DEBUG
     public bool AssertEquals(IValueExpression other) {

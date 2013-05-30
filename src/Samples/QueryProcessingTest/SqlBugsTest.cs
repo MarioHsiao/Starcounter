@@ -243,13 +243,19 @@ namespace QueryProcessingTest {
             SysTable s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
             Trace.Assert(s.TableId == 4);
+            e.Dispose();
             e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 4").GetEnumerator();
             Trace.Assert(e.MoveNext());
             s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
             Trace.Assert(s.TableId == 4);
+            e.Dispose();
+            e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 10").GetEnumerator();
+            Trace.Assert(e.MoveNext());
+            e.Dispose();
             e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 1.0E1").GetEnumerator();
             Trace.Assert(e.MoveNext());
+            e.Dispose();
         }
 
         public static void TestEnumerators() {

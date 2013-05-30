@@ -32,117 +32,94 @@ namespace Starcounter.Internal
         /// </summary>
         public const ulong INVALID_RECORD_ADDR = 0xFFFFFFFFFF;
 
-
         /// <summary>
-        /// The S c_ BASETYP e_ UIN T64
         /// </summary>
-        public const byte SC_BASETYPE_UINT64 = 0x01;
+        public const byte SC_BASETYPE_STRING = 0x01;
         /// <summary>
-        /// The S c_ BASETYP e_ SIN T64
         /// </summary>
-        public const byte SC_BASETYPE_SINT64 = 0x02;
+        public const byte SC_BASETYPE_UINT64 = 0x02;
         /// <summary>
-        /// The S c_ BASETYP e_ SINGLE
         /// </summary>
-        public const byte SC_BASETYPE_SINGLE = 0x03;
+        public const byte SC_BASETYPE_BINARY = 0x03;
         /// <summary>
-        /// The S c_ BASETYP e_ DOUBLE
         /// </summary>
-        public const byte SC_BASETYPE_DOUBLE = 0x04;
+        public const byte SC_BASETYPE_SINT64 = 0x04;
         /// <summary>
-        /// The S c_ BASETYP e_ BINARY
         /// </summary>
-        public const byte SC_BASETYPE_BINARY = 0x05;
+        public const byte SC_BASETYPE_LBINARY = 0x05;
         /// <summary>
-        /// The S c_ BASETYP e_ STRING
         /// </summary>
-        public const byte SC_BASETYPE_STRING = 0x06;
+        public const byte SC_BASETYPE_DECIMAL = 0x06;
         /// <summary>
-        /// The S c_ BASETYP e_ DECIMAL
-        /// </summary>
-        public const byte SC_BASETYPE_DECIMAL = 0x07;
-        /// <summary>
-        /// The S c_ BASETYP e_ OBJREF
         /// </summary>
         public const byte SC_BASETYPE_OBJREF = 0x08;
         /// <summary>
-        /// The S c_ BASETYP e_ LBINARY
         /// </summary>
-        public const byte SC_BASETYPE_LBINARY = 0x09;
+        public const byte SC_BASETYPE_OBJKEY = 0x0A;
+        /// <summary>
+        /// </summary>
+        public const byte SC_BASETYPE_SINGLE = 0x0C;
+        /// <summary>
+        /// </summary>
+        public const byte SC_BASETYPE_DOUBLE = 0x0E;
 
         /// <summary>
-        /// The MDB_ type_ boolean
         /// </summary>
         public const byte Mdb_Type_Boolean = (0x10 | SC_BASETYPE_UINT64);
         /// <summary>
-        /// The MDB_ type_ byte
         /// </summary>
         public const byte Mdb_Type_Byte = (0x20 | SC_BASETYPE_UINT64);
         /// <summary>
-        /// The MDB_ type_ U int16
         /// </summary>
         public const byte Mdb_Type_UInt16 = (0x30 | SC_BASETYPE_UINT64);
         /// <summary>
-        /// The MDB_ type_ U int32
         /// </summary>
         public const byte Mdb_Type_UInt32 = (0x40 | SC_BASETYPE_UINT64);
         /// <summary>
-        /// The MDB_ type_ U int64
         /// </summary>
         public const byte Mdb_Type_UInt64 = (0x50 | SC_BASETYPE_UINT64);
         /// <summary>
-        /// The MDB_ type_ date time
         /// </summary>
         public const byte Mdb_Type_DateTime = (0x60 | SC_BASETYPE_UINT64);
         /// <summary>
-        /// The MDB_ type_ time span
         /// </summary>
         public const byte Mdb_Type_TimeSpan = (0x70 | SC_BASETYPE_UINT64);
         /// <summary>
-        /// The MDB_ type_ S byte
         /// </summary>
         public const byte Mdb_Type_SByte = (0x10 | SC_BASETYPE_SINT64);
         /// <summary>
-        /// The MDB_ type_ int16
         /// </summary>
         public const byte Mdb_Type_Int16 = (0x20 | SC_BASETYPE_SINT64);
         /// <summary>
-        /// The MDB_ type_ int32
         /// </summary>
         public const byte Mdb_Type_Int32 = (0x30 | SC_BASETYPE_SINT64);
         /// <summary>
-        /// The MDB_ type_ int64
         /// </summary>
         public const byte Mdb_Type_Int64 = (0x40 | SC_BASETYPE_SINT64);
         /// <summary>
-        /// The MDB_ type_ single
         /// </summary>
         public const byte Mdb_Type_Single = (0x10 | SC_BASETYPE_SINGLE);
         /// <summary>
-        /// The MDB_ type_ double
         /// </summary>
         public const byte Mdb_Type_Double = (0x10 | SC_BASETYPE_DOUBLE);
         /// <summary>
-        /// The MDB_ type_ binary
         /// </summary>
         public const byte Mdb_Type_Binary = (0x10 | SC_BASETYPE_BINARY);
         /// <summary>
-        /// The MDB_ type_ string
         /// </summary>
         public const byte Mdb_Type_String = (0x10 | SC_BASETYPE_STRING);
         /// <summary>
-        /// The MDB_ type_ decimal
         /// </summary>
         public const byte Mdb_Type_Decimal = (0x10 | SC_BASETYPE_DECIMAL);
         /// <summary>
-        /// The MDB_ type_ object ID
         /// </summary>
         public const byte Mdb_Type_ObjectID = (0x10 | SC_BASETYPE_OBJREF);
         /// <summary>
-        /// The MDB_ type_ large binary
         /// </summary>
         public const byte Mdb_Type_LargeBinary = (0x10 | SC_BASETYPE_LBINARY);
-
+        /// <summary>
+        /// </summary>
+        public const byte Mdb_Type_ObjectKey = (0x10 | SC_BASETYPE_OBJKEY);
 
         /// <summary>
         /// MDB_s the get last error.
@@ -1058,7 +1035,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_set_null(
+        public extern static uint sccoredb_put_default(
             ulong record_id,
             ulong record_addr,
             int index
@@ -1142,19 +1119,9 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// SCs the iterator create2.
         /// </summary>
-        /// <param name="hIndex">Index of the h.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="lesserKey">The lesser key.</param>
-        /// <param name="greaterKey">The greater key.</param>
-        /// <param name="hfilter">The hfilter.</param>
-        /// <param name="varstr">The varstr.</param>
-        /// <param name="ph">The ph.</param>
-        /// <param name="pv">The pv.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 SCIteratorCreate2(
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 create_filter_iterator(
             UInt64 hIndex,
             UInt32 flags,
             Byte* lesserKey,
@@ -1177,6 +1144,18 @@ namespace Starcounter.Internal
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static UInt32 SCIteratorNext(
+            UInt64 h,
+            UInt64 v,
+            UInt64* pObjectOID,
+            UInt64* pObjectETI,
+            UInt16* pClassIndex,
+            UInt64* pData
+        );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 filter_iterator_next(
             UInt64 h,
             UInt64 v,
             UInt64* pObjectOID,
@@ -1266,19 +1245,9 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// Sc_recreate_iterator_with_filters the specified hindex.
         /// </summary>
-        /// <param name="hindex">The hindex.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="recreate_key">The recreate_key.</param>
-        /// <param name="last_key">The last_key.</param>
-        /// <param name="hfilter">The hfilter.</param>
-        /// <param name="varstr">The varstr.</param>
-        /// <param name="ph">The ph.</param>
-        /// <param name="pv">The pv.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sc_recreate_iterator_with_filter(
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 recreate_filter_iterator(
             UInt64 hindex,
             UInt32 flags,
             Byte* recreate_key,
@@ -1304,6 +1273,15 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// </summary>
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 filter_iterator_get_local_time(
+            UInt64 iter_handle,
+            UInt64 iter_verify,
+            UInt32* plocal_time
+            );
+
+        /// <summary>
         /// SCs the iterator free.
         /// </summary>
         /// <param name="h">The h.</param>
@@ -1311,6 +1289,14 @@ namespace Starcounter.Internal
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static UInt32 SCIteratorFree(
+            UInt64 h,
+            UInt64 v
+        );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static UInt32 filter_iterator_free(
             UInt64 h,
             UInt64 v
         );
@@ -1468,8 +1454,8 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe UInt32 SCCreateFilter(
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe UInt32 create_filter(
             ushort tableId,
             UInt32 stackSize,
             UInt32 varCount,
@@ -1479,12 +1465,9 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// SCs the release filter.
         /// </summary>
-        /// <param name="h">The h.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern UInt32 SCReleaseFilter(UInt64 h);
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern UInt32 release_filter(UInt64 h);
     }
 
     /// <summary>
