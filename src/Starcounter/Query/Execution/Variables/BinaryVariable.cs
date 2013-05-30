@@ -217,6 +217,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetBinaryVariableValue();");
     }
 
+#if false
     /// <summary>
     /// Initializes variable from byte buffer.
     /// </summary>
@@ -239,6 +240,7 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
         value = Binary.FromNative(buffer);
         buffer += value.Value.InternalLength;
     }
+#endif
 
 #if DEBUG
     public bool AssertEquals(IValueExpression other) {

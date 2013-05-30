@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -63,6 +64,35 @@ namespace Starcounter.Internal
 
       }
 
+       /// <summary>
+       /// Gets pointer to and lenght of the value at the given position
+       /// </summary>
+       /// <param name="index">Position of the value in the tuple</param>
+       /// <param name="valuePos">The pointer to the value</param>
+       /// <param name="valueLength">The length of the value</param>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      private unsafe void GetAtPosition(int index, out byte* valuePos, out int valueLength) {
+#if BASE64
+          int firstValue = 1+(int)(ValueCount * OffsetElementSize);
+          // Get value position
+          int valueOffset;
+          if (index == 0) {
+              valueOffset = 0;
+              valuePos = AtStart + firstValue;
+          } else {
+              int offsetPos = 1+(int)((index-1) * OffsetElementSize);
+              byte* atOffset = AtStart + offsetPos;
+              valueOffset = (int)Base64Int.Read(OffsetElementSize, (IntPtr)atOffset);
+              valuePos = AtStart + firstValue + valueOffset;
+          }
+          // Get value length
+          byte* nextOffsetPos = AtStart + 1 + index * OffsetElementSize;
+          int nextOffset = (int)Base64Int.Read(OffsetElementSize, (IntPtr)nextOffsetPos);
+          valueLength = nextOffset - valueOffset;
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+#endif
+      }
 
       /// <summary>
       /// Reads an unsigned 4 bit integer
@@ -135,6 +165,20 @@ namespace Starcounter.Internal
          return ret;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available from .NET framework version 4.5
+      public unsafe uint ReadUInt(int index) {
+#if BASE64
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+          // Read the value at the position with the length
+          var ret = (uint)Base64Int.Read(valueLength, (IntPtr)valuePos);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+#endif
+          return ret;
+      }
+
       /// <summary>
       /// Skip one value
       /// </summary>
@@ -180,6 +224,21 @@ namespace Starcounter.Internal
          AtEnd += len;
          ValueOffset += len;
          return str;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe string ReadString(int index) {
+          char* buffer = stackalloc char[8192];
+#if BASE64
+          byte* valuePos;
+          int valueLength;
+          GetAtPosition(index, out valuePos, out valueLength);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+#endif
+          Encoding.UTF8.GetChars(valuePos, valueLength, buffer, 8192);
+          var str = new String(buffer, 0, valueLength);
+          return str;
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5

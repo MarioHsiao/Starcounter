@@ -30,10 +30,16 @@ namespace QueryProcessingTest {
 
         static void PopulateData() {
             HelpMethods.LogEvent("Data population");
+            CreateIndexes();
             DataPopulation.PopulateUsers(5, 3);
             DataPopulation.PopulateUsers(10000, 3);
             DataPopulation.PopulateAccounts(10000, 3);
             HelpMethods.LogEvent("Finished data population");
+        }
+
+        internal static void CreateIndexes() {
+            if (Starcounter.Db.SQL("select i from sysindex i where name = ?", "accountidindx").First == null)
+                Starcounter.Db.SlowSQL("create index accountidindx on Account(accountid)");
         }
     }
 }

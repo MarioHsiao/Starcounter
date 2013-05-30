@@ -3362,7 +3362,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     GW_SC_BEGIN_FUNC
 
     // Setting the critical log handler.
-    _SetCriticalLogHandler(LogGatewayCrash, NULL);
+    set_critical_log_handler(LogGatewayCrash, NULL);
 
     using namespace starcounter::network;
     uint32_t err_code;

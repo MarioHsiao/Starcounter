@@ -3024,6 +3024,9 @@
     <code hex="00F5" severity="Error" name="ScErrAtLeastOneIndexOnTable">
       <message>Unable to drop index because at least one (not inherited) index is required on a table.</message>
     </code>
+    <code hex="00F6" severity="Error" name="ScErrCLRDecToX6DecRangeError">
+      <message>The CLR Decimal cannot be converted to a Starcounter X6 decimal without data loss. Range error.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

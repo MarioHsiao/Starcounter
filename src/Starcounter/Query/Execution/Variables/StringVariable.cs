@@ -209,6 +209,7 @@ internal class StringVariable : Variable, IVariable, IStringExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetStringVariableValue();");
     }
 
+#if false
     /// <summary>
     /// Initializes variable from byte buffer.
     /// </summary>
@@ -267,6 +268,7 @@ internal class StringVariable : Variable, IVariable, IStringExpression
         buffer += lenBytes + 4;
         */
     }
+#endif
 
 #if DEBUG
     public bool AssertEquals(IValueExpression other) {

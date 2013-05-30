@@ -224,25 +224,6 @@ namespace Starcounter.Hosting {
                 storedTableDef = tableUpgrade.Eval();
             }
 
-#if true
-            bool hasIndex = false;
-            Db.Transaction(() => {
-                hasIndex = storedTableDef.HasIndex();
-            });
-            if (!hasIndex) {
-                short columnIndex = storedTableDef.GetFirstIndexableColumnIndex();
-                if (columnIndex != -1) {
-                    unsafe {
-                        short* column_indexes = stackalloc short[2];
-                        column_indexes[0] = columnIndex;
-                        column_indexes[1] = -1;
-                        var r = sccoredb.sccoredb_create_index(storedTableDef.TableId, "auto", 0, column_indexes, 0);
-                        if (r != 0) throw ErrorCode.ToException(r);
-                    }
-                }
-            }
-#endif
-
             return storedTableDef;
         }
 

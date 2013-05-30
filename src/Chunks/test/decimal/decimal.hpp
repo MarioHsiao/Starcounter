@@ -13,6 +13,7 @@
 
 namespace starcounter {
 namespace numerics {
+namespace clr {
 
 // starcounter::numerics::decimal in raw format:
 //
@@ -71,7 +72,6 @@ namespace numerics {
 // Bit 2:1 (SCL) = SCALE
 // Bit 0 (S) = SIGN
 
-namespace clr {
 
 // The binary representation of a CLR Decimal number consists of a 1-bit sign, a
 // 96-bit integer number, and a scaling factor used to divide the integer number
@@ -126,7 +126,7 @@ namespace clr {
 // |                                             INTEGER BITS 31:0 |
 // +---------------------------------------------------------------+
 
-class decimal {
+class decimal : public uint128_t {
 public:
 	typedef int32_t low_type;
 	typedef int32_t middle_type;
@@ -135,9 +135,9 @@ public:
 
 	/// decimal constructor (int32_t, int32_t, int32_t, bool, uint8_t)
 	/**
-	 * @param low The low 32 bits of a 96-bit integer.
-	 * @param middle The middle 32 bits of a 96-bit integer.
-	 * @param high The high 32 bits of a 96-bit integer. 
+	 * @param low Bit 31:0 of a 96-bit integer.
+	 * @param middle Bit 63:32 of a 96-bit integer.
+	 * @param high Bit 95:64 of a 96-bit integer.
 	 * @param is_negative Is true to indicate a negative number,
 	 *		false to indicate a positive number.
 	 * @param scale A power of 10 ranging from 0 to 28.
@@ -155,26 +155,6 @@ private:
 };
 
 } // namespace clr
-
-#if 0
-If the value of a CLR decimal doesn't fall within allowed range when converting to decimal then the conversion is to fail (exception thrown).
-
-Basically you can not store any value CLR decimal in the database in a decimal field.
-
-int64_t int2dec(int64_t v) { return v * 1E6; }
-
-It is only stored in multiple parts in the packed and encoded format. Not in the raw format. Then it value is simply v/1000000.
-
-The too one is the encoded format. The bottom one you invented.
-
-The encoded format is an intermediate format to make comparison between packed decimals faster.
-
-(Encoded = unpacked in spec)
-
-#endif
-
-// http://msdn.microsoft.com/en-us/library/system.decimal.aspx
-
 } // namespace numerics
 } // namespace starcounter
 
