@@ -25,9 +25,14 @@ namespace Starcounter.InstallerEngine.VsSetup {
         /// </para>
         /// </remarks>
         public static string FindManifestFile(string extensionsRootFolder, string extensionId) {
+            if (!Directory.Exists(extensionsRootFolder)) {
+                return null;
+            }
+
             if (string.IsNullOrEmpty(extensionsRootFolder)) {
                 throw new ArgumentNullException("extensionsRootFolder");
             }
+
             if (string.IsNullOrEmpty(extensionId)) {
                 throw new ArgumentNullException("extensionId");
             }

@@ -236,7 +236,7 @@ inline void PrintCurrentTimeMs(std::string msg)
 inline std::string StringToUpperCopy(const std::string &src)
 {
     std::string result;
-    std::transform(src.begin(), src.end(), std::back_inserter(result), std::toupper);
+    std::transform(src.begin(), src.end(), std::back_inserter(result), ::toupper);
     return result;
 }
 
