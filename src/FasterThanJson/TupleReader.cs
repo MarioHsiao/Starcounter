@@ -246,7 +246,7 @@ namespace Starcounter.Internal
 #if BASE64
           uint len = (uint)Base64Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
           len -= ValueOffset;
-          uint valueLength = Base64Binary.MeasureNeededSizeToDecode(len);
+          //uint valueLength = Base64Binary.MeasureNeededSizeToDecode(len);
           byte[] value = Base64Binary.Read(len, (IntPtr)AtEnd);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
@@ -254,6 +254,20 @@ namespace Starcounter.Internal
           AtOffsetEnd += OffsetElementSize;
           AtEnd += len;
           ValueOffset += len;
+          return value;
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe byte[] ReadByteArray(int index) {
+#if BASE64
+          byte* valuePos;
+          int len;
+          GetAtPosition(index, out valuePos, out len);
+          //uint valueLength = Base64Binary.MeasureNeededSizeToDecode((uint)len);
+          byte[] value = Base64Binary.Read((uint)len, (IntPtr)valuePos);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
+#endif
           return value;
       }
 
