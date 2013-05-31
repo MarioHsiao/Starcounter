@@ -56,13 +56,12 @@ namespace StarcounterInternal.Bootstrap {
 
             // Specifies the property set we accept.
             // A full command line could look like
-            // > prog.exe mydatabase --DatabaseDir "C:\MyDatabase" --OutputDir "C:\Out" --TempDir "C:\Temp" --CompilerPath "C:\bin\x86_64-w64-mingw32-gcc.exe"
+            // > prog.exe mydatabase --DatabaseDir "C:\MyDatabase" --OutputDir "C:\Out" --TempDir "C:\Temp"
             // --AutoStartExePath "c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe" --ServerName PERSONAL --ChunksNumber 1024
 
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DatabaseDir, "Specifies the database directory to use.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.OutputDir, "Specifies the output directory to use.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.TempDir, "Specifies the temporary directory to use.");
-            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.CompilerPath, "Specifies the path to the compiler to use when generating code.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");

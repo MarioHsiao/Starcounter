@@ -39,7 +39,8 @@
       <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
 	  <RemoteCecilBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\Cecil\Release\*" />
       <RemoteParserToolsBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\ParserTools\**\*" />
-      <RemoteCRTBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\x64\$(Configuration)\*" />
+      <RemoteCRT64BitBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\x64\$(Configuration)\*" />
+      <RemoteCRT32BitBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\Win32\$(Configuration)\*" />
       <RemoteMixedRootExecutables Include="$(BinariesFTP)\SCDev\ThirdParty\*.exe" />
     </ItemGroup>
 
@@ -49,7 +50,8 @@
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemotePostSharpBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCecilBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteParserToolsBinaries)" DestinationFiles="@(RemoteParserToolsBinaries->'..\packages\ParserTools\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRTBinaries)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRT64BitBinaries)" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRT32BitBinaries)" DestinationFolder="$(OutputPath)\32BitComponents" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteMixedRootExecutables)" DestinationFolder="$(OutputPath)" />
 
   </Target>

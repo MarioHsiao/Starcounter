@@ -523,9 +523,6 @@ namespace StarcounterInternal.Bootstrap
             e = sccoredb.sccoredb_set_system_variable("TEMPDIR", c.TempDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.sccoredb_set_system_variable("COMPPATH", c.CompilerPath);
-            if (e != 0) throw ErrorCode.ToException(e);
-
             e = sccoredb.sccoredb_set_system_variable("OUTDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
