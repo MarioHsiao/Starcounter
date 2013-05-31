@@ -1,14 +1,19 @@
 
+sql_example(pos,'MyDB',"select FirstName from Employee where LastName like ?").
+sql_example(pos,'MyDB',"select Department from Employee where FirstName = 'Pel''le'").
+
+
 sql_example(pos,'MyDB',"select Department, count(FirstName) from Employee group by department").
 sql_example(pos,'MyDB',"select Department, count(FirstName) from Employee group by Department").
 
 
-sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Peter\"").
 sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Pet\"er'").
-sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = \"Pet'er\"").
 sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Peter'").
-sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = \"Peter\"").
 sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = 'Pet''er'").
+
+sql_example(neg,'MyDB',"select e from Employee e where e.FirstName = 'Peter\"").
+sql_example(neg,'MyDB',"select e from Employee e where e.FirstName = \"Pet'er\"").
+sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = \"Peter\"").
 sql_example(pos,'MyDB',"select e from Employee e where e.FirstName = \"Pet\"\"er\"").
 
 sql_example(pos,'MyDB',"select E from Employee e where E.Manager = ?").

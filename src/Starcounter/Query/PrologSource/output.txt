@@ -3,6 +3,566 @@ Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
+select "FirstName" from Employee where LastName = 'Andersson'
+
+Tokens: 
+[<SELECT>]["FirstName"][<FROM>][Employee][<WHERE>][LastName][=]['Andersson']
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,FirstName)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,noName)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,LastName)])
+        literal(string,Andersson)
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,LastName)])
+        literal(string,Andersson)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,LastName)])
+        literal(string,Andersson)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,LastName)])
+        literal(string,Andersson)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,LastName)])
+        literal(string,Andersson)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select Department from Employee where FirstName = 'Pel''le'
+
+Tokens: 
+[<SELECT>][Department][<FROM>][Employee][<WHERE>][FirstName][=]['Pel''le']
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,Department)])
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,noName)
+    )
+    comparison(
+        any
+        equal
+        path(any,[property(any,FirstName)])
+        literal(string,Pel'le)
+    )
+    [
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+        literal(string,Pel'le)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select2(
+    all
+    [
+        as(
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)])
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    comparison(
+        any
+        equal
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+        literal(string,Pel'le)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,Pel'le)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select2(
+    all
+    [
+        as(
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    comparison(
+        string
+        equal
+        path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        literal(string,Pel'le)
+    )
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+    ]
+    [
+        map(
+            0
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
+select Department, count(FirstName) from Employee group by department
+
+Tokens: 
+[<SELECT>][Department][,][<COUNT>][(][FirstName][)][<FROM>][Employee][<GROUP>][<BY>][department]
+
+Parse tree: 
+select1(
+    all
+    [
+        as(
+            path(any,[property(any,Department)])
+            name(noName)
+        )
+        as(
+            setFunction(
+                count
+                all
+                path(any,[property(any,FirstName)])
+            )
+            name(noName)
+        )
+    ]
+    as(
+        extent(any,Employee)
+        alias(any,noName)
+    )
+    literal(logical,true)
+    [
+        path(any,[property(any,department)])
+    ]
+    literal(logical,true)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 1: 
+select3(
+    all
+    [
+        as(
+            tmpPath([extent(1,temp),property(any,0)],path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)]))
+            name(noName)
+        )
+        as(
+            tmpPath([extent(1,temp),property(any,1)],setFunction(count,all,path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])))
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    literal(logical,true)
+    [
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,department)])
+    ]
+    [
+        setFunction(
+            count
+            all
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Rewritten tree 2: 
+select3(
+    all
+    [
+        as(
+            tmpPath([extent(1,temp),property(any,0)],path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)]))
+            name(noName)
+        )
+        as(
+            tmpPath([extent(1,temp),property(any,1)],setFunction(count,all,path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])))
+            name(noName)
+        )
+    ]
+    extent(0,Employee)
+    literal(logical,true)
+    [
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,department)])
+    ]
+    [
+        setFunction(
+            count
+            all
+            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Controlled tree: 
+select3(
+    all
+    [
+        as(
+            path(object(Example.Department),[extent(1,temp),property(object(Example.Department),0)])
+            name(noName)
+        )
+        as(
+            path(integer,[extent(1,temp),property(integer,1)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    literal(logical,true)
+    [
+        sortSpec(
+            object(Example.Department)
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            asc
+        )
+    ]
+    [
+        setFunction(
+            integer
+            count
+            all
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Modified tree: 
+select3(
+    all
+    [
+        as(
+            path(object(Example.Department),[extent(1,temp),property(object(Example.Department),0)])
+            name(noName)
+        )
+        as(
+            path(integer,[extent(1,temp),property(integer,1)])
+            name(noName)
+        )
+    ]
+    extent(0,Example.Employee)
+    literal(logical,true)
+    [
+        sortSpec(
+            object(Example.Department)
+            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
+            asc
+        )
+    ]
+    [
+        setFunction(
+            integer
+            count
+            all
+            path(string,[extent(0,Example.Employee),property(string,FirstName)])
+        )
+    ]
+    literal(logical,true)
+    extent(1,temp)
+    [
+    ]
+    fetch(noNumber,noOffset)
+    [
+    ]
+)
+
+Type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+        extent(1,[object(Example.Department),integer])
+    ]
+    [
+        map(
+            0
+            path(object(Example.Department),[extent(1,temp),property(object(Example.Department),0)])
+        )
+        map(
+            1
+            path(integer,[extent(1,temp),property(integer,1)])
+        )
+    ]
+)
+
+Modified type definition: 
+typeDef(
+    [
+        extent(0,Example.Employee)
+        extent(1,[object(Example.Department),integer])
+    ]
+    [
+        map(
+            0
+            path(object(Example.Department),[extent(1,temp),property(object(Example.Department),0)])
+        )
+        map(
+            1
+            path(integer,[extent(1,temp),property(integer,1)])
+        )
+    ]
+)
+
+Number of variables: 
+0
+
+Errors: 
+[
+]
+
+
+Runtime: 0
+Type: pos
+Database: MyDB
+Query: 
 select Department, count(FirstName) from Employee group by Department
 
 Tokens: 
@@ -235,239 +795,6 @@ Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
-select Department, count(FirstName) from Employee group by department
-
-Tokens: 
-[<SELECT>][Department][,][<COUNT>][(][FirstName][)][<FROM>][Employee][<GROUP>][<BY>][department]
-
-Parse tree: 
-select1(
-    all
-    [
-        as(
-            path(any,[property(any,Department)])
-            name(noName)
-        )
-        as(
-            setFunction(
-                count
-                all
-                path(any,[property(any,FirstName)])
-            )
-            name(noName)
-        )
-    ]
-    as(
-        extent(any,Employee)
-        alias(any,noName)
-    )
-    literal(logical,true)
-    [
-        path(any,[property(any,department)])
-    ]
-    literal(logical,true)
-    [
-    ]
-    fetch(noNumber,noOffset)
-    [
-    ]
-)
-
-Rewritten tree 1: 
-select3(
-    all
-    [
-        as(
-            path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)])
-            name(noName)
-        )
-        as(
-            tmpPath([extent(1,temp),property(any,1)],setFunction(count,all,path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])))
-            name(noName)
-        )
-    ]
-    extent(0,Employee)
-    literal(logical,true)
-    [
-        path(any,[extent(unspec,[extent(0,Employee)]),property(any,department)])
-    ]
-    [
-        setFunction(
-            count
-            all
-            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
-        )
-    ]
-    literal(logical,true)
-    extent(1,temp)
-    [
-    ]
-    fetch(noNumber,noOffset)
-    [
-    ]
-)
-
-Rewritten tree 2: 
-select3(
-    all
-    [
-        as(
-            path(any,[extent(unspec,[extent(0,Employee)]),property(any,Department)])
-            name(noName)
-        )
-        as(
-            tmpPath([extent(1,temp),property(any,1)],setFunction(count,all,path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])))
-            name(noName)
-        )
-    ]
-    extent(0,Employee)
-    literal(logical,true)
-    [
-        path(any,[extent(unspec,[extent(0,Employee)]),property(any,department)])
-    ]
-    [
-        setFunction(
-            count
-            all
-            path(any,[extent(unspec,[extent(0,Employee)]),property(any,FirstName)])
-        )
-    ]
-    literal(logical,true)
-    extent(1,temp)
-    [
-    ]
-    fetch(noNumber,noOffset)
-    [
-    ]
-)
-
-Controlled tree: 
-select3(
-    all
-    [
-        as(
-            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
-            name(noName)
-        )
-        as(
-            path(integer,[extent(1,temp),property(integer,1)])
-            name(noName)
-        )
-    ]
-    extent(0,Example.Employee)
-    literal(logical,true)
-    [
-        sortSpec(
-            object(Example.Department)
-            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
-            asc
-        )
-    ]
-    [
-        setFunction(
-            integer
-            count
-            all
-            path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        )
-    ]
-    literal(logical,true)
-    extent(1,temp)
-    [
-    ]
-    fetch(noNumber,noOffset)
-    [
-    ]
-)
-
-Modified tree: 
-select3(
-    all
-    [
-        as(
-            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
-            name(noName)
-        )
-        as(
-            path(integer,[extent(1,temp),property(integer,1)])
-            name(noName)
-        )
-    ]
-    extent(0,Example.Employee)
-    literal(logical,true)
-    [
-        sortSpec(
-            object(Example.Department)
-            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
-            asc
-        )
-    ]
-    [
-        setFunction(
-            integer
-            count
-            all
-            path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        )
-    ]
-    literal(logical,true)
-    extent(1,temp)
-    [
-    ]
-    fetch(noNumber,noOffset)
-    [
-    ]
-)
-
-Type definition: 
-typeDef(
-    [
-        extent(0,Example.Employee)
-        extent(1,[object(Example.Department),integer])
-    ]
-    [
-        map(
-            0
-            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
-        )
-        map(
-            1
-            path(integer,[extent(1,temp),property(integer,1)])
-        )
-    ]
-)
-
-Modified type definition: 
-typeDef(
-    [
-        extent(0,Example.Employee)
-        extent(1,[object(Example.Department),integer])
-    ]
-    [
-        map(
-            0
-            path(object(Example.Department),[extent(0,Example.Employee),property(object(Example.Department),Department)])
-        )
-        map(
-            1
-            path(integer,[extent(1,temp),property(integer,1)])
-        )
-    ]
-)
-
-Number of variables: 
-0
-
-Errors: 
-[
-    Incorrect select-list w.r.t. group-by-clause.
-]
-
-
-Runtime: 0
-Type: pos
-Database: MyDB
-Query: 
 select e from Employee e where e.FirstName = 'Peter"
 
 Tokens: 
@@ -529,7 +856,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,FirstName)])
-        literal(string,'Pet"er')
+        literal(string,Pet"er)
     )
     [
     ]
@@ -555,7 +882,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,'Pet"er')
+        literal(string,Pet"er)
     )
     [
     ]
@@ -578,7 +905,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,'Pet"er')
+        literal(string,Pet"er)
     )
     [
     ]
@@ -601,7 +928,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'Pet"er')
+        literal(string,Pet"er)
     )
     [
     ]
@@ -624,7 +951,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'Pet"er')
+        literal(string,Pet"er)
     )
     [
     ]
@@ -693,7 +1020,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,FirstName)])
-        literal(string,"Pet'er")
+        path(any,[property(any,Pet'er)])
     )
     [
     ]
@@ -719,7 +1046,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,"Pet'er")
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,Pet'er)])
     )
     [
     ]
@@ -742,7 +1069,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,"Pet'er")
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,Pet'er)])
     )
     [
     ]
@@ -762,10 +1089,10 @@ select2(
     ]
     extent(0,Example.Employee)
     comparison(
-        string
+        unknown
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,"Pet'er")
+        path(unknown,[extent(unspec,unknown),property(unknown,Pet'er)])
     )
     [
     ]
@@ -785,10 +1112,10 @@ select2(
     ]
     extent(0,Example.Employee)
     comparison(
-        string
+        unknown
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,"Pet'er")
+        path(unknown,[extent(unspec,unknown),property(unknown,Pet'er)])
     )
     [
     ]
@@ -828,10 +1155,11 @@ Number of variables:
 
 Errors: 
 [
+    Unknown property or alias Pet'er.
 ]
 
 
-Runtime: 0
+Runtime: 15
 Type: pos
 Database: MyDB
 Query: 
@@ -857,7 +1185,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,FirstName)])
-        literal(string,'Peter')
+        literal(string,Peter)
     )
     [
     ]
@@ -883,7 +1211,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,'Peter')
+        literal(string,Peter)
     )
     [
     ]
@@ -906,7 +1234,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,'Peter')
+        literal(string,Peter)
     )
     [
     ]
@@ -929,7 +1257,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'Peter')
+        literal(string,Peter)
     )
     [
     ]
@@ -952,7 +1280,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'Peter')
+        literal(string,Peter)
     )
     [
     ]
@@ -1021,7 +1349,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,FirstName)])
-        literal(string,"Peter")
+        path(any,[property(any,Peter)])
     )
     [
     ]
@@ -1047,7 +1375,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,"Peter")
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,Peter)])
     )
     [
     ]
@@ -1070,7 +1398,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,"Peter")
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,Peter)])
     )
     [
     ]
@@ -1090,10 +1418,10 @@ select2(
     ]
     extent(0,Example.Employee)
     comparison(
-        string
+        unknown
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,"Peter")
+        path(unknown,[extent(unspec,unknown),property(unknown,Peter)])
     )
     [
     ]
@@ -1113,10 +1441,10 @@ select2(
     ]
     extent(0,Example.Employee)
     comparison(
-        string
+        unknown
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,"Peter")
+        path(unknown,[extent(unspec,unknown),property(unknown,Peter)])
     )
     [
     ]
@@ -1156,6 +1484,7 @@ Number of variables:
 
 Errors: 
 [
+    Unknown property or alias Peter.
 ]
 
 
@@ -1185,7 +1514,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,FirstName)])
-        literal(string,'Pet''er')
+        literal(string,Pet'er)
     )
     [
     ]
@@ -1211,7 +1540,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,'Pet''er')
+        literal(string,Pet'er)
     )
     [
     ]
@@ -1234,7 +1563,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,'Pet''er')
+        literal(string,Pet'er)
     )
     [
     ]
@@ -1257,7 +1586,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'Pet''er')
+        literal(string,Pet'er)
     )
     [
     ]
@@ -1280,7 +1609,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'Pet''er')
+        literal(string,Pet'er)
     )
     [
     ]
@@ -1349,7 +1678,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,FirstName)])
-        literal(string,"Pet""er")
+        path(any,[property(any,Pet"er)])
     )
     [
     ]
@@ -1375,7 +1704,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,"Pet""er")
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,Pet"er)])
     )
     [
     ]
@@ -1398,7 +1727,7 @@ select2(
         any
         equal
         path(any,[extent(0,Employee),property(any,FirstName)])
-        literal(string,"Pet""er")
+        path(any,[extent(unspec,[extent(0,Employee)]),property(any,Pet"er)])
     )
     [
     ]
@@ -1418,10 +1747,10 @@ select2(
     ]
     extent(0,Example.Employee)
     comparison(
-        string
+        unknown
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,"Pet""er")
+        path(unknown,[extent(unspec,unknown),property(unknown,Pet"er)])
     )
     [
     ]
@@ -1441,10 +1770,10 @@ select2(
     ]
     extent(0,Example.Employee)
     comparison(
-        string
+        unknown
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,"Pet""er")
+        path(unknown,[extent(unspec,unknown),property(unknown,Pet"er)])
     )
     [
     ]
@@ -1484,6 +1813,7 @@ Number of variables:
 
 Errors: 
 [
+    Unknown property or alias Pet"er.
 ]
 
 
@@ -2717,7 +3047,7 @@ select1(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),key(literal(binary,'fff')))
+    fetch(literal(integer,10),key(literal(binary,fff)))
     [
     ]
 )
@@ -2735,7 +3065,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),key(literal(binary,'fff')))
+    fetch(literal(integer,10),key(literal(binary,fff)))
     [
     ]
 )
@@ -2753,7 +3083,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),key(literal(binary,'fff')))
+    fetch(literal(integer,10),key(literal(binary,fff)))
     [
     ]
 )
@@ -2779,7 +3109,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),literal(binary,'fff'))
+    fetch(literal(integer,10),literal(binary,fff))
     [
     ]
 )
@@ -2805,7 +3135,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),literal(binary,'fff'))
+    fetch(literal(integer,10),literal(binary,fff))
     [
     ]
 )
@@ -4578,7 +4908,7 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 16
 Type: pos
 Database: MyDB
 Query: 
@@ -5024,7 +5354,7 @@ select1(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),key(literal(binary,'fff')))
+    fetch(literal(integer,10),key(literal(binary,fff)))
     [
     ]
 )
@@ -5042,7 +5372,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),key(literal(binary,'fff')))
+    fetch(literal(integer,10),key(literal(binary,fff)))
     [
     ]
 )
@@ -5060,7 +5390,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),key(literal(binary,'fff')))
+    fetch(literal(integer,10),key(literal(binary,fff)))
     [
     ]
 )
@@ -5086,7 +5416,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),literal(binary,'fff'))
+    fetch(literal(integer,10),literal(binary,fff))
     [
     ]
 )
@@ -5112,7 +5442,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(integer,10),literal(binary,'fff'))
+    fetch(literal(integer,10),literal(binary,fff))
     [
     ]
 )
@@ -5708,7 +6038,7 @@ select1(
     literal(logical,true)
     [
     ]
-    fetch(literal(string,'10'),literal(string,'fff'))
+    fetch(literal(string,10),literal(string,fff))
     [
     ]
 )
@@ -5726,7 +6056,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(string,'10'),literal(string,'fff'))
+    fetch(literal(string,10),literal(string,fff))
     [
     ]
 )
@@ -5744,7 +6074,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(string,'10'),literal(string,'fff'))
+    fetch(literal(string,10),literal(string,fff))
     [
     ]
 )
@@ -5770,7 +6100,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(string,'10'),literal(string,'fff'))
+    fetch(literal(string,10),literal(string,fff))
     [
     ]
 )
@@ -5796,7 +6126,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(string,'10'),literal(string,'fff'))
+    fetch(literal(string,10),literal(string,fff))
     [
     ]
 )
@@ -5881,7 +6211,7 @@ select1(
     literal(logical,true)
     [
     ]
-    fetch(literal(decimal,10.1),key(literal(string,'fff')))
+    fetch(literal(decimal,10.1),key(literal(string,fff)))
     [
     ]
 )
@@ -5899,7 +6229,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(decimal,10.1),key(literal(string,'fff')))
+    fetch(literal(decimal,10.1),key(literal(string,fff)))
     [
     ]
 )
@@ -5917,7 +6247,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(decimal,10.1),key(literal(string,'fff')))
+    fetch(literal(decimal,10.1),key(literal(string,fff)))
     [
     ]
 )
@@ -5943,7 +6273,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(decimal,10.1),literal(string,'fff'))
+    fetch(literal(decimal,10.1),literal(string,fff))
     [
     ]
 )
@@ -5969,7 +6299,7 @@ select2(
     literal(logical,true)
     [
     ]
-    fetch(literal(decimal,10.1),literal(string,'fff'))
+    fetch(literal(decimal,10.1),literal(string,fff))
     [
     ]
 )
@@ -11546,7 +11876,7 @@ Errors:
 ]
 
 
-Runtime: 16
+Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
@@ -12747,7 +13077,7 @@ select1(
             any
             greaterThanOrEqual
             path(any,[property(any,e),property(any,firstname)])
-            literal(string,'st')
+            literal(string,st)
         )
         comparison(
             any
@@ -12756,7 +13086,7 @@ select1(
             operation(
                 string
                 addMaxChar
-                literal(string,'st')
+                literal(string,st)
             )
         )
     )
@@ -12787,7 +13117,7 @@ select2(
             any
             greaterThanOrEqual
             path(any,[extent(0,example.employee),property(any,firstname)])
-            literal(string,'st')
+            literal(string,st)
         )
         comparison(
             any
@@ -12796,7 +13126,7 @@ select2(
             operation(
                 string
                 addMaxChar
-                literal(string,'st')
+                literal(string,st)
             )
         )
     )
@@ -12824,7 +13154,7 @@ select2(
             any
             greaterThanOrEqual
             path(any,[extent(0,example.employee),property(any,firstname)])
-            literal(string,'st')
+            literal(string,st)
         )
         comparison(
             any
@@ -12833,7 +13163,7 @@ select2(
             operation(
                 string
                 addMaxChar
-                literal(string,'st')
+                literal(string,st)
             )
         )
     )
@@ -12861,7 +13191,7 @@ select2(
             string
             greaterThanOrEqual
             path(string,[extent(0,Example.Employee),property(string,FirstName)])
-            literal(string,'st')
+            literal(string,st)
         )
         comparison(
             string
@@ -12870,7 +13200,7 @@ select2(
             operation(
                 string
                 addMaxChar
-                literal(string,'st')
+                literal(string,st)
             )
         )
     )
@@ -12898,7 +13228,7 @@ select2(
             string
             greaterThanOrEqual
             path(string,[extent(0,Example.Employee),property(string,FirstName)])
-            literal(string,'st')
+            literal(string,st)
         )
         comparison(
             string
@@ -12907,7 +13237,7 @@ select2(
             operation(
                 string
                 addMaxChar
-                literal(string,'st')
+                literal(string,st)
             )
         )
     )
@@ -12952,7 +13282,7 @@ Errors:
 ]
 
 
-Runtime: 15
+Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
@@ -14897,7 +15227,7 @@ select1(
         any
         equal
         path(any,[property(any,d),property(any,idbinary)])
-        literal(binary,'ffff')
+        literal(binary,ffff)
     )
     [
     ]
@@ -14923,7 +15253,7 @@ select2(
         any
         equal
         path(any,[extent(0,department),property(any,idbinary)])
-        literal(binary,'ffff')
+        literal(binary,ffff)
     )
     [
     ]
@@ -14946,7 +15276,7 @@ select2(
         any
         equal
         path(any,[extent(0,department),property(any,idbinary)])
-        literal(binary,'ffff')
+        literal(binary,ffff)
     )
     [
     ]
@@ -14969,7 +15299,7 @@ select2(
         binary
         equal
         path(binary,[extent(0,Example.Department),property(binary,IdBinary)])
-        literal(binary,'ffff')
+        literal(binary,ffff)
     )
     [
     ]
@@ -14992,7 +15322,7 @@ select2(
         binary
         equal
         path(binary,[extent(0,Example.Department),property(binary,IdBinary)])
-        literal(binary,'ffff')
+        literal(binary,ffff)
     )
     [
     ]
@@ -15079,7 +15409,7 @@ select1(
             any
             lessThanOrEqual
             path(any,[property(any,e),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15094,7 +15424,7 @@ select1(
                 any
                 greaterThan
                 path(any,[property(any,e),property(any,firstname)])
-                literal(string,'b')
+                literal(string,b)
             )
         )
     )
@@ -15135,7 +15465,7 @@ select2(
             any
             lessThanOrEqual
             path(any,[extent(1,example.employee),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15150,7 +15480,7 @@ select2(
                 any
                 greaterThan
                 path(any,[extent(1,example.employee),property(any,firstname)])
-                literal(string,'b')
+                literal(string,b)
             )
         )
     )
@@ -15187,7 +15517,7 @@ select2(
             any
             lessThanOrEqual
             path(any,[extent(1,example.employee),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15202,7 +15532,7 @@ select2(
                 any
                 greaterThan
                 path(any,[extent(1,example.employee),property(any,firstname)])
-                literal(string,'b')
+                literal(string,b)
             )
         )
     )
@@ -15239,7 +15569,7 @@ select2(
             string
             lessThanOrEqual
             path(string,[extent(1,Example.Employee),property(string,FirstName)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15254,7 +15584,7 @@ select2(
                 string
                 greaterThan
                 path(string,[extent(1,Example.Employee),property(string,FirstName)])
-                literal(string,'b')
+                literal(string,b)
             )
         )
     )
@@ -15295,7 +15625,7 @@ select2(
             string
             lessThanOrEqual
             path(string,[extent(1,Example.Employee),property(string,FirstName)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15320,7 +15650,7 @@ select2(
                 string
                 greaterThan
                 path(string,[extent(1,Example.Employee),property(string,FirstName)])
-                literal(string,'b')
+                literal(string,b)
             )
         )
     )
@@ -15430,7 +15760,7 @@ select1(
             any
             lessThanOrEqual
             path(any,[property(any,e),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15439,7 +15769,7 @@ select1(
                 any
                 equal
                 path(any,[property(any,l),property(any,name)])
-                literal(string,'stockholm')
+                literal(string,stockholm)
             )
             operation(
                 logical
@@ -15463,7 +15793,7 @@ select1(
                         any
                         greaterThan
                         path(any,[property(any,e),property(any,firstname)])
-                        literal(string,'b')
+                        literal(string,b)
                     )
                 )
             )
@@ -15511,7 +15841,7 @@ select2(
             any
             lessThanOrEqual
             path(any,[extent(1,example.employee),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15520,7 +15850,7 @@ select2(
                 any
                 equal
                 path(any,[extent(2,example.location),property(any,name)])
-                literal(string,'stockholm')
+                literal(string,stockholm)
             )
             operation(
                 logical
@@ -15544,7 +15874,7 @@ select2(
                         any
                         greaterThan
                         path(any,[extent(1,example.employee),property(any,firstname)])
-                        literal(string,'b')
+                        literal(string,b)
                     )
                 )
             )
@@ -15587,7 +15917,7 @@ select2(
             any
             lessThanOrEqual
             path(any,[extent(1,example.employee),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15596,7 +15926,7 @@ select2(
                 any
                 equal
                 path(any,[extent(2,example.location),property(any,name)])
-                literal(string,'stockholm')
+                literal(string,stockholm)
             )
             operation(
                 logical
@@ -15620,7 +15950,7 @@ select2(
                         any
                         greaterThan
                         path(any,[extent(1,example.employee),property(any,firstname)])
-                        literal(string,'b')
+                        literal(string,b)
                     )
                 )
             )
@@ -15663,7 +15993,7 @@ select2(
             string
             lessThanOrEqual
             path(string,[extent(1,Example.Employee),property(string,FirstName)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15672,7 +16002,7 @@ select2(
                 string
                 equal
                 path(string,[extent(2,Example.Location),property(string,Name)])
-                literal(string,'stockholm')
+                literal(string,stockholm)
             )
             operation(
                 logical
@@ -15696,7 +16026,7 @@ select2(
                         string
                         greaterThan
                         path(string,[extent(1,Example.Employee),property(string,FirstName)])
-                        literal(string,'b')
+                        literal(string,b)
                     )
                 )
             )
@@ -15743,7 +16073,7 @@ select2(
             string
             lessThanOrEqual
             path(string,[extent(1,Example.Employee),property(string,FirstName)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -15752,7 +16082,7 @@ select2(
                 string
                 equal
                 path(string,[extent(2,Example.Location),property(string,Name)])
-                literal(string,'stockholm')
+                literal(string,stockholm)
             )
             operation(
                 logical
@@ -15786,7 +16116,7 @@ select2(
                         string
                         greaterThan
                         path(string,[extent(1,Example.Employee),property(string,FirstName)])
-                        literal(string,'b')
+                        literal(string,b)
                     )
                 )
             )
@@ -15877,13 +16207,13 @@ select1(
             any
             lessThanOrEqual
             path(any,[property(any,e),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         comparison(
             any
             greaterThan
             path(any,[property(any,e),property(any,lastname)])
-            literal(string,'b')
+            literal(string,b)
         )
     )
     [
@@ -15914,13 +16244,13 @@ select2(
             any
             lessThanOrEqual
             path(any,[extent(0,example.employee),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         comparison(
             any
             greaterThan
             path(any,[extent(0,example.employee),property(any,lastname)])
-            literal(string,'b')
+            literal(string,b)
         )
     )
     [
@@ -15948,13 +16278,13 @@ select2(
             any
             lessThanOrEqual
             path(any,[extent(0,example.employee),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         comparison(
             any
             greaterThan
             path(any,[extent(0,example.employee),property(any,lastname)])
-            literal(string,'b')
+            literal(string,b)
         )
     )
     [
@@ -15982,13 +16312,13 @@ select2(
             string
             lessThanOrEqual
             path(string,[extent(0,Example.Employee),property(string,FirstName)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         comparison(
             string
             greaterThan
             path(string,[extent(0,Example.Employee),property(string,LastName)])
-            literal(string,'b')
+            literal(string,b)
         )
     )
     [
@@ -16016,13 +16346,13 @@ select2(
             string
             lessThanOrEqual
             path(string,[extent(0,Example.Employee),property(string,FirstName)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         comparison(
             string
             greaterThan
             path(string,[extent(0,Example.Employee),property(string,LastName)])
-            literal(string,'b')
+            literal(string,b)
         )
     )
     [
@@ -16094,7 +16424,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
     ]
@@ -16126,7 +16456,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
         sortSpec(
@@ -16155,7 +16485,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
         sortSpec(
@@ -16184,7 +16514,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
         sortSpec(
@@ -16213,7 +16543,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
         sortSpec(
@@ -16307,7 +16637,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
     ]
@@ -16353,7 +16683,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
         sortSpec(
@@ -16399,7 +16729,7 @@ select2(
             any
             equal
             path(any,[extent(0,example.employee),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
     )
     [
@@ -16446,7 +16776,7 @@ select2(
             string
             equal
             path(string,[extent(0,Example.Employee),property(string,FirstName)])
-            literal(string,'peter')
+            literal(string,peter)
         )
     )
     [
@@ -16493,7 +16823,7 @@ select2(
             string
             equal
             path(string,[extent(0,Example.Employee),property(string,FirstName)])
-            literal(string,'peter')
+            literal(string,peter)
         )
     )
     [
@@ -16978,7 +17308,7 @@ select1(
         any
         equal
         path(any,[property(any,example),property(any,employee),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
     ]
@@ -17004,7 +17334,7 @@ select2(
         any
         equal
         path(any,[extent(unspec,[extent(0,example.employee)]),property(any,example),property(any,employee),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
     ]
@@ -17027,7 +17357,7 @@ select2(
         any
         equal
         path(any,[extent(unspec,[extent(0,example.employee)]),property(any,example),property(any,employee),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
     ]
@@ -17050,7 +17380,7 @@ select2(
         unknown
         equal
         path(unknown,[extent(unspec,unknown),property(unknown,example),property(any,employee),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
     ]
@@ -17073,7 +17403,7 @@ select2(
         unknown
         equal
         path(unknown,[extent(unspec,unknown),property(unknown,example),property(any,employee),property(any,firstname)])
-        literal(string,'peter')
+        literal(string,peter)
     )
     [
     ]
@@ -18052,7 +18382,7 @@ select1(
         any
         equal
         path(any,[property(any,e),property(any,hiredate)])
-        literal(datetime,'2006-10-30')
+        literal(datetime,2006-10-30)
     )
     [
     ]
@@ -18082,7 +18412,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),property(any,hiredate)])
-        literal(datetime,'2006-10-30')
+        literal(datetime,2006-10-30)
     )
     [
     ]
@@ -18109,7 +18439,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),property(any,hiredate)])
-        literal(datetime,'2006-10-30')
+        literal(datetime,2006-10-30)
     )
     [
     ]
@@ -18136,7 +18466,7 @@ select2(
         datetime
         equal
         path(datetime,[extent(0,Example.Employee),property(datetime,HireDate)])
-        literal(datetime,'2006-10-30')
+        literal(datetime,2006-10-30)
     )
     [
     ]
@@ -18163,7 +18493,7 @@ select2(
         datetime
         equal
         path(datetime,[extent(0,Example.Employee),property(datetime,HireDate)])
-        literal(datetime,'2006-10-30')
+        literal(datetime,2006-10-30)
     )
     [
     ]
@@ -19024,7 +19354,7 @@ select1(
         any
         like
         path(any,[property(any,e),property(any,firstname)])
-        literal(string,'p%et_er')
+        literal(string,p%et_er)
         literal(string,'')
     )
     [
@@ -19051,7 +19381,7 @@ select2(
         any
         like
         path(any,[extent(0,example.employee),property(any,firstname)])
-        literal(string,'p%et_er')
+        literal(string,p%et_er)
         literal(string,'')
     )
     [
@@ -19075,7 +19405,7 @@ select2(
         any
         like
         path(any,[extent(0,example.employee),property(any,firstname)])
-        literal(string,'p%et_er')
+        literal(string,p%et_er)
         literal(string,'')
     )
     [
@@ -19099,7 +19429,7 @@ select2(
         string
         like
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'p%et_er')
+        literal(string,p%et_er)
         literal(string,'')
     )
     [
@@ -19123,7 +19453,7 @@ select2(
         string
         like
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'p%et_er')
+        literal(string,p%et_er)
         literal(string,'')
     )
     [
@@ -19194,8 +19524,8 @@ select1(
         any
         like
         path(any,[property(any,e),property(any,firstname)])
-        literal(string,'p7_te7%')
-        literal(string,'7')
+        literal(string,p7_te7%)
+        literal(string,7)
     )
     [
     ]
@@ -19221,8 +19551,8 @@ select2(
         any
         like
         path(any,[extent(0,example.employee),property(any,firstname)])
-        literal(string,'p7_te7%')
-        literal(string,'7')
+        literal(string,p7_te7%)
+        literal(string,7)
     )
     [
     ]
@@ -19245,8 +19575,8 @@ select2(
         any
         like
         path(any,[extent(0,example.employee),property(any,firstname)])
-        literal(string,'p7_te7%')
-        literal(string,'7')
+        literal(string,p7_te7%)
+        literal(string,7)
     )
     [
     ]
@@ -19269,8 +19599,8 @@ select2(
         string
         like
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'p7_te7%')
-        literal(string,'7')
+        literal(string,p7_te7%)
+        literal(string,7)
     )
     [
     ]
@@ -19293,8 +19623,8 @@ select2(
         string
         like
         path(string,[extent(0,Example.Employee),property(string,FirstName)])
-        literal(string,'p7_te7%')
-        literal(string,'7')
+        literal(string,p7_te7%)
+        literal(string,7)
     )
     [
     ]
@@ -19363,8 +19693,8 @@ select1(
     inPredicate(
         path(any,[property(any,e),property(any,firstname)])
         [
-            literal(string,'peter')
-            literal(string,'erik')
+            literal(string,peter)
+            literal(string,erik)
         ]
     )
     [
@@ -19390,8 +19720,8 @@ select2(
     inPredicate(
         path(any,[extent(0,example.employee),property(any,firstname)])
         [
-            literal(string,'peter')
-            literal(string,'erik')
+            literal(string,peter)
+            literal(string,erik)
         ]
     )
     [
@@ -19414,8 +19744,8 @@ select2(
     inPredicate(
         path(any,[extent(0,example.employee),property(any,firstname)])
         [
-            literal(string,'peter')
-            literal(string,'erik')
+            literal(string,peter)
+            literal(string,erik)
         ]
     )
     [
@@ -19438,8 +19768,8 @@ select2(
     inPredicate(
         path(any,[extent(0,example.employee),property(any,firstname)])
         [
-            literal(string,'peter')
-            literal(string,'erik')
+            literal(string,peter)
+            literal(string,erik)
         ]
     )
     [
@@ -19462,8 +19792,8 @@ select2(
     inPredicate(
         path(any,[extent(0,example.employee),property(any,firstname)])
         [
-            literal(string,'peter')
-            literal(string,'erik')
+            literal(string,peter)
+            literal(string,erik)
         ]
     )
     [
@@ -19532,7 +19862,7 @@ select1(
                 operation(
                     string
                     concatenation
-                    literal(string,' ')
+                    literal(string, )
                     path(any,[property(any,e),property(any,firstname)])
                 )
             )
@@ -19613,7 +19943,7 @@ select2(
                 operation(
                     string
                     concatenation
-                    literal(string,' ')
+                    literal(string, )
                     path(any,[extent(0,example.employee),property(any,firstname)])
                 )
             )
@@ -19688,7 +20018,7 @@ select2(
                 operation(
                     string
                     concatenation
-                    literal(string,' ')
+                    literal(string, )
                     path(any,[extent(0,example.employee),property(any,firstname)])
                 )
             )
@@ -19763,7 +20093,7 @@ select2(
                 operation(
                     string
                     concatenation
-                    literal(string,' ')
+                    literal(string, )
                     path(string,[extent(0,Example.Employee),property(string,FirstName)])
                 )
             )
@@ -19838,7 +20168,7 @@ select2(
                 operation(
                     string
                     concatenation
-                    literal(string,' ')
+                    literal(string, )
                     path(string,[extent(0,Example.Employee),property(string,FirstName)])
                 )
             )
@@ -19916,7 +20246,7 @@ typeDef(
                 operation(
                     string
                     concatenation
-                    literal(string,' ')
+                    literal(string, )
                     path(string,[extent(0,Example.Employee),property(string,FirstName)])
                 )
             )
@@ -19953,7 +20283,7 @@ typeDef(
                 operation(
                     string
                     concatenation
-                    literal(string,' ')
+                    literal(string, )
                     path(string,[extent(0,Example.Employee),property(string,FirstName)])
                 )
             )
@@ -20269,7 +20599,7 @@ select1(
                     numerical
                     addition
                     literal(integer,2)
-                    literal(string,'b')
+                    literal(string,b)
                 )
             )
             name(noName)
@@ -20303,7 +20633,7 @@ select3(
                     numerical
                     addition
                     literal(integer,2)
-                    literal(string,'b')
+                    literal(string,b)
                 )
             )
             name(noName)
@@ -20342,7 +20672,7 @@ select3(
                     numerical
                     addition
                     literal(integer,2)
-                    literal(string,'b')
+                    literal(string,b)
                 )
             )
             name(noName)
@@ -20381,7 +20711,7 @@ select3(
                     numerical
                     addition
                     literal(integer,2)
-                    literal(string,'b')
+                    literal(string,b)
                 )
             )
             name(noName)
@@ -20421,7 +20751,7 @@ select3(
                     numerical
                     addition
                     literal(integer,2)
-                    literal(string,'b')
+                    literal(string,b)
                 )
             )
             name(noName)
@@ -20465,7 +20795,7 @@ typeDef(
                     numerical
                     addition
                     literal(integer,2)
-                    literal(string,'b')
+                    literal(string,b)
                 )
             )
         )
@@ -20489,7 +20819,7 @@ typeDef(
                     numerical
                     addition
                     literal(integer,2)
-                    literal(string,'b')
+                    literal(string,b)
                 )
             )
         )
@@ -24390,7 +24720,7 @@ Errors:
 ]
 
 
-Runtime: 15
+Runtime: 0
 Type: pos
 Database: MyDB
 Query: 
@@ -25402,7 +25732,7 @@ Errors:
 ]
 
 
-Runtime: 0
+Runtime: 16
 Type: neg
 Database: MyDB
 Query: 
@@ -26507,13 +26837,13 @@ select1(
             any
             equal
             path(any,[property(any,e),property(any,lastname)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             any
             greaterThan
             path(any,[property(any,e),property(any,firstname)])
-            literal(string,'bertil')
+            literal(string,bertil)
         )
     )
     [
@@ -26548,13 +26878,13 @@ select2(
             any
             equal
             path(any,[extent(0,example.employee),property(any,lastname)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             any
             greaterThan
             path(any,[extent(0,example.employee),property(any,firstname)])
-            literal(string,'bertil')
+            literal(string,bertil)
         )
     )
     [
@@ -26586,13 +26916,13 @@ select2(
             any
             equal
             path(any,[extent(0,example.employee),property(any,lastname)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             any
             greaterThan
             path(any,[extent(0,example.employee),property(any,firstname)])
-            literal(string,'bertil')
+            literal(string,bertil)
         )
     )
     [
@@ -26624,13 +26954,13 @@ select2(
             string
             equal
             path(string,[extent(0,Example.Employee),property(string,LastName)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             string
             greaterThan
             path(string,[extent(0,Example.Employee),property(string,FirstName)])
-            literal(string,'bertil')
+            literal(string,bertil)
         )
     )
     [
@@ -26662,13 +26992,13 @@ select2(
             string
             equal
             path(string,[extent(0,Example.Employee),property(string,LastName)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             string
             greaterThan
             path(string,[extent(0,Example.Employee),property(string,FirstName)])
-            literal(string,'bertil')
+            literal(string,bertil)
         )
     )
     [
@@ -26747,13 +27077,13 @@ select1(
             any
             equal
             path(any,[property(any,e),property(any,lastname)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             any
             lessThanOrEqual
             path(any,[property(any,e),property(any,lastname)])
-            literal(string,'samuelsson')
+            literal(string,samuelsson)
         )
     )
     [
@@ -26783,13 +27113,13 @@ select2(
             any
             equal
             path(any,[extent(0,example.employee),property(any,lastname)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             any
             lessThanOrEqual
             path(any,[extent(0,example.employee),property(any,lastname)])
-            literal(string,'samuelsson')
+            literal(string,samuelsson)
         )
     )
     [
@@ -26816,13 +27146,13 @@ select2(
             any
             equal
             path(any,[extent(0,example.employee),property(any,lastname)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             any
             lessThanOrEqual
             path(any,[extent(0,example.employee),property(any,lastname)])
-            literal(string,'samuelsson')
+            literal(string,samuelsson)
         )
     )
     [
@@ -26849,13 +27179,13 @@ select2(
             string
             equal
             path(string,[extent(0,Example.Employee),property(string,LastName)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             string
             lessThanOrEqual
             path(string,[extent(0,Example.Employee),property(string,LastName)])
-            literal(string,'samuelsson')
+            literal(string,samuelsson)
         )
     )
     [
@@ -26882,13 +27212,13 @@ select2(
             string
             equal
             path(string,[extent(0,Example.Employee),property(string,LastName)])
-            literal(string,'idestam')
+            literal(string,idestam)
         )
         comparison(
             string
             lessThanOrEqual
             path(string,[extent(0,Example.Employee),property(string,LastName)])
-            literal(string,'samuelsson')
+            literal(string,samuelsson)
         )
     )
     [
@@ -27017,7 +27347,7 @@ select1(
             any
             equal
             path(any,[property(any,e1),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -27026,7 +27356,7 @@ select1(
                 any
                 equal
                 path(any,[property(any,e2),property(any,firstname)])
-                literal(string,'per')
+                literal(string,per)
             )
             operation(
                 logical
@@ -27035,13 +27365,13 @@ select1(
                     any
                     equal
                     path(any,[property(any,e3),property(any,firstname)])
-                    literal(string,'erik')
+                    literal(string,erik)
                 )
                 comparison(
                     any
                     equal
                     path(any,[property(any,e4),property(any,firstname)])
-                    literal(string,'christian')
+                    literal(string,christian)
                 )
             )
         )
@@ -27115,7 +27445,7 @@ select2(
             any
             equal
             path(any,[extent(0,example.employee),property(any,firstname)])
-            literal(string,'peter')
+            literal(string,peter)
         )
         operation(
             logical
@@ -27124,7 +27454,7 @@ select2(
                 any
                 equal
                 path(any,[extent(1,example.employee),property(any,firstname)])
-                literal(string,'per')
+                literal(string,per)
             )
             operation(
                 logical
@@ -27133,13 +27463,13 @@ select2(
                     any
                     equal
                     path(any,[extent(2,example.employee),property(any,firstname)])
-                    literal(string,'erik')
+                    literal(string,erik)
                 )
                 comparison(
                     any
                     equal
                     path(any,[extent(3,example.employee),property(any,firstname)])
-                    literal(string,'christian')
+                    literal(string,christian)
                 )
             )
         )
@@ -27221,7 +27551,7 @@ select2(
                 any
                 equal
                 path(any,[extent(0,example.employee),property(any,firstname)])
-                literal(string,'peter')
+                literal(string,peter)
             )
             operation(
                 logical
@@ -27230,7 +27560,7 @@ select2(
                     any
                     equal
                     path(any,[extent(1,example.employee),property(any,firstname)])
-                    literal(string,'per')
+                    literal(string,per)
                 )
                 operation(
                     logical
@@ -27239,13 +27569,13 @@ select2(
                         any
                         equal
                         path(any,[extent(2,example.employee),property(any,firstname)])
-                        literal(string,'erik')
+                        literal(string,erik)
                     )
                     comparison(
                         any
                         equal
                         path(any,[extent(3,example.employee),property(any,firstname)])
-                        literal(string,'christian')
+                        literal(string,christian)
                     )
                 )
             )
@@ -27328,7 +27658,7 @@ select2(
                 string
                 equal
                 path(string,[extent(0,Example.Employee),property(string,FirstName)])
-                literal(string,'peter')
+                literal(string,peter)
             )
             operation(
                 logical
@@ -27337,7 +27667,7 @@ select2(
                     string
                     equal
                     path(string,[extent(1,Example.Employee),property(string,FirstName)])
-                    literal(string,'per')
+                    literal(string,per)
                 )
                 operation(
                     logical
@@ -27346,13 +27676,13 @@ select2(
                         string
                         equal
                         path(string,[extent(2,Example.Employee),property(string,FirstName)])
-                        literal(string,'erik')
+                        literal(string,erik)
                     )
                     comparison(
                         string
                         equal
                         path(string,[extent(3,Example.Employee),property(string,FirstName)])
-                        literal(string,'christian')
+                        literal(string,christian)
                     )
                 )
             )
@@ -27435,7 +27765,7 @@ select2(
                 string
                 equal
                 path(string,[extent(0,Example.Employee),property(string,FirstName)])
-                literal(string,'peter')
+                literal(string,peter)
             )
             operation(
                 logical
@@ -27444,7 +27774,7 @@ select2(
                     string
                     equal
                     path(string,[extent(1,Example.Employee),property(string,FirstName)])
-                    literal(string,'per')
+                    literal(string,per)
                 )
                 operation(
                     logical
@@ -27453,13 +27783,13 @@ select2(
                         string
                         equal
                         path(string,[extent(2,Example.Employee),property(string,FirstName)])
-                        literal(string,'erik')
+                        literal(string,erik)
                     )
                     comparison(
                         string
                         equal
                         path(string,[extent(3,Example.Employee),property(string,FirstName)])
-                        literal(string,'christian')
+                        literal(string,christian)
                     )
                 )
             )
@@ -27586,7 +27916,7 @@ select1(
                     any
                     greaterThan
                     path(any,[property(any,e),property(any,firstname)])
-                    literal(string,'erik')
+                    literal(string,erik)
                 )
                 operation(
                     logical
@@ -27662,7 +27992,7 @@ select2(
                     any
                     greaterThan
                     path(any,[extent(0,example.employee),property(any,firstname)])
-                    literal(string,'erik')
+                    literal(string,erik)
                 )
                 operation(
                     logical
@@ -27735,7 +28065,7 @@ select2(
                     any
                     greaterThan
                     path(any,[extent(0,example.employee),property(any,firstname)])
-                    literal(string,'erik')
+                    literal(string,erik)
                 )
                 operation(
                     logical
@@ -27808,7 +28138,7 @@ select2(
                     string
                     greaterThan
                     path(string,[extent(0,Example.Employee),property(string,FirstName)])
-                    literal(string,'erik')
+                    literal(string,erik)
                 )
                 operation(
                     logical
@@ -27881,7 +28211,7 @@ select2(
                     string
                     greaterThan
                     path(string,[extent(0,Example.Employee),property(string,FirstName)])
-                    literal(string,'erik')
+                    literal(string,erik)
                 )
                 operation(
                     logical
@@ -28195,7 +28525,7 @@ select1(
         any
         equal
         path(any,[property(any,e),gmethod(any,getextension,[example.myperson],[]),property(any,myname)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28221,7 +28551,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),gmethod(any,getextension,[example.myperson],[]),property(any,myname)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28244,7 +28574,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),gmethod(any,getextension,[example.myperson],[]),property(any,myname)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28267,7 +28597,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),gmethod(object(Example.MyPerson),GetExtension,[Example.MyPerson],[]),property(string,MyName)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28290,7 +28620,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),gmethod(object(Example.MyPerson),GetExtension,[Example.MyPerson],[]),property(string,MyName)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28360,7 +28690,7 @@ select1(
         any
         equal
         path(any,[property(any,e),gmethod(any,getextension,[example.myperson],[]),property(any,myname)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28387,7 +28717,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),gmethod(any,getextension,[example.myperson],[]),property(any,myname)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28411,7 +28741,7 @@ select2(
         any
         equal
         path(any,[extent(0,example.employee),gmethod(any,getextension,[example.myperson],[]),property(any,myname)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28435,7 +28765,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),gmethod(object(Example.MyPerson),GetExtension,[Example.MyPerson],[]),property(string,MyName)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]
@@ -28459,7 +28789,7 @@ select2(
         string
         equal
         path(string,[extent(0,Example.Employee),gmethod(object(Example.MyPerson),GetExtension,[Example.MyPerson],[]),property(string,MyName)])
-        literal(string,'peter2')
+        literal(string,peter2)
     )
     [
     ]

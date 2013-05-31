@@ -233,7 +233,7 @@ namespace CheckBuildSystem
 
                 RequiredPatterns = null,
 
-                FileExceptions = new String[] { "HtmlAgilityPack.fx.4.0-CP.csproj" },
+                FileExceptions = new String[] { "HtmlAgilityPack.fx.4.0-CP.csproj", "Starcounter.InstallerWrapper.csproj" },
 
                 PolicyDescription = "Only .NET v4.5 is allowed for managed projects."
             },
@@ -329,7 +329,7 @@ namespace CheckBuildSystem
                 "Newtonsoft.Json.csproj", "ServerLogTail.csproj", "LoadAndLatency.csproj",
                 "SqlCacheTrasher.csproj", "PolePosition.csproj", "ApplicationProjectTemplate.csproj",
                 "ClassLibraryProjectTemplate.csproj", "scweaver.Test.csproj", "Build32BitComponents.csproj",
-                "Starcounter.Server.Rest.csproj"
+                "Starcounter.Server.Rest.csproj", "Starcounter.InstallerWrapper.csproj"
                 },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."

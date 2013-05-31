@@ -531,7 +531,7 @@ namespace QueryProcessingTest {
         static Account InsertAccount(int accountId, User client) {
             Account a = null;
             Db.Transaction(delegate {
-                a = new Account { AccountId = accountId, Amount = 100.0m - (accountId - AccountIdLast) * 3, Client = client, Updated = DateTime.Now };
+                a = new Account { AccountId = accountId, Amount = 100.0m - (accountId - AccountIdLast) * 3, Client = client, When = DateTime.Now };
             });
             return a;
         }
