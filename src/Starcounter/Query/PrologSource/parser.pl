@@ -1,13 +1,14 @@
 
 
-/* Parser, Peter Idestam-Almquist, Starcounter, 2013-02-07. */
+/* Parser, Peter Idestam-Almquist, Starcounter, 2013-05-31. */
 
 /* A parser for SQL following SQL92. The numbers of the sections below refer to the chapters in 
 *  the specification of the ANSI-standard SQL92. 
 */
 
-/* 13-05-23: Added support of double-quote delimited identifiers ("..."). */
-/* 13-05-23: Removed support of double-quote text strings ("..."). */
+/* 13-05-31: Modified empty_string_literal. */
+/* 13-05-24: Added support of double-quote delimited identifiers ("..."). */
+/* 13-05-24: Removed support of double-quote text strings ("..."). */
 /* 13-02-07: Removed support of object-variable as first operand to istype-predicate. */
 /* 13-02-04: Added support of offset not only offsetkey in fetch clause. */
 /* 13-01-28: Added support of is-type comparison by adding istype_predicate/3. */
@@ -93,6 +94,8 @@ space_code([32|Cs],Cs):- !. /* ' ' */
 
 terminal([Code|Cs],Code,Cs):- !. /* Used to represent terminal symbols. */
 
+empty_string_literal(literal(string,Literal)):- /* (empty string) */
+	atom_codes(Literal,[]), !.
 empty_string_literal(literal(string,Literal)):- /* '' */
 	atom_codes(Literal,[39,39]), !.
 empty_string_literal(literal(string,Literal)):- /* "" */

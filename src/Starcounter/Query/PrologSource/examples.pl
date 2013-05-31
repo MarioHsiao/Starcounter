@@ -1,5 +1,5 @@
 
-sql_example(pos,'MyDB',"select \"FirstName\" from Employee where LastName = 'Andersson'").
+sql_example(pos,'MyDB',"select FirstName from Employee where LastName like ?").
 sql_example(pos,'MyDB',"select Department from Employee where FirstName = 'Pel''le'").
 
 
