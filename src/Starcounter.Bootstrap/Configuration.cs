@@ -77,22 +77,6 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Gets the compiler path.
-        /// </summary>
-        /// <value>The compiler path.</value>
-        public string CompilerPath
-        {
-            get {
-                string prop;
-
-                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.CompilerPath, out prop))
-                    prop = @"C:/Test/MinGW/bin/x86_64-w64-mingw32-gcc.exe";
-
-                return prop;
-            }
-        }
-
-        /// <summary>
         /// Gets the database directory.
         /// </summary>
         /// <value>The database directory.</value>

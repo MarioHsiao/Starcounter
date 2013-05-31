@@ -128,6 +128,17 @@ public:
         return 0;
     }
 
+    // Getting number of chunks in overflow queue.
+    int64_t NumberOverflowChunksPerDatabasePerWorker(int32_t db_index)
+    {
+        if (worker_dbs_[db_index] != NULL)
+        {
+            return worker_dbs_[db_index]->GetNumberOverflowedChunks();
+        }
+
+        return 0;
+    }
+
     // Clone made during last iteration.
     SocketDataChunkRef get_sd_receive_clone()
     {

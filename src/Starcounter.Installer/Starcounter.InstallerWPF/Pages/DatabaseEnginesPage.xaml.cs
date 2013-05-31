@@ -53,6 +53,10 @@ namespace Starcounter.InstallerWPF.Pages {
                 }
             }
 
+            // Workaround to get the validation work (the adoner layer can not be shown bug)
+            object dataContext = this.DataContext;
+            this.DataContext = null;
+            this.DataContext = dataContext;
         }
 
     }

@@ -173,6 +173,17 @@ namespace Starcounter.Internal
               var nestedReader = new TupleReader(dReader.AtEnd, 2);
               Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
               Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
+
+              topReader = new TupleReader(start, 3);
+              topReader.Skip();
+              topReader.Skip();
+              dReader = new TupleReader(topReader.AtEnd, 3);
+              Assert.AreEqual(2, dReader.ReadUInt());
+              Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
+              nestedReader = new TupleReader(dReader.AtEnd, 2);
+              Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
+              Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
+
           }
       }
    }

@@ -167,7 +167,7 @@
     <Style x:Key="ToggleButtonInComboBoxStyle" TargetType="{x:Type ButtonBase}" BasedOn="{StaticResource ButtonStyle}">
     </Style>
 
-
+   
     <!-- ComboBoxStyle -->
     <Style x:Key="ComboBoxStyle" TargetType="{x:Type ComboBox}">
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -181,6 +181,7 @@
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
 
         <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+        
         <Setter Property="ItemsPanel">
             <Setter.Value>
                 <ItemsPanelTemplate>
@@ -188,6 +189,7 @@
                 </ItemsPanelTemplate>
             </Setter.Value>
         </Setter>
+        
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBox}">
@@ -394,6 +396,53 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+
+        <Setter Property="Validation.ErrorTemplate">
+            <Setter.Value>
+                <ControlTemplate>
+
+                    <ControlTemplate.Resources>
+
+                        <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
+
+                        <Style x:Key="errorOrWarning" TargetType="{x:Type Rectangle}">
+                            <Style.Triggers>
+
+                                <!-- Error -->
+                                <DataTrigger Binding="{Binding ElementName=MyAdorner, Path=AdornedElement.(Validation.Errors).CurrentItem.ErrorContent.IsError}"  Value="{x:Null}">
+                                    <Setter Property="Fill" Value="#FFAC2525" />
+                                </DataTrigger>
+
+                                <!-- Error (Using Error Object) -->
+                                <DataTrigger Binding="{Binding ElementName=MyAdorner, Path=AdornedElement.(Validation.Errors).CurrentItem.ErrorContent.IsError}"  Value="true">
+                                    <Setter Property="Fill" Value="#FFAC2525" />
+                                </DataTrigger>
+
+                                <!-- Warning (Using Error Object) -->
+                                <DataTrigger Binding="{Binding ElementName=MyAdorner, Path=AdornedElement.(Validation.Errors).CurrentItem.ErrorContent.IsError}"  Value="false">
+                                    <Setter Property="Fill" Value="#FFFFD700" />
+                                </DataTrigger>
+
+                            </Style.Triggers>
+                        </Style>
+
+                    </ControlTemplate.Resources>
+
+                    <DockPanel LastChildFill="True" Visibility="{Binding ElementName=MyAdorner, Mode=OneWay, Path=AdornedElement.IsEnabled, Converter={StaticResource booleanToVisibilityConverter}}">
+                            <Rectangle Style="{DynamicResource errorOrWarning}" VerticalAlignment="Top" Margin="2.5,8,5,2.5" Width="10" Height="10" RadiusX="5" RadiusY="5" ToolTip="{Binding ElementName=MyAdorner, Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"/>
+                       <AdornedElementPlaceholder Name="MyAdorner"/>
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors).CurrentItem.ErrorContent}" />
+            </Trigger>
+
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource ComboBoxStyle}" />

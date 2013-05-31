@@ -185,11 +185,6 @@ namespace Starcounter.Internal
             public const string TempDir = "TempDir";
 
             /// <summary>
-            /// Specifies the path to the compiler to use when generating code.
-            /// </summary>
-            public const string CompilerPath = "CompilerPath";
-
-            /// <summary>
             /// Specifies the name of Starcounter server which started the database.
             /// </summary>
             public const string ServerName = "ServerName";

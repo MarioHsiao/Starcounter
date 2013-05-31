@@ -2263,8 +2263,14 @@ public:
     // Getting the total number of used chunks for all databases.
     int64_t NumberUsedChunksAllWorkersAndDatabases();
 
-    // Getting the number of used sockets per database.
+    // Getting the total number of overflow chunks for all databases.
+    int64_t NumberOverflowChunksAllWorkersAndDatabases();
+
+    // Getting the number of used chunks per database.
     int64_t NumberUsedChunksPerDatabase(int32_t db_index);
+
+    // Getting the number of overflow chunks per database.
+    int64_t NumberOverflowChunksPerDatabase(int32_t db_index);
 
     // Getting the number of used sockets per worker.
     int64_t NumberUsedChunksPerWorker(int32_t worker_id);

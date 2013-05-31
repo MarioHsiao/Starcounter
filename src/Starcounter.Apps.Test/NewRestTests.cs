@@ -69,7 +69,7 @@ namespace Starcounter.Internal.Test
             r = Utf8Helper.IntFastParseFromAscii(b, 0, 5);
             Assert.IsTrue(r == 12345);
 
-            Byte[] t = new Byte[16];
+            Byte[] t = new Byte[32];
             UInt32 num_bytes;
             String ss;
             unsafe
@@ -125,6 +125,16 @@ namespace Starcounter.Internal.Test
                     Assert.IsTrue(10 == num_bytes);
                     ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
                     Assert.IsTrue("6786787798" == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, Int64.MinValue);
+                    Assert.IsTrue(Int64.MinValue.ToString().Length == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue(Int64.MinValue.ToString() == ss);
+
+                    num_bytes = Utf8Helper.WriteIntAsUtf8(tt, Int64.MaxValue);
+                    Assert.IsTrue(Int64.MaxValue.ToString().Length == num_bytes);
+                    ss = new String((SByte*)tt, 0, (Int32)num_bytes, Encoding.ASCII);
+                    Assert.IsTrue(Int64.MaxValue.ToString() == ss);
                 }
             }
 
@@ -178,6 +188,16 @@ namespace Starcounter.Internal.Test
             ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
             Assert.IsTrue("6786787798" == ss);
 
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, Int64.MinValue);
+            Assert.IsTrue(Int64.MinValue.ToString().Length == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue(Int64.MinValue.ToString() == ss);
+
+            num_bytes = Utf8Helper.WriteIntAsUtf8Man(t, 0, Int64.MaxValue);
+            Assert.IsTrue(Int64.MaxValue.ToString().Length == num_bytes);
+            ss = UTF8Encoding.UTF8.GetString(t, 0, (Int32)num_bytes);
+            Assert.IsTrue(Int64.MaxValue.ToString() == ss);
+
             unsafe
             {
                 b = Encoding.ASCII.GetBytes("0");
@@ -211,7 +231,43 @@ namespace Starcounter.Internal.Test
                     Boolean is_num = Utf8Helper.IntFastParseFromAscii(p, 6, out r);
                     Assert.IsTrue(!is_num);
                 }
+
+                b = Encoding.ASCII.GetBytes(Int64.MinValue.ToString());
+                fixed (Byte* pb = b)
+                {
+                    IntPtr p = (IntPtr)pb;
+                    Boolean is_num = Utf8Helper.IntFastParseFromAscii(p, Int64.MinValue.ToString().Length, out r);
+                    Assert.IsTrue(is_num && r == Int64.MinValue);
+                }
+
+                b = Encoding.ASCII.GetBytes(Int64.MaxValue.ToString());
+                fixed (Byte* pb = b)
+                {
+                    IntPtr p = (IntPtr)pb;
+                    Boolean is_num = Utf8Helper.IntFastParseFromAscii(p, Int64.MaxValue.ToString().Length, out r);
+                    Assert.IsTrue(is_num && r == Int64.MaxValue);
+                }
             }
+
+            b = Encoding.ASCII.GetBytes("0");
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, 1);
+            Assert.IsTrue(r == 0);
+
+            b = Encoding.ASCII.GetBytes("-0");
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, 2);
+            Assert.IsTrue(r == 0);
+
+            b = Encoding.ASCII.GetBytes("-12345");
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, 6);
+            Assert.IsTrue(r == -12345);
+
+            b = Encoding.ASCII.GetBytes(Int64.MinValue.ToString());
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, Int64.MinValue.ToString().Length);
+            Assert.IsTrue(r == Int64.MinValue);
+
+            b = Encoding.ASCII.GetBytes(Int64.MaxValue.ToString());
+            r = Utf8Helper.IntFastParseFromAscii(b, 0, Int64.MaxValue.ToString().Length);
+            Assert.IsTrue(r == Int64.MaxValue);
         }
 
         /// <summary>

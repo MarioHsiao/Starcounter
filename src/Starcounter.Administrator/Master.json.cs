@@ -182,9 +182,9 @@ namespace Starcounter.Administrator {
 
                         json.collationFiles = new object[] { };
                         // TODO: Extend the Public model api to be able to retrive a list of all available collation files
-                        json.collationFiles[0] = new { name = "TurboText_en-GB_2.dll", description = "English" };
-                        json.collationFiles[1] = new { name = "TurboText_sv-SE_2.dll", description = "Swedish" };
-                        json.collationFiles[2] = new { name = "TurboText_nb-NO_2.dll", description = "Norwegian" };
+                        json.collationFiles[0] = new { name = "TurboText_en-GB_3.dll", description = "English" };
+                        json.collationFiles[1] = new { name = "TurboText_sv-SE_3.dll", description = "Swedish" };
+                        json.collationFiles[2] = new { name = "TurboText_nb-NO_3.dll", description = "Norwegian" };
 
 
                         json.maxImageSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.MaxImageSize ?? -1;
