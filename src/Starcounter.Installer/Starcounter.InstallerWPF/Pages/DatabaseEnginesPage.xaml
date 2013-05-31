@@ -162,7 +162,7 @@
                                             <ComboBox.Text>
                                                 <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
                                                     <Binding.ValidationRules>
-                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
+                                                        <rules:PortRule  CheckIfAvailable="True" ValidatesOnTargetUpdated="True"/>
                                                     </Binding.ValidationRules>
                                                 </Binding>
                                             </ComboBox.Text>
@@ -297,7 +297,7 @@
                                             <ComboBox.Text>
                                                 <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
                                                     <Binding.ValidationRules>
-                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
+                                                        <rules:PortRule CheckIfAvailable="True" ValidatesOnTargetUpdated="True"/>
                                                     </Binding.ValidationRules>
                                                 </Binding>
                                             </ComboBox.Text>

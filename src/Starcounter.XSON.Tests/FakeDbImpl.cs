@@ -1,7 +1,7 @@
 ﻿using System;
 using Starcounter.Advanced;
 
-namespace Starcounter.Client.Tests.Application {
+namespace Starcounter.XSON.Tests {
     internal class FakeDbImpl : IDb {
         [ThreadStatic]
         private static ITransaction current;

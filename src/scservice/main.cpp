@@ -155,7 +155,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	const wchar_t *admin_dbname = L"administrator";	
 	const char *admin_dbname_ascii = "administrator";	
-	const wchar_t *mingw = L"MinGW\\bin\\x86_64-w64-mingw32-gcc.exe";
 
 	void *handles[ID_LAST_ID];
 	memset(handles, 0, sizeof(handles));
@@ -428,7 +427,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 #ifdef WITH_DATABASE
 	str_template =
         L"sccode.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" "
-        L"--CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" --WorkingDir=\"%s\" "
+        L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" --WorkingDir=\"%s\" "
         L"--DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --SchedulerCount=%s";
 
 	// TODO: Remove the scheduler count at all?
@@ -441,7 +440,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		wcslen(database_image_dir) + 
 		wcslen(server_logs_dir) + 
 		wcslen(database_temp_dir) +
-		wcslen(mingw) + 
 		wcslen(admin_exe_path) +
 		wcslen(server_cfg_path) +
 		wcslen(admin_working_dir) +
@@ -463,7 +461,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		database_image_dir,
 		server_logs_dir,
 		database_temp_dir,
-		mingw,
 		admin_exe_path,
 		server_cfg_path,
 		admin_working_dir,
@@ -475,7 +472,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 
 	str_template =
         L"sccode.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
-        L"--CompilerPath=\"%s\" --AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" "
+        L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" "
         L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --FLAG:NoDb %s";
 
 	str_num_chars +=
@@ -484,7 +481,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		wcslen(srv_name_upr) +				// ServerName
 		wcslen(server_logs_dir) +			// OutputDir
 		wcslen(server_temp_dir) +			// TempDir
-		wcslen(mingw) +						// CompilerPath
 		wcslen(admin_exe_path) +			// AutoStartExePath
 		wcslen(server_cfg_path) +			// UserArguments
 		wcslen(admin_working_dir) +			// WorkingDir
@@ -505,7 +501,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		srv_name_upr,
 		server_logs_dir,
 		server_temp_dir,
-		mingw,
 		admin_exe_path,
 		server_cfg_path,
 		admin_working_dir,
