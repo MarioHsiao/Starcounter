@@ -1,6 +1,6 @@
 
 
-/* SQL, Peter Idestam-Almquist, Starcounter, 2013-04-15. */
+/* SQL, Peter Idestam-Almquist, Starcounter, 2013-05-23. */
 
 /* A query processor of SQL-queries. */
 
