@@ -1,6 +1,6 @@
 
 
-/* SQL, Peter Idestam-Almquist, Starcounter, 2013-04-15. */
+/* SQL, Peter Idestam-Almquist, Starcounter, 2013-05-23. */
 
 /* A query processor of SQL-queries. */
 
@@ -65,7 +65,7 @@
 
 :- load_files([tokenizer,parser,rewriter,controller,modifyer,platform]).
 
-sql_version('130412').
+sql_version('130523').
 
 
 /*===== Stand-alone executable. =====*/

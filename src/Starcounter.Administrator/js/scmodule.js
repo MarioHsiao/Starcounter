@@ -251,11 +251,56 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', 'Database', fun
 
     }
 
+    $scope.deleteDatabase = function (database) {
+
+        Database.delete({ name: database.name }, function () {
+            // Success
+
+            // Refresh engine and executable list
+            $scope.refreshEngineAndExecutableList();
+
+            // Refresh database list
+            $scope.refreshDatabaseProcessStatus();
+
+        }, function (response) {
+            // Error
+
+            if (response instanceof SyntaxError) {
+                $scope.showException(response.message, null, response.stack);
+            }
+            else {
+                if (response.status == 405) {
+                    // 405 MethodNotAllowed
+                    $scope.alerts.push({ type: 'info', msg: "Database " + database.name + " can not be deleted (405 MethodNotAllowed)", helpLink: null });
+                }
+                else {
+                    $scope.showException(response.data, null, null);
+                }
+            }
+        });
+
+    }
 
     $scope.btn_createDatabase = function () {
         $scope.alerts.push({ type: 'info', msg: "Not implemented" });
     }
 
+    $scope.btnDeleteDatabase = function (database) {
+
+        var title = 'Stop engine';
+        var msg = 'Do you want to delete the database ' + database.name;
+        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Delete', cssClass: 'btn-danger' }];
+
+        $dialog.messageBox(title, msg, btns)
+          .open()
+          .then(function (result) {
+              if (result == 0) {
+                  $scope.deleteDatabase(database);
+              }
+          });
+
+
+    }
 
     $scope.btnStopDatabase = function (database) {
 
@@ -292,11 +337,16 @@ databaseModule.controller('DatabaseCtrl', ['$scope', '$routeParams', 'Database',
         Database.console({ name: name }, function (response) {
             // Success
 
-            if (response.console == null) {
-                $scope.showException("Invalid response, console property was null", null, ".getConsole()");
+            if (response.hasOwnProperty("console") == false) {
+                $scope.showException("Invalid response, missing console property", null, ".getConsole()");
             }
             else {
-                $scope.console = response.console.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
+                if (response.console != null) {
+                    $scope.console = response.console.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
+                }
+                else {
+                    $scope.console = "";
+                }
                 $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
             }
 
@@ -496,6 +546,7 @@ angular.module('sc.database.service', ['ngResource'], function ($provide) {
         return $resource('/api/databases/:name', { name: '@name' }, {
             query: { method: 'GET', isArray: false },
             get: { method: 'GET' },
+            delete: { method: 'DELETE' },
             stop: { method: 'DELETE', url: '/api/engines/:name/db' },
             status: { method: 'GET', url: '/api/engines/:name/db' },
             console: { method: 'GET', url: '/adminapi/v1/databases/:name/console' }
