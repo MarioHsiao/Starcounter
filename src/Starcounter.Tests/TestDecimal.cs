@@ -44,11 +44,11 @@ namespace Starcounter.Tests {
 			//==================================================================
 			// Test ClrDecimalToEncodedX6Decimal()
 			//==================================================================
-			{
-				Decimal d = 0;
-				Int64 encodedX6Decimal = DbState.ClrDecimalToEncodedX6Decimal(d);
-				Assert.AreEqual(encodedX6Decimal, 0);
-			}
+            //{
+            //    Decimal d = 0;
+            //    Int64 encodedX6Decimal = DbState.ClrDecimalToEncodedX6Decimal(d);
+            //    Assert.AreEqual(encodedX6Decimal, 0);
+            //}
 
 			//Assert.AreEqual(true, ClrDecimalToEncodedX6Decimal());
 			Assert.True(true);
@@ -103,6 +103,27 @@ namespace Starcounter.Tests {
             decimal actual;
             X6Decimal value;
             int[] bits;
+
+            expected = 0m;
+            value = X6Decimal.FromDecimal(expected);
+            actual = value.ToDecimal();
+            bits = decimal.GetBits(actual);
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
+
+            expected = 20m;
+            value = X6Decimal.FromDecimal(expected);
+            actual = value.ToDecimal();
+            bits = decimal.GetBits(actual);
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
+
+            expected = 100m;
+            value = X6Decimal.FromDecimal(expected);
+            actual = value.ToDecimal();
+            bits = decimal.GetBits(actual);
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 32.45m;
             value = X6Decimal.FromDecimal(expected);
