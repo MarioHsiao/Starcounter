@@ -207,7 +207,7 @@ namespace GenerateInstaller
                 ReplaceStringInFile(currentVersionFilePath, @"String IDFullBase32 = ""[0-9]+"";", "String IDFullBase32 = \"" + downloadID.IDFullBase32 + "\";");
                 ReplaceStringInFile(currentVersionFilePath, @"String IDTailBase64 = ""[0-9]+"";", "String IDTailBase64 = \"" + downloadID.IDTailBase64 + "\";");
                 ReplaceStringInFile(currentVersionFilePath, @"UInt32 IDTailDecimal = [0-9]+;", "UInt32 IDTailDecimal = " + downloadID.IDTailDecimal + ";");
-                ReplaceStringInFile(currentVersionFilePath, @"DateTime RequiredRegistrationDate = DateTime.Parse(""[0-9\-]+"");", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
+                ReplaceStringInFile(currentVersionFilePath, @"DateTime RequiredRegistrationDate = DateTime\.Parse\(""[0-9\-]+""\);", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
 
                 //////////////////////////////////////////////////////////
                 // Packaging consolidated folder, updating resources, etc.
