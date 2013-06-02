@@ -212,8 +212,10 @@ namespace GenerateInstaller
                 Console.WriteLine("Updating resources and building empty installer...");
 
                 // Checking if setup file already exists.
-                String setupFileName = "Starcounter-" + version + "-Setup.exe";
-                String setupFilePath = Path.Combine(outputFolder, setupFileName);
+                String specificSetupFileName = "Starcounter-" + version + "-Setup.exe";
+                String specificSetupFilePath = Path.Combine(outputFolder, specificSetupFileName);
+                String staticSetupFileName = "Starcounter-Setup.exe";
+                String staticSetupFilePath = Path.Combine(outputFolder, staticSetupFileName);
 
                 Console.WriteLine("Removing old setup file...");
                 BuildSystem.DirectoryContainsFilesRegex(outputFolder, new String[] { @"Starcounter.+Setup\.exe" }, true);
@@ -312,12 +314,12 @@ namespace GenerateInstaller
                 ZipFile.CreateFromDirectory(outputFolder, archivePath, CompressionLevel.Optimal, false);
 
                 // Compiling second time with archive.
-                msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
+                msbuildInfo.Arguments = msbuildArgs;
                 msbuildProcess = Process.Start(msbuildInfo);
                 msbuildProcess.WaitForExit();
                 if (msbuildProcess.ExitCode != 0)
                 {
-                    throw new Exception("Building Installer WPF project for complete setup has failed with error code: " + msbuildProcess.ExitCode);
+                    throw new Exception("Building Installer WPF project has failed with error code: " + msbuildProcess.ExitCode);
                 }
                 msbuildProcess.Close();
 
@@ -325,7 +327,7 @@ namespace GenerateInstaller
                 for (Int32 i = 0; i < 5; i++)
                 {
                     // Signing the main Starcounter setup.
-                    signingError = BuildSystem.SignFiles(new String[] { setupFilePath }, companyName, productName, certificateFile);
+                    signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, companyName, productName, certificateFile);
                     if (signingError == null) break;
 
                     Thread.Sleep(5000);
@@ -336,6 +338,32 @@ namespace GenerateInstaller
                 {
                     throw new Exception("Failed to sign main Starcounter setup file...");
                 }
+
+                Console.WriteLine("Building installer wrapper...");
+
+                // Copying necessary embedded files.
+                String installerWrapperDir = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper");
+
+                File.Copy(Path.Combine(BuildSystem.MappedBuildServerFTP, @"SCDev\ThirdParty\dotNET\dotnetfx45_full_x86_x64.exe"),
+                    Path.Combine(installerWrapperDir, "resources", "dotnetfx45_full_x86_x64.exe"), true);
+
+                File.Copy(staticSetupFilePath, Path.Combine(installerWrapperDir, "resources", staticSetupFileName), true);
+
+                String installerWrapperVersionFilePath = Path.Combine(installerWrapperDir, "Starcounter.InstallerWrapper.cs");
+
+                // Setting current installer version.
+                ReplaceStringInFile(installerWrapperVersionFilePath, "String ScSetupVersion = \"2.0.0.0\";", "String ScSetupVersion = \"" + version + "\";");
+
+                // Compiling second time with archive.
+                msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper\Starcounter.InstallerWrapper.csproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=AnyCPU";
+                msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
+                msbuildProcess = Process.Start(msbuildInfo);
+                msbuildProcess.WaitForExit();
+                if (msbuildProcess.ExitCode != 0)
+                {
+                    throw new Exception("Building installer wrapper project has failed with error code: " + msbuildProcess.ExitCode);
+                }
+                msbuildProcess.Close();
 
                 // Uploading changes to FTP server (only if its not a personal build).
                 if (Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) == "True")
@@ -355,7 +383,7 @@ namespace GenerateInstaller
 
                         // Copying file to destination directory.
                         String targetBase64Dir = buildsFTPPoolDir + "/" + downloadID.IDTailBase64;
-                        BuildSystem.UploadFileToFTP(BuildSystem.StarcounterFtpConfigName, setupFilePath, targetBase64Dir + "/" + setupFileName);
+                        BuildSystem.UploadFileToFTP(BuildSystem.StarcounterFtpConfigName, specificSetupFilePath, targetBase64Dir + "/" + specificSetupFileName);
 
                         // Saving the new build version information as a last step.
                         BuildSystem.UploadFileTextToFTP(BuildSystem.StarcounterFtpConfigName, versionFileContents, buildsFTPPoolDir + "/" + "VersionInfo_" + previousRandomNumCount + ".xml");
@@ -365,7 +393,7 @@ namespace GenerateInstaller
 
                     // Uploading standalone setup to FTP.
                     if (args.Length > 0)
-                        UploadBuildToFtp(args[0], version, setupFileName, setupFilePath);
+                        UploadBuildToFtp(args[0], version, specificSetupFileName, specificSetupFilePath);
                 }
 
                 Console.WriteLine("Succeeded generating unique installer with download id: " + downloadID.IDFullBase32);
