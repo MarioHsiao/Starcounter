@@ -10,6 +10,7 @@ using BuildSystemHelper;
 using System.Threading;
 using System.Reflection;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace GenerateInstaller
 {
@@ -69,15 +70,17 @@ namespace GenerateInstaller
         }
 
         // Replaces string in file.
-        static void ReplaceStringInFile(String filePath, String origString, String replaceString)
+        static void ReplaceStringInFile(String filePath, String origStringRegex, String replaceString)
         {
             String fileContents = File.ReadAllText(filePath);
 
-            // Trying to find this exact string in file.
-            if (!fileContents.Contains(origString))
-                throw new Exception("Can't find version constant string " + origString + " in file " + filePath);
+            Match match = Regex.Match(fileContents, origStringRegex, RegexOptions.IgnoreCase);
 
-            fileContents = fileContents.Replace(origString, replaceString);
+            // Trying to find this exact string in file.
+            if (!match.Success)
+                throw new Exception("Can't find matching string " + origStringRegex + " in file " + filePath);
+
+            fileContents = fileContents.Replace(match.Value, replaceString);
 
             File.WriteAllText(filePath, fileContents);
         }
@@ -200,11 +203,11 @@ namespace GenerateInstaller
 
                 // Replacing version information.
                 String currentVersionFilePath = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs");
-                ReplaceStringInFile(currentVersionFilePath, "String Version = \"2.0.0.0\";", "String Version = \"" + version + "\";");
-                ReplaceStringInFile(currentVersionFilePath, "String IDFullBase32 = \"000000000000000000000000\";", "String IDFullBase32 = \"" + downloadID.IDFullBase32 + "\";");
-                ReplaceStringInFile(currentVersionFilePath, "String IDTailBase64 = \"0000000\";", "String IDTailBase64 = \"" + downloadID.IDTailBase64 + "\";");
-                ReplaceStringInFile(currentVersionFilePath, "UInt32 IDTailDecimal = 0;", "UInt32 IDTailDecimal = " + downloadID.IDTailDecimal + ";");
-                ReplaceStringInFile(currentVersionFilePath, "DateTime RequiredRegistrationDate = DateTime.Parse(\"1900-01-01\");", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
+                ReplaceStringInFile(currentVersionFilePath, @"String Version = ""[0-9\.]+"";", "String Version = \"" + version + "\";");
+                ReplaceStringInFile(currentVersionFilePath, @"String IDFullBase32 = ""[0-9]+"";", "String IDFullBase32 = \"" + downloadID.IDFullBase32 + "\";");
+                ReplaceStringInFile(currentVersionFilePath, @"String IDTailBase64 = ""[0-9]+"";", "String IDTailBase64 = \"" + downloadID.IDTailBase64 + "\";");
+                ReplaceStringInFile(currentVersionFilePath, @"UInt32 IDTailDecimal = [0-9]+;", "UInt32 IDTailDecimal = " + downloadID.IDTailDecimal + ";");
+                ReplaceStringInFile(currentVersionFilePath, @"DateTime RequiredRegistrationDate = DateTime.Parse(""[0-9\-]+"");", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
 
                 //////////////////////////////////////////////////////////
                 // Packaging consolidated folder, updating resources, etc.
@@ -352,7 +355,7 @@ namespace GenerateInstaller
                 String installerWrapperVersionFilePath = Path.Combine(installerWrapperDir, "Starcounter.InstallerWrapper.cs");
 
                 // Setting current installer version.
-                ReplaceStringInFile(installerWrapperVersionFilePath, "String ScSetupVersion = \"2.0.0.0\";", "String ScSetupVersion = \"" + version + "\";");
+                ReplaceStringInFile(installerWrapperVersionFilePath, @"String ScSetupVersion = ""[0-9\.]+"";", "String ScSetupVersion = \"" + version + "\";");
 
                 // Compiling second time with archive.
                 msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper\Starcounter.InstallerWrapper.csproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=AnyCPU";

@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestLauncher", "TestLaunche
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildLevel0", "BuildLevel0\BuildLevel0.csproj", "{889BA191-6A32-4F90-A17D-5B839C77B61C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdoptProjectToBuildSystem", "AdoptProjectToBuildSystem\AdoptProjectToBuildSystem.csproj", "{DDC52B20-AC01-46A1-B590-F650457F879D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleanUpSourceDirectory", "CleanUpSourceDirectory\CleanUpSourceDirectory.csproj", "{659DFBBC-F327-4BB7-BFDD-3A3B10BE888D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnforceBuildSystemPolicy", "EnforceBuildSystemPolicy\EnforceBuildSystemPolicy.csproj", "{16538912-F6F4-4F33-B698-F1F8421A8DBC}"
@@ -51,10 +49,6 @@ Global
 		{889BA191-6A32-4F90-A17D-5B839C77B61C}.Debug|AnyCPU.Build.0 = Debug|Any CPU
 		{889BA191-6A32-4F90-A17D-5B839C77B61C}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{889BA191-6A32-4F90-A17D-5B839C77B61C}.Release|AnyCPU.Build.0 = Release|Any CPU
-		{DDC52B20-AC01-46A1-B590-F650457F879D}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
-		{DDC52B20-AC01-46A1-B590-F650457F879D}.Debug|AnyCPU.Build.0 = Debug|Any CPU
-		{DDC52B20-AC01-46A1-B590-F650457F879D}.Release|AnyCPU.ActiveCfg = Release|Any CPU
-		{DDC52B20-AC01-46A1-B590-F650457F879D}.Release|AnyCPU.Build.0 = Release|Any CPU
 		{659DFBBC-F327-4BB7-BFDD-3A3B10BE888D}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
 		{659DFBBC-F327-4BB7-BFDD-3A3B10BE888D}.Debug|AnyCPU.Build.0 = Debug|Any CPU
 		{659DFBBC-F327-4BB7-BFDD-3A3B10BE888D}.Release|AnyCPU.ActiveCfg = Release|Any CPU

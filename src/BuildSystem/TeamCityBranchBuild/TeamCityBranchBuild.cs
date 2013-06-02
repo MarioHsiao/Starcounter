@@ -48,6 +48,15 @@ namespace TeamCityBranchBuild
         /// </summary>
         static Int32 Main(string[] args)
         {
+            /*
+            Environment.SetEnvironmentVariable("SC_RELEASING_BUILD", "True");
+            Environment.SetEnvironmentVariable("SC_CUSTOM_BUILD", "True");
+            Environment.SetEnvironmentVariable("Configuration", "Release");
+            Environment.SetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar, "C:\\github");
+            Environment.SetEnvironmentVariable(BuildSystem.BuildNumberEnvVar, "1.2.3.4");
+            Environment.SetEnvironmentVariable(BuildSystem.BuildSystemDirEnvVar, "C:\\BuildSystem");
+            */
+
             try
             {
                 // Printing tool welcome message.
@@ -70,7 +79,9 @@ namespace TeamCityBranchBuild
                     "Configuration",
                     // "Platform",
                     BuildSystem.BuildNumberEnvVar,
-                    BuildSystem.CheckOutDirEnvVar
+                    BuildSystem.CheckOutDirEnvVar,
+                    BuildSystem.BuildSystemDirEnvVar,
+                    BuildSystem.BuildSystemToolsDirEnvVar
                 }))
                 {
                     throw new Exception("Some needed environment variables do not exist...");
@@ -99,11 +110,18 @@ namespace TeamCityBranchBuild
                 if (devRootDir == null)
                     throw new Exception("Can't get path to current workspace directory.");
 
+                if (!Directory.Exists(Path.Combine(devRootDir, "Level1")))
+                    throw new Exception("Path to current workspace directory is wrong.");
+
                 // Removing Level0 sources directory.
-                Directory.Delete(Path.Combine(devRootDir, @"Level0"), true);
+                if (Directory.Exists(Path.Combine(devRootDir, "Level0")))
+                    Directory.Delete(Path.Combine(devRootDir, "Level0"), true);
 
                 // Target build directory.
                 String buildNumber = Environment.GetEnvironmentVariable(BuildSystem.BuildNumberEnvVar);
+                if (buildNumber == null)
+                    throw new Exception("Can't get build number environment variable.");
+
                 String targetBuildDir = Path.Combine(BuildSystem.LocalBuildsFolder, Path.Combine(buildsFolderName, buildNumber));
 
                 // Stopping previous versions of the same build type.
@@ -126,7 +144,7 @@ namespace TeamCityBranchBuild
                 Console.Error.WriteLine("Copying sources and binaries to the build directory...");
 
                 // Copy all needed build tools to target directory.
-                String buildToolsBinDir = Environment.GetEnvironmentVariable("SC_BUILD_TOOLS_DIR");
+                String buildToolsBinDir = Environment.GetEnvironmentVariable(BuildSystem.BuildSystemToolsDirEnvVar);
                 if (buildToolsBinDir == null)
                     throw new ArgumentNullException("Build tools binary directory is not set.");
 
@@ -177,7 +195,8 @@ namespace TeamCityBranchBuild
 
                 // Copy all sources and binaries from the current build
                 // folder to the destination build directory.
-                BuildSystem.CopyFilesRecursively(new DirectoryInfo(devRootDir),
+                BuildSystem.CopyFilesRecursively(
+                    new DirectoryInfo(devRootDir),
                     new DirectoryInfo(targetBuildDir));
 
                 // Copying the consolidated directory.
