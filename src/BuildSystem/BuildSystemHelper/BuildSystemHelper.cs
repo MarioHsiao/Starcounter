@@ -59,6 +59,11 @@ namespace BuildSystemHelper
         public const String BuildSystemDirEnvVar = "SC_BUILD_SYSTEM_DIR";
 
         /// <summary>
+        /// Represents the name of the build system tools directory.
+        /// </summary>
+        public const String BuildSystemToolsDirEnvVar = "SC_BUILD_TOOLS_DIR";
+
+        /// <summary>
         /// Path to build output.
         /// </summary>
         public const String BuildOutputEnvVar = "SC_BUILD_OUTPUT_PATH";
