@@ -975,7 +975,7 @@ namespace Starcounter.Internal
             UInt32 ec;
             X6Decimal converted = X6Decimal.FromDecimal(value);
             
-            ec = sccoredb.sccoredb_put_encdec(recordID, recordAddr, (UInt32)columnIndex, converted.EncodedValue);
+            ec = sccoredb.sccoredb_put_encdec(recordID, recordAddr, (UInt32)columnIndex, converted);
             if (ec != 0)
                 throw ErrorCode.ToException(ec);
         }
@@ -1436,37 +1436,39 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(r);
         }
 
-		/// <summary>
-		/// Function used by CLRDecimalToEncodedX6Decimal(). TODO: Place this somewhere else.
-		/// </summary>
-		[DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]
-		public unsafe extern static UInt32 clr_decimal_to_encoded_x6_decimal
-		(Int32* decimal_part_ptr, ref Int64 encoded_x6_decimal_ptr);
+        ///// <summary>
+        ///// Function used by CLRDecimalToEncodedX6Decimal(). TODO: Place this somewhere else.
+        ///// </summary>
+        //[DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]
+        //public unsafe extern static UInt32 clr_decimal_to_encoded_x6_decimal
+        //(Int32* decimal_part_ptr, ref Int64 encoded_x6_decimal_ptr);
 		
-		/// <summary>
-        /// 
-        /// </summary>
-		/// <param name="clrDecimal"></param>
-        /// <returns></returns>
-		public static Int64 ClrDecimalToEncodedX6Decimal(Decimal clrDecimal) {
-			unsafe {
-				Int32[] decimalPart = Decimal.GetBits(clrDecimal);
-				Int64 encodedX6Decimal = 0;
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="clrDecimal"></param>
+        ///// <returns></returns>
+        //public static Int64 ClrDecimalToEncodedX6Decimal(Decimal clrDecimal) {
+        //    return X6Decimal.FromDecimal(clrDecimal).EncodedValue;
 
-				fixed (Int32* decimalPartPtr = decimalPart) {
-					// clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
-					// without data loss, the value will be written to encodedX6Decimal.
+        //    //unsafe {
+        //    //    Int32[] decimalPart = Decimal.GetBits(clrDecimal);
+        //    //    Int64 encodedX6Decimal = 0;
 
-                    UInt32 error_code = clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
+        //    //    fixed (Int32* decimalPartPtr = decimalPart) {
+        //    //        // clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
+        //    //        // without data loss, the value will be written to encodedX6Decimal.
 
-					if (error_code == 0) {
-						return encodedX6Decimal;
-					}
+        //    //        UInt32 error_code = clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
 
-					throw ErrorCode.ToException(error_code);
-				}
-			}
-        }
+        //    //        if (error_code == 0) {
+        //    //            return encodedX6Decimal;
+        //    //        }
+
+        //    //        throw ErrorCode.ToException(error_code);
+        //    //    }
+        //    //}
+        //}
 		
 #if false
 		/// <summary>
@@ -1489,7 +1491,7 @@ namespace Starcounter.Internal
 		}
 #endif
 		
-		public const Int64 X6DECIMALMAX = +4398046511103999999;
-        public const Int64 X6DECIMALMIN = -4398046511103999999;
+        //public const Int64 X6DECIMALMAX = +4398046511103999999;
+        //public const Int64 X6DECIMALMIN = -4398046511103999999;
 	}
 }
