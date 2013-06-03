@@ -514,7 +514,7 @@ namespace Weaver {
 
                 fileToLoad = Path.Combine(this.InputDirectory, Path.GetFileName(file));
                 fileToLoad = Path.GetFullPath(fileToLoad);
-                this.Assemblies.Add(fileToLoad, new ModuleLoadDirectFromFileStrategy(fileToLoad, false));
+                this.Assemblies.Add(fileToLoad, new CodeWeaverModuleLoadStrategy(fileToLoad));
             }
 
             return true;
