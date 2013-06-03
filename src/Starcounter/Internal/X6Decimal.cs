@@ -53,8 +53,10 @@ namespace Starcounter.Internal {
             long valueWithoutSign;
 
             unsafe {
+                int* pvalue = (int*)&value;
+
                 // Reading scale. If scale differs from 6 we need to adjust it.
-                scale = ((int*)&value)[0];
+                scale = pvalue[0];
                 scale = (scale >> 16) & 0xFF;
 
                 if (scale < 6) {
@@ -68,7 +70,7 @@ namespace Starcounter.Internal {
 
                 // We dont care if it is a positive or negative number since only the sign bit will differ.
                 valueWithoutSign = ((long*)&value)[1];
-                if (valueWithoutSign > X6Decimal.MaxValue)
+                if ((pvalue[1] != 0) || (valueWithoutSign > X6Decimal.MaxValue)) // high != 0 or value > x6 decimal max.
                     throw ErrorCode.ToException(Error.SCERRCLRDECTOX6DECRANGEERROR);
 
                 encValue = ((((int*)&value)[0] & 0x80000000) << 32);
