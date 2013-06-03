@@ -197,7 +197,7 @@ namespace BranchBuild
                     new DirectoryInfo(targetBuildDir));
 
                 // Copying the consolidated directory.
-                String binOutputPath = Environment.GetEnvironmentVariable(BuildSystem.BuildOutputEnvVar);
+                String binOutputPath = Path.Combine(devRootDir, BuildSystem.CommonDefaultBuildOutputPath);
                 if (binOutputPath == null)
                     throw new Exception("Can not obtain current binary output directory.");
 
