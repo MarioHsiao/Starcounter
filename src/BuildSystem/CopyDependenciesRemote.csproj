@@ -4,7 +4,7 @@
   <PropertyGroup>
     <GIT_LEVEL0_BRANCH Condition=" '$(GIT_LEVEL0_BRANCH)' == '' ">develop</GIT_LEVEL0_BRANCH>
     <BinariesFTP>\\scbuildserver\FTP</BinariesFTP>
-    <BinariesFTPAccessible Condition="Exists('$(BinariesFTP)')">True</BinariesFTPAccessible>
+    <BinariesFTPAccessible Condition="'$(SC_BUILD_SKIP_LOCAL_FTP)' != 'True' AND Exists('$(BinariesFTP)')">True</BinariesFTPAccessible>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -30,7 +30,8 @@
   <Target Name="CopyRemoteFiles">
 
     <!-- NOTE: Comment the following line in order to build without requiring FTP connection. -->
-    <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)" Condition="'$(BinariesFTPAccessible)' != 'True'" />
+    <Error Text="Shared FTP folder is not accessible: $(BinariesFTP)"
+           Condition="'$(SC_BUILD_SKIP_LOCAL_FTP)' != 'True' AND '$(BinariesFTPAccessible)' != 'True'" />
     
     <!-- Creating copied files lists. -->
     <ItemGroup>
