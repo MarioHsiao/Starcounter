@@ -256,19 +256,16 @@ namespace Starcounter.Internal
 		/// <param name="columnIndex"></param>
         /// <returns></returns>
 		public static Decimal ReadDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex) {
-            UInt16 flags;
+			decimal dec;
 
             unsafe {
-				Int32[] decimalPart = new Int32[4];
+				UInt16 flags = convert_x6_decimal_to_clr_decimal(recordID, recordAddr, columnIndex, (Int32*)&dec);
 
-				fixed (Int32* decimalPartPtr = decimalPart) {
-					flags = convert_x6_decimal_to_clr_decimal(recordID, recordAddr, columnIndex,
-					decimalPartPtr);
+				// bits: low, mid, high, scale
+				// addr: scale, high, mid, low
 
-					if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-						return new Decimal(decimalPart[0], decimalPart[1], decimalPart[2],
-						(decimalPart[3] & 0x80000000) != 0, (Byte)(decimalPart[3] >> 16));
-					}
+				if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
+					return dec;
 				}
             }
 

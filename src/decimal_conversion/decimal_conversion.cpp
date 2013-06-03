@@ -88,10 +88,13 @@ uint64_t record_addr, int32_t column_index, int32_t* decimal_part_ptr) {
 	(record_id, record_addr, column_index, &encoded_value);
 
 	int64_t raw_value = decode_dec(encoded_value);
-	*((uint64_t*) decimal_part_ptr) = raw_value & 0x7FFFFFFFFFFFFFFFULL;
-	*((uint64_t*) decimal_part_ptr +1) = raw_value & 0x8000000000000000ULL
-	| 0x0006000000000000ULL;
-	
+
+	// decimal_part_ptr[0] = sign and scale
+	// decimal_part_ptr[1] = high
+	// decimal_part_ptr[2] = middle
+	// decimal_part_ptr[3] = low
+	decimal_part_ptr[0] = raw_value & 0x80000000UL | 0x00060000UL;
+	decimal_part_ptr[2] = raw_value & 0x7FFFFFFFUL;
 	return flags;
 }
 
