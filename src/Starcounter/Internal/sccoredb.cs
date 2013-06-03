@@ -763,20 +763,36 @@ namespace Starcounter.Internal
             Byte* pReturnValue
         );
 
+        ///// <summary>
+        ///// SCs the object read decimal2.
+        ///// </summary>
+        ///// <param name="objectOID">The object OID.</param>
+        ///// <param name="objectETI">The object ETI.</param>
+        ///// <param name="index">The index.</param>
+        ///// <param name="ppArray4">The pp array4.</param>
+        ///// <returns>UInt16.</returns>
+        //[DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        //public unsafe extern static UInt16 SCObjectReadDecimal2(
+        //    UInt64 objectOID,
+        //    UInt64 objectETI,
+        //    Int32 index,
+        //    Int32** ppArray4
+        //);
+
         /// <summary>
-        /// SCs the object read decimal2.
+        /// 
         /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="ppArray4">The pp array4.</param>
-        /// <returns>UInt16.</returns>
+        /// <param name="recordID"></param>
+        /// <param name="recordAddr"></param>
+        /// <param name="index"></param>
+        /// <param name="pvalue"></param>
+        /// <returns></returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 SCObjectReadDecimal2(
-            UInt64 objectOID,
-            UInt64 objectETI,
+        public unsafe extern static UInt16 sccoredb_get_encdec(
+            UInt64 recordID,
+            UInt64 recordAddr,
             Int32 index,
-            Int32** ppArray4
+            Int64* pvalue
         );
 
         /// <summary>
@@ -928,26 +944,34 @@ namespace Starcounter.Internal
             Byte value
         );
 
-        /// <summary>
-        /// MDB_s the object write decimal.
-        /// </summary>
-        /// <param name="objectOID">The object OID.</param>
-        /// <param name="objectETI">The object ETI.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="low">The low.</param>
-        /// <param name="mid">The mid.</param>
-        /// <param name="high">The high.</param>
-        /// <param name="scale_sign">The scale_sign.</param>
-        /// <returns>Boolean.</returns>
+        ///// <summary>
+        ///// MDB_s the object write decimal.
+        ///// </summary>
+        ///// <param name="objectOID">The object OID.</param>
+        ///// <param name="objectETI">The object ETI.</param>
+        ///// <param name="index">The index.</param>
+        ///// <param name="low">The low.</param>
+        ///// <param name="mid">The mid.</param>
+        ///// <param name="high">The high.</param>
+        ///// <param name="scale_sign">The scale_sign.</param>
+        ///// <returns>Boolean.</returns>
+        //[DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        //public extern static Boolean Mdb_ObjectWriteDecimal(
+        //    UInt64 objectOID,
+        //    UInt64 objectETI,
+        //    Int32 index,
+        //    Int32 low,
+        //    Int32 mid,
+        //    Int32 high,
+        //    Int32 scale_sign
+        //);
+
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static Boolean Mdb_ObjectWriteDecimal(
-            UInt64 objectOID,
-            UInt64 objectETI,
-            Int32 index,
-            Int32 low,
-            Int32 mid,
-            Int32 high,
-            Int32 scale_sign
+        public extern static UInt32 sccoredb_put_encdec(
+            UInt64 recordID, 
+            UInt64 recordAddr, 
+            UInt32 columnIndex,
+            Int64 encodedValue
         );
 
         /// <summary>
