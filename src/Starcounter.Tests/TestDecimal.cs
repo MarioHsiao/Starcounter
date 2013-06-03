@@ -62,31 +62,26 @@ namespace Starcounter.Tests {
             decimal actual;
             decimal expected;
             long encValue;
-            X6Decimal value;
             int scale = 1000000;
 
             expected = 1.000000m;
             encValue = 1000000L;
-            value = encValue;
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(encValue);
             Assert.AreEqual(expected, actual);
 
             expected = 0.000001m;
             encValue = 1L;
-            value = encValue;
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(encValue);
             Assert.AreEqual(expected, actual);
 
             expected = 20m;
             encValue = (long)(expected*scale);
-            value = encValue;
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(encValue);
             Assert.AreEqual(expected, actual);
 
             expected = 325346433445.456632m;
             encValue = (long)(expected * scale);
-            value = encValue;
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(encValue);
             Assert.AreEqual(expected, actual);
 
         }
@@ -101,47 +96,47 @@ namespace Starcounter.Tests {
         public static void TestConversionDecimalToX6() {
             decimal expected;
             decimal actual;
-            X6Decimal value;
             int[] bits;
+            long value;
 
             expected = 0m;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 20m;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 100m;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 32.45m;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = -32.45m;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WITH_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 32.4554m;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
@@ -157,7 +152,7 @@ namespace Starcounter.Tests {
             // Rounding with no dataloss
             expected = 32.12345000m;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
@@ -172,7 +167,7 @@ namespace Starcounter.Tests {
 
             expected = X6Decimal.MaxDecimalValue;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
@@ -185,7 +180,7 @@ namespace Starcounter.Tests {
 
             expected = X6Decimal.MinDecimalValue;
             value = X6Decimal.FromDecimal(expected);
-            actual = value.ToDecimal();
+            actual = X6Decimal.ToDecimal(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WITH_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale

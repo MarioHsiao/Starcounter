@@ -264,7 +264,7 @@ namespace Starcounter.Internal
             }
 
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                return ((X6Decimal)encValue).ToDecimal();
+                return X6Decimal.ToDecimal(encValue);
             }
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
@@ -313,7 +313,7 @@ namespace Starcounter.Internal
 
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
                 if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                    return ((X6Decimal)encValue).ToDecimal();
+                    return X6Decimal.ToDecimal(encValue);
                 } else {
                     return null;
                 }
@@ -973,9 +973,9 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex, Decimal value) {
             UInt32 ec;
-            X6Decimal converted = X6Decimal.FromDecimal(value);
+            long encodedValue = X6Decimal.FromDecimal(value);
             
-            ec = sccoredb.sccoredb_put_encdec(recordID, recordAddr, (UInt32)columnIndex, converted);
+            ec = sccoredb.sccoredb_put_encdec(recordID, recordAddr, (UInt32)columnIndex, encodedValue);
             if (ec != 0)
                 throw ErrorCode.ToException(ec);
         }
