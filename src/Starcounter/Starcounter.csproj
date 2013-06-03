@@ -113,6 +113,7 @@
     <Compile Include="Internal\TaskHelper.cs" />
     <Compile Include="Internal\TestLogger.cs" />
     <Compile Include="Binding\IObjectProxy.cs" />
+    <Compile Include="Internal\X6Decimal.cs" />
     <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="LargeBinary.cs" />
     <Compile Include="Error.cs" />
