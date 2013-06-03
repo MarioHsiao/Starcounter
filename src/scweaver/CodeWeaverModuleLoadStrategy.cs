@@ -1,10 +1,8 @@
 ﻿
+using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.Extensibility;
+using Starcounter;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Weaver {
     /// <summary>
@@ -26,6 +24,16 @@ namespace Weaver {
         public CodeWeaverModuleLoadStrategy(string fileName)
             : base(fileName, false) {
             this.FileName = fileName;
+        }
+
+        /// <inheritdoc/>
+        public override ModuleDeclaration Load(Domain domain) {
+            try {
+                return base.Load(domain);
+            } catch (Exception e) {
+                var postfix = string.Format("File: {0}", this.FileName);
+                throw ErrorCode.ToException(Error.SCERRWEAVERFAILEDLOADFILE, e, postfix);
+            }
         }
     }
 }
