@@ -8,9 +8,9 @@ using BuildSystemHelper;
 using System.Threading;
 using System.Reflection;
 
-namespace TeamCityBranchBuild
+namespace BranchBuild
 {
-    class TeamCityBranchBuild
+    class BranchBuild
     {
         /// <summary>
         /// Stop other versions of the same build type.
@@ -80,8 +80,7 @@ namespace TeamCityBranchBuild
                     // "Platform",
                     BuildSystem.BuildNumberEnvVar,
                     BuildSystem.CheckOutDirEnvVar,
-                    BuildSystem.BuildSystemDirEnvVar,
-                    BuildSystem.BuildSystemToolsDirEnvVar
+                    BuildSystem.BuildSystemDirEnvVar
                 }))
                 {
                     throw new Exception("Some needed environment variables do not exist...");
@@ -144,9 +143,7 @@ namespace TeamCityBranchBuild
                 Console.Error.WriteLine("Copying sources and binaries to the build directory...");
 
                 // Copy all needed build tools to target directory.
-                String buildToolsBinDir = Environment.GetEnvironmentVariable(BuildSystem.BuildSystemToolsDirEnvVar);
-                if (buildToolsBinDir == null)
-                    throw new ArgumentNullException("Build tools binary directory is not set.");
+                String buildToolsBinDir = Path.Combine(devRootDir, "Level1", "bsbin", "Debug");
 
                 // Copying needed binaries.
                 foreach (String toolName in buildToolNames)
