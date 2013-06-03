@@ -80,47 +80,49 @@ namespace FasterThanJson.Tests {
         public unsafe void RandomIndexAccessTest() {
             int nrIterations = 10000;
             Random writeRnd = new Random(1);
-            Random readRnd = new Random(1);
             for (int i = 0; i < nrIterations; i++) {
                 uint nrValues = (uint)writeRnd.Next(1, 1000);
+                int[] valueTypes = new Int32[nrValues];
+                uint[] uintValues = new uint[nrValues];
+                String[] stringValues = new String[nrValues];
+                byte[][] binaryValues = new byte[nrValues][];
                 fixed (byte* start = new byte[nrValues * 200]) {
                     TupleWriter arrayWriter = new TupleWriter(start, nrValues, 2);
-                    int valueType = 0;
                     for (int j = 0; j < nrValues; j++) {
-                        valueType = writeRnd.Next(1, 3);
-                        switch ((ValueTypes)valueType) {
-                            case ValueTypes.UINT: 
-                                arrayWriter.Write(RandomValues.RandomUInt(writeRnd));
+                        valueTypes[j] = writeRnd.Next(1, 3);
+                        switch (valueTypes[j]) {
+                            case (int)ValueTypes.UINT:
+                                uintValues[j] = RandomValues.RandomUInt(writeRnd);
+                                arrayWriter.Write(uintValues[j]);
                                 break;
-                            case ValueTypes.STRING:
-                                arrayWriter.Write(RandomValues.RandomString(writeRnd));
+                            case (int)ValueTypes.STRING:
+                                stringValues[j] = RandomValues.RandomString(writeRnd);
+                                arrayWriter.Write(stringValues[j]);
                                 break;
-                            case ValueTypes.BINARY:
-                                arrayWriter.Write(RandomValues.RandomBinary(writeRnd));
+                            case (int)ValueTypes.BINARY:
+                                binaryValues[j] = RandomValues.RandomBinary(writeRnd);
+                                arrayWriter.Write(binaryValues[j]);
                                 break;
-                            default: 
-                                Assert.Fail(((ValueTypes)valueType).ToString());
+                            default:
+                                Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
                                 break;
                         }
                     }
                     arrayWriter.SealTuple();
-                    Assert.AreNotEqual(valueType, 0);
-                    Assert.AreEqual(nrValues, readRnd.Next(1, 1000));
                     TupleReader arrayReader = new TupleReader(start, nrValues);
                     for (int j = 0; j < nrValues; j++) {
-                        valueType = readRnd.Next(1, 3);
-                        switch ((ValueTypes)valueType) {
-                            case ValueTypes.UINT:
-                                Assert.AreEqual(RandomValues.RandomUInt(readRnd), arrayReader.ReadUInt(j));
+                        switch (valueTypes[j]) {
+                            case (int)ValueTypes.UINT:
+                                Assert.AreEqual(uintValues[j], arrayReader.ReadUInt(j));
                                 break;
-                            case ValueTypes.STRING:
-                                Assert.AreEqual(RandomValues.RandomString(readRnd), arrayReader.ReadString(j));
+                            case (int)ValueTypes.STRING:
+                                Assert.AreEqual(stringValues[j], arrayReader.ReadString(j));
                                 break;
-                            case ValueTypes.BINARY:
-                                Assert.AreEqual(RandomValues.RandomBinary(readRnd), arrayReader.ReadByteArray(j));
+                            case (int)ValueTypes.BINARY:
+                                Assert.AreEqual(binaryValues[j], arrayReader.ReadByteArray(j));
                                 break;
                             default:
-                                Assert.Fail(((ValueTypes)valueType).ToString());
+                                Assert.Fail(((ValueTypes)valueTypes[j]).ToString());
                                 break;
                         }
                     }
