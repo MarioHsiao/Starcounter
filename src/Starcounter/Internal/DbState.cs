@@ -1436,39 +1436,37 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(r);
         }
 
-        ///// <summary>
-        ///// Function used by CLRDecimalToEncodedX6Decimal(). TODO: Place this somewhere else.
-        ///// </summary>
-        //[DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]
-        //public unsafe extern static UInt32 clr_decimal_to_encoded_x6_decimal
-        //(Int32* decimal_part_ptr, ref Int64 encoded_x6_decimal_ptr);
-		
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="clrDecimal"></param>
-        ///// <returns></returns>
-        //public static Int64 ClrDecimalToEncodedX6Decimal(Decimal clrDecimal) {
-        //    return X6Decimal.FromDecimal(clrDecimal).EncodedValue;
+        /// <summary>
+        /// Function used by CLRDecimalToEncodedX6Decimal(). TODO: Place this somewhere else.
+        /// </summary>
+        [DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 clr_decimal_to_encoded_x6_decimal
+        (Int32* decimal_part_ptr, ref Int64 encoded_x6_decimal_ptr);
 
-        //    //unsafe {
-        //    //    Int32[] decimalPart = Decimal.GetBits(clrDecimal);
-        //    //    Int64 encodedX6Decimal = 0;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clrDecimal"></param>
+        /// <returns></returns>
+        public static Int64 ClrDecimalToEncodedX6Decimal(Decimal clrDecimal) {
+            unsafe {
+                Int32[] decimalPart = Decimal.GetBits(clrDecimal);
+                Int64 encodedX6Decimal = 0;
 
-        //    //    fixed (Int32* decimalPartPtr = decimalPart) {
-        //    //        // clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
-        //    //        // without data loss, the value will be written to encodedX6Decimal.
+                fixed (Int32* decimalPartPtr = decimalPart) {
+                    // clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
+                    // without data loss, the value will be written to encodedX6Decimal.
 
-        //    //        UInt32 error_code = clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
+                    UInt32 error_code = clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
 
-        //    //        if (error_code == 0) {
-        //    //            return encodedX6Decimal;
-        //    //        }
+                    if (error_code == 0) {
+                        return encodedX6Decimal;
+                    }
 
-        //    //        throw ErrorCode.ToException(error_code);
-        //    //    }
-        //    //}
-        //}
+                    throw ErrorCode.ToException(error_code);
+                }
+            }
+        }
 		
 #if false
 		/// <summary>

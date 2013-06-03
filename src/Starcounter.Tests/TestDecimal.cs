@@ -44,13 +44,13 @@ namespace Starcounter.Tests {
 			//==================================================================
 			// Test ClrDecimalToEncodedX6Decimal()
 			//==================================================================
-            //{
-            //    Decimal d = 0;
-            //    Int64 encodedX6Decimal = DbState.ClrDecimalToEncodedX6Decimal(d);
-            //    Assert.AreEqual(encodedX6Decimal, 0);
-            //}
+            {
+                Decimal d = 0;
+                Int64 encodedX6Decimal = DbState.ClrDecimalToEncodedX6Decimal(d);
+                Assert.AreEqual(encodedX6Decimal, 0);
+            }
 
-			//Assert.AreEqual(true, ClrDecimalToEncodedX6Decimal());
+//			Assert.AreEqual(true, ClrDecimalToEncodedX6Decimal());
 			Assert.True(true);
 		}
 
