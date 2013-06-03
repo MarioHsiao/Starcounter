@@ -6,18 +6,9 @@ namespace Starcounter.Internal {
     /// Implementation of Starcounter decimal format and conversion to and from .Net decimal. 
     /// Specification of decimal format: http://www.starcounter.com/internal/wiki/Slots#Decimal
     /// </summary>
-    public struct X6Decimal {
-        // layout of .Net Decimal (all int)
-        // --------------------------
-        // flags (sign and scale)
-        // high
-        // mid
-        // low
-        private const long maxEncodedInt = 4398046511103999999;
-
-        public static readonly X6Decimal MaxValue = 4398046511103999999;
-        public static readonly X6Decimal MinValue = -4398046511103999999;
-        public static readonly X6Decimal Zero = 0;
+    public static class X6Decimal {
+        public static readonly long MaxValue = 4398046511103999999;
+        public static readonly long MinValue = -4398046511103999999;
         public const decimal MaxDecimalValue = 4398046511103.999999m;
         public const decimal MinDecimalValue = -4398046511103.999999m;
      
@@ -32,58 +23,20 @@ namespace Starcounter.Internal {
         };
 
         /// <summary>
-        /// The raw encoded value in Starcounter X6 decimal format.
-        /// </summary>
-        private long encValue;
-
-        /// <summary>
-        /// Creates a new instance of X6Decimal based on the encoded long value.
-        /// </summary>
-        /// <param name="encValue"></param>
-        public X6Decimal(long encValue) {
-            this.encValue = encValue;
-        }
-
-        /// <summary>
-        /// Implicit conversion to long from a X6Decimal
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static implicit operator long(X6Decimal value) {
-            return value.encValue;
-        }
-
-        /// <summary>
-        /// Implicit conversion to X6Decimal from long.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static implicit operator X6Decimal(long value) {
-            X6Decimal ret;
-            ret.encValue = value;
-            return ret;
-        }
-
-        /// <summary>
-        /// Gets the raw encoded value.
-        /// </summary>
-        public long EncodedValue { get { return encValue; } }
-
-        /// <summary>
         /// Converts this X6Decimal to a .Net decimal
         /// </summary>
         /// <returns></returns>
-        public decimal ToDecimal() {
+        public static decimal ToDecimal(long encodedValue) {
             decimal dec;
             int signAndScale;
             
             unsafe {
                 // scale is always 6, which converted to scale bit in decimal is 
                 // 393216 (bits 16-23) without the sign bit set.
-                signAndScale = (int)((encValue >> 32) & 0x80000000); // sign, bit 32
+                signAndScale = (int)((encodedValue >> 32) & 0x80000000); // sign, bit 32
                 signAndScale |= 0x60000; // scale
-                ((int*)&dec)[0] = signAndScale; 
-                ((long*)&dec)[1] = (encValue & 0x7FFFFFFFFFFFFFFF);
+                ((int*)&dec)[0] = signAndScale;
+                ((long*)&dec)[1] = (encodedValue & 0x7FFFFFFFFFFFFFFF);
             }
 
             return dec;
@@ -94,7 +47,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static X6Decimal FromDecimal(decimal value) {
+        public static long FromDecimal(decimal value) {
             int scale;
             long encValue;
             long valueWithoutSign;
@@ -115,7 +68,7 @@ namespace Starcounter.Internal {
 
                 // We dont care if it is a positive or negative number since only the sign bit will differ.
                 valueWithoutSign = ((long*)&value)[1];
-                if (valueWithoutSign > X6Decimal.maxEncodedInt)
+                if (valueWithoutSign > X6Decimal.MaxValue)
                     throw ErrorCode.ToException(Error.SCERRCLRDECTOX6DECRANGEERROR);
 
                 encValue = ((((int*)&value)[0] & 0x80000000) << 32);
