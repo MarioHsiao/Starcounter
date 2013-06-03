@@ -1301,6 +1301,9 @@
     <code hex="008B" severity="Error" name="ScErrIPCMonitorUnknownException">
       <message>Unknown exception thrown in IPC monitor.</message>
     </code>
+    <code hex="008C" severity="Error" name="ScErrWeaverFailedLoadFile">
+      <message>The weaver failed to load a binary user code file.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
