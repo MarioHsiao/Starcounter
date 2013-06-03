@@ -257,6 +257,7 @@ namespace Starcounter.Internal
         /// <returns></returns>
         public static Decimal ReadDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex) {
             UInt16 flags;
+			long encValue;
 
             unsafe {
                 flags = sccoredb.sccoredb_get_encdec(recordID, recordAddr, columnIndex, &encValue);
@@ -276,6 +277,7 @@ namespace Starcounter.Internal
 		/// <param name="columnIndex"></param>
         /// <returns></returns>
 		public static Decimal ReadDecimal2(ulong recordID, ulong recordAddr, Int32 columnIndex) {
+			decimal dec;
 
             unsafe {
 				UInt16 flags = convert_x6_decimal_to_clr_decimal(recordID, recordAddr, columnIndex, (Int32*)&dec);
