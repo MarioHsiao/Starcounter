@@ -718,7 +718,7 @@ namespace Weaver {
 
         void AddWeaverExcludesFromFile() {
             string[] excludes;
-            string filepath = Path.Combine(this.InputDirectory, ".weaverignore");
+            string filepath = Path.Combine(this.InputDirectory, "weaver.ignore");
 
             if (File.Exists(filepath)) {
                 excludes = File.ReadAllLines(filepath);
