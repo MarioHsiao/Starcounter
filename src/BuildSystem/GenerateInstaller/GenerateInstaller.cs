@@ -153,6 +153,9 @@ namespace GenerateInstaller
                 {
                     throw new Exception("Environment variable 'WORKSPACE' does not exist.");
                 }
+
+                // Indicating that we want to skip local FTP.
+                Environment.SetEnvironmentVariable(BuildSystem.BuildSystemSkipLocalFtp, "True");
                 
                 // Getting the path to current build consolidated folder.
                 String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
