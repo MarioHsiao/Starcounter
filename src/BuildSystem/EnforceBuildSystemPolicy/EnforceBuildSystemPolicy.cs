@@ -312,7 +312,7 @@ namespace CheckBuildSystem
                 "DaemonObserver.csproj", "EnforceBuildSystemPolicy.csproj", "GenerateInstaller.csproj",
                 "InstallshieldMod.csproj", "PackArtifactsAndUpload.csproj", "BuildAndDeploy.csproj",
                 "CommonBuildTools.csproj", "Plugin_DragTabControl.csproj", "Plugin_SpeedGrid.csproj",
-                "SetAssemblyVersion.csproj", "TeamCityBranchBuild.csproj", "TestLauncher.csproj",
+                "SetAssemblyVersion.csproj", "BranchBuild.csproj", "TestLauncher.csproj",
                 "TestsSplitter.csproj", "WikiErrorCodes.csproj", "AppsProjectTemplate.csproj",
                 "Starcounter.VS.CSAppsProjectTemplate.csproj", "ExeProjectTemplate.csproj",
                 "Starcounter.VS.CSExeProjectTemplate.csproj", "Starcounter.VS.VSIX.csproj",

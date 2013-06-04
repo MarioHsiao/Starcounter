@@ -207,6 +207,13 @@ internal abstract class ExecutionEnumerator
     }
 
     /// <summary>
+    /// Gets first found literal value represented as a string.
+    /// </summary>
+    public String LiteralValue {
+        get { return variableArray.LiteralValue; }
+    }
+
+    /// <summary>
     /// Returns if Bison-parser was used in creation of the enumerator.
     /// It will be removed when Prolog-parser is deprecated.
     /// </summary>
@@ -410,6 +417,7 @@ internal abstract class ExecutionEnumerator
 
         // Pass on the QueryFlags to varArrayClone.
         varArrayClone.QueryFlags = variableArray.QueryFlags;
+        varArrayClone.LiteralValue = variableArray.LiteralValue;
 
         // Calling main clone method of related execution enumerator.
         RowTypeBinding rowTypeBindingClone = null;

@@ -138,6 +138,13 @@ namespace Starcounter.Tests {
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WITH_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
+
+            // Testing range check when high is set but not mid.
+            expected = 20.555m;
+            bits = decimal.GetBits(expected);
+            bits[2] = 23234;
+            expected = new decimal(bits);
+            Assert.Catch(() => X6Decimal.FromDecimal(expected));
         }
 
         /// <summary>

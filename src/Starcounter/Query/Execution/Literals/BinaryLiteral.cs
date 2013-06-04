@@ -72,6 +72,14 @@ internal class BinaryLiteral : Literal, ILiteral, IBinaryPathItem
         return value;
     }
 
+    public String EvaluateToString() {
+        Binary? nullValue = EvaluateToBinary(null);
+        if (nullValue == null)
+            return null;
+        Binary value = (Binary)nullValue;
+        return value.ToArray().ToString();
+    }
+
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>
