@@ -15,29 +15,28 @@ namespace Starcounter.Tests {
         public static void TestConversionX6ToDecimal() {
             decimal actual;
             decimal expected;
-            long encValue;
+            long rawValue;
             int scale = 1000000;
 
             expected = 1.000000m;
-            encValue = 1000000L;
-            actual = X6Decimal.ToDecimal(encValue);
+            rawValue = 1000000L;
+            actual = X6Decimal.ToDecimalFromRaw(rawValue);
             Assert.AreEqual(expected, actual);
 
             expected = 0.000001m;
-            encValue = 1L;
-            actual = X6Decimal.ToDecimal(encValue);
+            rawValue = 1L;
+            actual = X6Decimal.ToDecimalFromRaw(rawValue);
             Assert.AreEqual(expected, actual);
 
             expected = 20m;
-            encValue = (long)(expected*scale);
-            actual = X6Decimal.ToDecimal(encValue);
+            rawValue = (long)(expected*scale);
+            actual = X6Decimal.ToDecimalFromRaw(rawValue);
             Assert.AreEqual(expected, actual);
 
             expected = 325346433445.456632m;
-            encValue = (long)(expected * scale);
-            actual = X6Decimal.ToDecimal(encValue);
+            rawValue = (long)(expected * scale);
+            actual = X6Decimal.ToDecimalFromRaw(rawValue);
             Assert.AreEqual(expected, actual);
-
         }
 
         private const int X6_WITH_SIGN_AND_SCALE = -2147090432;
@@ -54,87 +53,87 @@ namespace Starcounter.Tests {
             long value;
 
             expected = 0m;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 20m;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 100m;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 32.45m;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = -32.45m;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WITH_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = 32.4554m;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             // Data loss exception
             expected = 32.12345678m;
-            Assert.Catch(() => value = X6Decimal.FromDecimal(expected));
+            Assert.Catch(() => value = X6Decimal.ToEncoded(expected));
 
             // Data loss exception
             expected = 32.5555555m;
-            Assert.Catch(() => value = X6Decimal.FromDecimal(expected));
+            Assert.Catch(() => value = X6Decimal.ToEncoded(expected));
 
             // Rounding with no dataloss
             expected = 32.12345000m;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             // Above maximum allowed
             expected = 5555555555555m;
-            Assert.Catch(() => value = X6Decimal.FromDecimal(expected));
+            Assert.Catch(() => value = X6Decimal.ToEncoded(expected));
 
             // below minimum allowed
             expected = -5555555555555m;
-            Assert.Catch(() => value = X6Decimal.FromDecimal(expected));
+            Assert.Catch(() => value = X6Decimal.ToEncoded(expected));
 
             expected = X6Decimal.MaxDecimalValue;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WO_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
 
             expected = X6Decimal.MaxDecimalValue + 1;
-            Assert.Catch(() => X6Decimal.FromDecimal(expected));
+            Assert.Catch(() => X6Decimal.ToEncoded(expected));
 
             expected = X6Decimal.MinDecimalValue - 1;
-            Assert.Catch(() => X6Decimal.FromDecimal(expected));
+            Assert.Catch(() => X6Decimal.ToEncoded(expected));
 
             expected = X6Decimal.MinDecimalValue;
-            value = X6Decimal.FromDecimal(expected);
-            actual = X6Decimal.ToDecimal(value);
+            value = X6Decimal.ToEncoded(expected);
+            actual = X6Decimal.ToDecimalFromEncoded(value);
             bits = decimal.GetBits(actual);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(X6_WITH_SIGN_AND_SCALE, bits[3]); // Checking correct sign and scale
@@ -144,7 +143,7 @@ namespace Starcounter.Tests {
             bits = decimal.GetBits(expected);
             bits[2] = 23234;
             expected = new decimal(bits);
-            Assert.Catch(() => X6Decimal.FromDecimal(expected));
+            Assert.Catch(() => X6Decimal.ToEncoded(expected));
         }
 
         /// <summary>
@@ -193,8 +192,8 @@ namespace Starcounter.Tests {
 
 			start = DateTime.Now;
 			for (int i = 0; i < loop; i++) {
-				encodedValue = X6Decimal.FromDecimal(value);
-				value = X6Decimal.ToDecimal(encodedValue);
+				encodedValue = X6Decimal.ToEncoded(value);
+				value = X6Decimal.ToDecimalFromEncoded(encodedValue);
 			}
 			stop = DateTime.Now;
 			Console.WriteLine("Managed decimal (" + value + "): " + (stop - start).TotalMilliseconds + " ms.");
@@ -202,8 +201,8 @@ namespace Starcounter.Tests {
 			value = 1232353453.435346m;
 			start = DateTime.Now;
 			for (int i = 0; i < loop; i++) {
-				encodedValue = X6Decimal.FromDecimal(value);
-				value = X6Decimal.ToDecimal(encodedValue);
+				encodedValue = X6Decimal.ToEncoded(value);
+				value = X6Decimal.ToDecimalFromEncoded(encodedValue);
 			}
 			stop = DateTime.Now;
 			Console.WriteLine("Managed decimal (" + value + "): " + (stop - start).TotalMilliseconds + " ms.");
@@ -211,8 +210,8 @@ namespace Starcounter.Tests {
 			value = 2001.50000000m;
 			start = DateTime.Now;
 			for (int i = 0; i < loop; i++) {
-				encodedValue = X6Decimal.FromDecimal(value);
-				value = X6Decimal.ToDecimal(encodedValue);
+				encodedValue = X6Decimal.ToEncoded(value);
+				value = X6Decimal.ToDecimalFromEncoded(encodedValue);
 			}
 			stop = DateTime.Now;
 			Console.WriteLine("Managed decimal (" + value + "): " + (stop - start).TotalMilliseconds + " ms.");
