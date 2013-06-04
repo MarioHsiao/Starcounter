@@ -241,13 +241,6 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(ec);
         }
 
-		/// <summary>
-		/// Function used by ReadDecimal(). TODO: Place this somewhere else.
-		/// </summary>
- 		[DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]
-		public unsafe extern static UInt16 convert_x6_decimal_to_clr_decimal
-		(UInt64 record_id, UInt64 record_addr, Int32 column_index, Int32* decimal_part_ptr);
-
         /// <summary>
         /// 
         /// </summary>
@@ -266,30 +259,6 @@ namespace Starcounter.Internal
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
                 return X6Decimal.ToDecimal(encValue);
             }
-            throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
-        }
-
-		/// <summary>
-        /// 
-        /// </summary>
-		/// <param name="recordID"></param>
-		/// <param name="recordAddr"></param>
-		/// <param name="columnIndex"></param>
-        /// <returns></returns>
-		public static Decimal ReadDecimal2(ulong recordID, ulong recordAddr, Int32 columnIndex) {
-			decimal dec;
-
-            unsafe {
-				UInt16 flags = convert_x6_decimal_to_clr_decimal(recordID, recordAddr, columnIndex, (Int32*)&dec);
-
-				// bits: low, mid, high, scale
-				// addr: scale, high, mid, low
-
-				if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-					return dec;
-				}
-            }
-
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
@@ -317,39 +286,6 @@ namespace Starcounter.Internal
             }
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="recordID"></param>
-		/// <param name="recordAddr"></param>
-		/// <param name="columnIndex"></param>
-		/// <returns></returns>
-		public static Nullable<Decimal> ReadNullableDecimal2(ulong recordID, ulong recordAddr, Int32 columnIndex) {
-			UInt16 flags;
-			UInt32 ec;
-
-			unsafe {
-				Int32[] decimalPart = new Int32[4];
-
-				fixed (Int32* decimalPartPtr = decimalPart) {
-					flags = convert_x6_decimal_to_clr_decimal(recordID, recordAddr, columnIndex,
-					decimalPartPtr);
-
-					if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-						if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-							return new Decimal(decimalPart[0], decimalPart[1], decimalPart[2],
-							(decimalPart[3] & 0x80000000) != 0, (Byte)(decimalPart[3] >> 16));
-						} else {
-							return null;
-						}
-					}
-				}
-			}
-
-			ec = sccoredb.Mdb_GetLastError();
-			throw ErrorCode.ToException(ec);
-		}
 
         /// <summary>
         /// 
@@ -953,14 +889,6 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
 
-		/// <summary>
-		/// Function used by WriteDecimal(). TODO: Place this somewhere else.
-		/// </summary>
-		[DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]
-		public unsafe extern static UInt32 convert_clr_decimal_to_x6_decimal
-		(UInt64 record_id, UInt64 record_addr, Int32 column_index,
-		Int32 low, Int32 middle, Int32 high, Int32 scale_sign);
-
         /// <summary>
         /// 
         /// </summary>
@@ -975,30 +903,6 @@ namespace Starcounter.Internal
             ec = sccoredb.sccoredb_put_encdec(recordID, recordAddr, (UInt32)columnIndex, encodedValue);
             if (ec != 0)
                 throw ErrorCode.ToException(ec);
-        }
-
-		/// <summary>
-        /// 
-        /// </summary>
-        /// <param name="recordID"></param>
-        /// <param name="recordAddr"></param>
-        /// <param name="columnIndex"></param>
-        /// <param name="value"></param>
-        public static void WriteDecimal2(ulong recordID, ulong recordAddr, Int32 columnIndex, Decimal value) {
-			Int32[] decimalPart = Decimal.GetBits(value);
-            UInt32 errorCode;
-
-			// convert_clr_decimal_to_x6_decimal() will do the conversion, and if the value fits,
-			// it will be written. If it doesn't fit it will not be written and an error code is
-			// returned.
-			if ((errorCode = convert_clr_decimal_to_x6_decimal(recordID, recordAddr, columnIndex,
-			decimalPart[0], decimalPart[1], decimalPart[2], decimalPart[3])) == 0) {
-				// The value was written.
-                return;
-            }
-            
-			// An exception is thrown because the value did not fit (and was not written.)
-            throw ErrorCode.ToException(errorCode);
         }
 
         /// <summary>
@@ -1432,61 +1336,5 @@ namespace Starcounter.Internal
             if (r == 0) return;
             throw ErrorCode.ToException(r);
         }
-
-        /// <summary>
-        /// Function used by CLRDecimalToEncodedX6Decimal(). TODO: Place this somewhere else.
-        /// </summary>
-        [DllImport("decimal_conversion.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 clr_decimal_to_encoded_x6_decimal
-        (Int32* decimal_part_ptr, ref Int64 encoded_x6_decimal_ptr);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="clrDecimal"></param>
-        /// <returns></returns>
-        public static Int64 ClrDecimalToEncodedX6Decimal(Decimal clrDecimal) {
-            unsafe {
-                Int32[] decimalPart = Decimal.GetBits(clrDecimal);
-                Int64 encodedX6Decimal = 0;
-
-                fixed (Int32* decimalPartPtr = decimalPart) {
-                    // clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
-                    // without data loss, the value will be written to encodedX6Decimal.
-
-                    UInt32 error_code = clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
-
-                    if (error_code == 0) {
-                        return encodedX6Decimal;
-                    }
-
-                    throw ErrorCode.ToException(error_code);
-                }
-            }
-        }
-		
-#if false
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="clrDecimal"></param>
-		/// <param name="encodedX6Decimal"></param>
-		/// <returns></returns>
-		public static UInt32 ClrDecimalToEncodedX6Decimal(Decimal clrDecimal, out Int64 encodedX6Decimal) {
-            unsafe {
-				Int32[] decimalPart = Decimal.GetBits(clrDecimal);
-				encodedX6Decimal = 0;
-				
-				fixed (Int32* decimalPartPtr = decimalPart) {
-					// clr_decimal_to_encoded_x6_decimal() will do the conversion, and if the value fits
-					// without data loss, the value will be written to encodedX6Decimal.
-					return clr_decimal_to_encoded_x6_decimal(decimalPartPtr, ref encodedX6Decimal);
-				}
-			}
-		}
-#endif
-		
-        //public const Int64 X6DECIMALMAX = +4398046511103999999;
-        //public const Int64 X6DECIMALMIN = -4398046511103999999;
 	}
 }
