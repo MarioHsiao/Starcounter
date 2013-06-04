@@ -1029,7 +1029,7 @@ set_rest:	/* Generic SET syntaxes: */
 		;
 
 var_name:	ColId								{ $$ = $1; }
-			| var_name '.' ColId
+			| var_name '.' ColLabel
 				{
 					Size new_len = wcslen($1) + wcslen($3) + 2;
 					$$ = palloc(new_len * sizeof(wchar_t));
