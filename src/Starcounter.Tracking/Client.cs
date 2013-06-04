@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Tracking {
 
+    /// <summary>
+    /// Client for sending Usage Tracking to Tracking Server
+    /// </summary>
     public sealed class Client {
 
         #region Singelton
@@ -24,6 +27,9 @@ namespace Starcounter.Tracking {
             this.ServerPort = Starcounter.Tracking.Environment.StarcounterTrackerPort;
         }
 
+        /// <summary>
+        /// Singelton Instance
+        /// </summary>
         public static Client Instance {
             get {
                 return instance;
@@ -34,23 +40,44 @@ namespace Starcounter.Tracking {
         #region Properties
 
 
-        public ushort ServerPort { get; private set; }
-        public string ServerIP { get; private set; }
+        private ushort ServerPort { get;  set; }
+        private string ServerIP { get;  set; }
 
+        /// <summary>
+        /// tru if the tracking is acrive
+        /// </summary>
         public bool IsTracking { get; private set; }
 
         private AutoResetEvent autoResetEvent = new AutoResetEvent(false);
         private bool abortTracking = false;
 
         #endregion
-
+        /// <summary>
+        /// Different installation modes
+        /// </summary>
         public enum InstallationMode {
+            /// <summary>
+            /// Full Installation
+            /// </summary>
             FullInstallation = 1,
+            /// <summary>
+            /// Partial installation
+            /// </summary>
             PartialInstallation = 2,
+            /// <summary>
+            /// Full uninstallation
+            /// </summary>
             FullUninstallation = 3,
+            /// <summary>
+            /// Partial uninstallation
+            /// </summary>
             PartialUninstallation = 4
         }
 
+        /// <summary>
+        /// Start the Usage tracking
+        /// </summary>
+        /// <param name="ServerInterface"></param>
         public void StartTrackUsage(IServerRuntime ServerInterface) {
 
             if (this.IsTracking) throw new InvalidOperationException("Trying to start Tracking when is was already running");
@@ -58,6 +85,9 @@ namespace Starcounter.Tracking {
             ThreadPool.QueueUserWorkItem(PollThread, ServerInterface);
         }
 
+        /// <summary>
+        /// Stops the stracking usage
+        /// </summary>
         public void StopTrackUsage() {
 
             if (this.IsTracking == false) throw new InvalidOperationException("Trying to stop Tracking when it was not running");
@@ -109,6 +139,10 @@ namespace Starcounter.Tracking {
 
         }
 
+        /// <summary>
+        /// Send installer start tracking message
+        /// When the Installer EXE is started
+        /// </summary>
         public void SendInstallerStart() {
 
             try {
@@ -130,6 +164,11 @@ namespace Starcounter.Tracking {
 
         }
 
+        /// <summary>
+        /// Send installer executing tracking message
+        /// When the installer starts an executing (installing/uninstalling)
+        /// </summary>
+        /// <param name="mode"></param>
         public void SendInstallerExecuting(InstallationMode mode) {
 
             try {
@@ -156,6 +195,11 @@ namespace Starcounter.Tracking {
 
         }
 
+        /// <summary>
+        /// Send installer abortion tracking message
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <param name="message"></param>
         public void SendInstallerAbort(InstallationMode mode, string message) {
             try {
                 // Build json content
@@ -180,6 +224,12 @@ namespace Starcounter.Tracking {
 
         }
 
+        /// <summary>
+        /// Send installer finish tracking message
+        /// When installation/uninstallation is finished
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <param name="success"></param>
         public void SendInstallerFinish(InstallationMode mode, bool success) {
             try {
                 // Build json content
@@ -203,6 +253,11 @@ namespace Starcounter.Tracking {
 
         }
 
+        /// <summary>
+        /// Send installer end tracking message
+        /// When the Installer EXE exits
+        /// </summary>
+        /// <param name="linksUserClickedOn"></param>
         public void SendInstallerEnd(string linksUserClickedOn) {
             try {
                 // Build json content
@@ -226,6 +281,13 @@ namespace Starcounter.Tracking {
 
         }
 
+        /// <summary>
+        /// Send starcounter usage tracking message
+        /// </summary>
+        /// <param name="databases"></param>
+        /// <param name="transactions"></param>
+        /// <param name="runningDatabases"></param>
+        /// <param name="runningExecutables"></param>
         public void SendStarcounterUsage(long databases, long transactions, long runningDatabases, long runningExecutables) {
             try {
                 // Build json content
@@ -254,6 +316,12 @@ namespace Starcounter.Tracking {
 
         }
 
+        /// <summary>
+        /// Send starcounter general tracking message
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="type"></param>
+        /// <param name="message"></param>
         public void SendStarcounterGeneral(string module, string type, string message) {
             try {
                 // Build json content

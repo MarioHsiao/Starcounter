@@ -5,6 +5,10 @@ using System.Management;
 using System.Net.NetworkInformation;
 
 namespace Starcounter.Tracking {
+    /// <summary>
+    /// Usage Tracking Environment
+    /// TODO: This should maybe be moved to Starcounter Environment
+    /// </summary>
     public class Environment {
 
         private static string cpuInfo = null;
@@ -21,7 +25,10 @@ namespace Starcounter.Tracking {
         /// </summary>
         public const ushort StarcounterTrackerPort = 8585;
 
-
+        /// <summary>
+        /// Get OS information
+        /// </summary>
+        /// <returns>String with the OS information</returns>
         public static string GetOSFriendlyName() {
 
             if (Environment.osInfo != null) return Environment.osInfo;
@@ -54,6 +61,10 @@ namespace Starcounter.Tracking {
 
         }
 
+        /// <summary>
+        /// Get CPU information
+        /// </summary>
+        /// <returns></returns>
         public static string GetCPUFriendlyName() {
 
             if (Environment.cpuInfo != null) return Environment.cpuInfo;
@@ -70,6 +81,10 @@ namespace Starcounter.Tracking {
             return Environment.cpuInfo;
         }
 
+        /// <summary>
+        /// Get Truncated MacAddress
+        /// </summary>
+        /// <returns></returns>
         public static string GetTruncatedMacAddress() {
 
             PhysicalAddress mac = Environment.GetMachineMacAddress();
