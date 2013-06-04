@@ -832,7 +832,9 @@ Global
 		{265D58EF-871E-4E67-947C-C46B84FF63F4}.BuildServerTest|x64.ActiveCfg = Release|Any CPU
 		{265D58EF-871E-4E67-947C-C46B84FF63F4}.BuildServerTest|x64.Build.0 = Release|Any CPU
 		{265D58EF-871E-4E67-947C-C46B84FF63F4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{265D58EF-871E-4E67-947C-C46B84FF63F4}.Debug|x64.Build.0 = Debug|Any CPU
 		{265D58EF-871E-4E67-947C-C46B84FF63F4}.Release|x64.ActiveCfg = Release|Any CPU
+		{265D58EF-871E-4E67-947C-C46B84FF63F4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

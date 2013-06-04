@@ -8,9 +8,9 @@ using BuildSystemHelper;
 using System.Threading;
 using System.Reflection;
 
-namespace TeamCityBranchBuild
+namespace BranchBuild
 {
-    class TeamCityBranchBuild
+    class BranchBuild
     {
         /// <summary>
         /// Stop other versions of the same build type.
@@ -80,8 +80,7 @@ namespace TeamCityBranchBuild
                     // "Platform",
                     BuildSystem.BuildNumberEnvVar,
                     BuildSystem.CheckOutDirEnvVar,
-                    BuildSystem.BuildSystemDirEnvVar,
-                    BuildSystem.BuildSystemToolsDirEnvVar
+                    BuildSystem.BuildSystemDirEnvVar
                 }))
                 {
                     throw new Exception("Some needed environment variables do not exist...");
@@ -106,36 +105,34 @@ namespace TeamCityBranchBuild
                     return 0;
 
                 // Obtaining current workspace directory.
-                String devRootDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
-                if (devRootDir == null)
+                String srcRootDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
+                if (srcRootDir == null)
                     throw new Exception("Can't get path to current workspace directory.");
 
-                if (!Directory.Exists(Path.Combine(devRootDir, "Level1")))
+                String srcLevel1Dir = Path.Combine(srcRootDir, "Level1");
+                if (!Directory.Exists(srcLevel1Dir))
                     throw new Exception("Path to current workspace directory is wrong.");
-
-                // Removing Level0 sources directory.
-                if (Directory.Exists(Path.Combine(devRootDir, "Level0")))
-                    Directory.Delete(Path.Combine(devRootDir, "Level0"), true);
 
                 // Target build directory.
                 String buildNumber = Environment.GetEnvironmentVariable(BuildSystem.BuildNumberEnvVar);
                 if (buildNumber == null)
                     throw new Exception("Can't get build number environment variable.");
 
-                String targetBuildDir = Path.Combine(BuildSystem.LocalBuildsFolder, Path.Combine(buildsFolderName, buildNumber));
+                String destRootDir = Path.Combine(BuildSystem.LocalBuildsFolder, Path.Combine(buildsFolderName, buildNumber));
+                String destLevel1Dir = Path.Combine(destRootDir, "Level1");
 
                 // Stopping previous versions of the same build type.
                 StopOtherBuildsOfSameType(buildsFolderName, buildNumber);
 
                 // Dynamically checking if directory exists and quiting if it does.
-                if (Directory.Exists(targetBuildDir))
+                if (Directory.Exists(destRootDir))
                     throw new Exception("Directory is occupied. Quiting...");
 
                 // Now creating empty directory.
-                Directory.CreateDirectory(targetBuildDir);
+                Directory.CreateDirectory(destRootDir);
 
                 // Creating stop file.
-                File.WriteAllText(Path.Combine(targetBuildDir, BuildSystem.StopDaemonFileName), "Stop!");
+                File.WriteAllText(Path.Combine(destRootDir, BuildSystem.StopDaemonFileName), "Stop!");
 
                 // Build tools used.
                 String[] buildToolNames = { "BuildsFillupDaemon", "GenerateInstaller" };
@@ -144,29 +141,27 @@ namespace TeamCityBranchBuild
                 Console.Error.WriteLine("Copying sources and binaries to the build directory...");
 
                 // Copy all needed build tools to target directory.
-                String buildToolsBinDir = Environment.GetEnvironmentVariable(BuildSystem.BuildSystemToolsDirEnvVar);
-                if (buildToolsBinDir == null)
-                    throw new ArgumentNullException("Build tools binary directory is not set.");
+                String buildToolsBinDir = Path.Combine(srcRootDir, BuildSystem.CommonDefaultBuildToolsOutputPath);
 
                 // Copying needed binaries.
                 foreach (String toolName in buildToolNames)
                 {
                     File.Copy(Path.Combine(buildToolsBinDir, toolName + ".exe"),
-                        Path.Combine(targetBuildDir, toolName + ".exe"),
+                        Path.Combine(destRootDir, toolName + ".exe"),
                         true);
 
                     File.Copy(Path.Combine(buildToolsBinDir, toolName + ".pdb"),
-                        Path.Combine(targetBuildDir, toolName + ".pdb"),
+                        Path.Combine(destRootDir, toolName + ".pdb"),
                         true);
                 }
 
                 // Copying shared build system library.
                 File.Copy(Path.Combine(buildToolsBinDir, "BuildSystemHelper.dll"),
-                    Path.Combine(targetBuildDir, "BuildSystemHelper.dll"),
+                    Path.Combine(destRootDir, "BuildSystemHelper.dll"),
                     true);
 
                 File.Copy(Path.Combine(buildToolsBinDir, "BuildSystemHelper.pdb"),
-                    Path.Combine(targetBuildDir, "BuildSystemHelper.pdb"),
+                    Path.Combine(destRootDir, "BuildSystemHelper.pdb"),
                     true);
 
                 // Creating version info file.
@@ -191,32 +186,33 @@ namespace TeamCityBranchBuild
                 versionFileContents += "</VersionInfo>" + Environment.NewLine;
 
                 // Saving version file.
-                File.WriteAllText(Path.Combine(targetBuildDir, BuildSystem.VersionXMLFileName), versionFileContents);
+                File.WriteAllText(Path.Combine(destRootDir, BuildSystem.VersionXMLFileName), versionFileContents);
 
                 // Copy all sources and binaries from the current build
                 // folder to the destination build directory.
                 BuildSystem.CopyFilesRecursively(
-                    new DirectoryInfo(devRootDir),
-                    new DirectoryInfo(targetBuildDir));
+                    new DirectoryInfo(srcLevel1Dir),
+                    new DirectoryInfo(destLevel1Dir));
 
                 // Copying the consolidated directory.
-                String binOutputPath = Environment.GetEnvironmentVariable(BuildSystem.BuildOutputEnvVar);
+                String binOutputPath = Path.Combine(srcRootDir, BuildSystem.CommonDefaultBuildOutputPath);
                 if (binOutputPath == null)
                     throw new Exception("Can not obtain current binary output directory.");
 
                 // Copying all binaries.
-                BuildSystem.CopyFilesRecursively(new DirectoryInfo(binOutputPath),
-                    new DirectoryInfo(Path.Combine(targetBuildDir, BuildSystem.CommonDefaultBuildOutputPath)));
+                BuildSystem.CopyFilesRecursively(
+                    new DirectoryInfo(binOutputPath),
+                    new DirectoryInfo(Path.Combine(destRootDir, BuildSystem.CommonDefaultBuildOutputPath)));
 
                 // Removing built tools binary directory.
-                Directory.Delete(Path.Combine(targetBuildDir, "BuildSystem"), true);
+                Directory.Delete(Path.Combine(destRootDir, BuildSystem.CommonDefaultBuildToolsOutputPath), true);
 
                 // Deleting stop file.
-                File.Delete(Path.Combine(targetBuildDir, BuildSystem.StopDaemonFileName));
+                File.Delete(Path.Combine(destRootDir, BuildSystem.StopDaemonFileName));
 
                 // Configuring builds fill up process.
                 ProcessStartInfo buildsFillupProcInfo = new ProcessStartInfo();
-                buildsFillupProcInfo.FileName = "\"" + Path.Combine(targetBuildDir, BuildSystem.BuildDaemonName + ".exe") + "\"";
+                buildsFillupProcInfo.FileName = "\"" + Path.Combine(destRootDir, BuildSystem.BuildDaemonName + ".exe") + "\"";
 
                 // Starting the builds fill up process.
                 Process buildsFillUpProc = Process.Start(buildsFillupProcInfo);
