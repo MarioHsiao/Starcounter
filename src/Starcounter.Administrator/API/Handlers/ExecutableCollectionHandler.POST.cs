@@ -70,6 +70,7 @@ namespace Starcounter.Administrator.API.Handlers {
                             errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
                             return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
                         case Error.SCERREXECUTABLENOTFOUND:
+                        case Error.SCERRWEAVERFAILEDLOADFILE:
                             msg = single.ToErrorMessage();
                             errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
                             return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 422);

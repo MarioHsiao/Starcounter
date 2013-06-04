@@ -10,6 +10,7 @@ using BuildSystemHelper;
 using System.Threading;
 using System.Reflection;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace GenerateInstaller
 {
@@ -69,15 +70,17 @@ namespace GenerateInstaller
         }
 
         // Replaces string in file.
-        static void ReplaceStringInFile(String filePath, String origString, String replaceString)
+        static void ReplaceStringInFile(String filePath, String origStringRegex, String replaceString)
         {
             String fileContents = File.ReadAllText(filePath);
 
-            // Trying to find this exact string in file.
-            if (!fileContents.Contains(origString))
-                throw new Exception("Can't find version constant string " + origString + " in file " + filePath);
+            Match match = Regex.Match(fileContents, origStringRegex, RegexOptions.IgnoreCase);
 
-            fileContents = fileContents.Replace(origString, replaceString);
+            // Trying to find this exact string in file.
+            if (!match.Success)
+                throw new Exception("Can't find matching string " + origStringRegex + " in file " + filePath);
+
+            fileContents = fileContents.Replace(match.Value, replaceString);
 
             File.WriteAllText(filePath, fileContents);
         }
@@ -150,6 +153,9 @@ namespace GenerateInstaller
                 {
                     throw new Exception("Environment variable 'WORKSPACE' does not exist.");
                 }
+
+                // Indicating that we want to skip local FTP.
+                Environment.SetEnvironmentVariable(BuildSystem.BuildSystemSkipLocalFtp, "True");
                 
                 // Getting the path to current build consolidated folder.
                 String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
@@ -200,11 +206,11 @@ namespace GenerateInstaller
 
                 // Replacing version information.
                 String currentVersionFilePath = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs");
-                ReplaceStringInFile(currentVersionFilePath, "String Version = \"2.0.0.0\";", "String Version = \"" + version + "\";");
-                ReplaceStringInFile(currentVersionFilePath, "String IDFullBase32 = \"000000000000000000000000\";", "String IDFullBase32 = \"" + downloadID.IDFullBase32 + "\";");
-                ReplaceStringInFile(currentVersionFilePath, "String IDTailBase64 = \"0000000\";", "String IDTailBase64 = \"" + downloadID.IDTailBase64 + "\";");
-                ReplaceStringInFile(currentVersionFilePath, "UInt32 IDTailDecimal = 0;", "UInt32 IDTailDecimal = " + downloadID.IDTailDecimal + ";");
-                ReplaceStringInFile(currentVersionFilePath, "DateTime RequiredRegistrationDate = DateTime.Parse(\"1900-01-01\");", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
+                ReplaceStringInFile(currentVersionFilePath, @"String Version = ""[0-9\.]+"";", "String Version = \"" + version + "\";");
+                ReplaceStringInFile(currentVersionFilePath, @"String IDFullBase32 = ""[0-9]+"";", "String IDFullBase32 = \"" + downloadID.IDFullBase32 + "\";");
+                ReplaceStringInFile(currentVersionFilePath, @"String IDTailBase64 = ""[0-9]+"";", "String IDTailBase64 = \"" + downloadID.IDTailBase64 + "\";");
+                ReplaceStringInFile(currentVersionFilePath, @"UInt32 IDTailDecimal = [0-9]+;", "UInt32 IDTailDecimal = " + downloadID.IDTailDecimal + ";");
+                ReplaceStringInFile(currentVersionFilePath, @"DateTime RequiredRegistrationDate = DateTime\.Parse\(""[0-9\-]+""\);", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
 
                 //////////////////////////////////////////////////////////
                 // Packaging consolidated folder, updating resources, etc.
@@ -212,8 +218,10 @@ namespace GenerateInstaller
                 Console.WriteLine("Updating resources and building empty installer...");
 
                 // Checking if setup file already exists.
-                String setupFileName = "Starcounter-" + version + "-Setup.exe";
-                String setupFilePath = Path.Combine(outputFolder, setupFileName);
+                String specificSetupFileName = "Starcounter-" + version + "-Setup.exe";
+                String specificSetupFilePath = Path.Combine(outputFolder, specificSetupFileName);
+                String staticSetupFileName = "Starcounter-Setup.exe";
+                String staticSetupFilePath = Path.Combine(outputFolder, staticSetupFileName);
 
                 Console.WriteLine("Removing old setup file...");
                 BuildSystem.DirectoryContainsFilesRegex(outputFolder, new String[] { @"Starcounter.+Setup\.exe" }, true);
@@ -312,12 +320,12 @@ namespace GenerateInstaller
                 ZipFile.CreateFromDirectory(outputFolder, archivePath, CompressionLevel.Optimal, false);
 
                 // Compiling second time with archive.
-                msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
+                msbuildInfo.Arguments = msbuildArgs;
                 msbuildProcess = Process.Start(msbuildInfo);
                 msbuildProcess.WaitForExit();
                 if (msbuildProcess.ExitCode != 0)
                 {
-                    throw new Exception("Building Installer WPF project for complete setup has failed with error code: " + msbuildProcess.ExitCode);
+                    throw new Exception("Building Installer WPF project has failed with error code: " + msbuildProcess.ExitCode);
                 }
                 msbuildProcess.Close();
 
@@ -325,7 +333,7 @@ namespace GenerateInstaller
                 for (Int32 i = 0; i < 5; i++)
                 {
                     // Signing the main Starcounter setup.
-                    signingError = BuildSystem.SignFiles(new String[] { setupFilePath }, companyName, productName, certificateFile);
+                    signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, companyName, productName, certificateFile);
                     if (signingError == null) break;
 
                     Thread.Sleep(5000);
@@ -336,6 +344,32 @@ namespace GenerateInstaller
                 {
                     throw new Exception("Failed to sign main Starcounter setup file...");
                 }
+
+                Console.WriteLine("Building installer wrapper...");
+
+                // Copying necessary embedded files.
+                String installerWrapperDir = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper");
+
+                File.Copy(Path.Combine(BuildSystem.MappedBuildServerFTP, @"SCDev\ThirdParty\dotNET\dotnetfx45_full_x86_x64.exe"),
+                    Path.Combine(installerWrapperDir, "resources", "dotnetfx45_full_x86_x64.exe"), true);
+
+                File.Copy(staticSetupFilePath, Path.Combine(installerWrapperDir, "resources", staticSetupFileName), true);
+
+                String installerWrapperVersionFilePath = Path.Combine(installerWrapperDir, "Starcounter.InstallerWrapper.cs");
+
+                // Setting current installer version.
+                ReplaceStringInFile(installerWrapperVersionFilePath, @"String ScSetupVersion = ""[0-9\.]+"";", "String ScSetupVersion = \"" + version + "\";");
+
+                // Compiling second time with archive.
+                msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper\Starcounter.InstallerWrapper.csproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=AnyCPU";
+                msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
+                msbuildProcess = Process.Start(msbuildInfo);
+                msbuildProcess.WaitForExit();
+                if (msbuildProcess.ExitCode != 0)
+                {
+                    throw new Exception("Building installer wrapper project has failed with error code: " + msbuildProcess.ExitCode);
+                }
+                msbuildProcess.Close();
 
                 // Uploading changes to FTP server (only if its not a personal build).
                 if (Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) == "True")
@@ -355,7 +389,7 @@ namespace GenerateInstaller
 
                         // Copying file to destination directory.
                         String targetBase64Dir = buildsFTPPoolDir + "/" + downloadID.IDTailBase64;
-                        BuildSystem.UploadFileToFTP(BuildSystem.StarcounterFtpConfigName, setupFilePath, targetBase64Dir + "/" + setupFileName);
+                        BuildSystem.UploadFileToFTP(BuildSystem.StarcounterFtpConfigName, specificSetupFilePath, targetBase64Dir + "/" + specificSetupFileName);
 
                         // Saving the new build version information as a last step.
                         BuildSystem.UploadFileTextToFTP(BuildSystem.StarcounterFtpConfigName, versionFileContents, buildsFTPPoolDir + "/" + "VersionInfo_" + previousRandomNumCount + ".xml");
@@ -365,7 +399,7 @@ namespace GenerateInstaller
 
                     // Uploading standalone setup to FTP.
                     if (args.Length > 0)
-                        UploadBuildToFtp(args[0], version, setupFileName, setupFilePath);
+                        UploadBuildToFtp(args[0], version, specificSetupFileName, specificSetupFilePath);
                 }
 
                 Console.WriteLine("Succeeded generating unique installer with download id: " + downloadID.IDFullBase32);

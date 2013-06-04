@@ -9,13 +9,14 @@
 
 extern void ThrowException(char *msg);
 extern void ThrowExceptionCode(int scerrcode, char *msg);
-extern void ThrowExceptionReport(int scerrorcode, int position, wchar_t *tocken, char *message);
+extern void ThrowExceptionReport(int scerrorcode, int position, wchar_t *token, char *message);
 
 typedef struct ScError
 {
 	int scerrorcode;
 	char *scerrmessage;
 	int scerrposition;
+	bool isKeyword;
 	wchar_t *tocken;
 } ScError;
 

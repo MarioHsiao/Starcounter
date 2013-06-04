@@ -166,6 +166,10 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
         }
     }
 
+    public String EvaluateToString() {
+        return EvaluateToBoolean(null).ToString();
+    }
+
     /// <summary>
     /// Examines if the return value of the method is null when evaluated on an input object.
     /// </summary>

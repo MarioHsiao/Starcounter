@@ -1,6 +1,7 @@
 extern "C"
 {
 	#include "General/postgres.h"
+	#include "Parser/keywords.h"
 };
 
 #ifdef _MSC_VER
@@ -16,6 +17,7 @@ void ResetScError()
 	scerror->scerrmessage = NULL;
 	scerror->scerrposition = -1;
 	scerror->tocken = NULL;
+	scerror->isKeyword = false;
 }
 
 void InitScError()
@@ -27,15 +29,19 @@ void InitScError()
 
 ///<summary>Reporting errors into thread global variable, which is used to propogate error in managed code.
 ///</summary>
-void ScEreport(int scerrorcode, int position, wchar_t *tocken, char *message)
+void ScEreport(int scerrorcode, int position, wchar_t *token, char *message)
 {
 	if (scerror->scerrorcode==SCERRUNEXPERRSPRINTFSQLSYNTAX)
 		return;
 	if (scerror->scerrorcode == 0)
 		scerror->scerrorcode = scerrorcode;
 	scerror->scerrposition = position / sizeof(wchar_t);
-	scerror->tocken = tocken;
+	scerror->tocken = token;
 	scerror->scerrmessage = message;
+	const ScanKeyword *keyword = NULL;
+	if (token != NULL)
+		keyword = ScanKeywordLookup(token, ScanKeywords, NumScanKeywords);
+	scerror->isKeyword = keyword != NULL;
 }
 
 void ScCodeEreport(int scerrorcode)
