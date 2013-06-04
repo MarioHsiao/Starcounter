@@ -335,6 +335,9 @@ namespace Starcounter.Tests {
 			Console.WriteLine("Managed decimal (" + value + "): " + (stop - start).TotalMilliseconds + " ms.");
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Test]
         public static void TestEncodeDecodeX6Decimal() {
             AssertEncodeDecodeDecimal(1m);
