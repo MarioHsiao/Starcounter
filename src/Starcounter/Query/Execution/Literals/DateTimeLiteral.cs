@@ -71,6 +71,10 @@ internal class DateTimeLiteral : Literal, ILiteral, IDateTimePathItem
         return value;
     }
 
+    public String EvaluateToString() {
+        return EvaluateToDateTime(null).ToString();
+    }
+
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>

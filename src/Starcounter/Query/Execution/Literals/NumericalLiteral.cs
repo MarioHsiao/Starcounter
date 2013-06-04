@@ -599,6 +599,28 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
         }
     }
 
+    public String EvaluateToString() {
+        switch (dbTypeCode) {
+            case DbTypeCode.Int64:
+                return intValue.ToString();
+
+            case DbTypeCode.UInt64:
+                return uintValue.ToString();
+
+            case DbTypeCode.Decimal:
+                return decValue.ToString();
+
+            case DbTypeCode.Double:
+                return dblValue.ToString();
+
+            case DbTypeCode.Single:
+                return snglValue.ToString();
+
+            default:
+                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect dbTypeCode: " + dbTypeCode);
+        }
+    }
+
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>

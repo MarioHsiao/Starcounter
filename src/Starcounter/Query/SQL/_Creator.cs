@@ -2021,8 +2021,11 @@ namespace Starcounter.Query.Sql
             if (exprTerm.Name == "literal" && exprTerm.Arity == 2)
             {
                 ILiteral literal = CreateLiteral(exprTerm.getArgument(1), exprTerm.getArgument(2));
-                if (!literal.EvaluatesToNull(null) && !(literal is TypeLiteral))
+                if (!literal.EvaluatesToNull(null) && !(literal is TypeLiteral)) {
                     varArray.QueryFlags = varArray.QueryFlags | QueryFlags.IncludesLiteral;
+                    if (String.IsNullOrEmpty(varArray.LiteralValue))
+                        varArray.LiteralValue = literal.EvaluateToString();
+                }
                 return literal;
             }
             // path(Type,ExtNum,Path)

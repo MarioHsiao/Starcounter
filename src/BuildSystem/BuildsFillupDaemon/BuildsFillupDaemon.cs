@@ -75,9 +75,6 @@ namespace BuildsFillupDaemon
                 //Environment.SetEnvironmentVariable("Platform", platform);
                 Environment.SetEnvironmentVariable(BuildSystem.BuildNumberEnvVar, version);
                 Environment.SetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar, sourcesDir);
-                Environment.SetEnvironmentVariable(BuildSystem.BuildOutputEnvVar, Path.Combine(sourcesDir, BuildSystem.CommonDefaultBuildOutputPath));
-                Environment.SetEnvironmentVariable("SC_BUILD_SOURCES_PATH", Path.Combine(sourcesDir, @"Level1\Src"));
-                Environment.SetEnvironmentVariable("SC_BUILD_PRECOMPILED_BIN_PATH", Path.Combine(sourcesDir, @"Level1\Src\Redistributables"));
 
                 // Indicating that we need to upload to US FTP.
                 Environment.SetEnvironmentVariable(BuildSystem.UploadToUsFtp, "True");
@@ -91,10 +88,7 @@ namespace BuildsFillupDaemon
                     "Configuration",
                     //"Platform",
                     BuildSystem.BuildNumberEnvVar,
-                    BuildSystem.CheckOutDirEnvVar,
-                    BuildSystem.BuildOutputEnvVar,
-                    "SC_BUILD_SOURCES_PATH",
-                    "SC_BUILD_PRECOMPILED_BIN_PATH"
+                    BuildSystem.CheckOutDirEnvVar
                 }))
                 {
                     throw new Exception("Not all environment variables exist.");

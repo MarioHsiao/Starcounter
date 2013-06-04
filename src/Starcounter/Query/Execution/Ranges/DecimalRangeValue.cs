@@ -16,7 +16,7 @@ namespace Starcounter.Query.Execution
 internal class DecimalRangeValue : RangeValue, IComparable<DecimalRangeValue>
 {
     public static readonly Nullable<Int64> MIN_VALUE = null;
-    public static readonly Nullable<Int64> MAX_VALUE = DbState.X6DECIMALMAX;
+    public static readonly Nullable<Int64> MAX_VALUE = X6Decimal.MaxValue;
 
     private Nullable<Int64> value;
 
@@ -52,7 +52,7 @@ internal class DecimalRangeValue : RangeValue, IComparable<DecimalRangeValue>
         if (newValue == null)
             value = null;
         else
-            value = DbState.ClrDecimalToEncodedX6Decimal((Decimal)newValue);
+            value = X6Decimal.FromDecimal((Decimal)newValue);
     }
 
     public void SetValue(ComparisonOperator compOper, Nullable<Int64> newValue) {

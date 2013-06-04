@@ -74,6 +74,13 @@ internal class TypeLiteral : Literal, ILiteral, ITypeExpression
         return value;
     }
 
+    public String EvaluateToString() {
+        ITypeBinding type = EvaluateToType(null);
+        if (type == null)
+            return null;
+        return "type " + type.Name;
+    }
+
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>

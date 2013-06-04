@@ -258,8 +258,25 @@ namespace Starcounter.VisualStudio.Projects {
             // headers = string.Format("Expect: {0}{1}", "202-accepted", HTTPHelp.CRLF);
             headers = null;
             response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), headers, null);
-            response.FailIfNotSuccess();
-
+            response.FailIfNotSuccessOr(422);
+            if (response.StatusCode == 422) {
+                errorDetail = new ErrorDetail();
+                errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                if (errorDetail.ServerCode == Error.SCERRWEAVERFAILEDLOADFILE) {
+                    ReportError("{0}: {1}\n{2}\n{3}",
+                        ErrorCode.ToDecoratedCode(Error.SCERRWEAVERFAILEDLOADFILE),
+                        errorDetail.Text,
+                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project.",
+                        ErrorCode.ToHelpLink(Error.SCERRWEAVERFAILEDLOADFILE)
+                        );
+                    return false;
+                } else {
+                    // Since we have no specific way to output any other errors
+                    // wrapped in HTTP 422, we do this trick to have the general
+                    // unexpected handler kick in.
+                    response.FailIfNotSuccess();
+                }
+            }
             return true;
         }
 

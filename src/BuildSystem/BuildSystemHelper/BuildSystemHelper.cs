@@ -59,9 +59,9 @@ namespace BuildSystemHelper
         public const String BuildSystemDirEnvVar = "SC_BUILD_SYSTEM_DIR";
 
         /// <summary>
-        /// Path to build output.
+        /// Name of the environment variable to skip the local FTP.
         /// </summary>
-        public const String BuildOutputEnvVar = "SC_BUILD_OUTPUT_PATH";
+        public const String BuildSystemSkipLocalFtp = "SC_BUILD_SKIP_LOCAL_FTP";
 
         /// <summary>
         /// Build number env var.
@@ -71,7 +71,12 @@ namespace BuildSystemHelper
         /// <summary>
         /// Common path to default build output.
         /// </summary>
-        public const String CommonDefaultBuildOutputPath = @"Level1\Src\..\Bin";
+        public const String CommonDefaultBuildOutputPath = @"Level1\src\..\bin";
+
+        /// <summary>
+        /// Common path to default build tools output.
+        /// </summary>
+        public const String CommonDefaultBuildToolsOutputPath = @"Level1\src\..\bsbin\Debug";
 
         /// <summary>
         /// Path to MsBuild tool.

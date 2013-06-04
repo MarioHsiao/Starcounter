@@ -183,8 +183,8 @@ internal interface IValueExpression : IConditionTreeNode
 /// <summary>
 /// Interface for literals of all data types.
 /// </summary>
-internal interface ILiteral : IValueExpression
-{
+internal interface ILiteral : IValueExpression {
+    String EvaluateToString();
 }
 
 /// <summary>
@@ -1060,6 +1060,8 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     {
         get;
     }
+
+    String LiteralValue { get; }
 
     // Query string.
     String QueryString

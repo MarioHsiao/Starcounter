@@ -90,6 +90,7 @@
     <Compile Include="BootstrapWeaver.cs" />
     <Compile Include="CodeWeaver.cs" />
     <Compile Include="CodeWeaverInsidePostSharpDomain.cs" />
+    <Compile Include="CodeWeaverModuleLoadStrategy.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramCommands.cs" />
     <Compile Include="ProgramVerbosity.cs" />

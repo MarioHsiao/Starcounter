@@ -165,6 +165,10 @@ internal class IntegerLiteral : Literal, ILiteral, IIntegerPathItem
         return (UInt64)value.Value;
     }
 
+    public String EvaluateToString() {
+        return EvaluateToInteger(null).ToString();
+    }
+
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>

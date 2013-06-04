@@ -215,6 +215,9 @@ internal class DecimalLiteral : Literal, ILiteral, IDecimalPathItem
         return (UInt64)Math.Floor(value.Value);
     }
 
+    public String EvaluateToString() {
+        return EvaluateToDecimal(null).ToString();
+    }
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>

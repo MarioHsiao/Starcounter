@@ -4,19 +4,21 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SignAssembly>false</SignAssembly>
     <ProjectGuid>{9C2F1BAA-C88C-4526-B951-95DD3BAA1381}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Starcounter.InstallerWrapper</RootNamespace>
     <AssemblyName>Starcounter.InstallerWrapper</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation />
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <ApplicationManifest>Starcounter.InstallerWrapper.manifest</ApplicationManifest>
     <ApplicationIcon>resources\sc.ico</ApplicationIcon>
-    <AssemblyName Condition=" '$(SC_CREATE_STANDALONE_SETUP)' == '' ">New-Starcounter-Setup</AssemblyName>
-    <AssemblyName Condition=" '$(SC_CREATE_STANDALONE_SETUP)' != '' ">New-Starcounter-$(BUILD_NUMBER)-Setup</AssemblyName>
+    <AssemblyName Condition=" '$(SC_CREATE_STANDALONE_SETUP)' == '' ">Starcounter-Setup-Wrapper</AssemblyName>
+    <AssemblyName Condition=" '$(SC_CREATE_STANDALONE_SETUP)' != '' ">Starcounter-$(BUILD_NUMBER)-Setup</AssemblyName>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -39,19 +41,25 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <!-- Including standard .NET references (note that default target framework is used). -->
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="resources\sc.ico" />
     <EmbeddedResource Include="resources\Starcounter-Setup.exe" />
     <EmbeddedResource Include="resources\dotnetfx45_full_x86_x64.exe" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="Starcounter.InstallerWrapper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
