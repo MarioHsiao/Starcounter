@@ -26,15 +26,15 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="encodedValue"></param>
         /// <returns></returns>
-        public static decimal ToDecimalFromEncoded(long encodedValue) {
-            return ToDecimalFromRaw(decode_dec(encodedValue));
+        public static decimal FromEncoded(long encodedValue) {
+            return FromRaw(Decode(encodedValue));
         }
 
         /// <summary>
         /// Converts the starcounter decimal in raw format to a .Net decimal.
         /// </summary>
         /// <returns></returns>
-        public static decimal ToDecimalFromRaw(long rawValue) {
+        public static decimal FromRaw(long rawValue) {
             decimal dec;
             int signAndScale;
 
@@ -62,7 +62,7 @@ namespace Starcounter.Internal {
         /// <param name="value"></param>
         /// <returns></returns>
         public static long ToEncoded(decimal value) {
-            return encode_dec(ToRaw(value));
+            return Encode(ToRaw(value));
         }
 
         /// <summary>
@@ -103,18 +103,18 @@ namespace Starcounter.Internal {
             return rawValue;
         }
 
-        private static unsafe long decode_dec(long encoded_value) {
+        public static unsafe long Decode(long encodedValue) {
             bool sign;
             ulong buffer;
             ulong temp;
             ulong output;
             long ret;
 
-            sign = encoded_value < 0;
+            sign = encodedValue < 0;
             if (sign)
-                encoded_value = -encoded_value;
+                encodedValue = -encodedValue;
 
-            buffer = (ulong)encoded_value;
+            buffer = (ulong)encodedValue;
 
             temp = (buffer & 0x3FFF);
             output = temp;
@@ -140,7 +140,7 @@ namespace Starcounter.Internal {
             return (long)ret;
         }
 
-        private static unsafe long encode_dec(long value) {
+        public static unsafe long Encode(long value) {
             bool sign;
             ulong restq;
             uint restd;

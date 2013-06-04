@@ -257,7 +257,7 @@ namespace Starcounter.Internal
             }
 
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                return X6Decimal.ToDecimalFromEncoded(encValue);
+                return X6Decimal.FromEncoded(encValue);
             }
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
@@ -279,7 +279,7 @@ namespace Starcounter.Internal
 
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
                 if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                    return X6Decimal.ToDecimalFromEncoded(encValue);
+                    return X6Decimal.FromEncoded(encValue);
                 } else {
                     return null;
                 }
