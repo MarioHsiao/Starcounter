@@ -67,8 +67,22 @@ VOID PrintCommandHelp() {
 	wprintf(L"Starcounter components, like scnetworkgateway, scipcmonitor, etc.\n");
 }
 
+uint32_t server_is_running() {
+	uint32_t error_code = 0;
+	//. . .
+	return error_code;
+}
+
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
+	{
+		uint32_t error_code = server_is_running();
+
+		if (error_code != 0) {
+			// log the error and exit.
+		}
+	}
+
     BOOL exit_code_is_scerr;
     DWORD process_exit_code;
 	wchar_t logmessagebuffer[LOG_BUFFER_MESSAGE_SIZE];
