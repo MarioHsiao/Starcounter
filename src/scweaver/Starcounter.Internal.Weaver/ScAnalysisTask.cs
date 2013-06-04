@@ -1201,6 +1201,8 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the property belong.</param>
         /// <param name="property">Property to be inspected.</param>
         private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
+            ValidateDiscoveredDatabaseProperty(databaseClass, property);
+
             DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, property.Name);
             databaseClass.Attributes.Add(databaseAttribute);
             databaseAttribute.SetPropertyDefinition(property);
@@ -1208,6 +1210,36 @@ namespace Starcounter.Internal.Weaver {
             databaseAttribute.BackingField = ScanPropertyGetter(databaseAttribute);
             SetDatabaseAttributeType(property, false, databaseAttribute);
             databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
+        }
+        /// <summary>
+        /// Validates the declared <paramref name="property"/> in the specified
+        /// <paramref name="databaseClass"/> to see if it violates any constraits.
+        /// Emits relevant errors if it does.
+        /// </summary>
+        /// <param name="databaseClass">The database class that declares the given
+        /// property.</param>
+        /// <param name="property">The property to validate.</param>
+        private void ValidateDiscoveredDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
+            var cursor = databaseClass;
+            while (cursor != null) {
+                foreach (var item in cursor.Attributes) {
+                    if (item.AttributeKind == DatabaseAttributeKind.PersistentField && item.IsPublicRead) {
+                        if (item.Name.Equals(property.Name, StringComparison.InvariantCultureIgnoreCase)) {
+                            var detail = string.Format("Property {0} in class {1}, field {2} in class {3}.",
+                                property.Name,
+                                databaseClass.Name,
+                                item.Name,
+                                cursor.Name);
+                            ScMessageSource.WriteError(
+                                MessageLocation.Of(property),
+                                Error.SCERRPROPERTYNAMEEQUALSFIELD,
+                                detail);
+                        }
+                    }
+                }
+
+                cursor = cursor.BaseClass;
+            }
         }
 
         /// <summary>
