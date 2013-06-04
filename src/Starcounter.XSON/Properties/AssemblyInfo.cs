@@ -22,6 +22,7 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("9be2dd21-b7a0-42ad-9b94-444eb659e5f9")]
 
+[assembly: InternalsVisibleTo("Starcounter.XSON.Tests")]
 [assembly: InternalsVisibleTo("Starcounter.XSON.CodeGeneration.Tests")]
 
 // Version information for an assembly consists of the following four values:
