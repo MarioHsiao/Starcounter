@@ -3373,6 +3373,12 @@
     <code hex="001C" severity="Error" name="ScErrInvalidOffsetKey">
       <message>Offset key is invalid for given query.</message>
     </code>
+    <code hex="001D" severity="Error" name="ScErrUnsupportLiteral">
+      <message>Literals are not supported in the query.</message>
+    </code>
+    <code hex="001E" severity="Error" name="ScErrUnsupportAggregate">
+      <message>Aggregates are not supported in the query.</message>
+    </code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
