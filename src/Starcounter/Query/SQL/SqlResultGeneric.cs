@@ -84,10 +84,16 @@ namespace Starcounter
                 // Check if the query includes anything non-supported.
                 if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {
                     if ((execEnum.QueryFlags & QueryFlags.IncludesAggregation) != QueryFlags.None)
-                        throw new SqlException("Aggregation in query is not supported.");
+                        throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, "Method Starcounter.Db.SQL does not support queries with aggregates.");
+                        //throw new SqlException("Method Starcounter.Db.SQL does not support queries with aggregates.");
 
                     if ((execEnum.QueryFlags & QueryFlags.IncludesLiteral) != QueryFlags.None)
-                        throw new SqlException("Literal in query is not supported. Use variable and parameter instead.");
+                        if (String.IsNullOrEmpty(execEnum.LiteralValue))
+                            throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, "Method Starcounter.Db.SQL does not support queries with literals. Use variable and parameter instead.");
+                        else
+                            throw ErrorCode.ToException(Error.SCERRSQLINCORRECTSYNTAX, "Method Starcounter.Db.SQL does not support queries with literals. Found literal is " +
+                                execEnum.LiteralValue + ". Use variable and parameter instead.");
+                    //throw new SqlException("Method Starcounter.Db.SQL does not support queries with literals. Use variable and parameter instead.");
                 }
 
                 // Setting SQL parameters if any are given.

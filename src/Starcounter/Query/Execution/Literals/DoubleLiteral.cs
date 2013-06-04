@@ -215,6 +215,9 @@ internal class DoubleLiteral : Literal, ILiteral, IDoublePathItem
         return value;
     }
 
+    public String EvaluateToString() {
+        return EvaluateToDouble(null).ToString();
+    }
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>
