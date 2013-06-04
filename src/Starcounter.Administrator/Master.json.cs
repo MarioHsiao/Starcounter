@@ -15,6 +15,7 @@ using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Server.Rest;
 using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Web;
@@ -66,6 +67,10 @@ namespace Starcounter.Administrator {
 
             // Registering Administrator handlers.
             RegisterHandlers();
+
+            // Start User Tracking (Send data to tracking server each hour)
+            Tracking.Client.Instance.StartTrackUsage(Master.ServerInterface);
+
         }
 
         /// <summary>
@@ -181,11 +186,13 @@ namespace Starcounter.Administrator {
                         json.collationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
 
                         json.collationFiles = new object[] { };
-                        // TODO: Extend the Public model api to be able to retrive a list of all available collation files
-                        json.collationFiles[0] = new { name = "TurboText_en-GB_3.dll", description = "English" };
-                        json.collationFiles[1] = new { name = "TurboText_sv-SE_3.dll", description = "Swedish" };
-                        json.collationFiles[2] = new { name = "TurboText_nb-NO_3.dll", description = "Norwegian" };
 
+
+
+                        // TODO: Extend the Public model api to be able to retrive a list of all available collation files
+                        json.collationFiles[0] = new { name = Starcounter.Internal.StarcounterEnvironment.FileNames.CollationFileNamePrefix + "_en-GB_3.dll", description = "English" };
+                        json.collationFiles[1] = new { name = Starcounter.Internal.StarcounterEnvironment.FileNames.CollationFileNamePrefix + "_sv-SE_3.dll", description = "Swedish" };
+                        json.collationFiles[2] = new { name = Starcounter.Internal.StarcounterEnvironment.FileNames.CollationFileNamePrefix + "_nb-NO_3.dll", description = "Norwegian" };
 
                         json.maxImageSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.MaxImageSize ?? -1;
                         json.supportReplication = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.SupportReplication;
@@ -644,7 +651,7 @@ namespace Starcounter.Administrator {
 
                             resultJson.database = new {
                                 id = Master.EncodeTo64(database.Uri),
-                                status =  (database.Engine != null) ? "Running" : ".",
+                                status = (database.Engine != null) ? "Running" : ".",
                                 name = database.Name,
                                 hostProcessId = database.Engine == null ? 0 : database.Engine.HostProcessId,
                                 httpPort = database.Configuration.Runtime.DefaultUserHttpPort,

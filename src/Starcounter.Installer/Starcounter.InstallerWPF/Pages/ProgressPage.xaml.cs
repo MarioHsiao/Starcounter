@@ -278,6 +278,9 @@ namespace Starcounter.InstallerWPF.Pages {
 
             // Starting the installation process.
             try {
+
+                Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullInstallation);
+
                 Configuration config = state as Configuration;
                 config.ExecuteSettings(
                           delegate(object sender, Utilities.InstallerProgressEventArgs args) {
@@ -301,6 +304,9 @@ namespace Starcounter.InstallerWPF.Pages {
                 // Installation succeeded.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
+
+                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, true);
+
                     this.OnSuccess();
                 }
                 ));
@@ -310,6 +316,9 @@ namespace Starcounter.InstallerWPF.Pages {
                 // Error occurred during installation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
+
+                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, false);
+
                     this.OnError(installException);
                     return;
                 }
@@ -328,7 +337,6 @@ namespace Starcounter.InstallerWPF.Pages {
         private void OnSuccess() {
             this.IsInstalling = false;
             this._CanGoNext = true;
-
             CommandManager.InvalidateRequerySuggested();
         }
 
