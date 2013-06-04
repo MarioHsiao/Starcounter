@@ -9,17 +9,22 @@ using Starcounter.Templates;
 
 namespace Starcounter.XSON {
     internal class DataBindingFactory {
+        internal static bool ThrowExceptionOnBindindRecreation = false;
         private static LogSource logSource = new LogSource("json");
         private static string warning = "The existing databinding for '{0}' was created for another type of dataobject. Binding needs to be recreated.";
 
         internal static DataValueBinding<TVal> VerifyOrCreateBinding<TVal>(TValue template, DataValueBinding<TVal> binding, Type dataType, string bindingName) {
             PropertyInfo pInfo;
-
+            
             if (binding != null) {
                 if (dataType.Equals(binding.DataType) || dataType.IsSubclassOf(binding.DataType)) {
                     return binding;
                 }
-                logSource.LogWarning(string.Format(warning, template.Parent.TemplateName + "." + template.TemplateName));
+
+                if (ThrowExceptionOnBindindRecreation)
+                    throw new Exception(string.Format(warning, GetParentClassName(template) + "." + template.TemplateName));
+
+                logSource.LogWarning(string.Format(warning, GetParentClassName(template) + "." + template.TemplateName));
             }
 
             pInfo = dataType.GetProperty(bindingName, BindingFlags.Instance | BindingFlags.Public);
@@ -28,6 +33,19 @@ namespace Starcounter.XSON {
             }
 
             return new DataValueBinding<TVal>(pInfo);
+        }
+
+        private static string GetParentClassName(Template template) {
+            string className = null;
+            if (template.Parent is TObj)
+                className = ((TObj)template.Parent).ClassName;
+            else if (template.Parent is TObjArr) {
+                className = ((TObjArr)template.Parent).App.ClassName;
+            }
+
+            if (className == null)
+                className = "<noname>";
+            return className;
         }
     }
 
@@ -40,16 +58,33 @@ namespace Starcounter.XSON {
         private Type dataType;
 
         internal DataValueBinding(PropertyInfo bindToProperty) {
+            MethodInfo methodInfo;
             dataType = bindToProperty.DeclaringType;
-            if (bindToProperty.GetGetMethod() != null)
-                CreateGetBinding(bindToProperty.GetGetMethod());
-            if (bindToProperty.GetSetMethod() != null)
-                CreateSetBinding(bindToProperty.GetSetMethod());
+
+            methodInfo = bindToProperty.GetGetMethod();
+            if (methodInfo != null) {
+                // We need to check if this is an abstract or virtual method.
+                // In that case we want to create the binding for the type that 
+                // declares it in first hand.
+                if (methodInfo.IsVirtual) {
+                    methodInfo = methodInfo.GetBaseDefinition();
+                    dataType = methodInfo.DeclaringType;
+                }
+                CreateGetBinding(methodInfo);
+            }
+
+            methodInfo = bindToProperty.GetSetMethod();
+            if (methodInfo != null) {
+                if (methodInfo.IsVirtual) {
+                    methodInfo = methodInfo.GetBaseDefinition();
+                }
+                CreateSetBinding(methodInfo);
+            }
         }
 
         private void CreateGetBinding(MethodInfo getMethod) {
             ParameterExpression instance = Expression.Parameter(typeof(IBindable));
-            Expression cast = Expression.Convert(instance, getMethod.DeclaringType);
+            Expression cast = Expression.Convert(instance, dataType);
             Expression call = Expression.Call(cast, getMethod);
 
             if (!getMethod.ReturnType.Equals(typeof(TVal))) {
@@ -64,7 +99,7 @@ namespace Starcounter.XSON {
             ParameterExpression instance = Expression.Parameter(typeof(IBindable));
             ParameterExpression value = Expression.Parameter(typeof(TVal));
 
-            Expression cast = Expression.TypeAs(instance, setMethod.DeclaringType);
+            Expression cast = Expression.TypeAs(instance, dataType);
 
             Expression setValue = value;
             Type valueType = setMethod.GetParameters()[0].ParameterType;
