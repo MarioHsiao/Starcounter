@@ -3030,6 +3030,12 @@
     <code hex="00F6" severity="Error" name="ScErrCLRDecToX6DecRangeError">
       <message>The CLR Decimal cannot be converted to a Starcounter X6 decimal without data loss. Range error.</message>
     </code>
+    <code hex="00F7" severity="Error" name="ScErrPropertyNameEqualsField">
+      <message>
+        A property in a database class can not have the same name as a public/protected
+        field in the same class, or in a base class, not even if they differ in casing.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
