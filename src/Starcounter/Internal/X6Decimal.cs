@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace Starcounter.Internal {
 
     /// <summary>
@@ -7,11 +6,11 @@ namespace Starcounter.Internal {
     /// Specification of decimal format: http://www.starcounter.com/internal/wiki/Slots#Decimal
     /// </summary>
     public static class X6Decimal {
-        public static readonly long MaxValue = 4398046511103999999;
-        public static readonly long MinValue = -4398046511103999999;
+        public const long MaxValue = 4398046511103999999;
+        public const long MinValue = -4398046511103999999;
         public const decimal MaxDecimalValue = 4398046511103.999999m;
         public const decimal MinDecimalValue = -4398046511103.999999m;
-     
+
         private static readonly decimal[] scale_conversions = {
             1m,         // scale is already 6. Will never be used.
             1.0m,       
@@ -23,42 +22,66 @@ namespace Starcounter.Internal {
         };
 
         /// <summary>
-        /// Converts this X6Decimal to a .Net decimal
+        /// Converts the starcounter decimal in encoded format to a .Net decimal.
+        /// </summary>
+        /// <param name="encodedValue"></param>
+        /// <returns></returns>
+        public static decimal ToDecimalFromEncoded(long encodedValue) {
+            return ToDecimalFromRaw(decode_dec(encodedValue));
+        }
+
+        /// <summary>
+        /// Converts the starcounter decimal in raw format to a .Net decimal.
         /// </summary>
         /// <returns></returns>
-        public static decimal ToDecimal(long encodedValue) {
+        public static decimal ToDecimalFromRaw(long rawValue) {
             decimal dec;
             int signAndScale;
-            
+
             unsafe {
+                signAndScale = 0;
+                if (rawValue < 0) {
+                    rawValue = -rawValue;
+                    signAndScale = 1 << 31; 
+                }
+
                 // scale is always 6, which converted to scale bit in decimal is 
                 // 393216 (bits 16-23) without the sign bit set.
-                signAndScale = (int)((encodedValue >> 32) & 0x80000000); // sign, bit 32
                 signAndScale |= 0x60000; // scale
-                ((int*)&dec)[0] = signAndScale;
-                ((long*)&dec)[1] = (encodedValue & 0x7FFFFFFFFFFFFFFF);
-            }
 
+                ((int*)&dec)[0] = signAndScale;
+                ((long*)&dec)[1] = (rawValue & 0x7FFFFFFFFFFFFFFF);
+            }
             return dec;
         }
 
         /// <summary>
-        /// Converts a .Net decimal to a X6Decimal. Exception will be thrown on dataloss.
+        /// Converts a .Net decimal to Starcounter decimal in encoded format.
+        /// Exception will be thrown on dataloss.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static long FromDecimal(decimal value) {
+        public static long ToEncoded(decimal value) {
+            return encode_dec(ToRaw(value));
+        }
+
+        /// <summary>
+        /// Converts a .Net decimal to a Starcounter decimal in raw format. 
+        /// Exception will be thrown on dataloss.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static long ToRaw(decimal value) {
             int scale;
-            long encValue;
-            long valueWithoutSign;
+            long rawValue;
 
             unsafe {
                 int* pvalue = (int*)&value;
-
+                
                 // Reading scale. If scale differs from 6 we need to adjust it.
                 scale = pvalue[0];
                 scale = (scale >> 16) & 0xFF;
-
+                
                 if (scale < 6) {
                     value *= scale_conversions[6 - scale];
                 } else if (scale > 6) {
@@ -69,15 +92,106 @@ namespace Starcounter.Internal {
                 }
 
                 // We dont care if it is a positive or negative number since only the sign bit will differ.
-                valueWithoutSign = ((long*)&value)[1];
-                if ((pvalue[1] != 0) || (valueWithoutSign > X6Decimal.MaxValue)) // high != 0 or value > x6 decimal max.
+                rawValue = ((long*)&value)[1];
+                if ((pvalue[1] != 0) || (rawValue > X6Decimal.MaxValue)) // high != 0 or value > x6 decimal max.
                     throw ErrorCode.ToException(Error.SCERRCLRDECTOX6DECRANGEERROR);
 
-                encValue = ((((int*)&value)[0] & 0x80000000) << 32);
-                encValue |= valueWithoutSign;
+                if (((pvalue[0] & 0x80000000) != 0)) { // sign
+                    rawValue = -rawValue;
+                }
+            }
+            return rawValue;
+        }
+
+        private static unsafe long decode_dec(long encoded_value) {
+            bool sign;
+            ulong buffer;
+            ulong temp;
+            ulong output;
+            long ret;
+
+            sign = encoded_value < 0;
+            if (sign)
+                encoded_value = -encoded_value;
+
+            buffer = (ulong)encoded_value;
+
+            temp = (buffer & 0x3FFF);
+            output = temp;
+            buffer >>= 14;
+
+            temp = (buffer & 0x7F);
+            if (temp != 0) {
+                temp *= 10000;
+                output += temp;
+            }
+            buffer >>= 7;
+
+            temp = buffer;
+            if (temp != 0) {
+                temp *= 1000000;
+                output += temp;
             }
 
-            return encValue;
+            ret = (long)output;
+            if (sign)
+                ret = -ret;
+
+            return (long)ret;
+        }
+
+        private static unsafe long encode_dec(long value) {
+            bool sign;
+            ulong restq;
+            uint restd;
+            uint divd;
+            uint divw;
+            ulong tempq;
+            ulong tempd;
+            ulong partq;
+            ulong partd;
+            byte shift;
+            ulong buffer;
+            long ret;
+
+            if (value >= 0) {
+                sign = false;
+                restq = (ulong)value;
+            } else {
+                sign = true;
+                restq = (ulong)(-value);
+            }
+
+            // The integer part.
+
+            divd = 1000000;
+            shift = (7 + 14);
+            tempq = restq;
+            partq = (tempq / divd);
+            restd = (uint)(tempq % divd);
+//            _SC_ASSERT_DEBUG(partq <= 0x000003FFFFFFFFFF);
+            partq <<= shift;
+            buffer = partq;
+
+            // Decimal digits 1 and 2.
+
+            divw = 10000;
+            shift = 14;
+            tempd = restd;
+            partd = (tempd / divw);
+            restd = (uint)(tempd % divw);
+            partd <<= shift;
+            buffer |= partd;
+
+            // Decimal digits 3 to 6.
+
+            buffer |= restd;
+
+            ret = (long)buffer;
+            if (sign)
+                ret = -ret;
+
+            return ret;
         }
     }
 }
