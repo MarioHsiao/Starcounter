@@ -140,6 +140,12 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
         return value;
     }
 
+    public String EvaluateToString() {
+        if (value == null)
+            return null;
+        return "object "+value.GetObjectID().ToString();
+    }
+
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>

@@ -250,6 +250,20 @@ namespace Weaver {
                     // Just return 1 indicating something went wrong.
 
                     return false;
+
+                } catch (Exception e) {
+                    ErrorMessage error;
+                    if (!ErrorCode.TryGetCodedMessage(e, out error)) {
+                        // We have no clue what the exception may be. Don't
+                        // try anything fancy. Just let it explode.
+                        throw;
+                    }
+
+                    // Any exception we catch that orignates from us (i.e.
+                    // is based on a Starcounter error code and error message),
+                    // we report as a program error.
+                    Program.ReportProgramError(error.Code, error.ToString());
+                    return false;
                 }
 
                 stopwatch.Stop();
@@ -514,7 +528,7 @@ namespace Weaver {
 
                 fileToLoad = Path.Combine(this.InputDirectory, Path.GetFileName(file));
                 fileToLoad = Path.GetFullPath(fileToLoad);
-                this.Assemblies.Add(fileToLoad, new ModuleLoadDirectFromFileStrategy(fileToLoad, false));
+                this.Assemblies.Add(fileToLoad, new CodeWeaverModuleLoadStrategy(fileToLoad));
             }
 
             return true;
@@ -704,7 +718,7 @@ namespace Weaver {
 
         void AddWeaverExcludesFromFile() {
             string[] excludes;
-            string filepath = Path.Combine(this.InputDirectory, ".weaverignore");
+            string filepath = Path.Combine(this.InputDirectory, "weaver.ignore");
 
             if (File.Exists(filepath)) {
                 excludes = File.ReadAllLines(filepath);
