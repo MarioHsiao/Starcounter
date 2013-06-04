@@ -8,8 +8,8 @@
     <ProjectGuid>{D24DE18F-19D0-4397-8579-92736271B2D0}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TeamCityBranchBuild</RootNamespace>
-    <AssemblyName>TeamCityBranchBuild</AssemblyName>
+    <RootNamespace>BranchBuild</RootNamespace>
+    <AssemblyName>BranchBuild</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -47,7 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TeamCityBranchBuild.cs" />
+    <Compile Include="BranchBuild.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
