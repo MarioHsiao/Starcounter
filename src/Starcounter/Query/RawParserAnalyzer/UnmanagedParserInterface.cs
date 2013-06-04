@@ -57,6 +57,7 @@ namespace Starcounter.Query.RawParserAnalyzer
             internal int scerrorcode;
             internal sbyte* scerrmessage;
             internal int scerrposition;
+            internal byte isKeyword;
             private IntPtr _token;
 
             internal String token {
