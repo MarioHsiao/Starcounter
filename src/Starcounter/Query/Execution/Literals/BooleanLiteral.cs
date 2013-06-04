@@ -71,6 +71,10 @@ internal class BooleanLiteral : Literal, ILiteral, IBooleanPathItem
         return value;
     }
 
+    public String EvaluateToString() {
+        return EvaluateToBoolean(null).ToString();
+    }
+
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>

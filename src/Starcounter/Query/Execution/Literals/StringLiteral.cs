@@ -98,6 +98,10 @@ internal class StringLiteral : Literal, ILiteral, IStringPathItem
         return value;
     }
 
+    public String EvaluateToString() {
+        return value;
+    }
+
     /// <summary>
     /// Examines if the value of this literal is null.
     /// </summary>
