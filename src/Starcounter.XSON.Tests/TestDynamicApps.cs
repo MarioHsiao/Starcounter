@@ -24,6 +24,7 @@ namespace Starcounter.XSON.Tests {
         [TestFixtureSetUp]
         public static void Setup() {
             Obj.Factory = new TypedJsonFactory();
+            DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
         }
 
         /// <summary>
@@ -243,6 +244,48 @@ namespace Starcounter.XSON.Tests {
             Assert.AreEqual("Lorem Ipsum", myDataObj.Misc); // Not bound so updating the message should not alter the dataobject.
         }
 
+        /// <summary>
+        /// Tests TestDataBinding.
+        /// </summary>
+        [Test]
+        public static void TestDataBindingWithDifferentClasses() {
+            StarcounterBase._DB = new FakeDbImpl();
+
+            // Bound to SimpleBase datatype.
+            TObj tSimple = Obj.Factory.CreateJsonTemplateFromFile("simple.json");
+            dynamic simpleJson = tSimple.CreateInstance();
+
+            var simpleData = new SubClass1(); 
+            simpleJson.Data = simpleData;
+            simpleJson.BaseValue = "SubClass1";
+            simpleJson.AbstractValue = "SubClass1";
+            string virtualValue = simpleJson.VirtualValue;
+
+            Assert.AreEqual("SubClass1", simpleData.BaseValue);
+            Assert.AreEqual("SubClass1", simpleData.AbstractValue);
+            Assert.AreEqual("SubClass1", virtualValue);
+
+            var simpleData2 = new SubClass2();
+            Assert.DoesNotThrow(() => { simpleJson.Data = simpleData2; });
+            Assert.DoesNotThrow(() => { simpleJson.BaseValue = "SubClass2"; });
+            Assert.DoesNotThrow(() => { simpleJson.AbstractValue = "SubClass2"; });
+            virtualValue = simpleJson.VirtualValue;
+
+            Assert.AreEqual("SubClass2", simpleData2.BaseValue);
+            Assert.AreEqual("SubClass2", simpleData2.AbstractValue);
+            Assert.AreEqual("SubClass2", virtualValue);
+
+            var simpleData3 = new SubClass3();
+            Assert.DoesNotThrow(() => { simpleJson.Data = simpleData3; });
+            Assert.DoesNotThrow(() => { simpleJson.BaseValue = "SubClass3"; });
+            Assert.DoesNotThrow(() => { simpleJson.AbstractValue = "SubClass3"; });
+            virtualValue = simpleJson.VirtualValue;
+
+            Assert.AreEqual("SubClass3", simpleData3.BaseValue);
+            Assert.AreEqual("SubClass3", simpleData3.AbstractValue);
+            Assert.AreEqual("SubClass3", virtualValue);
+        }
+
         private static TJson CreateSimplePersonTemplateWithDataBinding() {
             var personSchema = new TJson() { BindChildren = true };
             personSchema.Add<TString>("FirstName$"); // Bound to FirstName
@@ -250,6 +293,8 @@ namespace Starcounter.XSON.Tests {
             personSchema.Add<TLong>("_Age"); // Will not be bound
             personSchema.Add<TString>("Created");
             personSchema.Add<TString>("Updated");
+            personSchema.Add<TString>("AbstractValue");
+            personSchema.Add<TString>("VirtualValue");
             
             var misc = personSchema.Add<TString>("Misc");
             misc.Bind = null; // Removing the binding for this specific template.
@@ -296,35 +341,5 @@ namespace Starcounter.XSON.Tests {
     }
 
     internal class MyFieldMessage : Json {
-    }
-
-    internal class PersonObject : BasePerson {
-        public int Age { get; set; }
-
-        public PhoneNumberObject Number { get; set; }
-        public string Misc { get; set; }
-    }
-
-    internal class PhoneNumberObject : IBindable {
-        public ulong Identity {
-            get { return 0; }
-        }
-
-        public string Number { get; set; }
-    }
-
-    internal class BasePerson : IBindable {
-        public BasePerson() {
-            Created = DateTime.Now;
-        }
-
-        public ulong Identity {
-            get { return 0; }
-        }
-
-        public string FirstName { get; set; }
-        public string Surname { get; set; }
-        public DateTime Created { get; private set; }
-        public DateTime Updated { get; set; }
     }
 }
