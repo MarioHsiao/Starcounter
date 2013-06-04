@@ -69,7 +69,7 @@ VOID PrintCommandHelp() {
 
 uint32_t server_is_running() {
 	uint32_t error_code = 0;
-	//. . .
+	//. . .r
 	return error_code;
 }
 
