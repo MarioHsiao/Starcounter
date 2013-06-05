@@ -103,6 +103,11 @@ namespace Starcounter.Internal {
             return rawValue;
         }
 
+        /// <summary>
+        /// Decodes the encoded starcounter decimal.
+        /// </summary>
+        /// <param name="encodedValue"></param>
+        /// <returns>Starcounter decimal in raw format.</returns>
         public static unsafe long Decode(long encodedValue) {
             bool sign;
             ulong buffer;
@@ -140,6 +145,11 @@ namespace Starcounter.Internal {
             return (long)ret;
         }
 
+        /// <summary>
+        /// Encodes the raw starcounter decimal.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>Starcounter decimal in encoded format.</returns>
         public static unsafe long Encode(long value) {
             bool sign;
             ulong restq;
