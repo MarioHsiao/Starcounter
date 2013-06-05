@@ -21,7 +21,7 @@
 
     <!-- Creating copied files lists. -->
     <ItemGroup>
-      <All32BitDllsToCopy Include="
+        <All32BitDllsToCopy Include="
           $(OutputPath)\FasterThanJson.dll;
           $(OutputPath)\Starcounter.BitsAndBytes.dll;
           $(OutputPath)\Starcounter.BitsAndBytes.Native.dll;

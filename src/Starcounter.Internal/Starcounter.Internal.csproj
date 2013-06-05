@@ -43,7 +43,10 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ABCIPC\Client.cs" />
@@ -105,9 +108,6 @@
     <Compile Include="Mock\StarcounterEnvironment.cs" />
     <Compile Include="ScUri.cs" />
     <Compile Include="StarcounterBase.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Starcounter.snk" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
