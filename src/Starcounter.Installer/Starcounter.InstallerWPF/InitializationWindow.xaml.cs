@@ -84,14 +84,15 @@ namespace Starcounter.InstallerWPF {
         private void InitInstallerWrapper(object state) {
             try {
 
-                if (!this.startedByParent) {
-                    Starcounter.Tracking.Client.Instance.SendInstallerStart();
-                }
 
 #if SIMULATE_INSTALLATION
 #else
                 this.InitInstaller();
 #endif
+
+                if (!this.startedByParent) {
+                    Starcounter.Tracking.Client.Instance.SendInstallerStart();
+                }
 
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
