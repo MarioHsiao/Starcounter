@@ -532,9 +532,10 @@ namespace Starcounter.InstallerWPF {
                         e.Cancel = true;
                     }
                     else {
-                        this.Hide();
-                        Starcounter.Tracking.Client.Instance.SendInstallerEnd(this.linksUserClickedOn);
-                        Thread.Sleep(4000);
+                        //#TRACKER: Disabled the Usage Tracking
+                        //this.Hide();
+                        //Starcounter.Tracking.Client.Instance.SendInstallerEnd(this.linksUserClickedOn);
+                        //Thread.Sleep(4000);
                     }
                 }
             }
