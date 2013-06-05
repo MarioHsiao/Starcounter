@@ -121,7 +121,9 @@ namespace Starcounter.Tracking {
                         if (dbInfo.Engine.HostProcessId > 0) {
                             runningDatabases++;
                         }
-                        runningexecutables += dbInfo.Engine.HostedApps.Length;
+                        if (dbInfo.Engine.HostedApps != null) {
+                            runningexecutables += dbInfo.Engine.HostedApps.Length;
+                        }
                     }
                 }
 
@@ -396,7 +398,7 @@ namespace Starcounter.Tracking {
                 }
                 else {
                     // Error
-                    Console.WriteLine("ERROR: UsageTracker http-StatusCode:" + response.StatusCode);
+                    //Console.WriteLine("ERROR: UsageTracker http-StatusCode:" + response.StatusCode);
                 }
             }
             catch (SocketException s) {
@@ -407,9 +409,9 @@ namespace Starcounter.Tracking {
 
                 }
             }
-            catch (Exception e) {
+            catch (Exception) {
 
-                Console.WriteLine("ERROR: UsageTracker.usage " + e.Message + System.Environment.NewLine + e.ToString());
+                //Console.WriteLine("ERROR: UsageTracker.usage " + e.Message + System.Environment.NewLine + e.ToString());
             }
 
 
