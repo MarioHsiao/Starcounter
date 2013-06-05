@@ -90,9 +90,9 @@ namespace Starcounter.InstallerWPF {
                 this.InitInstaller();
 #endif
 
-                if (!this.startedByParent) {
-                    Starcounter.Tracking.Client.Instance.SendInstallerStart();
-                }
+                //if (!this.startedByParent) {
+                //    Starcounter.Tracking.Client.Instance.SendInstallerStart();
+                //}
 
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
