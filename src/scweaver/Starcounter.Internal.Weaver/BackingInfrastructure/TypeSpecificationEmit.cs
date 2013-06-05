@@ -137,11 +137,17 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             } else {
                 synonymTargetType = (IType)module.FindType(specificationName, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
                 if (synonymTargetType == null) {
+                    var consultedAssemblies = new List<string>();
                     var typeEnumerator = module.GetDeclarationEnumerator(TokenType.TypeRef);
                     while (typeEnumerator.MoveNext()) {
                         var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
-                        if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(typeNameDeclaring)) {
-                            synonymTargetType = (IType)typeRef.GetTypeDefinition().Module.FindType(specificationName, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                        if (consultedAssemblies.Contains(typeRef.DeclaringAssembly.Name))
+                            continue;
+
+                        consultedAssemblies.Add(typeRef.DeclaringAssembly.Name);
+                        var candidate = (IType)typeRef.GetTypeDefinition().Module.FindType(specificationName, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                        if (candidate != null) {
+                            synonymTargetType = candidate;
                             break;
                         }
                     }
