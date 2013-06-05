@@ -1304,6 +1304,12 @@
     <code hex="008C" severity="Error" name="ScErrWeaverFailedLoadFile">
       <message>The weaver failed to load a binary user code file.</message>
     </code>
+    <code hex="008D" severity="Error" name="ScErrScServiceIsAlreadyRunning">
+      <message>An instance of scservice is already running in the same session.</message>
+    </code>
+    <code hex="008E" severity="Error" name="ScErrScServiceFailedCreateLck">
+      <message>scservice tried to create a mutex named scservice_is_running_lock but CreateMutex() returned NULL.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->

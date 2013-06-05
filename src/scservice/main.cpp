@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <iostream> // TODO: Remove! Testing scservice_is_running_lock.
 
 extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
 
@@ -69,76 +70,8 @@ VOID PrintCommandHelp() {
 	wprintf(L"Starcounter components, like scnetworkgateway, scipcmonitor, etc.\n");
 }
 
-namespace starcounter {
-namespace server {
-
-uint32_t is_running() {
-	HANDLE process_snap;
-	PROCESSENTRY32 process_entry;
-	HANDLE process;
-	uint32_t priority_class;
-	uint32_t error_code = 0;
-
-	if ((process_snap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)) == INVALID_HANDLE_VALUE) {
-		// If the function fails, it returns INVALID_HANDLE_VALUE. To get extended error
-		// information, call GetLastError(). Possible error codes include ERROR_BAD_LENGTH.
-		return 999L; /// TODO: Error code.
-	}
-
-	process_entry.dwSize = sizeof(PROCESSENTRY32);
-
-	// Retrieve information about the first process, and exit if unsuccessful.
-	if (!::Process32First(process_snap, &process_entry)) {
-		//printError( TEXT("Process32First") ); // show cause of failure
-		
-		// Clean the snapshot object.
-		::CloseHandle(process_snap);
-		return 999L; /// TODO: Error code.
-	}
-	
-	do {
-		if (lstrcmpi(process_entry.szExeFile, L"scservice.exe") == 0) {
-			// An instance of a server is running. Check if it is in the same session.
-
-		}
-		
-		// Retrieve the priority class.
-		priority_class = 0;
-		process = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, process_entry.th32ProcessID);
-	
-		if (process == NULL) {
-			//printError(TEXT("OpenProcess"));
-		}
-		else {
-			priority_class = ::GetPriorityClass(process);
-		
-			if (!priority_class) {
-				//printError( TEXT("GetPriorityClass") );
-			}
-		
-			::CloseHandle(process);
-		}
-	} while(::Process32Next(process_snap, &process_entry));
-	
-	::CloseHandle(process_snap);
-	return error_code;
-}
-
-} // namespace server
-} // namespace starcounter
-
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
-#if 0
-	{
-		uint32_t error_code = starcounter::server::is_running();
-
-		if (error_code != 0) {
-			// log the error and exit.
-		}
-	}
-#endif
-	
     BOOL exit_code_is_scerr;
     DWORD process_exit_code;
 	wchar_t logmessagebuffer[LOG_BUFFER_MESSAGE_SIZE];
@@ -152,6 +85,36 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 	const char *srv_name_ascii = "PERSONAL";
 
     process_exit_code = 0;
+
+	///=========================================================================
+	/// Check if an instance of scservice.exe is already running in the same
+	/// session. (A named mutex is only visible within the same session.)
+	///=========================================================================
+
+	// Try to create a mutex named "scservice_is_running_lock", and acquire the
+	// lock.
+	HANDLE scservice_is_running_lock = ::CreateMutex(NULL, TRUE,
+	TEXT("scservice_is_running_lock"));
+
+	if (scservice_is_running_lock == NULL) {
+		// scservice tried to create a mutex named scservice_is_running_lock but
+		// CreateMutex() returned NULL. Check ::GetLastError().
+		r = SCERRSCSERVICEFAILEDCREATELCK;
+		goto log_scerr;
+	}
+	else {
+		if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+			// An instance of scservice.exe is already running in the same session.
+			r = SCERRSCSERVICEISALREADYRUNNING;
+			goto log_scerr;
+		}
+		else {
+			// Created the "scservice_is_running_lock" and acquired the lock,
+			// indicating that a scservice.exe is running in this session.
+		}
+	}
+
+	///=========================================================================
 
 	if (argc > 1)
 	{
@@ -837,6 +800,12 @@ end:
 
 	if (handles[ID_IPC_MONITOR]) _kill_and_cleanup(handles[ID_IPC_MONITOR]);
 	if (handles[ID_SCSERVICE]) _destroy_event(handles[ID_SCSERVICE]);
+
+	// Release and close the "scservice_is_running_lock" mutex if open.
+	if (scservice_is_running_lock == NULL) {
+		::ReleaseMutex(scservice_is_running_lock);
+		::CloseHandle(scservice_is_running_lock);
+	}
 
 	return (int32_t)r;
 
