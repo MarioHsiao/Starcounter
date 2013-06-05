@@ -1,9 +1,12 @@
 #include "internal.h"
 #include <windows.h>
+#include <tlhelp32.h>
+#include <tchar.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <iostream> // TODO: Remove! Testing scservice_is_running_lock.
 
 extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
 
@@ -298,6 +301,37 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Log opened");
 		LogVerboseMessage(logmessagebuffer);
 	}
+
+	///=========================================================================
+	/// Check if an instance of scservice.exe is already running in the same
+	/// session. (A named mutex is only visible within the same session.)
+	///=========================================================================
+
+	// Try to create a mutex named "scservice_is_running_lock", and acquire the
+	// lock.
+	HANDLE scservice_is_running_lock = ::CreateMutex(NULL, TRUE,
+	TEXT("Local\\scservice_is_running_lock"));
+
+	if (scservice_is_running_lock == NULL) {
+		// scservice tried to create a mutex named
+		// "Local\\scservice_is_running_lock" but CreateMutex() returned NULL.
+		// Check ::GetLastError().
+		r = SCERRSCSERVICEFAILEDCREATELCK;
+		goto log_scerr;
+	}
+	else {
+		if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+			// An instance of scservice.exe is already running in the same session.
+			r = SCERRSCSERVICEISALREADYRUNNING;
+			goto log_scerr;
+		}
+		else {
+			// Created the "Local\\scservice_is_running_lock" and acquired the
+			// lock, indicating that a scservice.exe is running in this session.
+		}
+	}
+
+	///=========================================================================
 
     // Check if there is any starcounter processes still running without an existing 
     // parent. This can happen for example if scservice.exe was closed down manually.
@@ -767,6 +801,12 @@ end:
 
 	if (handles[ID_IPC_MONITOR]) _kill_and_cleanup(handles[ID_IPC_MONITOR]);
 	if (handles[ID_SCSERVICE]) _destroy_event(handles[ID_SCSERVICE]);
+
+	// Release and close the "Local\\scservice_is_running_lock" mutex if open.
+	if (scservice_is_running_lock == NULL) {
+		::ReleaseMutex(scservice_is_running_lock);
+		::CloseHandle(scservice_is_running_lock);
+	}
 
 	return (int32_t)r;
 
