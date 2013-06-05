@@ -18,8 +18,8 @@ namespace Starcounter.Tracking {
         /// <summary>
         /// The starcounter tracker server IP address
         /// </summary>
-        //public const string StarcounterTrackerIp = "208.52.190.89"; // TODO: Atlanta, use DNS
-        public const string StarcounterTrackerIp = "127.0.0.1"; // TODO: Atlanta, use DNS
+        public const string StarcounterTrackerIp = "208.52.190.89"; // TODO: Atlanta, use DNS
+        //public const string StarcounterTrackerIp = "127.0.0.1"; // TODO: Atlanta, use DNS
 
         /// <summary>
         /// The starcounter tracker server port
