@@ -121,7 +121,9 @@ namespace Starcounter.Tracking {
                         if (dbInfo.Engine.HostProcessId > 0) {
                             runningDatabases++;
                         }
-                        runningexecutables += dbInfo.Engine.HostedApps.Length;
+                        if (dbInfo.Engine.HostedApps != null) {
+                            runningexecutables += dbInfo.Engine.HostedApps.Length;
+                        }
                     }
                 }
 
