@@ -24,6 +24,7 @@ namespace Starcounter.Templates {
         private bool bindChildren;
         private TypedJsonSerializer codegenSerializer;
         private bool codeGenStarted = false;
+        private string instanceDataTypeName;
 
         internal void GenerateSerializer(object state){
             // it doesn't really matter if setting the variable in the template is synchronized 
@@ -144,7 +145,14 @@ namespace Starcounter.Templates {
         /// <summary>
         /// 
         /// </summary>
-        public string InstanceDataTypeName { get; set; }
+        public string InstanceDataTypeName {
+            get { return instanceDataTypeName; }
+            set {
+                instanceDataTypeName = value;
+                if (!string.IsNullOrEmpty(value))
+                    BindChildren = true;
+            }
+        }
 
         /// <summary>
         /// Creates a new template with the specified name and type and
@@ -227,10 +235,14 @@ namespace Starcounter.Templates {
         public bool BindChildren {
             get { return bindChildren; }
             set {
-                if (Properties.Count > 0) {
-                    throw new InvalidOperationException("Cannot change this property after children have been added.");
-                }
                 bindChildren = value;
+                if (Properties.Count > 0) {
+                    if (value == true) {
+                        foreach (var child in Properties) {
+                            CheckBindingForChild(child);
+                        }
+                    }
+                }
             }
         }
 
@@ -239,21 +251,29 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="property"></param>
         internal void OnPropertyAdded(Template property) {
+            if (BindChildren) {
+                CheckBindingForChild(property);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="child"></param>
+        private void CheckBindingForChild(Template child) {
             TValue value;
             string propertyName;
 
-            if (BindChildren) {
-                value = property as TValue;
-                if (value != null) {
-                    if (!value.Bound) {
-                        propertyName = value.PropertyName;
-                        if (!string.IsNullOrEmpty(propertyName)
-                            && !(propertyName[0] == '_')) {
-                            value.Bind = propertyName;
-                        }
-                    } else if (value.Bind == null) {
-                        value.Bound = false;
+            value = child as TValue;
+            if (value != null) {
+                if (!value.Bound) {
+                    propertyName = value.PropertyName;
+                    if (!string.IsNullOrEmpty(propertyName)
+                        && !(propertyName[0] == '_')) {
+                        value.Bind = propertyName;
                     }
+                } else if (value.Bind == null) {
+                    value.Bound = false;
                 }
             }
         }

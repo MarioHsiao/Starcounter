@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Starcounter.XSON")]
+[assembly: AssemblyTitle("Starcounter.Tracking")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Starcounter.XSON")]
+[assembly: AssemblyProduct("Starcounter.Tracking")]
 [assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,10 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9be2dd21-b7a0-42ad-9b94-444eb659e5f9")]
-
-[assembly: InternalsVisibleTo("Starcounter.XSON.Tests")]
-[assembly: InternalsVisibleTo("Starcounter.XSON.CodeGeneration.Tests")]
+[assembly: Guid("3f7397e4-7a8a-4db2-96c8-5cc2f751a22d")]
 
 // Version information for an assembly consists of the following four values:
 //
