@@ -40,8 +40,8 @@ namespace Starcounter.Tracking {
         #region Properties
 
 
-        private ushort ServerPort { get;  set; }
-        private string ServerIP { get;  set; }
+        private ushort ServerPort { get; set; }
+        private string ServerIP { get; set; }
 
         /// <summary>
         /// tru if the tracking is acrive
@@ -157,6 +157,9 @@ namespace Starcounter.Tracking {
 
                 // Send json content to server
                 this.SendData("/api/usage/installer/start", content);
+
+                // sequenceNo
+
             }
             catch (Exception) {
                 // TODO: Logging
@@ -349,7 +352,7 @@ namespace Starcounter.Tracking {
 
             // This is a temporary solution until we have true Node async mode.
             ThreadPool.QueueUserWorkItem(SendThread, new object[] { uri, content });
-      
+
 
         }
 
@@ -363,6 +366,7 @@ namespace Starcounter.Tracking {
             string uri = ((object[])state)[0] as string;
             string content = ((object[])state)[1] as string;
 
+
             try {
 
                 RequestHandler.InitREST();  // TODO: Add a check if we need to do this or not (currently there is now way to check)
@@ -374,6 +378,21 @@ namespace Starcounter.Tracking {
 
                 if (response.StatusCode >= 200 && response.StatusCode < 300) {
                     // Success
+
+                    // If the tracking server response with a new sequenceNo we will use it
+                    // NOTE: This is only for the InstallerStart request, but att the moment we dont know the calling type
+                    //       It will be fixed when Node async bug if solved
+                    String responseContent = response.GetBodyStringUtf8_Slow();
+                    if (!string.IsNullOrEmpty(responseContent)) {
+                        dynamic incomingJson = DynamicJson.Parse(responseContent);
+                        if (incomingJson.IsDefined("installation")) {
+                            if (incomingJson.installation.IsDefined("sequenceNo")) {
+                                Environment.SaveInstallationNo(int.Parse(incomingJson.installation.sequenceNo.ToString()));
+                            }
+
+                        }
+                    }
+
                 }
                 else {
                     // Error
@@ -389,7 +408,8 @@ namespace Starcounter.Tracking {
                 }
             }
             catch (Exception e) {
-                Console.WriteLine("ERROR: UsageTracker.usage " + e.Message);
+
+                Console.WriteLine("ERROR: UsageTracker.usage " + e.Message + System.Environment.NewLine + e.ToString());
             }
 
 
@@ -401,6 +421,7 @@ namespace Starcounter.Tracking {
             json.date = DateTime.UtcNow.ToString("s") + "Z"; // "2012-04-23T18:25:43.511Z"
             json.downloadId = CurrentVersion.IDFullBase32;
             json.mac = Environment.GetTruncatedMacAddress();
+            json.installationNo = Environment.GetInstallationNo();
 
         }
 
