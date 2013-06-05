@@ -120,6 +120,8 @@ namespace Starcounter.InstallerWPF {
             if (e.Handled == false && e.OriginalSource is Hyperlink && !string.IsNullOrEmpty(e.Parameter as string)) {
                 // Used to go to web page
 
+                this.linksUserClickedOn += e.Parameter + Environment.NewLine;
+
                 try {
                     Process.Start(new ProcessStartInfo(e.Parameter as string));
                     e.Handled = true;
@@ -306,6 +308,8 @@ namespace Starcounter.InstallerWPF {
         #endregion
 
         #region Properties
+
+        private string linksUserClickedOn = string.Empty;
 
         // Setup Options
         private SetupOptions _SetupOptions = SetupOptions.None;
@@ -522,9 +526,16 @@ namespace Starcounter.InstallerWPF {
 
             if (e.Cancel == false && this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
                 if (!(this.pages_lb.Items.CurrentItem is IFinishedPage || this.pages_lb.Items.CurrentItem is ErrorPage)) {
+
                     WpfMessageBoxResult result = WpfMessageBox.Show("Do you want to exit the setup program?", "Starcounter - Setup", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
                     if (result != WpfMessageBoxResult.Yes) {
                         e.Cancel = true;
+                    }
+                    else {
+                        //#TRACKER: Disabled the Usage Tracking
+                        //this.Hide();
+                        //Starcounter.Tracking.Client.Instance.SendInstallerEnd(this.linksUserClickedOn);
+                        //Thread.Sleep(4000);
                     }
                 }
             }

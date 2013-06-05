@@ -81,6 +81,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Starcounter.REST, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\bin\Debug\Starcounter.REST.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
@@ -520,6 +524,10 @@
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Tracking\Starcounter.Tracking.csproj">
+      <Project>{8d37c0b3-3557-4300-9e73-a2add0ba3cbb}</Project>
+      <Name>Starcounter.Tracking</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Controls.WpfMessageBox\Starcounter.Controls.WpfMessageBox.csproj">
       <Project>{74cb7aab-3bb6-4107-a149-254840cdf558}</Project>

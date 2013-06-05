@@ -83,10 +83,17 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         private void InitInstallerWrapper(object state) {
             try {
+
+                //#TRACKER: Disabled the Usage Tracking
+                //if (!this.startedByParent) {
+                //    Starcounter.Tracking.Client.Instance.SendInstallerStart();
+                //}
 #if SIMULATE_INSTALLATION
 #else
                 this.InitInstaller();
 #endif
+
+
 
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,

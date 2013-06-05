@@ -306,6 +306,10 @@
       <Name>Starcounter.Rest</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Tracking\Starcounter.Tracking.csproj">
+      <Project>{8d37c0b3-3557-4300-9e73-a2add0ba3cbb}</Project>
+      <Name>Starcounter.Tracking</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
