@@ -204,15 +204,33 @@ public class CInstallationBase : CComponentBase
 
         gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
 
-        // TODO!
         if (!File.Exists(gacFilePath))
-            return;
+            throw new InstallerAbortedException("Can't find GAC assemblies list!");
 
         filesToInstall = File.ReadAllLines(gacFilePath);
 
         foreach (string fileName in filesToInstall)
         {
             AssemblyCache.InstallAssembly(Path.Combine(InstallerMain.InstallationDir, fileName));
+        }
+    }
+
+    void CopySystemFiles()
+    {
+        string nativeAssembliesFilePath;
+        string[] filesToInstall;
+
+        nativeAssembliesFilePath = Path.Combine(InstallerMain.InstallationDir, "SystemFilesToCopy.txt");
+
+        if (!File.Exists(nativeAssembliesFilePath))
+            throw new InstallerAbortedException("Can't find system32 files list!");
+
+        filesToInstall = File.ReadAllLines(nativeAssembliesFilePath);
+
+        foreach (string fileName in filesToInstall)
+        {
+            String filePath = Path.Combine(InstallerMain.InstallationDir, fileName);
+            File.Copy(filePath, Path.Combine(Environment.SystemDirectory, fileName), true);
         }
     }
 
@@ -224,7 +242,6 @@ public class CInstallationBase : CComponentBase
 
         gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
 
-        // TODO!
         if (!File.Exists(gacFilePath))
             return;
 
@@ -238,28 +255,42 @@ public class CInstallationBase : CComponentBase
         }
     }
 
-    void InstallExceptionAssistantContent()
+    void DeleteSystemFiles()
     {
-        string contentFilePath;
-        string contentFileTargetPath;
+        string systemFilesToCopyPath;
+        string[] filesToInstall;
 
-        contentFilePath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.ScExceptionAssistantContentFileName);
+        systemFilesToCopyPath = Path.Combine(InstallerMain.InstallationDir, "SystemFilesToCopy.txt");
 
-        if (Directory.Exists(ConstantsBank.VS2012ExceptionAssistantDirectory))
+        if (!File.Exists(systemFilesToCopyPath))
+            return;
+
+        filesToInstall = File.ReadAllLines(systemFilesToCopyPath);
+
+        foreach (string fileName in filesToInstall)
         {
-            contentFileTargetPath = Path.Combine(ConstantsBank.VS2012ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
-            File.Copy(contentFilePath, contentFileTargetPath, true);
+            File.Delete(Path.Combine(Environment.SystemDirectory, fileName));
         }
     }
 
-    void UninstallExceptionAssistantContent()
+    void CopyPublicAssemblies()
     {
-        string contentFileTargetPath;
+        string publicAssembliesFilePath = Path.Combine(InstallerMain.InstallationDir, "PublicAssemblies.txt");
 
-        if (Directory.Exists(ConstantsBank.VS2012ExceptionAssistantDirectory))
+        if (!File.Exists(publicAssembliesFilePath))
+            throw new InstallerAbortedException("Can't find public assemblies list!");
+
+        string[] publicAssemblies = File.ReadAllLines(publicAssembliesFilePath);
+
+        String publicAssembliesDirPath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCPublicAssembliesDir);
+
+        if (!Directory.Exists(publicAssembliesDirPath))
+            Directory.CreateDirectory(publicAssembliesDirPath);
+
+        foreach (string fileName in publicAssemblies)
         {
-            contentFileTargetPath = Path.Combine(ConstantsBank.VS2012ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
-            File.Delete(contentFileTargetPath);
+            File.Copy(Path.Combine(InstallerMain.InstallationDir, fileName),
+                Path.Combine(publicAssembliesDirPath, fileName), true);
         }
     }
 
@@ -349,22 +380,17 @@ public class CInstallationBase : CComponentBase
         // Adding firewall exceptions.
         ChangeFirewallExceptions(true);
 
-        // Adding "Reference Assemblies" registry path.
-        RegistryKey refAsmRegistry = Utilities.CreateRegistryPathIfNeeded(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v3.5\AssemblyFoldersEx\" + ConstantsBank.SCProductName + InstallerMain.SCVersion, true);
-        refAsmRegistry.SetValue(null, Path.Combine(InstallerMain.InstallationDir, "Reference Assemblies"));
+        // Copying public assemblies.
+        CopyPublicAssemblies();
+
+        // Adding public assemblies registry path.
+        RegistryKey refAsmRegistry = Utilities.CreateRegistryPathIfNeeded(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx\" + ConstantsBank.SCProductName + InstallerMain.SCVersion, true);
+        refAsmRegistry.SetValue(null, Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCPublicAssembliesDir));
 
         // Installing Starcounter.dll in the GAC.
         Utilities.ReportSetupEvent("Adding libraries to GAC...");
         InstallGACAssemblies();
-
-        // Installing Visual Studio exception assistant integration. By design,
-        // we do this independently of if VS extensions are installed or not. The
-        // integration with the exception assistant functions properly even w/o
-        // any extensions and provides such added value that we will always want
-        // to install it.
-        // TODO: Ask Per!
-        //Utilities.ReportSetupEvent("Installing Starcounter VS exception assistant content...");
-        //InstallExceptionAssistantContent();
+        CopySystemFiles();
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
@@ -423,8 +449,8 @@ public class CInstallationBase : CComponentBase
         // Removing firewall exceptions.
         ChangeFirewallExceptions(false);
 
-        // Removing "Reference Assemblies" registry path.
-        RegistryKey refAsmRegistry = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v3.5\AssemblyFoldersEx", true);
+        // Removing public assemblies registry path.
+        RegistryKey refAsmRegistry = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx", true);
         if ((refAsmRegistry != null) && (refAsmRegistry.OpenSubKey(ConstantsBank.SCProductName + InstallerMain.SCVersion) != null))
             refAsmRegistry.DeleteSubKeyTree(ConstantsBank.SCProductName + InstallerMain.SCVersion);
 
@@ -433,10 +459,7 @@ public class CInstallationBase : CComponentBase
         try { UninstallGACAssemblies(); }
         catch { Utilities.ReportSetupEvent("Warning: problem running GAC assemblies removal..."); }
 
-        // Uninstalling Starcounter VS exception assistant content
-        // TODO: Ask Per!
-        //Utilities.ReportSetupEvent("Uninstalling Starcounter VS exception assistant content...");
-        //UninstallExceptionAssistantContent();
+        DeleteSystemFiles();
     }
 
     /// <summary>

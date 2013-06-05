@@ -66,6 +66,12 @@
     <DocumentationFile>..\..\bin\Release\Starcounter.REST.XML</DocumentationFile>
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="RGiesecke.DllExport.Metadata">
