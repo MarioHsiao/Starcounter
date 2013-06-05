@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Starcounter.Advanced;
+using Starcounter.Internal;
 using Starcounter.Logging;
 using Starcounter.Templates;
 
@@ -12,6 +13,7 @@ namespace Starcounter.XSON {
         internal static bool ThrowExceptionOnBindindRecreation = false;
         private static LogSource logSource = new LogSource("json");
         private static string warning = "The existing databinding for '{0}' was created for another type of dataobject. Binding needs to be recreated.";
+        private static string propNotFound = "Property '{2}' was not found in type '{3}' (or baseclass). Json property: '{0}.{1}'.";
 
         internal static DataValueBinding<TVal> VerifyOrCreateBinding<TVal>(TValue template, DataValueBinding<TVal> binding, Type dataType, string bindingName) {
             PropertyInfo pInfo;
@@ -29,13 +31,19 @@ namespace Starcounter.XSON {
 
             pInfo = dataType.GetProperty(bindingName, BindingFlags.Instance | BindingFlags.Public);
             if (pInfo == null) {
-                throw new Exception("Cannot create binding. Property '" + bindingName + "' was not found in type " + dataType.FullName);
+                throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
+                                            string.Format(propNotFound, 
+                                                          GetParentClassName(template),
+                                                          template.TemplateName,
+                                                          bindingName, 
+                                                          dataType.FullName
+                                           ));
             }
 
-            return new DataValueBinding<TVal>(pInfo);
+            return new DataValueBinding<TVal>(pInfo, template);
         }
 
-        private static string GetParentClassName(Template template) {
+        internal static string GetParentClassName(Template template) {
             string className = null;
             if (template.Parent is TObj)
                 className = ((TObj)template.Parent).ClassName;
@@ -52,14 +60,19 @@ namespace Starcounter.XSON {
     internal class DataValueBinding<TVal> {
         private static MethodInfo dateTimeToStringInfo = typeof(DateTime).GetMethod("ToString", new Type[] { typeof(string) });
         private static MethodInfo dateTimeParseInfo = typeof(DateTime).GetMethod("Parse", new Type[] { typeof(string) });
+        private static string propNotCompatible = "Incompatible types for binding. Json property '{0}.{1}' ({2}), data property '{3}.{4}' ({5}).";
 
         private Func<IBindable, TVal> getBinding;
         private Action<IBindable, TVal> setBinding;
         private Type dataType;
+        private Template template;
+        private PropertyInfo property;
 
-        internal DataValueBinding(PropertyInfo bindToProperty) {
+        internal DataValueBinding(PropertyInfo bindToProperty, Template template) {
             MethodInfo methodInfo;
-            dataType = bindToProperty.DeclaringType;
+            this.dataType = bindToProperty.DeclaringType;
+            this.template = template;
+            this.property = bindToProperty;
 
             methodInfo = bindToProperty.GetGetMethod();
             if (methodInfo != null) {
@@ -128,9 +141,19 @@ namespace Starcounter.XSON {
             } 
                 
             if (newExpr == null) {
-                // TODO:
-                // Check if typeconversion is possible.
-                newExpr = Expression.Convert(expr, to);
+                try {
+                    newExpr = Expression.Convert(expr, to);
+                } catch (Exception ex) {
+                    throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, 
+                                                ex,
+                                                string.Format(propNotCompatible, 
+                                                              DataBindingFactory.GetParentClassName(template),
+                                                              template.TemplateName,
+                                                              template.JsonType,
+                                                              dataType.FullName,
+                                                              property.Name,
+                                                              property.PropertyType.FullName));
+                }
             }
             return newExpr;
         }

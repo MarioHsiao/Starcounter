@@ -4111,6 +4111,9 @@
         -->
       <message>ScErrJsonUnexpectedEndOfContent</message>
     </code>
+    <code hex="0006" severity="Error" name="ScErrCreateDataBindingForJson">
+     <message>Cannot create binding between typed json and dataobject.</message>
+    </code>
     </facility>
     
 </error-codes>
