@@ -24,7 +24,7 @@
         <All32BitDllsToCopy Include="
           $(OutputPath)\FasterThanJson.dll;
           $(OutputPath)\Starcounter.BitsAndBytes.dll;
-          $(OutputPath)\Starcounter.BitsAndBytes.Native.dll;
+          $(OutputPath)\Starcounter.BitsAndBytes.Unsafe.dll;
           $(OutputPath)\Starcounter.Internal.dll;
           $(OutputPath)\Starcounter.Logging.dll;
           $(OutputPath)\Starcounter.XSON.dll;
