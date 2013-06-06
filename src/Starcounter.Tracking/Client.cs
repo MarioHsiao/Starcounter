@@ -371,9 +371,6 @@ namespace Starcounter.Tracking {
 
             try {
 
-                RequestHandler.InitREST();  // TODO: Add a check if we need to do this or not (currently there is now way to check)
-                // https://github.com/Starcounter/Starcounter/issues/473
-
                 Node node = new Node(this.ServerIP, this.ServerPort);
 
                 Advanced.Response response = node.POST(uri, content, "Accept: application/starcounter.tracker.usage-v1+json\r\n", null);
