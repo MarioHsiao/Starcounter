@@ -103,7 +103,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Parses internal HTTP request.
         /// </summary>
-        [DllImport("HttpParser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_parse_http_request(
             Byte* request_buf,
             UInt32 request_size_bytes,
@@ -112,7 +112,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Initializes the Apps HTTP parser.
         /// </summary>
-        [DllImport("HttpParser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 sc_init_http_parser();
 
         /// <summary>

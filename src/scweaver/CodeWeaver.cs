@@ -702,8 +702,7 @@ namespace Weaver {
         void AddStandardWeaverExcludes() {
             foreach (var exclude in new string[] {
                 "scerrres.dll",
-                "HttpParser.dll",
-                "HttpStructs.dll",
+                "schttpparser.dll",
                 "PostSharp*.dll",
                 "Roslyn*.dll",
                 "FasterThanJson.dll",
