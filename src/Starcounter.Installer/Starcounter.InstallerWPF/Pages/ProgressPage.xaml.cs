@@ -279,8 +279,7 @@ namespace Starcounter.InstallerWPF.Pages {
             // Starting the installation process.
             try {
 
-                //#TRACKER: Disabled the Usage Tracking
-                //Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullInstallation);
+                Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullInstallation);
 
                 Configuration config = state as Configuration;
                 config.ExecuteSettings(
@@ -306,8 +305,7 @@ namespace Starcounter.InstallerWPF.Pages {
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
 
-                    //#TRACKER: Disabled the Usage Tracking
-                    //Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, true);
+                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, true);
 
                     this.OnSuccess();
                 }
@@ -319,8 +317,7 @@ namespace Starcounter.InstallerWPF.Pages {
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
 
-                    //#TRACKER: Disabled the Usage Tracking
-                    //Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, false);
+                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, false);
 
                     this.OnError(installException);
                     return;

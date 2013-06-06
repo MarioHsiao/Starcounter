@@ -84,16 +84,14 @@ namespace Starcounter.InstallerWPF {
         private void InitInstallerWrapper(object state) {
             try {
 
-                //#TRACKER: Disabled the Usage Tracking
-                //if (!this.startedByParent) {
-                //    Starcounter.Tracking.Client.Instance.SendInstallerStart();
-                //}
 #if SIMULATE_INSTALLATION
 #else
                 this.InitInstaller();
 #endif
 
-
+                if (!this.startedByParent) {
+                    Starcounter.Tracking.Client.Instance.SendInstallerStart();
+                }
 
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -234,7 +232,8 @@ namespace Starcounter.InstallerWPF {
         // This thread in turn links to the MS bug thread.
         static String[] StaticInstallerDependencies =
         { 
-            "Starcounter.InstallerNativeHelper.dll"
+            "Starcounter.InstallerNativeHelper.dll",
+            "Starcounter.REST.dll"
         };
 
         // Runs this on parent process exit.
@@ -406,7 +405,7 @@ namespace Starcounter.InstallerWPF {
 
                 foreach (String tempFileName in StaticInstallerDependencies)
                 {
-                    String tempFilePath = System.IO.Path.Combine(curDir, tempFileName + "." + CurrentVersion.Version);
+                    String tempFilePath = System.IO.Path.Combine(curDir, tempFileName);
                     if (File.Exists(tempFilePath))
                     {
                         try { File.Delete(tempFilePath); }
@@ -538,7 +537,7 @@ namespace Starcounter.InstallerWPF {
                         // Checking if file name is the same.
                         if (0 == String.Compare(entry.Name, dependentBinary, true))
                         {
-                            String pathToExtractedFile = System.IO.Path.Combine(targetDirectory, entry.FullName + "." + CurrentVersion.Version);
+                            String pathToExtractedFile = System.IO.Path.Combine(targetDirectory, entry.FullName);
 
                             try
                             {
