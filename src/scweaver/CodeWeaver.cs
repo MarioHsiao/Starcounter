@@ -709,7 +709,8 @@ namespace Weaver {
                 "FasterThanJson.dll",
                 "Starcounter.dll",
                 "RGiesecke.DllExport.Metadata.dll",
-                "Starcounter.Rest.dll"
+                "Starcounter.Rest.dll",
+                "Starcounter.Logging.dll"
             }
                 ) {
                 AddExcludeExpression(exclude, weaverExcludes);
