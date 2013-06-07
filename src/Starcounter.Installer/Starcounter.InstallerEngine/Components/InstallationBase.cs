@@ -199,15 +199,15 @@ public class CInstallationBase : CComponentBase
 
     void InstallGACAssemblies()
     {
-        string gacFilePath;
+        string gacFilesListPath;
         string[] filesToInstall;
 
-        gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
+        gacFilesListPath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
 
-        if (!File.Exists(gacFilePath))
-            throw new InstallerAbortedException("Can't find GAC assemblies list!");
+        if (!File.Exists(gacFilesListPath))
+            throw new FileNotFoundException("Can't find GAC assemblies list!");
 
-        filesToInstall = File.ReadAllLines(gacFilePath);
+        filesToInstall = File.ReadAllLines(gacFilesListPath);
 
         foreach (string fileName in filesToInstall)
         {
@@ -215,15 +215,37 @@ public class CInstallationBase : CComponentBase
         }
     }
 
-    void CopySystemFiles()
+    void UninstallGACAssemblies()
+    {
+        AssemblyCacheUninstallDisposition disposition;
+        string gacFilesListPath;
+        string[] assembliesToInstall;
+
+        gacFilesListPath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
+
+        if (!File.Exists(gacFilesListPath))
+            Utilities.ReportSetupEvent(String.Format("Warning: Can't find GAC assemblies uninstall list!"));
+
+        assembliesToInstall = File.ReadAllLines(gacFilesListPath);
+
+        foreach (string assemblyName in assembliesToInstall)
+        {
+            AssemblyCache.UninstallAssembly(assemblyName, null, out disposition);
+
+            if (disposition != AssemblyCacheUninstallDisposition.Uninstalled)
+                Utilities.ReportSetupEvent(String.Format("Warning: problem removing assembly {0} from GAC.", assemblyName));
+        }
+    }
+
+    void CopySystem32Files()
     {
         string nativeAssembliesFilePath;
         string[] filesToInstall;
 
-        nativeAssembliesFilePath = Path.Combine(InstallerMain.InstallationDir, "SystemFilesToCopy.txt");
+        nativeAssembliesFilePath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCSystem32FilesName);
 
         if (!File.Exists(nativeAssembliesFilePath))
-            throw new InstallerAbortedException("Can't find system32 files list!");
+            throw new FileNotFoundException("Can't find System32 copy files list!");
 
         filesToInstall = File.ReadAllLines(nativeAssembliesFilePath);
 
@@ -234,42 +256,27 @@ public class CInstallationBase : CComponentBase
         }
     }
 
-    void UninstallGACAssemblies()
-    {
-        AssemblyCacheUninstallDisposition disposition;
-        string gacFilePath;
-        string[] assembliesToInstall;
-
-        gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
-
-        if (!File.Exists(gacFilePath))
-            return;
-
-        assembliesToInstall = File.ReadAllLines(gacFilePath);
-
-        foreach (string assemblyName in assembliesToInstall)
-        {
-            AssemblyCache.UninstallAssembly(assemblyName, null, out disposition);
-            if (disposition != AssemblyCacheUninstallDisposition.Uninstalled)
-                Utilities.ReportSetupEvent(string.Format("Warning: problem removing assembly {0} from GAC.", assemblyName));
-        }
-    }
-
-    void DeleteSystemFiles()
+    void DeleteSystem32Files()
     {
         string systemFilesToCopyPath;
         string[] filesToInstall;
 
-        systemFilesToCopyPath = Path.Combine(InstallerMain.InstallationDir, "SystemFilesToCopy.txt");
+        systemFilesToCopyPath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCSystem32FilesName);
 
         if (!File.Exists(systemFilesToCopyPath))
-            return;
+            Utilities.ReportSetupEvent(String.Format("Warning: Can't find System32 delete files list!"));
 
         filesToInstall = File.ReadAllLines(systemFilesToCopyPath);
 
         foreach (string fileName in filesToInstall)
         {
-            File.Delete(Path.Combine(Environment.SystemDirectory, fileName));
+            String filePath = Path.Combine(Environment.SystemDirectory, fileName);
+
+            if (File.Exists(filePath))
+            {
+                try { File.Delete(filePath); }
+                catch { Utilities.ReportSetupEvent(String.Format("Warning: problem deleting file: ", filePath));  }
+            }
         }
     }
 
@@ -278,7 +285,7 @@ public class CInstallationBase : CComponentBase
         string publicAssembliesFilePath = Path.Combine(InstallerMain.InstallationDir, "PublicAssemblies.txt");
 
         if (!File.Exists(publicAssembliesFilePath))
-            throw new InstallerAbortedException("Can't find public assemblies list!");
+            throw new FileNotFoundException("Can't find public assemblies list!");
 
         string[] publicAssemblies = File.ReadAllLines(publicAssembliesFilePath);
 
@@ -390,7 +397,7 @@ public class CInstallationBase : CComponentBase
         // Installing Starcounter.dll in the GAC.
         Utilities.ReportSetupEvent("Adding libraries to GAC...");
         InstallGACAssemblies();
-        CopySystemFiles();
+        CopySystem32Files();
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
@@ -459,7 +466,7 @@ public class CInstallationBase : CComponentBase
         try { UninstallGACAssemblies(); }
         catch { Utilities.ReportSetupEvent("Warning: problem running GAC assemblies removal..."); }
 
-        DeleteSystemFiles();
+        DeleteSystem32Files();
     }
 
     /// <summary>
