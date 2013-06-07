@@ -1,7 +1,7 @@
 //
 // chunk.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -25,132 +25,41 @@
 namespace starcounter {
 namespace core {
 
-// chunk_index:
-//  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-//  1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-// +-------+-------------------------+-----------------------------+
-// |0 0 0 0|                    chunk|                             |
-// +-------+-------------------------+-----------------------------+
-//
-// Example for 256 MiByte chunk pool, each chunk is 32 KiByte.
-// With the chunk field 15:31 one of 131072 chunks are selected.
-// Within that chunk the user (client or scheduler) can access byte 0..32767.
-//
-//
-// chunk_index when using the concepts of sub-chunks:
-//  3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-//  1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-// +-------+-------------------------+---------+-------------------+
-// |0 0 0 0|                    chunk|sub_chunk|                   |
-// +-------+-------------------------+---------+-------------------+
-//
-// Example for 256 MiByte chunk pool, each chunk is 32 KiByte and sub-chunks are
-// 1 KiByte (32 sub-chunks).
-// With the chunk field 15:31 one of 131072 chunks are selected.
-// With the sub-chunk field 10:14 one of 32 sub-chunks within that chunk is
-// selected and then the user (client or scheduler) can access byte 0..1023.
-
 /// TODO: Make a class.
 typedef uint32_t chunk_index;
-
-
-#if 0 // current chunk layout
-Chunks are currently 4 KiByte.
-
-byte 0..7 is no longer used:
-+----------------------------------------------------------------------+
-| 32-bit owner_id (0 = no_one, free chunk) - OBSOLETE (2012-03-26)!    |
-| On 2012-03-26 the owner_id is no longer stored in the chunk.         |
-| This means that byte 0..7 is not used. We shall later on move all    |
-| data 8 bytes closer to byte 0, except the link - it shall be located |
-| in the last 4 bytes of the chunk.                                    |
-+----------------------------------------------------------------------+
-
-byte 8..15 (shall be moved to byte 0..7):
-+----------------------------------------------------------------------+
-| 64-bit user_data                                                     |
-+----------------------------------------------------------------------+
-
-byte 16..19 (shall be moved to byte 8..11):
-+----------------------------------------------------------------------+
-| 32-bit request_size                                                  |
-+----------------------------------------------------------------------+
-
-byte 20..20 +request_size -1 (20 shall be 12)
-+----------------------------------------------------------------------+
-| Blast2 request message(s)                                            |
-+----------------------------------------------------------------------+
-
-byte 20 +request_size..23 +request_size
-+----------------------------------------------------------------------+
-| 32-bit response_size                                                 |
-+----------------------------------------------------------------------+
-
-+----------------------------------------------------------------------+
-| Blast2 response message(s).                                          |
-+----------------------------------------------------------------------+
-
-byte 4088..4091:
-+----------------------------------------------------------------------+
-| 32-bit chunk_index next_link (-1 = link_terminator)                  |
-+----------------------------------------------------------------------+
-
-byte 4092..4095:
-+----------------------------------------------------------------------+
-| 32-bit chunk_index link (-1 = link_terminator)                       |
-+----------------------------------------------------------------------+
-
-#endif // current chunk layout
-
-
-
-#if 0 // new chunk layout - not implemented yet
-Chunks are currently 32 KiByte.
-
-byte 0..7:
-+----------------------------------------------------------------------+
-| 64-bit user_data                                                     |
-+----------------------------------------------------------------------+
-
-byte 8..11:
-+----------------------------------------------------------------------+
-| 32-bit request_size                                                  |
-+----------------------------------------------------------------------+
-
-byte 12..4087:
-+----------------------------------------------------------------------+
-| Blast2 request message(s)                                            |
-+----------------------------------------------------------------------+
-
-if response(s):
-+----------------------------------------------------------------------+
-| 32-bit response_size                                                 |
-+----------------------------------------------------------------------+
-| Blast2 response message(s)                                           |
-+----------------------------------------------------------------------+
-
-byte 4088..4091:
-+----------------------------------------------------------------------+
-| 32-bit chunk_index next_link (-1 = link_terminator)                  |
-+----------------------------------------------------------------------+
-
-byte 4092..4095:
-+----------------------------------------------------------------------+
-| 32-bit chunk_index link (-1 = link_terminator)                       |
-+----------------------------------------------------------------------+
-
-#endif // new chunk layout - not implemented yet
 
 #ifdef _M_X64
 # pragma intrinsic (_InterlockedExchange64)
 #endif
 
+typedef uint64_t bmx_handler_type;
+
+// Current chunk layout. Chunks are currently 4 KiByte:
+// +----------------------------------------------------------------------+ Byte 0..7 is no longer used
+// | 32-bit owner_id (0 = no_one, free chunk) - OBSOLETE (2012-03-26)!    |
+// | On 2012-03-26 the owner_id is no longer stored in the chunk.         |
+// | This means that byte 0..7 is not used. We shall later on move all    |
+// | data 8 bytes closer to byte 0, except link and next_link - they      |
+// | shall be located in the last 4 bytes of the chunk.                   |
+// +----------------------------------------------------------------------+ Byte 8..15 (shall be moved to byte 0..7)
+// | 64-bit user_data                                                     |
+// +----------------------------------------------------------------------+ Byte 16..19 (shall be moved to byte 8..11)
+// | 32-bit request_size                                                  |
+// +----------------------------------------------------------------------+ Byte 20..20 +request_size -1 (20 shall be 12)
+// | Blast2 request message(s)                                            |
+// +----------------------------------------------------------------------+ Byte 20 +request_size..23 +request_size
+// | 32-bit response_size                                                 |
+// +----------------------------------------------------------------------+ Up to byte 4087
+// | Blast2 response message(s).                                          |
+// +----------------------------------------------------------------------+ Byte 4088..4091
+// | 32-bit chunk_index next_link (-1 = link_terminator)                  |
+// +----------------------------------------------------------------------+ Byte 4092..4095
+// | 32-bit chunk_index link (-1 = link_terminator)                       |
+// +----------------------------------------------------------------------+
+
 // boost::array is documented here:
 // http://www.boost.org/doc/libs/1_46_1/doc/html/boost/array.html
 // C:\boost\x86_64\include\boost-1_46_1\boost\array.hpp
-
-typedef uint64_t bmx_handler_type;
-
 template<class T, std::size_t N>
 class chunk : public boost::array<T,N> {
 public:
@@ -163,14 +72,14 @@ public:
 	typedef chunk_index link_type;
 
 	enum {
-		// There are two links: The stream_link, and the next_link.
+		// There are two links: The link (rename it to stream_link), and the next_link.
 		// The links have no pad bytes in between.
 		// link_size represents the space required for these two links.
 		link_size = 2 * sizeof(link_type),
 		bmx_handler_size = sizeof(bmx_handler_type),
 
 		// The last chunk in a stream (chain) of 1..N chunks is terminated by setting
-		// the stream_link to link_terminator. Likewise, to terminate the "overflow"
+		// the link (stream_link) to link_terminator. Likewise, to terminate the "overflow"
 		// linked list the next_link is set to link_terminator.
 		link_terminator = -1
 	};
@@ -214,11 +123,14 @@ public:
 		return N -static_header_size;
 	}
 	
-	/// Header operations (synchronized by using atomics)
+	/// Header operations (some are synchronized by using atomics, others are
+	/// synchronized enough when pushed to and popped from the in or out buffer
+	/// of a channel.)
 	
 	/// NOTE: Since the owner_id will be removed from the chunk, the header will
 	/// be changed.
 	
+#if 0 // TODO: Remove.
 	/// set_owner_id() writes an owner_id to the chunk.
 	/**
 	 * @param oid The owner_id value to write to the chunk.
@@ -236,6 +148,7 @@ public:
 	owner_id get_owner_id() const {
 		return *((owner_id*)(elems +owner_id_begin));
 	}
+#endif
 	
 	/// set_user_data() writes user_data value to the chunk.
 	/**
@@ -254,13 +167,13 @@ public:
 	user_data_type get_user_data() const {
 		return *((user_data_type*)(elems +user_data_begin));
 	}
-
+	
 	/**
-	 * @param b The protocol value to write to the chunk.
+	 * @param protocol The protocol value to write to the chunk.
 	 * @return A reference to this chunk.
 	 */
-	const chunk& set_bmx_handler_info(bmx_handler_type b) {
-		(*(bmx_handler_type*)(elems +bmx_protocol_begin)) = b;
+	const chunk& set_bmx_handler_info(bmx_handler_type protocol) {
+		*((bmx_handler_type*)(elems +bmx_protocol_begin)) = protocol;
 		return *this;
 	}
 	
@@ -279,7 +192,7 @@ public:
 	const chunk& set_request_size(message_size_type sz) {
         // TODO: Remove if not needed.
 		//InterlockedExchange((LONG*)(elems +request_size_begin), sz);
-        (*(message_size_type*)(elems +request_size_begin)) = sz;
+        *((message_size_type*)(elems +request_size_begin)) = sz;
 		return *this;
 	}
 	
@@ -297,7 +210,10 @@ public:
 	 * @return A reference to this chunk.
 	 */
 	const chunk& set_link(link_type next) {
-		InterlockedExchange((LONG*)(elems +stream_link_begin), next);
+		// No need to synchronize here because it is synchronized enough
+		// when pushed to and popped from a channels in or out buffer.
+		//InterlockedExchange((LONG*)(elems +stream_link_begin), next);
+		(*(link_type*)(elems +stream_link_begin)) = next;
 		return *this;
 	}
 	
@@ -314,8 +230,11 @@ public:
 	 * @return A reference to this chunk.
 	 */
 	chunk& terminate_link() {
-		InterlockedExchange((LONG*)(elems +stream_link_begin),
-		link_terminator);
+		// No need to synchronize here because it is synchronized enough
+		// when pushed to and popped from a channels in or out buffer.
+		//InterlockedExchange((LONG*)(elems +stream_link_begin),
+		//(link_terminator);
+		(*(link_type*)(elems +stream_link_begin)) = link_terminator;
 		return *this;
 	}
 	
@@ -355,7 +274,7 @@ public:
 	 * @return A reference to this chunk.
 	 */
 	const chunk& terminate_next() {
-		*((chunk_index*)(elems +next_link_begin)) = link_terminator;
+		*((link_type*)(elems +next_link_begin)) = link_terminator;
 		return *this;
 	}
 	
@@ -365,7 +284,7 @@ public:
 	 *		false otherwise.
 	 */
 	bool is_next_terminated() const {
-		return *((chunk_index*)(elems +next_link_begin)) == link_terminator;
+		return *((link_type*)(elems +next_link_begin)) == link_terminator;
 	}
 	
 	///-------------------------------------------------------------------------
