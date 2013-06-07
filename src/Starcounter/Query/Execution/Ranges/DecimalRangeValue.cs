@@ -52,7 +52,7 @@ internal class DecimalRangeValue : RangeValue, IComparable<DecimalRangeValue>
         if (newValue == null)
             value = null;
         else
-            value = X6Decimal.FromDecimal((Decimal)newValue);
+            value = X6Decimal.ToEncoded((Decimal)newValue);
     }
 
     public void SetValue(ComparisonOperator compOper, Nullable<Int64> newValue) {

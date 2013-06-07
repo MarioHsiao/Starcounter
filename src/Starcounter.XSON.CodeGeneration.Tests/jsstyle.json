@@ -1,0 +1,15 @@
+﻿{
+    FirstName$: "Arne",
+    LastName: "Anka",
+    Age: 19,
+    Stats: 23.987,
+    Fields: [
+        { Type: "Whatever", 
+          Info: {
+              Text: "lalala"
+        }}
+    ],
+    ExtraInfo: {
+        Text: "1asf32"
+    }
+}
