@@ -239,6 +239,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="parent">The parent.</param>
         private static void CreateCodeNode(ParseNode pn, AstNode parent) {
             AstNode nextParent;
+            int indentation = 4;
 
             switch (pn.DetectedType) {
                 case NodeType.CharMatchNode:
@@ -271,7 +272,6 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                         Parent = nextParent
                     };
 
-                    bool addGotoValue = false;
                     if (pn.Template.Template is TObjArr) {
                         // If the value to parse is a list we need to add some additional 
                         // code for looping and checking end of array.
@@ -279,26 +279,14 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                             Parent = nextParent,
                             Template = pn.Template.Template
                         };
-
-                        nextParent = new AstWhile() {
-                            Parent = nextParent,
-                            Indentation = 8
-                        };
-                        addGotoValue = true;
+                        indentation = 8;
                     }
 
                     var pj = new AstParseJsonValue() {
                         ParseNode = pn,
-                        Parent = nextParent
+                        Parent = nextParent,
+                        Indentation = indentation
                     };
-
-                    if (addGotoValue) {
-                        new AstGotoValue() {
-                            Parent = pj,
-                            IsValueArrayObject = true
-                        };
-                    }
-
                     break;
                 default:
                     new AstError() {
