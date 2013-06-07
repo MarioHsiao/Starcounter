@@ -27,7 +27,7 @@ namespace Starcounter.XSON.Serializers {
 
                 if (current == ',' || current == ' '
                     || current == '}' || current == '\n'
-                    || current == '\r')
+                    || current == '\r' || current == ':')
                     break;
                 index++;
             }

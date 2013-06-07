@@ -313,7 +313,7 @@ public sealed class ByteArrayBuilder
         Decimal value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
-        Int64 value2 = X6Decimal.FromDecimal(value);
+        Int64 value2 = X6Decimal.ToEncoded(value);
         AppendNonNullValue(value2, embedType);
     }
 
@@ -322,7 +322,7 @@ public sealed class ByteArrayBuilder
         Byte[] dataArray,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
-        Int64 value2 = X6Decimal.FromDecimal(value);
+        Int64 value2 = X6Decimal.ToEncoded(value);
         AppendNonNullValue(value2, dataArray, embedType);
     }
 
