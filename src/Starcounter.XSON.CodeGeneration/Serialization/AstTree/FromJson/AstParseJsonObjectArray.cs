@@ -29,16 +29,24 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Generates C# source code for this abstract syntax tree (AST) node
         /// </summary>
         internal override void GenerateCsCodeForNode() {
-            Prefix.Add("if (*pBuffer++ == '[') {");
-            Prefix.Add("    leftBufferSize--;");
+            Prefix.Add("if (*pBuffer != '[')");
+            Prefix.Add("    JsonHelper.ThrowWrongValueTypeException(null, \"" + Template.TemplateName + "\", \"" + Template.JsonType + "\", \"\");");
+            Prefix.Add("while (leftBufferSize > 0) {");
             Prefix.Add("    while (*pBuffer != '{' && *pBuffer != ']') { // find first object or end of array");
-            Prefix.Add("        pBuffer++;");
             Prefix.Add("        leftBufferSize--;");
+            Prefix.Add("        if (leftBufferSize < 0)");
+            Prefix.Add("            JsonHelper.ThrowUnexpectedEndOfContentException();");
+            Prefix.Add("        pBuffer++;");
             Prefix.Add("    }");
-            Prefix.Add("    if (*pBuffer != ']') {");
-            Suffix.Add("    }");
-            Suffix.Add("} else");
-            Suffix.Add("    JsonHelper.ThrowWrongValueTypeException(null, \"" + Template.TemplateName + "\", \"" + Template.JsonType + "\", \"\");");
+            Prefix.Add("    if (*pBuffer == ']')");
+            Prefix.Add("        break;");
+            Suffix.Add("}");
+            Suffix.Add("if (*pBuffer == ']') {");
+            Suffix.Add("    leftBufferSize--;");
+            Suffix.Add("    if (leftBufferSize < 0)");
+            Suffix.Add("        JsonHelper.ThrowUnexpectedEndOfContentException();");
+            Suffix.Add("    pBuffer++;");
+            Suffix.Add("}");
         }
     }
 }
