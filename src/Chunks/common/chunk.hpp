@@ -35,27 +35,24 @@ typedef uint32_t chunk_index;
 typedef uint64_t bmx_handler_type;
 
 // Current chunk layout. Chunks are currently 4 KiByte:
-// +----------------------------------------------------------------------+ Byte 0..7 is no longer used
-// | 32-bit owner_id (0 = no_one, free chunk) - OBSOLETE (2012-03-26)!    |
-// | On 2012-03-26 the owner_id is no longer stored in the chunk.         |
-// | This means that byte 0..7 is not used. We shall later on move all    |
-// | data 8 bytes closer to byte 0, except link and next_link - they      |
-// | shall be located in the last 4 bytes of the chunk.                   |
-// +----------------------------------------------------------------------+ Byte 8..15 (shall be moved to byte 0..7)
-// | 64-bit user_data                                                     |
-// +----------------------------------------------------------------------+ Byte 16..19 (shall be moved to byte 8..11)
-// | 32-bit request_size                                                  |
-// +----------------------------------------------------------------------+ Byte 20..20 +request_size -1 (20 shall be 12)
-// | Blast2 request message(s)                                            |
-// +----------------------------------------------------------------------+ Byte 20 +request_size..23 +request_size
-// | 32-bit response_size                                                 |
-// +----------------------------------------------------------------------+ Up to byte 4087
-// | Blast2 response message(s).                                          |
-// +----------------------------------------------------------------------+ Byte 4088..4091
-// | 32-bit chunk_index next_link (-1 = link_terminator)                  |
-// +----------------------------------------------------------------------+ Byte 4092..4095
-// | 32-bit chunk_index link (-1 = link_terminator)                       |
-// +----------------------------------------------------------------------+
+// +------------------------------------------------------------+ Byte 0..7 is no longer used
+// | Since 2012-03-26 the owner_id is no longer stored in the   |
+// | chunk. The owner_id is stored in client_interface instead. |
+// +------------------------------------------------------------+ Byte 8..15 is no longer used
+// | 64-bit user_data is no longer stored in the chunk.         |
+// +------------------------------------------------------------+ Byte 16..19 (shall be moved to byte 0..3)
+// | 32-bit request_size                                        |
+// +------------------------------------------------------------+ Byte 20..20 +request_size -1 (20 shall be 4)
+// | Blast2 request message(s)                                  |
+// +------------------------------------------------------------+ Byte 20 +request_size..23 +request_size
+// | 32-bit response_size                                       |
+// +------------------------------------------------------------+ Up to byte 4087
+// | Blast2 response message(s).                                |
+// +------------------------------------------------------------+ Byte 4088..4091
+// | 32-bit chunk_index next_link (-1 = link_terminator)        |
+// +------------------------------------------------------------+ Byte 4092..4095
+// | 32-bit chunk_index link (-1 = link_terminator)             |
+// +------------------------------------------------------------+
 
 // boost::array is documented here:
 // http://www.boost.org/doc/libs/1_46_1/doc/html/boost/array.html
