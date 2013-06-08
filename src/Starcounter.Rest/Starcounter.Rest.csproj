@@ -152,10 +152,6 @@
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.XSON.Interfaces</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
