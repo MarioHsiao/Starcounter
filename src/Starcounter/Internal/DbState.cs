@@ -250,14 +250,14 @@ namespace Starcounter.Internal
         /// <returns></returns>
         public static Decimal ReadDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex) {
             UInt16 flags;
-			long encValue;
+			long value;
 
             unsafe {
-                flags = sccoredb.sccoredb_get_encdec(recordID, recordAddr, columnIndex, &encValue);
+                flags = sccoredb.sccoredb_get_decimal(recordID, recordAddr, columnIndex, &value);
             }
 
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
-                return X6Decimal.FromEncoded(encValue);
+                return X6Decimal.FromRaw(value);
             }
             throw ErrorCode.ToException(sccoredb.Mdb_GetLastError());
         }
@@ -270,16 +270,16 @@ namespace Starcounter.Internal
         /// <param name="columnIndex"></param>
         /// <returns></returns>
         public static Nullable<Decimal> ReadNullableDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex) {
-            Int64 encValue;
+            Int64 value;
             UInt16 flags;
             
             unsafe {
-                flags = sccoredb.sccoredb_get_encdec(recordID, recordAddr, columnIndex, &encValue);
+                flags = sccoredb.sccoredb_get_decimal(recordID, recordAddr, columnIndex, &value);
             }
 
             if ((flags & sccoredb.Mdb_DataValueFlag_Exceptional) == 0) {
                 if ((flags & sccoredb.Mdb_DataValueFlag_Null) == 0) {
-                    return X6Decimal.FromEncoded(encValue);
+                    return X6Decimal.FromRaw(value);
                 } else {
                     return null;
                 }
@@ -898,9 +898,9 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteDecimal(ulong recordID, ulong recordAddr, Int32 columnIndex, Decimal value) {
             UInt32 ec;
-            long encodedValue = X6Decimal.ToEncoded(value);
-            
-            ec = sccoredb.sccoredb_put_encdec(recordID, recordAddr, (UInt32)columnIndex, encodedValue);
+            long value2 = X6Decimal.ToRaw(value);
+
+            ec = sccoredb.sccoredb_put_decimal(recordID, recordAddr, (UInt32)columnIndex, value2);
             if (ec != 0)
                 throw ErrorCode.ToException(ec);
         }
