@@ -87,7 +87,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
             CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.CreateCodeBehindMetadata(className, className + ".json.cs");
 
-            TJson actual = (TJson)Obj.Factory.CreateJsonTemplate(File.ReadAllText(className + ".json"));
+            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;

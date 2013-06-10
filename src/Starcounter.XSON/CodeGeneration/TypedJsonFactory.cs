@@ -72,13 +72,17 @@ LOAD_MONO_DLL:
 //            this.compiler = new RoslynCSharpCompiler();
         }
 
-        public TObj CreateJsonTemplate(string json) {
-            return TemplateFromJs.CreateFromJs(json, false);
+        public TObj CreateJsonTemplate(string className, string json) {
+            TObj tobj = TemplateFromJs.CreateFromJs(json, false);
+            if (className != null)
+                tobj.ClassName = className;
+            return tobj;
         }
 
         public TObj CreateJsonTemplateFromFile(string filePath) {
             string json = File.ReadAllText(filePath);
-            return CreateJsonTemplate(json);
+            string className = Path.GetFileNameWithoutExtension(filePath);
+            return CreateJsonTemplate(className, json);
         }
 
         public TypedJsonSerializer CreateJsonSerializer(TObj jsonTemplate) {
@@ -111,11 +115,8 @@ LOAD_MONO_DLL:
             var className = Path.GetFileNameWithoutExtension(jsonFilePath);
             metadata = (CodeBehindMetadata)compiler.AnalyzeCodeBehind(className, codeBehindFilePath);
 
-            t = CreateJsonTemplate(jsonContent);
-            if (t.ClassName == null) {
-                t.ClassName = className;
-            }
-
+            t = CreateJsonTemplate(className, jsonContent);
+            
             if (String.IsNullOrEmpty(t.Namespace))
                 t.Namespace = metadata.RootNamespace;
 

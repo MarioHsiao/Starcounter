@@ -9,15 +9,23 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [Test]
         public static void CodeBehindAnalyzeTest() {
+            CodeBehindMetadata monoMetadata;
+            CodeBehindMetadata roslynMetadata; 
+
             Mono.MonoCSharpCompiler mono = new Mono.MonoCSharpCompiler();
             Roslyn.RoslynCSharpCompiler roslyn = new Roslyn.RoslynCSharpCompiler();
 
-            CodeBehindMetadata monoMetadata = mono.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
-            CodeBehindMetadata roslynMetadata = roslyn.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
+            monoMetadata = mono.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
+            roslynMetadata = roslyn.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
             AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
             monoMetadata = mono.AnalyzeCodeBehind("Complex", @"Compiler\complex.json.cs");
             roslynMetadata = roslyn.AnalyzeCodeBehind("Complex", @"Compiler\complex.json.cs");
+            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+
+            roslynMetadata = roslyn.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
+            monoMetadata = mono.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
+            
             AssertMetadataAreEqual(roslynMetadata, monoMetadata);
         }
 
