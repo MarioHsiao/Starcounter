@@ -186,6 +186,53 @@ namespace Starcounter.Internal
 
           }
       }
+
+      [Test]
+      public static unsafe void TestBinaryTupleArray() {
+          // similar to offsetkey with one node
+          byte[] tupleBuffer = new byte[1024];
+              var top = new TupleWriter(tupleBuffer, 0, 3, 2);
+              top.Write(1234);
+              var s = new TupleWriter(tupleBuffer, top.Length, 2, 2);
+              s.Write(41083);
+              s.Write("Static data");
+              top.HaveWritten(s.SealTuple());
+              var d = new TupleWriter(tupleBuffer, top.Length, 3, 2);
+              d.Write(2);
+              d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
+              var nested = new TupleWriter(tupleBuffer, top.Length+d.Length, 2, 1);
+              nested.Write("dynamic " + 4);
+              nested.Write(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 });
+              d.HaveWritten(nested.SealTuple());
+              top.HaveWritten(d.SealTuple());
+              top.SealTuple();
+
+          fixed (byte* start = tupleBuffer) {
+              var topReader = new TupleReader(start, 3);
+              Assert.AreEqual(1234, topReader.ReadUInt());
+              var sReader = new TupleReader(topReader.AtEnd, 2);
+              Assert.AreEqual(41083, sReader.ReadUInt());
+              Assert.AreEqual("Static data", sReader.ReadString());
+              topReader.Skip();
+              var dReader = new TupleReader(topReader.AtEnd, 3);
+              Assert.AreEqual(2, dReader.ReadUInt());
+              Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
+              var nestedReader = new TupleReader(dReader.AtEnd, 2);
+              Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
+              Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
+
+              topReader = new TupleReader(start, 3);
+              topReader.Skip();
+              topReader.Skip();
+              dReader = new TupleReader(topReader.AtEnd, 3);
+              Assert.AreEqual(2, dReader.ReadUInt());
+              Assert.AreEqual(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 }, dReader.ReadByteArray());
+              nestedReader = new TupleReader(dReader.AtEnd, 2);
+              Assert.AreEqual("dynamic " + 4, nestedReader.ReadString());
+              Assert.AreEqual(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 }, nestedReader.ReadByteArray());
+
+          }
+      }
    }
 
    class Test {

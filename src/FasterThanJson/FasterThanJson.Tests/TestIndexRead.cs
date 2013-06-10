@@ -86,8 +86,8 @@ namespace FasterThanJson.Tests {
                 uint[] uintValues = new uint[nrValues];
                 String[] stringValues = new String[nrValues];
                 byte[][] binaryValues = new byte[nrValues][];
-                fixed (byte* start = new byte[nrValues * 200]) {
-                    TupleWriter arrayWriter = new TupleWriter(start, nrValues, 2);
+                byte[] tupleBuffer = new byte[nrValues * 200];
+                    TupleWriter arrayWriter = new TupleWriter(tupleBuffer, 0, nrValues, 2);
                     for (int j = 0; j < nrValues; j++) {
                         valueTypes[j] = writeRnd.Next(1, 3);
                         switch (valueTypes[j]) {
@@ -109,7 +109,8 @@ namespace FasterThanJson.Tests {
                         }
                     }
                     arrayWriter.SealTuple();
-                    TupleReader arrayReader = new TupleReader(start, nrValues);
+                    fixed (byte* start = tupleBuffer) {
+                        TupleReader arrayReader = new TupleReader(start, nrValues);
                     for (int j = 0; j < nrValues; j++) {
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:

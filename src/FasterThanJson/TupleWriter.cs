@@ -75,7 +75,7 @@ namespace Starcounter.Internal
       /// <summary>
       /// Pointer to the start of this tuple
       /// </summary>
-      public byte* AtStart;
+      public readonly byte* AtStart;
 
       /// <summary>
       /// Pointer to the end of the offset list of the tuple
@@ -86,6 +86,16 @@ namespace Starcounter.Internal
       /// Pointer to the end of the tuple
       /// </summary>
       public byte* AtEnd;
+
+       /// <summary>
+       /// Array storing hierarchical tuples
+       /// </summary>
+      public byte[] TuplesBuffer;
+
+       /// <summary>
+       /// 
+       /// </summary>
+      public int ThisTupleStart;
 
  //     public byte* OverflowLimit;
 
@@ -104,22 +114,43 @@ namespace Starcounter.Internal
        /// <param name="valueCount"></param>
        /// <param name="initialOffsetElementSize"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public TupleWriter(byte* start, uint valueCount, uint initialOffsetElementSize )
-      {
-         AtStart = start;
-         AtOffsetEnd = AtStart + 1;
-         AtEnd = AtStart + 1 + valueCount*initialOffsetElementSize;
-         OffsetElementSize = initialOffsetElementSize;
-      //   OverflowLimit = overflowLimit;
+      public TupleWriter(byte* start, uint valueCount, uint initialOffsetElementSize) {
+          AtStart = start;
+          AtOffsetEnd = AtStart + 1;
+          AtEnd = AtStart + 1 + valueCount * initialOffsetElementSize;
+          OffsetElementSize = initialOffsetElementSize;
+          //   OverflowLimit = overflowLimit;
 #if BASE256
          AtStart[0] = (byte)OffsetElementSize;
 #else
-         Base16Int.WriteBase16x1(OffsetElementSize, AtStart);
+          Base16Int.WriteBase16x1(OffsetElementSize, AtStart);
 #endif
-         ValueOffset = 0;
-         ValueCount = valueCount;
+          ValueOffset = 0;
+          ValueCount = valueCount;
+          TuplesBuffer = null;
+          ThisTupleStart = -1;
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe TupleWriter(byte[] buffer, int start, uint valueCount, uint initialOffsetElementSize) {
+          TuplesBuffer = buffer;
+          ThisTupleStart = start;
+          fixed (byte* bufferPtr = buffer) {
+              AtStart = bufferPtr + ThisTupleStart;
+          AtOffsetEnd = AtStart + 1;
+          AtEnd = AtStart + 1 + valueCount * initialOffsetElementSize;
+          OffsetElementSize = initialOffsetElementSize;
+          //   OverflowLimit = overflowLimit;
+#if BASE256
+         AtStart[0] = (byte)OffsetElementSize;
+#else
+          Base16Int.WriteBase16x1(OffsetElementSize, AtStart);
+#endif
+          }
+          ValueOffset = 0;
+          ValueCount = valueCount;
+      }
+      
        /// <summary>
        /// Method
        /// </summary>
@@ -353,7 +384,7 @@ Retry:
             case 1:
                if (Base64Int.MeasureNeededSize(ValueOffset) > 1)
                {
-                  this.Grow(ValueOffset);
+                  this.GrowFrom1(ValueOffset);
                   oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
                   //                  oldAtOffsetEnd[0] = 33;
                   //                  oldAtOffsetEnd[1] = 33;
@@ -367,7 +398,7 @@ Retry:
             case 2:
                if (Base64Int.MeasureNeededSize(ValueOffset) > 2)
                {
-                  this.Grow(ValueOffset);
+                  this.GrowFrom2(ValueOffset);
                   oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
                   //                  oldAtOffsetEnd[0] = 33;
                   //                  oldAtOffsetEnd[1] = 33;
@@ -381,7 +412,7 @@ Retry:
             case 3:
                if (Base64Int.MeasureNeededSize(ValueOffset) > 3)
                {
-                  this.Grow(ValueOffset);
+                  this.GrowFrom3(ValueOffset);
                   oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
                   //                  oldAtOffsetEnd[0] = 33;
                   //                  oldAtOffsetEnd[1] = 33;
@@ -395,7 +426,7 @@ Retry:
             case 4:
                if (Base64Int.MeasureNeededSize(ValueOffset) > 4)
                {
-                  this.Grow(ValueOffset);
+                  this.GrowFrom4(ValueOffset);
                   oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
                   //                  oldAtOffsetEnd[0] = 33;
                   //                  oldAtOffsetEnd[1] = 33;
@@ -409,7 +440,7 @@ Retry:
             case 5:
                if (Base64Int.MeasureNeededSize(ValueOffset) > 5)
                {
-                  throw new Exception("Tuple to big");
+                  throw new Exception("Tuple too big");
                }
                else
                {
@@ -469,7 +500,7 @@ Retry:
       /// This is a tricky task. We have guessed a to small size for the element offsets. We have used a to narrow size of
       /// the element size. It means that the values and the offsets needs to move.
       /// </summary>
-      public void Grow( uint newValueOffset )
+      public void GrowFrom1( uint newValueOffset )
       {
 #if BASE32
          uint oesAfter = Base32Int.MeasureNeededSize(newValueOffset);
@@ -480,10 +511,12 @@ Retry:
 #if BASE256
          uint oesAfter = Base256Int.MeasureNeededSize(newValueOffset);
 #endif
+         if (TuplesBuffer == null || ThisTupleStart == -1)
+             throw new Exception("Byte array needed for grow");
          uint oesBefore = OffsetElementSize;
          uint moveOffsetsRight = oesAfter - oesBefore;
 
-         var valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize))/oesBefore); // Expensive division here!
+         var valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize))/oesBefore-1); // Expensive division here!
  
          uint needed = valuesWrittenSoFar*oesAfter;
          byte* newOffsets = (AtStart + 1);
@@ -494,19 +527,51 @@ Retry:
    // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
          byte* offsets = newOffsets;
 #else
-         byte* offsets = newOffsets + oesBefore - oesAfter;
+         byte* offsets = newOffsets;
 #endif
-         uint moveValuesRight =  needed - used;
+         uint moveValuesRight =  ValueCount*moveOffsetsRight;
 
+          // Move values to the right to have space for offset
+         //byte* values = ((AtStart + 1) + valuesWrittenSoFar * oesBefore);
+         //Intrinsics.MemCpy((void*)(values + moveValuesRight), (void*)values, (uint)ValueOffset);
+          int values = (int)(ThisTupleStart + 1 +ValueCount * oesBefore);
+          Buffer.BlockCopy(TuplesBuffer, values, TuplesBuffer, (int)(values + moveValuesRight), (int)ValueOffset);
 
-         for (uint t = valuesWrittenSoFar; t > 0; t--)
-         {
-            Intrinsics.MemCpy((void*)(newOffsets), offsets, (uint)oesBefore);
-            offsets += oesBefore;
-            newOffsets += oesAfter;
-         }
-         byte* values = ((AtStart + 1) + valuesWrittenSoFar * oesBefore);
-         Intrinsics.MemCpy((void*)(values + moveValuesRight), (void*)values, (uint)ValueOffset);
+          newOffsets += needed;
+          offsets += used;
+
+          switch (oesAfter) {
+              case 2:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x2(Base64Int.ReadBase64x1((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              case 3:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x3(Base64Int.ReadBase64x1((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              case 4:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x4(Base64Int.ReadBase64x1((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              case 5:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x5(Base64Int.ReadBase64x1((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              default: throw new Exception("Tuple too big");
+          }
+
          //Size -= moveValuesLeft;
 #if BASE256
          *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
@@ -515,7 +580,208 @@ Retry:
 #endif
          AtEnd += moveValuesRight;
          OffsetElementSize = oesAfter;
-         AtOffsetEnd += moveValuesRight;
+         AtOffsetEnd += needed - used;
+      }
+
+      public void GrowFrom2(uint newValueOffset) {
+#if BASE32
+         uint oesAfter = Base32Int.MeasureNeededSize(newValueOffset);
+#endif
+#if BASE64
+          uint oesAfter = Base64Int.MeasureNeededSize(newValueOffset);
+#endif
+#if BASE256
+         uint oesAfter = Base256Int.MeasureNeededSize(newValueOffset);
+#endif
+          if (TuplesBuffer == null || ThisTupleStart == -1)
+              throw new Exception("Byte array needed for grow");
+          uint oesBefore = OffsetElementSize;
+          uint moveOffsetsRight = oesAfter - oesBefore;
+
+          var valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize)) / oesBefore - 1); // Expensive division here!
+
+          uint needed = valuesWrittenSoFar * oesAfter;
+          byte* newOffsets = (AtStart + 1);
+          uint used = valuesWrittenSoFar * oesBefore;
+          //   throw new Exception("Move things right " + moveOffsetsRight);
+
+#if BASE256
+   // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
+         byte* offsets = newOffsets;
+#else
+          byte* offsets = newOffsets;
+#endif
+          uint moveValuesRight = ValueCount * moveOffsetsRight;
+
+          // Move values to the right to have space for offset
+          //byte* values = ((AtStart + 1) + valuesWrittenSoFar * oesBefore);
+          //Intrinsics.MemCpy((void*)(values + moveValuesRight), (void*)values, (uint)ValueOffset);
+          int values = (int)(ThisTupleStart + 1 + ValueCount * oesBefore);
+          Buffer.BlockCopy(TuplesBuffer, values, TuplesBuffer, (int)(values + moveValuesRight), (int)ValueOffset);
+
+          newOffsets += needed;
+          offsets += used;
+
+          switch (oesAfter) {
+              case 3:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x3(Base64Int.ReadBase64x2((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              case 4:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x4(Base64Int.ReadBase64x2((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              case 5:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x5(Base64Int.ReadBase64x2((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              default: throw new Exception("Tuple too big");
+          }
+
+          //Size -= moveValuesLeft;
+#if BASE256
+         *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
+#else
+          Base16Int.WriteBase16x1(oesAfter, AtStart); // The first byte in the tuple tells the offset element size of the tuple
+#endif
+          AtEnd += moveValuesRight;
+          OffsetElementSize = oesAfter;
+          AtOffsetEnd += needed - used;
+      }
+
+      public void GrowFrom3(uint newValueOffset) {
+#if BASE32
+         uint oesAfter = Base32Int.MeasureNeededSize(newValueOffset);
+#endif
+#if BASE64
+          uint oesAfter = Base64Int.MeasureNeededSize(newValueOffset);
+#endif
+#if BASE256
+         uint oesAfter = Base256Int.MeasureNeededSize(newValueOffset);
+#endif
+          if (TuplesBuffer == null || ThisTupleStart == -1)
+              throw new Exception("Byte array needed for grow");
+          uint oesBefore = OffsetElementSize;
+          uint moveOffsetsRight = oesAfter - oesBefore;
+
+          var valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize)) / oesBefore - 1); // Expensive division here!
+
+          uint needed = valuesWrittenSoFar * oesAfter;
+          byte* newOffsets = (AtStart + 1);
+          uint used = valuesWrittenSoFar * oesBefore;
+          //   throw new Exception("Move things right " + moveOffsetsRight);
+
+#if BASE256
+   // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
+         byte* offsets = newOffsets;
+#else
+          byte* offsets = newOffsets;
+#endif
+          uint moveValuesRight = ValueCount * moveOffsetsRight;
+
+          // Move values to the right to have space for offset
+          //byte* values = ((AtStart + 1) + valuesWrittenSoFar * oesBefore);
+          //Intrinsics.MemCpy((void*)(values + moveValuesRight), (void*)values, (uint)ValueOffset);
+          int values = (int)(ThisTupleStart + 1 + ValueCount * oesBefore);
+          Buffer.BlockCopy(TuplesBuffer, values, TuplesBuffer, (int)(values + moveValuesRight), (int)ValueOffset);
+
+          newOffsets += needed;
+          offsets += used;
+
+          switch (oesAfter) {
+              case 4:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x4(Base64Int.ReadBase64x3((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              case 5:
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x5(Base64Int.ReadBase64x3((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+                  break;
+              default: throw new Exception("Tuple too big");
+          }
+
+          //Size -= moveValuesLeft;
+#if BASE256
+         *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
+#else
+          Base16Int.WriteBase16x1(oesAfter, AtStart); // The first byte in the tuple tells the offset element size of the tuple
+#endif
+          AtEnd += moveValuesRight;
+          OffsetElementSize = oesAfter;
+          AtOffsetEnd += needed - used;
+      }
+
+      public void GrowFrom4(uint newValueOffset) {
+#if BASE32
+         uint oesAfter = Base32Int.MeasureNeededSize(newValueOffset);
+#endif
+#if BASE64
+          uint oesAfter = Base64Int.MeasureNeededSize(newValueOffset);
+#endif
+#if BASE256
+         uint oesAfter = Base256Int.MeasureNeededSize(newValueOffset);
+#endif
+          if (TuplesBuffer == null || ThisTupleStart == -1)
+              throw new Exception("Byte array needed for grow");
+          uint oesBefore = OffsetElementSize;
+          uint moveOffsetsRight = oesAfter - oesBefore;
+
+          var valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize)) / oesBefore - 1); // Expensive division here!
+
+          uint needed = valuesWrittenSoFar * oesAfter;
+          byte* newOffsets = (AtStart + 1);
+          uint used = valuesWrittenSoFar * oesBefore;
+          //   throw new Exception("Move things right " + moveOffsetsRight);
+
+#if BASE256
+   // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
+         byte* offsets = newOffsets;
+#else
+          byte* offsets = newOffsets;
+#endif
+          uint moveValuesRight = ValueCount * moveOffsetsRight;
+
+          // Move values to the right to have space for offset
+          //byte* values = ((AtStart + 1) + valuesWrittenSoFar * oesBefore);
+          //Intrinsics.MemCpy((void*)(values + moveValuesRight), (void*)values, (uint)ValueOffset);
+          int values = (int)(ThisTupleStart + 1 + ValueCount * oesBefore);
+          Buffer.BlockCopy(TuplesBuffer, values, TuplesBuffer, (int)(values + moveValuesRight), (int)ValueOffset);
+
+          newOffsets += needed;
+          offsets += used;
+
+          if (oesAfter == 5)
+                  for (uint t = valuesWrittenSoFar; t > 0; t--) {
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x5(Base64Int.ReadBase64x4((IntPtr)offsets), (IntPtr)newOffsets);
+                  }
+              else throw new Exception("Tuple too big");
+
+          //Size -= moveValuesLeft;
+#if BASE256
+         *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
+#else
+          Base16Int.WriteBase16x1(oesAfter, AtStart); // The first byte in the tuple tells the offset element size of the tuple
+#endif
+          AtEnd += moveValuesRight;
+          OffsetElementSize = oesAfter;
+          AtOffsetEnd += needed - used;
       }
 #endif
 
