@@ -48,7 +48,10 @@ namespace Starcounter.Internal.JsonPatch
         {
             String headerStr;
 
-            headerStr = "HTTP/1.1 200 OK" + StarcounterConstants.NetworkConstants.CRLF + "Content-Type: application/json-patch" + StarcounterConstants.NetworkConstants.CRLF + "Content-Length: ";
+            headerStr = "HTTP/1.1 200 OK" + StarcounterConstants.NetworkConstants.CRLF
+                        + "Cache-Control: no-cache" + StarcounterConstants.NetworkConstants.CRLF
+                        + "Content-Type: application/json-patch" + StarcounterConstants.NetworkConstants.CRLF 
+                        + "Content-Length: ";
             OK200_WITH_JSON_PATCH = Encoding.UTF8.GetBytes(headerStr);
 
             headerStr = "HTTP/1.1 400 Bad Request" + StarcounterConstants.NetworkConstants.CRLF + "Content-Type: text/plain" + StarcounterConstants.NetworkConstants.CRLF + "Content-Length: ";
