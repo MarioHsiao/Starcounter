@@ -48,10 +48,10 @@ namespace Starcounter.XSON.CodeGeneration
                 String starcounterBin = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
                 monoDllPath = Path.Combine(starcounterBin, monoDllPath);
 
-                if (!File.Exists(tempMonoDllPath))
-                    throw new FileNotFoundException("Mono DLL not found.");
-
 LOAD_MONO_DLL:
+
+                if (!File.Exists(monoDllPath))
+                    throw new FileNotFoundException("Mono DLL not found!");
 
                 IntPtr moduleHandle = LoadLibrary(monoDllPath);
 
