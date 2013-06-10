@@ -56,7 +56,7 @@ LOAD_MONO_DLL:
                 IntPtr moduleHandle = LoadLibrary(monoDllPath);
 
                 if (IntPtr.Zero == moduleHandle)
-                    throw new Exception("Can't load Mono from StarcounterBin!");
+                    throw new Exception("Can't load Mono DLL!");
 
                 Obj.Factory = new TypedJsonFactory();
             }
