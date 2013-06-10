@@ -49,7 +49,7 @@ namespace Starcounter.Internal {
             StarcounterBase._DB = new DbImpl();
 
             // Dependency injection for json codegeneration
-            Obj.Factory = new Starcounter.XSON.CodeGeneration.TypedJsonFactory();
+            XSON.CodeGeneration.Initializer.InitializeXSON();
 
             // Setting the response handler.
             Node.SetHandleResponse(AppServer_.HandleResponse);

@@ -19,7 +19,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            Obj.Factory = new TypedJsonFactory();
+            CodeGeneration.Initializer.InitializeXSON();
             newtonSerializer = new NewtonsoftSerializer();
             defaultSerializer = new DefaultSerializer();
         }
