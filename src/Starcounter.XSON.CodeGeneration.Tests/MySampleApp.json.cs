@@ -52,7 +52,7 @@ namespace MySampleNamespace
         /// <summary>
         /// Class SubPage3Impl
         /// </summary>
-        [Json.ActivePage.SubPage1.SubPage2.SubPage3]
+        [json.ActivePage.SubPage1.SubPage2.SubPage3]
         public partial class SubPage3Impl : Json<Order>, IFoo, IFoo3
         {
             /// <summary>
@@ -67,7 +67,7 @@ namespace MySampleNamespace
         /// <summary>
         /// Class ActivePageImpl
         /// </summary>
-        [Json.ActivePage]
+        [json.ActivePage]
         public partial class ActivePageImpl : Json, IFoo
         {
             /// <summary>
@@ -82,7 +82,7 @@ namespace MySampleNamespace
         /// <summary>
         /// Class SubPage2Impl
         /// </summary>
-        [Json.ActivePage.SubPage1.SubPage2]
+        [json.ActivePage.SubPage1.SubPage2]
         public partial class SubPage2Impl : Json
         {
             /// <summary>
@@ -97,7 +97,7 @@ namespace MySampleNamespace
         /// <summary>
         /// Class SubPage1Impl
         /// </summary>
-        [Json.ActivePage.SubPage1]
+        [json.ActivePage.SubPage1]
         public partial class SubPage1Impl : Json
         {
             /// <summary>
