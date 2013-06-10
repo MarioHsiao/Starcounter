@@ -218,7 +218,7 @@ namespace Starcounter.Internal
          uint len = (uint)Base256Int.Read(OffsetElementSize, (IntPtr)AtOffsetEnd);
 #endif
          len -= ValueOffset;
-         Encoding.UTF8.GetChars(AtEnd, (int)len, buffer, 8192);
+          SessionBlobProxy.Utf8Decode.GetChars(AtEnd, (int)len, buffer, 8192, true);
          var str = new String(buffer, 0, (int)len);
          AtOffsetEnd += OffsetElementSize;
          AtEnd += len;
@@ -236,8 +236,9 @@ namespace Starcounter.Internal
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
-          Encoding.UTF8.GetChars(valuePos, valueLength, buffer, 8192);
-          var str = new String(buffer, 0, valueLength);
+          int len = SessionBlobProxy.Utf8Decode.GetChars(valuePos, valueLength, buffer, 8192, true);
+          //Encoding.UTF8.GetChars(valuePos, valueLength, buffer, 8192);
+          var str = new String(buffer, 0, len);
           return str;
       }
 

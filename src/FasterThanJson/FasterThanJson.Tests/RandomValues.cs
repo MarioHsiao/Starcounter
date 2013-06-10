@@ -21,8 +21,12 @@ namespace FasterThanJson.Tests {
         public static String RandomString(Random rnd) {
             int length = rnd.Next(0, 200);
             StringBuilder str = new StringBuilder(length);
-            for (int i = 0; i < length; i++)
-                str.Append((char)rnd.Next(UInt16.MinValue, UInt16.MaxValue));
+            for (int i = 0; i < length; i++) {
+                char c = (char)rnd.Next(char.MinValue, char.MaxValue);
+                while (c >= 0xD800 && c <= 0xDFFF)
+                    c = (char)rnd.Next(char.MinValue, char.MaxValue);
+                str.Append(c);
+            }
             return str.ToString();
         }
 
