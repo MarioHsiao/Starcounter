@@ -712,7 +712,9 @@ namespace Weaver {
                 "Starcounter.XSON.dll",
                 "Starcounter.Logging.dll",
                 "Starcounter.Internal.dll",
-                "Starcounter.BitsAndBytes.Unsafe.dll"
+                "Starcounter.BitsAndBytes.Unsafe.dll",
+                "Starcounter.XSON.JsTemplateParser.dll",
+                "Mono.CSharp.dll"
             }
                 ) {
                 AddExcludeExpression(exclude, weaverExcludes);
