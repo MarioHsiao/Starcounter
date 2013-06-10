@@ -47,6 +47,9 @@ namespace Starcounter.Internal.Web
         /// and <paramref name="contentType"/> parameters respectively.
         /// Specifying a Content-Type as part of the headers collection
         /// yields in an undefined behaviour.
+        /// Also a cache directive with no-cache is automatically added to the header
+        /// in the current implementation so adding any kind of cache directive in the
+        /// header section will yield undefined behaviour.
         /// </remarks>
         /// <param name="code">The status code.</param>
         /// <param name="headers">General-, response and/or entity headers.</param>
@@ -91,7 +94,8 @@ namespace Starcounter.Internal.Web
                     msgHeader += header;
                 }
             }
-               
+            msgHeader += "Cache-Control: no-cache" + CRLF;
+
             if (hasContent) {
                 contentEncoding = contentEncoding ?? Encoding.UTF8;
                 entityBody = contentEncoding.GetBytes(content);
@@ -399,6 +403,7 @@ namespace Starcounter.Internal.Web
         String responseStr =
             "HTTP/1.1 200 OK" + CRLF +
             "Server: SC" + CRLF +
+            "Cache-control: no-cache" + CRLF + 
             "Content-Length: " + contentBytes.Length + CRLF +
             "Content-Type: application/json;charset=UTF-8" + CRLFCRLF;
 
