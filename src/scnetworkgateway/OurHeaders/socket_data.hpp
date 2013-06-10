@@ -53,6 +53,9 @@ class SocketDataChunk
     // Determined handler id.
     BMX_HANDLER_TYPE saved_user_handler_id_;
 
+    // Origin IP information.
+    ip_info_type origin_ip_info_;
+
     /////////////////////////
     // 4 bytes aligned data.
     /////////////////////////
@@ -105,8 +108,8 @@ class SocketDataChunk
     // HTTP protocol instance.
     HttpWsProto http_ws_proto_;
 
-    // Accept data.
-    uint8_t accept_data_or_params_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
+    // Accept or parameters data.
+    uint8_t accept_or_params_data_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
 
     // Blob buffer itself.
     uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];
@@ -142,7 +145,9 @@ public:
 
         GW_ASSERT(((uint8_t*)&saved_user_handler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
 
-        GW_ASSERT((accept_data_or_params_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
+        GW_ASSERT((accept_or_params_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
+
+        GW_ASSERT(((uint8_t*)&origin_ip_info_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_CLIENT_IP);
 
         GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_OFFSET_BLOB);
 
@@ -173,8 +178,6 @@ public:
         return 0;
     }
 
-#ifdef GW_SOCKET_ID_CHECK
-
     void set_unique_socket_id(session_salt_type unique_socket_id)
     {
         unique_socket_id_ = unique_socket_id;
@@ -190,6 +193,12 @@ public:
     bool CompareUniqueSocketId()
     {
         return g_gateway.CompareUniqueSocketId(sock_, unique_socket_id_);
+    }
+
+    // Setting client IP on this socket.
+    void SetSocketClientIpInfo()
+    {
+        return g_gateway.SetClientIpInfo(sock_, origin_ip_info_);
     }
 
     // Sets session if socket is correct.
@@ -222,7 +231,17 @@ public:
         return g_gateway.CompareGlobalSessionSalt(sock_, session_.random_salt_);
     }
 
-#endif
+    // Origin IP information.
+    ip_info_type get_origin_ip_info()
+    {
+        return origin_ip_info_;
+    }
+
+    // Sets origin IP information.
+    void set_origin_ip_info(ip_info_type origin_ip_info)
+    {
+        origin_ip_info_ = origin_ip_info;
+    }
 
     // Deletes global session and sends message to database to delete session there.
     uint32_t SendDeleteSession(GatewayWorker* gw);
@@ -619,10 +638,10 @@ public:
         type_of_network_oper_ = (uint8_t)type_of_network_oper;
     }
 
-    // Accept data.
-    uint8_t* const get_accept_data()
+    // Accept data or parameters data.
+    uint8_t* const get_accept_or_params_data()
     {
-        return accept_data_or_params_;
+        return accept_or_params_data_;
     }
 
     // Size in bytes of written user data.
@@ -842,7 +861,7 @@ public:
         return AcceptExFunc(
             g_gateway.get_server_port(port_index_)->get_listening_sock(),
             sock_,
-            accept_data_or_params_,
+            accept_or_params_data_,
             0,
             SOCKADDR_SIZE_EXT,
             SOCKADDR_SIZE_EXT,

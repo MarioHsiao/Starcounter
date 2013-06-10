@@ -593,7 +593,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         }
 
         // Getting the matched uri index.
-        matched_index = port_uris->RunCodegenUriMatcher(method_and_uri, method_and_uri_len, sd->get_accept_data());
+        matched_index = port_uris->RunCodegenUriMatcher(method_and_uri, method_and_uri_len, sd->get_accept_or_params_data());
 
         // Checking if we failed to find again.
         if (matched_index < 0)
@@ -611,7 +611,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         // Checking if we have a session parameter.
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
         {
-            MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_data()) + matched_uri->get_session_param_index();
+            MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_or_params_data()) + matched_uri->get_session_param_index();
             sd->GetSessionStruct()->FillFromString(method_and_uri + p->offset_, p->len_);
         }
 
