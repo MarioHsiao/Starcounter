@@ -9,6 +9,7 @@ using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
 using Starcounter.XSON.Serializers;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace Starcounter.XSON.CodeGeneration
 {
@@ -34,9 +35,26 @@ namespace Starcounter.XSON.CodeGeneration
                 if (null != Obj.Factory)
                     return;
 
+                String monoDllPath = "Mono.CSharp.dll";
+
+                // Get the location of current executing assembly.
+                String tempMonoDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), monoDllPath);
+                if (File.Exists(tempMonoDllPath)) {
+                    monoDllPath = tempMonoDllPath;
+                    goto LOAD_MONO_DLL;
+                }
+                
+                // Since that didn't work trying StarcounterBin.
                 String starcounterBin = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
-                String monoDllPath = Path.Combine(starcounterBin, "Mono.CSharp.dll");
+                monoDllPath = Path.Combine(starcounterBin, monoDllPath);
+
+                if (!File.Exists(tempMonoDllPath))
+                    throw new FileNotFoundException("Mono DLL not found.");
+
+LOAD_MONO_DLL:
+
                 IntPtr moduleHandle = LoadLibrary(monoDllPath);
+
                 if (IntPtr.Zero == moduleHandle)
                     throw new Exception("Can't load Mono from StarcounterBin!");
 
