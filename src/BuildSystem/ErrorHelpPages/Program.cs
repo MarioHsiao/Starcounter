@@ -44,8 +44,12 @@ namespace ErrorHelpPages {
             for (int i = 0; i < args.Length; i++) {
                 var arg = args[i];
                 if (!arg.StartsWith("--")) {
+                    if (++i == args.Length) {
+                        Usage();
+                        Exit(ExitCodes.WrongArguments);
+                    }
                     ErrorCodesFile = arg;
-                    LocalRepoDirectory = args[i + 1];
+                    LocalRepoDirectory = args[i];
                     break;
                 }
 
@@ -58,6 +62,13 @@ namespace ErrorHelpPages {
                         break;
                     case "quiet":
                         Quiet = true;
+                        break;
+                    case "gitpath":
+                        if (++i == args.Length) {
+                            Usage();
+                            Exit(ExitCodes.WrongArguments);
+                        }
+                        GitExecutablePath = args[i];
                         break;
                     default:
                         Usage();
