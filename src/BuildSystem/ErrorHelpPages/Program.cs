@@ -19,6 +19,7 @@ namespace ErrorHelpPages {
         static bool Verbose = false;
         static bool Quiet = false;
         static bool SuccessfullyCloned = false;
+        static bool PullLatest = true;
 
         static void Main(string[] args) {
             if (args.Length < 2 ) {
@@ -111,8 +112,9 @@ namespace ErrorHelpPages {
             }
 
             // Pull if we haven't cloned.
-            if (!SuccessfullyCloned) {
-
+            PullLatest = !SuccessfullyCloned;
+            if (PullLatest) {
+                Pull(git);
             }
 
             Console.WriteLine("Press ENTER to exit.");
@@ -130,6 +132,16 @@ namespace ErrorHelpPages {
             }
 
             SuccessfullyCloned = true;
+        }
+
+        static void Pull(Git git) {
+            WriteStatus("Pulling \"{0}\" into \"{1}\"", RemoteRepositoryGitURL, LocalRepoDirectory);
+
+            try {
+                git.Pull(RemoteRepositoryGitURL, "", "--progress");
+            } catch (ProcessExitException e) {
+                Exit(ExitCodes.GitUnexpectedExit, e.Message);
+            }
         }
 
         static void WriteGitOutput(string status, params string[] args) {
