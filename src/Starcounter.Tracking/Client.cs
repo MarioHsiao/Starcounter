@@ -141,11 +141,13 @@ namespace Starcounter.Tracking {
 
         }
 
+
         /// <summary>
         /// Send installer start tracking message
         /// When the Installer EXE is started
         /// </summary>
-        public void SendInstallerStart() {
+        /// <param name="completeCallback"></param>
+        public void SendInstallerStart(EventHandler<CompletedEventArgs> completeCallback) {
 
             try {
                 // Build json content
@@ -158,7 +160,7 @@ namespace Starcounter.Tracking {
                 string content = contentJson.ToString();
 
                 // Send json content to server
-                this.SendData("/api/usage/installer/start", content);
+                this.SendData("/api/usage/installer/start", content, completeCallback);
 
                 // sequenceNo
 
@@ -170,11 +172,22 @@ namespace Starcounter.Tracking {
         }
 
         /// <summary>
+        /// Send installer start tracking message
+        /// When the Installer EXE is started
+        /// </summary>
+        public void SendInstallerStart() {
+            this.SendInstallerStart(null);
+        }
+
+
+        /// <summary>
         /// Send installer executing tracking message
         /// When the installer starts an executing (installing/uninstalling)
         /// </summary>
         /// <param name="mode"></param>
-        public void SendInstallerExecuting(InstallationMode mode) {
+        /// <param name="personalServer"></param>
+        /// <param name="vs2012Extention"></param>
+        public void SendInstallerExecuting(InstallationMode mode, bool personalServer, bool vs2012Extention) {
 
             try {
                 // Build json content
@@ -183,11 +196,14 @@ namespace Starcounter.Tracking {
                 contentJson.executing = new { };
                 this.AddHeader(contentJson.executing);
 
-                contentJson.executing.mode = mode;  // 1 = Full installation, 2= Partial installation, 3 = Full uninstallation, 4 = Partial uninstallation
+                contentJson.executing.mode = (int)mode;  // 1 = Full installation, 2= Partial installation, 3 = Full uninstallation, 4 = Partial uninstallation
 
-                contentJson.executing.options = new object[] { };
-                contentJson.executing.options[0] = new { id = "personalServer", value = true };
-                contentJson.executing.options[1] = new { id = "vs2012Extentsion", value = true };
+                contentJson.executing.personalServer = personalServer;
+                contentJson.executing.vs2012Extention = vs2012Extention;
+
+                //contentJson.executing.options = new object[] { };
+                //contentJson.executing.options[0] = new { id = "personalServer", value = true };
+                //contentJson.executing.options[1] = new { id = "vs2012Extentsion", value = true };
 
                 string content = contentJson.ToString();
 
@@ -214,7 +230,7 @@ namespace Starcounter.Tracking {
 
                 this.AddHeader(contentJson.abort);
 
-                contentJson.abort.mode = mode;  // 1 = Full installation, 2= Partial installation, 3 = Full uninstallation, 4 = Partial uninstallation
+                contentJson.abort.mode = (int)mode;  // 1 = Full installation, 2= Partial installation, 3 = Full uninstallation, 4 = Partial uninstallation
 
                 contentJson.abort.message = message;
 
@@ -243,7 +259,7 @@ namespace Starcounter.Tracking {
                 contentJson.finish = new { };
                 this.AddHeader(contentJson.finish);
 
-                contentJson.finish.mode = mode;  // 1 = Full installation, 2= Partial installation, 3 = Full uninstallation, 4 = Partial uninstallation
+                contentJson.finish.mode = (int)mode;  // 1 = Full installation, 2= Partial installation, 3 = Full uninstallation, 4 = Partial uninstallation
 
                 contentJson.finish.success = success;
 
@@ -351,9 +367,13 @@ namespace Starcounter.Tracking {
         }
 
         private void SendData(string uri, string content) {
+            this.SendData(uri, content, null);
+
+        }
+        private void SendData(string uri, string content, EventHandler<CompletedEventArgs> completeCallback) {
 
             // This is a temporary solution until we have true Node async mode.
-            ThreadPool.QueueUserWorkItem(SendThread, new object[] { uri, content });
+            ThreadPool.QueueUserWorkItem(SendThread, new object[] { uri, content, completeCallback });
 
 
         }
@@ -367,7 +387,7 @@ namespace Starcounter.Tracking {
             // Send json content to server
             string uri = ((object[])state)[0] as string;
             string content = ((object[])state)[1] as string;
-
+            EventHandler<CompletedEventArgs> completeCallback = ((object[])state)[2] as EventHandler<CompletedEventArgs>;
 
             try {
 
@@ -398,10 +418,21 @@ namespace Starcounter.Tracking {
                 }
                 else {
                     // Error
+                    string message = "ERROR: UsageTracker http-StatusCode:" + response.StatusCode;
                     //Console.WriteLine("ERROR: UsageTracker http-StatusCode:" + response.StatusCode);
+
+                    if (completeCallback != null) {
+                        completeCallback(this, new CompletedEventArgs(message));
+                    }
+
                 }
             }
             catch (SocketException s) {
+
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(s));
+                }
+
                 if (s.SocketErrorCode == SocketError.ConnectionRefused) {
                     // Conneciton Refused
                 }
@@ -409,7 +440,11 @@ namespace Starcounter.Tracking {
 
                 }
             }
-            catch (Exception) {
+            catch (Exception e) {
+
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(e));
+                }
 
                 //Console.WriteLine("ERROR: UsageTracker.usage " + e.Message + System.Environment.NewLine + e.ToString());
             }
@@ -437,5 +472,69 @@ namespace Starcounter.Tracking {
 
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    public class CompletedEventArgs : EventArgs {
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasData {
+            get {
+                return this.Data != null;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public object Data { get; protected set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasError {
+            get {
+                return this.Error != null;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Exception Error { get; protected set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public CompletedEventArgs() {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        public CompletedEventArgs(object data) {
+            this.Data = data;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
+        public CompletedEventArgs(Exception e) {
+            this.Error = e;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="data"></param>
+        public CompletedEventArgs(Exception e, object data) {
+            this.Error = e;
+            this.Data = data;
+        }
+    }
 }
