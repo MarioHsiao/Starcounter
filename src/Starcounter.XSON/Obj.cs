@@ -91,7 +91,7 @@ namespace Starcounter {
         /// <summary>
         /// Injection point for generating typed json from different kinds of input.
         /// </summary>
-        public static ITypedJsonFactory Factory;
+        internal static ITypedJsonFactory Factory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.

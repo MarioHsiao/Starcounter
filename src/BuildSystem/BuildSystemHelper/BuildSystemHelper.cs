@@ -89,6 +89,11 @@ namespace BuildSystemHelper
         public const String UploadToUsFtp = "SC_UPLOAD_TO_US_FTP";
 
         /// <summary>
+        /// Flag to pack and upload artifacts to external FTP.
+        /// </summary>
+        public const String PackAndUploadArtifacts = "SC_PACK_AND_UPLOAD_ARTIFACTS";
+
+        /// <summary>
         /// Used for getting directory of currently running assembly.
         /// </summary>
         public static String GetAssemblyDir()

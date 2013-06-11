@@ -102,7 +102,8 @@ namespace Starcounter.XSON.Compiler.Mono {
             CSharpToken token;
 
             braceCount = 0;
-            while (mce.MoveNext()) {
+
+            do {
                 token = mce.Token;
                 if (token == CSharpToken.OPEN_BRACE)
                     braceCount++;
@@ -112,7 +113,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                     if (braceCount == 0)
                         break;
                 }
-            }
+            } while (mce.MoveNext());
         }
 
         /// <summary>
@@ -171,7 +172,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             if (mce.Token == CSharpToken.IDENTIFIER) {
                 methodName = mce.Value;
                 if ("Handle".Equals(methodName)) {
-                    // Yep, this is a handle method. Lets check that it is valid and retrieve the inputtype.
+                    // Yep, this is a handle method. Lets check that it is valid and retrieve the input type.
                     while (mce.MoveNext()) {
                         if (mce.Token == CSharpToken.CLOSE_PARENS) {
                             var info = new InputBindingInfo() {
@@ -183,9 +184,9 @@ namespace Starcounter.XSON.Compiler.Mono {
                             break;
                         } else if (mce.Token == CSharpToken.IDENTIFIER) {
                             if (prevToken == CSharpToken.IDENTIFIER) {
-                                // There is no separation between the type declaration and the parametername
+                                // There is no separation between the type declaration and the parameter name
                                 // so we have to assume that when we get two identifier tokens after each other
-                                // the last one is the parametername.
+                                // the last one is the parameter name.
                                 continue;
                             }
 
