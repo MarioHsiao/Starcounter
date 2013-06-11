@@ -23,7 +23,7 @@ namespace FasterThanJson.Tests {
             StringBuilder str = new StringBuilder(length);
             for (int i = 0; i < length; i++) {
                 char c = (char)rnd.Next(char.MinValue, char.MaxValue);
-                while (c >= 0xD800 && c <= 0xDFFF)
+                while (c >= 0xD800)
                     c = (char)rnd.Next(char.MinValue, char.MaxValue);
                 str.Append(c);
             }

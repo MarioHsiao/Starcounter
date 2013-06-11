@@ -580,7 +580,7 @@ Retry:
 #endif
          AtEnd += moveValuesRight;
          OffsetElementSize = oesAfter;
-         AtOffsetEnd += needed - used;
+         AtOffsetEnd += needed - used + 1;
       }
 
       public void GrowFrom2(uint newValueOffset) {
@@ -655,7 +655,7 @@ Retry:
 #endif
           AtEnd += moveValuesRight;
           OffsetElementSize = oesAfter;
-          AtOffsetEnd += needed - used;
+          AtOffsetEnd += needed - used + 1;
       }
 
       public void GrowFrom3(uint newValueOffset) {
@@ -723,7 +723,7 @@ Retry:
 #endif
           AtEnd += moveValuesRight;
           OffsetElementSize = oesAfter;
-          AtOffsetEnd += needed - used;
+          AtOffsetEnd += needed - used + 1;
       }
 
       public void GrowFrom4(uint newValueOffset) {
@@ -781,7 +781,7 @@ Retry:
 #endif
           AtEnd += moveValuesRight;
           OffsetElementSize = oesAfter;
-          AtOffsetEnd += needed - used;
+          AtOffsetEnd += needed - used + 1;
       }
 #endif
 
