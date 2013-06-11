@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 namespace ErrorHelpPages {
 
     class Program {
-        const string RemoteRepositoryPath = @"/Starcounter/Starcounter.wiki.git";
+        // Use during testing: per-samuelsson/GoodTimes.wiki.git
+        // const string RemoteRepositoryPath = @"/Starcounter/Starcounter.wiki.git";
+        const string RemoteRepositoryPath = @"/per-samuelsson/GoodTimes.wiki.git";
         const string RemoteRepositoryGitURL = @"git://github.com" + RemoteRepositoryPath;
 
         static string ErrorCodesFile;
@@ -18,11 +20,23 @@ namespace ErrorHelpPages {
         static bool CanClone = false;
         static bool Verbose = false;
         static bool Quiet = false;
-        static bool SuccessfullyCloned = false;
-        static bool PullLatest = true;
 
         static void Main(string[] args) {
-            if (args.Length < 2 ) {
+            Setup(args);
+            UpdateLocalRepository();
+
+            // LocalRepo/ErrorHelpPageTemplate.md
+            // LocalRepo/HelpPages
+
+            // Update/create every wiki page.
+            // TODO:
+            
+            Console.WriteLine("Press ENTER to exit.");
+            Console.ReadLine();
+        }
+
+        static void Setup(string[] args) {
+            if (args.Length < 2) {
                 Usage();
                 Exit(ExitCodes.WrongArguments);
             }
@@ -65,7 +79,7 @@ namespace ErrorHelpPages {
             }
 
             LocalRepoDirectory = Path.GetFullPath(LocalRepoDirectory);
-            
+
             git = new Git(GitExecutablePath);
             git.LocalRepo = LocalRepoDirectory;
             git.OutputDataReceived += (sender, e) => {
@@ -78,6 +92,10 @@ namespace ErrorHelpPages {
                     WriteGitErrorOutput(e.Data ?? string.Empty);
                 }
             };
+        }
+
+        static void UpdateLocalRepository() {
+            var cloned = false;
 
             try {
                 git.Status("-s");
@@ -90,7 +108,8 @@ namespace ErrorHelpPages {
                         );
                 }
                 Directory.CreateDirectory(LocalRepoDirectory);
-                Clone(git);
+                Clone();
+                cloned = true;
 
             } catch (ProcessExitException e) {
                 // Maybe the directory exist, but it's not a
@@ -108,20 +127,16 @@ namespace ErrorHelpPages {
                         LocalRepoDirectory)
                         );
                 }
-                Clone(git);
+                Clone();
+                cloned = true;
             }
 
-            // Pull if we haven't cloned.
-            PullLatest = !SuccessfullyCloned;
-            if (PullLatest) {
-                Pull(git);
+            if (!cloned) {
+                Pull();
             }
-
-            Console.WriteLine("Press ENTER to exit.");
-            Console.ReadLine();
         }
 
-        static void Clone(Git git) {
+        static void Clone() {
             WriteStatus("Cloning \"{0}\" into \"{1}\"", RemoteRepositoryGitURL, LocalRepoDirectory);
 
             Environment.CurrentDirectory = LocalRepoDirectory;
@@ -130,11 +145,9 @@ namespace ErrorHelpPages {
             } catch (ProcessExitException e) {
                 Exit(ExitCodes.GitUnexpectedExit, e.Message);
             }
-
-            SuccessfullyCloned = true;
         }
 
-        static void Pull(Git git) {
+        static void Pull() {
             WriteStatus("Pulling \"{0}\" into \"{1}\"", RemoteRepositoryGitURL, LocalRepoDirectory);
 
             try {
