@@ -1,7 +1,7 @@
 //
 // monitor_interface.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -12,11 +12,11 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <iostream> // debug
 #include <string>
 #include <cstring>
 #include <cstddef>
-#include <boost/cstdint.hpp>
 #include <memory>
 #include <set>
 #include <boost/interprocess/managed_shared_memory.hpp>
@@ -28,7 +28,6 @@
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/win32/thread_primitives.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #if defined(_MSC_VER)
 # define WIN32_LEAN_AND_MEAN

@@ -1,7 +1,7 @@
 //
 // common_client_interface.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -13,7 +13,7 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <cstddef>
-#include <boost/cstdint.hpp>
+#include <cstdint>
 #include <iostream> // debug
 #include <memory>
 #include <utility>
@@ -26,7 +26,6 @@
 #undef WIN32_LEAN_AND_MEAN
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include "../common/client_number.hpp"
 #include "../common/client_number_pool.hpp"
@@ -96,14 +95,6 @@ public:
 	//typedef Alloc allocator_type;
 	typedef typename queue_type::allocator_type allocator_type;
 #endif // defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-	
-	// Helper types
-	
-	// A type representing the "best" way to pass the value_type to a method.
-	typedef typename boost::call_traits<value_type>::param_type param_type;
-	
-	// A type representing the "best" way to return the value_type from a const method.
-	typedef typename boost::call_traits<value_type>::param_type return_type;
 	
 	enum state {
 		normal,

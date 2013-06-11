@@ -1,7 +1,7 @@
 //
 // scheduler_interface.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -12,8 +12,8 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <cstddef>
-#include <boost/cstdint.hpp>
 #include <iostream> /// debug
 #include <memory>
 #include <boost/interprocess/managed_shared_memory.hpp>

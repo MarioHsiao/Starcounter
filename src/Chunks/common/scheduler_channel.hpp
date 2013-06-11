@@ -1,7 +1,7 @@
 //
 // scheduler_channel.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -13,8 +13,8 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <cstddef>
-#include <boost/cstdint.hpp>
-#include <boost/noncopyable.hpp>
+#include <cstdint>
+#include "../common/noncopyable.hpp"
 #include "../common/chunk.hpp"
 #include "../common/atomic_bounded_buffer.hpp"
 #include "../common/config_param.hpp"
@@ -23,7 +23,7 @@ namespace starcounter {
 namespace core {
 
 template<class T, class Alloc = std::allocator<T> >
-class scheduler_channel : private boost::noncopyable {
+class scheduler_channel : private noncopyable {
 public:
 	// The type of queues used in the scheduler_channel.
 	typedef bounded_buffer<T, Alloc> queue_type;

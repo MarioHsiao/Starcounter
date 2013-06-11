@@ -13,8 +13,8 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <cstddef>
-#include <boost/cstdint.hpp>
-#include <boost/noncopyable.hpp>
+#include <cstdint>
+#include "../common/noncopyable.hpp"
 #include "../common/chunk.hpp"
 #include "../common/atomic_buffer.hpp"
 #include "../common/owner_id.hpp"
@@ -29,7 +29,7 @@ namespace starcounter {
 namespace core {
 
 template<class T, class Alloc = std::allocator<T> >
-class channel : private boost::noncopyable {
+class channel : private noncopyable {
 public:
 	// The type of queues used in the channel.
 	typedef starcounter::core::bounded_buffer<T, Alloc> queue_type;
@@ -60,15 +60,6 @@ public:
 	// The type of allocator used in the channel.
 	typedef typename queue_type::allocator_type allocator_type;
 	
-	// Helper types
-	
-	// A type representing the "best" way to pass the value_type to a method.
-	typedef typename boost::call_traits<value_type>::param_type param_type;
-	
-	// A type representing the "best" way to return the value_type from a const
-	// method.
-	typedef typename boost::call_traits<value_type>::param_type return_type;
-
 	// Construction/Destruction.
 	
 	explicit channel(size_type capacity, const allocator_type& alloc
@@ -156,8 +147,8 @@ public:
 	}
 
 public:
-	atomic_buffer<T, channel_capacity_bits> in; // 1 << 8 (256) elements.
-	atomic_buffer<T, channel_capacity_bits> out; // 1 << 8 (256) elements.
+	atomic_buffer<T, channel_capacity_bits> in;
+	atomic_buffer<T, channel_capacity_bits> out;
 	
 	//--------------------------------------------------------------------------
 	// PAGE_ALIGN is working better if only the in and out queues are in the
@@ -328,8 +319,8 @@ public:
 	queue& in_overflow() {
 		return in_overflow_;
 	}
-
- 	const queue& in_overflow() const {
+	
+	const queue& in_overflow() const {
 		return in_overflow_;
 	}
 

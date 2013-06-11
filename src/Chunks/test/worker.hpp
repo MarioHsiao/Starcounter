@@ -2,7 +2,7 @@
 // worker.hpp
 // interprocess_communication/test
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -13,6 +13,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <iostream>
 #include <ios>
 #include <string>
@@ -23,7 +24,6 @@
 #include <memory>
 #include <utility>
 #include <stdexcept>
-#include <boost/cstdint.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -34,7 +34,6 @@
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/win32/thread_primitives.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #if defined(_MSC_VER)
@@ -43,6 +42,7 @@
 # include <intrin.h>
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
+#include "../common/noncopyable.hpp"
 #include "../common/bit_operations.hpp"
 #include "../common/macro_definitions.hpp"
 #include "../common/config_param.hpp"
@@ -80,7 +80,7 @@ private:
  * @throws worker_exception when something can not be achieved.
  */
 // Objects of type boost::thread are not copyable.
-class worker : private boost::noncopyable {
+class worker : private noncopyable {
 public:
 	friend class test;
 	

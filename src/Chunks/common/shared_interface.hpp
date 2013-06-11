@@ -1,7 +1,7 @@
 //
 // shared_interface.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 // 
 
@@ -12,14 +12,13 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <cstddef>
-#include <boost/cstdint.hpp>
 #include <memory>
 #include <string>
 #include <utility>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include "../common/client_number.hpp"
 #include "../common/circular_buffer.hpp"
