@@ -18,4 +18,18 @@ Generated pages will be created with a name like ```%%ErrorId%%-(%%ErrorCodeDeco
 <!--TemplateMetadata/-->
 <!--TemplateContent-->
 Lorem ipsum.
+### See also
+#### References
+_There is currently no reference documentation available._
+#### Concepts
+_There are currently no conceptual documentation available._
+#### Additional resources
+Search the **Starcounter issue tracker** for
+* [all issues](https://github.com/Starcounter/Starcounter/search?q=%%ErrorId%%&type=Issues) on ```%%ErrorId%%``` (or only [open](https://github.com/Starcounter/Starcounter/search?q=%%ErrorId%%+state%3Aopen&type=Issues) or [closed](https://github.com/Starcounter/Starcounter/search?q=%%ErrorId%%+state%3Aclosed&type=Issues) ones).
+* [all issues](https://github.com/Starcounter/Starcounter/search?q=%%ErrorCodeDecorated%%&type=Issues) on ```%%ErrorCodeDecorated%%``` (or only [open](https://github.com/Starcounter/Starcounter/search?q=%%ErrorCodeDecorated%%+state%3Aopen&type=Issues) or [closed](https://github.com/Starcounter/Starcounter/search?q=%%ErrorCodeDecorated%%+state%3Aclosed&type=Issues) ones).
+
+Search the **GitHub site** for
+* [all issues](https://github.com/search?q=%%ErrorId%%&type=Issues) on ```%%ErrorId%%``` (or only [open](https://github.com/search?q=%%ErrorId%%+state%3Aopen&type=Issues) or [closed](https://github.com/Starcounter/Starcounter/search?q=%%ErrorId%%+state%3Aclosed&type=Issues) ones).
+* [all issues](https://github.com/search?q=%%ErrorCodeDecorated%%&type=Issues) on ```%%ErrorCodeDecorated%%``` (or only [open](https://github.com/search?q=%%ErrorCodeDecorated%%+state%3Aopen&type=Issues) or [closed](https://github.com/Starcounter/search?q=%%ErrorCodeDecorated%%+state%3Aclosed&type=Issues) ones).
+
 <!--TemplateContent/-->
