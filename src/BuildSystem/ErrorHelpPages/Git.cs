@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace ErrorHelpPages {
     /// <summary>
@@ -27,8 +28,19 @@ namespace ErrorHelpPages {
             this.LocalRepo = Environment.CurrentDirectory;
         }
 
-        public void Clone(string repository, string localDirectory = "") {
-            Invoke(string.Concat("clone ", repository, " ", localDirectory));
+        public void Clone(string repository, string localDirectory = "", string options = "") {
+            var args = new StringBuilder("clone ");
+            if (!string.IsNullOrEmpty(options)) {
+                args.Append(options);
+            }
+            args.Append(" ");
+            args.Append(repository);
+            if (!string.IsNullOrEmpty(localDirectory)) {
+                args.Append(" ");
+                args.Append(localDirectory);
+            }
+
+            Invoke(args.ToString());
         }
 
         public void Status(params string[] arguments) {
@@ -86,7 +98,10 @@ namespace ErrorHelpPages {
             }
 
             if (p.ExitCode != 0) {
-                var e = new Exception("Error " + p.ExitCode);
+                var e = new ProcessExitException(p.ExitCode) {
+                    ExeFileName = p.StartInfo.FileName,
+                    Arguments = p.StartInfo.Arguments
+                };
                 throw e;
             }
         }
