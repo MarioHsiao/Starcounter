@@ -157,6 +157,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E
 		Chunks\common\mapped_region.cpp = Chunks\common\mapped_region.cpp
 		Chunks\common\monitor_interface.hpp = Chunks\common\monitor_interface.hpp
 		Chunks\common\name_definitions.hpp = Chunks\common\name_definitions.hpp
+		Chunks\common\noncopyable.hpp = Chunks\common\noncopyable.hpp
 		Chunks\common\overflow_buffer.hpp = Chunks\common\overflow_buffer.hpp
 		Chunks\common\owner_id.hpp = Chunks\common\owner_id.hpp
 		Chunks\common\owner_id_value_type.h = Chunks\common\owner_id_value_type.h

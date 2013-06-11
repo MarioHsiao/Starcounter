@@ -19,10 +19,8 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include <boost/utility.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <sccoreerr.h>
 #include "../common/shared_interface.hpp"

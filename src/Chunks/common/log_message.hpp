@@ -1,7 +1,7 @@
 //
 // log_message.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -11,11 +11,6 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
-
-#include <boost/cstdint.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/call_traits.hpp>
-#include <boost/bind.hpp>
 
 namespace starcounter {
 namespace core {

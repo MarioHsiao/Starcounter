@@ -1,7 +1,7 @@
 //
 // resource_map.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -12,6 +12,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <cstddef>
 #include <climits>
 #if defined(_MSC_VER)
@@ -20,7 +21,6 @@
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
 #include <mmintrin.h>
-#include <boost/cstdint.hpp>
 #include "../common/chunk.hpp"
 #include "../common/owner_id.hpp"
 #include "../common/bit_operations.hpp"

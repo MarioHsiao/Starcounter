@@ -13,6 +13,16 @@
 #include "../common/chunk.hpp"
 #include "../common/macro_definitions.hpp"
 
+// Bmx handler type.
+typedef starcounter::core::bmx_handler_type BMX_HANDLER_TYPE;
+typedef uint16_t BMX_HANDLER_INDEX_TYPE;
+typedef uint32_t BMX_HANDLER_UNIQUE_NUM_TYPE;
+
+inline BMX_HANDLER_INDEX_TYPE GetBmxHandlerIndex(BMX_HANDLER_TYPE handler_info)
+{
+    return (BMX_HANDLER_INDEX_TYPE)handler_info;
+}
+
 class chunk_part
 {
 private:

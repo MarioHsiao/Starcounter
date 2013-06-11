@@ -13,8 +13,7 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <cstddef>
-#include <boost/cstdint.hpp>
-#include <boost/array.hpp>
+#include <cstdint>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <intrin.h>
@@ -54,12 +53,18 @@ typedef uint64_t bmx_handler_type;
 // | 32-bit chunk_index link (-1 = link_terminator)             |
 // +------------------------------------------------------------+
 
-// boost::array is documented here:
-// http://www.boost.org/doc/libs/1_46_1/doc/html/boost/array.html
-// C:\boost\x86_64\include\boost-1_46_1\boost\array.hpp
 template<class T, std::size_t N>
-class chunk : public boost::array<T,N> {
+class chunk {
 public:
+	// Type definitions.
+	typedef T value_type;
+	typedef T* iterator;
+	typedef const T* const_iterator;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef std::size_t size_type;
+	typedef std::ptrdiff_t difference_type;
+	
 	// The kernel uses the user_data value for various things.
 	typedef uint64_t user_data_type;
 	
@@ -67,6 +72,10 @@ public:
 	typedef uint32_t message_size_type;
 
 	typedef chunk_index link_type;
+
+	enum {
+		static_size = N
+	};
 
 	enum {
 		// There are two links: The link (rename it to stream_link), and the next_link.
@@ -109,6 +118,27 @@ public:
 	enum {
 		static_data_size = static_size -static_header_size -link_size,
 	};
+
+	// size is constant
+	static size_type size() {
+		return N;
+	}
+	
+	static bool empty() {
+		return false;
+	}
+
+	static size_type max_size() {
+		return N;
+	}
+
+	reference operator[](size_type i) {
+		return elems[i];
+	}
+	
+	const_reference operator[](size_type i) const {
+		return elems[i];
+	}
 
 	/// data_size() returns the number of bytes of the chunks data area. It does
 	/// not take into consideration the amount of data in use.
@@ -244,7 +274,6 @@ public:
 		return *((chunk_index*)(elems +stream_link_begin)) == link_terminator;
 	}
 
-	///-------------------------------------------------------------------------
 	/// NOTE: Operations on next link is done only by a scheduler so no
 	/// synchronization is needed.
 
@@ -284,52 +313,20 @@ public:
 		return *((link_type*)(elems +next_link_begin)) == link_terminator;
 	}
 	
-	///-------------------------------------------------------------------------
-
 	// Idéas:
-	// overload iterators and such, so that they start after the header and
-	// end at the link, etc.
-	// 
 	// Helper functions to read/write all built-in integer types: 8-, 16-, 32-
-	// and 64-bit values, in host order, in big-endian, and in little-endian
-	// order.
+	// and 64-bit values.
 	//
 	// Read/write sequence of N bytes (a char array), and a c-style string.
-	//
-	// It may also be nice to be able to write float and double for
-	// some reason, but best is a conversion function from float to uint32_t and
-	// from double to uint64_t, although this only works on systems with
-	// sizeof(float) == sizeof(uint32_t) and sizeof(double) == sizeof(uint64_t).
+
+public:
+	// Fixed-size array of elements of type T.
+	T elems[N];
 };
 
 typedef chunk<uint8_t, chunk_size> chunk_type;
 
-#if 0 // helper functions for serialization over network
-inline void host_to_big_endian(uint16_t&);
-inline void host_to_big_endian(uint32_t&);
-inline void host_to_big_endian(uint64_t&);
-inline void host_to_little_endian(uint16_t&);
-inline void host_to_little_endian(uint32_t&);
-inline void host_to_little_endian(uint64_t&);
-inline void big_endian_to_host(uint16_t&);
-inline void big_endian_to_host(uint32_t&);
-inline void big_endian_to_host(uint64_t&);
-inline void little_endian_to_host(uint16_t&);
-inline void little_endian_to_host(uint32_t&);
-inline void little_endian_to_host(uint64_t&);
-#endif // helper functions for serialization over network
-
 } // namespace core
 } // namespace starcounter
-
-// Bmx handler type.
-typedef starcounter::core::bmx_handler_type BMX_HANDLER_TYPE;
-typedef uint16_t BMX_HANDLER_INDEX_TYPE;
-typedef uint32_t BMX_HANDLER_UNIQUE_NUM_TYPE;
-
-inline BMX_HANDLER_INDEX_TYPE GetBmxHandlerIndex(BMX_HANDLER_TYPE handler_info)
-{
-    return (BMX_HANDLER_INDEX_TYPE)handler_info;
-}
 
 #endif // STARCOUNTER_CORE_CHUNK_HPP
