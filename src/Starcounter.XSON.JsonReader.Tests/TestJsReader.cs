@@ -27,10 +27,10 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                       Emails: [  {
                                             Domain:'starcounter.com',
                                             User:'joachim.wester',
-                                            Delete:event
+                                            Delete:null
                                          }
                                       ],
-                                      Delete: event
+                                      Delete: null
                                     }";
 
 
@@ -72,12 +72,12 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                       LastName:'Wester'                 .Editable(false), 
                                       Selected:true                     .Editable(false).Editable(true),
                                       Emails: [  {
-                                            Domain:'starcounter.com'.Unbound(),
+                                            Domain:'starcounter.com',
                                             User:'joachim.wester'.Bind('UserName'),
-                                            Delete: event
+                                            Delete: null
                                          }
                                       ],
-                                      Delete: event
+                                      Delete: null
                                     }.Class('TestApp').Namespace('Test')";
 
 
@@ -107,17 +107,17 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
     Login: {
         UserName: ''.Editable(),
         Password: ''.Editable(),
-        Login: event,
-        Logout: event,
+        Login: null,
+        Logout: null,
     },
     MainMenu: {
-        Close: event,
-        CreateCustomerCompany: event,
-        CreateCustomerPerson: event,
+        Close: null,
+        CreateCustomerCompany: null,
+        CreateCustomerPerson: null,
         AdminMenu: {
-            EditMyProfile: event,
-            EditOurOrganisation: event,
-            AdministerUsers: event
+            EditMyProfile: null,
+            EditOurOrganisation: null,
+            AdministerUsers: null
         }
     },
     Search: {
@@ -138,20 +138,20 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                 ReachInfo: [{
                     TypeName: 'email',
                     Address: 'larry@google.com',
-                    MailOrSms: event
+                    MailOrSms: null
                 }.Class('ReachInfoApp')]
             }.Class('ContactPersonApp')
             ],
             ReachInfo: [{
                 TypeName: 'mobile',
                 Address: '12345',
-                MailOrSms: event
+                MailOrSms: null
             }.Class('ReachInfoApp')
             ],
-            Selected: false.Unbound(),
-            CreateEmail: event,
-            ShowCustomer: event,
-            CreateOrder: event
+            Selected: false,
+            CreateEmail: null,
+            ShowCustomer: null,
+            CreateOrder: null
         }.Class('CustomerApp')
         ]
     }.Bind('this'),

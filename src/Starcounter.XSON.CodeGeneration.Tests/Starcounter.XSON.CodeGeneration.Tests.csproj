@@ -42,7 +42,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Debug\Starcounter.XSON.CodeGeneration.Tests.XML</DocumentationFile>
@@ -59,6 +59,12 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework">
@@ -130,25 +136,13 @@
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.Compiler.Mono\Starcounter.XSON.Compiler.Mono.csproj">
-      <Project>{c5bcb67d-df0d-457c-8b05-68556fbc9dda}</Project>
-      <Name>Starcounter.XSON.Compiler.Mono</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.CodeGeneration\Starcounter.XSON.CodeGeneration.csproj">
-      <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>
-      <Name>Starcounter.XSON.CodeGeneration</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.Compiler.Roslyn\Starcounter.XSON.Compiler.Roslyn.csproj">
       <Project>{01382bc3-096b-466f-a115-6ae04766da3d}</Project>
       <Name>Starcounter.XSON.Compiler.Roslyn</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.XSON.Interfaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

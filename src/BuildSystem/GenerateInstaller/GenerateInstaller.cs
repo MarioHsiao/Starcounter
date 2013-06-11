@@ -267,19 +267,11 @@ namespace GenerateInstaller
                 String signingError = "error";
 
                 // Trying to sign several times.
-                for (Int32 i = 0; i < 5; i++)
-                {
-                    signingError = BuildSystem.SignFiles(allFilesToSign, companyName, productName, certificateFile);
-                    if (signingError == null) break;
-
-                    Thread.Sleep(5000);
-                }
+                signingError = BuildSystem.SignFiles(allFilesToSign, companyName, productName, certificateFile);
 
                 // Checking if there are any errors during signing process.
                 if (signingError != null)
-                {
                     throw new Exception("Failed to sign files:" + Environment.NewLine + signingError);
-                }
 
                 Console.WriteLine("Deleting selected directories and files...");
 
@@ -329,21 +321,12 @@ namespace GenerateInstaller
                 }
                 msbuildProcess.Close();
 
-                // Trying to sign several times.
-                for (Int32 i = 0; i < 5; i++)
-                {
-                    // Signing the main Starcounter setup.
-                    signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, companyName, productName, certificateFile);
-                    if (signingError == null) break;
-
-                    Thread.Sleep(5000);
-                }
+                // Signing the main Starcounter setup.
+                signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, companyName, productName, certificateFile);
 
                 // Checking if there are any errors during signing process.
                 if (signingError != null)
-                {
-                    throw new Exception("Failed to sign main Starcounter setup file...");
-                }
+                    throw new Exception("Failed to sign static Starcounter setup file...");
 
                 Console.WriteLine("Building installer wrapper...");
 
@@ -370,6 +353,13 @@ namespace GenerateInstaller
                     throw new Exception("Building installer wrapper project has failed with error code: " + msbuildProcess.ExitCode);
                 }
                 msbuildProcess.Close();
+
+                // Signing the main Starcounter setup.
+                signingError = BuildSystem.SignFiles(new String[] { specificSetupFilePath }, companyName, productName, certificateFile);
+
+                // Checking if there are any errors during signing process.
+                if (signingError != null)
+                    throw new Exception("Failed to sign specific Starcounter setup file...");
 
                 // Uploading changes to FTP server (only if its not a personal build).
                 if (Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) == "True")

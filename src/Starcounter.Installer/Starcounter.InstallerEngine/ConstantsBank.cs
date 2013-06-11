@@ -87,6 +87,9 @@ namespace Starcounter.InstallerEngine
         public const String SCInstallerEngine = "Starcounter.InstallerEngine";
         public const String SCProductName = StarcounterConstants.ProgramNames.ProductName;
 
+        public const String SCPublicAssembliesDir = "Public Assemblies";
+        public const String SCSystem32FilesName = "System32Files.txt";
+
         public static readonly String ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles); //Environment.GetEnvironmentVariable("ProgramW6432");
 
         internal const String Registry32BitUninstallPath = @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall";

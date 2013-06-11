@@ -46,7 +46,6 @@ namespace Starcounter.CLI {
                 SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
                 SharedCLI.ResolveDatabase(args, out database);
 
-                RequestHandler.InitREST();
                 var node = new Node(serverHost, (ushort)serverPort);
 
                 ShowHeadline(

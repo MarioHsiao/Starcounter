@@ -788,7 +788,7 @@ namespace Starcounter.Internal
         /// <param name="pvalue"></param>
         /// <returns></returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt16 sccoredb_get_encdec(
+        public unsafe extern static UInt16 sccoredb_get_decimal(
             UInt64 recordID,
             UInt64 recordAddr,
             Int32 index,
@@ -966,12 +966,19 @@ namespace Starcounter.Internal
         //    Int32 scale_sign
         //);
 
+        /// <summary>
+        /// </summary>
+        /// <param name="recordID"></param>
+        /// <param name="recordAddr"></param>
+        /// <param name="columnIndex"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 sccoredb_put_encdec(
+        public extern static UInt32 sccoredb_put_decimal(
             UInt64 recordID, 
             UInt64 recordAddr, 
             UInt32 columnIndex,
-            Int64 encodedValue
+            Int64 value
         );
 
         /// <summary>

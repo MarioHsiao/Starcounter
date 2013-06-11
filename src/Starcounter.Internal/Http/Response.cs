@@ -634,7 +634,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Parses internal HTTP response.
         /// </summary>
-        [DllImport("HttpParser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_parse_http_response(
             Byte* response_buf,
             UInt32 response_size_bytes,

@@ -70,10 +70,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\bin\$(Configuration)\HttpParser.dll">
+    <Content Include="..\..\..\bin\$(Configuration)\schttpparser.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\bin\$(Configuration)\HttpParser.pdb">
+    <Content Include="..\..\..\bin\$(Configuration)\schttpparser.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\bin\$(Configuration)\scerrres.dll">
