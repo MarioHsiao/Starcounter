@@ -32,8 +32,8 @@ namespace ErrorHelpPages {
             var args = new StringBuilder("clone ");
             if (!string.IsNullOrEmpty(options)) {
                 args.Append(options);
+                args.Append(" ");
             }
-            args.Append(" ");
             args.Append(repository);
             if (!string.IsNullOrEmpty(localDirectory)) {
                 args.Append(" ");
@@ -58,9 +58,21 @@ namespace ErrorHelpPages {
             Invoke("pull");
         }
 
-        public void Pull(string repository, string refspec = null) {
+        public void Pull(string repository, string refspec = null, string options = "") {
             Environment.CurrentDirectory = LocalRepo;
-            Invoke("pull " + repository + " " + refspec ?? string.Empty);
+
+            var args = new StringBuilder("pull ");
+            if (!string.IsNullOrEmpty(options)) {
+                args.Append(options);
+                args.Append(" ");
+            }
+            args.Append(repository);
+            if (!string.IsNullOrEmpty(refspec)) {
+                args.Append(" ");
+                args.Append(refspec);
+            }
+
+            Invoke(args.ToString());
         }
 
         public void Fetch(string repository, string refspec = null) {
