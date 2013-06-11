@@ -23,7 +23,7 @@ namespace Starcounter.XSON.Tests {
         /// </summary>
         [TestFixtureSetUp]
         public static void Setup() {
-            Obj.Factory = new TypedJsonFactory();
+            CodeGeneration.Initializer.InitializeXSON();
             DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
         }
 

@@ -60,7 +60,7 @@ namespace HttpStructs.Tests
                 "\r\n",
                                          
                 "GET /get_funky_content_length_body_hello HTTP/1.0\r\n" +
-                "conTENT-Length: 5\r\n" +
+                "Content-Length: 5\r\n" +
                 "\r\n" +
                 "HELLO",
 

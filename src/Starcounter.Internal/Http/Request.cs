@@ -2,6 +2,7 @@
 using HttpStructs;
 using Starcounter.Internal;
 using System;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 namespace Starcounter.Advanced {
@@ -103,7 +104,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Parses internal HTTP request.
         /// </summary>
-        [DllImport("HttpParser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_parse_http_request(
             Byte* request_buf,
             UInt32 request_size_bytes,
@@ -112,7 +113,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Initializes the Apps HTTP parser.
         /// </summary>
-        [DllImport("HttpParser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 sc_init_http_parser();
 
         /// <summary>
@@ -737,6 +738,23 @@ namespace Starcounter.Advanced {
                     throw new ArgumentException("HTTP request not initialized.");
 
                 return http_request_struct_->GetRequestByteArray_Slow();
+            }
+        }
+
+        /// <summary>
+        /// Gets the client IP address.
+        /// </summary>
+        public IPAddress GetClientIpAddress()
+        {
+            unsafe
+            {
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                if (!is_internal_request_)
+                    return new IPAddress(*(Int64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_CLIENT_IP));
+
+                return IPAddress.Loopback;
             }
         }
 

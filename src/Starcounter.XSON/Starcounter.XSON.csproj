@@ -34,6 +34,12 @@
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -49,11 +55,74 @@
     <Compile Include="CodeBehindMetaData\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindMetaData\InputBindingInfo.cs" />
     <Compile Include="CodeBehindMetaData\JsonMapInfo.cs" />
+    <Compile Include="CodeGeneration\CSharpGenerator\CSharpGenerator.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\AstFail.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\AstJSConstructor.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\AstJsonSerializerClass.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\AstNamespace.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\AstNode.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\AstTreeGenerator.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\AstUnsafe.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstCase.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstDeserializeFunction.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstGotoProperty.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstGotoValue.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstParseJsonObjectArray.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstParseJsonValue.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstSwitch.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstVerifier.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstWhile.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstCheckAlreadyProcessed.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstFixed.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstJsonDelimiter.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstJsonObject.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstJsonObjectArrayValue.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstJsonObjectValue.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstJsonPrimitiveValue.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstJsonProperty.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstLabel.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstRecreateBuffer.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstReturn.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\ToJson\AstSerializeFunction.cs" />
+    <Compile Include="CodeGeneration\Serialization\ParseTree\ParseNode.cs" />
+    <Compile Include="CodeGeneration\Serialization\ParseTree\ParseTreeGenerator.cs" />
+    <Compile Include="CodeGeneration\Serialization\ParseTree\TemplateMetadata.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\Core\NBase.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\Core\NClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\Core\NConstructor.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\Core\NInputBinding.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\Core\NMember.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\Core\NMetadataClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\Core\NTemplateClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\Core\NValueClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NApp.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NAppMetadata.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NAppTemplate.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NEventClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NJsonAttributeClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NListing.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NOtherClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NPredefinedClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NPrimitiveType.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NPropertyClass.cs" />
+    <Compile Include="CodeGeneration\SimpleCodeDom\NRoot.cs" />
+    <Compile Include="CodeGeneration\SimpleDomGenerator\CodeGenerationModule.cs" />
+    <Compile Include="CodeGeneration\SimpleDomGenerator\DomGenerator.cs" />
+    <Compile Include="CodeGeneration\TypedJsonFactory.cs" />
+    <Compile Include="CompilerMono\CodeBehindAnalyzer.cs" />
+    <Compile Include="CompilerMono\CSharpToken.cs" />
+    <Compile Include="CompilerMono\MonoCSharpCompiler.cs" />
+    <Compile Include="CompilerMono\MonoCSharpEnumerator.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="DataBindingFactory.cs" />
     <Compile Include="DynamicJson.cs" />
+    <Compile Include="Interfaces\IDebugInfo.cs" />
+    <Compile Include="Interfaces\Template\ITemplateCodeGenerator.cs" />
+    <Compile Include="Interfaces\Template\ITemplateCodeGeneratorModule.cs" />
     <Compile Include="ITypedJsonFactory.cs" />
     <Compile Include="Input.cs" />
+    <Compile Include="JsonReader\AppTemplateFactory.cs" />
+    <Compile Include="JsonReader\TemplateFromJs.cs" />
     <Compile Include="ManagedTupleWriter.cs" />
     <Compile Include="JSON\JSON.cs" />
     <Compile Include="JSON\TJSON.cs" />
@@ -95,6 +164,9 @@
     <Compile Include="ValueMetaData\TriggerMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Mono.CSharp">
+      <HintPath>..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll</HintPath>
+    </Reference>
     <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
       <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
       <Name>FasterThanJson</Name>
@@ -115,12 +187,11 @@
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.XSON.Interfaces</Name>
+    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
+      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
+      <Name>Starcounter.XSON.JsTemplateParser</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Starcounter.Internal.Application.CodeGeneration")]
-
 #if CLIENT
 namespace Starcounter.Client.Template {
 #else

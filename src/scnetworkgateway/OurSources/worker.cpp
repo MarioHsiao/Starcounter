@@ -360,11 +360,9 @@ START_RECEIVING_AGAIN:
     GW_PRINT_WORKER << "Receive: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
-#ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
-#endif
 
 #ifdef GW_PROFILER_ON
     profiler_.Start("Receive()", 1);
@@ -452,10 +450,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
-#ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
-#endif
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
@@ -556,11 +552,9 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Send: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
-#ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
-#endif
 
     // Start sending on socket.
 #ifdef GW_PROFILER_ON
@@ -628,7 +622,6 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     GW_PRINT_WORKER << "FinishSend: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
-#ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
     if (false == sd->CompareUniqueSocketId())
     {
@@ -637,7 +630,6 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
         return SCERRGWOPERATIONONWRONGSOCKET;
     }
-#endif
 
     AccumBuffer* accum_buf = sd->get_accum_buf();
 
@@ -728,10 +720,8 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     profiler_.Start("Disconnect()", 3);
 #endif
 
-#ifdef GW_SOCKET_ID_CHECK
     // Setting unique socket id.
     sd->CreateUniqueSocketId();
-#endif
 
     // Sending dead session if its a WebSocket.
     if (MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == sd->get_type_of_network_protocol())
@@ -807,10 +797,8 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
     GW_PRINT_WORKER << "FinishDisconnect: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-#ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
-#endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
@@ -908,10 +896,8 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
         // Start tracking this socket.
         TrackSocket(sd->get_db_index(), sd->get_socket());
 
-#ifdef GW_SOCKET_ID_CHECK
         // Setting unique socket id.
         sd->CreateUniqueSocketId();
-#endif
 
         // Calling ConnectEx.
         uint32_t err_code = sd->Connect(this, server_addr);
@@ -965,10 +951,8 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishConnect: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
-#ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
-#endif
 
 #ifndef GW_LOOPED_TEST_MODE
     // Setting SO_UPDATE_CONNECT_CONTEXT.
@@ -1062,10 +1046,8 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     // Updating number of accepting sockets.
     ChangeNumAcceptingSockets(sd->get_port_index(), 1);
 
-#ifdef GW_SOCKET_ID_CHECK
     // Setting unique socket id.
     sd->CreateUniqueSocketId();
-#endif
 
     // Calling AcceptEx.
     uint32_t err_code = sd->Accept(this);
@@ -1112,10 +1094,8 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishAccept: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-#ifdef GW_SOCKET_ID_CHECK
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
-#endif
 
     uint32_t err_code;
 
@@ -1144,9 +1124,14 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
 #endif
 
-    // Checking the endpoint information (e.g. for black listing).
-    // TODO: Implement!
-    //sockaddr_in remoteAddr = *(sockaddr_in *)(sd->accept_data() + sizeof(sockaddr_in) + 16);
+    // Checking client IP address information.
+    sockaddr_in client_addr = *(sockaddr_in *)(sd->get_accept_or_params_data() + sizeof(sockaddr_in) + 16);
+    sd->set_origin_ip_info(client_addr.sin_addr.S_un.S_addr);
+    sd->SetSocketClientIpInfo();
+
+    // Checking if white list is on.
+    if (!g_gateway.CheckIpForWhiteList(sd->get_origin_ip_info()))
+        return SCERRGWIPISNOTONWHITELIST;
 
     // Decreasing number of accepting sockets.
     int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(sd->get_port_index(), -1);
