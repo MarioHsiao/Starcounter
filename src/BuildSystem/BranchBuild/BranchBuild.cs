@@ -200,6 +200,7 @@ namespace BranchBuild
                     new DirectoryInfo(destLevel1Dir));
 
                 // Copying Level0 include directory.
+                Directory.CreateDirectory(destLevel0IncludeDir);
                 BuildSystem.CopyFilesRecursively(
                     new DirectoryInfo(srcLevel0IncludeDir),
                     new DirectoryInfo(destLevel0IncludeDir));
