@@ -46,7 +46,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>
@@ -63,6 +63,12 @@
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework">
@@ -118,18 +124,6 @@
       <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
       <Name>Starcounter.Hypermedia</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.CodeGeneration\Starcounter.XSON.CodeGeneration.csproj">
-      <Project>{02ea0fb4-cc2f-4dac-a58a-1f3115b7fae8}</Project>
-      <Name>Starcounter.XSON.CodeGeneration</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.Interfaces\Starcounter.XSON.Interfaces.csproj">
-      <Project>{710365c1-63cc-4c65-b3d1-ff1be8e1d276}</Project>
-      <Name>Starcounter.XSON.Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsonReader\Starcounter.XSON.JsonReader.csproj">
-      <Project>{8312de1e-1e35-42fd-902a-2fe517396240}</Project>
-      <Name>Starcounter.XSON.JsonReader</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
@@ -141,10 +135,10 @@
     <Content Include="..\..\bin\$(Configuration)\GatewayClang.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\bin\$(Configuration)\HttpParser.dll">
+    <Content Include="..\..\bin\$(Configuration)\schttpparser.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\bin\$(Configuration)\HttpParser.pdb">
+    <Content Include="..\..\bin\$(Configuration)\schttpparser.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\bin\$(Configuration)\scerrres.dll">

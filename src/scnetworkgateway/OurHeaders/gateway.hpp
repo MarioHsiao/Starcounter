@@ -52,6 +52,7 @@ typedef uint32_t session_index_type;
 typedef uint8_t scheduler_id_type;
 typedef uint64_t session_timestamp_type;
 typedef int64_t echo_id_type;
+typedef uint64_t ip_info_type;
 
 // Statistics macros.
 #define GW_COLLECT_SOCKET_STATISTICS
@@ -69,9 +70,6 @@ typedef int64_t echo_id_type;
 #define GW_SESSIONS_DIAG
 //#define GW_OLD_ACTIVE_DATABASES_DISCOVER
 #define GW_NEW_SESSIONS_APPROACH
-
-// Enable to check for unique socket usage.
-#define GW_SOCKET_ID_CHECK
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -160,6 +158,7 @@ typedef int64_t echo_id_type;
 #define SCERRGWFAILEDTOATTACHSOCKETTOIOCP 12410
 #define SCERRGWFAILEDTOLISTENONSOCKET 12411
 #define SCERRGWWEBSOCKETSPAYLOADTOOBIG 12412
+#define SCERRGWIPISNOTONWHITELIST 12413
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -290,7 +289,7 @@ const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
 const uint16_t FIRST_BIND_PORT_NUM = 1500;
 
 // Maximum length of gateway statistics string.
-const int32_t MAX_STATS_LENGTH = 8192;
+const int32_t MAX_STATS_LENGTH = 1024 * 64;
 
 // Gateway mode.
 enum GatewayTestingMode
@@ -989,8 +988,8 @@ _declspec(align(64)) struct ScSessionStructPlus
     // Active socket flag.
     uint64_t active_socket_flag_;
 
-    // Pad.
-    uint64_t pad_;
+    // Client IP information.
+    ip_info_type client_ip_info_;
 };
 
 // Represents an active database.
@@ -1612,8 +1611,8 @@ class Gateway
     ReverseProxyInfo reverse_proxies_[MAX_PROXIED_URIS];
     int32_t num_reversed_proxies_;
 
-    // Black list with malicious IP-addresses.
-    LinearList<uint32_t, MAX_BLACK_LIST_IPS_PER_WORKER> black_list_ips_unsafe_;
+    // White list with allowed IP-addresses.
+    LinearList<ip_info_type, MAX_BLACK_LIST_IPS_PER_WORKER> white_ips_list_;
 
     // Global IOCP handle.
     HANDLE iocp_;
@@ -1638,6 +1637,23 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    // Checks if IP is on white list.
+    bool CheckIpForWhiteList(ip_info_type ip)
+    {
+        // Checking if white IPs list is empty.
+        if (white_ips_list_.IsEmpty())
+            return true;
+
+        // TODO: Optimize check to be a switch statement.
+        for (int32_t i = 0; i < white_ips_list_.get_num_entries(); i++)
+        {
+            if (ip == white_ips_list_[i])
+                return true;
+        }
+
+        return false;
+    }
 
     // Printing statistics for all ports.
     void PrintPortStatistics(std::stringstream& stats_stream);
@@ -1679,13 +1695,28 @@ public:
         return codegen_uri_matcher_;
     }
 
-#ifdef GW_SOCKET_ID_CHECK
     // Checking if unique socket number is correct.
     bool CompareUniqueSocketId(SOCKET s, session_salt_type socket_id)
     {
         GW_ASSERT(s < setting_max_connections_);
 
         return (all_sessions_unsafe_[s].unique_socket_id_ == socket_id);
+    }
+
+    // Setting client IP address info.
+    void SetClientIpInfo(SOCKET s, ip_info_type origin_ip_info)
+    {
+        GW_ASSERT(s < setting_max_connections_);
+
+        all_sessions_unsafe_[s].client_ip_info_ = origin_ip_info;
+    }
+
+    // Getting client IP address info.
+    ip_info_type GetClientIpInfo(SOCKET s)
+    {
+        GW_ASSERT(s < setting_max_connections_);
+
+        return all_sessions_unsafe_[s].client_ip_info_;
     }
 
     // Setting new unique socket number.
@@ -1707,7 +1738,6 @@ public:
     {
         return all_sessions_unsafe_[s].unique_socket_id_;
     }
-#endif
 
     // Unique linear socket id.
     session_salt_type get_unique_socket_id()

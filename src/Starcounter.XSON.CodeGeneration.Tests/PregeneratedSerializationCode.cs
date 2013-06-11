@@ -34,22 +34,27 @@ namespace __starcountergenerated__ {
                 while (leftBufferSize > 0) {
                     // Skip until start of next property or end of current object.
                     while (true) {
-                        if (*pBuffer == '"')
-                            break;
                         if (*pBuffer == '}') {
                             pBuffer++;
                             leftBufferSize--;
                             return (bufferSize - leftBufferSize);
                         }
-                        pBuffer++;
-                        leftBufferSize--;
-                        if (leftBufferSize < 0)
-                            JsonHelper.ThrowUnexpectedEndOfContentException();
+                        if (*pBuffer == ',' || *pBuffer == ' ' || *pBuffer == '\n'
+                            || *pBuffer == '\r' || *pBuffer == '\t' || *pBuffer == '{') {
+                            leftBufferSize--;
+                            if (leftBufferSize < 0)
+                                JsonHelper.ThrowUnexpectedEndOfContentException();
+                            pBuffer++;
+                            continue;
+                        }
+                        if (*pBuffer == '"') {
+                            leftBufferSize--;
+                            if (leftBufferSize < 0)
+                                JsonHelper.ThrowUnexpectedEndOfContentException();
+                            pBuffer++;
+                        }
+                        break;
                     }
-                    pBuffer++;
-                    leftBufferSize--;
-                    if (leftBufferSize < 0)
-                        JsonHelper.ThrowUnexpectedEndOfContentException();
                     switch (*pBuffer) {
                         case (byte)'A':
                             pBuffer++;
@@ -72,65 +77,50 @@ namespace __starcountergenerated__ {
                             pver++;
                             // Skip until start of value to parse.
                             while (*pBuffer != ':') {
-                                pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
                                     JsonHelper.ThrowUnexpectedEndOfContentException();
+                                pBuffer++;
                             }
                             pBuffer++; // Skip ':' or ','
                             leftBufferSize--;
                             if (leftBufferSize < 0)
                                 JsonHelper.ThrowUnexpectedEndOfContentException();
                             while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
                                     JsonHelper.ThrowUnexpectedEndOfContentException();
+                                pBuffer++;
                             }
-                            if (*pBuffer++ == '[') {
-                                leftBufferSize--;
-                                while (*pBuffer != '{' && *pBuffer != ']') { // find first object or end of array
-                                    pBuffer++;
-                                    leftBufferSize--;
-                                }
-                                if (*pBuffer != ']') {
-                                    while (leftBufferSize > 0) {
-                                        var val1 = obj.Accounts.Add();
-                                        valueSize = val1.PopulateFromJson((IntPtr)pBuffer, leftBufferSize);
-                                        if (valueSize != -1) {
-                                            leftBufferSize -= valueSize;
-                                            if (leftBufferSize < 0) {
-                                                JsonHelper.ThrowUnexpectedEndOfContentException();
-                                            }
-                                            pBuffer += valueSize;
-                                        } else {
-                                            JsonHelper.ThrowWrongValueTypeException(null, "Accounts", "Arr`1", "");
-                                        }
-                                        // Skip until start of value to parse.
-                                        while (*pBuffer != ',') {
-                                            if (*pBuffer == ']')
-                                                break;
-                                            pBuffer++;
-                                            leftBufferSize--;
-                                            if (leftBufferSize < 0)
-                                                JsonHelper.ThrowUnexpectedEndOfContentException();
-                                        }
-                                        if (*pBuffer == ']')
-                                            break;
-                                        pBuffer++; // Skip ':' or ','
-                                        leftBufferSize--;
-                                        if (leftBufferSize < 0)
-                                            JsonHelper.ThrowUnexpectedEndOfContentException();
-                                        while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                            pBuffer++;
-                                            leftBufferSize--;
-                                            if (leftBufferSize < 0)
-                                                JsonHelper.ThrowUnexpectedEndOfContentException();
-                                        }
-                                    }
-                                }
-                            } else
+                            if (*pBuffer != '[')
                                 JsonHelper.ThrowWrongValueTypeException(null, "Accounts", "Arr`1", "");
+                            while (leftBufferSize > 0) {
+                                while (*pBuffer != '{' && *pBuffer != ']') { // find first object or end of array
+                                    leftBufferSize--;
+                                    if (leftBufferSize < 0)
+                                        JsonHelper.ThrowUnexpectedEndOfContentException();
+                                    pBuffer++;
+                                }
+                                if (*pBuffer == ']')
+                                    break;
+                                var val1 = obj.Accounts.Add();
+                                valueSize = val1.PopulateFromJson((IntPtr)pBuffer, leftBufferSize);
+                                if (valueSize != -1) {
+                                    leftBufferSize -= valueSize;
+                                    if (leftBufferSize < 0) {
+                                        JsonHelper.ThrowUnexpectedEndOfContentException();
+                                    }
+                                    pBuffer += valueSize;
+                                } else {
+                                    JsonHelper.ThrowWrongValueTypeException(null, "Accounts", "Arr`1", "");
+                                }
+                            }
+                            if (*pBuffer == ']') {
+                                leftBufferSize--;
+                                if (leftBufferSize < 0)
+                                    JsonHelper.ThrowUnexpectedEndOfContentException();
+                                pBuffer++;
+                            }
                             break;
                         case (byte)'P':
                             pBuffer++;
@@ -153,20 +143,20 @@ namespace __starcountergenerated__ {
                             pver++;
                             // Skip until start of value to parse.
                             while (*pBuffer != ':') {
-                                pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
                                     JsonHelper.ThrowUnexpectedEndOfContentException();
+                                pBuffer++;
                             }
                             pBuffer++; // Skip ':' or ','
                             leftBufferSize--;
                             if (leftBufferSize < 0)
                                 JsonHelper.ThrowUnexpectedEndOfContentException();
                             while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                                pBuffer++;
                                 leftBufferSize--;
                                 if (leftBufferSize < 0)
                                     JsonHelper.ThrowUnexpectedEndOfContentException();
+                                pBuffer++;
                             }
                             Int64 val0;
                             if (JsonHelper.ParseInt((IntPtr)pBuffer, leftBufferSize, out val0, out valueSize)) {
@@ -189,5 +179,3 @@ namespace __starcountergenerated__ {
 #pragma warning restore 0219
     }
 }
-
-

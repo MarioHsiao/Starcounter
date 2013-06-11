@@ -37,8 +37,6 @@ namespace Starcounter.VisualStudio.Projects {
         bool debugFlagSpecified = false;
 
         internal static void Initialize() {
-            RequestHandler.InitREST();
-
             var appSyntax = new ApplicationSyntaxDefinition();
             appSyntax.DefaultCommand = "exec";
             SharedCLI.DefineWellKnownOptions(appSyntax, true);

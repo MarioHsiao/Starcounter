@@ -18,13 +18,10 @@ namespace Starcounter {
     /// (verbs such as GET) and URI templates (i.e. /news/sports/{?}).
     /// </remarks>
     public partial class Handle {
-
-
         /// <summary>
         /// Inject REST handler function provider here
         /// </summary>
-        public static IREST _REST;
-
+        public static volatile IREST _REST;
    
         /// <summary>
         /// Register the specified uri with a PUT verb.

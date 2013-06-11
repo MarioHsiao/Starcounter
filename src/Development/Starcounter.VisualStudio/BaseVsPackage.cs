@@ -42,7 +42,7 @@ namespace Starcounter.VisualStudio {
                     resourceBinaryPath = Installed32BitComponponentsDirectory;
                 }
 
-                moduleHandle = LoadLibrary(Path.Combine(resourceBinaryPath, "HttpParser.dll"));
+                moduleHandle = LoadLibrary(Path.Combine(resourceBinaryPath, "schttpparser.dll"));
             } catch { }
 
             return moduleHandle != IntPtr.Zero;
