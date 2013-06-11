@@ -4,6 +4,7 @@ Starcounter.Internal.dll
 Starcounter.Apps.JsonPatch.dll
 Starcounter.HyperMedia.dll
 Starcounter.REST.dll
+Starcounter.Bootstrap.dll
 Starcounter.BitsAndBytes.Unsafe.dll
 Starcounter.CLI.dll
 Starcounter.Server.Rest.dll

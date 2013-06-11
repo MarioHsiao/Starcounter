@@ -88,7 +88,6 @@ namespace Starcounter.InstallerEngine
         public const String SCProductName = StarcounterConstants.ProgramNames.ProductName;
 
         public const String SCPublicAssembliesDir = "Public Assemblies";
-        public const String SCSystem32FilesName = "System32Files.txt";
 
         public static readonly String ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles); //Environment.GetEnvironmentVariable("ProgramW6432");
 
