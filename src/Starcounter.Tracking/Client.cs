@@ -187,7 +187,8 @@ namespace Starcounter.Tracking {
         /// <param name="mode"></param>
         /// <param name="personalServer"></param>
         /// <param name="vs2012Extention"></param>
-        public void SendInstallerExecuting(InstallationMode mode, bool personalServer, bool vs2012Extention) {
+        /// <param name="completeCallback"></param>
+        public void SendInstallerExecuting(InstallationMode mode, bool personalServer, bool vs2012Extention, EventHandler<CompletedEventArgs> completeCallback) {
 
             try {
                 // Build json content
@@ -208,7 +209,7 @@ namespace Starcounter.Tracking {
                 string content = contentJson.ToString();
 
                 // Send json content to server
-                this.SendData("/api/usage/installer/executing", content);
+                this.SendData("/api/usage/installer/executing", content, completeCallback);
             }
             catch (Exception) {
                 // TODO: Logging
@@ -216,12 +217,27 @@ namespace Starcounter.Tracking {
 
         }
 
+
+        /// <summary>
+        /// Send installer executing tracking message
+        /// When the installer starts an executing (installing/uninstalling)
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <param name="personalServer"></param>
+        /// <param name="vs2012Extention"></param>
+        public void SendInstallerExecuting(InstallationMode mode, bool personalServer, bool vs2012Extention) {
+            this.SendInstallerExecuting(mode, personalServer, vs2012Extention, null);
+        }
+
+
+
         /// <summary>
         /// Send installer abortion tracking message
         /// </summary>
         /// <param name="mode"></param>
         /// <param name="message"></param>
-        public void SendInstallerAbort(InstallationMode mode, string message) {
+        /// <param name="completeCallback"></param>
+        public void SendInstallerAbort(InstallationMode mode, string message, EventHandler<CompletedEventArgs> completeCallback) {
             try {
                 // Build json content
                 dynamic contentJson = new DynamicJson();
@@ -237,11 +253,22 @@ namespace Starcounter.Tracking {
                 string content = contentJson.ToString();
 
                 // Send json content to server
-                this.SendData("/api/usage/installer/abort", content);
+                this.SendData("/api/usage/installer/abort", content, completeCallback);
             }
             catch (Exception) {
                 // TODO: Logging
             }
+
+        }
+
+
+        /// <summary>
+        /// Send installer abortion tracking message
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <param name="message"></param>
+        public void SendInstallerAbort(InstallationMode mode, string message) {
+            this.SendInstallerAbort(mode, message, null);
 
         }
 
@@ -251,7 +278,8 @@ namespace Starcounter.Tracking {
         /// </summary>
         /// <param name="mode"></param>
         /// <param name="success"></param>
-        public void SendInstallerFinish(InstallationMode mode, bool success) {
+        /// <param name="completeCallback"></param>
+        public void SendInstallerFinish(InstallationMode mode, bool success, EventHandler<CompletedEventArgs> completeCallback) {
             try {
                 // Build json content
                 dynamic contentJson = new DynamicJson();
@@ -266,7 +294,7 @@ namespace Starcounter.Tracking {
                 string content = contentJson.ToString();
 
                 // Send json content to server
-                this.SendData("/api/usage/installer/finish", content);
+                this.SendData("/api/usage/installer/finish", content, completeCallback);
             }
             catch (Exception) {
                 // TODO: Logging
@@ -275,11 +303,22 @@ namespace Starcounter.Tracking {
         }
 
         /// <summary>
+        /// Send installer finish tracking message
+        /// When installation/uninstallation is finished
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <param name="success"></param>
+        public void SendInstallerFinish(InstallationMode mode, bool success) {
+            this.SendInstallerFinish(mode, success, null);
+        }
+
+        /// <summary>
         /// Send installer end tracking message
         /// When the Installer EXE exits
         /// </summary>
         /// <param name="linksUserClickedOn"></param>
-        public void SendInstallerEnd(string linksUserClickedOn) {
+        /// <param name="completeCallback"></param>
+        public void SendInstallerEnd(string linksUserClickedOn, EventHandler<CompletedEventArgs> completeCallback) {
             try {
                 // Build json content
                 dynamic contentJson = new DynamicJson();
@@ -293,13 +332,21 @@ namespace Starcounter.Tracking {
                 string content = contentJson.ToString();
 
                 // Send json content to server
-                this.SendData("/api/usage/installer/end", content);
+                this.SendData("/api/usage/installer/end", content, completeCallback);
             }
             catch (Exception) {
                 // TODO: Logging
             }
+        }
 
 
+        /// <summary>
+        /// Send installer end tracking message
+        /// When the Installer EXE exits
+        /// </summary>
+        /// <param name="linksUserClickedOn"></param>
+        public void SendInstallerEnd(string linksUserClickedOn) {
+            this.SendInstallerEnd(linksUserClickedOn, null);
         }
 
         /// <summary>
@@ -309,7 +356,8 @@ namespace Starcounter.Tracking {
         /// <param name="transactions"></param>
         /// <param name="runningDatabases"></param>
         /// <param name="runningExecutables"></param>
-        public void SendStarcounterUsage(long databases, long transactions, long runningDatabases, long runningExecutables) {
+        /// <param name="completeCallback"></param>
+        public void SendStarcounterUsage(long databases, long transactions, long runningDatabases, long runningExecutables, EventHandler<CompletedEventArgs> completeCallback) {
             try {
                 // Build json content
                 dynamic contentJson = new DynamicJson();
@@ -328,7 +376,7 @@ namespace Starcounter.Tracking {
                 string content = contentJson.ToString();
 
                 // Send json content to server
-                this.SendData("/api/usage/starcounter", content);
+                this.SendData("/api/usage/starcounter", content, completeCallback);
             }
             catch (Exception) {
                 // TODO: Logging
@@ -338,12 +386,24 @@ namespace Starcounter.Tracking {
         }
 
         /// <summary>
+        /// Send starcounter usage tracking message
+        /// </summary>
+        /// <param name="databases"></param>
+        /// <param name="transactions"></param>
+        /// <param name="runningDatabases"></param>
+        /// <param name="runningExecutables"></param>
+        public void SendStarcounterUsage(long databases, long transactions, long runningDatabases, long runningExecutables) {
+            this.SendStarcounterUsage(databases, transactions, runningDatabases, runningExecutables, null);
+        }
+
+        /// <summary>
         /// Send starcounter general tracking message
         /// </summary>
         /// <param name="module"></param>
         /// <param name="type"></param>
         /// <param name="message"></param>
-        public void SendStarcounterGeneral(string module, string type, string message) {
+        /// <param name="completeCallback"></param>
+        public void SendStarcounterGeneral(string module, string type, string message, EventHandler<CompletedEventArgs> completeCallback) {
             try {
                 // Build json content
                 dynamic contentJson = new DynamicJson();
@@ -358,7 +418,7 @@ namespace Starcounter.Tracking {
                 string content = contentJson.ToString();
 
                 // Send json content to server
-                this.SendData("/api/usage/general", content);
+                this.SendData("/api/usage/general", content, completeCallback);
             }
             catch (Exception) {
                 // TODO: Logging
@@ -366,17 +426,30 @@ namespace Starcounter.Tracking {
 
         }
 
-        private void SendData(string uri, string content) {
-            this.SendData(uri, content, null);
 
+        /// <summary>
+        /// Send starcounter general tracking message
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="type"></param>
+        /// <param name="message"></param>
+        public void SendStarcounterGeneral(string module, string type, string message) {
+            this.SendStarcounterGeneral(module, type, message, null);
         }
+
+
         private void SendData(string uri, string content, EventHandler<CompletedEventArgs> completeCallback) {
 
             // This is a temporary solution until we have true Node async mode.
             ThreadPool.QueueUserWorkItem(SendThread, new object[] { uri, content, completeCallback });
 
-
         }
+
+
+        private void SendData(string uri, string content) {
+            this.SendData(uri, content, null);
+        }
+
 
         /// <summary>
         /// This is a temporary solution until we have true Node async mode.
@@ -412,6 +485,10 @@ namespace Starcounter.Tracking {
                         }
                     }
 
+                    if (completeCallback != null) {
+                        completeCallback(this, new CompletedEventArgs());
+                    }
+
                 }
                 else {
                     // Error
@@ -419,31 +496,20 @@ namespace Starcounter.Tracking {
                     //Console.WriteLine("ERROR: UsageTracker http-StatusCode:" + response.StatusCode);
 
                     if (completeCallback != null) {
-                        completeCallback(this, new CompletedEventArgs(message));
+                        completeCallback(this, new CompletedEventArgs(new Exception(message)));
                     }
 
                 }
             }
             catch (SocketException s) {
-
                 if (completeCallback != null) {
                     completeCallback(this, new CompletedEventArgs(s));
                 }
-
-                if (s.SocketErrorCode == SocketError.ConnectionRefused) {
-                    // Conneciton Refused
-                }
-                else {
-
-                }
             }
             catch (Exception e) {
-
                 if (completeCallback != null) {
                     completeCallback(this, new CompletedEventArgs(e));
                 }
-
-                //Console.WriteLine("ERROR: UsageTracker.usage " + e.Message + System.Environment.NewLine + e.ToString());
             }
 
 
@@ -470,7 +536,7 @@ namespace Starcounter.Tracking {
     }
 
     /// <summary>
-    /// 
+    /// Completed Event
     /// </summary>
     public class CompletedEventArgs : EventArgs {
 
