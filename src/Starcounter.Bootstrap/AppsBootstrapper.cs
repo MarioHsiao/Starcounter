@@ -30,6 +30,42 @@ namespace Starcounter.Internal {
         // private static StaticWebServer fileServer;
 
         /// <summary>
+        /// Object used for locking.
+        /// </summary>
+        static Object lockObject_ = new Object();
+
+        /// <summary>
+        /// Indicates if Apps is initialized.
+        /// </summary>
+        static Boolean isAppsBootstrapped_;
+
+        /// <summary>
+        /// Loads required DLLs and initializes XSON and REST.
+        /// </summary>
+        public static void Initialize() {
+
+            if (isAppsBootstrapped_)
+                return;
+
+            lock (lockObject_) {
+
+                if (isAppsBootstrapped_)
+                    return;
+
+                // Loading non-GAC dependencies.
+                HelperFunctions.LoadNonGACDependencies();
+
+                // Initializing XSON code generation.
+                XSON.CodeGeneration.Initializer.InitializeXSON();
+
+                // Initializing REST.
+                RequestHandler.InitREST();
+
+                isAppsBootstrapped_ = true;
+            }
+        }
+
+        /// <summary>
         /// Initializes AppsBootstrapper.
         /// </summary>
         /// <param name="defaultPort"></param>
@@ -48,8 +84,8 @@ namespace Starcounter.Internal {
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
 
-            // Dependency injection for json codegeneration
-            XSON.CodeGeneration.Initializer.InitializeXSON();
+            // Initialize bootstrapper.
+            Initialize();
 
             // Setting the response handler.
             Node.SetHandleResponse(AppServer_.HandleResponse);

@@ -10,6 +10,7 @@ using Starcounter.Templates;
 using System;
 using Starcounter.XSON.CodeGeneration;
 using Starcounter.Advanced;
+using Starcounter.Internal;
 
 namespace Starcounter.XSON.Tests {
 
@@ -23,7 +24,10 @@ namespace Starcounter.XSON.Tests {
         /// </summary>
         [TestFixtureSetUp]
         public static void Setup() {
+
+            HelperFunctions.LoadNonGACDependencies();
             CodeGeneration.Initializer.InitializeXSON();
+
             DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
         }
 
