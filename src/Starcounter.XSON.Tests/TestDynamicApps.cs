@@ -25,9 +25,6 @@ namespace Starcounter.XSON.Tests {
         [TestFixtureSetUp]
         public static void Setup() {
 
-            HelperFunctions.LoadNonGACDependencies();
-            CodeGeneration.Initializer.InitializeXSON();
-
             DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
         }
 

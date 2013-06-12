@@ -17,6 +17,15 @@ namespace Starcounter.Templates {
     /// Defines the properties of an App instance.
     /// </summary>
     public abstract class TObj : TContainer {
+
+        /// <summary>
+        /// Static constructor to automatically initialize XSON.
+        /// </summary>
+        static TObj() {
+            HelperFunctions.LoadNonGACDependencies();
+            XSON.CodeGeneration.Initializer.InitializeXSON();
+        }
+
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
         private static bool shouldUseCodegeneratedSerializer = true;
 

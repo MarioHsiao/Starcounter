@@ -23,8 +23,6 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
     public class TestTemplates {
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            HelperFunctions.LoadNonGACDependencies();
-            CodeGeneration.Initializer.InitializeXSON();
         }
 
         /// <summary>
