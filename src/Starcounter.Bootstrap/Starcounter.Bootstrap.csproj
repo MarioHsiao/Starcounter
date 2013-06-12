@@ -110,6 +110,10 @@
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.CodeGeneration.Tests\Starcounter.XSON.CodeGeneration.Tests.csproj">
+      <Project>{84e160e1-e32f-45f9-be7b-8e093d68975f}</Project>
+      <Name>Starcounter.XSON.CodeGeneration.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>

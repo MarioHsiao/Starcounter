@@ -142,6 +142,11 @@ namespace Starcounter.Internal
             /// Weaver temp sub directory.
             /// </summary>
             public const String WeaverTempSubDirectory = "weaver";
+
+            /// <summary>
+            /// 32BitComponents directory.
+            /// </summary>
+            public const String Bit32Components = "32BitComponents";
         }
 
         /// <summary>

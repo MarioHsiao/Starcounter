@@ -1,2 +1,0 @@
-schttpparser.dll
-scerrres.dll

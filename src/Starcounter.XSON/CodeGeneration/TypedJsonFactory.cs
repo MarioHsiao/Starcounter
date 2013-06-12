@@ -14,51 +14,33 @@ using System.Reflection;
 namespace Starcounter.XSON.CodeGeneration
 {
     public sealed class Initializer {
-        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
-        static extern IntPtr LoadLibrary(string filePath);
 
         /// <summary>
         /// Locks initialization.
         /// </summary>
-        static Object initializerLock = new Object();
+        static Object lockObject_ = new Object();
+
+        /// <summary>
+        /// Indicates if XSON is initialized.
+        /// </summary>
+        static Boolean xsonInitialized_;
 
         /// <summary>
         /// Initializes XSON code generation module.
         /// </summary>
-        public static void InitializeXSON() {
+        internal static void InitializeXSON() {
 
-            if (null != Obj.Factory)
+            if (xsonInitialized_)
                 return;
 
-            lock (initializerLock) {
+            lock (lockObject_) {
 
-                if (null != Obj.Factory)
+                if (xsonInitialized_)
                     return;
 
-                String monoDllPath = "Mono.CSharp.dll";
-
-                // Get the location of current executing assembly.
-                String tempMonoDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), monoDllPath);
-                if (File.Exists(tempMonoDllPath)) {
-                    monoDllPath = tempMonoDllPath;
-                    goto LOAD_MONO_DLL;
-                }
-                
-                // Since that didn't work trying StarcounterBin.
-                String starcounterBin = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
-                monoDllPath = Path.Combine(starcounterBin, monoDllPath);
-
-LOAD_MONO_DLL:
-
-                if (!File.Exists(monoDllPath))
-                    throw new FileNotFoundException("Mono DLL not found!");
-
-                IntPtr moduleHandle = LoadLibrary(monoDllPath);
-
-                if (IntPtr.Zero == moduleHandle)
-                    throw new Exception("Can't load Mono DLL!");
-
                 Obj.Factory = new TypedJsonFactory();
+
+                xsonInitialized_ = true;
             }
         }
     }
