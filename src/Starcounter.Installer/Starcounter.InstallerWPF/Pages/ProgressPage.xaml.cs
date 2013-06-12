@@ -20,6 +20,7 @@ using System.Runtime.InteropServices;
 using Starcounter.InstallerWPF.Slides;
 using Starcounter.Controls;
 using System.Windows.Resources;
+using Starcounter.InstallerWPF.Components;
 
 namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
@@ -279,9 +280,15 @@ namespace Starcounter.InstallerWPF.Pages {
             // Starting the installation process.
             try {
 
-                Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullInstallation);
-
                 Configuration config = state as Configuration;
+
+                PersonalServer personalServerComponent = config.Components[PersonalServer.Identifier] as PersonalServer;
+                VisualStudio2012Integration vs2012IntegrationComponent = config.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
+
+                Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullInstallation,
+                    personalServerComponent != null && personalServerComponent.Command == ComponentCommand.Install && personalServerComponent.IsInstalled == false,
+                    vs2012IntegrationComponent != null && vs2012IntegrationComponent.Command == ComponentCommand.Install && vs2012IntegrationComponent.IsInstalled == false);
+
                 config.ExecuteSettings(
                           delegate(object sender, Utilities.InstallerProgressEventArgs args) {
                               this._dispatcher.BeginInvoke(DispatcherPriority.Normal,

@@ -237,70 +237,6 @@ public class CInstallationBase : CComponentBase
         }
     }
 
-    void CopySystem32Files()
-    {
-        string nativeAssembliesFilePath;
-        string[] filesToInstall;
-
-        nativeAssembliesFilePath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCSystem32FilesName);
-
-        if (!File.Exists(nativeAssembliesFilePath))
-            throw new FileNotFoundException("Can't find System32 copy files list!");
-
-        filesToInstall = File.ReadAllLines(nativeAssembliesFilePath);
-
-        foreach (string fileName in filesToInstall)
-        {
-            String filePath = Path.Combine(InstallerMain.InstallationDir, fileName);
-            File.Copy(filePath, Path.Combine(Environment.SystemDirectory, fileName), true);
-        }
-    }
-
-    void DeleteSystem32Files()
-    {
-        string systemFilesToCopyPath;
-        string[] filesToInstall;
-
-        systemFilesToCopyPath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCSystem32FilesName);
-
-        if (!File.Exists(systemFilesToCopyPath))
-            Utilities.ReportSetupEvent(String.Format("Warning: Can't find System32 delete files list!"));
-
-        filesToInstall = File.ReadAllLines(systemFilesToCopyPath);
-
-        foreach (string fileName in filesToInstall)
-        {
-            String filePath = Path.Combine(Environment.SystemDirectory, fileName);
-
-            if (File.Exists(filePath))
-            {
-                try { File.Delete(filePath); }
-                catch { Utilities.ReportSetupEvent(String.Format("Warning: problem deleting file: ", filePath));  }
-            }
-        }
-    }
-
-    void CopyPublicAssemblies()
-    {
-        string publicAssembliesFilePath = Path.Combine(InstallerMain.InstallationDir, "PublicAssemblies.txt");
-
-        if (!File.Exists(publicAssembliesFilePath))
-            throw new FileNotFoundException("Can't find public assemblies list!");
-
-        string[] publicAssemblies = File.ReadAllLines(publicAssembliesFilePath);
-
-        String publicAssembliesDirPath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCPublicAssembliesDir);
-
-        if (!Directory.Exists(publicAssembliesDirPath))
-            Directory.CreateDirectory(publicAssembliesDirPath);
-
-        foreach (string fileName in publicAssemblies)
-        {
-            File.Copy(Path.Combine(InstallerMain.InstallationDir, fileName),
-                Path.Combine(publicAssembliesDirPath, fileName), true);
-        }
-    }
-
     /// <summary>
     /// Installs component.
     /// </summary>
@@ -387,9 +323,6 @@ public class CInstallationBase : CComponentBase
         // Adding firewall exceptions.
         ChangeFirewallExceptions(true);
 
-        // Copying public assemblies.
-        CopyPublicAssemblies();
-
         // Adding public assemblies registry path.
         RegistryKey refAsmRegistry = Utilities.CreateRegistryPathIfNeeded(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx\" + ConstantsBank.SCProductName + InstallerMain.SCVersion, true);
         refAsmRegistry.SetValue(null, Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCPublicAssembliesDir));
@@ -397,7 +330,6 @@ public class CInstallationBase : CComponentBase
         // Installing Starcounter.dll in the GAC.
         Utilities.ReportSetupEvent("Adding libraries to GAC...");
         InstallGACAssemblies();
-        CopySystem32Files();
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
@@ -465,8 +397,6 @@ public class CInstallationBase : CComponentBase
         Utilities.ReportSetupEvent("Removing assemblies from GAC...");
         try { UninstallGACAssemblies(); }
         catch { Utilities.ReportSetupEvent("Warning: problem running GAC assemblies removal..."); }
-
-        DeleteSystem32Files();
     }
 
     /// <summary>
