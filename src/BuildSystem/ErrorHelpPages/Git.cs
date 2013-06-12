@@ -43,6 +43,17 @@ namespace ErrorHelpPages {
             Invoke(args.ToString());
         }
 
+        public void Add(string file, params string[] arguments) {
+            Environment.CurrentDirectory = LocalRepo;
+
+            string args = string.Empty;
+            if (arguments != null) {
+                args = string.Join(" ", arguments);
+            }
+
+            Invoke(string.Concat("add ", file, " ", args));
+        }
+
         public void Status(params string[] arguments) {
             Environment.CurrentDirectory = LocalRepo;
 
