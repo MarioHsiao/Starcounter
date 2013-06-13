@@ -20,15 +20,12 @@ namespace Starcounter.Internal
         /// <param name="dllName">Name of the DLL to load.</param>
         static void LoadDLL(String dllName) {
 
-            // Get the location of current executing assembly.
-            String tempDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), dllName);
-            if (File.Exists(tempDllPath)) {
-                dllName = tempDllPath;
-                goto LOAD_DLL;
-            }
-                
-            // Since that didn't work trying StarcounterBin.
+            // Trying StarcounterBin.
             String starcounterBin = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+
+            // Checking that variable exists.
+            if (String.IsNullOrEmpty(starcounterBin))
+                throw new Exception("Starcounter is not installed properly. StarcounterBin environment variable is missing.");
 
             // Checking if its 32-bit process.
             if (4 == IntPtr.Size)
@@ -36,13 +33,13 @@ namespace Starcounter.Internal
             else
                 dllName = Path.Combine(starcounterBin, dllName);
 
-LOAD_DLL:
-
+            // Checking if DLL is on the disk.
             if (!File.Exists(dllName))
                 throw new FileNotFoundException("DLL not found: " + dllName);
 
             IntPtr moduleHandle = LoadLibrary(dllName);
 
+            // Checking if DLL loaded correctly.
             if (IntPtr.Zero == moduleHandle)
                 throw new Exception("Can't load DLL: " + dllName);
         }
@@ -79,9 +76,17 @@ LOAD_DLL:
                 if (dllsLoaded_)
                     return;
 
+                // Checking if DLLs are in the same directory as current assembly and if yes - not loading them.
+                // Primarily this is used when building Level1 which uses XSON code generation.
+                String tempDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AllPreloadLibraries[0]);
+                if (File.Exists(tempDllPath))
+                    goto DLLS_LOADED;
+
                 foreach (String dllName in AllPreloadLibraries) {
                     LoadDLL(dllName);
                 }
+
+DLLS_LOADED:
 
                 dllsLoaded_ = true;
             }
