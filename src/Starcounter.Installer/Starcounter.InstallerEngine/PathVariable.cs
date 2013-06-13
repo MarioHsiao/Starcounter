@@ -12,8 +12,7 @@ namespace Starcounter.InstallerEngine {
 
         public static bool ContainsPath(string pathToCheck, EnvironmentVariableTarget target = EnvironmentVariableTarget.Process) {
             var current = Environment.GetEnvironmentVariable("Path", target);
-            if (current == null)
-                return false;
+            if (current == null) return false;
 
             pathToCheck = pathToCheck.TrimEnd('\\');
             foreach (var path in current.Split(';')) {
@@ -49,9 +48,7 @@ namespace Starcounter.InstallerEngine {
 
         public static bool RemovePath(string pathToRemove, EnvironmentVariableTarget target = EnvironmentVariableTarget.Process) {
             var current = Environment.GetEnvironmentVariable("Path", target);
-
-            if (current == null)
-                return false;
+            if (current == null) return false;
 
             pathToRemove = pathToRemove.TrimEnd('\\');
             var builder = new StringBuilder();
@@ -68,7 +65,9 @@ namespace Starcounter.InstallerEngine {
             }
 
             if (found) {
-                builder.Remove(builder.Length - 1, 1);
+                if (builder.Length > 0) {
+                    builder.Remove(builder.Length - 1, 1);
+                }
                 Environment.SetEnvironmentVariable("Path", builder.ToString(), target);
             }
 
