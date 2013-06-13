@@ -88,7 +88,7 @@ namespace Starcounter.Templates {
 //        , ITObjArr
 #endif
     {
-        private DataValueBinding<IEnumerable> dataBinding;
+        internal DataValueBinding<IEnumerable> dataBinding;
         private string instanceDataTypeName;
     
         /// <summary>
@@ -127,8 +127,7 @@ namespace Starcounter.Templates {
         }
 
         internal DataValueBinding<IEnumerable> GetBinding(IBindable data) {
-            dataBinding = DataBindingFactory.VerifyOrCreateBinding<IEnumerable>(this, dataBinding, data.GetType(), Bind);
-            return dataBinding;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
         }
 
         internal override object GetBoundValueAsObject(Obj obj) {

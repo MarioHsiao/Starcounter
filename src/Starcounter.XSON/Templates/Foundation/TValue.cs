@@ -19,12 +19,10 @@ namespace Starcounter {
     public abstract class TValue<T> : TValue {
         public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
-
-        private DataValueBinding<T> dataBinding;
+        internal DataValueBinding<T> dataBinding;
         
         internal DataValueBinding<T> GetBinding(IBindable data) {
-            dataBinding = DataBindingFactory.VerifyOrCreateBinding<T>(this, dataBinding, data.GetType(), Bind);
-            return dataBinding;
+            return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType(), Bind);
         }
 
         /// <summary>
