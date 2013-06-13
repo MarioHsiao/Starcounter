@@ -55,13 +55,16 @@ namespace Starcounter.InstallerWrapper
         /// <param name="exeFilePath"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        static Int32 RunAndWaitForProgram(String exeFilePath, String args, Boolean wait = true)
+        static Int32 RunAndWaitForProgram(String exeFilePath, String args, Boolean elevate, Boolean wait)
         {
             Process exeProg = new Process();
             exeProg.StartInfo.FileName = exeFilePath;
             exeProg.StartInfo.Arguments = args;
             exeProg.StartInfo.UseShellExecute = true;
-            exeProg.StartInfo.Verb = "runas";
+
+            // Checking if we need to start elevated instance.
+            if (elevate)
+                exeProg.StartInfo.Verb = "runas";
 
             // Exit code of the child instance.
             Int32 exitCode = 1;
@@ -83,7 +86,7 @@ namespace Starcounter.InstallerWrapper
             }
             catch
             {
-                return 2;
+                return 10;
             }
 
             return exitCode;
@@ -138,57 +141,72 @@ namespace Starcounter.InstallerWrapper
         const String ScSetupVersion = "2.0.0.0";
         const String ScSetupResName = "Starcounter-Setup.exe";
         const String ScSetupExtractName = ScSetupResName; //"Starcounter-" + ScSetupVersion + "-Setup.exe";
+        const String ElevatedParam = "Elevated";
 
-        static void Main(string[] args)
+        static Int32 Main(String[] args)
         {
-            // Simply exiting if another setup is running.
-            if (AnotherSetupRunning())
-            {
-                MessageBox.Show("Another Starcounter setup instance is already running.",
-                    "Starcounter setup...", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            Boolean isElevated = false;
 
-                return;
-            }
+            if ((args.Length > 0) && (args[0] == ElevatedParam))
+                isElevated = true;
 
             // Extracting everything to temp directory.
             String userTempDir = Environment.GetEnvironmentVariable("TEMP");
 
-            // Checking if .NET 4.5 is installed.
-            if (!IsNet45Installed())
+            // Simply exiting if another setup is running.
+            if (!isElevated)
             {
-                MessageBox.Show("Microsoft .NET Framework 4.5 is not detected on your computer. It will be installed now.",
-                    "Starcounter setup...", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                String net45ExePath = Path.Combine(userTempDir, Net45ResName);
-                if (ExtractResourceToFile(Net45ResName, net45ExePath))
+                if (AnotherSetupRunning())
                 {
-                    if (0 == RunAndWaitForProgram(net45ExePath, ""))
-                    {
-                        // Double checking that now .NET version is really installed.
-                        if (IsNet45Installed())
-                            goto RUN_SC_INSTALLER;
-                    }
+                    MessageBox.Show("Another Starcounter setup instance is already running.",
+                        "Starcounter setup...", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+                    return 1;
                 }
 
-                goto ERROR_OCCURIED;
+                // Running elevated wrapper.
+                Int32 errCode = RunAndWaitForProgram(Process.GetCurrentProcess().MainModule.FileName, ElevatedParam, true, true);
+                if (0 != errCode)
+                    return errCode;
+
+                // Extracting installer and starting it.
+                String scSetupExePath = Path.Combine(userTempDir, ScSetupExtractName);
+                if (ExtractResourceToFile(ScSetupResName, scSetupExePath))
+                {
+                    // Skipping waiting for installer, just quiting.
+                    if (0 == RunAndWaitForProgram(scSetupExePath, "", false, false))
+                        return 0;
+                }
             }
-
-RUN_SC_INSTALLER:
-
-            String scSetupExePath = Path.Combine(userTempDir, ScSetupExtractName);
-
-            // Extracting installer and starting it.
-            if (ExtractResourceToFile(ScSetupResName, scSetupExePath))
+            else
             {
-                // Skipping waiting for installer, just quiting.
-                if (0 == RunAndWaitForProgram(scSetupExePath, "", false))
-                    return;
-            }
+                // Checking if .NET 4.5 is installed.
+                if (!IsNet45Installed())
+                {
+                    MessageBox.Show("Microsoft .NET Framework 4.5 is not detected on your computer. It will be installed now.",
+                        "Starcounter setup...", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-ERROR_OCCURIED:
+                    String net45ExePath = Path.Combine(userTempDir, Net45ResName);
+                    if (ExtractResourceToFile(Net45ResName, net45ExePath))
+                    {
+                        if (0 == RunAndWaitForProgram(net45ExePath, "", true, true))
+                        {
+                            // Double checking that now .NET version is really installed.
+                            if (IsNet45Installed())
+                                return 0;
+                        }
+                    }
+                }
+                else
+                {
+                    return 0;
+                }
+            }
 
             MessageBox.Show("Starcounter was not successfully installed.",
                 "Starcounter setup...", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            return 2;
         }
     }
 }
