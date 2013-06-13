@@ -274,12 +274,14 @@ public class CInstallationBase : CComponentBase
         Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
             ComponentPath,
             EnvironmentVariableTarget.User);
+        PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.User);
 
         // Also setting variable for current process (so that subsequently
         // started processes can find the installation path).
         Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
             ComponentPath,
             EnvironmentVariableTarget.Process);
+        PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.Process);
 
         // Logging event.
         Utilities.ReportSetupEvent("Creating base Start Menu items...");
@@ -367,6 +369,7 @@ public class CInstallationBase : CComponentBase
         Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
             null,
             EnvironmentVariableTarget.User);
+        PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.User);
 
         // Logging event.
         Utilities.ReportSetupEvent("Deleting Starcounter entry from the 'Add/Remove Programs' list...");
