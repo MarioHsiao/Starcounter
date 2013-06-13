@@ -31,8 +31,7 @@ engineModule.controller('EnginesCtrl', ['$scope', '$dialog', 'Engine', function 
 
     $scope.stopEngine = function (engine) {
 
-        var job = { message: "Stopping engine " + engine.name };
-        $scope.jobs.push(job);
+        var job = $scope.addJob({ message: "Stopping engine " + engine.name });
 
         Engine.stop({ name: engine.name }, function (response) {
             // Success
@@ -44,10 +43,7 @@ engineModule.controller('EnginesCtrl', ['$scope', '$dialog', 'Engine', function 
             // }
 
             // Remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
+            $scope.removeJob(job);
 
             $scope.refreshEngineAndExecutableList();
 
@@ -66,10 +62,7 @@ engineModule.controller('EnginesCtrl', ['$scope', '$dialog', 'Engine', function 
             // Error
 
             // Remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
+            $scope.removeJob(job);
 
             if (response instanceof SyntaxError) {
                 $scope.showException(response.message, null, response.stack);
@@ -188,6 +181,7 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', 'Datab
 
     $scope.stopDatabase = function (database) {
 
+        var job = $scope.addJob( { message: "Stopping " + database.name });
 
         $scope.refreshEnginesList(function () {
             // Success
@@ -196,41 +190,55 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', 'Datab
             if (engine == null) {
                 // TODO: Refresh list and try again
                 $scope.alerts.push({ type: 'error', msg: "Can not find database engine " + database.name });
+
+                // Remove job
+                $scope.removeJob(job);
+
             }
             else {
+
+                $http({ method: 'DELETE', url: engine.uri }).
+
+                  // A response status code between 200 and 299 is considered a success status
+                  success(function (response, status, headers, config) {
+
+                      // Remove job
+                      $scope.removeJob(job);
+
+                      $scope.alerts.push({ type: 'success', msg: response.Message });
+
+                      // Refresh engine and executable list
+                      $scope.refreshEngineAndExecutableList();
+
+                      // Refresh database list
+                      $scope.refreshDatabaseProcessStatus(database);
+
+
+                  }).
+                  error(function (response, status, headers, config) {
+
+                      // Remove job
+                      $scope.removeJob(job);
+
+                      if (status == 405) {
+                          // 405 MethodNotAllowed
+                          $scope.alerts.push({ type: 'info', msg: "Database " + database.name + " can not be stopped (405 MethodNotAllowed)", helpLink: null });
+                      }
+                      else if (status == 500) {
+                          // 500 Internal Server Error
+                          $scope.showException(response.message, response.helpLink, response.stackTrace);
+                      }
+                      else {
+                          $scope.showException("Unhandled http statuscode " + status, null, ".stopDatabase()");
+                      }
+
+                  });
             }
-
-            $http({ method: 'DELETE', url: engine.databaseUri }).
-
-              // A response status code between 200 and 299 is considered a success status
-              success(function (response, status, headers, config) {
-
-                  // Refresh engine and executable list
-                  $scope.refreshEngineAndExecutableList();
-
-                  // Refresh database list
-                  $scope.refreshDatabaseProcessStatus();
-
-              }).
-              error(function (response, status, headers, config) {
-
-                  if (status == 405) {
-                      // 405 MethodNotAllowed
-                      $scope.alerts.push({ type: 'info', msg: "Database " + database.name + " can not be stopped (405 MethodNotAllowed)", helpLink: null });
-                  }
-                  else if (status == 500) {
-                      // 500 Internal Server Error
-                      $scope.showException(response.message, response.helpLink, response.stackTrace);
-                  }
-                  else {
-                      $scope.showException("Unhandled http statuscode " + status, null, ".stopDatabase()");
-                  }
-
-              });
-
 
         }, function () {
             // Error
+            // Remove job
+            $scope.removeJob(job);
         })
 
     }
@@ -244,7 +252,7 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', 'Datab
             $scope.refreshEngineAndExecutableList();
 
             // Refresh database list
-            $scope.refreshDatabaseProcessStatus();
+            $scope.refreshDatabaseProcessStatus(database);
 
         }, function (response) {
             // Error
@@ -589,8 +597,7 @@ executableModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dial
 
         $scope.isBusy = true;
 
-        var job = { message: "Stopping " + engine.name };
-        $scope.jobs.push(job);
+        var job = $scope.addJob({ message: "Stopping " + engine.name });
 
         HostProcess.stop({ name: engine.name }, function (response) {
             // Success
@@ -604,11 +611,7 @@ executableModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dial
             $scope.isBusy = false;
 
             // Remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
-
+            $scope.removeJob(job);
 
 
             // Remove executable
@@ -626,10 +629,7 @@ executableModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dial
             // Error
 
             // Remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
+            $scope.removeJob(job);
 
             $scope.isBusy = false;
             if (response instanceof SyntaxError) {
@@ -856,20 +856,15 @@ executableModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$
         // Clear any previous alerts
         $scope.alerts.length = 0;
 
-        var job = { message: "Starting Executable" };
-        $scope.jobs.push(job);
+        var job = $scope.addJob({ message: "Starting Executable" });
 
         $scope.prepareExecutable(job, $scope.selectedDatabaseName, function () {
             // success
 
             $scope.refreshEngineAndExecutableList();
 
-            // remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
-
+            // Remove job
+            $scope.removeJob(job);
 
             //$location.path("/executables");
 
@@ -1553,6 +1548,22 @@ function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
 
     }
 
+    $scope.addJob = function (job) {
+        $scope.jobs.push(job);
+        return job;
+    }
+
+    $scope.removeJob = function (job) {
+
+        // Remove job
+        var index = $scope.jobs.indexOf(job);
+        if (index != -1) {
+            $scope.jobs.splice(index, 1);
+        }
+        return job;
+    }
+
+
     // Get Remote Engine and returns a local engine
     $scope.getEngineToLocalEngine = function (name, successCallback, errorCallback) {
 
@@ -1564,11 +1575,12 @@ function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
             // Make path's relative
             var relativeDatabaseUri = toRelativePath(remoteEngine.DatabaseProcess.Uri);
             var relativeHostUri = toRelativePath(remoteEngine.CodeHostProcess.Uri);
+            var relativeEngineUri = toRelativePath(remoteEngine.Uri);
 
 
             // Create engine instance
             var engine = {
-                uri: remoteEngine.Uri,
+                uri: relativeEngineUri,
                 name: name,
                 databaseUri: relativeDatabaseUri,
                 hostUri: relativeHostUri,
