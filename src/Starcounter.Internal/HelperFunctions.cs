@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,13 +19,9 @@ namespace Starcounter.Internal
         /// Loads specified library.
         /// </summary>
         /// <param name="dllName">Name of the DLL to load.</param>
-        static void LoadDLL(String dllName, String starcounterBin) {
+        static void LoadDLL(String dllName, String dllsDir) {
 
-            // Checking if its 32-bit process.
-            if (4 == IntPtr.Size)
-                dllName = Path.Combine(starcounterBin, StarcounterEnvironment.Directories.Bit32Components, dllName);
-            else
-                dllName = Path.Combine(starcounterBin, dllName);
+            dllName = Path.Combine(dllsDir, dllName);
 
             // Checking if DLL is on the disk.
             if (!File.Exists(dllName))
@@ -38,10 +35,9 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// All libraries to pre-load.
+        /// Native assemblies to pre-load.
         /// </summary>
-        static readonly String[] AllPreloadLibraries = {
-            "Mono.CSharp.dll",
+        static readonly String[] NativeAssemblies = {
             "schttpparser.dll",
             "scerrres.dll"
         };
@@ -71,19 +67,36 @@ namespace Starcounter.Internal
 
                 // Checking if DLLs are in the same directory as current assembly and if yes - not loading them.
                 // Primarily this is used when building Level1 which uses XSON code generation.
-                String tempDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AllPreloadLibraries[0]);
+                String tempDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), NativeAssemblies[0]);
                 if (File.Exists(tempDllPath))
                     goto DLLS_LOADED;
 
                 // Trying StarcounterBin.
-                String starcounterBin = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+                String dllsDir = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
 
                 // Checking that variable exists.
-                if (String.IsNullOrEmpty(starcounterBin))
+                if (String.IsNullOrEmpty(dllsDir))
                     throw new Exception("Starcounter is not installed properly. StarcounterBin environment variable is missing.");
 
-                foreach (String dllName in AllPreloadLibraries) {
-                    LoadDLL(dllName, starcounterBin);
+                // Checking if its 32-bit process.
+                if (4 == IntPtr.Size)
+                    dllsDir = Path.Combine(dllsDir, StarcounterEnvironment.Directories.Bit32Components);
+
+                // Adding custom assembly resolving directory.
+                AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs args) =>
+                {
+                    AssemblyName asmName = new AssemblyName(args.Name);
+                    String destPathToDll = Path.Combine(dllsDir, asmName.Name + ".dll");
+
+                    if (File.Exists(destPathToDll))
+                        return Assembly.LoadFile(destPathToDll);
+
+                    return null;
+                };
+
+                // Running throw all native assemblies.
+                foreach (String dllName in NativeAssemblies) {
+                    LoadDLL(dllName, dllsDir);
                 }
 
 DLLS_LOADED:
