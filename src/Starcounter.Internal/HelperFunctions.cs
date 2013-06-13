@@ -38,8 +38,8 @@ namespace Starcounter.Internal
         /// Native assemblies to pre-load.
         /// </summary>
         static readonly String[] NativeAssemblies = {
-            "schttpparser.dll",
-            "scerrres.dll"
+            "scerrres.dll",
+            "schttpparser.dll"            
         };
 
         /// <summary>
