@@ -1,17 +1,26 @@
 ﻿<div ng-hide='isBusy == true'>
 
-    <legend>Engine - {{name}}</legend>
+    <legend>Engine - {{engine.name}}</legend>
 
     <div>
         <dl class="dl-horizontal">
             <dt>NoDb</dt>
-            <dd>{{engine.NoDb}}</dd>
+            <dd>{{engine.configuration.noDb}}</dd>
 
-            <dt>Database</dt>
-            <dd><a href="#/databases/{{engine.Database.Name}}">{{engine.Database.Name}}</a><span ng-show="databaseProcess.Running" class="Running"> (Running)</span></dd>
+            <dt>Logsteps</dt>
+            <dd>{{engine.configuration.logSteps}}</dd>
 
-            <dt>Codehost PID</dt>
-            <dd>{{hostProcess.PID}}</dd>
+<!--            <dt>Database</dt>
+            <dd><a href="#/databases/{{engine.Database.Name}}">{{engine.Database.Name}}</a><span ng-show="databaseProcess.Running" class="Running"> (Running)</span></dd>-->
+
+            <dt>Database Uri</dt>
+            <dd>{{engine.databaseUri}}</dd>
+
+            <dt>Host Uri</dt>
+            <dd>{{engine.hostUri}}</dd>
+
+            <dt>Host PID</dt>
+            <dd>{{engine.hostPID}}</dd>
         </dl>
 
         <h5>Running Executables</h5>
