@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq.Expressions;
@@ -15,12 +16,57 @@ namespace Starcounter.XSON {
         private static string warning = "The existing databinding for '{0}' was created for another type of dataobject. Binding needs to be recreated.";
         private static string propNotFound = "Property '{2}' was not found in type '{3}' (or baseclass). Json property: '{0}.{1}'.";
 
-        internal static DataValueBinding<TVal> VerifyOrCreateBinding<TVal>(TValue template, DataValueBinding<TVal> binding, Type dataType, string bindingName) {
-            PropertyInfo pInfo;
-            
+        internal static DataValueBinding<IEnumerable> VerifyOrCreateBinding(TObjArr template, Type dataType, string bindingName) {
+            var binding = template.dataBinding;
+            if (VerifyBinding(binding, dataType, template))
+                return binding;
+
+            var pInfo = GetPropertyForBinding(dataType, bindingName, template);
+            binding = new DataValueBinding<IEnumerable>(template, pInfo);
+            template.dataBinding = binding;
+            return binding;
+        }
+
+        internal static DataValueBinding<IBindable> VerifyOrCreateBinding(TObj template, Type dataType, string bindingName) {
+            var binding = template.dataBinding;
+            if (VerifyBinding(binding, dataType, template))
+                return binding;
+
+            var pInfo = GetPropertyForBinding(dataType, bindingName, template);
+            binding = new DataValueBinding<IBindable>(template, pInfo);
+            template.dataBinding = binding;
+            return binding;
+        }
+
+        internal static DataValueBinding<TVal> VerifyOrCreateBinding<TVal>(TValue<TVal> template, Type dataType, string bindingName) {
+            var binding = template.dataBinding;
+            if (VerifyBinding(binding, dataType, template))
+                return binding;
+
+            var pInfo = GetPropertyForBinding(dataType, bindingName, template);
+            binding = new DataValueBinding<TVal>(template, pInfo);
+            template.dataBinding = binding;
+            return binding;
+        }
+
+        private static PropertyInfo GetPropertyForBinding(Type dataType, string bindingName, Template template) {
+            var pInfo = dataType.GetProperty(bindingName, BindingFlags.Instance | BindingFlags.Public);
+            if (pInfo == null) {
+                throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
+                                            string.Format(propNotFound,
+                                                          GetParentClassName(template),
+                                                          template.TemplateName,
+                                                          bindingName,
+                                                          dataType.FullName
+                                           ));
+            }
+            return pInfo;
+        }
+
+        private static bool VerifyBinding(DataValueBinding binding, Type dataType, Template template) {
             if (binding != null) {
                 if (dataType.Equals(binding.DataType) || dataType.IsSubclassOf(binding.DataType)) {
-                    return binding;
+                    return true;
                 }
 
                 if (ThrowExceptionOnBindindRecreation)
@@ -28,19 +74,7 @@ namespace Starcounter.XSON {
 
                 logSource.LogWarning(string.Format(warning, GetParentClassName(template) + "." + template.TemplateName));
             }
-
-            pInfo = dataType.GetProperty(bindingName, BindingFlags.Instance | BindingFlags.Public);
-            if (pInfo == null) {
-                throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
-                                            string.Format(propNotFound, 
-                                                          GetParentClassName(template),
-                                                          template.TemplateName,
-                                                          bindingName, 
-                                                          dataType.FullName
-                                           ));
-            }
-
-            return new DataValueBinding<TVal>(pInfo, template);
+            return false;
         }
 
         internal static string GetParentClassName(Template template) {
@@ -57,23 +91,35 @@ namespace Starcounter.XSON {
         }
     }
 
-    internal class DataValueBinding<TVal> {
+    internal abstract class DataValueBinding {
+        protected Type dataType;
+        private Template template;
+        private PropertyInfo property;
+
+        internal DataValueBinding(Template template, PropertyInfo property) {
+            this.template = template;
+            this.property = property;
+        }
+
+        internal Type DataType { get { return dataType; } }
+        internal Template Template { get { return template; } }
+        internal PropertyInfo Property { get { return property; } }
+    }
+
+    internal class DataValueBinding<TVal> : DataValueBinding {
         private static MethodInfo dateTimeToStringInfo = typeof(DateTime).GetMethod("ToString", new Type[] { typeof(string) });
         private static MethodInfo dateTimeParseInfo = typeof(DateTime).GetMethod("Parse", new Type[] { typeof(string) });
         private static string propNotCompatible = "Incompatible types for binding. Json property '{0}.{1}' ({2}), data property '{3}.{4}' ({5}).";
 
         private Func<IBindable, TVal> getBinding;
         private Action<IBindable, TVal> setBinding;
-        private Type dataType;
-        private Template template;
-        private PropertyInfo property;
+        
 
-        internal DataValueBinding(PropertyInfo bindToProperty, Template template) {
+        internal DataValueBinding(Template template, PropertyInfo bindToProperty) 
+            : base(template, bindToProperty) {
             MethodInfo methodInfo;
             this.dataType = bindToProperty.DeclaringType;
-            this.template = template;
-            this.property = bindToProperty;
-
+            
             methodInfo = bindToProperty.GetGetMethod();
             if (methodInfo != null) {
                 // We need to check if this is an abstract or virtual method.
@@ -147,12 +193,12 @@ namespace Starcounter.XSON {
                     throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, 
                                                 ex,
                                                 string.Format(propNotCompatible, 
-                                                              DataBindingFactory.GetParentClassName(template),
-                                                              template.TemplateName,
-                                                              template.JsonType,
+                                                              DataBindingFactory.GetParentClassName(Template),
+                                                              Template.TemplateName,
+                                                              Template.JsonType,
                                                               dataType.FullName,
-                                                              property.Name,
-                                                              property.PropertyType.FullName));
+                                                              Property.Name,
+                                                              Property.PropertyType.FullName));
                 }
             }
             return newExpr;
@@ -178,7 +224,5 @@ namespace Starcounter.XSON {
                 setBinding(data, value);
             }
         }
-
-        internal Type DataType { get { return dataType; } }
     }
 }
