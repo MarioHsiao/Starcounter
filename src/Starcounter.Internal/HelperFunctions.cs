@@ -18,14 +18,7 @@ namespace Starcounter.Internal
         /// Loads specified library.
         /// </summary>
         /// <param name="dllName">Name of the DLL to load.</param>
-        static void LoadDLL(String dllName) {
-
-            // Trying StarcounterBin.
-            String starcounterBin = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
-
-            // Checking that variable exists.
-            if (String.IsNullOrEmpty(starcounterBin))
-                throw new Exception("Starcounter is not installed properly. StarcounterBin environment variable is missing.");
+        static void LoadDLL(String dllName, String starcounterBin) {
 
             // Checking if its 32-bit process.
             if (4 == IntPtr.Size)
@@ -82,8 +75,15 @@ namespace Starcounter.Internal
                 if (File.Exists(tempDllPath))
                     goto DLLS_LOADED;
 
+                // Trying StarcounterBin.
+                String starcounterBin = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+
+                // Checking that variable exists.
+                if (String.IsNullOrEmpty(starcounterBin))
+                    throw new Exception("Starcounter is not installed properly. StarcounterBin environment variable is missing.");
+
                 foreach (String dllName in AllPreloadLibraries) {
-                    LoadDLL(dllName);
+                    LoadDLL(dllName, starcounterBin);
                 }
 
 DLLS_LOADED:
