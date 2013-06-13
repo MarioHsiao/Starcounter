@@ -9,5 +9,7 @@ namespace ErrorHelpPages {
         public const int GitExecutableNotFound = 3;
         public const int GitUnexpectedExit = 4;
         public const int LocalRepoDirNotFound = 5;
+        public const int TemplateFileNotFound = 6;
+        public const int TemplateBadFormat = 7;
     }
 }

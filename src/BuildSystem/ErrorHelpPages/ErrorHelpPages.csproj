@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="ExitCodes.cs" />
     <Compile Include="Git.cs" />
+    <Compile Include="HelpPageTemplate.cs" />
     <Compile Include="ProcessExitException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
