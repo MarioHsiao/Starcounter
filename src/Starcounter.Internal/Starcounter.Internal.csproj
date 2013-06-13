@@ -82,6 +82,7 @@
     <Compile Include="EnvironmentExtensions.cs" />
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
+    <Compile Include="HelperFunctions.cs" />
     <Compile Include="HttpSessions.cs" />
     <Compile Include="HttpStructs.cs" />
     <Compile Include="Http\Request.cs" />

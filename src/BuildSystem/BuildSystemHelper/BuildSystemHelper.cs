@@ -74,6 +74,11 @@ namespace BuildSystemHelper
         public const String CommonDefaultBuildOutputPath = @"Level1\src\..\bin";
 
         /// <summary>
+        /// Common Level0 include directory.
+        /// </summary>
+        public static readonly String CommonLevel0IncludeDir = Path.Combine("Level0", "src", "include");
+
+        /// <summary>
         /// Common path to default build tools output.
         /// </summary>
         public const String CommonDefaultBuildToolsOutputPath = @"Level1\src\..\bsbin\Debug";

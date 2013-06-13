@@ -148,9 +148,6 @@ namespace StarcounterInternal.Bootstrap
                 );
             }
 
-            // Initializing REST.
-            RequestHandler.InitREST();
-
             // Configuring host environment.
             ConfigureHost(configuration, hlogs);
             OnHostConfigured();
