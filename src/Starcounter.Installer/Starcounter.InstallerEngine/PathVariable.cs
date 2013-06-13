@@ -12,8 +12,10 @@ namespace Starcounter.InstallerEngine {
 
         public static bool ContainsPath(string pathToCheck, EnvironmentVariableTarget target = EnvironmentVariableTarget.Process) {
             var current = Environment.GetEnvironmentVariable("Path", target);
-            pathToCheck = pathToCheck.TrimEnd('\\');
+            if (current == null)
+                return false;
 
+            pathToCheck = pathToCheck.TrimEnd('\\');
             foreach (var path in current.Split(';')) {
                 var p = path.TrimEnd('\\');
                 if (p.Equals(pathToCheck, StringComparison.InvariantCultureIgnoreCase)) {
@@ -29,13 +31,15 @@ namespace Starcounter.InstallerEngine {
             pathToAdd = pathToAdd.TrimEnd('\\');
             var builder = new StringBuilder();
 
-            foreach (var path in current.Split(';')) {
-                var p = path.TrimEnd('\\');
-                if (p.Equals(pathToAdd, StringComparison.InvariantCultureIgnoreCase)) {
-                    return false;
+            if (current != null) {
+                foreach (var path in current.Split(';')) {
+                    var p = path.TrimEnd('\\');
+                    if (p.Equals(pathToAdd, StringComparison.InvariantCultureIgnoreCase)) {
+                        return false;
+                    }
+                    builder.Append(path);
+                    builder.Append(";");
                 }
-                builder.Append(path);
-                builder.Append(";");
             }
 
             builder.Append(pathToAdd);
@@ -45,6 +49,10 @@ namespace Starcounter.InstallerEngine {
 
         public static bool RemovePath(string pathToRemove, EnvironmentVariableTarget target = EnvironmentVariableTarget.Process) {
             var current = Environment.GetEnvironmentVariable("Path", target);
+
+            if (current == null)
+                return false;
+
             pathToRemove = pathToRemove.TrimEnd('\\');
             var builder = new StringBuilder();
             var found = false;
