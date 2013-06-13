@@ -32,8 +32,6 @@ namespace Starcounter.Internal.Test
             HttpAppServer appServer = new HttpAppServer(fileServer);
 
             UserHandlerCodegen.Setup(null, null, appServer.HandleRequest);
-
-            RequestHandler.InitREST();
         }
     }
 

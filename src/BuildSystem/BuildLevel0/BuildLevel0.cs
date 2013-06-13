@@ -12,14 +12,17 @@ namespace BuildLevel0
         static readonly String Level0_BuildBranch = Environment.GetEnvironmentVariable("GIT_LEVEL0_BRANCH");
 
         // Important directories.
+
+        static readonly String SrcRootDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
+        
         static readonly String Level0_RootDir =
-            Path.Combine(Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar), "Level0");
+            Path.Combine(SrcRootDir, "Level0");
 
         static readonly String Level0_MsbuildDir =
             Path.Combine(Level0_RootDir, "msbuild");
 
         static readonly String Level0_IncludeDir =
-            Path.Combine(Level0_RootDir, "src", "include");
+            Path.Combine(SrcRootDir, BuildSystem.CommonLevel0IncludeDir);
 
         // Level0 latest stable files directory.
         static readonly String FtpLatestStableDir =

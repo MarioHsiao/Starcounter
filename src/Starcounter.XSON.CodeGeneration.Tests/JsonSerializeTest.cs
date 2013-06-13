@@ -8,6 +8,7 @@ using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using Starcounter.XSON.CodeGeneration;
 using Starcounter.XSON.Serializers;
+using Starcounter.Internal;
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
     /// <summary>
@@ -19,7 +20,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            CodeGeneration.Initializer.InitializeXSON();
+
             newtonSerializer = new NewtonsoftSerializer();
             defaultSerializer = new DefaultSerializer();
         }

@@ -1,9 +1,11 @@
 Starcounter, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
 Starcounter.XSON, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
+Starcounter.XSON.JsTemplateParser, Version=0.2.1.0, PublicKeyToken=d2df1e81d0ca3abf
 Starcounter.Internal, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
 Starcounter.Apps.JsonPatch, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
 Starcounter.HyperMedia, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
 Starcounter.REST, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
+Starcounter.Bootstrap, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
 Starcounter.BitsAndBytes.Unsafe, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
 Starcounter.CLI, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
 Starcounter.Server.Rest, Version=2.0.0.0, PublicKeyToken=d2df1e81d0ca3abf
