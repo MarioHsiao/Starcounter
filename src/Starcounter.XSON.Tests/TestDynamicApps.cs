@@ -24,7 +24,7 @@ namespace Starcounter.XSON.Tests {
         /// </summary>
         [TestFixtureSetUp]
         public static void Setup() {
-
+            StarcounterBase._DB = new FakeDbImpl();
             DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
         }
 
@@ -212,8 +212,6 @@ namespace Starcounter.XSON.Tests {
         /// </summary>
         [Test]
         public static void TestDataBinding() {
-            StarcounterBase._DB = new FakeDbImpl();
-
             dynamic msg = new Json<PersonObject> { Template = CreateSimplePersonTemplateWithDataBinding() };
 
             var myDataObj = new PersonObject() { FirstName = "Kalle", Surname = "Kula", Age = 21, Misc = "Lorem Ipsum" };
@@ -250,8 +248,6 @@ namespace Starcounter.XSON.Tests {
         /// </summary>
         [Test]
         public static void TestDataBindingWithDifferentClasses() {
-            StarcounterBase._DB = new FakeDbImpl();
-
             // Bound to SimpleBase datatype.
             TObj tSimple = Obj.Factory.CreateJsonTemplateFromFile("simple.json");
             dynamic simpleJson = tSimple.CreateInstance();
