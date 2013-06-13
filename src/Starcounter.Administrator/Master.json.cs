@@ -984,7 +984,7 @@ namespace Starcounter.Administrator {
 
                             errorJson.message = string.Format("Could not connect to the {0} database", name);
                             errorJson.code = (int)HttpStatusCode.NotFound;
-                            errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
+                            errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_" + response.StatusCode; // TODO
 
                             return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
                         }
@@ -997,13 +997,13 @@ namespace Starcounter.Administrator {
                             // Error
                             dynamic errorJson = new DynamicJson();
                             if (string.IsNullOrEmpty(bodyData)) {
-                                errorJson.message = string.Format("Could not retrive the console output from the {0} database, Caused by a missing database or if the database is not running.", name);
+                                errorJson.message = string.Format("Could not retrive the console output from the {0} database, Caused by a missing/not started database or there is no Executable running in the database", name);
                             }
                             else {
                                 errorJson.message = bodyData;
                             }
                             errorJson.code = (int)response.StatusCode;
-                            errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
+                            errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_" + response.StatusCode; // TODO
 
                             return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)response.StatusCode, null, errorJson.ToString()) };
 

@@ -181,7 +181,7 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', 'Datab
 
     $scope.stopDatabase = function (database) {
 
-        var job = $scope.addJob( { message: "Stopping " + database.name });
+        var job = $scope.addJob({ message: "Stopping " + database.name });
 
         $scope.refreshEnginesList(function () {
             // Success
@@ -329,6 +329,7 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', 'Datab
 databaseModule.controller('DatabaseCtrl', ['$scope', '$routeParams', 'Database', function ($scope, $routeParams, Database) {
 
     $scope.alerts.length = 0;
+    $scope.isExecutableRunning = false;
 
     // Retrive the console output for a specific database
     $scope.getConsole = function (name) {
@@ -369,27 +370,85 @@ databaseModule.controller('DatabaseCtrl', ['$scope', '$routeParams', 'Database',
     // User clicked the "Refresh" button
     $scope.btnClick_refreshConsole = function () {
         $scope.alerts.length = 0;
+
         $scope.getConsole($scope.database.name);
+
+//        $scope.tryGetConsole($scope.database.name);
+
     }
 
-    // Init
-    $scope.getDatabaseWithConfiguration($routeParams.name, function (database) {
-        // Success
 
-        $scope.database = database;
-        $scope.refreshDatabaseProcessStatus(database, function () {
+    $scope.checkIfRunningExecutables = function (database, successCallback) {
+
+        $scope.isExecutableRunning = false;
+
+        $scope.refreshEnginesList(function () {
             // Success
-            if (database.running) {
-                $scope.getConsole(database.name);
+
+            var engine = $scope.getEngine(database.name);
+            if (engine != null) {
+
+                $scope.getEngineExecutableList(engine, function (executable) {
+                    // Success
+
+                    $scope.isExecutableRunning = executable.length > 0;
+
+                    if (successCallback != null) {
+                        successCallback();
+                    }
+
+                }, function () {
+                    // Error
+                });
+
             }
+            else {
+                // Error can get engine, TODO: Refresh engine list and retry
+            }
+
+
+
+        }, function () {
+            // Error
+            // could not retrive the engineslist
+        });
+
+    }
+
+    $scope.tryGetConsole = function (name) {
+
+        $scope.isExecutableRunning = false;
+
+        // Init
+        $scope.getDatabaseWithConfiguration(name, function (database) {
+            // Success
+
+            $scope.database = database;
+            $scope.refreshDatabaseProcessStatus(database, function () {
+                // Success
+                if (database.running) {
+
+                    // TODO: Check if there is any executables running in the database.
+                    $scope.checkIfRunningExecutables(database, function () {
+                        // Success
+                        $scope.getConsole(database.name);
+                    });
+
+                }
+            }, function () {
+                // Error
+            });
+
+
         }, function () {
             // Error
         });
 
 
-    }, function () {
-        // Error
-    });
+    }
+
+
+    $scope.tryGetConsole($routeParams.name);
 
 
     // Console fixe the height.
@@ -1763,7 +1822,7 @@ function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
     }
 
     // Refresh ExecutableList
-    $scope.refreshEngineAndExecutableList = function () {
+    $scope.refreshEngineAndExecutableList = function (successCallback) {
 
         $scope.executables.length = 0;
 
