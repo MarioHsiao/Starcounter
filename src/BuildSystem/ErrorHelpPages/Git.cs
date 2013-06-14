@@ -64,6 +64,17 @@ namespace ErrorHelpPages {
             Invoke("status " + args);
         }
 
+        public void Commit(params string[] arguments) {
+            Environment.CurrentDirectory = LocalRepo;
+
+            string args = string.Empty;
+            if (arguments != null) {
+                args = string.Join(" ", arguments);
+            }
+
+            Invoke(string.Concat("commit ", args));
+        }
+
         public void Pull() {
             Environment.CurrentDirectory = LocalRepo;
             Invoke("pull");
