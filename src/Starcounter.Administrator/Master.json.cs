@@ -991,7 +991,7 @@ namespace Starcounter.Administrator {
 
                         if (response.StatusCode >= 200 && response.StatusCode < 300) {
                             // Success
-                            return response.GetBodyStringUtf8_Slow();
+                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, response.GetBodyStringUtf8_Slow()) };
                         }
                         else {
                             // Error
