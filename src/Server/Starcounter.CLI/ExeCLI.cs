@@ -197,6 +197,12 @@ namespace Starcounter.CLI {
             }
         }
 
+        static void ShowVerbose(string output) {
+            if (SharedCLI.Verbose) {
+                ConsoleUtil.ToConsoleWithColor(output, ConsoleColor.Yellow);
+            }
+        }
+
         static void ShowHeadline(string headline) {
             ConsoleUtil.ToConsoleWithColor(headline, ConsoleColor.DarkGray);
         }
