@@ -38,6 +38,7 @@ namespace Starcounter.CLI {
             string serverName;
             string serverHost;
             string database;
+            ShowVerbose(string.Format("Executing {0}", exePath));
 
             if (admin == null) {
                 admin = new AdminAPI();
