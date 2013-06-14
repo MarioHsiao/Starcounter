@@ -162,8 +162,6 @@ namespace Starcounter.Tracking {
                 // Send json content to server
                 this.SendData("/api/usage/installer/start", content, completeCallback);
 
-                // sequenceNo
-
             }
             catch (Exception) {
                 // TODO: Logging
@@ -466,7 +464,14 @@ namespace Starcounter.Tracking {
 
                 Node node = new Node(this.ServerIP, this.ServerPort);
 
-                Advanced.Response response = node.POST(uri, content, "Accept: application/starcounter.tracker.usage-v1+json\r\n", null);
+                // ==================================================================================================
+                // Protocol version history
+                // --------------------------------------------------------------------------------------------------
+                // v1 - 2013-06-01 Firstversion
+                // v2 - 2013-06-14 Added "version" to the header
+                //                 The response "installation.sequenceNo" was changed to "installation.installationNo" 
+                // ==================================================================================================
+                Advanced.Response response = node.POST(uri, content, "Accept: application/starcounter.tracker.usage-v2+json\r\n", null);
 
                 if (response.StatusCode >= 200 && response.StatusCode < 300) {
                     // Success
@@ -478,8 +483,8 @@ namespace Starcounter.Tracking {
                     if (!string.IsNullOrEmpty(responseContent)) {
                         dynamic incomingJson = DynamicJson.Parse(responseContent);
                         if (incomingJson.IsDefined("installation")) {
-                            if (incomingJson.installation.IsDefined("sequenceNo")) {
-                                Environment.SaveInstallationNo(int.Parse(incomingJson.installation.sequenceNo.ToString()));
+                            if (incomingJson.installation.IsDefined("installationNo")) {
+                                Environment.SaveInstallationNo(int.Parse(incomingJson.installation.installationNo.ToString()));
                             }
 
                         }
@@ -512,7 +517,6 @@ namespace Starcounter.Tracking {
                 }
             }
 
-
         }
 
 
@@ -522,6 +526,7 @@ namespace Starcounter.Tracking {
             json.downloadId = CurrentVersion.IDFullBase32;
             json.mac = Environment.GetTruncatedMacAddress();
             json.installationNo = Environment.GetInstallationNo();
+            json.version = CurrentVersion.Version;
 
         }
 
