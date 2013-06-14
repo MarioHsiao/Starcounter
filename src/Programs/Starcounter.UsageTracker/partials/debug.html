@@ -1,0 +1,271 @@
+﻿
+
+<div>
+    <legend>Debug<button class="btn pull-right" ng-click="debugCtrl.refresh()">Refresh</button></legend>
+</div>
+
+
+<legend>Installations</legend>
+
+<table class="table table-condensed table-striped">
+
+    <thead>
+        <tr>
+            <th>Inst.NO</th>
+            <th>Download ID</th>
+
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-repeat="item in debugCtrl.installation">
+            <td>{{item.installationNo}}</td>
+            <td>{{item.downloadId}}</td>
+            <td><button class="btn btn-small btn-danger pull-right" ng-click="debugCtrl.installationsDelete(item)">Delete</button></td>
+        </tr>
+
+    </tbody>
+
+
+</table>
+
+
+<legend>Installer Starts</legend>
+
+<table class="table table-condensed table-striped">
+
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Inst.NO</th>
+            <th>IP</th>
+            <th>Mac</th>
+            <th>Version</th>
+
+            <th>Inst.Ram</th>
+            <th>Avail.Ram</th>
+            <th>CPU</th>
+            <th>OS</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-repeat="item in debugCtrl.installerStart">
+            <td>{{item.date}}</td>
+            <td>{{item.installationNo}}</td>
+            <td>{{item.ip}}</td>
+            <td>{{item.mac}}</td>
+            <td>{{item.version}}</td>
+
+            <td>{{item.installedRam}}</td>
+            <td>{{item.availableRam}}</td>
+            <td>{{item.cpu}}</td>
+            <td>{{item.os}}</td>
+            <td>{{item.databases}}</td>
+
+            <td><button class="btn btn-small btn-danger  pull-right" ng-click="debugCtrl.installerStartDelete(item)">Delete</button></td>
+        </tr>
+
+    </tbody>
+
+
+</table>
+
+<legend>Installer Executing</legend>
+
+<table class="table table-condensed table-striped">
+
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Inst.NO</th>
+            <th>IP</th>
+            <th>Mac</th>
+            <th>Version</th>
+
+            <th>Mode</th>
+            <th>PersonalServer</th>
+            <th>VS2012Extention</th>
+
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-repeat="item in debugCtrl.installerExecuting">
+            <td>{{item.date}}</td>
+            <td>{{item.installationNo}}</td>
+            <td>{{item.ip}}</td>
+            <td>{{item.mac}}</td>
+            <td>{{item.version}}</td>
+
+            <td>{{item.mode}}</td>
+            <td>{{item.personalServer}}</td>
+            <td>{{item.vs2012Extention}}</td>
+
+            <td><button class="btn btn-small btn-danger pull-right" ng-click="debugCtrl.installerExecutingDelete(item)">Delete</button></td>
+        </tr>
+
+    </tbody>
+
+
+</table>
+
+<legend>Installer Finish</legend>
+
+<table class="table table-condensed table-striped">
+
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Inst.NO</th>
+            <th>IP</th>
+            <th>Mac</th>
+            <th>Version</th>
+
+            <th>Mode</th>
+            <th>Success</th>
+
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-repeat="item in debugCtrl.installerFinish">
+            <td>{{item.date}}</td>
+            <td>{{item.installationNo}}</td>
+            <td>{{item.ip}}</td>
+            <td>{{item.mac}}</td>
+            <td>{{item.version}}</td>
+
+            <td>{{item.mode}}</td>
+            <td>{{item.success}}</td>
+            <td><button class="btn btn-small btn-danger pull-right" ng-click="debugCtrl.installerFinishDelete(item)">Delete</button></td>
+        </tr>
+
+    </tbody>
+
+
+</table>
+
+<legend>Installer End</legend>
+
+<table class="table table-condensed table-striped">
+
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Inst.NO</th>
+            <th>IP</th>
+            <th>Mac</th>
+            <th>Version</th>
+
+            <th>LinksClicked</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-repeat="item in debugCtrl.installerEnd">
+            <td>{{item.date}}</td>
+            <td>{{item.installationNo}}</td>
+            <td>{{item.ip}}</td>
+            <td>{{item.mac}}</td>
+            <td>{{item.version}}</td>
+
+            <td>{{item.linksClicked}}</td>
+            <td><button class="btn btn-small btn-danger pull-right" ng-click="debugCtrl.installerEndDelete(item)">Delete</button></td>
+        </tr>
+
+    </tbody>
+
+
+</table>
+
+<legend>Installer Abort</legend>
+
+<table class="table table-condensed table-striped">
+
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Inst.NO</th>
+            <th>IP</th>
+            <th>Mac</th>
+            <th>Version</th>
+
+            <th>Mode</th>
+            <th>Message</th>
+
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-repeat="item in debugCtrl.installerAbort">
+            <td>{{item.date}}</td>
+            <td>{{item.installationNo}}</td>
+            <td>{{item.ip}}</td>
+            <td>{{item.mac}}</td>
+            <td>{{item.version}}</td>
+
+            <td>{{item.mode}}</td>
+            <td>{{item.message}}</td>
+            <td><button class="btn btn-small btn-danger pull-right" ng-click="debugCtrl.installerAbortDelete(item)">Delete</button></td>
+        </tr>
+
+    </tbody>
+
+
+</table>
+
+<legend>Content - Usage</legend>
+
+<table class="table table-condensed table-striped">
+
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Inst.NO</th>
+            <th>IP</th>
+            <th>Mac</th>
+            <th>Version</th>
+
+            <th>Inst.Ram</th>
+            <th>Avail.Ram</th>
+            <th>CPU</th>
+            <th>OS</th>
+            <th>Transactions</th>
+            <th>Run.Db</th>
+            <th>Run.Exe</th>
+            <th>Db</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-repeat="item in debugCtrl.usage">
+            <td>{{item.date}}</td>
+            <td>{{item.installationNo}}</td>
+            <td>{{item.ip}}</td>
+            <td>{{item.mac}}</td>
+            <td>{{item.version}}</td>
+
+            <td>{{item.installedRam}}</td>
+            <td>{{item.availableRam}}</td>
+            <td>{{item.cpu}}</td>
+            <td>{{item.os}}</td>
+            <td>{{item.transactions}}</td>
+            <td>{{item.runningDatabases}}</td>
+            <td>{{item.runningExecutables}}</td>
+            <td>{{item.databases}}</td>
+            <td><button class="btn btn-small btn-danger pull-right" ng-click="debugCtrl.usageDelete(item)">Delete</button></td>
+        </tr>
+
+    </tbody>
+
+
+</table>
+
