@@ -35,7 +35,8 @@ namespace GenerateInstaller
             ".db.output",
             ".srv",
             "s",
-            "NetworkIoTest"
+            "NetworkIoTest",
+            "Programs"
         };
 
         /// <summary>
