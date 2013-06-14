@@ -22,12 +22,10 @@ namespace Starcounter.XSON.Compiler.Mono {
         public TypedJsonSerializer GenerateJsonSerializer(string code, string typeName) {
             CompiledMethod cm;
 
-            var settings = new CompilerSettings() {
-                Unsafe = true,
-                GenerateDebugInfo = false,
-                Optimize = true
-            };
-            settings.AssemblyReferences.Clear();
+            var settings = new CompilerSettings();
+            settings.Unsafe = true;
+            settings.GenerateDebugInfo = false;
+            settings.Optimize = true;
             settings.AssemblyReferences.Add("Starcounter.Internal.dll");
             settings.AssemblyReferences.Add("Starcounter.XSON.dll");
 

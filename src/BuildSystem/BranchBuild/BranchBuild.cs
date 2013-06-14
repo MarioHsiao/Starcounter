@@ -113,6 +113,10 @@ namespace BranchBuild
                 if (!Directory.Exists(srcLevel1Dir))
                     throw new Exception("Path to current workspace directory is wrong.");
 
+                String srcLevel0IncludeDir = Path.Combine(srcRootDir, BuildSystem.CommonLevel0IncludeDir);
+                if (!Directory.Exists(srcLevel0IncludeDir))
+                    throw new Exception("Path to Level0 include directory is wrong.");
+
                 // Target build directory.
                 String buildNumber = Environment.GetEnvironmentVariable(BuildSystem.BuildNumberEnvVar);
                 if (buildNumber == null)
@@ -120,6 +124,7 @@ namespace BranchBuild
 
                 String destRootDir = Path.Combine(BuildSystem.LocalBuildsFolder, Path.Combine(buildsFolderName, buildNumber));
                 String destLevel1Dir = Path.Combine(destRootDir, "Level1");
+                String destLevel0IncludeDir = Path.Combine(destRootDir, BuildSystem.CommonLevel0IncludeDir);
 
                 // Stopping previous versions of the same build type.
                 StopOtherBuildsOfSameType(buildsFolderName, buildNumber);
@@ -193,6 +198,12 @@ namespace BranchBuild
                 BuildSystem.CopyFilesRecursively(
                     new DirectoryInfo(srcLevel1Dir),
                     new DirectoryInfo(destLevel1Dir));
+
+                // Copying Level0 include directory.
+                Directory.CreateDirectory(destLevel0IncludeDir);
+                BuildSystem.CopyFilesRecursively(
+                    new DirectoryInfo(srcLevel0IncludeDir),
+                    new DirectoryInfo(destLevel0IncludeDir));
 
                 // Copying the consolidated directory.
                 String binOutputPath = Path.Combine(srcRootDir, BuildSystem.CommonDefaultBuildOutputPath);

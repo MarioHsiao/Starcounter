@@ -11,13 +11,14 @@ namespace Starcounter {
     /// (GET/POST/PUT/DELETE/PATCH etc.)
     /// </summary>
     /// <remarks>
-    /// Allows endpoints to be registred that corresponds to methods and URIs (paths
-    /// with optinal parameters). Even though REST handlers are typically associated with http, they 
-    /// can also be implmented in protocols such as HTTP1.1, SPDY, HTTP2.0 (DRAFT),
+    /// Allows endpoints to be registered that corresponds to methods and URIs (paths
+    /// with optional parameters). Even though REST handlers are typically associated with http, they 
+    /// can also be implemented in protocols such as HTTP1.1, SPDY, HTTP2.0 (DRAFT),
     /// WebSockets and other means of communication. As long as their endpoints are defined as methods
     /// (verbs such as GET) and URI templates (i.e. /news/sports/{?}).
     /// </remarks>
     public partial class Handle {
+
         /// <summary>
         /// Inject REST handler function provider here
         /// </summary>

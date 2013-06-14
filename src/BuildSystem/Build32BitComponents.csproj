@@ -31,9 +31,21 @@
           $(OutputPath)\Mono.CSharp.dll;
           $(OutputPath)\Mono.Cecil.dll" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <PublicAssemblies Include="
+          $(OutputPath)\Starcounter.dll;
+          $(OutputPath)\Starcounter.Bootstrap.dll;
+          $(OutputPath)\Starcounter.Apps.JsonPatch.dll;
+          $(OutputPath)\Starcounter.Internal.dll;
+          $(OutputPath)\Starcounter.HyperMedia.dll;
+          $(OutputPath)\Starcounter.REST.dll;
+          $(OutputPath)\Starcounter.XSON.dll" />
+    </ItemGroup>
 
     <!-- Coyping selected files. -->
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(All32BitDllsToCopy)" DestinationFolder="$(OutputPath)\32BitComponents" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PublicAssemblies)" DestinationFolder="$(OutputPath)\Public Assemblies" />
     
     <!-- Building 32Bit components. -->
     <Exec Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe ..\Starcounter.Rest\Starcounter.Rest.csproj /property:Configuration=$(Configuration);Platform=AnyCPU;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
