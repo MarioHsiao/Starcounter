@@ -80,6 +80,11 @@ namespace Starcounter.CLI {
             /// executable has finished.
             /// </summary>
             public const string WaitForEntrypoint = "wait";
+            /// <summary>
+            /// Gets the option name of the parameter that instructs the
+            /// client to turn on verbose output.
+            /// </summary>
+            public const string Verbose = "verbose";
         }
 
         /// <summary>
@@ -123,7 +128,11 @@ namespace Starcounter.CLI {
             }
         }
 
-        
+        /// <summary>
+        /// Gets or sets a value indicating if the current client/host
+        /// should display verbose output.
+        /// </summary>
+        public static bool Verbose { get; set; }
 
         /// <summary>
         /// Defines and includes the well-known, shared CLI options in
@@ -170,6 +179,10 @@ namespace Starcounter.CLI {
                 Option.WaitForEntrypoint,
                 "Waits for the entrypoint to execute fully before returning."
                 );
+            definition.DefineFlag(
+                Option.Verbose,
+                "Specifies that verbose output is to be written."
+                );
 
             if (includeUnofficial) {
                 definition.DefineFlag(
@@ -194,8 +207,12 @@ namespace Starcounter.CLI {
         /// and set the environment exit code accordingly.
         /// </remarks>
         public static bool TryParse(string[] args, IApplicationSyntax syntax, out ApplicationArguments appArgs) {
+            Verbose = false;
             try {
                 appArgs = new Parser(args).Parse(syntax);
+                if (appArgs.ContainsFlag(Option.Verbose)) {
+                    Verbose = true;
+                }
             } catch (InvalidCommandLineException e) {
                 ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
                 Environment.ExitCode = (int)e.ErrorCode;
