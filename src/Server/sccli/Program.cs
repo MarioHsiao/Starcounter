@@ -242,10 +242,6 @@ namespace star {
 
             // Extended, advanced functionality
 
-            appSyntax.DefineProperty(
-                StarOption.Verbosity,
-                "Sets the verbosity of the program (quiet, minimal, verbose, diagnostic). Minimal is the default."
-                );
             appSyntax.DefineFlag(
                 StarOption.Syntax,
                 "Instructs star.exe to just parse the command-line and show the result of that."
