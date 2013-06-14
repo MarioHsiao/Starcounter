@@ -1003,7 +1003,7 @@ namespace Starcounter.Administrator {
                                 errorJson.message = bodyData;
                             }
                             errorJson.code = (int)response.StatusCode;
-                            errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_" + response.StatusCode; // TODO
+                            errorJson.helpLink = null;
 
                             return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)response.StatusCode, null, errorJson.ToString()) };
 
