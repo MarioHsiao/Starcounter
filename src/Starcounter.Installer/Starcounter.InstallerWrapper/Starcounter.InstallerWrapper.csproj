@@ -13,7 +13,6 @@
     </FileUpgradeFlags>
     <UpgradeBackupLocation />
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <ApplicationManifest>Starcounter.InstallerWrapper.manifest</ApplicationManifest>
     <ApplicationIcon>resources\sc.ico</ApplicationIcon>
     <AssemblyName Condition=" '$(SC_CREATE_STANDALONE_SETUP)' == '' ">Starcounter-Setup-Wrapper</AssemblyName>
     <AssemblyName Condition=" '$(SC_CREATE_STANDALONE_SETUP)' != '' ">Starcounter-$(BUILD_NUMBER)-Setup</AssemblyName>

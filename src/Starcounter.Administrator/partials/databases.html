@@ -3,7 +3,7 @@
         <tr>
             <th>Name</th>
             <th>Status</th>
-            <th>Action</th>
+            <th></th>
         </tr>
     </thead>
 
@@ -11,7 +11,7 @@
         <tr ng-repeat="database in databases">
             <td><a href="#/databases/{{database.name}}">{{database.name}}</a></td>
             <td><span ng-show="database.running" class="Running">Running</span></td>
-            <td><button ng-show="database.running" ng-disabled='isBusy == true' class="btn btn-small btn-danger" ng-click="btnStopDatabase(database)">Stop</button></td>
+            <td><button ng-show="database.running" ng-disabled='isBusy == true' class="btn btn-small btn-danger pull-right" ng-click="btnStopDatabase(database)">Stop</button></td>
         </tr>
 
     </tbody>
