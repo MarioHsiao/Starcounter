@@ -69,7 +69,8 @@ namespace ErrorHelpPages {
                 }
             }
 
-            // Commit, then push (if told to).
+            WriteStatus("Committing changes...");
+            git.Commit("-a -m \"Committing a set of test pages\"");
 
             Console.WriteLine("Press ENTER to exit.");
             Console.ReadLine();
