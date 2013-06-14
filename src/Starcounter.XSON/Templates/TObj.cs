@@ -17,10 +17,19 @@ namespace Starcounter.Templates {
     /// Defines the properties of an App instance.
     /// </summary>
     public abstract class TObj : TContainer {
+
+        /// <summary>
+        /// Static constructor to automatically initialize XSON.
+        /// </summary>
+        static TObj() {
+            HelperFunctions.LoadNonGACDependencies();
+            XSON.CodeGeneration.Initializer.InitializeXSON();
+        }
+
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
         private static bool shouldUseCodegeneratedSerializer = true;
 
-        private DataValueBinding<IBindable> dataBinding;
+        internal DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
         private TypedJsonSerializer codegenSerializer;
         private bool codeGenStarted = false;
@@ -289,8 +298,7 @@ namespace Starcounter.Templates {
         }
 
         internal DataValueBinding<IBindable> GetBinding(IBindable data) {
-            dataBinding = DataBindingFactory.VerifyOrCreateBinding<IBindable>(this, dataBinding, data.GetType(), Bind);
-            return dataBinding;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
         }
     }
 }

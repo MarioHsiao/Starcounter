@@ -3,7 +3,8 @@
     <thead>
         <tr>
             <th>Name</th>
-            <th>Database</th>
+            <th>Database Uri</th>
+            <th>Host Uri</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -12,7 +13,8 @@
         <tr ng-repeat="engine in engines">
 
             <td><a href="#/engines/{{engine.name}}">{{engine.name}}</a></td>
-            <td><a href="#/databases/{{engine.databaseName}}">{{engine.databaseName}}</a> <span class="Running"> (Running)</span></td>
+            <td>{{engine.databaseUri}}</td>
+            <td>{{engine.hostUri}}</td>
             <td><button class="btn btn-danger" ng-click="btnStopEngine(engine)">Stop</button></td>
         </tr>
 

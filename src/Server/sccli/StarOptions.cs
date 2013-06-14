@@ -16,7 +16,7 @@ namespace star {
         public const string NoDb = SharedCLI.Option.NoDb;
         public const string NoAutoCreateDb = SharedCLI.Option.NoAutoCreateDb;
         public const string WaitForEntrypoint = SharedCLI.Option.WaitForEntrypoint;
-        public const string Verbosity = "verbosity";
+        public const string Verbose = SharedCLI.Option.Verbose;
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";
         public const string AttatchCodeHostDebugger = "debug";

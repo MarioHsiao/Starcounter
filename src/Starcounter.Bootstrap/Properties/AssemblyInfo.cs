@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Starcounter AB")]
-[assembly: AssemblyProduct("Starcounter")]
+[assembly: AssemblyProduct("Starcounter.Bootstrap")]
 [assembly: AssemblyCopyright("Copyright © Starcounter AB 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

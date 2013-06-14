@@ -70,6 +70,15 @@ namespace Starcounter {
     /// stress.
     /// </remarks>
     public abstract partial class Obj : Container {
+
+        /// <summary>
+        /// Static constructor to automatically initialize XSON.
+        /// </summary>
+        static Obj() {
+            HelperFunctions.LoadNonGACDependencies();
+            XSON.CodeGeneration.Initializer.InitializeXSON();
+        }
+
         /// <summary>
         /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
         /// underlying bound object. This is common in database applications where Json messages

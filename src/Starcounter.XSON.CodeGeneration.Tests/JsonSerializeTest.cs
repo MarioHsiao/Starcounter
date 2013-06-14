@@ -8,6 +8,7 @@ using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using Starcounter.XSON.CodeGeneration;
 using Starcounter.XSON.Serializers;
+using Starcounter.Internal;
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
     /// <summary>
@@ -19,9 +20,40 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            CodeGeneration.Initializer.InitializeXSON();
+
             newtonSerializer = new NewtonsoftSerializer();
             defaultSerializer = new DefaultSerializer();
+        }
+
+        [Test]
+        public static void TestSerializeJsonString() {
+            
+            // needed size includes the quotations around the string.
+            SerializeString("First!", 8);
+            SerializeString("FirstWithSpecial\n", 20);
+            SerializeString("\n\b\t", 8);
+            SerializeString("\u001f", 8); 
+        }
+
+        private static void SerializeString(string value, int neededSize) {
+            byte[] dest;
+            int written;
+
+            unsafe {
+                // Assert that we dont write outside of the available space.
+                dest = new byte[neededSize - 2];
+                fixed (byte* pdest = dest) {
+                    written = JsonHelper.WriteString((IntPtr)pdest, dest.Length, value);
+                    Assert.AreEqual(-1, written);
+                }
+
+                // Assert that we write correct amount of bytes.
+                dest = new byte[neededSize*2];
+                fixed (byte* pdest = dest) {
+                    written = JsonHelper.WriteString((IntPtr)pdest, dest.Length, value);
+                    Assert.AreEqual(neededSize, written);
+                }
+            }
         }
 
         [Test]
