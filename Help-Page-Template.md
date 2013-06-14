@@ -1,8 +1,8 @@
 ## About
 This page is a template used by the Starcounter build system to generate help pages for well-known errors. **Do not edit it if you don't know what you do and the consequences of the edit!**
 
-## Recoqnized template parameters
-The build system will generate help pages using the following template parameters:
+## Recoqnized template variables
+The build system will generate help pages using the following template variables:
 * ```%%ErrorCode%%``` will be replaced with the numerical error code, i.e. "123".
 * ```%%ErrorCodeHex%%``` will be replaced with the numerical error code in hex, i.e. "7B".
 * ```%%ErrorCodeDecorated%%``` will be replaced with the decorated error code, i.e. "SCERR123".
