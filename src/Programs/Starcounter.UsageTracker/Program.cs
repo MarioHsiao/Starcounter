@@ -4,9 +4,9 @@ using Starcounter.Advanced;
 using System.Net.NetworkInformation;
 using Starcounter.Internal;
 using System.Net;
-using Starcounter.Programs.UsageTrackerApp.API.Backend;
+using Starcounter.Applications.UsageTrackerApp.API.Backend;
 
-namespace Starcounter.Programs.UsageTrackerApp {
+namespace Starcounter.Applications.UsageTrackerApp {
     class Program {
 
         static void Main(string[] args) {

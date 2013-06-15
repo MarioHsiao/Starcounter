@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Starcounter.Programs.UsageTrackerApp.API.Backend {
+namespace Starcounter.Applications.UsageTrackerApp.API.Backend {
     internal static partial class Administrator {
 
         // Installation

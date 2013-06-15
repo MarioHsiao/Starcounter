@@ -2,9 +2,9 @@
 using Codeplex.Data;
 using Starcounter;
 using Starcounter.Advanced;
-using Starcounter.Programs.UsageTrackerApp.Model;
+using Starcounter.Applications.UsageTrackerApp.Model;
 
-namespace Starcounter.Programs.UsageTrackerApp.API.Backend {
+namespace Starcounter.Applications.UsageTrackerApp.API.Backend {
     internal static partial class Administrator {
 
         public static void Usage_DELETE(ushort port) {

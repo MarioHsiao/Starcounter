@@ -2,7 +2,7 @@
 using Starcounter;
 using Starcounter.Advanced;
 
-namespace Starcounter.Programs.UsageTrackerApp.API.Starcounter {
+namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
     internal static class GeneralCollectionHandler {
 
         private static Object LOCK = new Object();
