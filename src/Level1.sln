@@ -256,7 +256,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryProcessingTest", "Samp
 		{7BF06E68-1088-47EE-B06C-DE546AFABDB0} = {7BF06E68-1088-47EE-B06C-DE546AFABDB0}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "17. Programs", "17. Programs", "{4A6B2101-EC24-491E-A575-1044FDCDA105}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "17. Applications", "17. Applications", "{4A6B2101-EC24-491E-A575-1044FDCDA105}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Administrator", "Starcounter.Administrator\Starcounter.Administrator.csproj", "{6388EE07-A8C2-4A1A-8CDC-513A2C093BC3}"
 	ProjectSection(ProjectDependencies) = postProject
