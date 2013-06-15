@@ -1,7 +1,7 @@
 ﻿using System;
 using Starcounter;
 
-namespace Starcounter.Programs.UsageTrackerApp.Model {
+namespace Starcounter.Applications.UsageTrackerApp.Model {
 
     /// <summary>
     /// Sequence

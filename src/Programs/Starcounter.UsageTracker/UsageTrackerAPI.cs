@@ -1,14 +1,14 @@
 ﻿using Starcounter;
 using Starcounter.Advanced;
-using Starcounter.Programs.UsageTrackerApp.API.Installer;
-using Starcounter.Programs.UsageTrackerApp.API.Starcounter;
+using Starcounter.Applications.UsageTrackerApp.API.Installer;
+using Starcounter.Applications.UsageTrackerApp.API.Starcounter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Starcounter.Programs.UsageTrackerApp {
+namespace Starcounter.Applications.UsageTrackerApp {
     internal static class UsageTrackerAPI {
 
         public static void Bootstrap(ushort port) {

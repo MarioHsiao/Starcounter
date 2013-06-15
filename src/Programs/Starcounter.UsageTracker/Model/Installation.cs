@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections;
 using Starcounter;
-using Starcounter.Programs.UsageTrackerApp.Model;
-using Starcounter.Programs.UsageTrackerApp.API.Starcounter;
+using Starcounter.Applications.UsageTrackerApp.Model;
+using Starcounter.Applications.UsageTrackerApp.API.Starcounter;
 
-namespace Starcounter.Programs.UsageTrackerApp.Model {
+namespace Starcounter.Applications.UsageTrackerApp.Model {
 
     /// <summary>
     /// Installation

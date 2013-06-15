@@ -1,5 +1,5 @@
 ﻿
-namespace Starcounter.Programs.UsageTrackerApp.API.Installer {
+namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
     internal static class InstallerCollectionHandler {
 
 

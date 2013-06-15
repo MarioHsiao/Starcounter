@@ -1,7 +1,7 @@
 ﻿using Starcounter;
-using Starcounter.Programs.UsageTrackerApp.Model;
+using Starcounter.Applications.UsageTrackerApp.Model;
 
-namespace Starcounter.Programs.UsageTrackerApp.API.Starcounter {
+namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
     internal static class StarcounterCollectionHandler {
 
         public static void Bootstrap(ushort port) {

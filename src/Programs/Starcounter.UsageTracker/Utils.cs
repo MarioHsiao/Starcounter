@@ -2,7 +2,7 @@
 using Codeplex.Data;
 using Starcounter.Advanced;
 
-namespace Starcounter.Programs.UsageTrackerApp {
+namespace Starcounter.Applications.UsageTrackerApp {
     /// <summary>
     /// General utils
     /// </summary>

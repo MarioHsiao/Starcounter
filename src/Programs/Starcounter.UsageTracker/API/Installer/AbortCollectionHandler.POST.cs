@@ -3,10 +3,10 @@ using System.Net;
 using Codeplex.Data;
 using Starcounter;
 using Starcounter.Advanced;
-using Starcounter.Programs.UsageTrackerApp.Model;
-using Starcounter.Programs.UsageTrackerApp.API.Starcounter;
+using Starcounter.Applications.UsageTrackerApp.Model;
+using Starcounter.Applications.UsageTrackerApp.API.Starcounter;
 
-namespace Starcounter.Programs.UsageTrackerApp.API.Installer {
+namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
 
     internal static class AbortCollectionHandler {
 
