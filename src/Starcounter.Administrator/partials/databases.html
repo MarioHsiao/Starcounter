@@ -8,7 +8,7 @@
     </thead>
 
     <tbody>
-        <tr ng-repeat="database in databases">
+        <tr ng-repeat="database in databases | orderBy: 'name'">
             <td><a href="#/databases/{{database.name}}">{{database.name}}</a></td>
             <td><span ng-show="database.running" class="Running">Running</span></td>
             <td>
