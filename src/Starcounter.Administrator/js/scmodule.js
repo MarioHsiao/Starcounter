@@ -179,6 +179,49 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', 'Datab
 
     $scope.alerts.length = 0;
 
+    $scope.startDatabase = function (database) {
+
+        var job = $scope.addJob({ message: "Starting database " + database.name });
+
+        Database.start({}, { Name: database.name }, function (response) {
+            // Success
+            // Remove job
+            $scope.removeJob(job);
+
+            $scope.alerts.push({ type: 'success', msg: "Database " + database.name + " was started" });
+
+            // Refresh engine and executable list
+            $scope.refreshEngineAndExecutableList();
+
+            // Refresh database list
+            $scope.refreshDatabaseProcessStatus(database);
+
+
+        }, function (response) {
+            // Error
+
+            // Remove job
+            $scope.removeJob(job);
+
+            if (response.status == 405) {
+                // 405 MethodNotAllowed
+                $scope.alerts.push({ type: 'error', msg: "Database " + database.name + " can not be started (405 MethodNotAllowed)", helpLink: null });
+            }
+            else if (response.status == 422) {
+                $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
+            }
+            else if (response.status == 500) {
+                // 500 Internal Server Error
+                $scope.showException(response.data, null, null);
+            }
+            else {
+                $scope.showException("Unhandled http statuscode " + status, null, ".stopDatabase()");
+            }
+        });
+
+
+    }
+
     $scope.stopDatabase = function (database) {
 
         var job = $scope.addJob({ message: "Stopping " + database.name });
@@ -302,7 +345,7 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', 'Datab
 
         $scope.alerts.length = 0;
 
-        var title = 'Stop engine';
+        var title = 'Stop database';
         var msg = 'Do you want to stop the database ' + database.name;
         var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Stop', cssClass: 'btn-danger' }];
 
@@ -317,6 +360,24 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', 'Datab
 
     }
 
+    $scope.btnStartDatabase = function (database) {
+
+        $scope.alerts.length = 0;
+
+        var title = 'Start database';
+        var msg = 'Do you want to start the database ' + database.name;
+        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Start', cssClass: 'btn-success' }];
+
+        $dialog.messageBox(title, msg, btns)
+          .open()
+          .then(function (result) {
+              if (result == 0) {
+                  $scope.startDatabase(database);
+              }
+          });
+
+
+    }
     // Init
     $scope.refreshDatabaseList();
 
@@ -373,7 +434,7 @@ databaseModule.controller('DatabaseCtrl', ['$scope', '$routeParams', 'Database',
 
         $scope.getConsole($scope.database.name);
 
-//        $scope.tryGetConsole($scope.database.name);
+        //        $scope.tryGetConsole($scope.database.name);
 
     }
 
@@ -606,6 +667,7 @@ angular.module('sc.database.service', ['ngResource'], function ($provide) {
             query: { method: 'GET', isArray: false },
             get: { method: 'GET' },
             delete: { method: 'DELETE' },
+            start: { method: 'POST', url: '/api/engines/:name' },
             stop: { method: 'DELETE', url: '/api/engines/:name/db' },
             status: { method: 'GET', url: '/api/engines/:name/db' },
             console: { method: 'GET', url: '/adminapi/v1/databases/:name/console' }
