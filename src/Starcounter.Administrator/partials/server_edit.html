@@ -1,11 +1,11 @@
-﻿<form name="myForm" class="form-horizontal  well well-small" ng-hide='server == null'>
+﻿<form name="myForm" class="form-horizontal  well well-small" ng-hide='settings == null'>
 
-    <legend>Edit Server - {{server.name}} </legend>
+    <legend>Edit Server - {{settings.name}} </legend>
 
     <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
         <label class="control-label" for="httpPort">Http Port</label>
         <div class="controls">
-            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="httpPort" id="httpPort" placeholder="Http port" ng-model="server.httpPort" required>
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="httpPort" id="httpPort" placeholder="Http port" ng-model="settings.httpPort" required>
             <span ng-show="myForm.httpPort.$error.validationError" class="help-inline">Invalid format</span>
             <span ng-show="myForm.httpPort.$error.required" class="help-inline">Required</span>
         </div>
@@ -18,5 +18,5 @@
 </form>
 
 <p class="muted pull-right">
-    v{{server.version}}
+    v{{settings.version}}
 </p>
