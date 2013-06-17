@@ -221,16 +221,41 @@ static uint32_t CleanTemporaryFiles(wchar_t* cur_exe_path)
     return 0;
 }
 
+typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+LPFN_ISWOW64PROCESS fnIsWow64Process;
+
+/// <summary>
+/// Determines if we are running on 32-bit OS.
+/// </summary>
+BOOL IsWow64()
+{
+    BOOL bIsWow64 = FALSE;
+
+    //IsWow64Process is not available on all supported versions of Windows.
+    //Use GetModuleHandle to get a handle to the DLL that contains the function
+    //and GetProcAddress to get a pointer to the function if available.
+
+    fnIsWow64Process = (LPFN_ISWOW64PROCESS) GetProcAddress(
+        GetModuleHandle(TEXT("kernel32")),"IsWow64Process");
+
+    if(NULL != fnIsWow64Process)
+    {
+        if (!fnIsWow64Process(GetCurrentProcess(),&bIsWow64))
+        {
+            // handle error
+        }
+    }
+
+    return bIsWow64;
+}
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-    EnableDebugPriv();
-
-    bool is_elevated = false;
-
     // Obtaining command line arguments.
     int32_t argc;
     wchar_t** argv = CommandLineToArgvW(pCmdLine, &argc);
 
+    bool is_elevated = false;
     if (0 == wcscmp((const wchar_t*)argv[0], ElevatedParam))
         is_elevated = true;
 
@@ -243,6 +268,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     // Simply exiting if another setup is running.
     if (!is_elevated)
     {
+        // Checking for 64-bit Windows.
+        if (!IsWow64())
+        {
+            MessageBox(
+                NULL,
+                L"Starcounter requires 64-bit version of operating system.",
+                L"Starcounter setup...",
+                MB_OK | MB_ICONERROR);
+
+            return 0;
+        }
+
+        // Enabling some debug privileges to check other processes.
+        EnableDebugPriv();
+
+        // Checking if another setup is running.
         if (AnotherSetupRunning())
         {
             MessageBox(
