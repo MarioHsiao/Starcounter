@@ -26,7 +26,7 @@ const int32_t ERR_NO_STARCOUNTERBIN = 2;
 const int32_t ERR_SCSERVICE_DOESNT_EXIST = 3;
 const int32_t ERR_NO_TEMP_VARIABLE = 4;
 const int32_t ERR_ANOTHER_SETUP_RUNNING = 5;
-
+const int32_t ERR_CANT_INSTALL_DOTNET = 6;
 
 /// <summary>
 /// Checks if the latest .NET 4.5 version is installed.
@@ -329,36 +329,40 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             {
                 if (0 == (err_code = RunAndWaitForProgram(temp_net45_exe_path, L"", true, true)))
                 {
-                    // Double checking that now .NET version is really installed.
-                    if (IsNet45Installed())
-                        return 0;
+                    // Double checking that now .NET version has really installed.
+                    if (!IsNet45Installed())
+                        err_code = ERR_CANT_INSTALL_DOTNET;
                 }
             }
         }
-        else
+
+        // Checking if any errors occurred.
+        if (err_code)
+            goto SETUP_FAILED;
+
+        // Path to setup EXE in TEMP.
+        wchar_t temp_setup_exe_path[MAX_PATH_LEN];
+        wcscpy_s(temp_setup_exe_path, MAX_PATH_LEN, user_temp_dir);
+        wcscat_s(temp_setup_exe_path, MAX_PATH_LEN, ScSetupExtractName);
+
+        // Extracting installer and starting it.
+        if (0 == (err_code = ExtractResourceToFile(IDR_EXE1, temp_setup_exe_path)))
         {
-            // Path to setup EXE in TEMP.
-            wchar_t temp_setup_exe_path[MAX_PATH_LEN];
-            wcscpy_s(temp_setup_exe_path, MAX_PATH_LEN, user_temp_dir);
-            wcscat_s(temp_setup_exe_path, MAX_PATH_LEN, ScSetupExtractName);
-
-            // Extracting installer and starting it.
-            if (0 == (err_code = ExtractResourceToFile(IDR_EXE1, temp_setup_exe_path)))
+            // Skipping waiting for installer, just quiting.
+            if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"DontCheckOtherInstances", true, true)))
             {
-                // Skipping waiting for installer, just quiting.
-                if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"DontCheckOtherInstances", true, true)))
-                {
-                    // Cleaning temporary files.
-                    //CleanTemporaryFiles(cur_exe_path);
+                // Cleaning temporary files.
+                //CleanTemporaryFiles(cur_exe_path);
 
-                    return 0;
-                }
+                return 0;
             }
         }
     }
 
+SETUP_FAILED:
+
     wchar_t err_str[256];
-    swprintf_s(err_str, 256, L"Starcounter was not successfully installed. Error code: %d", err_code);
+    swprintf_s(err_str, 256, L"Starcounter setup failed. Error code: %d", err_code);
 
     MessageBox(
         NULL,
