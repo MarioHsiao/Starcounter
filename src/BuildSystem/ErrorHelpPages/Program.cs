@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Errors;
+using System.Diagnostics;
 
 namespace ErrorHelpPages {
 
@@ -13,6 +14,8 @@ namespace ErrorHelpPages {
         // const string RemoteRepositoryPath = @"/Starcounter/Starcounter.wiki.git";
         const string RemoteRepositoryPath = @"/per-samuelsson/GoodTimes.wiki.git";
         const string RemoteRepositoryGitURL = @"git://github.com" + RemoteRepositoryPath;
+        const string RemoteRepositoryHTTPSURL = @"https://github.com" + RemoteRepositoryPath;
+
         /// <summary>
         /// Provides the name of the template file to use, relative to
         /// the local wiki repository.
@@ -33,6 +36,7 @@ namespace ErrorHelpPages {
         static bool Quiet = false;
         static bool JustUpdateLocalRepository = false;
         static bool SkipUpdateLocalRepository = false;
+        static bool Push = false;
         static HelpPageTemplate template;
 
         static void Main(string[] args) {
@@ -80,8 +84,13 @@ namespace ErrorHelpPages {
             }
 
             if (count > 0) {
-                WriteStatus("Committing {0} new pages to repository...", count.ToString());
+                WriteStatus("Committing {0} new page(s) to repository...", count.ToString());
                 git.Commit("-a -m \"Committing a set of test pages\"");
+                if (Push) {
+                    WriteStatus("Pushing {0} new pages to {1}...", count.ToString(), RemoteRepositoryHTTPSURL);
+                    git.Push(RemoteRepositoryHTTPSURL, "master");
+                }
+
             } else {
                 WriteStatus("No new pages to commit.");
             }
@@ -144,6 +153,12 @@ namespace ErrorHelpPages {
                         break;
                     case "dontpull":
                         SkipUpdateLocalRepository = true;
+                        break;
+                    case "push":
+                        Push = true;
+                        break;
+                    case "debug":
+                        Debugger.Launch();
                         break;
                     default:
                         Usage();
