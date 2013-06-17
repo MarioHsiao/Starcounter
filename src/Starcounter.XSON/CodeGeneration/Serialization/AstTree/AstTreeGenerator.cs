@@ -204,6 +204,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 Parent = df
             };
 
+            var astFindObj = new AstFindObject() {
+                Parent = astUnsafe
+            };
+
             nextParent = new AstWhile() {
                 Parent = astUnsafe
             };

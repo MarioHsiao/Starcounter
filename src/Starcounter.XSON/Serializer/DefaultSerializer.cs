@@ -50,7 +50,7 @@ namespace Starcounter.XSON.Serializers {
                     JsonHelper.ThrowWrongValueTypeException(ex, tProperty.TemplateName, tProperty.JsonType, reader.ReadString());
                 }
             }
-            return reader.Offset;
+            return reader.Used;
         }
     }
 }

@@ -112,7 +112,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         private void AddException() {
-            Prefix.Add("    JsonHelper.ThrowPropertyNotFoundException(\"\");");
+            Prefix.Add("    JsonHelper.ThrowPropertyNotFoundException((IntPtr)tmpBuffer, tmpLeftSize);");
         }
 
         private int FindTemplateIndex(ParseNode node) {
