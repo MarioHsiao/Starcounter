@@ -340,7 +340,7 @@ namespace GenerateInstaller
                 File.Copy(staticSetupFilePath, Path.Combine(installerWrapperDir, "resources", staticSetupFileName), true);
 
                 // Compiling second time with archive.
-                msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.vcxproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=Win32";
+                msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.vcxproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=Win32 /p:VisualStudioVersion=11.0";
                 msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
 
                 Console.WriteLine("Running: \"" + msbuildInfo.FileName + "\" " + msbuildArgs);
