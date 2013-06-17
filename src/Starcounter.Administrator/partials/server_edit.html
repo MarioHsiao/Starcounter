@@ -12,7 +12,8 @@
     </div>
 
     <div class="form-actions">
-        <button type="submit" ng-disabled="myForm.$invalid || isBusy == true" class="btn btn-success" ng-click="btnSave()">Save</button>
+        <button type="submit" ng-disabled="myForm.$invalid || isBusy == true || myForm.$dirty == false" class="btn btn-success" ng-click="btn_SaveSettings()">Save</button>
+        <button ng-disabled="myForm.$pristine  == true || isBusy == true" class="btn" ng-click="btn_ResetSettings()">Reset</button>
     </div>
 
 </form>

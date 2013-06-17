@@ -78,7 +78,6 @@ namespace Starcounter.Administrator {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="sytemHttpPort">Port for doing SQL queries</param>
         static void RegisterHandlers() {
 
             // Registering default handler for ALL static resources on the server.
