@@ -32,11 +32,15 @@ namespace ErrorHelpPages {
         static bool Verbose = false;
         static bool Quiet = false;
         static bool JustUpdateLocalRepository = false;
+        static bool SkipUpdateLocalRepository = false;
         static HelpPageTemplate template;
 
         static void Main(string[] args) {
             Setup(args);
-            UpdateLocalRepository();
+
+            if (!SkipUpdateLocalRepository) {
+                UpdateLocalRepository();
+            }
 
             if (JustUpdateLocalRepository)
                 return;
@@ -137,6 +141,9 @@ namespace ErrorHelpPages {
                         break;
                     case "justpull":
                         JustUpdateLocalRepository = true;
+                        break;
+                    case "dontpull":
+                        SkipUpdateLocalRepository = true;
                         break;
                     default:
                         Usage();
