@@ -342,6 +342,9 @@ namespace GenerateInstaller
                 // Compiling second time with archive.
                 msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.vcxproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=Win32";
                 msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
+
+                Console.WriteLine("Running: \"" + msbuildInfo.FileName + "\" " + msbuildArgs);
+
                 msbuildProcess = Process.Start(msbuildInfo);
                 msbuildProcess.WaitForExit();
                 if (msbuildProcess.ExitCode != 0)
