@@ -346,7 +346,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             if (0 == (err_code = ExtractResourceToFile(IDR_EXE1, temp_setup_exe_path)))
             {
                 // Skipping waiting for installer, just quiting.
-                if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"", true, true)))
+                if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"DontCheckOtherInstances", true, true)))
                 {
                     // Cleaning temporary files.
                     //CleanTemporaryFiles(cur_exe_path);
