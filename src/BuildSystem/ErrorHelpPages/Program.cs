@@ -65,7 +65,7 @@ namespace ErrorHelpPages {
             using (var file = File.OpenRead(ErrorCodesFile)) {
                 var errors = ErrorFileReader.ReadErrorCodes(file);
                 foreach (var error in errors.ErrorCodes) {
-                    ProcessCodeFromErrorFile(error, helpPagePath);
+                    CreatePageIfNotExist(error, helpPagePath);
                 }
             }
 
@@ -76,7 +76,7 @@ namespace ErrorHelpPages {
             Console.ReadLine();
         }
 
-        static void ProcessCodeFromErrorFile(ErrorCode error, string helpPagePath) {
+        static void CreatePageIfNotExist(ErrorCode error, string helpPagePath) {
             var fileName = Path.Combine(helpPagePath, string.Format("{0}-(SCERR{1}).md", error.Name, error.CodeWithFacility));
             if (!File.Exists(fileName)) {
                 using (var file = File.CreateText(fileName)) {
