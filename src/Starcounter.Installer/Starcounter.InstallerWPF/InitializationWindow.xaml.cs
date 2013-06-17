@@ -89,9 +89,7 @@ namespace Starcounter.InstallerWPF {
                 this.InitInstaller();
 #endif
 
-                if (!this.startedByParent) {
-                    Starcounter.Tracking.Client.Instance.SendInstallerStart();
-                }
+                Starcounter.Tracking.Client.Instance.SendInstallerStart();
 
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -236,15 +234,6 @@ namespace Starcounter.InstallerWPF {
             "Starcounter.REST.dll"
         };
 
-        // Runs this on parent process exit.
-        static void ParentOnExitProcedure()
-        {
-            // Do nothing.
-        }
-
-        // Indicates if this installer instance is started by parent instance.
-        Boolean startedByParent = false;
-
         // PID of the parent process.
         Int32 parentPID = -1;
 
@@ -256,25 +245,6 @@ namespace Starcounter.InstallerWPF {
         void InitInstaller()
         {
             //System.Diagnostics.Debugger.Launch();
-
-            // Setting the nice WPF message box.
-            // TODO: Ask Anders about correct loading of nice msg box.
-            /*
-            InstallerMain.SetNiceWpfMessageBoxDelegate(
-                delegate(object sender, Utilities.MessageBoxEventArgs msgBoxArgs)
-                {
-                    this._dispatcher.Invoke(new Action(() =>
-                    {
-                        msgBoxArgs.MessageBoxResult = WpfMessageBox.Show(
-                            msgBoxArgs.MessageBoxText,
-                            msgBoxArgs.Caption,
-                            msgBoxArgs.Button,
-                            msgBoxArgs.Icon,
-                            msgBoxArgs.DefaultResult);
-                    }));
-
-                });
-            */
 
             // Attaching the console.
             AttachConsole(-1);
@@ -304,7 +274,6 @@ namespace Starcounter.InstallerWPF {
                 else if (param.StartsWith(ConstantsBank.ParentArg, StringComparison.InvariantCultureIgnoreCase))
                 {
                     parentPID = Int32.Parse(param.Substring(ConstantsBank.ParentArg.Length + 1));
-                    startedByParent = true;
                 }
                 else
                 {
@@ -322,9 +291,7 @@ namespace Starcounter.InstallerWPF {
             }
 
             // Try extracting static installer dependencies (only parent process does this).
-            // TODO: Check if needed at all.
-            if (!startedByParent)
-                ExtractInstallerDependencies();
+            ExtractInstallerDependencies();
 
             // Registering exceptions handling and application exit event.
             Application.Current.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
@@ -332,67 +299,50 @@ namespace Starcounter.InstallerWPF {
 
             String silentMsg = "Silently ending installer process.";
 
-            // Checking if parent process started us.
-            if (startedByParent)
-            {
-                // Checking if we need to run the internal setup directly.
-                if (internalMode) {
-                    String[] userArgsArray = null;
-                    if (userArgs.Count > 0)
-                        userArgsArray = userArgs.ToArray();
+            // Checking if we need to run the internal setup directly.
+            if (internalMode) {
+                String[] userArgsArray = null;
+                if (userArgs.Count > 0)
+                    userArgsArray = userArgs.ToArray();
 
-                    // Running internal setup.
-                    RunInternalSetup(userArgsArray);
-
-                    // Have to throw general exception because of problems resolving Starcounter.Framework library.
-                    throw new Exception(silentMsg, new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
-                }
-
-                // Starting animation.
-                this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                    new Action(delegate {
-                    // Show window
-                    this.StartAnimation();
-                    this.Visibility = System.Windows.Visibility.Visible;
-
-                    //this.Focus();
-                    this.Activate();
-                }));
-
-                // Checking system requirements (calling using function
-                // wrapper so that library is resolved without errors.).
-                CheckInstallationRequirements();
-
-                // Bringing window on top.
-                this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                    new Action(delegate {
-                    // Show window
-                    this.Visibility = System.Windows.Visibility.Visible;
-
-                    //this.Focus();
-                    this.Activate();
-                }));
-
-                // Stopping animation.
-                this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                          new Action(delegate {
-                    // Show window
-                    this.StopAnimation();
-                }));
-            }
-            else
-            {
-                //System.Diagnostics.Debugger.Launch();
-
-                // Adding temp files cleanup event on parent installer process exit.
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => RemoveTempExtractedFiles();
-
-                // Starting child setup instance.
-                this.StartingTheElevatedInstaller(args);
+                // Running internal setup.
+                RunInternalSetup(userArgsArray);
 
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
                 throw new Exception(silentMsg, new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
             }
+
+            // Starting animation.
+            this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                new Action(delegate {
+                // Show window
+                this.StartAnimation();
+                this.Visibility = System.Windows.Visibility.Visible;
+
+                //this.Focus();
+                this.Activate();
+            }));
+
+            // Checking system requirements (calling using function
+            // wrapper so that library is resolved without errors.).
+            CheckInstallationRequirements();
+
+            // Bringing window on top.
+            this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                new Action(delegate {
+                // Show window
+                this.Visibility = System.Windows.Visibility.Visible;
+
+                //this.Focus();
+                this.Activate();
+            }));
+
+            // Stopping animation.
+            this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                        new Action(delegate {
+                // Show window
+                this.StopAnimation();
+            }));
         }
 
         // Tries to remove temporary extracted files.
@@ -474,9 +424,6 @@ namespace Starcounter.InstallerWPF {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "Setup instance terminated with error.");
             }
-
-            // Run parent exit procedure.
-            ParentOnExitProcedure();
         }
 
         // Wrapper for extracting library static dependencies.
@@ -550,13 +497,13 @@ namespace Starcounter.InstallerWPF {
 
                                 // Hiding the extracted file.
                                 File.SetAttributes(pathToExtractedFile, FileAttributes.Hidden);
+
+                                break;
                             }
                             catch
                             {
                                 // Just ignoring failures.
                             }
-
-                            break;
                         }
                     }
                 }
