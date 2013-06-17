@@ -597,5 +597,12 @@ namespace Starcounter.XSON.Serializers {
                                 return new FormatException(msg, e);
                             });
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void ThrowInvalidJsonException(string message) {
+            throw ErrorCode.ToException(Error.SCERRINVALIDJSONFORINPUT, message);
+        }
     }
 }
