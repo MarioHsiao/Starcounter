@@ -6,9 +6,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
-using Starcounter.XSON.CodeGeneration;
 using Starcounter.XSON.Serializers;
-using Starcounter.Internal;
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
     /// <summary>
@@ -87,7 +85,31 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             TObj.UseCodegeneratedSerializer = false;
             Obj obj = (Obj)tObj.CreateInstance();
 
-            string invalidJson = "PlayerId";
+            string invalidJson = "message";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "PlayerId: \"Hey!\" }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: \"Hey!\" ";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: Hey }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: 123";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+        }
+
+        [Test]
+        public static void TestIncorrectInputJsonForCodegenSerializer() {
+            TObj tObj = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+
+            TObj.UseCodegeneratedSerializer = true;
+            TObj.DontCreateSerializerInBackground = true;
+            Obj obj = (Obj)tObj.CreateInstance();
+
+            string invalidJson = "message";
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
 
             invalidJson = "PlayerId: \"Hey!\" }";
