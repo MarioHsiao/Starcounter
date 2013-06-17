@@ -97,6 +97,23 @@ namespace ErrorHelpPages {
             Invoke(args.ToString());
         }
 
+        public void Push(string repository, string refspec = null, string options = "") {
+            Environment.CurrentDirectory = LocalRepo;
+
+            var args = new StringBuilder("push ");
+            if (!string.IsNullOrEmpty(options)) {
+                args.Append(options);
+                args.Append(" ");
+            }
+            args.Append(repository);
+            if (!string.IsNullOrEmpty(refspec)) {
+                args.Append(" ");
+                args.Append(refspec);
+            }
+
+            Invoke(args.ToString());
+        }
+
         public void Fetch(string repository, string refspec = null) {
             Environment.CurrentDirectory = LocalRepo;
             Invoke("fetch " + repository + " " + refspec ?? string.Empty);
