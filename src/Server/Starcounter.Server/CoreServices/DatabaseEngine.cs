@@ -106,9 +106,10 @@ namespace Starcounter.Server {
         /// </summary>
         /// <param name="database">The <see cref="Database"/> the starting
         /// process should run.</param>
+        /// <param name="timeout">An optional timeout.</param>
         /// <returns>Returns true if the database was actually started, false
         /// if it was not (i.e. it was already running).</returns>
-        internal bool StartDatabaseProcess(Database database) {
+        internal bool StartDatabaseProcess(Database database, int timeout = Timeout.Infinite) {
             string eventName;
             EventWaitHandle eventHandle;
             bool databaseRunning;
@@ -135,15 +136,10 @@ namespace Starcounter.Server {
 
                 var startInfo = GetDatabaseStartInfo(database);
 
-                var timeout = 10 * 1000;
                 var process = Process.Start(startInfo);
 
                 var done = eventHandle.WaitOne(timeout);
                 if (!done) {
-                    // We really never expect the database to take this kind of
-                    // time, but lets have a timeout here to assure we never lock
-                    // the server down, waiting for a faulty, ill-behaving data
-                    // process.
                     throw ErrorCode.ToException(
                         Error.SCERRWAITTIMEOUT,
                         string.Format("Database process ({0}) didnt come online in time.", DatabaseEngine.DatabaseExeFileName));
