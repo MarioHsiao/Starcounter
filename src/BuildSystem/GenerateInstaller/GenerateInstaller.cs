@@ -332,20 +332,15 @@ namespace GenerateInstaller
                 Console.WriteLine("Building installer wrapper...");
 
                 // Copying necessary embedded files.
-                String installerWrapperDir = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper");
+                String installerWrapperDir = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper");
 
                 File.Copy(Path.Combine(BuildSystem.MappedBuildServerFTP, @"SCDev\ThirdParty\dotNET\dotnetfx45_full_x86_x64.exe"),
                     Path.Combine(installerWrapperDir, "resources", "dotnetfx45_full_x86_x64.exe"), true);
 
                 File.Copy(staticSetupFilePath, Path.Combine(installerWrapperDir, "resources", staticSetupFileName), true);
 
-                String installerWrapperVersionFilePath = Path.Combine(installerWrapperDir, "Starcounter.InstallerWrapper.cs");
-
-                // Setting current installer version.
-                ReplaceStringInFile(installerWrapperVersionFilePath, @"String ScSetupVersion = ""[0-9\.]+"";", "String ScSetupVersion = \"" + version + "\";");
-
                 // Compiling second time with archive.
-                msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper\Starcounter.InstallerWrapper.csproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=AnyCPU";
+                msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.vcxproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=Win32";
                 msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
                 msbuildProcess = Process.Start(msbuildInfo);
                 msbuildProcess.WaitForExit();
