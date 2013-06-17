@@ -31,11 +31,15 @@ namespace ErrorHelpPages {
         static bool CanClone = false;
         static bool Verbose = false;
         static bool Quiet = false;
+        static bool JustUpdateLocalRepository = false;
         static HelpPageTemplate template;
 
         static void Main(string[] args) {
             Setup(args);
             UpdateLocalRepository();
+
+            if (JustUpdateLocalRepository)
+                return;
 
             var helpPagePath = Path.Combine(LocalRepoDirectory, HelpPageRootPath);
             if (!Directory.Exists(helpPagePath)) {
@@ -130,6 +134,9 @@ namespace ErrorHelpPages {
                             Exit(ExitCodes.WrongArguments);
                         }
                         GitExecutablePath = args[i];
+                        break;
+                    case "justpull":
+                        JustUpdateLocalRepository = true;
                         break;
                     default:
                         Usage();
@@ -246,9 +253,7 @@ namespace ErrorHelpPages {
         }
 
         static void WriteStatus(string status, params string[] args) {
-            if (Verbose) {
-                WriteToConsole(status, args);
-            }
+            WriteToConsole(status, args);
         }
 
         static void WriteToConsole(string status, params string[] args) {
