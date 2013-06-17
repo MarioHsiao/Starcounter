@@ -32,7 +32,7 @@ Text: ```"%%ErrorMessage%%"```
 ### Description
 _There is currently no further description available._
 ### Example
-There is currently no code example available on how to reproduce error %%ErrorCode%%. Please modify the code below in a way that can describe how to produce this error.
+_There is currently no code example available on how to reproduce error %%ErrorCode%%. Please modify the code below in a way that can describe how to produce this error._
 
 ```csharp
 using Starcounter;
@@ -49,7 +49,7 @@ class Program {
 ```
 
 ### Resolution
-There is currently no code example available on how to remedy error %%ErrorCode%%. Please modify the code below in a way that can describe how to remedy this error.
+_There is currently no code example available on how to remedy error %%ErrorCode%%. Please modify the code below in a way that can describe how to remedy this error._
 
 ```csharp
 using Starcounter;
