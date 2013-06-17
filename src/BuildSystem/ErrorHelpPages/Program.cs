@@ -61,22 +61,28 @@ namespace ErrorHelpPages {
                         );
             }
 
-            WriteStatus("Processing error file content...");
+            WriteStatus("Creating help pages that don't exist...");
+            int count = 0;
             using (var file = File.OpenRead(ErrorCodesFile)) {
                 var errors = ErrorFileReader.ReadErrorCodes(file);
                 foreach (var error in errors.ErrorCodes) {
-                    CreatePageIfNotExist(error, helpPagePath);
+                    var created = CreatePageIfNotExist(error, helpPagePath);
+                    if (created) count++;
                 }
             }
 
-            WriteStatus("Committing changes...");
-            git.Commit("-a -m \"Committing a set of test pages\"");
+            if (count > 0) {
+                WriteStatus("Committing {0} new pages to repository...", count.ToString());
+                git.Commit("-a -m \"Committing a set of test pages\"");
+            } else {
+                WriteStatus("No new pages to commit.");
+            }
 
             Console.WriteLine("Press ENTER to exit.");
             Console.ReadLine();
         }
 
-        static void CreatePageIfNotExist(ErrorCode error, string helpPagePath) {
+        static bool CreatePageIfNotExist(ErrorCode error, string helpPagePath) {
             var fileName = Path.Combine(helpPagePath, string.Format("{0}-(SCERR{1}).md", error.Name, error.CodeWithFacility));
             if (!File.Exists(fileName)) {
                 using (var file = File.CreateText(fileName)) {
@@ -84,7 +90,10 @@ namespace ErrorHelpPages {
                 }
 
                 git.Add(fileName);
+                return true;
             }
+
+            return false;
         }
 
         static void Setup(string[] args) {
