@@ -80,6 +80,29 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
         }
 
+        [Test]
+        public static void TestIncorrectInputJsonForDefaultSerializer() {
+            TObj tObj = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+
+            TObj.UseCodegeneratedSerializer = false;
+            Obj obj = (Obj)tObj.CreateInstance();
+
+            string invalidJson = "PlayerId";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "PlayerId: \"Hey!\" }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: \"Hey!\" ";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: Hey }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: 123";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+        }
+
         private static void TestSerializationFor(string name, string json, bool useCodegen = false) {
             byte[] correctJson;
             byte[] defaultJson;
