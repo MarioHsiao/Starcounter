@@ -586,6 +586,13 @@ namespace Starcounter.XSON.Serializers {
             throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\"", name));
         }
 
+        public static void ThrowPropertyNotFoundException(IntPtr ptr, int size) {
+            string property = "";
+            int valueSize;
+            JsonHelper.ParseString(ptr, size, out property, out valueSize);
+            ThrowPropertyNotFoundException(property);
+        }
+
         /// <summary>
         /// 
         /// </summary>

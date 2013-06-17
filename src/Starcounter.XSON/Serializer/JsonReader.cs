@@ -118,14 +118,14 @@ namespace Starcounter.XSON.Serializers {
                 if (current == '{')
                     return true;
 
-                if (current == '\n' || current == '\r' || current == '\t') {
+                if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
                     offset++;
                     if (bufferSize <= offset)
                         JsonHelper.ThrowInvalidJsonException("Beginning of object not found ('{').");
                     pBuffer++;
                     continue;
                 } else {
-                    JsonHelper.ThrowInvalidJsonException("Unexpected character found, was expecting '{' but found '" + (char)current + "'");
+                    JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)current + "'.");
                 }
             }
         }
