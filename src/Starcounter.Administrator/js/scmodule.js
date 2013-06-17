@@ -349,7 +349,7 @@ var adminModule = angular.module('scadmin', ['sc.sqlquery', 'sc.log', 'ui', 'ui.
 /**
  * Head Controller
  */
-adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', function ($scope, $http, $location, $dialog) {
+adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '$rootScope', function ($scope, $http, $location, $dialog, $rootScope) {
 
 
     $scope.alerts = [];
@@ -358,6 +358,10 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', f
     $scope.databases = [];      // { "uri":"http://headsutv19:8181/api/databases/default", name:"default", running:true, engineUri:"http://headsutv19:8181/api/engines/default" }
     $scope.executables = [];    // { path:"c:\tmp\some.exe", databaseName:"default" }
     $scope.server =             // { name:"Personal", httpPort:8181, version:"2.0.0.0"}
+
+    $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
+        $scope.showNetworkDownError();
+    });
 
     // Handles the active navbar item
     $scope.isActiveUrl = function (path) {
@@ -399,9 +403,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', f
 
     // Show Network down..
     $scope.showNetworkDownError = function (helpLink) {
-
         $scope.alerts.push({ type: 'error', msg: "The server is not responding or is not reachable. For help, contact your network administrator.", helpLink: helpLink });
-
     }
 
     // Show Exception dialog
