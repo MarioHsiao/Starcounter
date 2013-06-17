@@ -16,6 +16,12 @@ namespace ErrorHelpPages {
             this.ExitCode = exitCode;
         }
 
+        public override string Message {
+            get {
+                return ToString();
+            }
+        }
+
         public override string ToString() {
             return string.Format("{0} \"{1}\" exited with code {2}", Path.GetFileName(ExeFileName), Arguments, ExitCode);
         }
