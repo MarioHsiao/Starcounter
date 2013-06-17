@@ -19,8 +19,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         internal override void GenerateCsCodeForNode() {
             Prefix.Add("unsafe {");
             Prefix.Add("    byte* pBuffer = (byte*)buffer;");
+            Prefix.Add("    byte* tmpBuffer = pBuffer;");
             Prefix.Add("    byte* pver = null;");
             Prefix.Add("    int leftBufferSize = bufferSize;");
+            Prefix.Add("    int tmpLeftSize = leftBufferSize;");
             Suffix.Add("}");
         }
     }
