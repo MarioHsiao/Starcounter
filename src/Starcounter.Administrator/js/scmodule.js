@@ -819,6 +819,9 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
                 if (response.data.hasOwnProperty("message") == true) {
                     $scope.showServerError(response.data.message, response.data.helpLink, response.data.stackTrace);
                 }
+                else if (response.data.hasOwnProperty("Text") == true) {
+                    $scope.showServerError(response.data.Text, response.data.Helplink);
+                }
                 else {
                     $scope.showServerError(response.data, null, null);
                 }
@@ -1493,6 +1496,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$locat
     });
 
 }]);
+
 
 
 /**
