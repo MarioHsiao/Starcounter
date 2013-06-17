@@ -261,9 +261,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     // Extracting everything to temp directory.
     wchar_t user_temp_dir[MAX_PATH_LEN];
-    int32_t err_code = GetEnvironmentVariable(L"TEMP", user_temp_dir, MAX_PATH_LEN);
-    if ((err_code <= 0) || (err_code >= MAX_PATH_LEN))
+    int32_t num_chars = GetEnvironmentVariable(L"TEMP", user_temp_dir, MAX_PATH_LEN);
+    if ((num_chars <= 0) || (num_chars >= MAX_PATH_LEN))
         return ERR_NO_TEMP_VARIABLE;
+
+    int32_t err_code = 0;
 
     // Simply exiting if another setup is running.
     if (!is_elevated)
@@ -301,8 +303,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         
         // Running elevated wrapper.
         err_code = RunAndWaitForProgram(cur_exe_path, ElevatedParam, true, true);
-        if (0 != err_code)
-            return err_code;
+        if (err_code)
+            goto SETUP_FAILED;
 
         // Starting Starcounter service.
         StartScService();
