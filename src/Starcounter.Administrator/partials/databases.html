@@ -8,10 +8,16 @@
     </thead>
 
     <tbody>
-        <tr ng-repeat="database in databases">
+        <tr ng-repeat="database in databases | orderBy: 'name'">
             <td><a href="#/databases/{{database.name}}">{{database.name}}</a></td>
             <td><span ng-show="database.running" class="Running">Running</span></td>
-            <td><button ng-show="database.running" ng-disabled='isBusy == true' class="btn btn-small btn-danger pull-right" ng-click="btnStopDatabase(database)">Stop</button></td>
+            <td>
+                <div class="btn-group pull-right">
+
+                <button ng-disabled='isBusy == true || database.running == true' class="btn btn-small btn-primary" ng-click="btnStartDatabase(database)">Start</button>
+                <button ng-disabled='isBusy == true || database.running == false' class="btn btn-small btn-danger" ng-click="btnStopDatabase(database)">Stop</button>
+                </div>
+            </td>
         </tr>
 
     </tbody>

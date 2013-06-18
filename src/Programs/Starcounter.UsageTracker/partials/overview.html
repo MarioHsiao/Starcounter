@@ -1,0 +1,18 @@
+﻿
+<div>
+    <legend>Installer Overview<button class="btn pull-right" ng-click="overviewCtrl.refresh()">Refresh</button></legend>
+</div>
+
+<!--Starts {{overviewCtrl.overview.start}}
+Executing {{overviewCtrl.overview.executing}}
+Finish {{overviewCtrl.overview.finish}}
+End {{overviewCtrl.overview.end}}
+Abort {{overviewCtrl.overview.Abort}}-->
+
+<div>
+
+
+<img ng-src="{{overviewCtrl.chartData}}" width="440" height="220" alt="Horizontal bar chart" />
+<!--<img src="//chart.googleapis.com/chart?chxl=1:|Start|Executing|Finish|End|Abort&chxr=0,0,160&chxs=1,676767,11.5,0,l,676767&chxt=x,y&chbh=a&chs=440x220&cht=bhs&chco=4D89F9&chds=0,160&chd=t:10,50,60,80,40&chtt=Horizontal+bar+chart" width="440" height="220" alt="Horizontal bar chart" />-->
+</div>
+
