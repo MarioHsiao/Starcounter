@@ -58,6 +58,12 @@ namespace ErrorHelpPages {
         }
 
         static void RunPageGeneration() {
+            if (!Git.ContainsGitDirectory(LocalRepoDirectory)) {
+                Exit(ExitCodes.NotAGitDirectory,
+                    string.Format("The local repository \"{0}\" is not a direct parent of a git repository.", LocalRepoDirectory)
+                    );
+            }
+
             var helpPagePath = Path.Combine(LocalRepoDirectory, HelpPageRootPath);
             if (!Directory.Exists(helpPagePath)) {
                 Directory.CreateDirectory(helpPagePath);
@@ -247,12 +253,9 @@ namespace ErrorHelpPages {
         }
 
         static void UpdateLocalRepository() {
-            var cloned = false;
-
             WriteStatus("Updating local repository...");
-            try {
-                git.Status("-s");
-            } catch (DirectoryNotFoundException) {
+            
+            if (!Directory.Exists(LocalRepoDirectory)) {
                 if (!CanClone) {
                     Exit(ExitCodes.LocalRepoDirNotFound,
                         string.Format(
@@ -262,29 +265,16 @@ namespace ErrorHelpPages {
                 }
                 Directory.CreateDirectory(LocalRepoDirectory);
                 Clone();
-                cloned = true;
 
-            } catch (ProcessExitException e) {
-                // Maybe the directory exist, but it's not a
-                // git repository? Check that.
-                var gitDir = Path.Combine(LocalRepoDirectory, ".git");
-                if (Directory.Exists(gitDir)) {
-                    Exit(ExitCodes.GitUnexpectedExit, e.Message);
-                }
-
-                // Clone if allowed.
+            } else if (!Git.ContainsGitDirectory(LocalRepoDirectory)) {
                 if (!CanClone) {
-                    Exit(ExitCodes.LocalRepoDirNotFound,
-                        string.Format(
-                        "Local repository directory \"{0}\" is not a git repository. Pass \"--clone\" to allow it to be created.",
+                    Exit(ExitCodes.NotAGitDirectory,
+                        string.Format("The local repository \"{0}\" is not a direct parent of a git repository. Pass \"--clone\" to allow it to be created.",
                         LocalRepoDirectory)
-                        );
+                    );
                 }
                 Clone();
-                cloned = true;
-            }
-
-            if (!cloned) {
+            } else {
                 Pull();
             }
         }
