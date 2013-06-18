@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Internal
 {
-    internal class HelperFunctions
+    public class HelperFunctions
     {
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
         static extern IntPtr LoadLibrary(String filePath);
@@ -32,6 +32,16 @@ namespace Starcounter.Internal
             // Checking if DLL loaded correctly.
             if (IntPtr.Zero == moduleHandle)
                 throw new Exception("Can't load DLL: " + dllName);
+        }
+
+        static Boolean disableAssembliesPreLoading_;
+
+        /// <summary>
+        /// Disable assemblies preloading.
+        /// </summary>
+        public static void DisableAssembliesPreLoading()
+        {
+            disableAssembliesPreLoading_ = true;
         }
 
         /// <summary>
@@ -56,6 +66,9 @@ namespace Starcounter.Internal
         /// Load non-GAC library dependencies.
         /// </summary>
         internal static void LoadNonGACDependencies() {
+
+            if (disableAssembliesPreLoading_)
+                return;
 
             if (dllsLoaded_)
                 return;
