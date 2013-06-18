@@ -17,6 +17,11 @@ namespace ErrorHelpPages {
         public event DataReceivedEventHandler ErrorDataReceived;
         public event DataReceivedEventHandler OutputDataReceived;
 
+        public static bool ContainsGitDirectory(string directory) {
+            var gitDir = Path.Combine(directory, ".git");
+            return Directory.Exists(gitDir);
+        }
+
         public Git(string exePath) {
             if (string.IsNullOrEmpty(exePath)) {
                 throw new ArgumentNullException("exePath");
