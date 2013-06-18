@@ -4093,7 +4093,7 @@
     example "Rest" or "Web".
     -->
   <facility name="Apps" hex="000E">
-        <code hex="0001" severity="Error" name="ScErrAppsHttpParserIncompleteHeaders">
+    <code hex="0001" severity="Error" name="ScErrAppsHttpParserIncompleteHeaders">
             <message>HTTP request has incomplete headers.</message>
         </code>
         <code hex="0002" severity="Error" name="ScErrAppsHttpParserIncorrect">
@@ -4122,6 +4122,9 @@
     </code>
     <code hex="0007" severity="Error" name="ScErrInvalidJsonForInput">
       <message>Invalid json found when populating an typed json object.</message>
+    </code>
+    <code hex="0008" severity="Error" name="ScErrMissingTypeDataBindingJson">
+      <message>Cannot create binding between typed json and dataobject. The type to bind to needs to be specified.</message>
     </code>
     </facility>
     
