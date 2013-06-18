@@ -101,6 +101,9 @@
     <None Include="Compiler\simple.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Compiler\incorrect.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="JsonSerializeTest.cs" />
     <Compile Include="NewtonsoftSerializer.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
