@@ -11,6 +11,7 @@ namespace ErrorHelpPages {
         public const int LocalRepoDirNotFound = 5;
         public const int TemplateFileNotFound = 6;
         public const int TemplateBadFormat = 7;
+        public const int NotAGitDirectory = 8;
         // A few conditions/codes that is inherited from
         // the older WikiErrorCodes program. Not sure why
         // they all have to be set just to run, but let's
