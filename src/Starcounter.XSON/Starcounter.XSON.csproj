@@ -65,6 +65,7 @@
     <Compile Include="CodeGeneration\Serialization\AstTree\AstUnsafe.cs" />
     <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstCase.cs" />
     <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstDeserializeFunction.cs" />
+    <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstFindObject.cs" />
     <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstGotoProperty.cs" />
     <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstGotoValue.cs" />
     <Compile Include="CodeGeneration\Serialization\AstTree\FromJson\AstParseJsonObjectArray.cs" />

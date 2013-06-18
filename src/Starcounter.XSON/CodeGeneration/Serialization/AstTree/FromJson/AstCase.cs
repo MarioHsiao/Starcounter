@@ -30,6 +30,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 Prefix.Add("case (byte)'\"':");
             }
 
+            Prefix.Add("    tmpBuffer = pBuffer;");
+            Prefix.Add("    tmpLeftSize = leftBufferSize;");
+
             // Skip the character we switched on.
             Prefix.Add("    pBuffer++;");
             Prefix.Add("    leftBufferSize--;");

@@ -29,8 +29,19 @@ namespace __starcountergenerated__ {
             dynamic obj = realObj;
             unsafe {
                 byte* pBuffer = (byte*)buffer;
+                byte* tmpBuffer = pBuffer;
                 byte* pver = null;
                 int leftBufferSize = bufferSize;
+                int tmpLeftSize = leftBufferSize;
+                while (*pBuffer != '{') {
+                    if (*pBuffer == '\n' || *pBuffer == '\r' || *pBuffer == '\t' || *pBuffer == ' ') {
+                        leftBufferSize--;
+                        if (leftBufferSize < 0)
+                            JsonHelper.ThrowInvalidJsonException("Beginning of object not found ('{').");
+                        pBuffer++;
+                    } else
+                        JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)*pBuffer + "'.");
+                }
                 while (leftBufferSize > 0) {
                     // Skip until start of next property or end of current object.
                     while (true) {
@@ -57,22 +68,24 @@ namespace __starcountergenerated__ {
                     }
                     switch (*pBuffer) {
                         case (byte)'A':
+                            tmpBuffer = pBuffer;
+                            tmpLeftSize = leftBufferSize;
                             pBuffer++;
                             leftBufferSize--;
                             pver = ((byte*)PointerVerificationBytes + VerificationOffset1 + 1);
                             leftBufferSize -= 4;
                             if (leftBufferSize < 0 || (*(UInt32*)pBuffer) != (*(UInt32*)pver))
-                                JsonHelper.ThrowPropertyNotFoundException("");
+                                JsonHelper.ThrowPropertyNotFoundException((IntPtr)tmpBuffer, tmpLeftSize);
                             pBuffer += 4;
                             pver += 4;
                             leftBufferSize -= 2;
                             if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver))
-                                JsonHelper.ThrowPropertyNotFoundException("");
+                                JsonHelper.ThrowPropertyNotFoundException((IntPtr)tmpBuffer, tmpLeftSize);
                             pBuffer += 2;
                             pver += 2;
                             leftBufferSize--;
                             if (leftBufferSize < 0 || (*pBuffer) != (*pver))
-                                JsonHelper.ThrowPropertyNotFoundException("");
+                                JsonHelper.ThrowPropertyNotFoundException((IntPtr)tmpBuffer, tmpLeftSize);
                             pBuffer++;
                             pver++;
                             // Skip until start of value to parse.
@@ -123,22 +136,24 @@ namespace __starcountergenerated__ {
                             }
                             break;
                         case (byte)'P':
+                            tmpBuffer = pBuffer;
+                            tmpLeftSize = leftBufferSize;
                             pBuffer++;
                             leftBufferSize--;
                             pver = ((byte*)PointerVerificationBytes + VerificationOffset0 + 1);
                             leftBufferSize -= 4;
                             if (leftBufferSize < 0 || (*(UInt32*)pBuffer) != (*(UInt32*)pver))
-                                JsonHelper.ThrowPropertyNotFoundException("");
+                                JsonHelper.ThrowPropertyNotFoundException((IntPtr)tmpBuffer, tmpLeftSize);
                             pBuffer += 4;
                             pver += 4;
                             leftBufferSize -= 2;
                             if (leftBufferSize < 0 || (*(UInt16*)pBuffer) != (*(UInt16*)pver))
-                                JsonHelper.ThrowPropertyNotFoundException("");
+                                JsonHelper.ThrowPropertyNotFoundException((IntPtr)tmpBuffer, tmpLeftSize);
                             pBuffer += 2;
                             pver += 2;
                             leftBufferSize--;
                             if (leftBufferSize < 0 || (*pBuffer) != (*pver))
-                                JsonHelper.ThrowPropertyNotFoundException("");
+                                JsonHelper.ThrowPropertyNotFoundException((IntPtr)tmpBuffer, tmpLeftSize);
                             pBuffer++;
                             pver++;
                             // Skip until start of value to parse.
@@ -170,6 +185,9 @@ namespace __starcountergenerated__ {
                                 JsonHelper.ThrowWrongValueTypeException(null, "PlayerId", "Int64", "");
                             }
                             break;
+                        default:
+                            JsonHelper.ThrowPropertyNotFoundException((IntPtr)pBuffer, leftBufferSize);
+                            break;
                     }
                 }
                 throw ErrorCode.ToException(Starcounter.Internal.Error.SCERRUNSPECIFIED, "char: '" + (char)*pBuffer + "', offset: " + (bufferSize - leftBufferSize) + "");
@@ -179,3 +197,5 @@ namespace __starcountergenerated__ {
 #pragma warning restore 0219
     }
 }
+
+
