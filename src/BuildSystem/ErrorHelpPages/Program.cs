@@ -46,9 +46,14 @@ namespace ErrorHelpPages {
                 UpdateLocalRepository();
             }
 
-            if (JustUpdateLocalRepository)
-                return;
+            if (!JustUpdateLocalRepository) {
+                RunPageGeneration();
+            }
 
+            WriteStatus("Done.");
+        }
+
+        static void RunPageGeneration() {
             var helpPagePath = Path.Combine(LocalRepoDirectory, HelpPageRootPath);
             if (!Directory.Exists(helpPagePath)) {
                 Directory.CreateDirectory(helpPagePath);
@@ -74,28 +79,35 @@ namespace ErrorHelpPages {
             }
 
             WriteStatus("Creating help pages that don't exist...");
-            int count = 0;
-            using (var file = File.OpenRead(ErrorCodesFile)) {
-                var errors = ErrorFileReader.ReadErrorCodes(file);
-                foreach (var error in errors.ErrorCodes) {
-                    var created = CreatePageIfNotExist(error, helpPagePath);
-                    if (created) count++;
-                }
-            }
+            try {
 
-            if (count > 0) {
-                WriteStatus("Committing {0} new page(s) to repository...", count.ToString());
-                git.Commit("-a -m \"Committing a set of test pages\"");
-                if (Push) {
-                    WriteStatus("Pushing {0} new pages to {1}...", count.ToString(), RemoteRepositoryHTTPSURL);
-                    git.Push(RemoteRepositoryHTTPSURL, "master");
+                int count = 0;
+                using (var file = File.OpenRead(ErrorCodesFile)) {
+                    var errors = ErrorFileReader.ReadErrorCodes(file);
+                    foreach (var error in errors.ErrorCodes) {
+                        var created = CreatePageIfNotExist(error, helpPagePath);
+                        if (created) count++;
+                    }
                 }
 
-            } else {
-                WriteStatus("No new pages to commit.");
-            }
+                if (count > 0) {
+                    WriteStatus("Committing {0} new page(s) to repository...", count.ToString());
+                    git.Commit("-a -m \"Committing a set of test pages\"");
+                    if (Push) {
+                        WriteStatus("Pushing {0} new pages to {1}...", count.ToString(), RemoteRepositoryHTTPSURL);
+                        git.Push(RemoteRepositoryHTTPSURL, "master");
+                    }
 
-            WriteStatus("Done.");
+                } else {
+                    WriteStatus("No new pages to commit.");
+                }
+
+            } catch (ProcessExitException e) {
+                // Any problem reported from the git executable we
+                // just report to the error stream and let it exit
+                // the process instantly.
+                Exit(ExitCodes.GitUnexpectedExit, e.Message);
+            }
         }
 
         static bool CreatePageIfNotExist(ErrorCode error, string helpPagePath) {
