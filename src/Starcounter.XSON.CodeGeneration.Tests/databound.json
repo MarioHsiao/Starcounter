@@ -1,0 +1,10 @@
+﻿{
+    $:{DataType:"PersonBindable"},
+    FirstName: "Arne",
+    LastName: "Anka",
+    SingleNumber: { Type: "Mobile", Number: "1234556" },
+    PhoneNumbers: [
+        { Type: "Mobile", Number: "123-555-789" }
+    ],
+    $PhoneNumbers:{DataType:"PhoneNumber"},
+}
