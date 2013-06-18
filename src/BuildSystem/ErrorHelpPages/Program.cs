@@ -115,7 +115,7 @@ namespace ErrorHelpPages {
 
                 if (count > 0) {
                     WriteStatus("Committing {0} new page(s) to repository...", count.ToString());
-                    git.Commit("-a -m \"Committing a set of test pages\"");
+                    git.Commit(string.Format("-a -m \"Committing {0} new error help page(s)\"", count.ToString()));
                     if (Push) {
                         WriteStatus("Pushing {0} new pages to {1}...", count.ToString(), RemoteRepositoryHTTPSURL);
                         git.Push(RemoteRepositoryHTTPSURL, "master");
