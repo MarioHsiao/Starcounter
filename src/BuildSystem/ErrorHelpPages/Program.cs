@@ -41,6 +41,16 @@ namespace ErrorHelpPages {
         static HelpPageTemplate template;
 
         static void Main(string[] args) {
+            try {
+                Run(args);
+            } catch (Exception generalException) {
+                Exit(BuildSystem.LogException(generalException));
+            }
+        }
+
+        static void Run(string[] args) {
+            BuildSystem.PrintToolWelcome("Create/update error help pages");
+
             Setup(args);
             CheckAllowRun();
 
