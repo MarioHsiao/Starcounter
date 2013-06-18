@@ -1,4 +1,6 @@
-﻿<table class="table table-striped table-bordered" ng-hide="databases.length == 0">
+﻿<div ng-hide="isBusy">
+
+<table class="table table-striped table-bordered" ng-hide="databases.length == 0">
     <thead>
         <tr>
             <th>Name</th>
@@ -31,5 +33,6 @@
 
 <a class="btn btn-primary" href="#/database_create">Create database</a>
 
+</div>
 
 
