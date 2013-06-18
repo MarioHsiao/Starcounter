@@ -104,7 +104,14 @@ namespace Starcounter.CLI {
                 Debugger.Launch();
             }
 
-            ExeCLI.Exec(exePath, appArgs);
+            int exitCode = 0;
+            try {
+                ExeCLI.Exec(exePath, appArgs);
+            } catch {
+                exitCode = -1;
+            } finally {
+                Environment.Exit(exitCode);
+            }
         }
 
         static IApplicationSyntax DefineCommandLineSyntax() {

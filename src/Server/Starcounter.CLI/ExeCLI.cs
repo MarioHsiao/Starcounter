@@ -38,6 +38,7 @@ namespace Starcounter.CLI {
             string serverName;
             string serverHost;
             string database;
+            ShowVerbose(string.Format("Executing {0}", exePath));
 
             if (admin == null) {
                 admin = new AdminAPI();
@@ -194,6 +195,12 @@ namespace Starcounter.CLI {
                 ConsoleUtil.ToConsoleWithColor(response.ToString(), red);
             } finally {
                 Environment.Exit(exitCode);
+            }
+        }
+
+        static void ShowVerbose(string output) {
+            if (SharedCLI.Verbose) {
+                ConsoleUtil.ToConsoleWithColor(output, ConsoleColor.Yellow);
             }
         }
 
