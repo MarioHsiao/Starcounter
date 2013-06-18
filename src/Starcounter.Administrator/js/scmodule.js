@@ -357,7 +357,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
     $scope.engines = [];        // { uri:"http://localhost:8181/api/engines/default", name:"default" }
     $scope.databases = [];      // { "uri":"http://headsutv19:8181/api/databases/default", name:"default", running:true, engineUri:"http://headsutv19:8181/api/engines/default" }
     $scope.executables = [];    // { path:"c:\tmp\some.exe", databaseName:"default" }
-    $scope.server =             // { name:"Personal", httpPort:8181, version:"2.0.0.0"}
+    //    $scope.server =           // { name:"Personal", httpPort:8181, version:"2.0.0.0"}
 
     $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
         $scope.showNetworkDownError();
@@ -527,7 +527,15 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
         }, function (response) {
             // error handler
-            $scope._handleErrorReponse(response);
+
+            if (response.status == 404) {
+                // No engine = no executables
+
+            } else {
+                $scope._handleErrorReponse(response);
+            }
+
+
             if (readyCallback != null) {
                 readyCallback(executables);
             }
@@ -1398,7 +1406,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', 
 
         var title = 'Stop all running executable';
         var msg = 'Do you want to stop all executable running in database ' + engine.name;
-        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Stop', cssClass: 'btn-danger' }];
+        var btns = [ { result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         $dialog.messageBox(title, msg, btns)
           .open()
@@ -1502,8 +1510,8 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$locat
         // Check if file is already 'rememberd'
         for (var i = 0; i < $scope.recentExecutables.length ; i++) {
 
+            // File already rememberd
             if (filename == $scope.recentExecutables[i].name) {
-                console.log("File already rememberd");
                 return;
             }
 
@@ -1586,7 +1594,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', function 
 
         var title = 'Stop engine';
         var msg = 'Do you want to delete the database ' + database.name;
-        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Delete', cssClass: 'btn-danger' }];
+        var btns = [{ result: 0, label: 'Delete', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
 
         $dialog.messageBox(title, msg, btns)
@@ -1606,7 +1614,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', function 
 
         var title = 'Stop database';
         var msg = 'Do you want to stop the database ' + database.name;
-        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Stop', cssClass: 'btn-danger' }];
+        var btns = [ { result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         $dialog.messageBox(title, msg, btns)
           .open()
@@ -1625,7 +1633,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', function 
 
         var title = 'Start database';
         var msg = 'Do you want to start the database ' + database.name;
-        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Start', cssClass: 'btn-success' }];
+        var btns = [{ result: 0, label: 'Start', cssClass: 'btn-success' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         $dialog.messageBox(title, msg, btns)
           .open()
@@ -2045,7 +2053,7 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$http', function ($scop
 
         $scope.alerts.length = 0;
         $scope.refreshSettings();
-   
+
     }
 
     // init
