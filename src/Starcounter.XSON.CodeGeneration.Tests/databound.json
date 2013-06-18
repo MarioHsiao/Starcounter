@@ -2,9 +2,11 @@
     $:{DataType:"PersonBindable"},
     FirstName: "Arne",
     LastName: "Anka",
-    SingleNumber: { Type: "Mobile", Number: "1234556" },
+    SingleNumber: { Type: "Mobile", Number: "1234556", _Crap: { Text:"Hej" } },
     PhoneNumbers: [
         { Type: "Mobile", Number: "123-555-789" }
     ],
     $PhoneNumbers:{DataType:"PhoneNumber"},
+    _Unbound: { Text: "Hej" },
+    BoundNoType: { Text: "Hej" }
 }
