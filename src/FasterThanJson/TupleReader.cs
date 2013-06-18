@@ -16,6 +16,8 @@ namespace Starcounter.Internal
     /// </summary>
    public unsafe struct TupleReader
    {
+       internal const int OffsetElementSizeSize = 1; // The tuple begins with an integer telling the size. The size of this integer is always 1 byte.
+       
        /// <summary>
        /// Offset integer pointing to the end of the tuple with 0 being the beginning of the value count
        /// Kept to speed up writing of offsets into the offset list
@@ -56,11 +58,11 @@ namespace Starcounter.Internal
       public TupleReader(byte* start, uint valueCount)
       {
          AtStart = start;
-         AtOffsetEnd = AtStart + 1;
+         AtOffsetEnd = AtStart + OffsetElementSizeSize;
          ValueOffset = 0;
          ValueCount = valueCount;
          OffsetElementSize = Base16Int.ReadBase16x1((Base16x1*)AtStart); // The first byte in the tuple tells the offset element size of the tuple
-         AtEnd = AtStart + 1 + valueCount * OffsetElementSize;
+         AtEnd = AtStart + OffsetElementSizeSize + valueCount * OffsetElementSize;
 
       }
 
@@ -73,20 +75,20 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       private unsafe void GetAtPosition(int index, out byte* valuePos, out int valueLength) {
 #if BASE64
-          int firstValue = 1+(int)(ValueCount * OffsetElementSize);
+          int firstValue = OffsetElementSizeSize + (int)(ValueCount * OffsetElementSize);
           // Get value position
           int valueOffset;
           if (index == 0) {
               valueOffset = 0;
               valuePos = AtStart + firstValue;
           } else {
-              int offsetPos = 1+(int)((index-1) * OffsetElementSize);
+              int offsetPos = OffsetElementSizeSize + (int)((index - 1) * OffsetElementSize);
               byte* atOffset = AtStart + offsetPos;
               valueOffset = (int)Base64Int.Read(OffsetElementSize, (IntPtr)atOffset);
               valuePos = AtStart + firstValue + valueOffset;
           }
           // Get value length
-          byte* nextOffsetPos = AtStart + 1 + index * OffsetElementSize;
+          byte* nextOffsetPos = AtStart + OffsetElementSizeSize + index * OffsetElementSize;
           int nextOffset = (int)Base64Int.Read(OffsetElementSize, (IntPtr)nextOffsetPos);
           valueLength = nextOffset - valueOffset;
 #else
@@ -302,7 +304,7 @@ namespace Starcounter.Internal
 #if BASE256
             int len = (int) Base256Int.Read(OffsetElementSize, (IntPtr)(AtStart + 1));
 #endif
-            len += TupleWriter.OffsetElementSizeSize + OffsetElementSize;
+            len += TupleWriterStatic.OffsetElementSizeSize + OffsetElementSize;
             var buffer = new byte[len];
             System.Runtime.InteropServices.Marshal.Copy((IntPtr) AtStart, buffer, 0, len);
 
