@@ -1375,11 +1375,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', 
     $scope.alerts.length = 0;
 
     $scope.stopAllExecutables = function (engine) {
-
-        $scope.isBusy = true;
-
         var job = $scope.addJob({ message: "Stopping all executables running in database " + engine.name });
-
         $scope._StopAllExecutables(engine, function () {
 
             $scope._RefreshExecutables(function () {
@@ -1395,9 +1391,6 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', 
 
             });
         });
-
-
-
     }
 
     $scope.btnStopAllExecutable = function (engine) {
@@ -1418,7 +1411,12 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', 
     }
 
     // Init
-    $scope._RefreshExecutables();
+    $scope.isBusy = true;
+    $scope._RefreshExecutables(function () {
+        // Ready
+        $scope.isBusy = false;
+
+    });
 
 
 }]);
@@ -1759,6 +1757,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
     }
 
     // Init
+    $scope.isBusy = true;
     $scope._RefreshDatabases(function () {
         // Ready
         for (var i = 0 ; i < $scope.databases.length ; i++) {
@@ -1768,6 +1767,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
 
             }
         }
+        $scope.isBusy = false;
 
     });
 
