@@ -95,8 +95,7 @@ namespace ErrorHelpPages {
                 WriteStatus("No new pages to commit.");
             }
 
-            Console.WriteLine("Press ENTER to exit.");
-            Console.ReadLine();
+            WriteStatus("Done.");
         }
 
         static bool CreatePageIfNotExist(ErrorCode error, string helpPagePath) {
