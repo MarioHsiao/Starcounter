@@ -1,8 +1,6 @@
-﻿using System;
-using Starcounter;
-
+﻿
 namespace MySampleNamespace {
-    partial class Simple : Json {
+    partial class Incorrect {
         public string Name { get; set; }
     }
 }
