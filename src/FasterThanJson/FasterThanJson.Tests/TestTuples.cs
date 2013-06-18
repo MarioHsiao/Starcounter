@@ -31,9 +31,9 @@ namespace Starcounter.Internal
          byte* blobEnd;
          byte* start;
          IntPtr blob = SessionBlobProxy.CreateBlob(out buff, out blobEnd, out start);
-         var root = new TupleWriter(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+         var root = new TupleWriterStatic(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
          
-         var t = new TupleWriter(root.AtEnd, 3, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+         var t = new TupleWriterStatic(root.AtEnd, 3, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
          t.Write("Joachim");
          t.Write("Wester");
@@ -116,12 +116,12 @@ namespace Starcounter.Internal
       }
 
       public unsafe void CreateTuple(byte* start, uint assumedOffsetElementSize, byte* overflowLimit) {
-          var root = new TupleWriter(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
-          var first = new TupleWriter(root.AtEnd, 4, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+          var root = new TupleWriterStatic(start, 1, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+          var first = new TupleWriterStatic(root.AtEnd, 4, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
           first.Write("Joachim");
           first.Write("Wester");
-          var nested = new TupleWriter(first.AtEnd, 2, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
+          var nested = new TupleWriterStatic(first.AtEnd, 2, assumedOffsetElementSize); // Allocated on the stack. Will be fast.
 
           nested.Write(1234);
           nested.Write("070-2424472");
@@ -145,16 +145,16 @@ namespace Starcounter.Internal
       public static unsafe void TestBinaryTuple() {
           // similar to offsetkey with one node
           fixed (byte* start = new byte[1024]) {
-              var top = new TupleWriter(start, 3, 2);
+              var top = new TupleWriterStatic(start, 3, 2);
               top.Write(1234);
-              var s = new TupleWriter(top.AtEnd, 2, 2);
+              var s = new TupleWriterStatic(top.AtEnd, 2, 2);
               s.Write(41083);
               s.Write("Static data");
               top.HaveWritten(s.SealTuple());
-              var d = new TupleWriter(s.AtEnd, 3, 2);
+              var d = new TupleWriterStatic(s.AtEnd, 3, 2);
               d.Write(2);
               d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
-              var nested = new TupleWriter(d.AtEnd, 2, 1);
+              var nested = new TupleWriterStatic(d.AtEnd, 2, 1);
               nested.Write("dynamic " + 4);
               nested.Write(new byte[] {3, 2, 255, 255, 0, 0, 0, 53, 123});
               d.HaveWritten(nested.SealTuple());
@@ -191,16 +191,16 @@ namespace Starcounter.Internal
       public static unsafe void TestBinaryTupleArray() {
           // similar to offsetkey with one node
           byte[] tupleBuffer = new byte[1024];
-              var top = new TupleWriter(tupleBuffer, 0, 3, 2);
+              var top = new TupleWriterDynamic(tupleBuffer, 0, 3, 2);
               top.Write(1234);
-              var s = new TupleWriter(tupleBuffer, top.Length, 2, 2);
+              var s = new TupleWriterDynamic(tupleBuffer, (uint)top.Length, 2, 2);
               s.Write(41083);
               s.Write("Static data");
               top.HaveWritten(s.SealTuple());
-              var d = new TupleWriter(tupleBuffer, top.Length, 3, 2);
+              var d = new TupleWriterDynamic(tupleBuffer, (uint)top.Length, 3, 2);
               d.Write(2);
               d.Write(new byte[] { 123, 0, 255, 2, 32, 255, 0, 0, 1, 14, 123, 231, 0, 255 });
-              var nested = new TupleWriter(tupleBuffer, top.Length+d.Length, 2, 1);
+              var nested = new TupleWriterDynamic(tupleBuffer, (uint)(top.Length + d.Length), 2, 1);
               nested.Write("dynamic " + 4);
               nested.Write(new byte[] { 3, 2, 255, 255, 0, 0, 0, 53, 123 });
               d.HaveWritten(nested.SealTuple());

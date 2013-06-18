@@ -8,7 +8,7 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void UIntSimpleTest() {
             fixed (byte* start = new byte[1024]) {
-                TupleWriter writeArray = new TupleWriter(start, 10, 1);
+                TupleWriterStatic writeArray = new TupleWriterStatic(start, 10, 1);
                 writeArray.Write(0);
                 writeArray.Write(UInt32.MaxValue);
                 writeArray.Write(UInt32.MinValue);
@@ -38,7 +38,7 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void StringSimpleTest() {
             fixed (byte* start = new byte[1024]) {
-                TupleWriter writeArray = new TupleWriter(start, 5, 2);
+                TupleWriterStatic writeArray = new TupleWriterStatic(start, 5, 2);
                 writeArray.Write("a");
                 writeArray.Write("I've verified that this has been fixed in the next branch. I will keep this issue open until we merged next into develop.");
                 writeArray.Write("AAAAAA");
@@ -60,7 +60,7 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void BinarySimpleTest() {
             fixed (byte* start = new byte[1024]) {
-                TupleWriter writeArray = new TupleWriter(start, 5, 2);
+                TupleWriterStatic writeArray = new TupleWriterStatic(start, 5, 2);
                 writeArray.Write(new byte[] { byte.MinValue });
                 writeArray.Write(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255 });
                 writeArray.Write(new byte[] { byte.MaxValue });
@@ -77,7 +77,7 @@ namespace FasterThanJson.Tests {
         }
 
         [Test]
-        public unsafe void RandomIndexAccessTest() {
+        public static unsafe void RandomIndexAccessTest() {
             int nrIterations = 10000;
             Random writeRnd = new Random(1);
             for (int i = 0; i < nrIterations; i++) {
@@ -87,9 +87,9 @@ namespace FasterThanJson.Tests {
                 String[] stringValues = new String[nrValues];
                 byte[][] binaryValues = new byte[nrValues][];
                 byte[] tupleBuffer = new byte[nrValues * 200];
-                    TupleWriter arrayWriter = new TupleWriter(tupleBuffer, 0, nrValues, 2);
+                TupleWriterDynamic arrayWriter = new TupleWriterDynamic(tupleBuffer, 0, nrValues, 2);
                     for (int j = 0; j < nrValues; j++) {
-                        valueTypes[j] = writeRnd.Next(1, 3);
+                        valueTypes[j] = writeRnd.Next(1, 4);
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:
                                 uintValues[j] = RandomValues.RandomUInt(writeRnd);
