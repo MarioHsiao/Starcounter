@@ -352,7 +352,7 @@ namespace ErrorHelpPages {
         }
 
         static void Usage() {
-            var options = "[--clone] [--verbose] [--gitpath <path\\to\\git\\exe\\folder>] [--justpull | --dontpull] [--push] [--forcerun] [--<n> (maxpages)]";
+            var options = "[--clone] [--verbose | --quiet] [--gitpath <path\\to\\git\\exe\\folder>] [--justpull | --dontpull] [--push] [--forcerun] [--<n> (maxpages)]";
             Console.WriteLine("Usage: ErrorHelpPages {0} <path\\to\\errorcodes.xml> <path\\to\\repo>", options);
         }
     }
