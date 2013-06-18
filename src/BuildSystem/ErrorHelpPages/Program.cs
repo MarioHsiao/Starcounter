@@ -37,6 +37,7 @@ namespace ErrorHelpPages {
         static bool JustUpdateLocalRepository = false;
         static bool SkipUpdateLocalRepository = false;
         static bool Push = false;
+        static int MaxPages = int.MaxValue;
         static HelpPageTemplate template;
 
         static void Main(string[] args) {
@@ -86,7 +87,12 @@ namespace ErrorHelpPages {
                     var errors = ErrorFileReader.ReadErrorCodes(file);
                     foreach (var error in errors.ErrorCodes) {
                         var created = CreatePageIfNotExist(error, helpPagePath);
-                        if (created) count++;
+                        if (created) {
+                            count++;
+                            if (count >= MaxPages) {
+                                break;
+                            }
+                        }
                     }
                 }
 
@@ -142,7 +148,8 @@ namespace ErrorHelpPages {
                     break;
                 }
 
-                switch (arg.Substring(2).ToLowerInvariant()) {
+                arg = arg.Substring(2).ToLowerInvariant();
+                switch (arg) {
                     case "clone":
                         CanClone = true;
                         break;
@@ -172,8 +179,13 @@ namespace ErrorHelpPages {
                         Debugger.Launch();
                         break;
                     default:
-                        Usage();
-                        Exit(ExitCodes.WrongArguments);
+                        // We allow the syntax --[n] where [n] (without
+                        // brackets) specifies the maximum number of pages
+                        // to generate or update.
+                        if (!int.TryParse(arg, out MaxPages)) {
+                            Usage();
+                            Exit(ExitCodes.WrongArguments);
+                        }
                         break;
                 }
             }
