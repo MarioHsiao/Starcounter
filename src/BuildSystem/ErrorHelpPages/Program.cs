@@ -286,7 +286,7 @@ namespace ErrorHelpPages {
 
             Environment.CurrentDirectory = LocalRepoDirectory;
             try {
-                git.Clone(RemoteRepositoryGitURL, ".", "--progress");
+                git.Clone(RemoteRepositoryGitURL, ".");
             } catch (ProcessExitException e) {
                 Exit(ExitCodes.GitUnexpectedExit, e.Message);
             }
@@ -296,7 +296,7 @@ namespace ErrorHelpPages {
             WriteStatus("Pulling \"{0}\" into \"{1}\"", RemoteRepositoryGitURL, LocalRepoDirectory);
 
             try {
-                git.Pull(RemoteRepositoryGitURL, "", "--progress");
+                git.Pull(RemoteRepositoryGitURL, "");
             } catch (ProcessExitException e) {
                 Exit(ExitCodes.GitUnexpectedExit, e.Message);
             }
