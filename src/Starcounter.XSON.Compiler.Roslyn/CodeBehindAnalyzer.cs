@@ -24,13 +24,13 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         /// <param name="codeBehindFilename">The code behind filename.</param>
         /// <returns>CodeBehindMetadata.</returns>
         internal static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
-            bool autoBindToDataObject;
+            bool autoBindToDataObject = false;
             ClassDeclarationSyntax classDecl;
-            List<JsonMapInfo> mapList;
-            List<InputBindingInfo> inputList;
-            string ns;
-            string genericArg;
-            string jsonInstanceName;
+            List<JsonMapInfo> mapList = new List<JsonMapInfo>();
+            List<InputBindingInfo> inputList = new List<InputBindingInfo>();
+            string ns = null;
+            string genericArg = null;
+            string jsonInstanceName = null;
             SyntaxNode root;
             SyntaxTree tree;
 
@@ -46,14 +46,12 @@ namespace Starcounter.XSON.Compiler.Roslyn {
             root = tree.GetRoot();
 
             classDecl = FindClassDeclarationFor(className, root);
-            autoBindToDataObject = IsBoundToEntity(classDecl, jsonInstanceName, out genericArg);
-            ns = GetNamespaceForClass(className, root);
-
-            mapList = new List<JsonMapInfo>();
-            FillListWithJsonMapInfo(className, root, jsonInstanceName, mapList);
-
-            inputList = new List<InputBindingInfo>();
-            FillListWithHandleInputInfo(root, inputList);
+            if (IsTypedJsonClass(classDecl)) {
+                autoBindToDataObject = IsBoundToEntity(classDecl, jsonInstanceName, out genericArg);
+                ns = GetNamespaceForClass(className, root);
+                FillListWithJsonMapInfo(className, root, jsonInstanceName, mapList);
+                FillListWithHandleInputInfo(root, inputList);
+            }
 
             return new CodeBehindMetadata() {
                 RootNamespace = ns,
@@ -62,6 +60,19 @@ namespace Starcounter.XSON.Compiler.Roslyn {
                 JsonPropertyMapList = mapList,
                 InputBindingList = inputList
             };
+        }
+
+        private static bool IsTypedJsonClass(ClassDeclarationSyntax classDecl) {
+            SimpleNameSyntax simpleName;
+            if (classDecl == null || classDecl.BaseList == null)
+                return false;
+
+            foreach (var ts in classDecl.BaseList.Types) {
+                simpleName = ts as SimpleNameSyntax;
+                if (simpleName != null && simpleName.Identifier.ValueText == "Json")
+                    return true;
+            }
+            return false;            
         }
 
         /// <summary>
