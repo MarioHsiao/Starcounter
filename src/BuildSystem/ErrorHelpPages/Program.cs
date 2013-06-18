@@ -304,21 +304,26 @@ namespace ErrorHelpPages {
 
         static void WriteGitOutput(string status, params string[] args) {
             if (Verbose) {
-                WriteToConsole(status, args);
+                WriteToConsole(" git: " + status, args);
             }
         }
 
         static void WriteGitErrorOutput(string status, params string[] args) {
             try {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                WriteToConsole(status, args);
+                Console.ForegroundColor = ConsoleColor.Red;
+                WriteToConsole(" git: " + status, args);
             } finally {
                 Console.ResetColor();
             }
         }
 
         static void WriteStatus(string status, params string[] args) {
-            WriteToConsole(status, args);
+            try {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                WriteToConsole(" - " + status, args);
+            } finally {
+                Console.ResetColor();
+            }
         }
 
         static void WriteToConsole(string status, params string[] args) {
