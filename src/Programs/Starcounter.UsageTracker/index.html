@@ -1,0 +1,57 @@
+﻿<!doctype html>
+
+<head>
+    <title>Starcounter Backend</title>
+
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <link rel="stylesheet" href="/css/bootstrap-2.3.1.min.css">
+
+    <script src="/sys/angular-1.1.5.min.js"></script>
+    <script src="/sys/angular-resource-1.1.5.min.js"></script>
+
+    <script src="/js/master.js"></script>
+
+</head>
+
+<body ng-app="admin" ng-controller="MasterCtrl as mCtrl" class="container">
+
+    <div class="navbar ">
+        <div class="navbar-inner">
+            <div class="container">
+
+                <a class="brand" href="#/main">
+                    <img src="/img/sc_logo_24x24.png" style="margin: -3px 0px 0px 0px">
+                    Starcounter Backend</a>
+
+                <ul class="nav">
+                    <li ng-class="{active: mCtrl.isActiveUrl('/overview')}"><a href="#/overview">Overview</a></li>
+                    <li ng-class="{active: mCtrl.isActiveUrl('/debug')}"><a href="#/debug">Debug</a></li>
+                </ul>
+
+                <ul class="nav pull-right">
+                    <li><a href="www.starcounter.com/internal/wiki" target="_blank">Help</a></li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <!--    <h1>Hello World</h1>
+-->
+
+
+    <!--    <button class="btn" ng-click="mCtrl.btnGetProduct()">Get Product</button>
+    <button class="btn" ng-click="mCtrl.btnDeleteProduct()">Delete Product</button>-->
+
+    <!--    <label>Product</label>
+    <input type="text" ng-model="mCtrl.product.description" />
+
+    <input type="text" />-->
+
+
+    <div ng-view></div>
+
+</body>

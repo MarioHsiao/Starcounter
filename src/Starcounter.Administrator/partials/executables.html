@@ -8,7 +8,7 @@
     </thead>
 
     <tbody>
-        <tr ng-repeat="executable in executables">
+        <tr ng-repeat="executable in executables  | orderBy: 'databaseName'">
             <td>{{executable.path}}</td>
             <td><a href="#/databases/{{executable.databaseName}}">{{executable.databaseName}}</a></td>
             <td><span class="Running">Running</span></td>
