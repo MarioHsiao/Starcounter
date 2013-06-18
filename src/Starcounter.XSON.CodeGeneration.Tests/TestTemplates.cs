@@ -119,10 +119,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [Test]
         public static void TestMissingTypeInformationForDataBinding() {
-            string code;
-            code = Obj.Factory.GenerateTypedJsonCode("databound.json", "databound.json.cs");
-            //Console.WriteLine(code);
-            Assert.Catch(() => { code = Obj.Factory.GenerateTypedJsonCode("databound.json"); });
+            Assert.Catch(() => { Obj.Factory.GenerateTypedJsonCode("databound.json", "databound.json.cs"); });
         }
     }
 }
