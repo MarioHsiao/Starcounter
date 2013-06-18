@@ -15,7 +15,11 @@
 /* APP/DATABASE STATUS */
 
 .Running {
-    color: #00a100;
+    color: #46a546;
+}
+
+.Stopped {
+    color: #9d261d;
 }
 
 /* LOG TYPE */
