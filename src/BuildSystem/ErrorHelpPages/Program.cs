@@ -11,9 +11,7 @@ using BuildSystemHelper;
 namespace ErrorHelpPages {
 
     class Program {
-        // Use during testing: per-samuelsson/GoodTimes.wiki.git
-        // const string RemoteRepositoryPath = @"/Starcounter/Starcounter.wiki.git";
-        const string RemoteRepositoryPath = @"/per-samuelsson/GoodTimes.wiki.git";
+        const string RemoteRepositoryPath = @"/Starcounter/Starcounter.wiki.git";
         const string RemoteRepositoryGitURL = @"git://github.com" + RemoteRepositoryPath;
         const string RemoteRepositoryHTTPSURL = @"https://github.com" + RemoteRepositoryPath;
 
@@ -241,13 +239,17 @@ namespace ErrorHelpPages {
             git = new Git(GitExecutablePath);
             git.LocalRepo = LocalRepoDirectory;
             git.OutputDataReceived += (sender, e) => {
-                lock (git) {
-                    WriteGitOutput(e.Data ?? string.Empty);
+                if (e.Data != null) {
+                    lock (git) {
+                        WriteGitOutput(e.Data);
+                    }
                 }
             };
             git.ErrorDataReceived += (sender, e) => {
-                lock (git) {
-                    WriteGitErrorOutput(e.Data ?? string.Empty);
+                if (e.Data != null) {
+                    lock (git) {
+                        WriteGitErrorOutput(e.Data);
+                    }
                 }
             };
         }
