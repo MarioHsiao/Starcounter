@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Errors;
 using System.Diagnostics;
+using BuildSystemHelper;
 
 namespace ErrorHelpPages {
 
@@ -38,10 +39,12 @@ namespace ErrorHelpPages {
         static bool SkipUpdateLocalRepository = false;
         static bool Push = false;
         static int MaxPages = int.MaxValue;
+        static bool ForceRun = false;
         static HelpPageTemplate template;
 
         static void Main(string[] args) {
             Setup(args);
+            CheckAllowRun();
 
             if (!SkipUpdateLocalRepository) {
                 UpdateLocalRepository();
@@ -130,6 +133,28 @@ namespace ErrorHelpPages {
             return false;
         }
 
+        static void CheckAllowRun() {
+            // A few conditions/codes that is inherited from
+            // the older WikiErrorCodes program. Not sure why
+            // they all have to be set just to run, but let's
+            // leave it as this for now.
+
+            if (BuildSystem.IsSameExecutableRunning())
+                Exit(ExitCodes.AlreadyRunning);
+
+            if (!ForceRun) {
+                if (!BuildSystem.IsReleasingBuild()) {
+                    Console.WriteLine("It is not a releasing build. Quiting.");
+                    Exit(ExitCodes.NotAReleaseBuild);
+                }
+
+                if (Environment.GetEnvironmentVariable("SC_UPDATE_ERROR_PAGES") == null) {
+                    Console.WriteLine("No SC_UPDATE_ERROR_PAGES flag set. Quiting.");
+                    Exit(ExitCodes.UpdateFlagNotSet);
+                }
+            }
+        }
+
         static void Setup(string[] args) {
             if (args.Length < 2) {
                 Usage();
@@ -174,6 +199,9 @@ namespace ErrorHelpPages {
                         break;
                     case "push":
                         Push = true;
+                        break;
+                    case "forcerun":
+                        ForceRun = true;
                         break;
                     case "debug":
                         Debugger.Launch();
@@ -324,7 +352,8 @@ namespace ErrorHelpPages {
         }
 
         static void Usage() {
-            Console.WriteLine("Usage: ErrorHelpPages [options] <path/to/errorcodes.xml> <path/to/repo>");
+            var options = "[--clone] [--verbose] [--gitpath <path\\to\\git\\exe\\folder>] [--justpull | --dontpull] [--push] [--forcerun]";
+            Console.WriteLine("Usage: ErrorHelpPages {0} <path\\to\\errorcodes.xml> <path\\to\\repo>", options);
         }
     }
 }
