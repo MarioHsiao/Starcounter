@@ -1425,6 +1425,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$locat
     $scope.selectedDatabaseName = null;
 
     $scope.file = "";
+    $scope.recentExecutables = [];
 
     $scope.prepareExecutable = function (job, engineName, successCallback, errorCallback) {
 
@@ -1473,7 +1474,10 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$locat
         var job = $scope.addJob({ message: "Starting Executable" });
 
         $scope.prepareExecutable(job, $scope.selectedDatabaseName, function () {
-            // ready
+            // success
+
+            // Remember successfully started executables
+            $scope.rememberRecentFile($scope.file);
 
             $scope._RefreshDatabases();
             $scope._RefreshExecutables();
@@ -1488,7 +1492,47 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$locat
         });
     }
 
+    $scope.btn_SetCurrent = function (file) {
+        $scope.file = file.name;
+    }
+
+    $scope.rememberRecentFile = function (filename) {
+
+        var maxItems = 5;
+        // Check if file is already 'rememberd'
+        for (var i = 0; i < $scope.recentExecutables.length ; i++) {
+
+            if (filename == $scope.recentExecutables[i].name) {
+                console.log("File already rememberd");
+                return;
+            }
+
+        }
+        $scope.recentExecutables.unshift({ name: filename });
+
+        var toMany = $scope.recentExecutables.length - maxItems;
+
+        if (toMany > 0) {
+            $scope.recentExecutables.splice(maxItems, toMany);
+        }
+
+        localStorage.recentExecutables = JSON.stringify($scope.recentExecutables);
+    }
+
+    $scope.getRecentExecutables = function () {
+        if (typeof (Storage) !== "undefined") {
+            if (localStorage.recentExecutables != null) {
+                $scope.recentExecutables = JSON.parse(localStorage.recentExecutables);
+            }
+        }
+        else {
+            // No web storage support..
+        }
+    }
+
     // Init
+    $scope.getRecentExecutables();
+
     $scope._RefreshDatabases(function () {
         if ($scope.databases.length > 0) {
             $scope.selectedDatabaseName = $scope.databases[0].name;
@@ -1927,6 +1971,12 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$http', function ($scop
 
         $scope._GetDefaultDatabaseSettings(function (settings) {
             // Success
+
+            settings.tempDirectory = settings.tempDirectory.replace("[DatabaseName]", settings.name);
+            settings.imageDirectory = settings.imageDirectory.replace("[DatabaseName]", settings.name);
+            settings.transactionLogDirectory = settings.transactionLogDirectory.replace("[DatabaseName]", settings.name);
+            settings.dumpDirectory = settings.dumpDirectory.replace("[DatabaseName]", settings.name);
+
             $scope.settings = settings;
             $scope.myForm.$setPristine(); // This disent work, the <select> breaks the pristine state :-(
 
@@ -1994,15 +2044,8 @@ adminModule.controller('DatabaseCreateCtrl', ['$scope', '$http', function ($scop
     $scope.btn_ResetSettings = function () {
 
         $scope.alerts.length = 0;
-        $scope._GetDefaultDatabaseSettings(function (settings) {
-            // Success
-            $scope.settings = settings;
-            $scope.myForm.$setPristine(); // This disent work, the <select> breaks the pristine state :-(
-
-        }, function () {
-            // Error
-            $scope.settings = null;
-        });
+        $scope.refreshSettings();
+   
     }
 
     // init
