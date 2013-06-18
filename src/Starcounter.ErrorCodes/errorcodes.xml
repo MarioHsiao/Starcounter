@@ -4115,10 +4115,13 @@
       <!-- Error code used when populating a typed json object using plain json as input
            and the end of the content is reached before the end of the json.
         -->
-      <message>ScErrJsonUnexpectedEndOfContent</message>
+      <message>End of content reached unexpectedly</message>
     </code>
     <code hex="0006" severity="Error" name="ScErrCreateDataBindingForJson">
      <message>Cannot create binding between typed json and dataobject.</message>
+    </code>
+    <code hex="0007" severity="Error" name="ScErrInvalidJsonForInput">
+      <message>Invalid json found when populating an typed json object.</message>
     </code>
     </facility>
     

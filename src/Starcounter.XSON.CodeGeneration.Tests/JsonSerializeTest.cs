@@ -6,9 +6,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
-using Starcounter.XSON.CodeGeneration;
 using Starcounter.XSON.Serializers;
-using Starcounter.Internal;
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
     /// <summary>
@@ -78,6 +76,53 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             TestSerializationFor("supersimple.json", File.ReadAllText("supersimple.json"), true);
             TestSerializationFor("simple.json", File.ReadAllText("simple.json"), true);
             TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
+        }
+
+        [Test]
+        public static void TestIncorrectInputJsonForDefaultSerializer() {
+            TObj tObj = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+
+            TObj.UseCodegeneratedSerializer = false;
+            Obj obj = (Obj)tObj.CreateInstance();
+
+            string invalidJson = "message";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "PlayerId: \"Hey!\" }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: \"Hey!\" ";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: Hey }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: 123";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+        }
+
+        [Test]
+        public static void TestIncorrectInputJsonForCodegenSerializer() {
+            TObj tObj = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+
+            TObj.UseCodegeneratedSerializer = true;
+            TObj.DontCreateSerializerInBackground = true;
+            Obj obj = (Obj)tObj.CreateInstance();
+
+            string invalidJson = "message";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "PlayerId: \"Hey!\" }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: \"Hey!\" ";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: Hey }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: 123";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
         }
 
         private static void TestSerializationFor(string name, string json, bool useCodegen = false) {

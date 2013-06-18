@@ -33,6 +33,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         internal override void GenerateCsCodeForNode() {
             Prefix.Add("switch (*pBuffer) {");
+            Suffix.Add("    default:");
+            Suffix.Add("        JsonHelper.ThrowPropertyNotFoundException((IntPtr)pBuffer, leftBufferSize);");
+            Suffix.Add("        break;");
             Suffix.Add("}");
         }
 
