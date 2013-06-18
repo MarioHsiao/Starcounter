@@ -4123,8 +4123,8 @@
     <code hex="0007" severity="Error" name="ScErrInvalidJsonForInput">
       <message>Invalid json found when populating an typed json object.</message>
     </code>
-    <code hex="0008" severity="Error" name="ScErrMissingTypeDataBindingJson">
-      <message>Cannot create binding between typed json and dataobject. The type to bind to needs to be specified.</message>
+    <code hex="0008" severity="Error" name="ScErrMissingDataTypeBindingJson">
+      <message>Cannot create binding between typed json and dataobject. The datatype needs to be specified.</message>
     </code>
     </facility>
     

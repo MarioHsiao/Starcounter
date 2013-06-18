@@ -296,7 +296,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                 parent = parent.Parent;
                             }
                             propertyName = ((TObj)parent).ClassName + propertyName;
-                            throw ErrorCode.ToException(Error.SCERRMISSINGTYPEDATABINDINGJSON, "Path: '" + propertyName + "'");
+                            throw ErrorCode.ToException(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'");
                         }
                         CheckMissingBindingInformation(childTApp);
                     }
