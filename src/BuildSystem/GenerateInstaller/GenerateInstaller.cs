@@ -243,6 +243,9 @@ namespace GenerateInstaller
                 String currentDatePlus60Days = DateTime.Now.AddDays(60).ToString("MMMM dd, yyyy").ToUpper();
                 File.WriteAllText(licenseFilePath, modifiedLicense.Replace(licenseDatePattern, currentDatePlus60Days));
 
+                // Replacing unique installer version string.
+                ReplaceStringInFile(Path.Combine(installerWpfFolder, "App.xaml.cs"), @"String ScVersion = ""[0-9\.]+"";", "String ScVersion = \"" + version + "\";");
+
                 // Restoring fake archive file if needed.
                 File.WriteAllText(Path.Combine(installerWpfFolder, "Resources\\Archive.zip"), "This is an empty file...");
 

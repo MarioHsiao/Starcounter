@@ -349,14 +349,6 @@ namespace Starcounter.InstallerWPF {
                 throw new Exception(silentMsg,
                     new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
             }
-
-            // Checking if another Starcounter version is installed.
-            if (Utilities.IsAnotherVersionInstalled())
-            {
-                // Have to throw general exception because of problems resolving Starcounter.Framework library.
-                throw new Exception("Starting previous uninstaller.",
-                    new InstallerException("Starting previous uninstaller.", InstallerErrorCode.QuietExit));
-            }
         }
 
         // Tries to remove temporary extracted files.
