@@ -134,7 +134,7 @@ namespace ErrorHelpPages {
         }
 
         static bool CreatePageIfNotExist(ErrorCode error, string helpPagePath) {
-            var fileName = Path.Combine(helpPagePath, string.Format("{0}-(SCERR{1}).md", error.Name, error.CodeWithFacility));
+            var fileName = Path.Combine(helpPagePath, string.Format("SCERR{0}.md", error.CodeWithFacility));
             if (!File.Exists(fileName)) {
                 using (var file = File.CreateText(fileName)) {
                     HelpPage.Write(file, error, template);
