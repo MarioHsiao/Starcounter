@@ -1,9 +1,12 @@
 ﻿using Starcounter;
 using Starcounter.Advanced;
+using Starcounter.Internal;
 
 namespace SPA {
     class Program {
         static void Main(string[] args) {
+            AppsBootstrapper.Bootstrap(@".\s\SPA");
+
             Handle.GET("/", (Request req) => {
                 return Node.LocalhostSystemPortNode.GET("/main.html", null, req);
             });
