@@ -296,7 +296,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         // Creating TEMP extract directory.
         if (!CreateDirectory(extract_temp_dir, NULL))
-            return ERR_CANT_CREATE_TEMP_DIR;
+        {
+            if (ERROR_ALREADY_EXISTS != GetLastError())
+                return ERR_CANT_CREATE_TEMP_DIR;
+        }
 
         // Checking if .NET 4.5 is installed.
         if (!IsNet45Installed())
@@ -339,7 +342,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"DontCheckOtherInstances", true, true)))
             {
                 // Cleaning temporary extract folder.
-                RemoveDirectory(extract_temp_dir);
+                // NOTE: last file should be double null-terminated.
+                extract_temp_dir[wcslen(extract_temp_dir) + 1] = L'\0';
+                SHFILEOPSTRUCT shfo = { NULL, FO_DELETE, extract_temp_dir, NULL, FOF_SILENT | FOF_NOERRORUI | FOF_NOCONFIRMATION, FALSE, NULL, NULL };
+                SHFileOperation(&shfo);
 
                 return 0;
             }
