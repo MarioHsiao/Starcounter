@@ -301,7 +301,7 @@ namespace StarcounterInternal.Hosting
 
         private static uint orange_on_no_transaction() {
             try {
-                Starcounter.Transaction.NewCurrent();
+                Starcounter.Transaction.NewCurrent(true);
                 return 0;
             }
             catch (System.OutOfMemoryException) {
