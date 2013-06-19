@@ -101,16 +101,30 @@
     <Content Include="img\sc_logo_24x24.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="partials\overview.html" />
-    <Content Include="partials\debug.html" />
-    <Content Include="css\bootstrap-2.3.1.min.css" />
+    <Content Include="partials\overview.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="partials\debug.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="css\bootstrap-2.3.1.min.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="js\master.js" />
-    <Content Include="sys\angular-1.1.5.min.js" />
-    <Content Include="sys\angular-resource-1.1.5.min.js" />
-    <Content Include="sys\bootstrap-2.3.1.min.js" />
+    <Content Include="js\master.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\angular-1.1.5.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\angular-resource-1.1.5.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\bootstrap-2.3.1.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
