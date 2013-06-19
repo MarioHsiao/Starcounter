@@ -19,5 +19,6 @@ namespace ErrorHelpPages {
         public const int AlreadyRunning = 0;
         public const int UpdateFlagNotSet = 0;
         public const int NotAReleaseBuild = 0;
+        public const int PersonalBuild = 0;
     }
 }
