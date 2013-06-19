@@ -155,6 +155,14 @@ namespace Starcounter.InstallerWPF.Pages {
             try {
                 Configuration config = state as Configuration;
 
+                PersonalServer personalServerComponent = config.Components[PersonalServer.Identifier] as PersonalServer;
+                VisualStudio2012Integration vs2012IntegrationComponent = config.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
+
+                Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullUninstallation,
+                    personalServerComponent != null && personalServerComponent.IsExecuteCommandEnabled && personalServerComponent.ExecuteCommand,
+                    vs2012IntegrationComponent != null && vs2012IntegrationComponent.IsExecuteCommandEnabled && vs2012IntegrationComponent.ExecuteCommand);
+
+
                 config.ExecuteSettings(
                     delegate(object sender, Utilities.InstallerProgressEventArgs args) {
                         this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -173,6 +181,7 @@ namespace Starcounter.InstallerWPF.Pages {
                     );
 
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate {
+                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullUninstallation, true);
                     this.OnSuccess();
                 }));
 
@@ -181,6 +190,7 @@ namespace Starcounter.InstallerWPF.Pages {
                 // Error occurred during installation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
+                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullUninstallation, false);
                     this.OnError(installException);
                     return;
                 }

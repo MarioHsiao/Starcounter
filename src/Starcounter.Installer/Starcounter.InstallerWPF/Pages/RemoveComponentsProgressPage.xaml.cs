@@ -18,6 +18,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using Starcounter.Controls;
+using Starcounter.InstallerWPF.Components;
 
 namespace Starcounter.InstallerWPF.Pages
 {
@@ -201,6 +202,15 @@ namespace Starcounter.InstallerWPF.Pages
             try
             {
                 Configuration config = state as Configuration;
+
+                PersonalServer personalServerComponent = config.Components[PersonalServer.Identifier] as PersonalServer;
+                VisualStudio2012Integration vs2012IntegrationComponent = config.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
+
+                Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.PartialUninstallation,
+                    personalServerComponent != null && personalServerComponent.IsExecuteCommandEnabled && personalServerComponent.ExecuteCommand,
+                    vs2012IntegrationComponent != null && vs2012IntegrationComponent.IsExecuteCommandEnabled && vs2012IntegrationComponent.ExecuteCommand);
+
+
                 config.ExecuteSettings(
                            delegate(object sender, Utilities.InstallerProgressEventArgs args)
                            {
@@ -233,6 +243,7 @@ namespace Starcounter.InstallerWPF.Pages
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate
                     {
+                        Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.PartialUninstallation, false);
                         this.OnError(installException);
                         return;
                     }
@@ -243,6 +254,7 @@ namespace Starcounter.InstallerWPF.Pages
             this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 new Action(delegate
                 {
+                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.PartialUninstallation, true);
                     this.OnSuccess();
                 }
             ));
