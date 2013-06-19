@@ -154,21 +154,26 @@ namespace ErrorHelpPages {
             // leave it as this for now.
 
             if (BuildSystem.IsSameExecutableRunning())
-                Exit(ExitCodes.AlreadyRunning);
+                Exit(ExitCodes.AlreadyRunning, "ErrorHelpPages.exe is already running.");
 
             if (!ForceRun) {
+
+                // This one, we set explicitly on the process, since we don't
+                // want it to stop us ever. Maybe it should be set in the build
+                // system even, but since I don't know the full effect of that,
+                // lets keep it like this.
+                Environment.SetEnvironmentVariable("SC_RELEASING_BUILD", "True");
                 
                 if (BuildSystem.IsPersonalBuild())
-                    Exit(ExitCodes.PersonalBuild);
+                    Exit(ExitCodes.PersonalBuild, "ErrorHelpPages.exe doesn't run during personal builds. Use \"--forcerun\" to force it.");
 
                 if (!BuildSystem.IsReleasingBuild()) {
-                    Console.WriteLine("It is not a releasing build. Quiting.");
-                    Exit(ExitCodes.NotAReleaseBuild);
+                    Exit(ExitCodes.NotAReleaseBuild, "ErrorHelpPages.exe doesn't run during non-release builds. Use \"--forcerun\" to force it.");
                 }
 
                 if (Environment.GetEnvironmentVariable("SC_UPDATE_ERROR_PAGES") == null) {
-                    Console.WriteLine("No SC_UPDATE_ERROR_PAGES flag set. Quiting.");
-                    Exit(ExitCodes.UpdateFlagNotSet);
+                    Exit(ExitCodes.UpdateFlagNotSet,
+                        "ErrorHelpPages.exe doesn't run without the 'SC_UPDATE_ERROR_PAGES' environment variable set. Set it or use \"--forcerun\" to force it.");
                 }
             }
         }
