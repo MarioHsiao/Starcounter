@@ -8,7 +8,8 @@ namespace SPA {
             AppsBootstrapper.Bootstrap(@".\s\SPA");
 
             Handle.GET("/", (Request req) => {
-                return Node.LocalhostSystemPortNode.GET("/main.html", null, req);
+                // TODO: Example code for redirection. Should probably be handled in a better way.
+                return (new Node("127.0.0.1", 8080)).GET("/main.html", null, req);
             });
 
             Handle.GET("/about", () => {
