@@ -34,6 +34,8 @@ namespace ErrorHelpPages {
             public const string ErrorCategory = "%%ErrorCategory%%";
             public const string ErrorSeverity = "%%ErrorSeverity%%";
             public const string ErrorMessage = "%%ErrorMessage%%";
+            public const string Remarks = "%%Remarks%%";
+            public const string RemarksOrDefault = "%%RemarksOrNoDescriptionMessage%%";
         }
 
         /// <summary>
