@@ -2,6 +2,7 @@
 using Starcounter.Errors;
 using System;
 using System.IO;
+using System.Text;
 
 namespace ErrorHelpPages {
     /// <summary>
@@ -9,6 +10,8 @@ namespace ErrorHelpPages {
     /// content.
     /// </summary>
     public static class HelpPage {
+        public const string DefaultRemarksIfNotGiven = "_There is currently no further description available._";
+
         /// <summary>
         /// Writes the content to a new help page, based on the given
         /// template.
@@ -62,7 +65,28 @@ namespace ErrorHelpPages {
                 line = line.Replace(HelpPageTemplate.Variables.ErrorCategory, error.Facility.Name);
                 line = line.Replace(HelpPageTemplate.Variables.ErrorSeverity, Enum.GetName(typeof(Severity), error.Severity));
                 line = line.Replace(HelpPageTemplate.Variables.ErrorMessage, error.Description);
+                if (line.Contains(HelpPageTemplate.Variables.Remarks) || line.Contains(HelpPageTemplate.Variables.RemarksOrDefault)) {
+                    line = ExpandRemarks(line, error);
+                }
             }
+            return line;
+        }
+
+        static string ExpandRemarks(string line, ErrorCode error) {
+            var hasRemarks = error.RemarkParagraphs != null && error.RemarkParagraphs.Count > 0;
+            var expansion = new StringBuilder();
+            var remarks = string.Empty;
+
+            if (hasRemarks) {
+                foreach (var x in error.RemarkParagraphs) {
+                    expansion.AppendFormat("{0}<br><br>", x);
+                }
+                remarks = expansion.ToString();
+            }
+
+            line = line.Replace(HelpPageTemplate.Variables.Remarks, remarks);
+            line = line.Replace(HelpPageTemplate.Variables.RemarksOrDefault, remarks == string.Empty ? HelpPage.DefaultRemarksIfNotGiven : remarks);
+
             return line;
         }
     }
