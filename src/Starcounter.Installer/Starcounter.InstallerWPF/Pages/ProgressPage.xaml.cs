@@ -286,8 +286,8 @@ namespace Starcounter.InstallerWPF.Pages {
                 VisualStudio2012Integration vs2012IntegrationComponent = config.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
 
                 Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullInstallation,
-                    personalServerComponent != null && personalServerComponent.Command == ComponentCommand.Install && personalServerComponent.IsInstalled == false,
-                    vs2012IntegrationComponent != null && vs2012IntegrationComponent.Command == ComponentCommand.Install && vs2012IntegrationComponent.IsInstalled == false);
+                    personalServerComponent != null && personalServerComponent.IsExecuteCommandEnabled && personalServerComponent.ExecuteCommand,
+                    vs2012IntegrationComponent != null && vs2012IntegrationComponent.IsExecuteCommandEnabled && vs2012IntegrationComponent.ExecuteCommand);
 
                 config.ExecuteSettings(
                           delegate(object sender, Utilities.InstallerProgressEventArgs args) {
