@@ -337,6 +337,10 @@ namespace GenerateInstaller
                 File.Copy(Path.Combine(BuildSystem.MappedBuildServerFTP, @"SCDev\ThirdParty\dotNET\dotnetfx45_full_x86_x64.exe"),
                     Path.Combine(installerWrapperDir, "resources", "dotnetfx45_full_x86_x64.exe"), true);
 
+                // Setting current installer version.
+                ReplaceStringInFile(Path.Combine(installerWrapperDir, "Starcounter.InstallerNativeWrapper.cpp"),
+                    @"wchar_t\* ScVersion = L""[0-9\.]+"";", "wchar_t* ScVersion = L\"" + version + "\";");
+
                 File.Copy(staticSetupFilePath, Path.Combine(installerWrapperDir, "resources", staticSetupFileName), true);
 
                 // Compiling second time with archive.

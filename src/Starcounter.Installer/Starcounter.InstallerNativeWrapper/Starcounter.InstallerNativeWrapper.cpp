@@ -12,13 +12,7 @@ const int32_t MAX_PATH_LEN = 1024;
 const wchar_t* Net45ResName = L"\\dotnetfx45_full_x86_x64.exe";
 const wchar_t* ScSetupExtractName = L"\\Starcounter-Setup.exe";
 const wchar_t* ScServiceName = L"\\scservice.exe";
-
-const int32_t NumTempFiles = 2;
-const wchar_t* ScTempFile[NumTempFiles] = {
-    L"\\..\\Starcounter.InstallerNativeHelper.dll",
-    L"\\..\\Starcounter.REST.dll"
-};
-
+const wchar_t* ScVersion = L"2.0.0.0";
 const wchar_t* ElevatedParam = L"Elevated";
 
 const int32_t ERR_CANT_SHELLEXECUTE = 1;
@@ -27,6 +21,7 @@ const int32_t ERR_SCSERVICE_DOESNT_EXIST = 3;
 const int32_t ERR_NO_TEMP_VARIABLE = 4;
 const int32_t ERR_ANOTHER_SETUP_RUNNING = 5;
 const int32_t ERR_CANT_INSTALL_DOTNET = 6;
+const int32_t ERR_CANT_CREATE_TEMP_DIR = 7;
 
 /// <summary>
 /// Checks if the latest .NET 4.5 version is installed.
@@ -203,24 +198,6 @@ static uint32_t StartScService()
     return 0;
 }
 
-/// <summary>
-/// Cleans temporary files.
-/// </summary>
-static uint32_t CleanTemporaryFiles(wchar_t* cur_exe_path)
-{
-    wchar_t temp_dir[MAX_PATH_LEN];
-
-    for (int32_t i = 0; i < NumTempFiles; i++)
-    {
-        wcscpy_s(temp_dir, MAX_PATH_LEN, cur_exe_path);
-        wcscat_s(temp_dir, MAX_PATH_LEN, ScTempFile[i]);
-
-        DeleteFile(temp_dir);
-    }
-
-    return 0;
-}
-
 typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
 LPFN_ISWOW64PROCESS fnIsWow64Process;
 
@@ -258,12 +235,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     bool is_elevated = false;
     if (0 == wcscmp((const wchar_t*)argv[0], ElevatedParam))
         is_elevated = true;
-
-    // Extracting everything to temp directory.
-    wchar_t user_temp_dir[MAX_PATH_LEN];
-    int32_t num_chars = GetEnvironmentVariable(L"TEMP", user_temp_dir, MAX_PATH_LEN);
-    if ((num_chars <= 0) || (num_chars >= MAX_PATH_LEN))
-        return ERR_NO_TEMP_VARIABLE;
 
     int32_t err_code = 0;
 
@@ -313,6 +284,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
     else
     {
+        // Extracting everything to temp directory.
+        wchar_t extract_temp_dir[MAX_PATH_LEN];
+        int32_t num_chars = GetEnvironmentVariable(L"TEMP", extract_temp_dir, MAX_PATH_LEN);
+        if ((num_chars <= 0) || (num_chars >= MAX_PATH_LEN))
+            return ERR_NO_TEMP_VARIABLE;
+
+        // Adding specific version sub-folder.
+        wcscat_s(extract_temp_dir, MAX_PATH_LEN, L"\\");
+        wcscat_s(extract_temp_dir, MAX_PATH_LEN, ScVersion);
+
+        // Creating TEMP extract directory.
+        if (!CreateDirectory(extract_temp_dir, NULL))
+            return ERR_CANT_CREATE_TEMP_DIR;
+
         // Checking if .NET 4.5 is installed.
         if (!IsNet45Installed())
         {
@@ -323,7 +308,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 MB_OK | MB_ICONINFORMATION);
 
             wchar_t temp_net45_exe_path[MAX_PATH_LEN];
-            wcscpy_s(temp_net45_exe_path, MAX_PATH_LEN, user_temp_dir);
+            wcscpy_s(temp_net45_exe_path, MAX_PATH_LEN, extract_temp_dir);
             wcscat_s(temp_net45_exe_path, MAX_PATH_LEN, Net45ResName);
 
             // Extracting .NET 4.5 setup file.
@@ -344,7 +329,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         // Path to setup EXE in TEMP.
         wchar_t temp_setup_exe_path[MAX_PATH_LEN];
-        wcscpy_s(temp_setup_exe_path, MAX_PATH_LEN, user_temp_dir);
+        wcscpy_s(temp_setup_exe_path, MAX_PATH_LEN, extract_temp_dir);
         wcscat_s(temp_setup_exe_path, MAX_PATH_LEN, ScSetupExtractName);
 
         // Extracting installer and starting it.
@@ -353,8 +338,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             // Skipping waiting for installer, just quiting.
             if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"DontCheckOtherInstances", true, true)))
             {
-                // Cleaning temporary files.
-                //CleanTemporaryFiles(cur_exe_path);
+                // Cleaning temporary extract folder.
+                RemoveDirectory(extract_temp_dir);
 
                 return 0;
             }
