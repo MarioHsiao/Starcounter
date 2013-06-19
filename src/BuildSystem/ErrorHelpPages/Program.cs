@@ -157,6 +157,10 @@ namespace ErrorHelpPages {
                 Exit(ExitCodes.AlreadyRunning);
 
             if (!ForceRun) {
+                
+                if (BuildSystem.IsPersonalBuild())
+                    Exit(ExitCodes.PersonalBuild);
+
                 if (!BuildSystem.IsReleasingBuild()) {
                     Console.WriteLine("It is not a releasing build. Quiting.");
                     Exit(ExitCodes.NotAReleaseBuild);
