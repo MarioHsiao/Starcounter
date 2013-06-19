@@ -5,7 +5,7 @@ namespace SPA {
     class Program {
         static void Main(string[] args) {
             Handle.GET("/", (Request req) => {
-                return Node.LocalhostSystemPortNode.GET("/index.html", null, req);
+                return Node.LocalhostSystemPortNode.GET("/main.html", null, req);
             });
 
             Handle.GET("/about", () => {
