@@ -106,10 +106,9 @@ namespace Starcounter.Server {
         /// </summary>
         /// <param name="database">The <see cref="Database"/> the starting
         /// process should run.</param>
-        /// <param name="timeout">An optional timeout.</param>
         /// <returns>Returns true if the database was actually started, false
         /// if it was not (i.e. it was already running).</returns>
-        internal bool StartDatabaseProcess(Database database, int timeout = Timeout.Infinite) {
+        internal bool StartDatabaseProcess(Database database) {
             string eventName;
             EventWaitHandle eventHandle;
             bool databaseRunning;
@@ -132,19 +131,37 @@ namespace Starcounter.Server {
 
             if (!databaseRunning) {
                 eventName = GetDatabaseOnlineEventName(database);
-                eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset, eventName);
+                using (eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset, eventName)) {
+                    int timeout = 500;
+                    int tries = 10;
+                    bool operational = false;
 
-                var startInfo = GetDatabaseStartInfo(database);
+                    var startInfo = GetDatabaseStartInfo(database);
+                    var process = DoStartEngineProcess(startInfo, database);
 
-                var process = Process.Start(startInfo);
+                    for (int i = 0; i < tries; i++) {
+                        operational = eventHandle.WaitOne(timeout);
+                        if (operational) break;
 
-                var done = eventHandle.WaitOne(timeout);
-                if (!done) {
-                    throw ErrorCode.ToException(
-                        Error.SCERRWAITTIMEOUT,
-                        string.Format("Database process ({0}) didnt come online in time.", DatabaseEngine.DatabaseExeFileName));
+                        process.Refresh();
+                        if (process.HasExited) {
+                            throw CreateDatabaseTerminated(process, database);
+                        }
+                    }
+                    
+                    if (!operational) {
+                        // The process didn't signal in time. Our current strategy
+                        // is to log a warning about this and consider the process
+                        // operational. If it's not, outer code will notice.
+                        ServerLogSources.Default.LogWarning(
+                            ErrorCode.ToMessage(Error.SCERRDBPROCNOTSIGNALING,
+                            string.Format("{0}. Start time: {1}; time spent waiting: {2}.",
+                            FormatDatabaseEngineProcessInfoString(database, process, false),
+                            process.StartTime,
+                            TimeSpan.FromMilliseconds(timeout * tries)))
+                            );
+                    }
                 }
-                eventHandle.Close();
             }
 
             return !databaseRunning;
@@ -268,7 +285,7 @@ namespace Starcounter.Server {
                 // kill it by force. Instead, we raise an exception that will later
                 // be logged, describing this scenario.
                 throw ErrorCode.ToException(
-                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP, FormatCodeHostProcessInfoString(database, process));
+                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP, FormatDatabaseEngineProcessInfoString(database, process));
             }
 
             // Wait for the user code process to exit. First wait for a short while,
@@ -277,7 +294,7 @@ namespace Starcounter.Server {
             // finally kill the process.
             if (!process.WaitForExit(1000 * 5)) {
                 var log = ServerLogSources.Default;
-                var infoString = FormatCodeHostProcessInfoString(database, process);
+                var infoString = FormatDatabaseEngineProcessInfoString(database, process);
                 log.LogWarning("User code process takes longer than expected to exit. ({0})", infoString);
                 if (!process.WaitForExit(1000 * 15)) {
                     // Emit the error and kill it.
@@ -307,7 +324,15 @@ namespace Starcounter.Server {
         }
 
         Process DoStartEngineProcess(ProcessStartInfo startInfo, Database database) {
-            var p = Process.Start(startInfo);
+            Process p = null;
+            try {
+                p = Process.Start(startInfo);
+            } catch (Exception e) {
+                var postfix = string.Format("Engine executable: \"{0}\"", startInfo.FileName);
+                ServerLogSources.Default.LogException(e, postfix);
+                throw ErrorCode.ToException(Error.SCERRENGINEPROCFAILEDSTART, e, postfix);
+            }
+
             this.Monitor.BeginMonitoring(database, p);
             return p;
         }
@@ -387,7 +412,7 @@ namespace Starcounter.Server {
             return processControlEventName;
         }
 
-        internal static string FormatCodeHostProcessInfoString(Database database, Process process, bool checkExited = false) {
+        internal static string FormatDatabaseEngineProcessInfoString(Database database, Process process, bool checkExited = false) {
             string pid;
             string info;
 
@@ -398,7 +423,7 @@ namespace Starcounter.Server {
             }
 
             // Example: ScCode.exe, PID=123, Database=Foo
-            info = string.Format("{0}, PID={1}, Database={2}", DatabaseEngine.CodeHostExeFileName, pid, database.Name);
+            info = string.Format("{0}, PID={1}, Database={2}", Path.GetFileName(process.StartInfo.FileName), pid, database.Name);
             if (checkExited) {
                 try {
                     if (process.HasExited) {
@@ -411,17 +436,39 @@ namespace Starcounter.Server {
         }
 
         internal static Exception CreateCodeHostTerminated(Process codeHostProcess, Database database, Exception serverException = null) {
-            var exitCode = (uint)codeHostProcess.ExitCode;
-            var errorPostfix = FormatCodeHostProcessInfoString(database, codeHostProcess, true);
+            return CreateEngineProcessTerminated(
+                codeHostProcess,
+                database,
+                Error.SCERRDATABASEENGINETERMINATED,
+                serverException
+                );
+        }
+
+        internal static Exception CreateDatabaseTerminated(Process databaseProcess, Database database, Exception serverException = null) {
+            return CreateEngineProcessTerminated(
+                databaseProcess,
+                database,
+                Error.SCERRDBPROCTERMINATED,
+                serverException
+                );
+        }
+
+        static Exception CreateEngineProcessTerminated(
+            Process engineProcess,
+            Database database,
+            uint errorCode,
+            Exception serverException = null) {
+            var exitCode = (uint)engineProcess.ExitCode;
+            var errorPostfix = FormatDatabaseEngineProcessInfoString(database, engineProcess, true);
 
             // If the exit code indicates anything greater than 1,
             // we construct an inner exception based on the exit code.
             // Exit code 1 indicates manual kiling of the process.
-            var inner = exitCode > 1 ? 
+            var inner = exitCode > 1 ?
                 ErrorCode.ToException(exitCode, serverException) :
                 serverException;
-            
-            return ErrorCode.ToException(Error.SCERRDATABASEENGINETERMINATED, inner, errorPostfix);
+
+            return ErrorCode.ToException(errorCode, inner, errorPostfix);
         }
     }
 }
