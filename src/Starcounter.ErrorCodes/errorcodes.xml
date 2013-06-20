@@ -3816,6 +3816,13 @@
         terminated during a management operation.
       </message>
     </code>
+    <code hex="001D" severity="Error" name="ScErrEngineProcFailedStart">
+      <message>
+        The database engine process failed to start due to an unexpected
+        internal error. The full error detail can be found in the server
+        log.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
