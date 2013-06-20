@@ -131,18 +131,37 @@ namespace Starcounter.Server {
 
             if (!databaseRunning) {
                 eventName = GetDatabaseOnlineEventName(database);
-                eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset, eventName);
+                using (eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset, eventName)) {
+                    int timeout = 500;
+                    int tries = 10;
+                    bool operational = false;
 
-                var startInfo = GetDatabaseStartInfo(database);
-                var process = DoStartEngineProcess(startInfo, database);
+                    var startInfo = GetDatabaseStartInfo(database);
+                    var process = DoStartEngineProcess(startInfo, database);
 
-                var done = eventHandle.WaitOne();
-                if (!done) {
-                    throw ErrorCode.ToException(
-                        Error.SCERRWAITTIMEOUT,
-                        string.Format("Database process ({0}) didnt come online in time.", DatabaseEngine.DatabaseExeFileName));
+                    for (int i = 0; i < tries; i++) {
+                        operational = eventHandle.WaitOne(timeout);
+                        if (operational) break;
+
+                        process.Refresh();
+                        if (process.HasExited) {
+                            throw CreateDatabaseTerminated(process, database);
+                        }
+                    }
+                    
+                    if (!operational) {
+                        // The process didn't signal in time. Our current strategy
+                        // is to log a warning about this and consider the process
+                        // operational. If it's not, outer code will notice.
+                        ServerLogSources.Default.LogWarning(
+                            ErrorCode.ToMessage(Error.SCERRDBPROCNOTSIGNALING,
+                            string.Format("{0}. Start time: {1}; time spent waiting: {2}.",
+                            FormatDatabaseEngineProcessInfoString(database, process, false),
+                            process.StartTime,
+                            TimeSpan.FromMilliseconds(timeout * tries)))
+                            );
+                    }
                 }
-                eventHandle.Close();
             }
 
             return !databaseRunning;
