@@ -11,7 +11,9 @@
 
     <thead>
         <tr>
+            <th>Version Detected</th>
             <th>Inst.NO</th>
+            <th>Previous Inst.NO</th>
             <th>Download ID</th>
 
             <th></th>
@@ -20,7 +22,9 @@
 
     <tbody>
         <tr ng-repeat="item in debugCtrl.installation">
+            <td>{{item.date}}</td>
             <td>{{item.installationNo}}</td>
+            <td>{{item.previousInstallationNo}}</td>
             <td>{{item.downloadId}}</td>
             <td><button class="btn btn-small btn-danger pull-right" ng-click="debugCtrl.installationsDelete(item)">Delete</button></td>
         </tr>
