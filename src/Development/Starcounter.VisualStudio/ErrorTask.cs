@@ -16,10 +16,7 @@ namespace Starcounter.VisualStudio {
         public string Helplink { get; set; }
 
         /// <summary>
-        /// Gets a possible <see cref="ErrorMessage"/>. Tasks based
-        /// on error messages can materialize themselves in the
-        /// <see cref="ShowInUserMessageWindow"/> control when navigated
-        /// to.
+        /// Gets a possible <see cref="ErrorMessage"/>.
         /// </summary>
         public ErrorMessage ErrorMessage { get; private set; }
 
@@ -49,8 +46,7 @@ namespace Starcounter.VisualStudio {
             BindToTextAndCode(text, code);
         }
 
-        public StarcounterErrorTask(Exception e)
-            : base(e) {
+        public StarcounterErrorTask(Exception e) : base(e) {
             ErrorMessage message;
 
             try {
@@ -76,13 +72,7 @@ namespace Starcounter.VisualStudio {
         }
 
         protected override void OnNavigate(EventArgs e) {
-            if (this.ErrorMessage != null) {
-                try {
-                    ShowInUserMessageWindow();
-                } catch {
-                    ShowInBrowser();
-                }
-            }
+            ShowInBrowser();
             base.OnNavigate(e);
         }
 
