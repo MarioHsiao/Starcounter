@@ -4091,6 +4091,12 @@
         and when Visual Studio tried attaching a debugger to it.
       </remarks>
     </code>
+    <code hex="0010" severity="Error" name="ScErrDebugSequenceFailUnexpect">
+      <message>
+        The debugging sequence failed with an unexpected error. Consult the
+        Visual Studio activity log for additional information.
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->
