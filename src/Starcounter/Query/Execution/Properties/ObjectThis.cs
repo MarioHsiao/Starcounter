@@ -75,6 +75,8 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
         }
     }
 
+    public String ColumnName { get { return null; } }
+
     /// <summary>
     /// The DbTypeCode of this pseudo property (object).
     /// </summary>

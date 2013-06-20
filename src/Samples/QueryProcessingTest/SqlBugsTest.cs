@@ -219,22 +219,22 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "0");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0).Name;
             Trace.Assert(n == "0");
-            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5)).DisplayName;
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7)).DisplayName;
             Trace.Assert(n == "Name");
-            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5).DisplayName;
-            Trace.Assert(n == "Name");
-            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5)).Name;
-            Trace.Assert(n == "5");
-            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(5).Name;
-            Trace.Assert(n == "5");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7).DisplayName;
-            Trace.Assert(n == "ObjectNo");
+            Trace.Assert(n == "Name");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7)).Name;
+            Trace.Assert(n == "7");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7).Name;
             Trace.Assert(n == "7");
-            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).DisplayName;
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(9).DisplayName;
+            Trace.Assert(n == "ObjectNo");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(9).Name;
+            Trace.Assert(n == "9");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(10).DisplayName;
             Trace.Assert(n == "ObjectID");
-            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).Name;
-            Trace.Assert(n == "8");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(10).Name;
+            Trace.Assert(n == "10");
         }
 
         public static void TestComparison() {
@@ -270,7 +270,8 @@ namespace QueryProcessingTest {
             decimal amount = accounts.First.amount;
             amount = accounts.First.Amount;
 
-            Console.WriteLine(Db.SQL("select u from user u where nickname = ?", "Nk1").GetEnumerator().ToString());
+            Trace.Assert(((SqlEnumerator<User>)Db.SQL<User>("select u from user u where nickname = ?", "Nk1").GetEnumerator()).subEnumerator.GetType() == typeof(Starcounter.Query.Execution.IndexScan));
+            //Console.WriteLine(Db.SQL("select u from user u where nickname = ?", "Nk1").GetEnumerator().ToString());
 #if false // Does not work
             accounts.First.Amount += 10;
             decimal newAmount = accounts.First.Amount;
