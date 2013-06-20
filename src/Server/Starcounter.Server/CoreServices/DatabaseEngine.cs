@@ -135,8 +135,7 @@ namespace Starcounter.Server {
                 eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset, eventName);
 
                 var startInfo = GetDatabaseStartInfo(database);
-
-                var process = Process.Start(startInfo);
+                var process = DoStartEngineProcess(startInfo, database);
 
                 var done = eventHandle.WaitOne(timeout);
                 if (!done) {
@@ -307,7 +306,15 @@ namespace Starcounter.Server {
         }
 
         Process DoStartEngineProcess(ProcessStartInfo startInfo, Database database) {
-            var p = Process.Start(startInfo);
+            Process p = null;
+            try {
+                p = Process.Start(startInfo);
+            } catch (Exception e) {
+                var postfix = string.Format("Engine executable: \"{0}\"", startInfo.FileName);
+                ServerLogSources.Default.LogException(e, postfix);
+                throw ErrorCode.ToException(Error.SCERRENGINEPROCFAILEDSTART, e, postfix);
+            }
+
             this.Monitor.BeginMonitoring(database, p);
             return p;
         }
