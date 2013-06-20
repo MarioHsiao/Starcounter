@@ -16,10 +16,7 @@ namespace Starcounter.VisualStudio {
         public string Helplink { get; set; }
 
         /// <summary>
-        /// Gets a possible <see cref="ErrorMessage"/>. Tasks based
-        /// on error messages can materialize themselves in the
-        /// <see cref="ShowInUserMessageWindow"/> control when navigated
-        /// to.
+        /// Gets a possible <see cref="ErrorMessage"/>.
         /// </summary>
         public ErrorMessage ErrorMessage { get; private set; }
 
@@ -44,12 +41,12 @@ namespace Starcounter.VisualStudio {
             }
         }
 
-        public StarcounterErrorTask()
+        public StarcounterErrorTask(string text, uint code = Error.SCERRUNSPECIFIED)
             : base() {
+            BindToTextAndCode(text, code);
         }
 
-        public StarcounterErrorTask(Exception e)
-            : base(e) {
+        public StarcounterErrorTask(Exception e) : base(e) {
             ErrorMessage message;
 
             try {
@@ -75,13 +72,7 @@ namespace Starcounter.VisualStudio {
         }
 
         protected override void OnNavigate(EventArgs e) {
-            if (this.ErrorMessage != null) {
-                try {
-                    ShowInUserMessageWindow();
-                } catch {
-                    ShowInBrowser();
-                }
-            }
+            ShowInBrowser();
             base.OnNavigate(e);
         }
 
@@ -105,14 +96,19 @@ namespace Starcounter.VisualStudio {
             // TODO:
 
             return string.IsNullOrEmpty(this.Helplink)
-                ? "http://www.starcounter.com/wiki"
+                ? StarcounterEnvironment.InternetAddresses.StarcounterWiki
                 : this.Helplink;
         }
 
         private void BindToErrorMessage(ErrorMessage message) {
-            this.Text = string.Format("{0} ({1})", message.Body, message.Header);
+            this.Text = string.Format("{0} ({1}){2}{2}(Double-click here for additional help)", message.Body, message.Header, Environment.NewLine);
             this.Helplink = message.Helplink;
             this.ErrorMessage = message;
+        }
+
+        void BindToTextAndCode(string text, uint code) {
+            this.Text = string.Format("{0}{1}{1}(Double-click here for additional help)", text, Environment.NewLine);
+            this.Helplink = ErrorCode.ToHelpLink(code);
         }
     }
 }

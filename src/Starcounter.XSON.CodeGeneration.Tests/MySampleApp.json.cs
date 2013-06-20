@@ -22,7 +22,7 @@ namespace MySampleNamespace
     /// <summary>
     /// Class MySampleApp
     /// </summary>
-    partial class MySampleApp : Json<Order>
+    partial class MySampleApp : Json
     {
         /// <summary>
         /// Handles the specified input.

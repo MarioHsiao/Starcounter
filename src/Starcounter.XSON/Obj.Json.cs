@@ -48,6 +48,7 @@ namespace Starcounter {
         /// <param name="jsonSize"></param>
         /// <returns></returns>
         public int PopulateFromJson(IntPtr buffer, int jsonSize) {
+            if (jsonSize == 0) return 0;
             return Template.Serializer.PopulateFromJson(this, buffer, jsonSize);
         }
 
@@ -58,6 +59,7 @@ namespace Starcounter {
         /// <param name="bufferSize"></param>
         /// <returns></returns>
         public int PopulateFromJson(byte[] buffer, int bufferSize) {
+            if (bufferSize == 0) return 0;
             return Template.Serializer.PopulateFromJson(this, buffer, bufferSize);
         }
 
@@ -66,6 +68,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="json"></param>
         public void PopulateFromJson(string json) {
+            if (string.IsNullOrEmpty(json)) return;
             Template.Serializer.PopulateFromJson(this, json);
         }
     }

@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiErrorCodes", "WikiError
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackArtifactsAndUpload", "PackArtifactsAndUpload\PackArtifactsAndUpload.csproj", "{729F7148-376A-4E7F-BC73-E3339371D9D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorHelpPages", "ErrorHelpPages\ErrorHelpPages.csproj", "{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -73,6 +75,10 @@ Global
 		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Debug|AnyCPU.Build.0 = Debug|Any CPU
 		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Release|AnyCPU.Build.0 = Release|Any CPU
+		{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
+		{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}.Debug|AnyCPU.Build.0 = Debug|Any CPU
+		{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}.Release|AnyCPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
