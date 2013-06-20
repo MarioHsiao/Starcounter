@@ -329,7 +329,8 @@ namespace CheckBuildSystem
                 "Newtonsoft.Json.csproj", "ServerLogTail.csproj", "LoadAndLatency.csproj",
                 "SqlCacheTrasher.csproj", "PolePosition.csproj", "ApplicationProjectTemplate.csproj",
                 "ClassLibraryProjectTemplate.csproj", "scweaver.Test.csproj", "Build32BitComponents.csproj",
-                "Starcounter.Server.Rest.csproj", "Starcounter.InstallerWrapper.csproj"
+                "Starcounter.Server.Rest.csproj", "Starcounter.InstallerWrapper.csproj",
+                "ErrorHelpPages.csproj", "SPA.csproj"
                 },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."

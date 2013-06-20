@@ -575,6 +575,10 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
+        public const uint MDB_TRANSCREATE_READ_ONLY = 0x0008;
+
+        /// <summary>
+        /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_create_transaction(
             uint flags,

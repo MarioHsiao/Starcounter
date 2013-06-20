@@ -650,6 +650,7 @@ const int32_t kHttpEchoResponseInsertPoint = strstr(kHttpEchoResponse, "@") - kH
 const char* const kHttpStatsHeader =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"
+    "Cache-control: no-cache\r\n"
     "Content-Length: @@@@@@@@\r\n"
     "\r\n";
 
