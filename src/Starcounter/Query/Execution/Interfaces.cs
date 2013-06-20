@@ -266,6 +266,13 @@ internal interface IPath : IValueExpression
     {
         get;
     }
+
+    /// <summary>
+    /// The full name of the column of the path. It uniquely identifies column in the database.
+    /// </summary>
+    String ColumnName {
+        get;
+    }
 }
 
 /// <summary>
