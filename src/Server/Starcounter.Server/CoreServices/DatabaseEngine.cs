@@ -106,10 +106,9 @@ namespace Starcounter.Server {
         /// </summary>
         /// <param name="database">The <see cref="Database"/> the starting
         /// process should run.</param>
-        /// <param name="timeout">An optional timeout.</param>
         /// <returns>Returns true if the database was actually started, false
         /// if it was not (i.e. it was already running).</returns>
-        internal bool StartDatabaseProcess(Database database, int timeout = Timeout.Infinite) {
+        internal bool StartDatabaseProcess(Database database) {
             string eventName;
             EventWaitHandle eventHandle;
             bool databaseRunning;
@@ -137,7 +136,7 @@ namespace Starcounter.Server {
                 var startInfo = GetDatabaseStartInfo(database);
                 var process = DoStartEngineProcess(startInfo, database);
 
-                var done = eventHandle.WaitOne(timeout);
+                var done = eventHandle.WaitOne();
                 if (!done) {
                     throw ErrorCode.ToException(
                         Error.SCERRWAITTIMEOUT,
