@@ -108,7 +108,7 @@ namespace Starcounter.VisualStudio.Projects {
         }
 
         protected void ReportError(string text, uint code = Error.SCERRUNSPECIFIED, params object[] parameters) {
-            ReportError(string.Format(text, code, parameters));
+            ReportError(string.Format(text, parameters), code);
         }
 
         protected void ReportError(string description, uint code = Error.SCERRUNSPECIFIED) {
