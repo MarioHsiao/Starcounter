@@ -269,6 +269,8 @@ namespace QueryProcessingTest {
             Trace.Assert(accountid == 1);
             decimal amount = accounts.First.amount;
             amount = accounts.First.Amount;
+
+            Console.WriteLine(Db.SQL("select u from user u where nickname = ?", "Nk1").GetEnumerator().ToString());
 #if false // Does not work
             accounts.First.Amount += 10;
             decimal newAmount = accounts.First.Amount;
