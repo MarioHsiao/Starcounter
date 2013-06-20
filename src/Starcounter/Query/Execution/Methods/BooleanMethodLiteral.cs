@@ -100,6 +100,10 @@ internal class BooleanMethodLiteral : Literal, ILiteral, IBooleanPathItem, IMeth
         }
     }
 
+    public String ColumnName {
+        get { return ""; }
+    }
+
     /// <summary>
     /// The DbTypeCode of the return value of this method.
     /// </summary>

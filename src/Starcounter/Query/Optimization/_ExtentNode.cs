@@ -383,7 +383,7 @@ internal class ExtentNode : IOptimizationNode
         for (Int32 i = 0; i < comparisonList.Count; i++)
         {
             value = value * 2;
-            if (comparisonList[i].GetPathTo(extentNumber).FullName == path)
+            if (comparisonList[i].GetPathTo(extentNumber).ColumnName == path)
             {
                 value++;
                 if (compOperator != ComparisonOperator.Equal)
