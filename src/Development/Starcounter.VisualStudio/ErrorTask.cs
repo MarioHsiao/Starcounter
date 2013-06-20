@@ -44,8 +44,9 @@ namespace Starcounter.VisualStudio {
             }
         }
 
-        public StarcounterErrorTask()
+        public StarcounterErrorTask(string text, uint code = Error.SCERRUNSPECIFIED)
             : base() {
+            BindToTextAndCode(text, code);
         }
 
         public StarcounterErrorTask(Exception e)
@@ -113,6 +114,11 @@ namespace Starcounter.VisualStudio {
             this.Text = string.Format("{0} ({1}){2}{2}(Double-click here for additional help)", message.Body, message.Header, Environment.NewLine);
             this.Helplink = message.Helplink;
             this.ErrorMessage = message;
+        }
+
+        void BindToTextAndCode(string text, uint code) {
+            this.Text = string.Format("{0}{1}{1}(Double-click here for additional help)", text, Environment.NewLine);
+            this.Helplink = ErrorCode.ToHelpLink(code);
         }
     }
 }

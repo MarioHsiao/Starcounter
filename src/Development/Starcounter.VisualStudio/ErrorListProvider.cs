@@ -40,9 +40,11 @@ namespace Starcounter.VisualStudio {
         /// the list of errors to be displayed in the GUI.
         /// </summary>
         /// <param name="source">The source of the new task item.</param>
+        /// <param name="text">The text to assign the error task.</param>
+        /// <param name="code">A Starcounter error code to attach to the task.</param>
         /// <returns>A task item.</returns>
-        public StarcounterErrorTask NewTask(ErrorTaskSource source) {
-            var task = new StarcounterErrorTask();
+        public StarcounterErrorTask NewTask(ErrorTaskSource source, string text, uint code = Error.SCERRUNSPECIFIED) {
+            var task = new StarcounterErrorTask(text, code);
             SetTaskDefaults(task, source);
             return task;
         }
@@ -143,6 +145,7 @@ namespace Starcounter.VisualStudio {
             task.SubcategoryIndex = GetSubcategoryIndex(source);
             task.Package = this.Package;
             task.Category = TaskCategory.All;
+            task.CanDelete = true;
         }
     }
 }

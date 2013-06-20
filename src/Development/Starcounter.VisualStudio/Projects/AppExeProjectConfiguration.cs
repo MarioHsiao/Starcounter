@@ -261,11 +261,12 @@ namespace Starcounter.VisualStudio.Projects {
                 errorDetail = new ErrorDetail();
                 errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
                 if (errorDetail.ServerCode == Error.SCERRWEAVERFAILEDLOADFILE) {
-                    ReportError("{0}: {1}\n{2}\n{3}",
-                        ErrorCode.ToDecoratedCode(Error.SCERRWEAVERFAILEDLOADFILE),
+                    var msg = ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDLOADFILE);
+                    ReportError("{0} ({1})\n{2}",
+                        Error.SCERRWEAVERFAILEDLOADFILE,
                         errorDetail.Text,
-                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project.",
-                        ErrorCode.ToHelpLink(Error.SCERRWEAVERFAILEDLOADFILE)
+                        msg.Header,
+                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project."
                         );
                     return false;
                 } else {
