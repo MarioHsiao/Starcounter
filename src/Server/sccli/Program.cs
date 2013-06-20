@@ -203,7 +203,7 @@ namespace star {
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerPersonalPort, "Personal server port used by default.");
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerSystemPort, "System server port used by default.");
             Console.WriteLine();
-            Console.WriteLine("For complete help, see {0}{1}.", StarcounterEnvironment.InternetAddresses.StarcounterWiki, "star.exe");
+            Console.WriteLine("For complete help, see {0}/{1}.", StarcounterEnvironment.InternetAddresses.StarcounterWiki, "star.exe");
         }
 
         static IApplicationSyntax DefineCommandLineSyntax() {
