@@ -25,7 +25,7 @@ namespace SQLTest.EmployeeDb
         public String Description;
         public String Name;
         public Location Location;
-        public Binary IdBinary;
+        public Binary IdBinary { get; set; }
 
         public Department() { }
     }
@@ -36,7 +36,8 @@ namespace SQLTest.EmployeeDb
         public String FirstName;
         public String LastName;
         public Location Home;
-        public Person Father;
+        private Person _Father;
+        public Person Father { get { return _Father; } set { _Father = value; } }
 
         public Person() { }
 
