@@ -261,11 +261,12 @@ namespace Starcounter.VisualStudio.Projects {
                 errorDetail = new ErrorDetail();
                 errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
                 if (errorDetail.ServerCode == Error.SCERRWEAVERFAILEDLOADFILE) {
-                    ReportError("{0}: {1}\n{2}\n{3}",
-                        ErrorCode.ToDecoratedCode(Error.SCERRWEAVERFAILEDLOADFILE),
+                    var msg = ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDLOADFILE);
+                    ReportError("{0} ({1})\n{2}",
+                        Error.SCERRWEAVERFAILEDLOADFILE,
                         errorDetail.Text,
-                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project.",
-                        ErrorCode.ToHelpLink(Error.SCERRWEAVERFAILEDLOADFILE)
+                        msg.Header,
+                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project."
                         );
                     return false;
                 } else {
@@ -281,7 +282,6 @@ namespace Starcounter.VisualStudio.Projects {
         bool AttachDebugger(Engine engine) {
             DTE dte;
             bool attached;
-            string errorMessage;
             
             try {
                 dte = this.package.DTE;
@@ -298,9 +298,8 @@ namespace Starcounter.VisualStudio.Projects {
 
                 if (attached == false) {
                     this.ReportError(
-                        "Cannot attach the debugger to the database {0}. Process {1} not found.",
-                        engine.Database.Name,
-                        engine.CodeHostProcess.PID
+                        (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGNODBPROCESS,
+                        string.Format("Database \"{0}\" in process {1}.", engine.Database.Name, engine.CodeHostProcess.PID))
                         );
                 }
 
@@ -318,14 +317,9 @@ namespace Starcounter.VisualStudio.Projects {
                     // http://blogs.msdn.com/b/joshpoley/archive/2008/01/04/errors-004-facility-itf.aspx
                     // http://msdn.microsoft.com/en-us/library/ms734241(v=vs.85).aspx
 
-                    errorMessage = string.Format(
-                        "Attaching the debugger to the database \"{0}\" in process {1} was not allowed. ",
-                        engine.Database.Name, engine.CodeHostProcess.PID);
-                    errorMessage +=
-                        "The database runs with higher privileges than Visual Studio. Either restart Visual Studio " +
-                        "and run it as an administrator, or make sure the database runs in non-elevated mode.";
-
-                    this.ReportError(errorMessage);
+                    this.ReportError(
+                        (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGDBHIGHERPRIVILEGE,
+                        string.Format("Database \"{0}\" in process {1}.", engine.Database.Name, engine.CodeHostProcess.PID)));
                     return false;
 
                 } else if (comException.ErrorCode == -2147221503) {
