@@ -4081,6 +4081,16 @@
         make sure the database runs in non-elevated mode.
       </remarks>
     </code>
+    <code hex="000F" severity="Error" name="ScErrDebugNoDbProcess">
+      <message>
+        Unable to attach the debugger to the database process because the database
+        process was not found.
+      </message>
+      <remarks>
+        This indicate the database process terminated in between it was started
+        and when Visual Studio tried attaching a debugger to it.
+      </remarks>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->

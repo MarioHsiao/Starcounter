@@ -297,9 +297,8 @@ namespace Starcounter.VisualStudio.Projects {
 
                 if (attached == false) {
                     this.ReportError(
-                        "Cannot attach the debugger to the database {0}. Process {1} not found.",
-                        engine.Database.Name,
-                        engine.CodeHostProcess.PID
+                        (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGNODBPROCESS,
+                        string.Format("Database \"{0}\" in process {1}.", engine.Database.Name, engine.CodeHostProcess.PID))
                         );
                 }
 
