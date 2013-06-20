@@ -110,7 +110,7 @@ namespace Starcounter.VisualStudio {
         }
 
         private void BindToErrorMessage(ErrorMessage message) {
-            this.Text = string.Format("{0} ({1})", message.Body, message.Header);
+            this.Text = string.Format("{0} ({1}){2}{2}(Double-click here for additional help)", message.Body, message.Header, Environment.NewLine);
             this.Helplink = message.Helplink;
             this.ErrorMessage = message;
         }
