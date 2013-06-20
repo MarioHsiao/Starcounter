@@ -1308,6 +1308,9 @@
     <code hex="008E" severity="Error" name="ScErrScServiceFailedCreateLck">
       <message>scservice tried to create a mutex named scservice_is_running_lock but CreateMutex() returned NULL.</message>
     </code>
+    <code hex="008F" severity="Error" name="ScErrWeaverFailedStrongNameAsm">
+      <message>A locally deployed strong-named assembly was detected.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
