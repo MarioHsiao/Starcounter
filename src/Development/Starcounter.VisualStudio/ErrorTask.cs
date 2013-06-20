@@ -105,7 +105,7 @@ namespace Starcounter.VisualStudio {
             // TODO:
 
             return string.IsNullOrEmpty(this.Helplink)
-                ? "http://www.starcounter.com/wiki"
+                ? StarcounterEnvironment.InternetAddresses.StarcounterWiki
                 : this.Helplink;
         }
 
