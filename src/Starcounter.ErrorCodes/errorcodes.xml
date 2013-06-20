@@ -3804,6 +3804,18 @@
         The executable is not running.
       </message>
     </code>
+    <code hex="001B" severity="Error" name="ScErrDbProcNotSignaling">
+      <message>
+        The database data process, when started, didn't signal it was
+        operational in time.
+      </message>
+    </code>
+    <code hex="001C" severity="Error" name="ScErrDbProcTerminated">
+      <message>
+        The server detected that the database data process unexpectedly
+        terminated during a management operation.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
