@@ -4071,6 +4071,16 @@
         code host process the about-to-be-debugged application targets.
       </remarks>
     </code>
+    <code hex="000E" severity="Error" name="ScErrDebugDbHigherPrivilege">
+      <message>
+        Unable to attach the debugger to the database process because the database runs
+        with a higher privilege than Visual Studio.
+      </message>
+      <remarks>
+        To resolve this, either restart Visual Studio and run it as an administrator, or
+        make sure the database runs in non-elevated mode.
+      </remarks>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->
