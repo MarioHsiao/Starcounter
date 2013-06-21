@@ -156,9 +156,12 @@ namespace Starcounter.InstallerWPF
 
             // Checking if another Starcounter version is installed.
             // NOTE: Environment.Exit is used on purpose here, not just "return";
+
+#if SIMULATE_INSTALLATION
+#else
             if (IsAnotherVersionInstalled())
                 Environment.Exit(0);
-
+#endif
             // Showing main setup window.
             InitializationWindow window = new InitializationWindow();
             window.Show();
