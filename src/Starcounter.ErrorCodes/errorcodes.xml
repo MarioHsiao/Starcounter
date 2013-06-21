@@ -1308,6 +1308,9 @@
     <code hex="008E" severity="Error" name="ScErrScServiceFailedCreateLck">
       <message>scservice tried to create a mutex named scservice_is_running_lock but CreateMutex() returned NULL.</message>
     </code>
+    <code hex="008F" severity="Error" name="ScErrWeaverFailedStrongNameAsm">
+      <message>A locally deployed strong-named assembly was detected.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
@@ -3804,6 +3807,25 @@
         The executable is not running.
       </message>
     </code>
+    <code hex="001B" severity="Error" name="ScErrDbProcNotSignaling">
+      <message>
+        The database data process, when started, didn't signal it was
+        operational in time.
+      </message>
+    </code>
+    <code hex="001C" severity="Error" name="ScErrDbProcTerminated">
+      <message>
+        The server detected that the database data process unexpectedly
+        terminated during a management operation.
+      </message>
+    </code>
+    <code hex="001D" severity="Error" name="ScErrEngineProcFailedStart">
+      <message>
+        The database engine process failed to start due to an unexpected
+        internal error. The full error detail can be found in the server
+        log.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
@@ -4070,6 +4092,32 @@
         debugger was not possible, since a debugger was already attached to the database
         code host process the about-to-be-debugged application targets.
       </remarks>
+    </code>
+    <code hex="000E" severity="Error" name="ScErrDebugDbHigherPrivilege">
+      <message>
+        Unable to attach the debugger to the database process because the database runs
+        with a higher privilege than Visual Studio.
+      </message>
+      <remarks>
+        To resolve this, either restart Visual Studio and run it as an administrator, or
+        make sure the database runs in non-elevated mode.
+      </remarks>
+    </code>
+    <code hex="000F" severity="Error" name="ScErrDebugNoDbProcess">
+      <message>
+        Unable to attach the debugger to the database process because the database
+        process was not found.
+      </message>
+      <remarks>
+        This indicate the database process terminated in between it was started
+        and when Visual Studio tried attaching a debugger to it.
+      </remarks>
+    </code>
+    <code hex="0010" severity="Error" name="ScErrDebugSequenceFailUnexpect">
+      <message>
+        The debugging sequence failed with an unexpected error. Consult the
+        Visual Studio activity log for additional information.
+      </message>
     </code>
   </facility>
 

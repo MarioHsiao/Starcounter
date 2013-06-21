@@ -127,7 +127,7 @@ namespace Starcounter
         /// <returns>System.String.</returns>
         public static string ToHelpLink(uint errorCode)
         {
-            return string.Format("{0}SCERR{1}",
+            return string.Format("{0}/SCERR{1}",
                 StarcounterEnvironment.InternetAddresses.StarcounterWiki,
                 errorCode
                 );
