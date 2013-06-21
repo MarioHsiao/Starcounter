@@ -83,6 +83,10 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
         }
     }
 
+    public String ColumnName {
+        get { return ""; }
+    }
+
     /// <summary>
     /// The DbTypeCode of the return value of this method.
     /// </summary>
