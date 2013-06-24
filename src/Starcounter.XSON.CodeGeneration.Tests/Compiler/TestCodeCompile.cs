@@ -23,9 +23,12 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             roslynMetadata = roslyn.AnalyzeCodeBehind("Complex", @"Compiler\complex.json.cs");
             AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
-            roslynMetadata = roslyn.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
             monoMetadata = mono.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
-            
+            roslynMetadata = roslyn.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
+            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+
+            monoMetadata = mono.AnalyzeCodeBehind("Incorrect", @"Compiler\Incorrect.json.cs");
+            roslynMetadata = roslyn.AnalyzeCodeBehind("Incorrect", @"Compiler\Incorrect.json.cs");            
             AssertMetadataAreEqual(roslynMetadata, monoMetadata);
         }
 

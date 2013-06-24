@@ -255,8 +255,53 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 ConnectCodeBehindClasses(root, metadata);
                 GenerateInputBindings((NTAppClass)acn.NTemplateClass, metadata);
             }
+            CheckMissingBindingInformation(tcn);
 
             return root;
+        }
+
+        private void CheckMissingBindingInformation(NTAppClass ntApp) {
+            NArrXXXClass tArr;
+            NTAppClass childTApp;
+            NProperty property;
+            string propertyName;
+
+            if (!ntApp.AutoBindProperties)
+                return;
+
+            foreach (NBase nb in ntApp.Children) {
+                property = nb as NProperty;
+                if (property != null) {
+                    propertyName = property.Template.PropertyName;
+                    if (string.IsNullOrEmpty(propertyName) || propertyName[0] == '_')
+                        continue;
+
+                    tArr = property.Type as NArrXXXClass;
+                    if (tArr != null)
+                        childTApp = (NTAppClass)tArr.NTApp;
+                    else
+                        childTApp = property.Type as NTAppClass;
+
+                    if (childTApp != null) {
+                        if (!childTApp.AutoBindProperties) {
+                            // We have a property which is an array or an object that should be bound but 
+                            // AutoBindProperties is false which means that we have no type information.
+
+                            // Get the full path for the current property (including classname)
+                            Template parent = property.Template.Parent;
+                            while (true) {
+                                propertyName = parent.PropertyName + "." + propertyName;
+                                if (parent.Parent == null)
+                                    break;
+                                parent = parent.Parent;
+                            }
+                            propertyName = ((TObj)parent).ClassName + propertyName;
+                            throw ErrorCode.ToException(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'");
+                        }
+                        CheckMissingBindingInformation(childTApp);
+                    }
+                }
+            }
         }
 
         /// <summary>

@@ -107,14 +107,12 @@ namespace Starcounter.VisualStudio.Projects {
             return project;
         }
 
-        protected void ReportError(string text, params object[] parameters) {
-            ReportError(string.Format(text, parameters));
+        protected void ReportError(string text, uint code = Error.SCERRUNSPECIFIED, params object[] parameters) {
+            ReportError(string.Format(text, parameters), code);
         }
 
-        protected void ReportError(string description) {
-            var task = package.ErrorList.NewTask(ErrorTaskSource.Debug);
-            task.Text = description;
-            task.CanDelete = true;
+        protected void ReportError(string description, uint code = Error.SCERRUNSPECIFIED) {
+            var task = package.ErrorList.NewTask(ErrorTaskSource.Debug, description, code);
             
             this.package.ErrorList.Tasks.Add(task);
             this.package.ErrorList.Refresh();
@@ -123,7 +121,6 @@ namespace Starcounter.VisualStudio.Projects {
 
         protected void ReportError(ErrorMessage msg) {
             var task = package.ErrorList.NewTask(ErrorTaskSource.Debug, msg);
-            task.CanDelete = true;
 
             this.package.ErrorList.Tasks.Add(task);
             this.package.ErrorList.Refresh();
@@ -238,6 +235,7 @@ namespace Starcounter.VisualStudio.Projects {
         }
 
         int IVsDebuggableProjectCfg.DebugLaunch(uint grfLaunch) {
+            ErrorMessage error;
             bool launchResult;
 
             // Keep an eye on the status of the process launching
@@ -281,7 +279,6 @@ namespace Starcounter.VisualStudio.Projects {
                     // to report errors already reported.
 
                     if (code != Error.SCERRDEBUGFAILEDREPORTED) {
-                        ErrorMessage error;
                         if (!ErrorCode.TryGetCodedMessage(unexpectedException, out error)) {
                             error = ErrorCode.ToMessage(code);
                         }
@@ -289,7 +286,14 @@ namespace Starcounter.VisualStudio.Projects {
                     }
 
                 } else {
-                    this.ReportError("Unexpected exception in the debugging launch sequence: {0}", unexpectedException.Message);
+                    // Log this, because we have no idea of what it is. Then report the
+                    // general debugging sequence error.
+                    
+                    error = ErrorCode.ToMessage(Error.SCERRDEBUGSEQUENCEFAILUNEXPECT, 
+                        string.Format("Error summary: {0}", unexpectedException.Message));
+                    this.package.LogError(
+                        string.Format("{0}{1}Exception: {2}", error.ToString(), Environment.NewLine, unexpectedException.ToString()));
+                    this.ReportError(error);
                 }
 
                 launchResult = false;

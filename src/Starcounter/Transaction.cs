@@ -174,13 +174,24 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// </summary>
+        /// </summary>´
         public static Transaction NewCurrent() {
+            return NewCurrent(false);
+        }
+
+        /// <summary>
+        /// </summary>
+        public static Transaction NewCurrent(bool readOnly) {
             try {
                 ulong handle;
                 ulong verify;
+                uint flags = sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
+
+                if (readOnly)
+                    flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
+
                 uint r = sccoredb.sccoredb_create_transaction_and_set_current(
-                    sccoredb.MDB_TRANSCREATE_MERGING_WRITES,
+                    flags,
                     0,
                     out handle,
                     out verify
@@ -230,11 +241,20 @@ namespace Starcounter
 
         /// <summary>
         /// </summary>
-        public Transaction() {
+        public Transaction() : this(false) { }
+
+        /// <summary>
+        /// </summary>
+        public Transaction(bool readOnly) {
             ulong handle;
             ulong verify;
+            uint flags = sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
+
+            if (readOnly)
+                flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
+
             uint r = sccoredb.sccoredb_create_transaction(
-                sccoredb.MDB_TRANSCREATE_MERGING_WRITES,
+                flags,
                 out handle,
                 out verify
                 );

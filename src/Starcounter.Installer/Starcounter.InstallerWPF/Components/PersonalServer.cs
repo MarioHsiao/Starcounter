@@ -45,6 +45,10 @@ namespace Starcounter.InstallerWPF.Components
 
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.PersonalServer];
 
+#if SIMULATE_CLEAN_INSTALLATION
+            this.IsInstalled = false;
+#endif
+
             string basePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                                                      Configuration.StarcounterCommonPath );
 

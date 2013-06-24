@@ -450,8 +450,11 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
 
-                if (!isIgnored)
-                    ScMessageSource.Write(SeverityType.Error, "SCATV05", new Object[] { _module.AssemblyManifest.GetFullName() });
+                if (!isIgnored) {
+                    var consideration = "Consider excluding this file by adding a \"weaver.ignore\" file to your project.";
+                    var postfix = string.Format("Assembly: {0}. {1}", _module.AssemblyManifest.GetFullName(), consideration);
+                    ScMessageSource.WriteError(MessageLocation.Unknown, Error.SCERRWEAVERFAILEDSTRONGNAMEASM, postfix);
+                }
             }
 
             // Find the reference to Starcounter

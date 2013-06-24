@@ -102,7 +102,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             CSharpToken token;
 
             braceCount = 0;
-            while (mce.MoveNext()) {
+            do {
                 token = mce.Token;
                 if (token == CSharpToken.OPEN_BRACE)
                     braceCount++;
@@ -112,7 +112,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                     if (braceCount == 0)
                         break;
                 }
-            }
+            } while (mce.MoveNext());
         }
 
         /// <summary>
