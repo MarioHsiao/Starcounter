@@ -72,7 +72,7 @@ active_databases_updates_() {
 		}
 
 		// Start the watch_active_databases_updates thread.
-		active_databases_updates_ = boost::thread(boost::bind(&test::watch_active_databases_updates, this));
+		active_databases_updates_ = boost::thread(&test::watch_active_databases_updates, this);
 	}
 	else {
 		std::cout << "error: please enter <server name> <database name(s)>" << std::endl;
@@ -272,11 +272,11 @@ duration_time_milliseconds) {
 		std::cout << "test::run(): Started worker[" << i << "]" << std::endl;
 	}
 	
-	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	// Start statistics thread
 	statistics_thread_ = boost::thread(&test::show_statistics, this,
 	interval_time_milliseconds, duration_time_milliseconds); 
-	#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 }
 
 void test::stop_worker(std::size_t n) {
