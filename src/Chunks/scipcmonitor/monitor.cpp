@@ -31,8 +31,8 @@
 // If an IPC monitor exit then database- and client processes can not detect this.
 
 #include <iostream>
-//#include <boost/interprocess/sync/interprocess_mutex.hpp>
-//#include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/interprocess/sync/interprocess_mutex.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
 #if defined(_MSC_VER)
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
