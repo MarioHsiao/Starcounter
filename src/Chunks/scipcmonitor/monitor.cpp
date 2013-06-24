@@ -78,7 +78,6 @@
 #include <vector>
 #include <utility>
 #include <cstdint>
-#include <boost/array.hpp>
 #include <map>
 #include <boost/unordered_map.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -87,7 +86,6 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include <boost/utility.hpp>
@@ -139,8 +137,8 @@ try {
 	std::wcout << L"Starcounter Interprocess Communication (IPC) monitor" << std::endl;
 	
 	// Start the monitor application.
-	boost::scoped_ptr<monitor> app(new monitor(argc, argv));
-	app->run();
+	monitor app(argc, argv);
+	app.run();
 	
 	// Now the monitor is running. Send ack to the server that the monitor is
 	// monitoring.
@@ -151,31 +149,6 @@ try {
 	/// killing the monitor process is the best way, but will probably work ok.
 	// Waiting here forever until killed.
 	Sleep(INFINITE);
-	
-	#if 0
-	while (true) {
-		app->print_event_register();
-		Sleep(2500);
-	}
-	#endif
-	#if 0
-	/// To help demo, a simple command interpreter. TODO: Remove/cancel out.
-	std::string command;
-	
-	while (true) {
-		std::cin >> command;
-		if (command == "print" || command == "p") {
-			app->print_event_register();
-			//app->print_exited_processes();
-		}
-		if (command == "quit" || command == "q") {
-			break;
-		}
-	}   
-	
-	std::cout << boost::this_thread::get_id() << " main():\n"
-	<< "Exit." << std::endl; /// debug
-	#endif
 }
 catch (const starcounter::core::ipc_monitor_exception& e) {
 	std::wcout << L"Andreas. You need to provide better feedback when started using command line." << std::endl;
