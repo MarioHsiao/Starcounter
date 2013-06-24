@@ -43,6 +43,7 @@
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
 #include "../common/noncopyable.hpp"
+#include "../common/thread.hpp"
 #include "../common/bit_operations.hpp"
 #include "../common/macro_definitions.hpp"
 #include "../common/config_param.hpp"
