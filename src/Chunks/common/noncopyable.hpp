@@ -21,6 +21,7 @@ class noncopyable {
 protected:
 	noncopyable() {}
 	~noncopyable() {}
+
 private:
 	// Emphasize the following members are private.
 	noncopyable(const noncopyable&);
