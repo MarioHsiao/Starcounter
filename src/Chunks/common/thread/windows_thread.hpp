@@ -2,7 +2,7 @@
 // windows_thread.hpp
 //
 // Copyright © 2006-2013 Starcounter AB. All rights reserved.
-// StarcounterÆ is a registered trademark of Starcounter AB.
+// Starcounter® is a registered trademark of Starcounter AB.
 //
 
 #ifndef STARCOUNTER_CORE_THREAD_WINDOWS_THREAD_HPP
