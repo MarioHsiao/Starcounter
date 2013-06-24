@@ -269,7 +269,7 @@ namespace Starcounter.Internal
             /// <summary>
             /// The starcounter wiki
             /// </summary>
-            public const string StarcounterWiki = "http://www.starcounter.com/wiki/";
+            public const string StarcounterWiki = "https://github.com/Starcounter/Starcounter/wiki";
             /// <summary>
             /// The administrator start page
             /// </summary>

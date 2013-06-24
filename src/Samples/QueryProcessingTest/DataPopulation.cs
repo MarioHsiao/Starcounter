@@ -21,6 +21,7 @@ namespace QueryProcessingTest {
                         UserIdNr = i,
                         FirstName = "Fn" + i,
                         LastName = "Ln" + i,
+                        NickName = "Nk" + i,
                         BirthDay = new DateTime(rnd.Next(OldestBirthYear, YoungestBirthYear), rnd.Next(1, 12), rnd.Next(1, 28))
                     };
                     for (int j = 0; j < nrAccountPerUser; j++)
@@ -39,6 +40,7 @@ namespace QueryProcessingTest {
                         UserIdNr = i,
                         FirstName = "Fn" + i,
                         LastName = "Ln" + i,
+                        NickName = "Nk" + i,
                         BirthDay = new DateTime(rnd.Next(1950, 1985), rnd.Next(1, 12), rnd.Next(1, 28))
                     };
                     for (int j = 0; j < nrAccountPerUser; j++)

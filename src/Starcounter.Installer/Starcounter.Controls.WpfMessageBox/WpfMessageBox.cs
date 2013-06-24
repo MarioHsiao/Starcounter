@@ -521,7 +521,7 @@ namespace Starcounter.Controls
 
             // image
             double imageWidth = 0;
-            if (this.Image_Part.Visibility == System.Windows.Visibility.Visible)
+            if (this.Image_Part != null && this.Image_Part.Visibility == System.Windows.Visibility.Visible)
             {
                 imageWidth = this.Image_Part.ActualWidth + this.Image_Part.Margin.Left + this.Image_Part.Margin.Right;
             }

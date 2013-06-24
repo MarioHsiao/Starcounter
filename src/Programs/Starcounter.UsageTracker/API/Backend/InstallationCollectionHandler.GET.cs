@@ -20,7 +20,9 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Backend {
                         foreach (Installation item in result) {
                             response.installation[i++] = new {
                                 id = item.GetObjectID(),
+                                date = item.Date,
                                 installationNo = item.InstallationNo,
+                                previousInstallationNo = item.PreviousInstallationNo,
                                 downloadId = item.DownloadID
                             };
                         }

@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.Internal;
 using System;
+using System.IO;
 using System.Management;
 using System.Net.NetworkInformation;
 
@@ -121,21 +122,70 @@ namespace Starcounter.Tracking {
 
 
         /// <summary>
-        /// Save installation sequence number to starcounter application
+        /// Save the installation sequence number to starcounter application
         /// </summary>
         /// <param name="no">Installation Sequence number</param>
         public static void SaveInstallationNo(int no) {
 
-            Properties.Settings.Default.installationNo = no;
-            Properties.Settings.Default.Save();
+            //Properties.Settings.Default.installationNo = no;
+            //Properties.Settings.Default.Save();
+            try {
+
+                string folder = GetTrackingConfigurationFolder();
+                if (!Directory.Exists(folder)) {
+                    Directory.CreateDirectory(folder);
+                }
+
+                string fileName = System.IO.Path.Combine(folder, "installationNo.txt");
+
+                // Create a file to write to. 
+                using (StreamWriter sw = File.CreateText(fileName)) {
+                    sw.WriteLine(no.ToString());
+                }
+            }
+            catch (Exception) {
+
+            }
+        }
+
+        /// <summary>
+        /// Get the folder path to where the installation number is stored
+        /// </summary>
+        /// <returns></returns>
+        public static string GetTrackingConfigurationFolder() {
+
+            string folder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData, System.Environment.SpecialFolderOption.Create);
+            return System.IO.Path.Combine(folder, "Starcounter AB");
         }
 
         /// <summary>
         /// Get the starcounter application installation sequence number
         /// </summary>
         public static int GetInstallationNo() {
-            return Properties.Settings.Default.installationNo;
+            //return Properties.Settings.Default.installationNo;
+            try {
+                string folder = GetTrackingConfigurationFolder();
+                string fileName = System.IO.Path.Combine(folder, "installationNo.txt");
+
+                using (StreamReader sr = File.OpenText(fileName)) {
+                    int installationNo = 0;
+
+                    string line = string.Empty;
+                    while ((line = sr.ReadLine()) != null) {
+                        if (int.TryParse(line, out installationNo)) {
+                            return installationNo;
+                        }
+                    }
+                }
+            }
+            catch (Exception) {
+            }
+
+            return -1;
+            //return Properties.Settings.Default.installationNo;
         }
+
+
 
     }
 }

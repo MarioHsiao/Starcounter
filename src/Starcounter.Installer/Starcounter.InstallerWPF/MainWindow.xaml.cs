@@ -536,32 +536,40 @@ namespace Starcounter.InstallerWPF {
                 if (!(this.pages_lb.Items.CurrentItem is IFinishedPage || this.pages_lb.Items.CurrentItem is ErrorPage)) {
 
                     WpfMessageBoxResult result = WpfMessageBox.Show("Do you want to exit the setup program?", "Starcounter - Setup", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
-                    if (result != WpfMessageBoxResult.Yes) {
-                        e.Cancel = true;
+                    if (result == WpfMessageBoxResult.Yes) {
+                        e.Cancel = false;
                     }
                     else {
-
-                        this.Hide();
-
-                        // Cancel the close down and use a delayed closedown
-                        this.bDelayedClose = true;
                         e.Cancel = true;
 
-                        // Send the tracking data before we close down.
-                        Dispatcher disp = Dispatcher.FromThread(Thread.CurrentThread);
-
-                        Starcounter.Tracking.Client.Instance.SendInstallerEnd(this.linksUserClickedOn,
-                              delegate(object sender2, Starcounter.Tracking.CompletedEventArgs args) {
-                                  // Send compleated (success or error)
-                                  disp.BeginInvoke(DispatcherPriority.Normal, new Action(delegate {
-                                      // Close down on our main thread
-                                      this.Close();
-                                  })); 
-                              }
-                        );
                     }
                 }
             }
+
+
+            // Cancel the close down and use a delayed closedown
+            if (e.Cancel == false && this.bDelayedClose == false) {
+                e.Cancel = true;
+
+                this.bDelayedClose = true;
+
+                this.Hide();
+
+                // Send the tracking data before we close down.
+                Dispatcher disp = Dispatcher.FromThread(Thread.CurrentThread);
+
+                Starcounter.Tracking.Client.Instance.SendInstallerEnd(this.linksUserClickedOn,
+                      delegate(object sender2, Starcounter.Tracking.CompletedEventArgs args) {
+                          // Send compleated (success or error)
+                          disp.BeginInvoke(DispatcherPriority.Normal, new Action(delegate {
+                              // Close down on our main thread
+                              this.Close();
+                          }));
+                      }
+                );
+            }
+
+
 
         }
 

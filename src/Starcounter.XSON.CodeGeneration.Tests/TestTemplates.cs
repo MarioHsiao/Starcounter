@@ -116,6 +116,11 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
         }
+
+        [Test]
+        public static void TestMissingTypeInformationForDataBinding() {
+            Assert.Catch(() => { Obj.Factory.GenerateTypedJsonCode("databound.json", "databound.json.cs"); });
+        }
     }
 }
 
