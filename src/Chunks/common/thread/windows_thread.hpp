@@ -40,9 +40,15 @@ public:
 	}
 	
 	void join() {
-		::WaitForSingleObject(thread_, INFINITE);
-		::CloseHandle(thread_);
-		joined_ = true;
+		if (!joined_) {
+			::WaitForSingleObject(thread_, INFINITE);
+			::CloseHandle(thread_);
+			joined_ = true;
+		}
+	}
+	
+	native_handle_type native_handle() {
+		return thread_;
 	}
 	
 private:
