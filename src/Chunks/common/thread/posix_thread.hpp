@@ -39,10 +39,8 @@ public:
 	
 	void join() {
 		if (!joined_) {
-			std::cout << "::pthread_join()" << std::endl;
 			::pthread_join(thread_, 0);
 			joined_ = true;
-			std::cout << "did join!" << std::endl;
 		}
 	}
 	
