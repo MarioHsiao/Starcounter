@@ -392,7 +392,7 @@ namespace NodeTest
 
             // Waiting for all workers to succeed or fail.
             if (!WorkersMonitor.MonitorState())
-                return 1;
+                Environment.Exit(1);
 
             timer.Stop();
 
