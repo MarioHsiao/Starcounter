@@ -269,12 +269,60 @@ public:
 		return the_monitor_interface_;
 	}
 
+	struct database_process_group_type {
+		boost::thread thread_;
+		boost::detail::win32::handle thread_handle_;
+		std::vector<boost::detail::win32::handle> event_;
+	};
+
+	database_process_group_type& database_process_group(std::size_t i) {
+		return database_process_group_[i];
+	}
+
+	const database_process_group_type& database_process_group(std::size_t i) const {
+		return database_process_group_[i];
+	}
+
+	struct client_process_group_type {
+		boost::thread thread_;
+		boost::detail::win32::handle thread_handle_;
+		std::vector<boost::detail::win32::handle> event_;
+	};
+
+	client_process_group_type& client_process_group(std::size_t i) {
+		return client_process_group_[i];
+	}
+
+	const client_process_group_type& client_process_group(std::size_t i) const {
+		return client_process_group_[i];
+	}
+
+	boost::mutex& register_mutex() {
+		return register_mutex_;
+	}
+	
+	const boost::mutex& register_mutex() const {
+		return register_mutex_;
+	}
+
+	process_register_type& process_register() {
+		return process_register_;
+	}
+
+	const process_register_type& process_register() const {
+		return process_register_;
+	}
+
 private:
 	// Controlling the console a bit makes it easier to read.
 	void gotoxy(int16_t x, int16_t y);
 
 	/// The registration thread calls this.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void registrar(monitor*);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void registrar();
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	/// The cleanup_ thread calls this.
 #if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
@@ -343,17 +391,8 @@ private:
 	boost::condition active_databases_updated_;
 	bool active_databases_updated_flag_;
 	
-	struct database_process_group {
-		boost::thread thread_;
-		boost::detail::win32::handle thread_handle_;
-		std::vector<boost::detail::win32::handle> event_;
-	} database_process_group_[database_process_event_groups];
-	
-	struct client_process_group {
-		boost::thread thread_;
-		boost::detail::win32::handle thread_handle_;
-		std::vector<boost::detail::win32::handle> event_;
-	} client_process_group_[client_process_event_groups];
+	database_process_group_type database_process_group_[database_process_event_groups];
+	client_process_group_type client_process_group_[client_process_event_groups];
 	
 	// The name of the server that started this monitor.
 	std::string server_name_;
@@ -384,7 +423,11 @@ private:
 	// database_process_event_thread_group_ or the
 	// client_process_event_thread_group_. Then it waits for that thread to
 	// complete the wait_for_registration
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	thread registrar_;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::thread registrar_;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	// Cleanup thread.
 #if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
