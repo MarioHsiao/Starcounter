@@ -375,7 +375,11 @@ namespace starcounter {
          // database_process_group_[s] and client_process_group_[s] native_handle(s)
          // for those threads have been stored, since it is used in the call to
          // QueueUserAPC() by the registrar_ thread.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+         registrar_.create((thread::start_routine_type) &monitor::registrar, this);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          registrar_ = boost::thread(boost::bind(&monitor::registrar, this));
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
          // Start the cleanup thread.
 #if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
@@ -1074,26 +1078,26 @@ namespace starcounter {
 
       /// private:
 
-      void monitor::registrar() {
+      void monitor::registrar(monitor* monitor) {
          /// TODO: Shutdown mechanism.
          while (true) {
-            the_monitor_interface()->wait_for_registration();
+            monitor->the_monitor_interface()->wait_for_registration();
 
             // In data is available.
-            switch (the_monitor_interface()->get_process_type()) {
+            switch (monitor->the_monitor_interface()->get_process_type()) {
             case monitor_interface::database_process:
-               switch (the_monitor_interface()->get_operation()) {
+               switch (monitor->the_monitor_interface()->get_operation()) {
                case monitor_interface::registration_request:
                   // Database process registration request.
                   // Search all groups for a vector<event> that is not full.
                   for (std::size_t i = 0; i < database_process_event_groups; ++i) {
-                     if (database_process_group_[i].event_.size()
+                     if (monitor->database_process_group(i).event_.size()
                         < events_per_group) {
                            /// TODO: use thread_primitives.hpp
                            // Queue an user apc to that thread.
-                           QueueUserAPC(apc_function,
-                              database_process_group_[i].thread_handle_,
-                              reinterpret_cast<boost::detail::win32::ulong_ptr>(this));
+                           ::QueueUserAPC(apc_function,
+                              monitor->database_process_group(i).thread_handle_,
+                              reinterpret_cast<uint64_t>(monitor));
                            break;
                      }
                   }
@@ -1109,19 +1113,18 @@ namespace starcounter {
                }
                break;
             case monitor_interface::client_process:
-               switch (the_monitor_interface()->get_operation()) {
+               switch (monitor->the_monitor_interface()->get_operation()) {
                case monitor_interface::registration_request:
                   // Client process registration request.
                   // Search all groups for a vector<event> that is not full.
                   for (std::size_t i = 0; i < client_process_event_groups; ++i) {
-                     if (client_process_group_[i].event_.size()
+                     if (monitor->client_process_group(i).event_.size()
                         < events_per_group) {
                            /// TODO: use thread_primitives.hpp
                            // Queue an user apc to that thread.
                            ::QueueUserAPC(apc_function,
-                              client_process_group_[i].thread_handle_,
-                              reinterpret_cast<boost::detail::win32::ulong_ptr>
-                              (this));
+                              monitor->client_process_group(i).thread_handle_,
+                              reinterpret_cast<uint64_t>(monitor));
                            break;
                      }
                   }
@@ -1139,43 +1142,43 @@ namespace starcounter {
                   {
                      /// TODO: Try to optimize and hold this mutex
                      /// for the shortest time possible, as usual.
-                     boost::mutex::scoped_lock register_lock(register_mutex_);
+                     boost::mutex::scoped_lock register_lock(monitor->register_mutex());
 
                      // Find the process info to remove by searching for the key
                      // - the owner_id.
-                     process_register_type::iterator pos = process_register_
-                        .find(the_monitor_interface()->get_owner_id());
+                     process_register_type::iterator pos = monitor->process_register()
+                        .find(monitor->the_monitor_interface()->get_owner_id());
 
-                     if (pos != process_register_.end()) {
+                     if (pos != monitor->process_register().end()) {
                         // Found it. Check that the pid matches as well.
                         if (pos->second.get_pid()
-                           == the_monitor_interface()->get_pid()) {
+                           == monitor->the_monitor_interface()->get_pid()) {
                               // The pid matches as well. Remove from the
                               // register.
-                              remove_client_process_event(pos->second
+                              monitor->remove_client_process_event(pos->second
                                  .get_handle());
 
-                              process_register_.erase(pos);
-                              the_monitor_interface()->set_owner_id(owner_id
+                              monitor->process_register().erase(pos);
+                              monitor->the_monitor_interface()->set_owner_id(owner_id
                                  (owner_id::none));
                         }
                         else {
                            // The owner_id matches but not the pid. Something
                            // is wrong, so the process_info is not removed.
-                           log().error(SCERRTHEOWNERIDMATCHBUTNOTTHEPID);
+                           monitor->log().error(SCERRTHEOWNERIDMATCHBUTNOTTHEPID);
                         }
                      }
                      else {
                         // The pid matches but not the owner_id. Something is wrong,
                         // so the process_info is not removed.
-                        log().error(SCERRTHEPIDMATCHBUTNOTTHEOWNERID);
+                        monitor->log().error(SCERRTHEPIDMATCHBUTNOTTHEOWNERID);
                      }
 
-                     the_monitor_interface()->set_out_data_available_state(true);
+                     monitor->the_monitor_interface()->set_out_data_available_state(true);
 
                      // Notify the unregistering process that out data is
                      // available.
-                     the_monitor_interface()->out_data_is_available_notify_one();
+                     monitor->the_monitor_interface()->out_data_is_available_notify_one();
                   }
                }
                break;
