@@ -7,7 +7,7 @@ CMD /C "kill_all.bat" 2>NUL
 IF NOT EXIST ".srv" star.exe @@CreateRepo .srv
 
 :: Setting StarcounterBin as current directory.
-SET StarcounterBin %CD%
+SET StarcounterBin=%CD%
 
 :: Starting service in background.
 START CMD /C "scservice.exe"
