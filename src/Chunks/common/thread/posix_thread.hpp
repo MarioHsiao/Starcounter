@@ -12,6 +12,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <utility>
 #include <pthread.h>
 #include "../noncopyable.hpp"
 
@@ -37,6 +38,11 @@ public:
 		return !pthread_create(&thread_, (const pthread_attr_t*) 0, routine, arg);
 	}
 	
+	template<typename T1, typename T2>
+	int create(start_routine_type routine, std::pair<T1,T2>* arg) {
+		return !pthread_create(&thread_, (const pthread_attr_t*) 0, routine, arg);
+	}
+
 	void join() {
 		if (!joined_) {
 			::pthread_join(thread_, 0);
