@@ -44,7 +44,7 @@ namespace GenerateInstaller
         /// </summary>
         static readonly String[] OutputFilesToDelete =
         {
-            
+            "personal.xml"
         };
 
         // Uploads build on FTP.
