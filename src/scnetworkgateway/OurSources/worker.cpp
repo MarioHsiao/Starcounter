@@ -258,10 +258,10 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 #endif
 
         // Setting needed socket options.
-        int32_t onFlag = 1;
+        int32_t on_flag = 1;
 
         // Disables the Nagle algorithm for send coalescing.
-        if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&onFlag, 4))
+        if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&on_flag, 4))
         {
             GW_PRINT_WORKER << "Can't set TCP_NODELAY on socket." << GW_ENDL;
 
@@ -271,7 +271,7 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
         }
 
         // Does not block close waiting for unsent data to be sent.
-        if (setsockopt(new_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&onFlag, 4))
+        if (setsockopt(new_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, 4))
         {
             GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
 
