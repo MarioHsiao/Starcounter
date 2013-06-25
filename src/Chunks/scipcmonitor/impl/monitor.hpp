@@ -1078,7 +1078,12 @@ namespace starcounter {
 
       /// private:
 
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::registrar(monitor* monitor) {
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::registrar() {
+		monitor* monitor = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          /// TODO: Shutdown mechanism.
          while (true) {
             monitor->the_monitor_interface()->wait_for_registration();
@@ -1186,7 +1191,12 @@ namespace starcounter {
          }
       }
 
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::cleanup(monitor* monitor) {
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::cleanup() {
+		monitor* monitor = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          /// TODO: Shutdown mechanism.
          while (true) {
             switch (::WaitForSingleObject(monitor->ipc_monitor_cleanup_event(), INFINITE)) {
