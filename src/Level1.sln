@@ -337,7 +337,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "thread", "thread", "{87545F
 		Chunks\common\thread\windows_thread.hpp = Chunks\common\thread\windows_thread.hpp
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNode", "Samples\TestNode\TestNode.csproj", "{D169924E-E6C5-42AE-AEB3-43698D642285}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NodeTest", "Samples\NodeTest\NodeTest.csproj", "{D169924E-E6C5-42AE-AEB3-43698D642285}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
