@@ -31,7 +31,7 @@ namespace NodeTest
 
         public Int32 NumEchoesPerWorker = 10000;
 
-        public Int32 NumSecondsToWait = 150;
+        public Int32 NumSecondsToWait = 200;
 
         public AsyncModes AsyncMode = AsyncModes.ModeRandom;
 
@@ -163,7 +163,7 @@ namespace NodeTest
             Byte[] resp_body = resp.BodyBytes;
             if (resp_body.Length != num_echo_bytes_)
             {
-                NodeTest.WorkersMonitor.IndicateTestFailed();
+                NodeTest.WorkersMonitor.FailTest();
                 return false;
             }
 
@@ -185,7 +185,7 @@ namespace NodeTest
                             Console.WriteLine("Different bytes!");
                     }*/
 
-                    NodeTest.WorkersMonitor.IndicateTestFailed();
+                    NodeTest.WorkersMonitor.FailTest();
                     return false;
                 }
             }
@@ -271,13 +271,17 @@ namespace NodeTest
 
                     if (!test.PerformTest(GlobalNode))
                         return;
+
+                    // Checking if tests has already failed.
+                    if (NodeTest.WorkersMonitor.HasTestFailed)
+                        return;
                 }
             }
             catch (Exception exc)
             {
                 Console.WriteLine(Id + ": test crashed: " + exc.ToString());
 
-                NodeTest.WorkersMonitor.IndicateTestFailed();
+                NodeTest.WorkersMonitor.FailTest();
             }
         }
     }
@@ -304,9 +308,17 @@ namespace NodeTest
         volatile Boolean all_tests_succeeded_ = true;
 
         /// <summary>
+        /// Returns True if tests failed.
+        /// </summary>
+        public Boolean HasTestFailed
+        {
+            get { return !all_tests_succeeded_; }
+        }
+
+        /// <summary>
         /// Indicate that some test failed.
         /// </summary>
-        public void IndicateTestFailed()
+        public void FailTest()
         {
             all_tests_succeeded_ = false;
         }
@@ -339,6 +351,7 @@ namespace NodeTest
             if (num_ms_passed >= num_ms_max)
             {
                 Console.Error.WriteLine("Test failed: took too long time.");
+                FailTest();
                 return false;
             }
 
