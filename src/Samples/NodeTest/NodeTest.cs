@@ -332,13 +332,13 @@ namespace NodeTest
 
             if (!all_tests_succeeded_)
             {
-                Console.WriteLine("Test failed: incorrect echo received.");
+                Console.Error.WriteLine("Test failed: incorrect echo received.");
                 return false;
             }
 
             if (num_ms_passed >= num_ms_max)
             {
-                Console.WriteLine("Test failed: took too long time.");
+                Console.Error.WriteLine("Test failed: took too long time.");
                 return false;
             }
 
