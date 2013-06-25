@@ -399,8 +399,13 @@ namespace starcounter {
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          // Start the resources watching thread.
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+         resources_watching_thread_.create
+		 ((thread::start_routine_type) &monitor::watch_resources, this);
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          resources_watching_thread_ = boost::thread(boost::bind
             (&monitor::watch_resources, this));
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
       }
 
@@ -1522,7 +1527,12 @@ namespace starcounter {
       /// which it can but then statistics are messed up completely. Only test with
       /// one database running.
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::watch_resources(monitor* monitor) {
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::watch_resources() {
+		monitor* monitor = this;
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          // Vector of all shared interfaces.
          std::vector<boost::shared_ptr<shared_interface> > shared;
          shared.reserve(256);
@@ -1533,7 +1543,7 @@ namespace starcounter {
          Sleep(1000);
          system("cls");
 
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
          boost::timer t;
 
          // stat[0] contains the most recently collected statistics, and
@@ -1601,16 +1611,16 @@ namespace starcounter {
             Sleep(1);
          }
 
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
          int active_segments_update_counter = 0; // Prevent checking too often.
 
          do {
             std::cout.flush();
-            gotoxy(0, 0);
+            monitor->gotoxy(0, 0);
 
             if (active_segments_update_counter-- <= 0) {
                // Check if there is a new segment name to add.
-               if (active_segments_update_.pop_back(&segment_name, 0, 100)) {
+               if (monitor->active_segments_update().pop_back(&segment_name, 0, 100)) {
                   retries = 0;
 
                   while (true) {
@@ -1683,7 +1693,7 @@ namespace starcounter {
                //}
 
                //------------------------------------------------------------------
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
                std::cout << "\nChannels (rate, client/scheduler)    "
                   << "Elapsed time: " << stat[0].timestamp << " s";
 
@@ -1753,9 +1763,9 @@ namespace starcounter {
                   out_popped_previous_sum += out_popped_previous;
                }
 
-#else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
                std::cout << "\nChannels (client/scheduler):";
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
                for (std::size_t ch = 0; ch < channels; ++ch) {
                   if (!(ch % 8)) {
@@ -1776,7 +1786,7 @@ namespace starcounter {
 
                   // First indicator: Rate (chunks/sec that are popped from the out
                   // queue), or spaces if not available.
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
                   //--------------------------------------------------------------
                   // Calculate the channel flow as number of chunks that are
@@ -1788,9 +1798,9 @@ namespace starcounter {
                   print_rate_with_precision(rate);
 
                   //--------------------------------------------------------------
-#else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
                   std::cout << "    "; // Flow unknown.
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
                   // Distance to next indicator.
                   std::cout << " ";
@@ -1834,7 +1844,7 @@ namespace starcounter {
                      std::cout << " ";
                   }
 
-#if 0
+# if 0
                   // Separator.
                   std::cout << "/";
                   //--------------------------------------------------------------
@@ -1853,7 +1863,7 @@ namespace starcounter {
                   else {
                      std::cout << " ";
                   }
-#endif
+# endif
 
                   //--------------------------------------------------------------
                   // Two spaces separate channels information.
