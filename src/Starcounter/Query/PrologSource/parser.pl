@@ -1,11 +1,12 @@
 
 
-/* Parser, Peter Idestam-Almquist, Starcounter, 2013-05-31. */
+/* Parser, Peter Idestam-Almquist, Starcounter, 2013-06-04. */
 
 /* A parser for SQL following SQL92. The numbers of the sections below refer to the chapters in 
 *  the specification of the ANSI-standard SQL92. 
 */
 
+/* 13-06-04: Modified is and isNot operators to deal with outer join bug. */
 /* 13-05-31: Modified empty_string_literal. */
 /* 13-05-24: Added support of double-quote delimited identifiers ("..."). */
 /* 13-05-24: Removed support of double-quote text strings ("..."). */
@@ -1084,10 +1085,10 @@ null_predicate(Ts1,Ts4,comparison(any,Operator,ValueExpr,Literal)):-
 	is_operator(Ts2,Ts3,Operator), 
 	null_literal(Ts3,Ts4,Literal), !.
 
-is_operator(Ts1,Ts3,isNot):- 
+is_operator(Ts1,Ts3,isNot([])):- 
 	terminal(Ts1,'<IS>',Ts2), 
 	terminal(Ts2,'<NOT>',Ts3), !.
-is_operator(Ts1,Ts2,is):- 
+is_operator(Ts1,Ts2,is([])):- 
 	terminal(Ts1,'<IS>',Ts2), !.
 
 
@@ -1146,14 +1147,6 @@ boolean_test(Ts1,Ts3,Cond2):-
 	boolean_primary(Ts1,Ts2,Cond1), 
 	boolean_test2(Ts2,Ts3,Cond1,Cond2), !.
 
-/*** 
-* No support of Boolean test operator IS (071213).
-boolean_test2(Ts1,Ts4,Cond1,Cond2):- 
-	terminal(Ts1,'<IS>',Ts2), !, 
-	boolean_test3(Ts2,Ts3,Neg), 
-	truth_value(Ts3,Ts4,TruthValue), 
-	concat_not(Neg,operation(logical,is,Cond1,TruthValue),Cond2), !.
-***/
 boolean_test2(Ts,Ts,Cond,Cond):- !.
 
 boolean_test3(Ts1,Ts2,not):- 
