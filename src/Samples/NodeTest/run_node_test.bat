@@ -35,6 +35,6 @@ GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
-ECHO Error occurred during the performance test! 1>&2
+ECHO Error occurred during the Node test! 1>&2
 CMD /C "kill_all.bat" 2>NUL
 EXIT 1
