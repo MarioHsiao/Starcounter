@@ -49,6 +49,9 @@
 //# include <intrin.h>
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+# include "../common/thread.hpp"
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #include "../common/pid_type.hpp"
 #include "../common/owner_id.hpp"
 #include "../common/macro_definitions.hpp"
@@ -254,6 +257,18 @@ public:
 	/// Get const reference to the log.
 	const starcounter::log& log() const;
 
+	HANDLE& ipc_monitor_cleanup_event() {
+		return ipc_monitor_cleanup_event_;
+	}
+
+	const HANDLE& ipc_monitor_cleanup_event() const {
+		return ipc_monitor_cleanup_event_;
+	}
+
+	monitor_interface* the_monitor_interface() {
+		return the_monitor_interface_;
+	}
+
 private:
 	// Controlling the console a bit makes it easier to read.
 	void gotoxy(int16_t x, int16_t y);
@@ -262,7 +277,11 @@ private:
 	void registrar();
 	
 	/// The cleanup_ thread calls this.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void cleanup(monitor*);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void cleanup();
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	static void __stdcall apc_function(boost::detail::win32::ulong_ptr arg);
 	
@@ -367,8 +386,12 @@ private:
 	// complete the wait_for_registration
 	boost::thread registrar_;
 	
-	// Clean up thread.
+	// Cleanup thread.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	thread cleanup_;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::thread cleanup_;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
 	// The active databases file updater thread waits for a notification from
 	// any thread that updates the register, and will write a list of active
