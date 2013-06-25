@@ -29,6 +29,17 @@ namespace Weaver {
             try {
                 if (TryGetProgramArguments(args, out arguments))
                     ApplyOptionsAndExecuteGivenCommand(arguments);
+            }
+            catch (Exception e) {
+                // Catch any unhandled exception to prevent it
+                // from slipping to the shell, and handle it the
+                // best way we can.
+                uint errorCode;
+                if (!ErrorCode.TryGetCode(e, out errorCode)) {
+                    errorCode = Error.SCERRUNHANDLEDWEAVEREXCEPTION;
+                }
+                Program.ReportProgramError(errorCode, e.ToString());
+
             } finally {
                 Console.ResetColor();
             }
