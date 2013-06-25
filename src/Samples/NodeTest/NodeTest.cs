@@ -31,7 +31,7 @@ namespace NodeTest
 
         public Int32 NumEchoesPerWorker = 10000;
 
-        public Int32 NumSecondsToWait = 100;
+        public Int32 NumSecondsToWait = 150;
 
         public AsyncModes AsyncMode = AsyncModes.ModeRandom;
 
