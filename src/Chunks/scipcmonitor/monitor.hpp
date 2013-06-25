@@ -203,7 +203,11 @@ public:
 	
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
 	/// Show statistics and resource usage.
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void watch_resources(monitor*);
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void watch_resources();
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
 	
 	/// The apc_function() calls this so that we can access member variables
@@ -354,6 +358,14 @@ public:
 		return active_databases_;
 	}
 
+	bounded_buffer<std::string>& active_segments_update() {
+		return active_segments_update_;
+	}
+
+	const bounded_buffer<std::string>& active_segments_update() const {
+		return active_segments_update_;
+	}
+
 private:
 	// Controlling the console a bit makes it easier to read.
 	void gotoxy(int16_t x, int16_t y);
@@ -495,7 +507,11 @@ private:
 	// are recovered. It will keep an eye of all registered databases shared
 	// memory segments resources. Number of free: chunks, channels, and
 	// client_interfaces.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	thread resources_watching_thread_;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::thread resources_watching_thread_;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 };
 
 } // namespace core
