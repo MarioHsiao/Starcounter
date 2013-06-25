@@ -3,6 +3,9 @@ IF "%SC_RUN_NODE_TEST%"=="False" GOTO :EOF
 
 CMD /C "kill_all.bat" 2>NUL
 
+:: Creating repository if it does not exist.
+IF NOT EXIST ".srv" star.exe @@CreateRepo .srv
+
 :: Setting StarcounterBin as current directory.
 SET StarcounterBin %CD%
 
@@ -19,7 +22,7 @@ START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortN
 ping -n 10 127.0.0.1 > nul
 
 :: Starting the client part of the test.
-TestNode.exe
+NodeTest.exe
 
 :: Checking exit code.
 IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED

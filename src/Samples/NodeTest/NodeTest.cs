@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TestNode
+namespace NodeTest
 {
     class Settings
     {
@@ -27,7 +27,7 @@ namespace TestNode
 
         public Int32 MinEchoBytes = 1;
 
-        public Int32 MaxEchoBytes = 100000;
+        public Int32 MaxEchoBytes = 1000000;
 
         public Int32 NumEchoesPerWorker = 10000;
 
@@ -163,7 +163,7 @@ namespace TestNode
             Byte[] resp_body = resp.BodyBytes;
             if (resp_body.Length != num_echo_bytes_)
             {
-                TestNode.WorkersMonitor.IndicateTestFailed();
+                NodeTest.WorkersMonitor.IndicateTestFailed();
                 return false;
             }
 
@@ -185,13 +185,13 @@ namespace TestNode
                             Console.WriteLine("Different bytes!");
                     }*/
 
-                    TestNode.WorkersMonitor.IndicateTestFailed();
+                    NodeTest.WorkersMonitor.IndicateTestFailed();
                     return false;
                 }
             }
 
             // Incrementing number of finished tests.
-            TestNode.WorkersMonitor.IncrementNumFinishedTests();
+            NodeTest.WorkersMonitor.IncrementNumFinishedTests();
 
             return true;
         }
@@ -277,7 +277,7 @@ namespace TestNode
             {
                 Console.WriteLine(Id + ": test crashed: " + exc.ToString());
 
-                TestNode.WorkersMonitor.IndicateTestFailed();
+                NodeTest.WorkersMonitor.IndicateTestFailed();
             }
         }
     }
@@ -346,7 +346,7 @@ namespace TestNode
         }
     }
 
-    class TestNode
+    class NodeTest
     {
         public static GlobalObserver WorkersMonitor = new GlobalObserver();
 
