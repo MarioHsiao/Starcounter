@@ -389,8 +389,13 @@ namespace starcounter {
 #endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
          // Start the active databases thread.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+         active_databases_file_updater_thread_.create
+		 ((thread::start_routine_type) &monitor::update_active_databases_file, this);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          active_databases_file_updater_thread_ = boost::thread(boost::bind
             (&monitor::update_active_databases_file, this));
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          // Start the resources watching thread.
@@ -1420,21 +1425,26 @@ namespace starcounter {
          }
       }
 
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::update_active_databases_file(monitor* monitor) {
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::update_active_databases_file() {
+		monitor* monitor = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          do {
             boost::mutex::scoped_lock active_databases_lock
-               (active_databases_mutex_);
+               (monitor->active_databases_mutex());
 
             // Waiting for active_databases_ to be updated. . .
-            active_databases_updated_.wait(active_databases_lock,
-               boost::bind(&monitor::active_databases_updated_flag, this));
+            monitor->active_databases_updated().wait(active_databases_lock,
+               boost::bind(&monitor::active_databases_updated_flag, monitor)); /// TODO: Figure why this compiles! Is it correct?
 
             // Try to open the active databases file in text mode.
             for (std::size_t retries = 6; retries > 0; --retries) {
-               monitor_active_databases_file_.open(active_databases_file_path_,
-                  std::ios::out);
+               monitor->monitor_active_databases_file().open
+			   (monitor->active_databases_file_path(), std::ios::out);
 
-               if (!monitor_active_databases_file_.is_open()) {
+               if (!monitor->monitor_active_databases_file().is_open()) {
                   Sleep(500);
                   continue;
                }
@@ -1442,17 +1452,17 @@ namespace starcounter {
                break;
             }
 
-            if (monitor_active_databases_file_.is_open()) {
+            if (monitor->monitor_active_databases_file().is_open()) {
                std::size_t i = 0;
                // Write the names of the active databases to the file.
-               for (std::set<std::string>::iterator it = active_databases_.begin();
-                  it != active_databases_.end(); ++it) {
-                     monitor_active_databases_file_ << *it << '\n';
+               for (std::set<std::string>::iterator it = monitor->active_databases().begin();
+                  it != monitor->active_databases().end(); ++it) {
+                     monitor->monitor_active_databases_file() << *it << '\n';
                }
 
                // Close the active databases file.
-               monitor_active_databases_file_.close();
-               set_active_databases_updated_flag(false);
+               monitor->monitor_active_databases_file().close();
+               monitor->set_active_databases_updated_flag(false);
             }
          } while (true);
       }

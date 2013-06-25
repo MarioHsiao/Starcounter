@@ -313,6 +313,47 @@ public:
 		return process_register_;
 	}
 
+	
+	boost::mutex& active_databases_mutex() {
+		return active_databases_mutex_;
+	}
+	
+	const boost::mutex& active_databases_mutex() const {
+		return active_databases_mutex_;
+	}
+
+	boost::condition& active_databases_updated() {
+		return active_databases_updated_;
+	}
+
+	const boost::condition& active_databases_updated() const {
+		return active_databases_updated_;
+	}
+
+	std::ofstream& monitor_active_databases_file() {
+		return monitor_active_databases_file_;
+	}
+
+	const std::ofstream& monitor_active_databases_file() const {
+		return monitor_active_databases_file_;
+	}
+
+	std::wstring& active_databases_file_path() {
+		return active_databases_file_path_;
+	}
+
+	const std::wstring& active_databases_file_path() const {
+		return active_databases_file_path_;
+	}
+
+	std::set<std::string>& active_databases() {
+		return active_databases_;
+	}
+
+	const std::set<std::string>& active_databases() const {
+		return active_databases_;
+	}
+
 private:
 	// Controlling the console a bit makes it easier to read.
 	void gotoxy(int16_t x, int16_t y);
@@ -345,7 +386,7 @@ private:
 	owner_id get_new_owner_id();
 	
 	/// Open all databases shared memory, for each, scan through all chunks and
-	/// look for the oid. Set cleanup flag in those owner_id's matching.
+	/// look for the oid. Set active_databases_mutex_cleanup flag in those owner_id's matching.
 	/**
 	 * @param oid The owner_id of the crashed client process.
 	 * @return Number of chunks marked for cleanup.
@@ -353,7 +394,11 @@ private:
 	std::size_t find_chunks_and_mark_them_for_cleanup(owner_id oid);
 	
 	/// Write active databases.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void update_active_databases_file(monitor*);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void update_active_databases_file();
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	// The monitor initializes the monitor_interface_shared_memory_object.
 	shared_memory_object monitor_interface_;
@@ -440,7 +485,11 @@ private:
 	// any thread that updates the register, and will write a list of active
 	// databases to the file:
 	// %UserProfile%\AppData\Local\Starcounter\active_databases
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	thread active_databases_file_updater_thread_;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::thread active_databases_file_updater_thread_;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	// The resources watching thread is used for debug, verifying that resources
 	// are recovered. It will keep an eye of all registered databases shared
