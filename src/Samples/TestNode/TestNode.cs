@@ -29,7 +29,7 @@ namespace TestNode
 
         public Int32 MaxEchoBytes = 100000;
 
-        public Int32 NumTestsPerWorker = 10000;
+        public Int32 NumEchoesPerWorker = 10000;
 
         public Int32 NumSecondsToWait = 1000;
 
@@ -53,9 +53,9 @@ namespace TestNode
                 {
                     MaxEchoBytes = Int32.Parse(arg.Substring(14));
                 }
-                else if (arg.StartsWith("-NumTestsPerWorker="))
+                else if (arg.StartsWith("-NumEchoesPerWorker="))
                 {
-                    NumTestsPerWorker = Int32.Parse(arg.Substring(19));
+                    NumEchoesPerWorker = Int32.Parse(arg.Substring(20));
                 }
                 else if (arg.StartsWith("-NumSecondsToWait="))
                 {
@@ -265,7 +265,7 @@ namespace TestNode
 
             try
             {
-                for (Int32 j = 0; j < settings_.NumTestsPerWorker; j++)
+                for (Int32 j = 0; j < settings_.NumEchoesPerWorker; j++)
                 {
                     NodeTestInstance test = CreateNewTest();
 
@@ -316,19 +316,18 @@ namespace TestNode
         /// </summary>
         public Boolean MonitorState()
         {
-            Int32 num_seconds_passed = 0;
+            Int64 num_ms_passed = 0, num_ms_max = settings_.NumSecondsToWait * 1000;
 
-            Int64 num_tests_all_workers = settings_.NumTestsPerWorker * settings_.NumWorkers;
+            Int64 num_tests_all_workers = settings_.NumEchoesPerWorker * settings_.NumWorkers;
 
             // Looping until either tests succeed, fail or timeout.
             while (
                 (num_finished_tests_ < num_tests_all_workers) &&
-                (num_seconds_passed < settings_.NumSecondsToWait) &&
+                (num_ms_passed < num_ms_max) &&
                 (true == all_tests_succeeded_))
             {
-                Thread.Sleep(1000);
-
-                num_seconds_passed++;
+                Thread.Sleep(10);
+                num_ms_passed += 10;
             }
 
             if (!all_tests_succeeded_)
@@ -337,7 +336,7 @@ namespace TestNode
                 return false;
             }
 
-            if (num_seconds_passed >= settings_.NumSecondsToWait)
+            if (num_ms_passed >= num_ms_max)
             {
                 Console.WriteLine("Test failed: took too long time.");
                 return false;
@@ -355,6 +354,12 @@ namespace TestNode
         {
             Settings settings = new Settings();
             settings.Init(args);
+
+            Console.WriteLine("Node Test!");
+            Console.WriteLine("Workers: " + settings.NumWorkers);
+            Console.WriteLine("Echoes size bytes: [" + settings.MinEchoBytes + ", " + settings.MaxEchoBytes + "]");
+            Console.WriteLine("Echoes number per worker: " + settings.NumEchoesPerWorker);
+            Console.WriteLine("Max time seconds: " + settings.NumSecondsToWait);
 
             WorkersMonitor.Init(settings);
 
@@ -379,6 +384,7 @@ namespace TestNode
             timer.Stop();
 
             Console.WriteLine("Test succeeded, took ms: " + timer.ElapsedMilliseconds);
+            Console.WriteLine("Echoes/second: " + ((settings.NumWorkers * settings.NumEchoesPerWorker) * 1000.0) / timer.ElapsedMilliseconds);
 
             return 0;
         }
