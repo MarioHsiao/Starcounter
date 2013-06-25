@@ -159,7 +159,11 @@ public:
 	 * @param group Is the group (0..N) of server process events to watch. Each
 	 *		group has up to 64 process events.
 	 */
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void wait_for_database_process_event(std::pair<monitor*,std::size_t> arg);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void wait_for_database_process_event(std::size_t group);
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 	//--------------------------------------------------------------------------
 	/// The wait_for_client_process_event() will wait for up to 64 client
@@ -265,39 +269,31 @@ public:
 		return ipc_monitor_cleanup_event_;
 	}
 
-	const HANDLE& ipc_monitor_cleanup_event() const {
-		return ipc_monitor_cleanup_event_;
-	}
-
 	monitor_interface* the_monitor_interface() {
 		return the_monitor_interface_;
 	}
 
 	struct database_process_group_type {
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+		thread thread_;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 		boost::thread thread_;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 		boost::detail::win32::handle thread_handle_;
-		std::vector<boost::detail::win32::handle> event_;
+		std::vector<::HANDLE> event_;
 	};
 
 	database_process_group_type& database_process_group(std::size_t i) {
 		return database_process_group_[i];
 	}
 
-	const database_process_group_type& database_process_group(std::size_t i) const {
-		return database_process_group_[i];
-	}
-
 	struct client_process_group_type {
 		boost::thread thread_;
 		boost::detail::win32::handle thread_handle_;
-		std::vector<boost::detail::win32::handle> event_;
+		std::vector<::HANDLE> event_;
 	};
 
 	client_process_group_type& client_process_group(std::size_t i) {
-		return client_process_group_[i];
-	}
-
-	const client_process_group_type& client_process_group(std::size_t i) const {
 		return client_process_group_[i];
 	}
 
@@ -305,32 +301,15 @@ public:
 		return register_mutex_;
 	}
 	
-	const boost::mutex& register_mutex() const {
-		return register_mutex_;
-	}
-
 	process_register_type& process_register() {
 		return process_register_;
 	}
 
-	const process_register_type& process_register() const {
-		return process_register_;
-	}
-
-	
 	boost::mutex& active_databases_mutex() {
 		return active_databases_mutex_;
 	}
 	
-	const boost::mutex& active_databases_mutex() const {
-		return active_databases_mutex_;
-	}
-
 	boost::condition& active_databases_updated() {
-		return active_databases_updated_;
-	}
-
-	const boost::condition& active_databases_updated() const {
 		return active_databases_updated_;
 	}
 
@@ -338,15 +317,7 @@ public:
 		return monitor_active_databases_file_;
 	}
 
-	const std::ofstream& monitor_active_databases_file() const {
-		return monitor_active_databases_file_;
-	}
-
 	std::wstring& active_databases_file_path() {
-		return active_databases_file_path_;
-	}
-
-	const std::wstring& active_databases_file_path() const {
 		return active_databases_file_path_;
 	}
 
@@ -354,15 +325,7 @@ public:
 		return active_databases_;
 	}
 
-	const std::set<std::string>& active_databases() const {
-		return active_databases_;
-	}
-
 	bounded_buffer<std::string>& active_segments_update() {
-		return active_segments_update_;
-	}
-
-	const bounded_buffer<std::string>& active_segments_update() const {
 		return active_segments_update_;
 	}
 
