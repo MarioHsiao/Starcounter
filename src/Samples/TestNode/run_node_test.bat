@@ -1,3 +1,6 @@
+:: Checking if test should be run.
+IF "%SC_RUN_NODE_TEST%"=="False" GOTO :EOF
+
 CMD /C "kill_all.bat" 2>NUL
 
 :: Setting StarcounterBin as current directory.
