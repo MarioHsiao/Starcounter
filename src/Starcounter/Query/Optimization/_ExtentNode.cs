@@ -191,9 +191,41 @@ internal class ExtentNode : IOptimizationNode
         return permutationList;
     }
 
+    public void MoveConditionsWithRespectToOuterJoins(JoinNode parentNode)
+    {
+        if (parentNode == null)
+            return;
+        List<ILogicalExpression> misplacedConditions = GetMisplacedConditions();
+        ILogicalExpression postFilterCond = ConditionListToSingleCondition(misplacedConditions);
+        if (postFilterCond != null)
+            parentNode.AddPostFilterCondition(postFilterCond);
+    }
+
+    private ILogicalExpression ConditionListToSingleCondition(List<ILogicalExpression> condList)
+    {
+        if (condList == null || condList.Count == 0)
+            return null;
+
+        ILogicalExpression logExpr = condList[0];
+        for (Int32 i = 1; i < condList.Count; i++)
+        {
+            logExpr = new LogicalOperation(LogicalOperator.AND, logExpr, condList[i]);
+        }
+        return logExpr;
+    }
+
     public IOptimizationNode Clone()
     {
         return new ExtentNode(rowTypeBind, extentNumber, variableArr, query);
+    }
+
+    internal void AddCondition(ILogicalExpression cond)
+    {
+        if (cond == null)
+        {
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect cond.");
+        }
+        conditionList.Add(cond);
     }
 
     internal void AddConditions(List<ILogicalExpression> condList)
@@ -205,7 +237,29 @@ internal class ExtentNode : IOptimizationNode
         conditionList.AddRange(condList);
     }
 
-    internal void EvaluateScanAlternatives() {
+    private List<ILogicalExpression> GetMisplacedConditions()
+    {
+        List<ILogicalExpression> misplacedConditions = null;
+        ExtentSet extentSet = null;
+        Int32 i = 0;
+        while (i < conditionList.Count)
+        {
+            extentSet = conditionList[i].GetOutsideJoinExtentSet();
+            if (extentSet != null && extentSet.IncludesExtentNumber(extentNumber))
+            {
+                if (misplacedConditions == null)
+                    misplacedConditions = new List<ILogicalExpression>();
+                misplacedConditions.Add(conditionList[i]);
+                conditionList.RemoveAt(i);
+            }
+            else
+                i++;
+        }
+        return misplacedConditions;
+    }
+
+    internal void EvaluateScanAlternatives()
+    {
         IsTypePredicate mostSubtypeCondition = null; // Condition of most specific type over all conditions where object is supertype to the type
         int posMostSubtypeCondition = -1;
         // If there is a hinted index then it should be used.
