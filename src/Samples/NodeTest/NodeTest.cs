@@ -163,6 +163,7 @@ namespace NodeTest
             Byte[] resp_body = resp.BodyBytes;
             if (resp_body.Length != num_echo_bytes_)
             {
+                Console.WriteLine("Wrong echo size!");
                 NodeTest.WorkersMonitor.FailTest();
                 return false;
             }
@@ -185,6 +186,7 @@ namespace NodeTest
                             Console.WriteLine("Different bytes!");
                     }*/
 
+                    Console.WriteLine("Wrong echo content!");
                     NodeTest.WorkersMonitor.FailTest();
                     return false;
                 }
