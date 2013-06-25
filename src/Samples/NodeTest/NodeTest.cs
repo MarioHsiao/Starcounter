@@ -23,7 +23,7 @@ namespace NodeTest
             ModeRandom
         }
 
-        public Int32 NumWorkers = 2;
+        public Int32 NumWorkers = 3;
 
         public Int32 MinEchoBytes = 1;
 
