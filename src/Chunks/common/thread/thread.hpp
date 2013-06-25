@@ -30,7 +30,7 @@ namespace core {
 #if defined(STARCOUNTER_CORE_HAS_PTHREADS)
 typedef posix_thread thread;
 #elif defined(STARCOUNTER_CORE_HAS_WINTHREADS)
-typedef win_thread thread;
+typedef windows_thread thread;
 #endif
 
 } // namespace core
