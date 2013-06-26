@@ -194,7 +194,13 @@ namespace Starcounter.Query.Execution {
             return new IsTypePredicate(compOperator, objExpr.CloneToObject(varArray), typeBinding);
         }
 
-        public void BuildString(MyStringBuilder stringBuilder, Int32 tabs) {
+        public ExtentSet GetOutsideJoinExtentSet()
+        {
+            return null;
+        }
+
+        public void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
+        {
             stringBuilder.AppendLine(tabs, "IsTypePredicate(");
             stringBuilder.AppendLine(tabs + 1, compOperator.ToString());
             objExpr.BuildString(stringBuilder, tabs + 1);

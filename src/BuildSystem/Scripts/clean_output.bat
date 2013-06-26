@@ -16,6 +16,7 @@ RMDIR ".db.output" /S /Q
 RMDIR ".srv" /S /Q
 RMDIR "NetworkIoTest" /S /Q
 RMDIR "s" /S /Q
+IF EXIST "personal.xml" DEL "personal.xml"
 
 :: Diagnostics.
 ECHO Build output cleaned up successfully!
