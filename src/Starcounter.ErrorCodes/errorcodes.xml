@@ -3287,7 +3287,10 @@
     </code>
     <code hex="0041" severity="Error" name="ScErrUriMatcherCodeGeneratorFailure">
       <message>Exception occurred inside URI matcher code generator.</message>
-    </code>  
+    </code>
+    <code hex="0042" severity="Error" name="ScErrUnhandledWeaverException">
+      <message>An unhandled, unidentified (non-Starcounter) exception occurred in the weaver.</message>
+    </code>
   </facility>
 
   <facility name="Sql" hex="0007">
