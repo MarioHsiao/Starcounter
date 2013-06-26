@@ -140,7 +140,7 @@ namespace Starcounter.InstallerEngine
                     try
                     {
                         rmdirCmd.StartInfo.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
-                        rmdirCmd.StartInfo.Arguments = "/C TIMEOUT 5 /NOBREAK & RMDIR \"" + InstallerMain.InstallationDir + "\" /S /Q";
+                        rmdirCmd.StartInfo.Arguments = "/C TIMEOUT 3 /NOBREAK & RMDIR \"" + InstallerMain.InstallationDir + "\" /S /Q";
                         rmdirCmd.StartInfo.UseShellExecute = false;
                         rmdirCmd.StartInfo.CreateNoWindow = true;
                         rmdirCmd.Start();
