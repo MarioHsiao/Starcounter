@@ -23,6 +23,7 @@ namespace Starcounter.Query.Execution
 internal class ComparisonDateTime : CodeGenFilterNode, IComparison
 {
     ComparisonOperator compOperator;
+    ExtentSet outsideJoinExtentSet; // Used to handle IS and ISNOT comparisons w.r.t. outer joins.
     IDateTimeExpression expr1;
     IDateTimeExpression expr2;
 
@@ -30,9 +31,11 @@ internal class ComparisonDateTime : CodeGenFilterNode, IComparison
     /// Constructor.
     /// </summary>
     /// <param name="compOp">The comparison operator of the operation.</param>
+    /// <param name="extSet">A set of extents where this comparison cannot be executed 
+    /// (only relevant when operator is IS or ISNOT and there is an outer join).</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal ComparisonDateTime(ComparisonOperator compOp, IDateTimeExpression expr1, IDateTimeExpression expr2)
+    internal ComparisonDateTime(ComparisonOperator compOp, ExtentSet extSet, IDateTimeExpression expr1, IDateTimeExpression expr2)
     {
         if (compOp == ComparisonOperator.LIKEdynamic || compOp == ComparisonOperator.LIKEstatic)
         {
@@ -47,6 +50,7 @@ internal class ComparisonDateTime : CodeGenFilterNode, IComparison
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr2.");
         }
         compOperator = compOp;
+        outsideJoinExtentSet = extSet;
         this.expr1 = expr1;
         this.expr2 = expr2;
     }
@@ -201,7 +205,7 @@ internal class ComparisonDateTime : CodeGenFilterNode, IComparison
     /// <returns>A more instantiated expression.</returns>
     public ILogicalExpression Instantiate(Row obj)
     {
-        return new ComparisonDateTime(compOperator, expr1.Instantiate(obj), expr2.Instantiate(obj));
+        return new ComparisonDateTime(compOperator, outsideJoinExtentSet, expr1.Instantiate(obj), expr2.Instantiate(obj));
     }
 
     /// <summary>
@@ -243,7 +247,12 @@ internal class ComparisonDateTime : CodeGenFilterNode, IComparison
 
     public ILogicalExpression Clone(VariableArray varArray)
     {
-        return new ComparisonDateTime(compOperator, expr1.CloneToDateTime(varArray), expr2.CloneToDateTime(varArray));
+        return new ComparisonDateTime(compOperator, outsideJoinExtentSet, expr1.CloneToDateTime(varArray), expr2.CloneToDateTime(varArray));
+    }
+
+    public ExtentSet GetOutsideJoinExtentSet()
+    {
+        return outsideJoinExtentSet;
     }
 
     public override void InstantiateExtentSet(ExtentSet extentSet)
