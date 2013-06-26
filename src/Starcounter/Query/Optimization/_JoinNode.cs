@@ -17,6 +17,7 @@ internal class JoinNode : IOptimizationNode
     JoinType joinType;
     IOptimizationNode leftNode;
     IOptimizationNode rightNode;
+    ILogicalExpression postFilterCondition;
     VariableArray varArray;
     String query;
 
@@ -46,8 +47,17 @@ internal class JoinNode : IOptimizationNode
             this.leftNode = rightNode;
             this.rightNode = leftNode;
         }
+        postFilterCondition = null;
         this.varArray = varArray;
         this.query = query;
+    }
+
+    internal void AddPostFilterCondition(ILogicalExpression cond)
+    {
+        if (postFilterCondition == null)
+            postFilterCondition = cond;
+        else if (cond != null)
+            postFilterCondition = new LogicalOperation(LogicalOperator.AND, postFilterCondition, cond);
     }
 
     public void InstantiateExtentOrder(List<Int32> extentOrder)
@@ -97,6 +107,12 @@ internal class JoinNode : IOptimizationNode
         return permutationList;
     }
 
+    public void MoveConditionsWithRespectToOuterJoins(JoinNode parentNode)
+    {
+        leftNode.MoveConditionsWithRespectToOuterJoins(this);
+        rightNode.MoveConditionsWithRespectToOuterJoins(this);
+    }
+
     public IOptimizationNode Clone()
     {
         return new JoinNode(rowTypeBind, joinType, leftNode.Clone(), rightNode.Clone(), varArray, query);
@@ -112,7 +128,8 @@ internal class JoinNode : IOptimizationNode
     {
         IExecutionEnumerator leftEnumerator = leftNode.CreateExecutionEnumerator(null, null, fetchOffsetKeyExpr, false, ref nodeId);
         IExecutionEnumerator rightEnumerator = rightNode.CreateExecutionEnumerator(null, null, fetchOffsetKeyExpr, false, ref nodeId);
-        return new Join(nodeId++, rowTypeBind, joinType, leftEnumerator, rightEnumerator, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, varArray, query, topNode);
+        return new Join(nodeId++, rowTypeBind, joinType, leftEnumerator, rightEnumerator, postFilterCondition, 
+            fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, varArray, query, topNode);
     }
 
 #if DEBUG

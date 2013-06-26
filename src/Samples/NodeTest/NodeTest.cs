@@ -23,15 +23,15 @@ namespace NodeTest
             ModeRandom
         }
 
-        public Int32 NumWorkers = 2;
+        public Int32 NumWorkers = 3;
 
         public Int32 MinEchoBytes = 1;
 
         public Int32 MaxEchoBytes = 1000000;
 
-        public Int32 NumEchoesPerWorker = 10000;
+        public Int32 NumEchoesPerWorker = 100000;
 
-        public Int32 NumSecondsToWait = 100;
+        public Int32 NumSecondsToWait = 5000;
 
         public AsyncModes AsyncMode = AsyncModes.ModeRandom;
 
@@ -163,7 +163,8 @@ namespace NodeTest
             Byte[] resp_body = resp.BodyBytes;
             if (resp_body.Length != num_echo_bytes_)
             {
-                NodeTest.WorkersMonitor.IndicateTestFailed();
+                Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length);
+                NodeTest.WorkersMonitor.FailTest();
                 return false;
             }
 
@@ -185,7 +186,8 @@ namespace NodeTest
                             Console.WriteLine("Different bytes!");
                     }*/
 
-                    NodeTest.WorkersMonitor.IndicateTestFailed();
+                    Console.WriteLine("Wrong echo content! Echo size: " + num_echo_bytes_);
+                    NodeTest.WorkersMonitor.FailTest();
                     return false;
                 }
             }
@@ -271,13 +273,17 @@ namespace NodeTest
 
                     if (!test.PerformTest(GlobalNode))
                         return;
+
+                    // Checking if tests has already failed.
+                    if (NodeTest.WorkersMonitor.HasTestFailed)
+                        return;
                 }
             }
             catch (Exception exc)
             {
                 Console.WriteLine(Id + ": test crashed: " + exc.ToString());
 
-                NodeTest.WorkersMonitor.IndicateTestFailed();
+                NodeTest.WorkersMonitor.FailTest();
             }
         }
     }
@@ -304,9 +310,17 @@ namespace NodeTest
         volatile Boolean all_tests_succeeded_ = true;
 
         /// <summary>
+        /// Returns True if tests failed.
+        /// </summary>
+        public Boolean HasTestFailed
+        {
+            get { return !all_tests_succeeded_; }
+        }
+
+        /// <summary>
         /// Indicate that some test failed.
         /// </summary>
-        public void IndicateTestFailed()
+        public void FailTest()
         {
             all_tests_succeeded_ = false;
         }
@@ -332,13 +346,14 @@ namespace NodeTest
 
             if (!all_tests_succeeded_)
             {
-                Console.WriteLine("Test failed: incorrect echo received.");
+                Console.Error.WriteLine("Test failed: incorrect echo received.");
                 return false;
             }
 
             if (num_ms_passed >= num_ms_max)
             {
-                Console.WriteLine("Test failed: took too long time.");
+                Console.Error.WriteLine("Test failed: took too long time.");
+                FailTest();
                 return false;
             }
 
@@ -379,7 +394,7 @@ namespace NodeTest
 
             // Waiting for all workers to succeed or fail.
             if (!WorkersMonitor.MonitorState())
-                return 1;
+                Environment.Exit(1);
 
             timer.Stop();
 

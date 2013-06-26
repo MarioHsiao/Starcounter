@@ -22,6 +22,7 @@ namespace Starcounter.Query.Execution
 internal class ComparisonBinary : CodeGenFilterNode, IComparison
 {
     ComparisonOperator compOperator;
+    ExtentSet outsideJoinExtentSet; // Used to handle IS and ISNOT comparisons w.r.t. outer joins.
     IBinaryExpression expr1;
     IBinaryExpression expr2;
 
@@ -29,9 +30,11 @@ internal class ComparisonBinary : CodeGenFilterNode, IComparison
     /// Constructor.
     /// </summary>
     /// <param name="compOp">The comparison operator of the operation.</param>
+    /// <param name="extentSet">A set of extents where this comparison cannot be executed 
+    /// (only relevant when operator is IS or ISNOT and there is an outer join).</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal ComparisonBinary(ComparisonOperator compOp, IBinaryExpression expr1, IBinaryExpression expr2)
+    internal ComparisonBinary(ComparisonOperator compOp, ExtentSet extentSet, IBinaryExpression expr1, IBinaryExpression expr2)
     {
         if (compOp == ComparisonOperator.LIKEdynamic || compOp == ComparisonOperator.LIKEstatic)
         {
@@ -46,6 +49,7 @@ internal class ComparisonBinary : CodeGenFilterNode, IComparison
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr2.");
         }
         compOperator = compOp;
+        outsideJoinExtentSet = extentSet;
         this.expr1 = expr1;
         this.expr2 = expr2;
     }
@@ -200,7 +204,7 @@ internal class ComparisonBinary : CodeGenFilterNode, IComparison
     /// <returns>A more instantiated expression.</returns>
     public ILogicalExpression Instantiate(Row obj)
     {
-        return new ComparisonBinary(compOperator, expr1.Instantiate(obj), expr2.Instantiate(obj));
+        return new ComparisonBinary(compOperator, outsideJoinExtentSet, expr1.Instantiate(obj), expr2.Instantiate(obj));
     }
 
     /// <summary>
@@ -242,7 +246,12 @@ internal class ComparisonBinary : CodeGenFilterNode, IComparison
 
     public ILogicalExpression Clone(VariableArray varArray)
     {
-        return new ComparisonBinary(compOperator, expr1.CloneToBinary(varArray), expr2.CloneToBinary(varArray));
+        return new ComparisonBinary(compOperator, outsideJoinExtentSet, expr1.CloneToBinary(varArray), expr2.CloneToBinary(varArray));
+    }
+
+    public ExtentSet GetOutsideJoinExtentSet()
+    {
+        return outsideJoinExtentSet;
     }
 
     public override void InstantiateExtentSet(ExtentSet extentSet)

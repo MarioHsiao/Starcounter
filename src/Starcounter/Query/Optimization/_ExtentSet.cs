@@ -43,6 +43,30 @@ class ExtentSet
         extentRepr = 0;
     }
 
+    /// <summary>
+    /// Returns true if this extent-set is empty, otherwise false.
+    /// </summary>
+    internal Boolean IsEmpty()
+    {
+        return (extentRepr == 0);
+    }
+
+    internal ExtentSet Union(ExtentSet extentSet)
+    {
+        // TODO: A more efficient implementation.
+
+        if (extentSet == null || extentSet.IsEmpty())
+            return this;
+
+        ExtentSet result = new ExtentSet();
+        for (Int32 i = 0; i < 64; i++)
+        {
+            if (this.IncludesExtentNumber(i) || extentSet.IncludesExtentNumber(i))
+                result.AddExtentNumber(i);
+        }
+        return result;
+    }
+
     private ExtentSet Clone()
     {
         ExtentSet extentSet = new ExtentSet();

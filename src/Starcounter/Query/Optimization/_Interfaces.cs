@@ -25,6 +25,8 @@ internal interface IOptimizationNode
 
     IOptimizationNode Clone();
 
+    void MoveConditionsWithRespectToOuterJoins(JoinNode parentNode);
+
 #if DEBUG
     bool AssertEquals(IOptimizationNode other);
 #endif
@@ -34,5 +36,5 @@ internal interface IOptimizationNode
 /// Interface for all types of hints.
 /// </summary>
 internal interface IHint
-    { }
+{ }
 }

@@ -1,5 +1,4 @@
 
-
 /* Controller, Peter Idestam-Almquist, Starcounter, 2013-04-12. */
 
 /* TODO: Control HintSpec in control_aggregation_hintspec/3? */
