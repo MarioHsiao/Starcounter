@@ -13,6 +13,7 @@ using System.IO;
 using System.Diagnostics;
 using Starcounter.Internal;
 using System.Security.Cryptography;
+using Starcounter.Logging;
 
 namespace Starcounter.Server {
 
@@ -22,6 +23,7 @@ namespace Starcounter.Server {
     internal sealed class WeaverService {
         const string WeaverErrorParcelId = "A4A7D6FA-EB34-442A-B579-DBB1DBB859E3";
         readonly ServerEngine engine;
+        LogSource log;
 
         /// <summary>
         /// Initializes a <see cref="WeaverService"/>.
@@ -30,6 +32,7 @@ namespace Starcounter.Server {
         /// the weaver will run.</param>
         internal WeaverService(ServerEngine engine) {
             this.engine = engine;
+            this.log = ServerLogSources.Default;
         }
 
         /// <summary>
@@ -98,7 +101,7 @@ namespace Starcounter.Server {
             try {
                 ToolInvocationHelper.InvokeTool(new ProcessStartInfo(weaverExe, arguments));
             } catch (ToolInvocationException e) {
-                ConvertAndRaiseExceptionFromFailingWeaver(e);
+                LogAndRaiseExceptionFromFailingWeaver(e);
             }
 
             return Path.Combine(runtimeDirectory, Path.GetFileName(givenAssembly));
@@ -159,12 +162,51 @@ namespace Starcounter.Server {
             }
         }
 
-        void ConvertAndRaiseExceptionFromFailingWeaver(ToolInvocationException e) {
+        void LogAndRaiseExceptionFromFailingWeaver(ToolInvocationException e) {
             var errors = new List<string>(1);
-            ExtractParcelledErrors(e.Result.GetErrorOutput(), WeaverErrorParcelId, errors, 1);
-            Trace.Assert(errors.Count == 1);
 
-            throw ErrorMessage.Parse(errors[0]).ToException();
+            // When the weaver fails, we always log an error that includes the
+            // process exit code at the very minimum. We try to include more, but
+            // we never let it stop us if additional information is not available.
+
+            string detail = string.Empty;
+            try {
+                detail += string.Format("{0}Arguments={1}{0}", Environment.NewLine, e.Result.Arguments);
+                detail += "Output:";
+                detail += Environment.NewLine;
+                foreach (var line in e.Result.GetOutput()) {
+                    if (string.IsNullOrWhiteSpace(line))
+                        continue;
+
+                    detail += line;
+                    detail += Environment.NewLine;
+                }
+            }
+            catch {} 
+            finally {
+                var msg = ErrorCode.ToMessage(Error.SCERRWEAVINGERROR, string.Format("Process exit code: {0}.{1}", e.ExitCode, detail));
+                log.LogError(msg);
+            }
+
+            // We then try to format a proper, more pinpointed error from the parcelled
+            // weaver error. If failing this, we use the general weaver error as the final
+            // fallback.
+
+            Exception result = null;
+            try {
+                ExtractParcelledErrors(e.Result.GetErrorOutput(), WeaverErrorParcelId, errors, 1);
+                if (errors.Count == 1) {
+                    result = ErrorMessage.Parse(errors[0]).ToException();
+                }
+            } catch (Exception extractFailed) {
+                result = ErrorCode.ToException(Error.SCERRWEAVINGERROR, extractFailed, string.Format("Process exit code: {0}", e.ExitCode));
+            } finally {
+                if (result == null) {
+                    result = ErrorCode.ToException(Error.SCERRWEAVINGERROR, string.Format("Process exit code: {0}", e.ExitCode));
+                }
+            }
+
+            throw result;
         }
     }
 }
