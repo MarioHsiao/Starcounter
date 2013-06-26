@@ -419,6 +419,7 @@ namespace Starcounter.InstallerWPF {
                     case SetupOptions.Uninstall:
                         this.UpdateComponentsCommand(ComponentCommand.Uninstall);
                         this.RegisterUninstallPages();
+                        this.Closed += new EventHandler(CleanUpAfterUninstall);
                         break;
                 }
 
@@ -568,9 +569,15 @@ namespace Starcounter.InstallerWPF {
                       }
                 );
             }
+        }
 
-
-
+        /// <summary>
+        /// Handles the Closed event of the MainWindow control when uninstalling.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.ComponentModel.CancelEventArgs"/> instance containing the event data.</param>
+        void CleanUpAfterUninstall(object sender, EventArgs e) {
+            UninstallEngine.DeleteInstallationDir(false);
         }
 
         #region Setup Components
