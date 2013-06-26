@@ -181,6 +181,11 @@ internal class InPredicateString : ILogicalExpression
         return new InPredicateString(expression.CloneToString(varArray), exprListClone);
     }
 
+    public ExtentSet GetOutsideJoinExtentSet()
+    {
+        return null;
+    }
+
     public void InstantiateExtentSet(ExtentSet extentSet)
     {
         expression.InstantiateExtentSet(extentSet);

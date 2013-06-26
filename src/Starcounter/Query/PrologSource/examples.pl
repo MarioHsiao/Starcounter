@@ -1,4 +1,9 @@
 
+sql_example(pos,'MyDB',"select e.FirstName from Department d left join (Employee e join Employee f) where e.FirstName || f.FirstName is null").
+sql_example(pos,'MyDB',"select FirstName from Department left join Employee where Name is null").
+sql_example(pos,'MyDB',"select FirstName from Department left join Employee where LastName is null").
+
+
 sql_example(pos,'MyDB',"select FirstName from Employee where LastName like ?").
 sql_example(pos,'MyDB',"select Department from Employee where FirstName = 'Pel''le'").
 

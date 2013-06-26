@@ -234,6 +234,18 @@ internal class LogicalOperation : CodeGenFilterNode, ILogicalExpression
         return new LogicalOperation(logOperator, condition1.Clone(varArray));
     }
 
+    public ExtentSet GetOutsideJoinExtentSet()
+    {
+        ExtentSet extentSet = condition1.GetOutsideJoinExtentSet();
+        if (logOperator == LogicalOperator.NOT)
+            return extentSet;
+
+        if (extentSet == null)
+            return condition2.GetOutsideJoinExtentSet();
+
+        return extentSet.Union(condition2.GetOutsideJoinExtentSet());
+    }
+
     public override void InstantiateExtentSet(ExtentSet extentSet)
     {
         condition1.InstantiateExtentSet(extentSet);

@@ -330,7 +330,7 @@ namespace CheckBuildSystem
                 "SqlCacheTrasher.csproj", "PolePosition.csproj", "ApplicationProjectTemplate.csproj",
                 "ClassLibraryProjectTemplate.csproj", "scweaver.Test.csproj", "Build32BitComponents.csproj",
                 "Starcounter.Server.Rest.csproj", "Starcounter.InstallerWrapper.csproj",
-                "ErrorHelpPages.csproj", "SPA.csproj"
+                "ErrorHelpPages.csproj", "SPA.csproj", "NodeTest.csproj"
                 },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."
