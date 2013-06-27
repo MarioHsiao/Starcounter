@@ -149,7 +149,7 @@ namespace Starcounter.InstallerEngine
         public override Boolean IsInstalled()
         {
             var manifest = VSIXUtilities.FindManifestFile(
-                ConstantsBank.GetUserExtensionsRootFolder(VisualStudioVersion.VS2012),
+                GetUserExtensionsRootFolder(VisualStudioVersion.VS2012),
                 VSIXPackageInfo.VS2012.ExtensionIdentity);
 
             return manifest != null;
