@@ -177,7 +177,11 @@ public:
 	 * @param group Is the group (0..N) of client process events to watch. Each
 	 *		group has up to 64 client process events.
 	 */
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void wait_for_client_process_event(std::pair<monitor*,std::size_t> arg);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void wait_for_client_process_event(std::size_t group);
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
 #if 0 // idea
 	// Methods for updating the process_register_.
@@ -275,12 +279,13 @@ public:
 
 	struct database_process_group_type {
 #if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-		thread thread_;
+		thread thread_; // TODO: Access method.
+		thread::native_handle_type thread_handle_; // TODO: Access method.
 #else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-		boost::thread thread_;
+		boost::thread thread_; // TODO: Access method.
+		boost::detail::win32::handle thread_handle_; // TODO: Access method.
 #endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
-		boost::detail::win32::handle thread_handle_;
-		std::vector<::HANDLE> event_;
+		std::vector<::HANDLE> event_; // TODO: Access method.
 	};
 
 	database_process_group_type& database_process_group(std::size_t i) {
@@ -288,9 +293,14 @@ public:
 	}
 
 	struct client_process_group_type {
-		boost::thread thread_;
-		boost::detail::win32::handle thread_handle_;
-		std::vector<::HANDLE> event_;
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+		thread thread_; // TODO: Access method.
+		thread::native_handle_type thread_handle_; // TODO: Access method.
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+		boost::thread thread_; // TODO: Access method.
+		boost::detail::win32::handle thread_handle_; // TODO: Access method.
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+		std::vector<::HANDLE> event_; // TODO: Access method.
 	};
 
 	client_process_group_type& client_process_group(std::size_t i) {
@@ -347,7 +357,7 @@ private:
 	void cleanup();
 #endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	
-	static void __stdcall apc_function(boost::detail::win32::ulong_ptr arg);
+	static void __stdcall apc_function(uint64_t arg);
 	
 	enum {
 		// The IPC monitor also have an owner_id and it is 2 because 1 is anonymous.
