@@ -217,10 +217,6 @@ namespace Starcounter.InstallerWPF.Pages {
         private void OnSuccess() {
 
             try {
-#if SIMULATE_INSTALLATION
-#else
-                UninstallEngine.DeleteInstallationDir(false);
-#endif
                 this.IsInstalling = false;
                 this.StopAnimation();
                 this._CanGoNext = true;
