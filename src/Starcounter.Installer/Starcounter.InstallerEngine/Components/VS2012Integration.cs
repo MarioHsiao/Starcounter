@@ -4,6 +4,7 @@ using Starcounter.InstallerEngine.VsSetup;
 using Microsoft.Win32;
 using Starcounter;
 using System.Diagnostics;
+using System.IO;
 
 namespace Starcounter.InstallerEngine
 {
@@ -53,8 +54,15 @@ namespace Starcounter.InstallerEngine
             if (!CanBeInstalled())
                 return;
 
-            // Logging event.
+            // Logging event and some information about what paths we use
+            // and if they exist
+            var vsIDEDir = ConstantsBank.VS2012IDEDirectory;
             Utilities.ReportSetupEvent("Installing Microsoft Visual Studio 2012 Starcounter integration...");
+            Utilities.LogMessage(
+                string.Format("Using VS IDE installation directory \"{0}\" (Exist: {1}).",
+                vsIDEDir,
+                Directory.Exists(vsIDEDir) ? bool.TrueString : bool.FalseString)
+                );
 
             // Check if Visual Studio is running.
             CheckVStudioRunning();
@@ -101,8 +109,15 @@ namespace Starcounter.InstallerEngine
             if (Utilities.RunningOnBuildServer())
                 return;
 
-            // Logging event.
+            // Logging event and some information about what paths we use
+            // and if they exist
+            var vsIDEDir = ConstantsBank.VS2012IDEDirectory;
             Utilities.ReportSetupEvent("Deleting Visual Studio 2012 Starcounter integration...");
+            Utilities.LogMessage(
+                string.Format("Using VS IDE installation directory \"{0}\" (Exist: {1}).",
+                vsIDEDir,
+                Directory.Exists(vsIDEDir) ? bool.TrueString : bool.FalseString)
+                );
 
             // Deleting Starcounter Visual Studio 2012 integration and templates on demand.
             // Checking if Visual Studio is running (that can lock certain libraries like MSBuild.dll).
@@ -122,12 +137,13 @@ namespace Starcounter.InstallerEngine
 
                 if (ErrorCode.TryGetCode(ex, out errorCode))
                 {
-                    if (errorCode == Error.SCERRVSIXENGINENOTFOUND && UninstallEngine.CompleteCleanupSetting)
+                    if (errorCode == Error.SCERRVSIXENGINENOTFOUND)
                     {
-                        // If we are doing a full cleanup, we can't trust any state at all,
-                        // not even that Visual Studio is installed. We just let this error
-                        // slip.
-
+                        // When uninstalling, we can't trust any state at all,
+                        // not even that Visual Studio is installed. We just let
+                        // this error slip after logging a notice that it
+                        // occurred.
+                        Utilities.LogMessage(string.Format("Notice: {0}", ex.Message));
                         ignoreException = true;
                     }
                 }
@@ -149,7 +165,7 @@ namespace Starcounter.InstallerEngine
         public override Boolean IsInstalled()
         {
             var manifest = VSIXUtilities.FindManifestFile(
-                ConstantsBank.GetUserExtensionsRootFolder(VisualStudioVersion.VS2012),
+                GetUserExtensionsRootFolder(VisualStudioVersion.VS2012),
                 VSIXPackageInfo.VS2012.ExtensionIdentity);
 
             return manifest != null;

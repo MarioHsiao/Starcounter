@@ -6,6 +6,7 @@ using Starcounter;
 using System.IO;
 using Starcounter.Internal;
 using Starcounter.InstallerEngine.VsSetup;
+using Microsoft.Win32;
 
 namespace Starcounter.InstallerEngine
 {
@@ -102,7 +103,7 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Gets the path to the Visual Studio 2012 (11.0) installation directory.
         /// </summary>
-        internal static string VS2012InstallationDirectory { get { return GetVisualStudioInstallationDirectory("11.0"); } }
+        internal static string VS2012InstallationDirectory { get { return VSIntegration.GetVisualStudioInstallationDirectory("11.0"); } }
 
         /// <summary>
         /// Gets the path to the Visual Studio 2012 (11.0) IDE directory.
@@ -128,37 +129,5 @@ namespace Starcounter.InstallerEngine
         /// Gets the name of the VSIX installer executable file (i.e. currently "VSIXInstaller.exe").
         /// </summary>
         internal const string VSIXInstallerEngineExecutable = "VSIXInstaller.exe";
-
-        /// <summary>
-        /// Gets the full path to the Visual Studio user extension root folder for
-        /// the given <paramref name="version"/> and the current, non-roaming user.
-        /// </summary>
-        /// <param name="version">The Visual Studio version whose user extension
-        /// root folder is queried.</param>
-        /// <returns>Full path to the user extension root folder for the current,
-        /// non-roaming user.</returns>
-        /// <remarks>
-        /// For more information, consult:
-        /// http://blogs.msdn.com/b/visualstudio/archive/2010/02/19/how-vsix-extensions-are-discovered-and-loaded-in-vs-2010.aspx
-        /// </remarks>
-        public static string GetUserExtensionsRootFolder(VisualStudioVersion version) {
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var relativeExtensionPath = @"Microsoft\VisualStudio\{0}\Extensions";
-            return Path.Combine(localAppData, string.Format(relativeExtensionPath, version.BuildNumber));
-        }
-
-        /// <summary>
-        /// Returns the root path to the Visual Studio installation directory for a
-        /// certain version.
-        /// </summary>
-        /// <param name="version">Version is 10.0 for Visual Studio 2010, and 11.0 for VS 2012.</param>
-        /// <returns>Path to the installation directory.</returns>
-        static string GetVisualStudioInstallationDirectory(string version)
-        {
-            return
-                Path.Combine(ConstantsBank.ProgramFilesPath,
-                string.Format(@"..\Program Files (x86)\Microsoft Visual Studio {0}", version)
-                );
-        }
     }
 }
