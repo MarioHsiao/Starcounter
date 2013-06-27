@@ -29,11 +29,11 @@ namespace NodeTest
 
         public Int32 MaxEchoBytes = 1000000;
 
-        public Int32 NumEchoesPerWorker = 100000;
+        public Int32 NumEchoesPerWorker = 10000;
 
         public Int32 NumSecondsToWait = 5000;
 
-        public AsyncModes AsyncMode = AsyncModes.ModeRandom;
+        public AsyncModes AsyncMode = AsyncModes.ModeSync;
 
         public Boolean ConsoleDiag = false;
 

@@ -96,6 +96,10 @@ namespace Starcounter.InstallerWPF
             String previousVersion = CompareScVersions();
             if (previousVersion != null)
             {
+                // IMPORTANT: Since StarcounterBin can potentially be used
+                // in this installer we have to delete it for this process.
+                Environment.SetEnvironmentVariable(StarcounterBin, null);
+
                 MessageBoxResult userChoice = System.Windows.MessageBox.Show(
                     "Would you like to uninstall previous(" + previousVersion + ") version of Starcounter now?",
                     "Starcounter is already installed...",
@@ -135,6 +139,11 @@ namespace Starcounter.InstallerWPF
                     // Checking version once again.
                     previousVersion = CompareScVersions();
 
+                    // IMPORTANT: Since PATH env var still contains path to old installation directory
+                    // we have to reset it for this process as well, once uninstallation is complete.
+                    String pathUserEnvVar = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User);
+                    Environment.SetEnvironmentVariable("PATH", pathUserEnvVar);
+
                     // No more old installation - just continue the new one.
                     if (null == previousVersion)
                         return false;
@@ -156,12 +165,9 @@ namespace Starcounter.InstallerWPF
 
             // Checking if another Starcounter version is installed.
             // NOTE: Environment.Exit is used on purpose here, not just "return";
-
-#if SIMULATE_INSTALLATION
-#else
             if (IsAnotherVersionInstalled())
                 Environment.Exit(0);
-#endif
+
             // Showing main setup window.
             InitializationWindow window = new InitializationWindow();
             window.Show();

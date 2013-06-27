@@ -372,8 +372,7 @@ namespace Starcounter.InstallerWPF
                     else
                     {
                         // Checking if there are any files in the target installation directory.
-                        if ((Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath))) &&
-                            (!Utilities.EqualDirectories(installationPath, currentDirectory)))
+                        if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath)))
                         {
                             // Setting normal attributes for all files and folders in installation directory.
                             Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(installationPath));
@@ -393,6 +392,18 @@ namespace Starcounter.InstallerWPF
 
                             // Removing directory.
                             Utilities.ForceDeleteDirectory(new DirectoryInfo(installationPath));
+
+                            // Looping until directory is empty.
+                            Int32 cleaningAttempts = 10;
+                            while (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath)) && (cleaningAttempts > 0))
+                            {
+                                Thread.Sleep(1000);
+                                cleaningAttempts--;
+                            }
+
+                            // Checking if directory is still not empty.
+                            if (cleaningAttempts <= 0)
+                                throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "Installation path '" + installationPath + "' is occupied and can not be cleaned. Please check any locking processes.");
                         }
 
                         // Extracting all files to installation directory, and overwriting old files.

@@ -267,7 +267,9 @@ namespace Starcounter.InstallerWPF {
         static String[] StaticInstallerDependencies =
         { 
             "Starcounter.InstallerNativeHelper.dll",
-            "Starcounter.REST.dll"
+            "Starcounter.REST.dll",
+            "scerrres.dll",
+            "schttpparser.dll"
         };
 
         // PID of the parent process.

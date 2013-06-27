@@ -85,7 +85,7 @@ namespace Starcounter.Internal
                     goto DLLS_LOADED;
 
                 // Trying StarcounterBin.
-                String dllsDir = System.Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+                String dllsDir = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
 
                 // Checking that variable exists.
                 if (String.IsNullOrEmpty(dllsDir))
