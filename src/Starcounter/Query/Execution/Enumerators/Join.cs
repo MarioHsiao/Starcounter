@@ -20,6 +20,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     IExecutionEnumerator leftEnumerator;
     IExecutionEnumerator rightEnumerator;
     Row contextObject;
+    ILogicalExpression postFilterCondition;
     Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
     private Boolean stayAtOffsetkey = false;
     private Boolean useOffsetkey = true;
@@ -28,6 +29,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         JoinType type,
         IExecutionEnumerator leftEnum,
         IExecutionEnumerator rightEnum,
+        ILogicalExpression postFilterCond,
         INumericalExpression fetchNumExpr,
         INumericalExpression fetchOffsetExpr,
         IBinaryExpression fetchOffsetkeyExpr,
@@ -51,6 +53,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         joinType = type;
         leftEnumerator = leftEnum;
         rightEnumerator = rightEnum;
+        postFilterCondition = postFilterCond;
         contextObject = null;
         currentObject = null;
 
@@ -311,11 +314,18 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             return false;
         }
 
-        if (!NextRightAndLeftEnumerators())
-            return false;
-        currentObject = MergeObjects(leftEnumerator.CurrentRow, rightEnumerator.CurrentRow);
-        counter++;
-        return true;
+        Row tempCurrentObject = null;
+        while (NextRightAndLeftEnumerators())
+        {
+            tempCurrentObject = MergeObjects(leftEnumerator.CurrentRow, rightEnumerator.CurrentRow);
+            if (postFilterCondition == null || postFilterCondition.Evaluate(tempCurrentObject) == TruthValue.TRUE)
+            {
+                currentObject = tempCurrentObject;
+                counter++;
+                return true;
+            }
+        }
+        return false;
     }
 
     private Boolean NextRightAndLeftEnumerators() {
@@ -489,9 +499,13 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         IBinaryExpression fetchOffsetKeyExprClone = null;
         if (fetchOffsetKeyExpr != null)
             fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
+        ILogicalExpression postFilterConditionClone = null;
+        if (postFilterCondition != null)
+            postFilterConditionClone = postFilterCondition.Clone(varArrClone);
 
         return new Join(nodeId, rowTypeBindClone, joinType, leftEnumerator.Clone(rowTypeBindClone, varArrClone),
-            rightEnumerator.Clone(rowTypeBindClone, varArrClone), fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
+            rightEnumerator.Clone(rowTypeBindClone, varArrClone), postFilterConditionClone, 
+            fetchNumberExprClone, fetchOffsetExprClone, fetchOffsetKeyExprClone, 
             varArrClone, query, TopNode);
     }
 
@@ -501,6 +515,8 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
         stringBuilder.AppendLine(tabs + 1, joinType.ToString());
         leftEnumerator.BuildString(stringBuilder, tabs + 1);
         rightEnumerator.BuildString(stringBuilder, tabs + 1);
+        if (postFilterCondition != null)
+            postFilterCondition.BuildString(stringBuilder, tabs + 1);
         base.BuildFetchString(stringBuilder, tabs + 1);
         stringBuilder.AppendLine(tabs, ")");
     }

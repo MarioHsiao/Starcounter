@@ -1,7 +1,7 @@
 //
 // common_scheduler_interface.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -13,11 +13,10 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <cstddef>
-#include <boost/cstdint.hpp>
+#include <cstdint>
 #include <memory>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 
 #define WIN32_LEAN_AND_MEAN
@@ -51,15 +50,6 @@ public:
 	
 	// The type of an allocator used.
 	typedef Alloc allocator_type;
-	
-	// Helper types
-	
-	// A type representing the "best" way to pass the value_type to a method.
-	typedef typename boost::call_traits<value_type>::param_type param_type;
-	
-	// A type representing the "best" way to return the value_type from a const
-	// method.
-	typedef typename boost::call_traits<value_type>::param_type return_type;
 	
 	enum state {
 		normal,

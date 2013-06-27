@@ -66,6 +66,11 @@ namespace Starcounter.Query.Execution
             return this;
         }
 
+        public ExtentSet GetOutsideJoinExtentSet()
+        {
+            return null;
+        }
+
         public override void BuildString(MyStringBuilder stringBuilder, Int32 tabs)
         {
             stringBuilder.Append(tabs, "LogicalValue(");

@@ -3,7 +3,7 @@
 //
 // 
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -18,9 +18,10 @@
 #include <winsock2.h>
 #undef WIN32_LEAN_AND_MEAN
 
-#include <stdint.h>
+#include <cstdint>
 #include <list>
 #include <vector>
+#include <cassert>
 #include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 #include "coalmine.h"
 #include "chunk_helper.h"

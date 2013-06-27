@@ -761,6 +761,14 @@ internal interface ILogicalExpression : IConditionTreeNode
     /// <returns>Cloned logical expression.</returns>
     ILogicalExpression Clone(VariableArray varArray);
 
+    /// <summary>
+    /// Gets a set of extents, 
+    /// which represents all extents of which this logical expression must be executed outside, 
+    /// due to IS- and ISNOT-comparisons and outer joins.
+    /// </summary>
+    /// <returns></returns>
+    ExtentSet GetOutsideJoinExtentSet();
+
 #if DEBUG
     bool AssertEquals(ILogicalExpression other);
 #endif

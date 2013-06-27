@@ -23,6 +23,7 @@ namespace Starcounter.Query.Execution
 internal class ComparisonBoolean : CodeGenFilterNode, IComparison
 {
     ComparisonOperator compOperator;
+    ExtentSet outsideJoinExtentSet; // Used to handle IS and ISNOT comparisons w.r.t. outer joins.
     IBooleanExpression expr1;
     IBooleanExpression expr2;
 
@@ -30,9 +31,11 @@ internal class ComparisonBoolean : CodeGenFilterNode, IComparison
     /// Constructor.
     /// </summary>
     /// <param name="compOp">The comparison operator of the operation.</param>
+    /// <param name="extentSet">A set of extents where this comparison cannot be executed 
+    /// (only relevant when operator is IS or ISNOT and there is an outer join).</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal ComparisonBoolean(ComparisonOperator compOp, IBooleanExpression expr1, IBooleanExpression expr2)
+    internal ComparisonBoolean(ComparisonOperator compOp, ExtentSet extentSet, IBooleanExpression expr1, IBooleanExpression expr2)
     {
         if (compOp == ComparisonOperator.LIKEdynamic || compOp == ComparisonOperator.LIKEstatic)
         {
@@ -47,6 +50,7 @@ internal class ComparisonBoolean : CodeGenFilterNode, IComparison
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr2.");
         }
         compOperator = compOp;
+        outsideJoinExtentSet = extentSet;
         this.expr1 = expr1;
         this.expr2 = expr2;
     }
@@ -161,7 +165,7 @@ internal class ComparisonBoolean : CodeGenFilterNode, IComparison
     /// <returns>A more instantiated expression.</returns>
     public ILogicalExpression Instantiate(Row obj)
     {
-        return new ComparisonBoolean(compOperator, expr1.Instantiate(obj), expr2.Instantiate(obj));
+        return new ComparisonBoolean(compOperator, outsideJoinExtentSet, expr1.Instantiate(obj), expr2.Instantiate(obj));
     }
 
     /// <summary>
@@ -203,7 +207,12 @@ internal class ComparisonBoolean : CodeGenFilterNode, IComparison
 
     public ILogicalExpression Clone(VariableArray varArray)
     {
-        return new ComparisonBoolean(compOperator, expr1.CloneToBoolean(varArray), expr2.CloneToBoolean(varArray));
+        return new ComparisonBoolean(compOperator, outsideJoinExtentSet, expr1.CloneToBoolean(varArray), expr2.CloneToBoolean(varArray));
+    }
+
+    public ExtentSet GetOutsideJoinExtentSet()
+    {
+        return outsideJoinExtentSet;
     }
 
     public override void InstantiateExtentSet(ExtentSet extentSet)

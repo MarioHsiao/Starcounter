@@ -52,6 +52,11 @@ internal class SortNode : IOptimizationNode
         return permutationList;
     }
 
+    public void MoveConditionsWithRespectToOuterJoins(JoinNode parentNode)
+    {
+        subNode.MoveConditionsWithRespectToOuterJoins(null);
+    }
+
     public IOptimizationNode Clone()
     {
         throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Not supported.");
