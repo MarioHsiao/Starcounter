@@ -676,7 +676,7 @@ namespace Starcounter.InstallerEngine
                         if (uninstallFlag)
                         {
                             // Loading uninstallation settings from setup settings file.
-                            UninstallEngine.LoadUninstallationSettings(Path.Combine(installationDir, setupConfigFile));
+                            UninstallEngine.LoadUninstallationSettings(setupConfigFile);
 
                             // Loading installation settings in order to get server paths, etc.
                             InstallerMain.LoadInstallationSettings(Path.Combine(installationDir, ConstantsBank.ScGlobalSettingsXmlName));
@@ -684,7 +684,7 @@ namespace Starcounter.InstallerEngine
                         else
                         {
                             // Loading installation settings.
-                            LoadInstallationSettings(Path.Combine(installationDir, setupConfigFile));
+                            LoadInstallationSettings(setupConfigFile);
                         }
                     }
                     else
