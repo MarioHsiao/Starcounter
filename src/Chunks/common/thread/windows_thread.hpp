@@ -12,6 +12,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <utility>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #undef WIN32_LEAN_AND_MEAN
@@ -36,6 +37,11 @@ public:
 	}
 	
 	int create(start_routine_type routine, void* arg) {
+		return (thread_ = ::CreateThread(NULL, 0, routine, arg, 0, NULL)) != NULL;
+	}
+
+	template<typename T1, typename T2>
+	int create(start_routine_type routine, std::pair<T1,T2>* arg) {
 		return (thread_ = ::CreateThread(NULL, 0, routine, arg, 0, NULL)) != NULL;
 	}
 	
