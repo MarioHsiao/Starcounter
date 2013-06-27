@@ -62,6 +62,7 @@
 #include "../common/log.hpp"
 #include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
+#include "event.hpp"
 
 #pragma intrinsic(_InterlockedIncrement)
 #pragma intrinsic(_InterlockedDecrement)

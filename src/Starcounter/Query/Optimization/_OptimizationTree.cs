@@ -128,6 +128,47 @@ internal class OptimizationTree
         }
     }
 
+    //PI130624
+    //internal void MoveConditionsWithRespectToOuterJoins()
+    //{
+    //    Int32 extentNum = -1;
+    //    ExtentNode extentNode = null;
+    //    List<ILogicalExpression> conditionsMisplaced = null;
+    //    List<ILogicalExpression> conditionsOnMove = new List<ILogicalExpression>();
+    //    Int32 countPreAdd = 0;
+    //    ExtentSet outsideJoinExtentSet = null;
+    //    for (Int32 i = 0; i < extentOrder.Count; i++)
+    //    {
+    //        countPreAdd = conditionsOnMove.Count;
+    //        // Get misplaced conditions to move.
+    //        extentNum = extentOrder[i];
+    //        extentNode = nodesByExtentNumber[extentNum];
+    //        conditionsMisplaced = extentNode.GetMisplacedConditions();
+    //        if (conditionsMisplaced != null)
+    //            conditionsOnMove.AddRange(conditionsMisplaced);
+    //        // See if any conditions on the move could be placed in current extent node.
+    //        Int32 j = 0;
+    //        while (j < countPreAdd)
+    //        {
+    //            outsideJoinExtentSet = conditionsOnMove[j].GetOutsideJoinExtentSet();
+    //            if (!outsideJoinExtentSet.IncludesExtentNumber(extentNum))
+    //            {
+    //                extentNode.AddCondition(conditionsOnMove[j]);
+    //                conditionsOnMove.RemoveAt(j);
+    //                countPreAdd--;
+    //            }
+    //            else
+    //                j++;
+    //        }
+    //    }
+    //    // TODO: Place remaining conditions on the move in some join node. PI130604
+    //}
+
+    internal void MoveConditionsWithRespectToOuterJoins()
+    {
+        topNode.MoveConditionsWithRespectToOuterJoins(null);
+    }
+
     internal void EvaluateScanAlternatives()
     {
         for (Int32 i = 0; i < nodesByExtentNumber.Length; i++)

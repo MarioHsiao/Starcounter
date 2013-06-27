@@ -1,7 +1,7 @@
 //
 // shared_chunk_pool.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -15,6 +15,7 @@
 // Use -DBOOST_CB_DISABLE_DEBUG or -DNDEBUG flags
 #define BOOST_CB_DISABLE_DEBUG
 
+#include <cstdint>
 #include <cstddef>
 #include <memory>
 #include <ios> /// For debug - remove.
@@ -34,7 +35,6 @@
 #include <boost/thread/thread.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
-#include <boost/cstdint.hpp>
 #include "../common/interprocess.hpp"
 #include "../common/name_definitions.hpp"
 #include "../common/chunk.hpp"

@@ -1,7 +1,7 @@
 //
 // pid_type.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -12,10 +12,9 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <iostream>
+#include <cstdint>
 #include <cstddef>
-#include <boost/call_traits.hpp>
-#include <boost/cstdint.hpp>
+#include <iostream>
 
 #if defined(UNIX)
 # include <sys/types.h>
@@ -34,8 +33,7 @@ namespace core {
 /// Class pid_type represents the OS dependent process ID type.
 class pid_type {
 public:
-	// type definitions
-	
+	// Type definitions.
 	#if defined(UNIX)
 	typedef pid_t value_type;
 	#elif defined(_WIN32) || defined(_WIN64)
@@ -44,14 +42,8 @@ public:
 	# error Unsupported architecture.
 	#endif // defined(UNIX)
 	
-	// helper types
-	
-	// A type representing the "best" way to pass the value_type to a method.
-	typedef boost::call_traits<value_type>::param_type param_type;
-	
-	// A type representing the "best" way to return the value_type from a const
-	// method.
-	typedef boost::call_traits<value_type>::param_type return_type;
+	typedef value_type param_type;
+	typedef value_type return_type;
 	
 	enum {
 		// none indicates no processor id.

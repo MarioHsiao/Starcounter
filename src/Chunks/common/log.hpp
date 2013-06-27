@@ -20,7 +20,6 @@
 # undef WIN32_LEAN_AND_MEAN
 #endif // defined(_MSC_VER)
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <cwchar>

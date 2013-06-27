@@ -157,6 +157,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E
 		Chunks\common\mapped_region.cpp = Chunks\common\mapped_region.cpp
 		Chunks\common\monitor_interface.hpp = Chunks\common\monitor_interface.hpp
 		Chunks\common\name_definitions.hpp = Chunks\common\name_definitions.hpp
+		Chunks\common\noncopyable.hpp = Chunks\common\noncopyable.hpp
 		Chunks\common\overflow_buffer.hpp = Chunks\common\overflow_buffer.hpp
 		Chunks\common\owner_id.hpp = Chunks\common\owner_id.hpp
 		Chunks\common\owner_id_value_type.h = Chunks\common\owner_id_value_type.h
@@ -171,6 +172,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{F5866E
 		Chunks\common\shared_interface.hpp = Chunks\common\shared_interface.hpp
 		Chunks\common\shared_memory_object.cpp = Chunks\common\shared_memory_object.cpp
 		Chunks\common\spinlock.hpp = Chunks\common\spinlock.hpp
+		Chunks\common\thread.hpp = Chunks\common\thread.hpp
 		Chunks\common\timeout.hpp = Chunks\common\timeout.hpp
 	EndProjectSection
 EndProject
@@ -327,6 +329,15 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.UsageTracker", "Programs\Starcounter.UsageTracker\Starcounter.UsageTracker.csproj", "{773CF89D-D530-4350-8C83-C7C01BB61D47}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPA", "Samples\SPA\SPA.csproj", "{699183D9-6ACF-44C9-B922-CE7FE487206D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "thread", "thread", "{87545FE9-1480-4CD3-958E-C96552000C97}"
+	ProjectSection(SolutionItems) = preProject
+		Chunks\common\thread\posix_thread.hpp = Chunks\common\thread\posix_thread.hpp
+		Chunks\common\thread\thread.hpp = Chunks\common\thread\thread.hpp
+		Chunks\common\thread\windows_thread.hpp = Chunks\common\thread\windows_thread.hpp
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NodeTest", "Samples\NodeTest\NodeTest.csproj", "{D169924E-E6C5-42AE-AEB3-43698D642285}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -815,6 +826,12 @@ Global
 		{699183D9-6ACF-44C9-B922-CE7FE487206D}.Debug|x64.Build.0 = Debug|x64
 		{699183D9-6ACF-44C9-B922-CE7FE487206D}.Release|x64.ActiveCfg = Release|x64
 		{699183D9-6ACF-44C9-B922-CE7FE487206D}.Release|x64.Build.0 = Release|x64
+		{D169924E-E6C5-42AE-AEB3-43698D642285}.BuildServerTest|x64.ActiveCfg = Release|x64
+		{D169924E-E6C5-42AE-AEB3-43698D642285}.BuildServerTest|x64.Build.0 = Release|x64
+		{D169924E-E6C5-42AE-AEB3-43698D642285}.Debug|x64.ActiveCfg = Debug|x64
+		{D169924E-E6C5-42AE-AEB3-43698D642285}.Debug|x64.Build.0 = Debug|x64
+		{D169924E-E6C5-42AE-AEB3-43698D642285}.Release|x64.ActiveCfg = Release|x64
+		{D169924E-E6C5-42AE-AEB3-43698D642285}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -845,6 +862,7 @@ Global
 		{7B6E429E-E026-4E04-9A3D-76DE94ABA32D} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
 		{D4B13F57-763D-4742-BE17-01E93ECF7FC9} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
 		{699183D9-6ACF-44C9-B922-CE7FE487206D} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
+		{D169924E-E6C5-42AE-AEB3-43698D642285} = {2E993A9D-C78B-45A5-AA0D-1FAA58825805}
 		{7BF06E68-1088-47EE-B06C-DE546AFABDB0} = {1046FAB3-028B-4F84-A133-8C6248B7B7CB}
 		{84C29D6B-3FD3-4806-BDC8-A9C9426EF093} = {1046FAB3-028B-4F84-A133-8C6248B7B7CB}
 		{766077BF-D6C8-437A-B1D2-6D81E0B62B1B} = {1046FAB3-028B-4F84-A133-8C6248B7B7CB}
@@ -879,6 +897,7 @@ Global
 		{60AAE92E-E384-45FF-96F3-3D6B38462E3C} = {42B8DA2F-1785-43DC-B8D8-AE3676E822D4}
 		{C20F6D2A-3988-4ABC-BFC2-95E19ACA3C07} = {42B8DA2F-1785-43DC-B8D8-AE3676E822D4}
 		{FFD0C045-ECC0-4621-BB0D-CE53859E0BC5} = {F5866E64-EAD9-44E9-98B3-93DED5C8B352}
+		{87545FE9-1480-4CD3-958E-C96552000C97} = {F5866E64-EAD9-44E9-98B3-93DED5C8B352}
 		{0E242B9D-C9FB-4975-B2A5-885DF7232582} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 		{524A9D92-4E74-413B-85E1-B3E893B4A25A} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 		{7DB7527C-79F6-4C05-A8CF-B7A52E5E7A19} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}

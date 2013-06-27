@@ -41,11 +41,13 @@ internal static class Optimizer
         if (hintSpec == null) {
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect hintSpec.");
         }
+
         List<OptimizationTree> optimizationTreeList = CreateAllPermutations(nodeTree, hintSpec);
         OptimizationTree bestOptimizationTree = null;
         for (Int32 i = 0; i < optimizationTreeList.Count; i++) {
             optimizationTreeList[i].DistributeIndexHints(hintSpec.IndexHintList);
             optimizationTreeList[i].DistributeConditions(conditionDict);
+            optimizationTreeList[i].MoveConditionsWithRespectToOuterJoins();
             optimizationTreeList[i].EvaluateScanAlternatives();
             optimizationTreeList[i].SortOptimize();
             if (bestOptimizationTree == null || optimizationTreeList[i].EstimatedCost < bestOptimizationTree.EstimatedCost) {

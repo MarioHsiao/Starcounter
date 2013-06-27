@@ -1,7 +1,7 @@
 //
 // scheduler_mask.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -12,9 +12,9 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <iostream>
+#include <cstdint>
 #include <cstddef>
-#include <boost/cstdint.hpp>
+#include <iostream>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #undef WIN32_LEAN_AND_MEAN
