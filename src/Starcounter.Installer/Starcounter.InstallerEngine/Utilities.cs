@@ -1103,9 +1103,9 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Message box information alternative.
         /// </summary>
-        public static void MessageBoxInfo(String message, String title)
+        public static void MessageBoxInfo(String message, String title, Boolean forceDefaultMsgBox = false)
         {
-            if (InstallerMain.GuiMessageboxCallback != null)
+            if ((!forceDefaultMsgBox) && (InstallerMain.GuiMessageboxCallback != null))
             {
                 // Calling installer GUI message box.
                 InstallerMain.GuiMessageboxCallback(null,
