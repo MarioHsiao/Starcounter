@@ -100,7 +100,7 @@ private:
 /**
  * @throws test_exception when something can not be achieved.
  */
-// Objects of type boost::thread are not copyable.
+// Objects of type thread are not copyable.
 class test : private noncopyable {
 public:
 	//typedef std::set<std::string> monitor_interface_name_type;
@@ -136,7 +136,7 @@ public:
 	owner_id get_owner_id() const;
 
 	/// Start the test.
-	void run(uint32_t interval_time_milliseconds, uint32_t duration_time_milliseconds);
+	void run(uint32_t interval_time_milliseconds);
 	
 	/// Stop a worker.
     /**
@@ -152,8 +152,11 @@ public:
 	void print_rate(double rate);
 	
 	/// Show statistics.
-	void show_statistics(uint32_t interval_time_milliseconds, uint32_t
-	duration_time_milliseconds);
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void show_statistics(std::pair<test*,std::size_t> arg);
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	void show_statistics(uint32_t interval_time_milliseconds);
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	
 	void gotoxy(int16_t x, int16_t y) {
@@ -183,8 +186,6 @@ public:
 
 	void open_active_databases_updated_event();
 
-	void watch_active_databases_updates();
-
 	/// Get a reference to the active_databases_updates_event_.
 	/**
 	 * @param A reference to the active_databases_updates_event_.
@@ -199,6 +200,14 @@ public:
 	 */ 
 	const HANDLE& active_databases_updates_event() const {
 		return active_databases_updates_event_;
+	}
+
+	shared_interface& shared(std::size_t i) {
+		return shared_[i];
+	}
+
+	worker& get_worker(std::size_t i) {
+		return worker_[i];
 	}
 
 private:
@@ -232,10 +241,12 @@ private:
 
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	// Statistics thread.
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	thread statistics_thread_;
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::thread statistics_thread_;
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	
-	boost::thread active_databases_updates_;
 };
 
 } // namespace interprocess_communication

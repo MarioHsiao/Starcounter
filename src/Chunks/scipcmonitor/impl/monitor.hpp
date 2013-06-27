@@ -257,10 +257,10 @@ namespace starcounter {
             // Notify all waiting threads in other processes that the monitor_interface
             // is ready to be used.
 
-            the_monitor_interface_->active_database_set()
+            the_monitor_interface()->active_database_set()
                .set_active_databases_set_update_event(active_databases_updated_event);
             _mm_mfence();
-            the_monitor_interface_->is_ready_notify_all();
+            the_monitor_interface()->is_ready_notify_all();
 
             //--------------------------------------------------------------------------
             // For each database and client event groups, create the vectors containing
@@ -269,11 +269,11 @@ namespace starcounter {
             // the vectors. The capacity of the vector will never be exceeded so the
             // vectors never have to reallocate their internal memory.
             for (std::size_t i = 0; i < database_process_event_groups; ++i) {
-               database_process_group_[i].event_.reserve(events_per_group);
+               database_process_group(i).event_.reserve(events_per_group);
             }
 
             for (std::size_t i = 0; i < client_process_event_groups; ++i) {
-               client_process_group_[i].event_.reserve(events_per_group);
+               client_process_group(i).event_.reserve(events_per_group);
             }
 
             //--------------------------------------------------------------------------
@@ -329,11 +329,11 @@ namespace starcounter {
 
          // Join threads.
          for (std::size_t i = 0; i < database_process_event_groups; ++i) {
-            database_process_group_[i].thread_.join();
+            database_process_group(i).thread_.join();
          }
 
          for (std::size_t i = 0; i < client_process_event_groups; ++i) {
-            client_process_group_[i].thread_.join();
+            client_process_group(i).thread_.join();
          }
 
          registrar_.join();
@@ -351,58 +351,95 @@ namespace starcounter {
 
          // Start a group of threads monitoring database process event.
          for (std::size_t i = 0; i < database_process_event_groups; ++i) {
-            database_process_group_[i].thread_ = boost::thread(boost::bind(&monitor
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+			std::pair<monitor*,std::size_t>* arg = new std::pair<monitor*,std::size_t>(this, i); // TODO: Fix this leak.
+            database_process_group(i).thread_.create((thread::start_routine_type)
+			&monitor::wait_for_database_process_event, arg);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+            database_process_group(i).thread_ = boost::thread(boost::bind(&monitor
                ::wait_for_database_process_event, this, i));
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
             // Store the native handle of the thread. It is used in the call to
             // QueueUserAPC() by the registrar_ thread.
-            database_process_group_[i].thread_handle_
-               = database_process_group_[i].thread_.native_handle();
+            database_process_group(i).thread_handle_
+               = database_process_group(i).thread_.native_handle();
          }
 
          // Start a group of threads monitoring client process event.
          for (std::size_t i = 0; i < client_process_event_groups; ++i) {
-            client_process_group_[i].thread_ = boost::thread(boost::bind(&monitor
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+			std::pair<monitor*,std::size_t>* arg = new std::pair<monitor*,std::size_t>(this, i); // TODO: Fix this leak.
+            client_process_group(i).thread_.create((thread::start_routine_type)
+			&monitor::wait_for_client_process_event, arg);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+            client_process_group(i).thread_ = boost::thread(boost::bind(&monitor
                ::wait_for_client_process_event, this, i));
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
             // Store the native handle of the thread. It is used in the call to
             // QueueUserAPC() by the registrar_ thread.
-            client_process_group_[i].thread_handle_
-               = client_process_group_[i].thread_.native_handle();
+            client_process_group(i).thread_handle_
+               = client_process_group(i).thread_.native_handle();
          }
 
          // Start the registrar thread. This must be done after the
-         // database_process_group_[s] and client_process_group_[s] native_handle(s)
+         // database_process_group(s) and client_process_group(s) native_handle(s)
          // for those threads have been stored, since it is used in the call to
          // QueueUserAPC() by the registrar_ thread.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+         registrar_.create((thread::start_routine_type) &monitor::registrar, this);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          registrar_ = boost::thread(boost::bind(&monitor::registrar, this));
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
-         // Start the clean up thread.
+         // Start the cleanup thread.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+         cleanup_.create((thread::start_routine_type) &monitor::cleanup, this);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          cleanup_ = boost::thread(boost::bind(&monitor::cleanup, this));
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
          // Start the active databases thread.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+         active_databases_file_updater_thread_.create
+		 ((thread::start_routine_type) &monitor::update_active_databases_file, this);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          active_databases_file_updater_thread_ = boost::thread(boost::bind
             (&monitor::update_active_databases_file, this));
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          // Start the resources watching thread.
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+         resources_watching_thread_.create
+		 ((thread::start_routine_type) &monitor::watch_resources, this);
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          resources_watching_thread_ = boost::thread(boost::bind
             (&monitor::watch_resources, this));
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
       }
 
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::wait_for_database_process_event(std::pair<monitor*,std::size_t> arg) {
+		monitor* monitor = arg.first;
+		std::size_t group = arg.second;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::wait_for_database_process_event(std::size_t group) {
+		monitor* monitor = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          // The event code returned from WaitForMultipleObjectsEx() and SleepEx().
          uint32_t event_code = 0;
          HANDLE the_event;
 
          /// TODO: termination
          while (true) {
-            if (!database_process_group_[group].event_.empty()) {
+            if (!monitor->database_process_group(group).event_.empty()) {
                // Wait for database process events, or for an APC.
-               event_code = WaitForMultipleObjectsEx(
-                  database_process_group_[group].event_.size(),
-                  event::const_iterator(&database_process_group_[group].event_[0]),
+               event_code = ::WaitForMultipleObjectsEx(
+                  monitor->database_process_group(group).event_.size(),
+                  event::const_iterator(&monitor->database_process_group(group).event_[0]),
                   false, INFINITE, true);
             }
             else {
@@ -412,15 +449,15 @@ namespace starcounter {
 
             /// If the vector was updated in the APC call it is either the same
             /// or N less elements down to 0...so, think about that.
-            if (event_code < database_process_group_[group].event_.size()) {
+            if (event_code < monitor->database_process_group(group).event_.size()) {
                // A registered database process exit. Get the exit_event.
-               boost::detail::win32::handle exit_event
-                  = database_process_group_[group].event_[event_code];
+               ::HANDLE exit_event
+                  = monitor->database_process_group(group).event_[event_code];
 
-               // Search for database process exit_event in the process_register_.
+               // Search for database process exit_event in the process_register().
                for (process_register_type::iterator process_register_it
-                  = process_register_.begin(); process_register_it
-                  != process_register_.end(); ++process_register_it) {
+                  = monitor->process_register().begin(); process_register_it
+                  != monitor->process_register().end(); ++process_register_it) {
                      if (process_register_it->second.get_handle() == exit_event) {
                         switch (process_register_it->second.get_process_type()) {
                         case monitor_interface::database_process: /// It must be!
@@ -436,21 +473,21 @@ namespace starcounter {
                                  process_register_it_2;
 
                               // Search for the owner_id of the terminated
-                              // database process in the process_register_.
+                              // database process in the process_register().
                               // TODO: process_register_it_2 == process_register_it
                               // so why find it? Remove 
 
-                              if ((process_register_it_2 = process_register_.find
+                              if ((process_register_it_2 = monitor->process_register().find
                                  (process_register_it->first))
-                                 != process_register_.end()) {
+                                 != monitor->process_register().end()) {
                                     // Found the owner_id. Open the database
                                     // shared memory segment that this database
                                     // process had created.
 
                                     // Erase the segment name from the cleanup_task table if it exists.
-                                    the_monitor_interface_->erase_segment_name
+                                    monitor->the_monitor_interface()->erase_segment_name
                                     (process_register_it_2->second.get_segment_name().c_str(),
-                                    ipc_monitor_cleanup_event_);
+                                    monitor->ipc_monitor_cleanup_event());
 
                                     try {
                                        // Try open the segment.
@@ -484,16 +521,16 @@ namespace starcounter {
                                        // active_databases_, and notify the
                                        // active_databases_file_updater_thread_.
 
-                                       if (!erase_database_name
-                                          (segment_name_to_database_name
+                                       if (!monitor->erase_database_name
+                                          (monitor->segment_name_to_database_name
                                           (process_register_it_2->second
                                           .get_segment_name()))) {
                                              // Failed to erase the database name.
-                                             log().error(SCERRIPCMONITORERASEDATABASENAME);
+                                             monitor->log().error(SCERRIPCMONITORERASEDATABASENAME);
                                        }
 
                                        // Remove from the process_register.
-                                       process_register_.erase
+                                       monitor->process_register().erase
                                           (process_register_it_2);
                                     }
                                     catch (shared_interface_exception&) {
@@ -504,15 +541,15 @@ namespace starcounter {
                                        // active_databases_, and notify the
                                        // active_databases_file_updater_thread_.
 
-										if (!erase_database_name
-                                          (segment_name_to_database_name
+										if (!monitor->erase_database_name
+                                          (monitor->segment_name_to_database_name
                                           (process_register_it_2->second
                                           .get_segment_name()))) {
                                              // Failed to erase the database name.
-                                             log().error(SCERRIPCMONITORERASEDATABASENAME);
+                                             monitor->log().error(SCERRIPCMONITORERASEDATABASENAME);
                                        }
                                        // Remove from the process_register.
-                                       process_register_.erase
+                                       monitor->process_register().erase
                                           (process_register_it_2);
                                     }
                               }
@@ -523,25 +560,25 @@ namespace starcounter {
                               }
                            }
                            catch (boost::interprocess::interprocess_exception&) {
-                              log().error(SCERRBOOSTINTERPROCESSEXCEPTION);
+                              monitor->log().error(SCERRBOOSTINTERPROCESSEXCEPTION);
                            }
                            catch (...) {
-                              log().error(SCERRTRYOPENSEGMENTUNKNOWNEXCEPT);
+                              monitor->log().error(SCERRTRYOPENSEGMENTUNKNOWNEXCEPT);
                            }
                            break;
                         case monitor_interface::client_process: /// It can't be!
-                           log().error(SCERRGOTCLIENTPROCESSTYPENOTDB);
+                           monitor->log().error(SCERRGOTCLIENTPROCESSTYPENOTDB);
                            break;
                         default: /// Impossible!
                            // Unknown proess type exit. Cosmic X-ray corrupted RAM?
-                           log().error(SCERRGOTUNKNOWNPROCESSTYPENOTDB);
+                           monitor->log().error(SCERRGOTUNKNOWNPROCESSTYPENOTDB);
                            break;
                         }
                         // Found the exit_event, stop searching.
                         break;
                      }
                }
-               remove_database_process_event(group, event_code);
+               monitor->remove_database_process_event(group, event_code);
             }
             else {
                switch (event_code) {
@@ -549,7 +586,7 @@ namespace starcounter {
                   // The wait was ended by one or more user-mode asynchronous
                   // procedure calls (APC) queued to this thread. The
                   // apc_function() was called and returned instantly.
-                  switch (the_monitor_interface_->get_operation()) {
+                  switch (monitor->the_monitor_interface()->get_operation()) {
                   case monitor_interface::registration_request: {
                      // Store info about the registering database
                      // process, if not already registered.
@@ -558,15 +595,15 @@ namespace starcounter {
                                                                       /// TODO: Try to optimize and hold this mutex
                                                                       /// for the shortest time possible, as usual.
                                                                       boost::mutex::scoped_lock register_lock
-                                                                         (register_mutex_);
+                                                                         (monitor->register_mutex());
 
                                                                       // Check if this pid already exist in the
                                                                       // event_register:
                                                                       for (process_register_type::iterator pos
-                                                                         = process_register_.begin(); pos
-                                                                         != process_register_.end(); ++pos) {
+                                                                         = monitor->process_register().begin(); pos
+                                                                         != monitor->process_register().end(); ++pos) {
                                                                             if (pos->second.get_pid()
-                                                                               == the_monitor_interface_->get_pid()) {
+                                                                               == monitor->the_monitor_interface()->get_pid()) {
                                                                                   /// TODO: Log this? pid exists...not handled yet!
                                                                                   /// Is this a problem? The key is
                                                                                   /// owner_id, not pid.
@@ -576,53 +613,53 @@ namespace starcounter {
                                                                       // The pid does not exist in the event register.
                                                                       // Register the process.
                                                                       if ((the_event = ::OpenProcess(SYNCHRONIZE, FALSE,
-                                                                         the_monitor_interface_->get_pid())) == NULL) {
+                                                                         monitor->the_monitor_interface()->get_pid())) == NULL) {
                                                                             // OpenProcess() failed.
-                                                                            log().error(SCERROPENPROCESSFAILEDREGDBPROC);
+                                                                            monitor->log().error(SCERROPENPROCESSFAILEDREGDBPROC);
                                                                             break;
                                                                       }
 
                                                                       // Get a new unique owner_id.
-                                                                      owner_id new_owner_id = get_new_owner_id();
+                                                                      owner_id new_owner_id = monitor->get_new_owner_id();
 
                                                                       // Insert database process info.
-                                                                      process_register_[new_owner_id] =
+                                                                      monitor->process_register()[new_owner_id] =
                                                                          process_info(the_event,
-                                                                         the_monitor_interface_->get_process_type(),
-                                                                         the_monitor_interface_->get_pid(),
-                                                                         the_monitor_interface_->get_segment_name());
+                                                                         monitor->the_monitor_interface()->get_process_type(),
+                                                                         monitor->the_monitor_interface()->get_pid(),
+                                                                         monitor->the_monitor_interface()->get_segment_name());
 
                                                                       // Store the event to be monitored.
-                                                                      database_process_group_[group].event_.push_back
+                                                                      monitor->database_process_group(group).event_.push_back
                                                                          (the_event);
 
                                                                       // Set out data in the monitor_interface.
-                                                                      the_monitor_interface_
+                                                                      monitor->the_monitor_interface()
                                                                          ->set_owner_id(new_owner_id);
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
                                                                       active_segments_update_.push_front
-                                                                         (the_monitor_interface_->get_segment_name());
+                                                                         (monitor->the_monitor_interface()->get_segment_name());
 #endif //defined (IPC_MONITOR_SHOW_ACTIVITY)
 
                                                                       // Try to insert database name into
                                                                       // active_databases_, and notify the
                                                                       // active_databases_file_updater_thread_.
-                                                                      if (!insert_database_name
-                                                                         (segment_name_to_database_name
-                                                                         (the_monitor_interface_->get_segment_name()))) {
+                                                                      if (!monitor->insert_database_name
+                                                                         (monitor->segment_name_to_database_name
+                                                                         (monitor->the_monitor_interface()->get_segment_name()))) {
                                                                             // Failed to insert database name into
                                                                             // active_databases_.
-                                                                            log().error(SCERRIPCMONINSERTDBNAMEACTIVEDBR);
+                                                                            monitor->log().error(SCERRIPCMONINSERTDBNAMEACTIVEDBR);
                                                                       }
 
-                                                                      the_monitor_interface_
+                                                                      monitor->the_monitor_interface()
                                                                          ->set_out_data_available_state(true);
                                                                    }
 
                                                                    // Notify the registering database process that out
                                                                    // data is available.
-                                                                   the_monitor_interface_
+                                                                   monitor->the_monitor_interface()
                                                                       ->out_data_is_available_notify_one();
                                                                 }
                                                                 break;
@@ -634,43 +671,43 @@ namespace starcounter {
                                                                         /// TODO: Try to optimize and hold this mutex
                                                                         /// for the shortest time possible, as usual.
                                                                         boost::mutex::scoped_lock register_lock
-                                                                           (register_mutex_);
+                                                                           (monitor->register_mutex());
 
                                                                         // Find the process info to remove by searching
                                                                         // for the key - the owner_id.
                                                                         for (process_register_type::iterator pos
-                                                                           = process_register_.begin(); pos
-                                                                           != process_register_.end(); ++pos) {
+                                                                           = monitor->process_register().begin(); pos
+                                                                           != monitor->process_register().end(); ++pos) {
                                                                               if (pos->second.get_pid()
-                                                                                 == the_monitor_interface_->get_pid()
+                                                                                 == monitor->the_monitor_interface()->get_pid()
                                                                                  && pos->first
-                                                                                 == the_monitor_interface_->get_owner_id()) {
+                                                                                 == monitor->the_monitor_interface()->get_owner_id()) {
                                                                                     // The pid exists and the owner_id
                                                                                     // matches. Remove it from the register.
 
                                                                                     // Try to erase database name from
                                                                                     // active_databases_, and notify the
                                                                                     // active_databases_file_updater_thread_
-                                                                                    if (!erase_database_name
-                                                                                       (segment_name_to_database_name
+                                                                                    if (!monitor->erase_database_name
+                                                                                       (monitor->segment_name_to_database_name
                                                                                        (pos->second.get_segment_name()))) {
                                                                                           // Failed to erase database name.
-                                                                                          log().error(SCERRIPCMONITORERASEDATABASENAME);
+                                                                                          monitor->log().error(SCERRIPCMONITORERASEDATABASENAME);
                                                                                     }
 
-                                                                                    // Remove from the process_register_.
-                                                                                    process_register_.erase(pos);
+                                                                                    // Remove from the process_register().
+                                                                                    monitor->process_register().erase(pos);
                                                                                     break;
                                                                               }
                                                                         }
 
-                                                                        the_monitor_interface_
+                                                                        monitor->the_monitor_interface()
                                                                            ->set_out_data_available_state(true);
                                                                      }
 
                                                                      // Notify the unregistering database process that
                                                                      // out data is available.
-                                                                     the_monitor_interface_
+                                                                     monitor->the_monitor_interface()
                                                                         ->out_data_is_available_notify_one();
                                                                   }
                                                                   break;
@@ -688,36 +725,43 @@ namespace starcounter {
          }
       }
 
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::wait_for_client_process_event(std::pair<monitor*,std::size_t> arg) {
+		monitor* monitor = arg.first;
+		std::size_t group = arg.second;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::wait_for_client_process_event(std::size_t group) {
+		monitor* monitor = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          // The event code returned from WaitForMultipleObjectsEx() and SleepEx().
          uint32_t event_code = 0;
          HANDLE the_event;
 
          /// TODO: termination
          while (true) {
-            if (!client_process_group_[group].event_.empty()) {
+            if (!monitor->client_process_group(group).event_.empty()) {
                // Wait for client process events, or for an APC.
-               event_code = WaitForMultipleObjectsEx(
-                  client_process_group_[group].event_.size(),
-                  event::const_iterator(&client_process_group_[group].event_[0]),
+               event_code = ::WaitForMultipleObjectsEx(
+                  monitor->client_process_group(group).event_.size(),
+                  event::const_iterator(&monitor->client_process_group(group).event_[0]),
                   false, INFINITE, true);
             }
             else {
                // No process exit_event(s) to wait for, just wait for an APC.
-               event_code = SleepEx(INFINITE, true);
+               event_code = ::SleepEx(INFINITE, true);
             }
 
             /// If the vector was updated in the APC call it is either the same
             /// or N less elements down to 0...so, think about that.
-            if (event_code < client_process_group_[group].event_.size()) {
+            if (event_code < monitor->client_process_group(group).event_.size()) {
                // A registered client process exit. Get the exit_event.
-               boost::detail::win32::handle exit_event
-                  = client_process_group_[group].event_[event_code];
+               ::HANDLE exit_event
+                  = monitor->client_process_group(group).event_[event_code];
 
-               // Search for client process exit_event in the process_register_.
+               // Search for client process exit_event in the process_register().
                for (process_register_type::iterator process_register_it
-                  = process_register_.begin(); process_register_it
-                  != process_register_.end(); ++process_register_it) {
+                  = monitor->process_register().begin(); process_register_it
+                  != monitor->process_register().end(); ++process_register_it) {
                      owner_id owner_id_of_terminated_process(owner_id::none);
 
                      if (process_register_it->second.get_handle() == exit_event) {
@@ -766,12 +810,12 @@ namespace starcounter {
 
                               /// TODO: Try to optimize and hold this mutex
                               /// for the shortest time possible, as usual.
-                              boost::mutex::scoped_lock register_lock(register_mutex_);
+                              boost::mutex::scoped_lock register_lock(monitor->register_mutex());
 
                               // Search for all segment names in the register.
                               for (process_register_type::iterator
-                                 process_register_it_2 = process_register_.begin();
-                                 process_register_it_2 != process_register_.end();
+                                 process_register_it_2 = monitor->process_register().begin();
+                                 process_register_it_2 != monitor->process_register().end();
                               ++process_register_it_2) { /// Iterating through process_register, trying to find databases
                                  if (process_register_it_2
                                     ->second.get_segment_name().empty()) {
@@ -783,13 +827,13 @@ namespace starcounter {
 
                                  // Insert the segment name into the cleanup_task array
                                  // and get the index of it.
-                                 int32_t cleanup_task_index = the_monitor_interface_
+                                 int32_t cleanup_task_index = monitor->the_monitor_interface()
                                     ->insert_segment_name(process_register_it_2->second.get_segment_name().c_str());
 
                                  // TODO: Error handling.
                                  if (cleanup_task_index == -1) {
                                     // Could not insert segment name.
-                                    log().error(SCERRIPCMONITORINSERTSEGMENTNAME);
+                                    monitor->log().error(SCERRIPCMONITORINSERTSEGMENTNAME);
                                  }
 
                                  shared_interface shared(process_register_it_2
@@ -899,7 +943,7 @@ namespace starcounter {
                                                       }
                                                       else {
                                                          // Failed to notify the scheduler on this channel.
-                                                         log().error(SCERRIPCMONFAILEDNOTIFYSCHEDULER);
+                                                         monitor->log().error(SCERRIPCMONFAILEDNOTIFYSCHEDULER);
                                                       }
                                                    }
                                                    else {
@@ -919,14 +963,14 @@ namespace starcounter {
                               //log().error(SCERROPENDBSHMSEGTONOTIFYCLIENTS);
                            }
                            catch (boost::interprocess::interprocess_exception&) {
-                              log().error(SCERRBOOSTINTERPROCESSEXCEPTION);
+                              monitor->log().error(SCERRBOOSTINTERPROCESSEXCEPTION);
                            }
                            catch (...) {
-                              log().error(SCERRIPCMONOPENDBSHMSEGUNKNOWNEX);
+                              monitor->log().error(SCERRIPCMONOPENDBSHMSEGUNKNOWNEX);
                            }
 
                            // Remove from the process_register here?
-                           process_register_.erase(process_register_it);
+                           monitor->process_register().erase(process_register_it);
                            break;
 
                         case monitor_interface::database_process: /// It can't be!
@@ -940,13 +984,13 @@ namespace starcounter {
 
                         default: /// Impossible!
                            // Unknown proess type exit. Cosmic X-ray corrupted RAM?
-                           log().error(SCERRIPCMONUNKNOWNPROESSTYPEEXIT);
+                           monitor->log().error(SCERRIPCMONUNKNOWNPROESSTYPEEXIT);
                            break;
                         } /// Getting iterator to process register.
                         break;
                      } /// Found event == exit event
                } /// Search for client process exit_event in the process_register_.
-               remove_client_process_event(group, event_code);
+               monitor->remove_client_process_event(group, event_code);
             }
             else {
                switch (event_code) {
@@ -954,7 +998,7 @@ namespace starcounter {
                   // The wait was ended by one or more user-mode asynchronous
                   // procedure calls (APC) queued to this thread. The
                   // apc_function() was called and returned instantly.
-                  switch (the_monitor_interface_->get_operation()) {
+                  switch (monitor->the_monitor_interface()->get_operation()) {
                   case monitor_interface::registration_request: {
 
                      // Store info about the registering client process,
@@ -964,15 +1008,15 @@ namespace starcounter {
                                                                       /// TODO: Try to optimize and hold this mutex
                                                                       /// for the shortest time possible, as usual.
                                                                       boost::mutex::scoped_lock register_lock
-                                                                         (register_mutex_);
+                                                                         (monitor->register_mutex());
 
                                                                       // Check if this pid already exist in the
                                                                       // event_register:
                                                                       for (process_register_type::iterator pos
-                                                                         = process_register_.begin(); pos
-                                                                         != process_register_.end(); ++pos) {
+                                                                         = monitor->process_register().begin(); pos
+                                                                         != monitor->process_register().end(); ++pos) {
                                                                             if (pos->second.get_pid()
-                                                                               == the_monitor_interface_->get_pid()) {
+                                                                               == monitor->the_monitor_interface()->get_pid()) {
                                                                                   /// TODO: Log this? pid exists...not handled yet!
                                                                                   /// Is this a problem? The key is
                                                                                   /// owner_id, not pid.
@@ -982,36 +1026,36 @@ namespace starcounter {
                                                                       // The pid does not exist in the event register.
                                                                       // Register the client process.
                                                                       if ((the_event = OpenProcess(SYNCHRONIZE, FALSE,
-                                                                         the_monitor_interface_->get_pid())) == NULL) {
+                                                                         monitor->the_monitor_interface()->get_pid())) == NULL) {
                                                                             // OpenProcess() failed.
-                                                                            log().error(SCERROPENPROCESSFAILEDREGCLIPROC);
+                                                                            monitor->log().error(SCERROPENPROCESSFAILEDREGCLIPROC);
                                                                             break;
                                                                       }
 
                                                                       // Get a new unique owner_id.
-                                                                      owner_id new_owner_id = get_new_owner_id();
+                                                                      owner_id new_owner_id = monitor->get_new_owner_id();
                                                                       // Insert client process info.
-                                                                      process_register_[new_owner_id] =
+                                                                      monitor->process_register()[new_owner_id] =
                                                                          process_info(the_event,
-                                                                         the_monitor_interface_->get_process_type(),
-                                                                         the_monitor_interface_->get_pid(),
-                                                                         the_monitor_interface_->get_segment_name());
+                                                                         monitor->the_monitor_interface()->get_process_type(),
+                                                                         monitor->the_monitor_interface()->get_pid(),
+                                                                         monitor->the_monitor_interface()->get_segment_name());
 
                                                                       // Store the event to be monitored.
-                                                                      client_process_group_[group].event_.push_back
+                                                                      monitor->client_process_group(group).event_.push_back
                                                                          (the_event);
 
                                                                       // Set out data in the monitor_interface.
-                                                                      the_monitor_interface_
+                                                                      monitor->the_monitor_interface()
                                                                          ->set_owner_id(new_owner_id);
 
-                                                                      the_monitor_interface_
+                                                                      monitor->the_monitor_interface()
                                                                          ->set_out_data_available_state(true);
                                                                    }
 
                                                                    // Notify the registering client process that out
                                                                    // data is available.
-                                                                   the_monitor_interface_
+                                                                   monitor->the_monitor_interface()
                                                                       ->out_data_is_available_notify_one();
                                                                 }
                                                                 break;
@@ -1023,17 +1067,17 @@ namespace starcounter {
                                                                         /// TODO: Try to optimize and hold this mutex
                                                                         /// for the shortest time possible, as usual.
                                                                         boost::mutex::scoped_lock register_lock
-                                                                           (register_mutex_);
+                                                                           (monitor->register_mutex());
 
                                                                         // Find the process info to remove by searching
                                                                         // for the key - the owner_id.
                                                                         for (process_register_type::iterator pos
-                                                                           = process_register_.begin(); pos
-                                                                           != process_register_.end(); ++pos) {
+                                                                           = monitor->process_register().begin(); pos
+                                                                           != monitor->process_register().end(); ++pos) {
                                                                               if (pos->second.get_pid()
-                                                                                 == the_monitor_interface_->get_pid()
+                                                                                 == monitor->the_monitor_interface()->get_pid()
                                                                                  && pos->first
-                                                                                 == the_monitor_interface_->get_owner_id()) {
+                                                                                 == monitor->the_monitor_interface()->get_owner_id()) {
                                                                                     // The pid exitst and the owner_id
                                                                                     // matches. Remove it from the register.
                                                                                     break;
@@ -1041,16 +1085,16 @@ namespace starcounter {
                                                                         }
 
                                                                         // Set out data in the monitor_interface.
-                                                                        //the_monitor_interface_
+                                                                        //monitor->the_monitor_interface()
                                                                         //->set_owner_id(owner_id::none);
 
-                                                                        the_monitor_interface_
+                                                                        monitor->the_monitor_interface()
                                                                            ->set_out_data_available_state(true);
                                                                      }
 
                                                                      // Notify the unregistering client process that out
                                                                      // data is available.
-                                                                     the_monitor_interface_
+                                                                     monitor->the_monitor_interface()
                                                                         ->out_data_is_available_notify_one();
                                                                   }
                                                                   break;
@@ -1070,26 +1114,31 @@ namespace starcounter {
 
       /// private:
 
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::registrar(monitor* monitor) {
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::registrar() {
+		monitor* monitor = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          /// TODO: Shutdown mechanism.
          while (true) {
-            the_monitor_interface_->wait_for_registration();
+            monitor->the_monitor_interface()->wait_for_registration();
 
             // In data is available.
-            switch (the_monitor_interface_->get_process_type()) {
+            switch (monitor->the_monitor_interface()->get_process_type()) {
             case monitor_interface::database_process:
-               switch (the_monitor_interface_->get_operation()) {
+               switch (monitor->the_monitor_interface()->get_operation()) {
                case monitor_interface::registration_request:
                   // Database process registration request.
                   // Search all groups for a vector<event> that is not full.
                   for (std::size_t i = 0; i < database_process_event_groups; ++i) {
-                     if (database_process_group_[i].event_.size()
+                     if (monitor->database_process_group(i).event_.size()
                         < events_per_group) {
                            /// TODO: use thread_primitives.hpp
                            // Queue an user apc to that thread.
-                           QueueUserAPC(apc_function,
-                              database_process_group_[i].thread_handle_,
-                              reinterpret_cast<boost::detail::win32::ulong_ptr>(this));
+                           ::QueueUserAPC(apc_function,
+                              monitor->database_process_group(i).thread_handle_,
+                              reinterpret_cast<uint64_t>(monitor));
                            break;
                      }
                   }
@@ -1105,19 +1154,18 @@ namespace starcounter {
                }
                break;
             case monitor_interface::client_process:
-               switch (the_monitor_interface_->get_operation()) {
+               switch (monitor->the_monitor_interface()->get_operation()) {
                case monitor_interface::registration_request:
                   // Client process registration request.
                   // Search all groups for a vector<event> that is not full.
                   for (std::size_t i = 0; i < client_process_event_groups; ++i) {
-                     if (client_process_group_[i].event_.size()
+                     if (monitor->client_process_group(i).event_.size()
                         < events_per_group) {
                            /// TODO: use thread_primitives.hpp
                            // Queue an user apc to that thread.
                            ::QueueUserAPC(apc_function,
-                              client_process_group_[i].thread_handle_,
-                              reinterpret_cast<boost::detail::win32::ulong_ptr>
-                              (this));
+                              monitor->client_process_group(i).thread_handle_,
+                              reinterpret_cast<uint64_t>(monitor));
                            break;
                      }
                   }
@@ -1135,43 +1183,43 @@ namespace starcounter {
                   {
                      /// TODO: Try to optimize and hold this mutex
                      /// for the shortest time possible, as usual.
-                     boost::mutex::scoped_lock register_lock(register_mutex_);
+                     boost::mutex::scoped_lock register_lock(monitor->register_mutex());
 
                      // Find the process info to remove by searching for the key
                      // - the owner_id.
-                     process_register_type::iterator pos = process_register_
-                        .find(the_monitor_interface_->get_owner_id());
+                     process_register_type::iterator pos = monitor->process_register()
+                        .find(monitor->the_monitor_interface()->get_owner_id());
 
-                     if (pos != process_register_.end()) {
+                     if (pos != monitor->process_register().end()) {
                         // Found it. Check that the pid matches as well.
                         if (pos->second.get_pid()
-                           == the_monitor_interface_->get_pid()) {
+                           == monitor->the_monitor_interface()->get_pid()) {
                               // The pid matches as well. Remove from the
                               // register.
-                              remove_client_process_event(pos->second
+                              monitor->remove_client_process_event(pos->second
                                  .get_handle());
 
-                              process_register_.erase(pos);
-                              the_monitor_interface_->set_owner_id(owner_id
+                              monitor->process_register().erase(pos);
+                              monitor->the_monitor_interface()->set_owner_id(owner_id
                                  (owner_id::none));
                         }
                         else {
                            // The owner_id matches but not the pid. Something
                            // is wrong, so the process_info is not removed.
-                           log().error(SCERRTHEOWNERIDMATCHBUTNOTTHEPID);
+                           monitor->log().error(SCERRTHEOWNERIDMATCHBUTNOTTHEPID);
                         }
                      }
                      else {
                         // The pid matches but not the owner_id. Something is wrong,
                         // so the process_info is not removed.
-                        log().error(SCERRTHEPIDMATCHBUTNOTTHEOWNERID);
+                        monitor->log().error(SCERRTHEPIDMATCHBUTNOTTHEOWNERID);
                      }
 
-                     the_monitor_interface_->set_out_data_available_state(true);
+                     monitor->the_monitor_interface()->set_out_data_available_state(true);
 
                      // Notify the unregistering process that out data is
                      // available.
-                     the_monitor_interface_->out_data_is_available_notify_one();
+                     monitor->the_monitor_interface()->out_data_is_available_notify_one();
                   }
                }
                break;
@@ -1179,18 +1227,23 @@ namespace starcounter {
          }
       }
 
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::cleanup(monitor* monitor) {
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::cleanup() {
+		monitor* monitor = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          /// TODO: Shutdown mechanism.
          while (true) {
-            switch (::WaitForSingleObject(ipc_monitor_cleanup_event_, INFINITE)) {
+            switch (::WaitForSingleObject(monitor->ipc_monitor_cleanup_event(), INFINITE)) {
             case WAIT_OBJECT_0:
                // A database is done with recovering the channels and have notified
                // the IPC monitor to recover resources (chunks and client_interface.)
                // It will do so until there is nothing more to cleanup.
-               while (the_monitor_interface_->get_cleanup_flag() != 0) {
+               while (monitor->the_monitor_interface()->get_cleanup_flag() != 0) {
                   const char* segment_name_to_be_opened;
-                  segment_name_to_be_opened = the_monitor_interface_
-                     ->get_a_segment_name(ipc_monitor_cleanup_event_);
+                  segment_name_to_be_opened = monitor->the_monitor_interface()
+				  ->get_a_segment_name(monitor->ipc_monitor_cleanup_event());
 
                   if (segment_name_to_be_opened) {
                      try {
@@ -1244,7 +1297,7 @@ namespace starcounter {
 #if defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
                               bool release_client_number_res =
                                  shared.common_client_interface().release_client_number
-                                 (n, &shared.client_interface(0), get_owner_id());
+                                 (n, &shared.client_interface(0), monitor->get_owner_id());
 #else // !defined (IPC_CLIENT_NUMBER_POOL_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
                               bool release_client_number_res =
                                  shared.common_client_interface().release_client_number
@@ -1255,7 +1308,8 @@ namespace starcounter {
 
                               shared.common_client_interface().decrement_client_interfaces_to_clean_up();
 
-							  the_monitor_interface_->erase_segment_name(segment_name_to_be_opened, ipc_monitor_cleanup_event_);
+							  monitor->the_monitor_interface()->erase_segment_name
+							  (segment_name_to_be_opened, monitor->ipc_monitor_cleanup_event());
 
                               //std::cout << "client_interfaces_to_clean_up: "
                               //<< shared.common_client_interface().client_interfaces_to_clean_up()
@@ -1268,7 +1322,7 @@ namespace starcounter {
                      }
                      catch (shared_interface_exception&) {
                         // The IPC monitor cleanup failed. Could not open the IPC database shared memory segment.
-                        log().error(SCERRCLEANUPTOOPENTHEDBIPCSHMSEG);
+                        monitor->log().error(SCERRCLEANUPTOOPENTHEDBIPCSHMSEG);
                      }
                   }
                   else {
@@ -1283,13 +1337,13 @@ namespace starcounter {
                break;
             case WAIT_FAILED:
                // The IPC monitor was not notified. An error occurred.
-               log().error(SCERRIPCMONITORCLEANUPWAITFAILED);
+               monitor->log().error(SCERRIPCMONITORCLEANUPWAITFAILED);
                break;
             }
          }
       }
 
-      void __stdcall monitor::apc_function(boost::detail::win32::ulong_ptr arg) {
+      void __stdcall monitor::apc_function(uint64_t arg) {
          // Instead of accessing the object from here like this:
          // reinterpret_cast<monitor*>(arg)->do_registration();
          // return and continue in the switch case WAIT_IO_COMPLETION of the caller.
@@ -1362,7 +1416,7 @@ namespace starcounter {
 
          if (active_databases_lock.owns_lock()) {
             if (active_databases_.insert(database_name).second) {
-               the_monitor_interface_->active_database_set().update(active_databases_);
+               the_monitor_interface()->active_database_set().update(active_databases_);
                set_active_databases_updated_flag(true);
                active_databases_lock.unlock();
                active_databases_updated_.notify_one();
@@ -1387,7 +1441,7 @@ namespace starcounter {
 
          if (active_databases_lock.owns_lock()) {
             if (active_databases_.erase(database_name)) {
-               the_monitor_interface_->active_database_set().update(active_databases_);
+               the_monitor_interface()->active_database_set().update(active_databases_);
                set_active_databases_updated_flag(true);
                active_databases_lock.unlock();
                active_databases_updated_.notify_one();
@@ -1402,21 +1456,26 @@ namespace starcounter {
          }
       }
 
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::update_active_databases_file(monitor* monitor) {
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::update_active_databases_file() {
+		monitor* monitor = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          do {
             boost::mutex::scoped_lock active_databases_lock
-               (active_databases_mutex_);
+               (monitor->active_databases_mutex());
 
             // Waiting for active_databases_ to be updated. . .
-            active_databases_updated_.wait(active_databases_lock,
-               boost::bind(&monitor::active_databases_updated_flag, this));
+            monitor->active_databases_updated().wait(active_databases_lock,
+               boost::bind(&monitor::active_databases_updated_flag, monitor)); /// TODO: Figure why this compiles! Is it correct?
 
             // Try to open the active databases file in text mode.
             for (std::size_t retries = 6; retries > 0; --retries) {
-               monitor_active_databases_file_.open(active_databases_file_path_,
-                  std::ios::out);
+               monitor->monitor_active_databases_file().open
+			   (monitor->active_databases_file_path(), std::ios::out);
 
-               if (!monitor_active_databases_file_.is_open()) {
+               if (!monitor->monitor_active_databases_file().is_open()) {
                   Sleep(500);
                   continue;
                }
@@ -1424,17 +1483,17 @@ namespace starcounter {
                break;
             }
 
-            if (monitor_active_databases_file_.is_open()) {
+            if (monitor->monitor_active_databases_file().is_open()) {
                std::size_t i = 0;
                // Write the names of the active databases to the file.
-               for (std::set<std::string>::iterator it = active_databases_.begin();
-                  it != active_databases_.end(); ++it) {
-                     monitor_active_databases_file_ << *it << '\n';
+               for (std::set<std::string>::iterator it = monitor->active_databases().begin();
+                  it != monitor->active_databases().end(); ++it) {
+                     monitor->monitor_active_databases_file() << *it << '\n';
                }
 
                // Close the active databases file.
-               monitor_active_databases_file_.close();
-               set_active_databases_updated_flag(false);
+               monitor->monitor_active_databases_file().close();
+               monitor->set_active_databases_updated_flag(false);
             }
          } while (true);
       }
@@ -1494,7 +1553,12 @@ namespace starcounter {
       /// which it can but then statistics are messed up completely. Only test with
       /// one database running.
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+      void monitor::watch_resources(monitor* monitor) {
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
       void monitor::watch_resources() {
+		monitor* monitor = this;
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
          // Vector of all shared interfaces.
          std::vector<boost::shared_ptr<shared_interface> > shared;
          shared.reserve(256);
@@ -1505,7 +1569,7 @@ namespace starcounter {
          Sleep(1000);
          system("cls");
 
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
          boost::timer t;
 
          // stat[0] contains the most recently collected statistics, and
@@ -1573,16 +1637,16 @@ namespace starcounter {
             Sleep(1);
          }
 
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
          int active_segments_update_counter = 0; // Prevent checking too often.
 
          do {
             std::cout.flush();
-            gotoxy(0, 0);
+            monitor->gotoxy(0, 0);
 
             if (active_segments_update_counter-- <= 0) {
                // Check if there is a new segment name to add.
-               if (active_segments_update_.pop_back(&segment_name, 0, 100)) {
+               if (monitor->active_segments_update().pop_back(&segment_name, 0, 100)) {
                   retries = 0;
 
                   while (true) {
@@ -1655,7 +1719,7 @@ namespace starcounter {
                //}
 
                //------------------------------------------------------------------
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
                std::cout << "\nChannels (rate, client/scheduler)    "
                   << "Elapsed time: " << stat[0].timestamp << " s";
 
@@ -1725,9 +1789,9 @@ namespace starcounter {
                   out_popped_previous_sum += out_popped_previous;
                }
 
-#else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
                std::cout << "\nChannels (client/scheduler):";
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
                for (std::size_t ch = 0; ch < channels; ++ch) {
                   if (!(ch % 8)) {
@@ -1748,7 +1812,7 @@ namespace starcounter {
 
                   // First indicator: Rate (chunks/sec that are popped from the out
                   // queue), or spaces if not available.
-#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
                   //--------------------------------------------------------------
                   // Calculate the channel flow as number of chunks that are
@@ -1760,9 +1824,9 @@ namespace starcounter {
                   print_rate_with_precision(rate);
 
                   //--------------------------------------------------------------
-#else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# else // !defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
                   std::cout << "    "; // Flow unknown.
-#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+# endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 
                   // Distance to next indicator.
                   std::cout << " ";
@@ -1806,7 +1870,7 @@ namespace starcounter {
                      std::cout << " ";
                   }
 
-#if 0
+# if 0
                   // Separator.
                   std::cout << "/";
                   //--------------------------------------------------------------
@@ -1825,7 +1889,7 @@ namespace starcounter {
                   else {
                      std::cout << " ";
                   }
-#endif
+# endif
 
                   //--------------------------------------------------------------
                   // Two spaces separate channels information.
@@ -1844,7 +1908,7 @@ namespace starcounter {
          for (std::size_t group = 0; group < database_process_event_groups; ++group)
          {
             for (uint32_t i = 0; i < events_per_group; ++i) {
-               if (e == database_process_group_[group].event_[i]) {
+               if (e == database_process_group(group).event_[i]) {
                   remove_database_process_event(group, i);
                   return;
                }
@@ -1857,20 +1921,20 @@ namespace starcounter {
       void monitor::remove_database_process_event(std::size_t group, uint32_t
          event_code) {
             // Close the handle.
-            CloseHandle(database_process_group_[group].event_[event_code]);
+            CloseHandle(database_process_group(group).event_[event_code]);
 
             // Copy the last element of the vector to index event_code.
-            database_process_group_[group].event_[event_code]
-            = database_process_group_[group].event_.back();
+            database_process_group(group).event_[event_code]
+            = database_process_group(group).event_.back();
 
             // Remove the last element.
-            database_process_group_[group].event_.pop_back();
+            database_process_group(group).event_.pop_back();
       }
 
       void monitor::remove_client_process_event(process_info::handle_type e) {
          for (std::size_t group = 0; group < client_process_event_groups; ++group) {
             for (uint32_t i = 0; i < events_per_group; ++i) {
-               if (e == client_process_group_[group].event_[i]) {
+               if (e == client_process_group(group).event_[i]) {
                   remove_client_process_event(group, i);
                   return;
                }
@@ -1881,14 +1945,14 @@ namespace starcounter {
       void monitor::remove_client_process_event(std::size_t group, uint32_t
          event_code) {
             // Close the handle.
-            CloseHandle(client_process_group_[group].event_[event_code]);
+            CloseHandle(client_process_group(group).event_[event_code]);
 
             // Copy the last element of the vector to index event_code.
-            client_process_group_[group].event_[event_code]
-            = client_process_group_[group].event_.back();
+            client_process_group(group).event_[event_code]
+            = client_process_group(group).event_.back();
 
             // Remove the last element.
-            client_process_group_[group].event_.pop_back();
+            client_process_group(group).event_.pop_back();
       }
 
       void monitor::print_event_register() {

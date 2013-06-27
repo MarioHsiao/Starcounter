@@ -1,7 +1,7 @@
 //
 // macro_definitions.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -11,6 +11,14 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
+
+/// Defining IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS means that the IPC monitor will use
+/// starcounter::core::thread instead of boost::thread.
+#define IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS
+
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 
 /// Defining IPC_SEND_TO_SERVER_AND_WAIT_RESPONSE_TURN_OFF_NOTIFICATIONS
 /// means this_client_interface.set_notify_flag(false); will be called in 13 places
@@ -175,5 +183,62 @@
 #endif // defined(_MSC_VER)
 
 #define USE_POPCNT
+
+// Restrict is a compiler directive that helps avoid load-hit-store stalls.
+//
+// One pointer is said to alias another pointer when both refer to the same
+// location or object.
+//
+// Restrict on a pointer promises the compiler that it has no aliases: nothing
+// else in the function points to that same data. Thus the compiler knows that
+// if it writes data to a pointer, it doesn’t need to read it back into a
+// register later on because nothing else could have written to that address.
+//
+// Without restrict, the compiler is forced to read data from every pointer
+// every time it is used, because another pointer may have aliased x.
+//
+// It bears repeating that restrict is a promise you make to your compiler:
+// "I promise that the pointer declared along with the restrict qualifier is not
+// aliased. I certify that writes through this pointer will not affect the
+// values read through any other pointer available in the same context which is
+// also declared as restricted."
+//
+// If you break your promise, you can get incorrect results.
+//
+// A restrict-qualified pointer can grant access to a non-restrict pointer.
+// However, two restrict-qualified pointers are trivially non-aliasing.
+//
+// Restrict enables SIMD optimizations.
+
+#if defined(__clang__)
+// Try #include <config.h> if it doesn't work.
+# define RESTRICT __restrict
+#elif defined(__GNUC__)
+# define RESTRICT __restrict__
+#elif defined(_MSC_VER)
+// Compile with: /LD
+# define RESTRICT __restrict
+#else // The compiler does not support RESTRICT.
+# define RESTRICT
+#endif // defined(__clang__)
+
+// The UNREACHABLE macro tell the optimizer that the default cannot be reached.
+// The optimizer can take advantage of this to produce better code.
+#if defined(__clang__)
+# if __has_builtin(__builtin_unreachable)
+/// TODO: Add -Wunreachable-code to Clang Makefile.
+#  define UNREACHABLE __builtin_unreachable()
+# else
+#  error __builtin_unreachable() is not available.
+# endif // __has_builtin(__builtin_unreachable)
+#elif defined(_MSC_VER)
+# if (_MSC_VER >= 1500)
+#  define UNREACHABLE __assume(0)
+# else // !(_MSC_VER >= 1500
+#  error Compiler not supported.
+# endif // (_MSC_VER >= 1500)
+#else
+# error Compiler not supported.
+#endif // defined(__clang__)
 
 #endif // STARCOUNTER_CORE_MACRO_DEFINITIONS_HPP
