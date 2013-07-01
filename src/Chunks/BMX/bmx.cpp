@@ -710,7 +710,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     uint8_t* raw_chunk;
     uint32_t err_code;
     uint32_t loop_count;
-    uint64_t session_id;
+    //uint64_t session_id;
     shared_memory_chunk* smc;
     TASK_INFO_TYPE task_info;
 
@@ -731,7 +731,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
     // Read the metadata in the chunk (session id and handler id).
     smc = (shared_memory_chunk*)raw_chunk;
-    session_id = smc->get_user_data();
+    //session_id = smc->get_user_data(); The user data field in chunks is no longer used.
     BMX_HANDLER_TYPE handler_info = smc->get_bmx_handler_info();
     BMX_HANDLER_INDEX_TYPE handler_index = GetBmxHandlerIndex(handler_info);
     assert(handler_index < unique_handler_num_);
@@ -761,7 +761,7 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     if (handler_info == registered_handlers_[handler_index].get_handler_info())
     {
         // Running user handler.
-        err_code = registered_handlers_[handler_index].RunHandlers(session_id, smc, &task_info);
+        err_code = registered_handlers_[handler_index].RunHandlers(0 /*session_id*/, smc, &task_info);
         goto finish;
     }
     else
