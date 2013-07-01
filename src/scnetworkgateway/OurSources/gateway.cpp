@@ -700,6 +700,8 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     if (cmd_setting_num_echoes_to_master_)
         setting_num_echoes_to_master_ = cmd_setting_num_echoes_to_master_;
 
+    setting_server_test_port_ = atoi(rootElem->first_node("ServerTestPort")->value());
+
     GW_ASSERT(setting_num_echoes_to_master_ <= MAX_TEST_ECHOES);
     ResetEchoTests();
 
@@ -1172,7 +1174,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
 #ifdef GW_TESTING_MODE
 
-            uint16_t port_number = GATEWAY_TEST_PORT_NUMBER_SERVER;
+            uint16_t port_number = g_gateway.setting_server_test_port();
             if (!g_gateway.setting_is_master())
                 port_number++;
 
@@ -1587,7 +1589,7 @@ uint32_t Gateway::Init()
         memset(server_addr_, 0, sizeof(sockaddr_in));
         server_addr_->sin_family = AF_INET;
         server_addr_->sin_addr.s_addr = inet_addr(g_gateway.setting_master_ip().c_str());
-        server_addr_->sin_port = htons(GATEWAY_TEST_PORT_NUMBER_SERVER);
+        server_addr_->sin_port = htons(g_gateway.setting_server_test_port());
     }
 
     InitTestHttpEchoRequests();

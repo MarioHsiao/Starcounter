@@ -279,9 +279,6 @@ const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
 // Maximum blacklisted IPs per worker.
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
 
-// Hard-coded gateway test port number on server.
-const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 123;
-
 // Session life time multiplier.
 const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
 
@@ -1428,6 +1425,9 @@ class Gateway
     // Number of tracked echoes to master.
     int32_t setting_num_echoes_to_master_;
 
+    // Server test port.
+    uint16_t setting_server_test_port_;
+
     // Gateway operational mode.
     GatewayTestingMode setting_mode_;
 
@@ -1889,6 +1889,12 @@ public:
     int32_t setting_num_echoes_to_master()
     {
         return setting_num_echoes_to_master_;
+    }
+
+    // Server test port.
+    int32_t setting_server_test_port()
+    {
+        return setting_server_test_port_;
     }
 
     // Registering confirmed HTTP echo.
