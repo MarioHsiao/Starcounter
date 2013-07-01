@@ -169,6 +169,9 @@ namespace NodeTest
             return true;
 #else
 
+            if (null == resp)
+                throw new Exception("Response is null by some reason!");
+
             Byte[] resp_body = resp.BodyBytes;
             if (resp_body.Length != num_echo_bytes_)
             {
