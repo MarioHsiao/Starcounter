@@ -110,18 +110,35 @@ namespace Starcounter.CLI {
                 response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
                 response.FailIfNotSuccess();
             }
+
             engine = new Engine();
             engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
             
-            // Restart the engine if the executable is already running
+            // Restart the engine if the executable is already running, or
+            // make sure the host is started if it's not.
 
             ExecutableReference exeRef = engine.GetExecutable(exePath);
-            if (exeRef != null) {
-                ShowStatus("Stopping engine");
+            if (exeRef == null) {
+                // If it's not running, we'll check that the host host is
+                // running, and start it if not.
+                if (engine.CodeHostProcess.PID == 0) {
+                    ShowStatus("Starting host");
+                    engineRef = new EngineReference();
+                    engineRef.Name = databaseName;
+                    engineRef.NoDb = args.ContainsFlag(Option.NoDb);
+                    engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
+
+                    response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                    response.FailIfNotSuccess();
+                    engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                }
+            }
+            else {
+                ShowStatus("Stopping host");
                 response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), (String)null, null, null);
                 response.FailIfNotSuccessOr(404);
 
-                ShowStatus("Starting engine");
+                ShowStatus("Starting host");
                 engineRef = new EngineReference();
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
