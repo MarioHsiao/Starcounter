@@ -124,12 +124,18 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             if (!smc->is_terminated())
             {
                 // Creating special chunk for keeping WSA buffers information there.
-                sd->CreateWSABuffers(
+                err_code = sd->CreateWSABuffers(
                     this,
                     smc,
                     MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + sd->get_user_data_offset_in_socket_data(),
                     MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data(),
                     sd->get_user_data_written_bytes());
+
+                if (err_code)
+                {
+                    gw->DisconnectAndReleaseChunk(sd);
+                    continue;
+                }
 
                 GW_ASSERT(sd->get_num_chunks() > 2);
 

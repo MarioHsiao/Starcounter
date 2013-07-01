@@ -1,4 +1,8 @@
-﻿#define FILL_RANDOMLY
+﻿//#define FASTEST_POSSIBLE
+//#define FILL_RANDOMLY
+#if FASTEST_POSSIBLE
+#undef FILL_RANDOMLY
+#endif
 
 using Starcounter;
 using Starcounter.Advanced;
@@ -27,13 +31,13 @@ namespace NodeTest
 
         public Int32 MinEchoBytes = 1;
 
-        public Int32 MaxEchoBytes = 1000000;
+        public Int32 MaxEchoBytes = 100000;
 
         public Int32 NumEchoesPerWorker = 10000;
 
         public Int32 NumSecondsToWait = 5000;
 
-        public AsyncModes AsyncMode = AsyncModes.ModeSync;
+        public AsyncModes AsyncMode = AsyncModes.ModeRandom;
 
         public Boolean ConsoleDiag = false;
 
@@ -88,9 +92,9 @@ namespace NodeTest
 
         Boolean async_;
 
+#if !FASTEST_POSSIBLE
         Byte[] correct_hash_;
-
-        Random random_ = new Random();
+#endif
 
         Byte[] body_bytes_;
 
@@ -115,26 +119,26 @@ namespace NodeTest
             body_bytes_ = new Byte[num_echo_bytes_];
 
 #if FILL_RANDOMLY
-
             // Generating random bytes.
-            random_.NextBytes(body_bytes_);
-
+            worker_.Rand.NextBytes(body_bytes_);
 #else
 
             // Filling bytes continuously between 0 and 9
             Byte k = 0;
             for (Int32 i = 0; i < num_echo_bytes_; i++)
             {
-                body_bytes_[i] = (Byte)('0' + k);
-                k++;
-                if (k >= 10) k = 0;
+                body_bytes_[i] = (Byte)('1' + k);
+                //k++;
+                //if (k >= 10) k = 0;
             }
 
 #endif
 
+#if !FASTEST_POSSIBLE
             // Calculating SHA1 hash.
             SHA1 sha1 = new SHA1CryptoServiceProvider();
             correct_hash_ = sha1.ComputeHash(body_bytes_);
+#endif
         }
 
         // Sends data, gets the response, and checks its correctness.
@@ -160,6 +164,11 @@ namespace NodeTest
         // Checks response correctness.
         Boolean CheckResponse(Response resp)
         {
+#if FASTEST_POSSIBLE
+            NodeTest.WorkersMonitor.IncrementNumFinishedTests();
+            return true;
+#else
+
             Byte[] resp_body = resp.BodyBytes;
             if (resp_body.Length != num_echo_bytes_)
             {
@@ -180,11 +189,14 @@ namespace NodeTest
             {
                 if (received_hash_[i] != correct_hash_[i])
                 {
-                    /*for (Int32 i = 0; i < resp_body.Length; i++)
+                    for (Int32 k = 0; k < resp_body.Length; k++)
                     {
-                        if (resp_body[i] != body_bytes_[i])
+                        if (resp_body[k] != body_bytes_[k])
+                        {
+                            //Debugger.Launch();
                             Console.WriteLine("Different bytes!");
-                    }*/
+                        }
+                    }
 
                     Console.WriteLine("Wrong echo content! Echo size: " + num_echo_bytes_);
                     NodeTest.WorkersMonitor.FailTest();
@@ -196,6 +208,7 @@ namespace NodeTest
             NodeTest.WorkersMonitor.IncrementNumFinishedTests();
 
             return true;
+#endif
         }
     }
 
@@ -203,7 +216,7 @@ namespace NodeTest
     {
         public Int32 Id;
 
-        Random rand_;
+        public Random Rand;
 
         Settings settings_;
 
@@ -212,7 +225,7 @@ namespace NodeTest
         public void Init(Settings settings, Int32 id)
         {
             Id = id;
-            rand_ = new Random(0);
+            Rand = new Random(0);
             settings_ = settings;
         }
 
@@ -222,8 +235,8 @@ namespace NodeTest
         /// <returns></returns>
         NodeTestInstance CreateNewTest()
         {
-            UInt64 id = ((UInt64)rand_.Next() << 32);
-            Int32 num_echo_bytes = rand_.Next(settings_.MinEchoBytes, settings_.MaxEchoBytes);
+            UInt64 id = ((UInt64)Rand.Next() << 32);
+            Int32 num_echo_bytes = Rand.Next(settings_.MinEchoBytes, settings_.MaxEchoBytes);
 
             NodeTestInstance test = new NodeTestInstance();
 
@@ -244,7 +257,7 @@ namespace NodeTest
 
                 case Settings.AsyncModes.ModeRandom:
                 {
-                    if (rand_.Next(0, 2) == 0)
+                    if (Rand.Next(0, 2) == 0)
                         async = true;
                     else
                         async = false;
