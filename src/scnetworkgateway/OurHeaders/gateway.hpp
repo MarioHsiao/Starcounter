@@ -695,7 +695,7 @@ public:
 
         // Adjusting pointers.
         orig_buf_ptr_ = new_base;
-        cur_buf_ptr_ = orig_buf_ptr_ + accum_len_bytes_;
+        cur_buf_ptr_ = orig_buf_ptr_ + (accum_buffer->cur_buf_ptr_ - accum_buffer->orig_buf_ptr_);
     }
 
     // Initializes accumulative buffer.
