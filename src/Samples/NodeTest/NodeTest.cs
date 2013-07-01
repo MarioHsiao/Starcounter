@@ -1,5 +1,5 @@
 ﻿//#define FASTEST_POSSIBLE
-//#define FILL_RANDOMLY
+#define FILL_RANDOMLY
 #if FASTEST_POSSIBLE
 #undef FILL_RANDOMLY
 #endif
