@@ -194,7 +194,6 @@ namespace NodeTest
                         if (resp_body[k] != body_bytes_[k])
                         {
                             //Debugger.Launch();
-                            Console.WriteLine("Different bytes!");
                         }
                     }
 
