@@ -48,9 +48,11 @@ namespace Starcounter.Administrator.API.Handlers {
                 engine.NoDb = engineState.HasNoDbSwitch();
                 engine.LogSteps = engineState.HasLogStepsSwitch();
                 engine.Executables.Uri = admin.Uris.Executables.ToAbsoluteUri(name);
-                foreach (var executable in engineState.HostedApps) {
-                    var exe = engine.Executables.Executing.Add();
-                    exe.Path = executable.ExecutablePath;
+                if (engineState.HostedApps != null) {
+                    foreach (var executable in engineState.HostedApps) {
+                        var exe = engine.Executables.Executing.Add();
+                        exe.Path = executable.ExecutablePath;
+                    }
                 }
 
                 if (headers != null) {
