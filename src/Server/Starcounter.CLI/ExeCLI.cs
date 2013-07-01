@@ -60,7 +60,7 @@ namespace Starcounter.CLI {
                 try {
                     Engine engine;
                     Executable exe;
-                    DoExec(node, new AdminAPI(), exePath, database, args, entrypointArgs, out engine, out exe);
+                    DoExec(node, admin, exePath, database, args, entrypointArgs, out engine, out exe);
                     ShowResultAndSetExitCode(engine, exe, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
