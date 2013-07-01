@@ -172,7 +172,7 @@ namespace NodeTest
             Byte[] resp_body = resp.BodyBytes;
             if (resp_body.Length != num_echo_bytes_)
             {
-                Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length);
+                Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
                 NodeTest.WorkersMonitor.FailTest();
                 return false;
             }
@@ -197,7 +197,7 @@ namespace NodeTest
                         }
                     }
 
-                    Console.WriteLine("Wrong echo content! Echo size: " + num_echo_bytes_);
+                    Console.WriteLine("Wrong echo content! Echo size: " + num_echo_bytes_ + " [Async=" + async_ + "]");
                     NodeTest.WorkersMonitor.FailTest();
                     return false;
                 }
@@ -224,7 +224,7 @@ namespace NodeTest
         public void Init(Settings settings, Int32 id)
         {
             Id = id;
-            Rand = new Random(0);
+            Rand = new Random(id);
             settings_ = settings;
         }
 
