@@ -116,7 +116,15 @@ namespace star {
             // is what we do. If we find we must be more strict to theory later
             // on, we should implement a swich that allows this to be turned of.
             var exePath = appArgs.CommandParameters[0];
-            exePath = Path.GetFullPath(exePath);
+            try {
+                exePath = Path.GetFullPath(exePath);
+            } catch {
+                SharedCLI.ShowErrorAndSetExitCode(
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), false);
+                Console.WriteLine();
+                Usage(syntax, false, false, Error.SCERREXECUTABLENOTFOUND);
+
+            }
             if (!File.Exists(exePath)) {
                 var executableEx = appArgs.CommandParameters[0] + ".exe";
                 executableEx = Path.GetFullPath(executableEx);
@@ -126,7 +134,9 @@ namespace star {
             }
             if (!File.Exists(exePath)) {
                 SharedCLI.ShowErrorAndSetExitCode(
-                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: {0}", exePath)), true);
+                    ErrorCode.ToMessage(Error.SCERREXECUTABLENOTFOUND, string.Format("File: \"{0}\"", exePath)), false);
+                Console.WriteLine();
+                Usage(syntax, false, false, Error.SCERREXECUTABLENOTFOUND);
             }
 
             string[] userArgs = null;
@@ -161,7 +171,7 @@ namespace star {
             Console.WriteLine("Version=", CurrentVersion.Version);
         }
 
-        static void Usage(IApplicationSyntax syntax, bool extended = false, bool unofficial = false) {
+        static void Usage(IApplicationSyntax syntax, bool extended = false, bool unofficial = false, uint? exitCode = null) {
             string formatting;
             Console.WriteLine("Usage: star [options] executable [parameters]");
             Console.WriteLine();
@@ -204,6 +214,10 @@ namespace star {
             Console.WriteLine(formatting, StarcounterEnvironment.VariableNames.DefaultServerSystemPort, "System server port used by default.");
             Console.WriteLine();
             Console.WriteLine("For complete help, see {0}/{1}.", StarcounterEnvironment.InternetAddresses.StarcounterWiki, "star.exe");
+
+            if (exitCode.HasValue) {
+                Environment.Exit((int)exitCode);
+            }
         }
 
         static IApplicationSyntax DefineCommandLineSyntax() {
