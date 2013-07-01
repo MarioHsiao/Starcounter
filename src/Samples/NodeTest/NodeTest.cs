@@ -37,7 +37,7 @@ namespace NodeTest
 
         public Int32 NumSecondsToWait = 5000;
 
-        public AsyncModes AsyncMode = AsyncModes.ModeSync;
+        public AsyncModes AsyncMode = AsyncModes.ModeRandom;
 
         public Boolean ConsoleDiag = false;
 
