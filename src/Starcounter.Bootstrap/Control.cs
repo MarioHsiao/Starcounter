@@ -74,14 +74,6 @@ namespace StarcounterInternal.Bootstrap
         private unsafe void* hsched_;
 
         /// <summary>
-        /// The <see cref="Server"/> used as the interface to support local
-        /// requests such as the hosting/executing of executables and to handle
-        /// our servers management demands.
-        /// </summary>
-        /// <see cref="Control.ConfigureHost"/>
-        private Server server;
-
-        /// <summary>
         /// Setups the specified args.
         /// </summary>
         /// <param name="args">The args.</param>
@@ -427,34 +419,6 @@ namespace StarcounterInternal.Bootstrap
         {
             uint e = sccoreapp.sccoreapp_init((void*)hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
-
-            // Decide what interface to expose locally, to handle requests
-            // from the server and from executables being loaded from the
-            // shell.
-            //   Currently, named pipes is the standard means.
-
-            if (!configuration.UseConsole) {
-                var pipeName = ScUriExtensions.MakeLocalDatabasePipeString(configuration.ServerName, configuration.Name);
-                server = ClientServerFactory.CreateServerUsingNamedPipes(pipeName);
-
-            } else {
-                // Expose services via standard streams.
-                //
-                // If input has not been redirected, we let the server accept
-                // requests in a simple text format from the console.
-                // 
-                // If the input has been redirected, we force the parent process
-                // to use the "real" API's (i.e. the Client) and expose our
-                // services "raw" on the standard streams.
-
-                if (!Console.IsInputRedirected) {
-                    server = ClientServerFactory.CreateServerUsingConsole();
-                } else {
-                    server = new Server(Console.In.ReadLine, (string reply, bool endsRequest) => {
-                        Console.Out.WriteLine(reply);
-                    });
-                }
-            }
         }
 
         /// <summary>

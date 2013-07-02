@@ -24,7 +24,7 @@ namespace Starcounter.Administrator.API.Handlers {
             }
 
             var engineState = applicationDatabase.Engine;
-            if (engineState == null || engineState.HostProcessId == 0) {
+            if (engineState == null) {
                 var errDetail = RESTUtility.JSON.CreateError(Error.SCERRDATABASEENGINENOTRUNNING);
                 return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
             }
