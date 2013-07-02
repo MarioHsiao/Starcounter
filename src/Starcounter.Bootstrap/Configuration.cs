@@ -275,7 +275,7 @@ namespace StarcounterInternal.Bootstrap
         /// <c>false</c>.</value>
         public bool UseConsole {
             get {
-                return this.ProgramArguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.UseConsole);
+                return false;
             }
         }
     }
