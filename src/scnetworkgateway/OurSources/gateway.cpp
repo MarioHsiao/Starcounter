@@ -3128,7 +3128,8 @@ uint32_t Gateway::AddUriHandler(
         db_index,
         new_handler_index);
 
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        return err_code;
 
     // Search for handler index by URI string.
     BMX_HANDLER_TYPE handler_index = handlers_table->FindUriHandlerIndex(
@@ -3140,11 +3141,11 @@ uint32_t Gateway::AddUriHandler(
     ServerPort* server_port = g_gateway.FindServerPort(port);
 
     // Registering URI on port.
-    RegisteredUris* all_port_uris = server_port->get_registered_uris();
-    int32_t index = all_port_uris->FindRegisteredUri(processed_uri_info);
+    RegisteredUris* port_uris = server_port->get_registered_uris();
+    int32_t uri_index = port_uris->FindRegisteredUri(processed_uri_info);
 
     // Checking if there is an entry.
-    if (index < 0)
+    if (uri_index < 0)
     {
         // Checking if there is a session in parameters.
         uint8_t session_param_index = INVALID_PARAMETER_INDEX;
@@ -3166,12 +3167,16 @@ uint32_t Gateway::AddUriHandler(
             is_gateway_handler);
 
         // Adding entry to global list.
-        all_port_uris->AddNewUri(new_entry);
+        port_uris->AddNewUri(new_entry);
     }
     else
     {
+        // Disallowing handler duplicates.
+        return SCERRHANDLERALREADYREGISTERED;
+
+        /*
         // Obtaining existing URI entry.
-        RegisteredUri* reg_uri = all_port_uris->GetEntryByIndex(index);
+        RegisteredUri* reg_uri = port_uris->GetEntryByIndex(uri_index);
 
         // Checking if there is no database for this URI.
         if (!reg_uri->ContainsDb(db_index))
@@ -3179,8 +3184,11 @@ uint32_t Gateway::AddUriHandler(
             // Adding new handler list for this database to the URI.
             reg_uri->Add(handlers_table->get_handler_list(handler_index));
         }
+        */
     }
-    GW_ERR_CHECK(err_code);
+
+    if (err_code)
+        return err_code;
 
     return 0;
 }
