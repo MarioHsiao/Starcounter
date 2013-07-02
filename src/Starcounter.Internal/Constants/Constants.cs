@@ -226,13 +226,6 @@ namespace Starcounter.Internal
             public const string NoNetworkGateway = "NoNetworkGateway";
 
             /// <summary>
-            /// Gets the string we support as a flag on the command-line to allow
-            /// the host process to accept management input on standard streams/console
-            /// rather than named pipes (with named pipes being the default).
-            /// </summary>
-            public const string UseConsole = "UseConsole";
-
-            /// <summary>
             /// Specifies the path to executable that should be run on startup.
             /// </summary>
             public const string AutoStartExePath = "AutoStartExePath";
