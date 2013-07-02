@@ -172,42 +172,50 @@ namespace NodeTest
             if (null == resp)
                 throw new Exception("Response is null by some reason!");
 
-            Byte[] resp_body = resp.BodyBytes;
-            if (resp_body.Length != num_echo_bytes_)
+            try
             {
-                Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
-                NodeTest.WorkersMonitor.FailTest();
-                return false;
-            }
-
-            if (settings_.ConsoleDiag)
-                Console.WriteLine(worker_.Id + ": echoed: " + num_echo_bytes_ + " bytes");
-
-            // Calculating SHA1 hash.
-            SHA1 sha1 = new SHA1CryptoServiceProvider();
-            Byte[] received_hash_ = sha1.ComputeHash(resp_body);
-
-            // Checking that hash is the same.
-            for (Int32 i = 0; i < received_hash_.Length; i++)
-            {
-                if (received_hash_[i] != correct_hash_[i])
+                Byte[] resp_body = resp.BodyBytes;
+                if (resp_body.Length != num_echo_bytes_)
                 {
-                    for (Int32 k = 0; k < resp_body.Length; k++)
-                    {
-                        if (resp_body[k] != body_bytes_[k])
-                        {
-                            //Debugger.Launch();
-                        }
-                    }
-
-                    Console.WriteLine("Wrong echo content! Echo size: " + num_echo_bytes_ + " [Async=" + async_ + "]");
+                    Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
                     NodeTest.WorkersMonitor.FailTest();
                     return false;
                 }
-            }
 
-            // Incrementing number of finished tests.
-            NodeTest.WorkersMonitor.IncrementNumFinishedTests();
+                if (settings_.ConsoleDiag)
+                    Console.WriteLine(worker_.Id + ": echoed: " + num_echo_bytes_ + " bytes");
+
+                // Calculating SHA1 hash.
+                SHA1 sha1 = new SHA1CryptoServiceProvider();
+                Byte[] received_hash_ = sha1.ComputeHash(resp_body);
+
+                // Checking that hash is the same.
+                for (Int32 i = 0; i < received_hash_.Length; i++)
+                {
+                    if (received_hash_[i] != correct_hash_[i])
+                    {
+                        for (Int32 k = 0; k < resp_body.Length; k++)
+                        {
+                            if (resp_body[k] != body_bytes_[k])
+                            {
+                                //Debugger.Launch();
+                            }
+                        }
+
+                        Console.WriteLine("Wrong echo content! Echo size: " + num_echo_bytes_ + " [Async=" + async_ + "]");
+                        NodeTest.WorkersMonitor.FailTest();
+                        return false;
+                    }
+                }
+
+                // Incrementing number of finished tests.
+                NodeTest.WorkersMonitor.IncrementNumFinishedTests();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+                throw exc;
+            }
 
             return true;
 #endif

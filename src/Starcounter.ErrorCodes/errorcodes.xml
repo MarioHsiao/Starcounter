@@ -4141,7 +4141,7 @@
 
         <code hex="0003" severity="Error" name="ScErrHandlerAlreadyRegistered">
             <message>
-                This handler has already been registered. Please unregister it first to do a new registration.
+                This handler has already been registered.
             </message>
         </code>
 

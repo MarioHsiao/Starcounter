@@ -174,6 +174,12 @@ public:
     // Sends session create message.
     uint32_t PushSessionCreate(SocketDataChunkRef sd);
 
+    // Sends error message.
+    uint32_t PushErrorMessage(
+        scheduler_id_type sched_id,
+        uint32_t err_code_num,
+        const wchar_t* const err_msg);
+
     // Getting shared interface.
     core::shared_interface* get_shared_int()
     {
@@ -368,7 +374,10 @@ public:
     void ReturnAllPrivateChunksToSharedPool();
 
     // Handles management chunks.
-    uint32_t HandleManagementChunks(GatewayWorker *gw, shared_memory_chunk* smc);
+    uint32_t HandleManagementChunks(
+        scheduler_id_type sched_id,
+        GatewayWorker *gw,
+        shared_memory_chunk* smc);
 };
 
 } // namespace network

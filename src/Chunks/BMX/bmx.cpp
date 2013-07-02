@@ -340,6 +340,7 @@ uint32_t BmxData::RegisterUriHandler(
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
 
+                    /*
                     // Search if handler is already in the list.
                     if (!registered_handlers_[i].HandlerAlreadyExists(uri_handler))
                     {
@@ -353,6 +354,7 @@ uint32_t BmxData::RegisterUriHandler(
                     *handler_id = i;
 
                     return err_code;
+                    */
                 }
             }
         }
@@ -619,6 +621,33 @@ uint32_t BmxData::HandleSessionCreation(shared_memory_chunk* smc, TASK_INFO_TYPE
 
     // Now the chunk is ready to be sent back.
     uint32_t err_code = cm_send_to_client(task_info->chunk_index);
+
+    return err_code;
+}
+
+// Handles error from gateway.
+uint32_t BmxData::HandleErrorFromGateway(request_chunk_part* request, TASK_INFO_TYPE* task_info)
+{
+    // Reading error code number.
+    uint32_t gw_err_code = request->read_uint32();
+
+    // Reading error string.
+    wchar_t err_string[MixedCodeConstants::MAX_URI_STRING_LEN];
+    uint32_t err_string_len = request->read_uint32();
+
+    uint32_t err_code = request->read_wstring(err_string, err_string_len, MixedCodeConstants::MAX_URI_STRING_LEN);
+    if (err_code)
+        goto RETURN_CHUNK;
+
+    //std::cout << "Error from gateway: " << err_string << std::endl;
+
+    // Calling managed function to handle error.
+    g_error_handling_callback(gw_err_code, err_string, err_string_len);
+
+RETURN_CHUNK:
+
+    // Returning chunk to pool.
+    cm_release_linked_shared_memory_chunks(task_info->chunk_index);
 
     return err_code;
 }
