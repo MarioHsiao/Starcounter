@@ -42,6 +42,14 @@ namespace Starcounter.Server {
             public const string SC_S2MM_PMONLINE_EVENT_NAME_BASE = "SC_S2MM_PMONLINE_";
         }
 
+        public static class ScCodeEvents {
+            /// <summary>
+            /// The base name used for the event signaled by the code
+            /// host when it's services are considered available.
+            /// </summary>
+            public const string OnlineBaseName = "SCCODE_EXE_";
+        }
+
         internal const string DatabaseExeFileName = StarcounterConstants.ProgramNames.ScData + ".exe";
         internal const string CodeHostExeFileName = StarcounterConstants.ProgramNames.ScCode + ".exe";
 

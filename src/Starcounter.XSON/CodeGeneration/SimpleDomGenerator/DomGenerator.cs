@@ -7,16 +7,9 @@
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Starcounter.Templates.Interfaces;
-using System.CodeDom.Compiler;
 using Starcounter.XSON.Metadata;
 
-[assembly: InternalsVisibleTo("Starcounter.Application.Test, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e758955f5e1537c52891c61cd689a8dd1643807340bd32cc12aee50d2add85eeeaac0b44a796cefb6055fac91836a8a72b5dbf3b44138f508bc2d92798a618ad5791ff0db51b8662d7c936c16b5720b075b2a966bb36844d375c1481c2c7dc4bb54f6d72dbe9d33712aacb6fa0ad84f04bfa6c951f7b9432fe820884c81d67db")]
-
-namespace Starcounter.Internal.Application.CodeGeneration
-{
-
+namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Simple code-dom generator for the Template class. In a Template tree structure,
     /// each Template will be represented by a temporary CsGen_Template object. The reason
@@ -29,17 +22,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
     /// to allow the generated code structure match the code behind structure. In this way,
     /// there is no need for the programmer to have deep nesting of class declarations in
     /// JSON trees.</remarks>
-    public class DomGenerator
-    {
-
-        internal DomGenerator(CodeGenerationModule mod, TObj template, Type defaultNewObjTemplateType )
-        { //, string typename, string templateClass, string metadataClass ) {
+    public class DomGenerator {
+        internal DomGenerator(CodeGenerationModule mod, TObj template, Type defaultNewObjTemplateType) {
             DefaultObjTemplate = (TObj)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
             InitTemplateClasses();
             InitMetadataClasses();
             InitValueClasses();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -66,7 +56,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
             TemplateClasses[DefaultObjTemplate] = new NTAppClass(this) { Template = DefaultObjTemplate };
         }
 
-        
         /// <summary>
         /// Initializes static members of the <see cref="NMetadataClass" /> class.
         /// </summary>
@@ -79,8 +68,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
             MetaClasses[TPAction] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[TPAction] };
             MetaClasses[DefaultObjTemplate] = new NMetadataClass(this) { NTemplateClass = TemplateClasses[DefaultObjTemplate] };
         }
-
-        
 
         /// <summary>
         /// Initializes static members of the <see cref="NValueClass" /> class.
@@ -95,7 +82,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
             ValueClasses[DefaultObjTemplate] = new NAppClass(this) { NTemplateClass = TemplateClasses[DefaultObjTemplate] };
         }
 
-
         /// <summary>
         /// Finds the specified template.
         /// </summary>
@@ -105,8 +91,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
             template = GetPrototype(template);
             return ValueClasses[template];
         }
-
-
 
         /// <summary>
         /// Finds the specified template.
@@ -118,8 +102,6 @@ namespace Starcounter.Internal.Application.CodeGeneration
             return MetaClasses[template];
         }
 
-
-
         /// <summary>
         /// Gets the prototype.
         /// </summary>
@@ -128,27 +110,19 @@ namespace Starcounter.Internal.Application.CodeGeneration
         public Template GetPrototype(Template template) {
             if (template is TString) {
                 return TPString;
-            }
-            else if (template is TLong) {
+            } else if (template is TLong) {
                 return TPLong;
-            }
-            else if (template is TDouble) {
+            } else if (template is TDouble) {
                 return TPDouble;
-            }
-            else if (template is TDecimal) {
+            } else if (template is TDecimal) {
                 return TPDecimal;
-            }
-            else if (template is TBool) {
+            } else if (template is TBool) {
                 return TPBool;
-            }
-            else if (template is TTrigger) {
+            } else if (template is TTrigger) {
                 return TPAction;
             }
             return template;
         }
-
-
-
 
         /// <summary>
         /// Finds the specified template.
@@ -168,24 +142,20 @@ namespace Starcounter.Internal.Application.CodeGeneration
         internal TBool TPBool = new TBool();
         internal TTrigger TPAction = new TTrigger();
 
-
         /// <summary>
         /// This is the main calling point to generate a dom tree for a application template.
         /// </summary>
         /// <param name="at">The App template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
-        public NRoot GenerateDomTree( TObj at, CodeBehindMetadata metadata )
-        {
-            var root = new NRoot( this );
-            var acn = new NAppClass(this)
-            {
+        public NRoot GenerateDomTree(TObj at, CodeBehindMetadata metadata) {
+            var root = new NRoot(this);
+            var acn = new NAppClass(this) {
                 Parent = root,
                 IsPartial = true
             };
 
-            var tcn = new NTAppClass( this )
-            {
+            var tcn = new NTAppClass(this) {
                 Parent = acn,
                 NValueClass = acn,
                 Template = at,
@@ -193,7 +163,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 AutoBindProperties = metadata.AutoBindToDataObject
             };
 
-            if (metadata == CodeBehindMetadata.Empty) { // No codebehind. Need to set a few extra properties depending on metadata from json
+            if (metadata == CodeBehindMetadata.Empty) {
+                // No codebehind. Need to set a few extra properties depending on metadata from json
                 acn.IsPartial = false;
                 acn._Inherits = DefaultObjTemplate.InstanceType.Name;
 
@@ -203,16 +174,16 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     acn._Inherits += '<' + at.InstanceDataTypeName + '>';
                     tcn.AutoBindProperties = true;
                 }
+            } else if (at.InstanceDataTypeName != null) {
+                ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, at.CompilerOrigin);
             }
 
-            var mcn = new NObjMetadata( this )
-            {
+            var mcn = new NObjMetadata(this) {
                 Parent = acn,
                 NTemplateClass = tcn,
                 _Inherits = "ObjMetadata"
             };
 
-//            acn.NTemplateClass.Temp               NTemplateClass = NTemplateClass.Classes[at],
             tcn.NMetadataClass = mcn;
 
             this.ValueClasses[at] = acn;
@@ -220,21 +191,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
             this.MetaClasses[at] = mcn;
 
             root.AppClassClassNode = acn;
-//            acn.MetaDataClass = mcn;
             acn.NTemplateClass = tcn;
-//            if (acn is NAppClass) {
-//                var racn = acn as NAppClass;
-            GenerateKids(acn,                         
-                        (NTAppClass)acn.NTemplateClass, 
-                        acn.NTemplateClass.NMetadataClass, 
+            GenerateKids(acn,
+                        (NTAppClass)acn.NTemplateClass,
+                        acn.NTemplateClass.NMetadataClass,
                         acn.NTemplateClass.Template);
-//            }
-
-//            tcn.Parent = tcn.Parent;
-//            mcn.Parent = mcn.Parent;
             MoveNestedClassToBottom(root);
-
-//                Container = acn,
 
             if (metadata != CodeBehindMetadata.Empty) {
                 var json = new NJsonAttributeClass(this) {
@@ -296,7 +258,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                 parent = parent.Parent;
                             }
                             propertyName = ((TObj)parent).ClassName + propertyName;
-                            throw ErrorCode.ToException(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'");
+                            ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CompilerOrigin);
                         }
                         CheckMissingBindingInformation(childTApp);
                     }
@@ -309,22 +271,24 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="root">The root.</param>
         /// <param name="metadata">The metadata.</param>
-        private void ConnectCodeBehindClasses(NRoot root, CodeBehindMetadata metadata)
-        {
+        private void ConnectCodeBehindClasses(NRoot root, CodeBehindMetadata metadata) {
             TObj appTemplate;
             TObj rootTemplate;
             TObj[] classesInOrder;
             JsonMapInfo mapInfo;
             NAppClass nAppClass;
-            
+
             classesInOrder = new TObj[metadata.JsonPropertyMapList.Count];
             rootTemplate = root.AppClassClassNode.Template;
 
-            for (Int32 i = 0; i < classesInOrder.Length; i++)
-            {
+            for (Int32 i = 0; i < classesInOrder.Length; i++) {
                 mapInfo = metadata.JsonPropertyMapList[i];
 
                 appTemplate = FindTAppFor(mapInfo.JsonMapName, rootTemplate);
+
+                if (appTemplate.InstanceDataTypeName != null) {
+                    ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
+                }
 
                 // TODO:
                 // If we have an empty object declaration in the jsonfile and
@@ -333,7 +297,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 // here.
                 // Do we need to create a new TApp and replace the existing one
                 // for all NClasses?
-              
+
                 appTemplate.ClassName = mapInfo.ClassName;
                 if (!String.IsNullOrEmpty(mapInfo.Namespace))
                     appTemplate.Namespace = mapInfo.Namespace;
@@ -361,30 +325,23 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="root">The root.</param>
         private void ReorderCodebehindClasses(TObj[] classesInOrder,
                                               List<JsonMapInfo> mapInfos,
-                                              NRoot root)
-        {
+                                              NRoot root) {
             List<String> parentClasses;
             NBase parent;
             NClass theClass;
             NClass parentClass;
             NOtherClass notExistingClass;
 
-            for (Int32 i = 0; i < classesInOrder.Length; i++)
-            {
+            for (Int32 i = 0; i < classesInOrder.Length; i++) {
                 theClass = ValueClasses[classesInOrder[i]];
                 parentClasses = mapInfos[i].ParentClasses;
-                if (parentClasses.Count > 0)
-                {
+                if (parentClasses.Count > 0) {
                     parent = root;
-                    for (Int32 pi = parentClasses.Count - 1; pi >= 0; pi--)
-                    {
+                    for (Int32 pi = parentClasses.Count - 1; pi >= 0; pi--) {
                         parentClass = FindClass(parentClasses[pi], parent);
-                        if (parentClass != null)
-                        {
+                        if (parentClass != null) {
                             parent = parentClass;
-                        }
-                        else
-                        {
+                        } else {
                             notExistingClass = new NOtherClass(this);
                             notExistingClass._ClassName = parentClasses[pi];
                             notExistingClass.IsPartial = true;
@@ -393,9 +350,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                         }
                     }
                     theClass.Parent = parent;
-                }
-                else
-                {
+                } else {
                     theClass.Parent = root;
                 }
             }
@@ -407,14 +362,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="className">Name of the class.</param>
         /// <param name="parent">The parent.</param>
         /// <returns>NClass.</returns>
-        private NClass FindClass(String className, NBase parent)
-        {
+        private NClass FindClass(String className, NBase parent) {
             NClass nClass;
-            for (Int32 i = 0; i < parent.Children.Count; i++)
-            {
+            for (Int32 i = 0; i < parent.Children.Count; i++) {
                 nClass = parent.Children[i] as NClass;
-                if ((nClass != null) && (nClass.ClassName.Equals(className)))
-                {
+                if ((nClass != null) && (nClass.ClassName.Equals(className))) {
                     return nClass;
                 }
             }
@@ -428,8 +380,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="rootTemplate">The root template.</param>
         /// <returns>TApp.</returns>
         /// <exception cref="System.Exception">Invalid property to bind codebehind.</exception>
-        private TObj FindTAppFor(String jsonMapName, TObj rootTemplate)
-        {
+        private TObj FindTAppFor(String jsonMapName, TObj rootTemplate) {
             TObj appTemplate;
             String[] mapParts;
             Template template;
@@ -439,19 +390,15 @@ namespace Starcounter.Internal.Application.CodeGeneration
 
             // We skip the two first parts since the first one will always be "json" 
             // and the second the rootTemplate.
-            for (Int32 i = 1; i < mapParts.Length; i++)
-            {
+            for (Int32 i = 1; i < mapParts.Length; i++) {
                 template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
-                if (template is TObj)
-                {
+                if (template is TObj) {
                     appTemplate = (TObj)template;
-                }
-                else if (template is TObjArr)
-                {
+                } else if (template is TObjArr) {
                     appTemplate = ((TObjArr)template).App;
-                }
-                else
-                {
+                } else {
+                    // TODO: 
+                    // Change to starcounter errorcode.
                     throw new Exception("Invalid property to bind codebehind.");
                 }
             }
@@ -465,32 +412,24 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// Show the nested App classes before the template and metadata classes.
         /// </summary>
         /// <param name="node">The node containing the children to rearrange</param>
-        private void MoveNestedClassToBottom(NBase node)
-        {
+        private void MoveNestedClassToBottom(NBase node) {
             var move = new List<NBase>();
-            foreach (var kid in node.Children)
-            {
-                if (kid is NAppClass)
-                {
+            foreach (var kid in node.Children) {
+                if (kid is NAppClass) {
                     move.Add(kid);
                 }
             }
-            foreach (var kid in node.Children)
-            {
-                if (kid is NTAppClass)
-                {
+            foreach (var kid in node.Children) {
+                if (kid is NTAppClass) {
                     move.Add(kid);
                 }
             }
-            foreach (var kid in node.Children)
-            {
-                if (kid is NObjMetadata)
-                {
+            foreach (var kid in node.Children) {
+                if (kid is NObjMetadata) {
                     move.Add(kid);
                 }
             }
-            foreach (var kid in move)
-            {
+            foreach (var kid in move) {
                 kid.Parent = kid.Parent;
                 MoveNestedClassToBottom(kid);
             }
@@ -507,26 +446,20 @@ namespace Starcounter.Internal.Application.CodeGeneration
         private void GenerateKids(NAppClass appClassParent,
                                   NTAppClass templParent,
                                   NClass metaParent,
-                                  Template template)
-        {
-            if (template is TContainer)
-            {
+                                  Template template) {
+            if (template is TContainer) {
                 var pt = (TContainer)template;
-                foreach (var kid in pt.Children)
-                {
-                    if (kid is TContainer)
-                    {
-                        if (kid is TObj)
-                        {
+                foreach (var kid in pt.Children) {
+                    if (kid is TContainer) {
+                        if (kid is TObj) {
                             GenerateForApp(kid as TObj,
                                            appClassParent,
                                            templParent,
                                            metaParent,
                                            template);
-                        }
-                        else if (kid is TObjArr)
-                        {
-//                            var type = new NArrXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; // Orphaned by design as primitive types dont get custom template classes
+                        } else if (kid is TObjArr) {
+                            // Orphaned by design as primitive types dont get custom template classes
+//                            var type = new NArrXXXClass(NValueClass.Classes[kid.InstanceType] ) { Template = kid }; 
 //                            NTemplateClass.Classes[kid] = type;
 
                             GenerateForArr(kid as TObjArr,
@@ -534,15 +467,12 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                                templParent,
                                                metaParent,
                                                template);
-                        }
-                        else
-                        {
+                        } else {
                             throw new Exception();
                         }
-                    }
-                    else
-                    {
-                        var type = new NPropertyClass(this) { Template = kid /*, Parent = appClassParent */ }; // Orphaned by design as primitive types dont get custom template classes
+                    } else {
+                        // Orphaned by design as primitive types dont get custom template classes
+                        var type = new NPropertyClass(this) { Template = kid /*, Parent = appClassParent */ }; 
                         TemplateClasses[kid] = type;
 
                         GenerateProperty(kid, appClassParent, templParent, metaParent);
@@ -565,13 +495,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
                                     NAppClass appClassParent,
                                     NTAppClass templParent,
                                     NClass metaParent,
-                                    Template template)
-        {
+                                    Template template) {
             NValueClass acn;
             NTemplateClass tcn;
             NMetadataClass mcn;
-            if (at.Properties.Count == 0)
-            {
+            if (at.Properties.Count == 0) {
                 // Empty App templates does not typically receive a custom template 
                 // class (unless explicitly set by the Json.nnnn syntax (TODO)
                 // This means that they can be assigned to any App object. 
@@ -580,18 +508,14 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 acn = ValueClasses[DefaultObjTemplate];
                 tcn = TemplateClasses[DefaultObjTemplate];
                 mcn = MetaClasses[DefaultObjTemplate];
-            }
-            else
-            {
+            } else {
                 NAppClass racn;
-                acn = racn = new NAppClass(this)
-                {
+                acn = racn = new NAppClass(this) {
                     Parent = appClassParent,
                     _Inherits = DefaultObjTemplate.InstanceType.Name // "Puppet", "Json"
                 };
 
-                tcn = new NTAppClass(this)
-                {
+                tcn = new NTAppClass(this) {
                     Parent = racn,
                     Template = at,
                     NValueClass = racn,
@@ -605,8 +529,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                     ((NTAppClass)tcn).AutoBindProperties = true;
                 }
 
-                mcn = new NObjMetadata(this)
-                {
+                mcn = new NObjMetadata(this) {
                     Parent = racn,
                     NTemplateClass = tcn,
                     _Inherits = "ObjMetadata"
@@ -614,9 +537,9 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 tcn.NMetadataClass = mcn;
                 racn.NTemplateClass = tcn;
 
-                GenerateKids(acn as NAppClass, 
-                             tcn as NTAppClass, 
-                             mcn as NObjMetadata, 
+                GenerateKids(acn as NAppClass,
+                             tcn as NTAppClass,
+                             mcn as NObjMetadata,
                              at);
 
                 if (!appClassParent.Children.Remove(acn))
@@ -654,31 +577,26 @@ namespace Starcounter.Internal.Application.CodeGeneration
         private void GenerateProperty(Template at,
                                       NAppClass appClassParent,
                                       NTAppClass templParent,
-                                      NClass metaParent)
-        {
+                                      NClass metaParent) {
             var valueClass = FindValueClass(at);
             var type = FindTemplateClass(at);
 
-            type.NValueProperty = new NProperty( this )
-            {
+            type.NValueProperty = new NProperty(this) {
                 Parent = appClassParent,
                 Template = at,
                 Type = valueClass
             };
-            new NProperty( this )
-            {
+            new NProperty(this) {
                 Parent = templParent,
                 Template = at,
                 Type = type
             };
-            new NProperty( this )
-            {
+            new NProperty(this) {
                 Parent = templParent.Constructor,
                 Template = at,
                 Type = FindTemplateClass(at)
             };
-            new NProperty(this)
-            {
+            new NProperty(this) {
                 Parent = metaParent,
                 Template = at,
                 Type = FindMetaClass(at)
@@ -693,49 +611,44 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="templParent">The templ parent.</param>
         /// <param name="metaParent">The meta parent.</param>
         /// <param name="template">The template.</param>
-        private void GenerateForArr(TObjArr alt, 
-                                        NAppClass appClassParent, 
-                                        NTAppClass templParent, 
-                                        NClass metaParent, 
-                                        Template template)
-        {
-            var amn = new NProperty( this )
-            {
+        private void GenerateForArr(TObjArr alt,
+                                        NAppClass appClassParent,
+                                        NTAppClass templParent,
+                                        NClass metaParent,
+                                        Template template) {
+            var amn = new NProperty(this) {
                 Parent = appClassParent,
                 Template = alt
             };
-            var tmn = new NProperty( this )
-            {
+            var tmn = new NProperty(this) {
                 Parent = appClassParent.NTemplateClass,
                 Template = alt
             };
-            var cstmn = new NProperty( this )
-            {
+            var cstmn = new NProperty(this) {
                 Parent = ((NTAppClass)appClassParent.NTemplateClass).Constructor,
                 Template = alt
             };
-            var mmn = new NProperty( this )
-            {
+            var mmn = new NProperty(this) {
                 Parent = appClassParent.NTemplateClass.NMetadataClass,
                 Template = alt
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
-            var vlist = new NArrXXXClass(this, "Arr", ValueClasses[alt.App], null,alt);
+            var vlist = new NArrXXXClass(this, "Arr", ValueClasses[alt.App], null, alt);
             amn.Type = vlist;
 
-            tmn.Type = new NArrXXXClass(this, "TArr", 
-                                            ValueClasses[alt.App], 
+            tmn.Type = new NArrXXXClass(this, "TArr",
+                                            ValueClasses[alt.App],
                                             TemplateClasses[alt.App], alt);
             cstmn.Type = new NArrXXXClass(this, "TArr",
                                             ValueClasses[alt.App],
                                             TemplateClasses[alt.App], alt);
 
-            mmn.Type = new NArrXXXClass(this,"ArrMetadata", 
-                                            ValueClasses[alt.App], 
+            mmn.Type = new NArrXXXClass(this, "ArrMetadata",
+                                            ValueClasses[alt.App],
                                             TemplateClasses[alt.App], alt);
 
             //ntempl.Template = alt;
-//            NTemplateClass.Classes[alt] = tlist;
+            //            NTemplateClass.Classes[alt] = tlist;
             ValueClasses[alt] = vlist;
         }
 
@@ -748,14 +661,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// </summary>
         /// <param name="appClass">The node to generate attributes for</param>
         /// <param name="parent">The DOM node to generate attributes for</param>
-        public void GenerateJsonAttributes(NAppClass appClass, NBase parent)
-        {
-            foreach (var kid in appClass.Children)
-            {
-                if (kid is NAppClass)
-                {
-                    var x = new NJsonAttributeClass(this)
-                    {
+        public void GenerateJsonAttributes(NAppClass appClass, NBase parent) {
+            foreach (var kid in appClass.Children) {
+                if (kid is NAppClass) {
+                    var x = new NJsonAttributeClass(this) {
                         _Inherits = "TemplateAttribute",
                         _ClassName = (kid as NAppClass).Stem,
                         Parent = parent
@@ -773,38 +682,29 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="parent">The parent.</param>
         /// <param name="app">The app.</param>
         /// <param name="eventName">The name of the event (i.e. "Input").</param>
-        public void GeneratePrimitiveValueEvents(NBase parent, NClass app, string eventName)
-        {
-            foreach (var kid in app.Children)
-            {
-                if (kid is NProperty)
-                {
+        public void GeneratePrimitiveValueEvents(NBase parent, NClass app, string eventName) {
+            foreach (var kid in app.Children) {
+                if (kid is NProperty) {
                     var mn = kid as NProperty;
-                    if (mn.Type is NArrXXXClass || 
-                       (mn.Type is NAppClass && mn.Type.Children.Count > 0))
-                    {
+                    if (mn.Type is NArrXXXClass ||
+                       (mn.Type is NAppClass && mn.Type.Children.Count > 0)) {
                         NClass type;
                         if (mn.Type is NArrXXXClass)
                             type = (mn.Type as NArrXXXClass).NApp;
                         else
                             type = mn.Type as NAppClass;
-                        var x = new NOtherClass(this)
-                        {
+                        var x = new NOtherClass(this) {
                             Parent = parent,
                             IsStatic = true,
                             _ClassName = mn.MemberName
                         };
                         GeneratePrimitiveValueEvents(x, type, eventName);
-                    }
-                    else
-                    {
-                        if (mn.Type is NPrimitiveType)
-                        {
-                            new NEventClass(this)
-                            {
+                    } else {
+                        if (mn.Type is NPrimitiveType) {
+                            new NEventClass(this) {
                                 NMember = mn,
                                 Parent = parent,
-//                                NApp = app,
+                                //                                NApp = app,
                                 EventName = eventName
                             };
                         }
@@ -819,9 +719,8 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="nApp">The n app.</param>
         /// <param name="metadata">The metadata.</param>
         /// <exception cref="System.Exception">Invalid Handle-method declared in class </exception>
-        private void GenerateInputBindings(NTAppClass nApp, 
-                                           CodeBehindMetadata metadata)
-        {
+        private void GenerateInputBindings(NTAppClass nApp,
+                                           CodeBehindMetadata metadata) {
             Int32 index;
             List<NBase> children;
             NTAppClass propertyAppClass;
@@ -832,37 +731,33 @@ namespace Starcounter.Internal.Application.CodeGeneration
             String propertyName;
             String[] parts;
 
-            foreach (InputBindingInfo info in metadata.InputBindingList)
-            {
+            foreach (InputBindingInfo info in metadata.InputBindingList) {
                 // Find the property the binding is for. 
                 // Might not be the same class as the one specified in the info object
                 // since the Handle-implementation can be declared in a parent class.
                 parts = info.FullInputTypeName.Split('.');
                 propertyAppClass = nApp;
-                
+
                 // The first index is always "Input", the next ones until the last is
                 // the childapps (the toplevel app is sent as a parameter in here)
                 // and the last index is the name of the property.
-                for (Int32 i = 1; i < parts.Length - 1; i++)
-                {
+                for (Int32 i = 1; i < parts.Length - 1; i++) {
                     children = propertyAppClass.Children;
-                    np = (NProperty)children.Find((NBase child) =>
-                                    {
-                                        NProperty property = child as NProperty;   
+                    np = (NProperty)children.Find((NBase child) => {
+                                        NProperty property = child as NProperty;
                                         if (property != null)
                                             return property.Template.PropertyName.Equals(parts[i]);
                                         return false;
                                     });
 
                     template = np.Template;
-                    if (template is TObjArr)
-                    {
+                    if (template is TObjArr) {
                         template = ((TObjArr)template).App;
                     }
                     propertyAppClass = (NTAppClass)FindTemplateClass(template);
                 }
 
-                propertyName = parts[parts.Length-1];
+                propertyName = parts[parts.Length - 1];
 
                 // We need to search in the children in the constructor since
                 // other inputbindings might have been added that makes the
@@ -873,22 +768,21 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 // TODO: 
                 // Make sure that the inputbindings are added in the correct order if 
                 // we have more than one handler for the same property.
-                index = children.FindIndex((NBase child) =>
-                        {
+                index = children.FindIndex((NBase child) => {
                             NProperty property = child as NProperty;
                             if (property != null)
                                 return property.MemberName.Equals(propertyName);
                             return false;
                         });
 
-                if (index == -1)
-                {
+                if (index == -1) {
                     // TODO:
                     // Need to add file and linenumbers if possible to pinpoint the erroneous code.
-                    throw new Exception("Invalid Handle-method declared in class " 
-                                        + info.DeclaringClassName 
-                                        + ". No property with name " 
-                                        + propertyName + 
+                    // Change to starcounter errorcode.
+                    throw new Exception("Invalid Handle-method declared in class "
+                                        + info.DeclaringClassName
+                                        + ". No property with name "
+                                        + propertyName +
                                         " exists.");
                 }
 
@@ -901,16 +795,18 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 // We check the next item in the constructor. All inputbindings for 
                 // the same property needs to be ordered with the least parent-calls first.
                 Int32 indexToCheck = index + 1;
-                while (indexToCheck < children.Count)
-                {
+                while (indexToCheck < children.Count) {
                     NInputBinding otherBinding = children[indexToCheck] as NInputBinding;
 
-                    if (otherBinding == null) break;
-                    if (otherBinding.BindsToProperty != binding.BindsToProperty) break;
+                    if (otherBinding == null)
+                        break;
+                    if (otherBinding.BindsToProperty != binding.BindsToProperty)
+                        break;
 
                     // Two handlers (or more) are declared for the same property. Lets
                     // order them with the least parentcalls first.
-                    if (binding.AppParentCount < otherBinding.AppParentCount) break;
+                    if (binding.AppParentCount < otherBinding.AppParentCount)
+                        break;
 
                     index = indexToCheck;
                     indexToCheck++;
@@ -927,20 +823,16 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// <param name="binding">The binding.</param>
         /// <param name="info">The info.</param>
         /// <exception cref="System.Exception">Could not find the app where Handle method is declared.</exception>
-        private void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info)
-        {
+        private void FindHandleDeclaringClass(NInputBinding binding, InputBindingInfo info) {
             Int32 parentCount = 0;
             TContainer candidate = binding.PropertyAppClass.Template;
             TObj appTemplate;
             NAppClass declaringAppClass = null;
 
-            while (candidate != null)
-            {
+            while (candidate != null) {
                 appTemplate = candidate as TObj;
-                if (appTemplate != null)
-                {
-                    if (info.DeclaringClassName.Equals(appTemplate.ClassName))
-                    {
+                if (appTemplate != null) {
+                    if (info.DeclaringClassName.Equals(appTemplate.ClassName)) {
                         declaringAppClass = (NAppClass)FindValueClass(appTemplate);
                         break;
                     }
@@ -950,8 +842,7 @@ namespace Starcounter.Internal.Application.CodeGeneration
                 parentCount++;
             }
 
-            if (declaringAppClass == null)
-            {
+            if (declaringAppClass == null) {
                 throw new Exception("Could not find the app where Handle method is declared.");
             }
 
@@ -963,14 +854,31 @@ namespace Starcounter.Internal.Application.CodeGeneration
         /// Employed by the template code generator.
         /// </summary>
         /// <value>The global namespace.</value>
-        internal string GlobalNamespace
-        {
-            get
-            {
+        internal string GlobalNamespace {
+            get {
                 Template current = DefaultObjTemplate;
-                while (current.Parent != null) current = (Template)current.Parent;
+                while (current.Parent != null)
+                    current = (Template)current.Parent;
                 return ((TObj)current).Namespace;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="errorCode"></param>
+        /// <param name="messagePostFix"></param>
+        /// <param name="innerException"></param>
+        /// <param name="co"></param>
+        private static void ThrowExceptionWithLineInfo(uint errorCode, string messagePostFix, Exception innerException, CompilerOrigin co) {
+            var tuple = new Tuple<int, int>(co.LineNo, co.ColNo);
+            throw ErrorCode.ToException(
+                    errorCode,
+                    innerException,
+                    messagePostFix,
+                    (msg, e) => {
+                        return Starcounter.Internal.JsonTemplate.Error.CompileError.Raise<Exception>(msg, tuple, co.FileName);
+                    });
         }
     }
 }

@@ -124,6 +124,8 @@ namespace StarcounterInternal.Bootstrap
             }
             OnLoggingConfigured();
 
+            ManagementService.Init(configuration.Name);
+
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)
             {
@@ -213,7 +215,7 @@ namespace StarcounterInternal.Bootstrap
 
             OnAppDomainConfigured();
 
-            ManagementService.Setup(configuration.DefaultSystemHttpPort, configuration.Name, hsched_, !configuration.NoNetworkGateway);
+            ManagementService.Setup(configuration.DefaultSystemHttpPort, hsched_, !configuration.NoNetworkGateway);
             OnServerCommandHandlersRegistered();
 
             if (withdb_)
