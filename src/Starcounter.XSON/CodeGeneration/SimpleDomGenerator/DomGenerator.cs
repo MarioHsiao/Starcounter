@@ -163,9 +163,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 AutoBindProperties = metadata.AutoBindToDataObject
             };
 
-            if (metadata == CodeBehindMetadata.Empty) { 
+            if (metadata == CodeBehindMetadata.Empty) {
                 // No codebehind. Need to set a few extra properties depending on metadata from json
-                
                 acn.IsPartial = false;
                 acn._Inherits = DefaultObjTemplate.InstanceType.Name;
 
@@ -175,6 +174,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     acn._Inherits += '<' + at.InstanceDataTypeName + '>';
                     tcn.AutoBindProperties = true;
                 }
+            } else if (at.InstanceDataTypeName != null) {
+                ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, at.CompilerOrigin);
             }
 
             var mcn = new NObjMetadata(this) {
@@ -257,7 +258,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                                 parent = parent.Parent;
                             }
                             propertyName = ((TObj)parent).ClassName + propertyName;
-                            throw ErrorCode.ToException(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'");
+                            ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CompilerOrigin);
                         }
                         CheckMissingBindingInformation(childTApp);
                     }
@@ -284,6 +285,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 mapInfo = metadata.JsonPropertyMapList[i];
 
                 appTemplate = FindTAppFor(mapInfo.JsonMapName, rootTemplate);
+
+                if (appTemplate.InstanceDataTypeName != null) {
+                    ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
+                }
 
                 // TODO:
                 // If we have an empty object declaration in the jsonfile and
@@ -392,6 +397,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 } else if (template is TObjArr) {
                     appTemplate = ((TObjArr)template).App;
                 } else {
+                    // TODO: 
+                    // Change to starcounter errorcode.
                     throw new Exception("Invalid property to bind codebehind.");
                 }
             }
@@ -771,6 +778,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 if (index == -1) {
                     // TODO:
                     // Need to add file and linenumbers if possible to pinpoint the erroneous code.
+                    // Change to starcounter errorcode.
                     throw new Exception("Invalid Handle-method declared in class "
                                         + info.DeclaringClassName
                                         + ". No property with name "
@@ -853,6 +861,24 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     current = (Template)current.Parent;
                 return ((TObj)current).Namespace;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="errorCode"></param>
+        /// <param name="messagePostFix"></param>
+        /// <param name="innerException"></param>
+        /// <param name="co"></param>
+        private static void ThrowExceptionWithLineInfo(uint errorCode, string messagePostFix, Exception innerException, CompilerOrigin co) {
+            var tuple = new Tuple<int, int>(co.LineNo, co.ColNo);
+            throw ErrorCode.ToException(
+                    errorCode,
+                    innerException,
+                    messagePostFix,
+                    (msg, e) => {
+                        return Starcounter.Internal.JsonTemplate.Error.CompileError.Raise<Exception>(msg, tuple, co.FileName);
+                    });
         }
     }
 }

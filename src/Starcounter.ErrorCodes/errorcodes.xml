@@ -4197,6 +4197,12 @@
     <code hex="0008" severity="Error" name="ScErrMissingDataTypeBindingJson">
       <message>Cannot create binding between typed json and dataobject. The datatype needs to be specified.</message>
     </code>
+    <code hex="0009" severity="Error" name="ScErrDuplicateDataTypeJson">
+      <message>
+        Datatype cannot be specified in the json file if a code-behind class exists. 
+        The datatype needs to be set as generic argument on the inheritance on the class.
+      </message>
+    </code>
     </facility>
     
 </error-codes>
