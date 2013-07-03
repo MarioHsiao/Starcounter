@@ -3056,6 +3056,9 @@
     <code hex="00FB" severity="Error" name="ScErrCantExpandTransLogNoMemory">
       <message>ransaction log could not be expanded because of a failure to allocate disk memory.</message>
     </code>
+    <code hex="00FC" severity="Error" name="ScErrCantInitTransLogWriter">
+      <message>An error occured when initializing transaction log writer.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
