@@ -3043,6 +3043,19 @@
         field in the same class, or in a base class, not even if they differ in casing.
       </message>
     </code>
+    <code hex="00F8" severity="Error" name="ScErrCantExpandTransLog">
+      <message>An error occured when attempting to expand transaction log.</message>
+      <remarks>The reason for the failure is logged seperatly."</remarks>
+    </code>
+    <code hex="00F9" severity="Error" name="ScErrCantExpandTransLogBadFile">
+      <message>Transaction log could not be expanded because a faulty log element file was found in the log directory.</message>
+    </code>
+    <code hex="00FA" severity="Error" name="ScErrCantExpandTransLogDiskFull">
+      <message>Transaction log could not be expanded because of a failure to allocate disk space.</message>
+    </code>
+    <code hex="00FB" severity="Error" name="ScErrCantExpandTransLogNoMemory">
+      <message>ransaction log could not be expanded because of a failure to allocate disk memory.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
