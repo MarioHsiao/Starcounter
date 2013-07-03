@@ -14,7 +14,9 @@ namespace Starcounter.Bootstrap.Management {
     /// engines and code host processes.
     /// </remarks>
     static internal class ManagementService {
+        const string onlineBaseName = "SCCODE_EXE_";
         static ManualResetEvent shutdownEvent;
+        static EventWaitHandle onlineEvent;
 
         /// <summary>
         /// Gets the host identity, used to expose management services
@@ -44,29 +46,37 @@ namespace Starcounter.Bootstrap.Management {
         /// in the administrator host.
         /// </summary>
         public static bool IsAdministrator { get; private set; }
-        
+
         /// <summary>
-        /// Initializes the management service.
+        /// Initializes the management service in the starting code host
+        /// process.
         /// </summary>
-        /// <param name="port">The port all handlers should register under.</param>
         /// <param name="hostIdentity">The identity of the host. Used when
         /// constructing and registering management URIs.</param>
+        public static void Init(string hostIdentity) {
+            HostIdentity = hostIdentity;
+            Unavailable = true;
+            shutdownEvent = new ManualResetEvent(false);
+            onlineEvent = new EventWaitHandle(false, EventResetMode.ManualReset, string.Concat(onlineBaseName, hostIdentity.ToUpperInvariant()));
+        }
+
+        /// <summary>
+        /// Sets up the management service.
+        /// </summary>
+        /// <param name="port">The port all handlers should register under.</param>
         /// <param name="handleScheduler">Handle to the scheduler to use when
         /// management services need to schedule work to be done.</param>
         /// <param name="setupAPI">Indicates if the API should be set up.</param>
-        public static unsafe void Setup(ushort port, string hostIdentity, void* handleScheduler, bool setupAPI = true) {
-            shutdownEvent = new ManualResetEvent(false);
-            
-            Unavailable = true;
+        public static unsafe void Setup(ushort port, void* handleScheduler, bool setupAPI = true) {
             IsAdministrator = NewConfig.IsAdministratorApp;
             Port = port;
-            HostIdentity = hostIdentity;
+            
             if (IsAdministrator) {
                 setupAPI = false;
             }
             
             if (setupAPI) {
-                CodeHostAPI.Setup(hostIdentity);
+                CodeHostAPI.Setup(HostIdentity);
                 new DbSession().RunSync(() => {
                     CodeHostHandler.Setup();
                     ExecutablesHandler.Setup(handleScheduler);
@@ -89,7 +99,10 @@ namespace Starcounter.Bootstrap.Management {
         /// </summary>
         public static void RunUntilShutdown() {
             Unavailable = false;
+            onlineEvent.Set();
             shutdownEvent.WaitOne();
+            onlineEvent.Reset();
+            onlineEvent.Close();
             Unavailable = true;
         }
     }
