@@ -230,7 +230,7 @@ namespace NodeTest
 
         Settings settings_;
 
-        static Node GlobalNode = new Node("127.0.0.1", 8080);
+        Node worker_node_ = new Node("127.0.0.1", 8080);
 
         public void Init(Settings settings, Int32 id)
         {
@@ -294,7 +294,7 @@ namespace NodeTest
                 {
                     NodeTestInstance test = CreateNewTest();
 
-                    if (!test.PerformTest(GlobalNode))
+                    if (!test.PerformTest(worker_node_))
                         return;
 
                     // Checking if tests has already failed.
