@@ -3043,6 +3043,22 @@
         field in the same class, or in a base class, not even if they differ in casing.
       </message>
     </code>
+    <code hex="00F8" severity="Error" name="ScErrCantExpandTransLog">
+      <message>An error occured when attempting to expand transaction log.</message>
+      <remarks>The reason for the failure is logged seperatly."</remarks>
+    </code>
+    <code hex="00F9" severity="Error" name="ScErrCantExpandTransLogBadFile">
+      <message>Transaction log could not be expanded because a faulty log element file was found in the log directory.</message>
+    </code>
+    <code hex="00FA" severity="Error" name="ScErrCantExpandTransLogDiskFull">
+      <message>Transaction log could not be expanded because of a failure to allocate disk space.</message>
+    </code>
+    <code hex="00FB" severity="Error" name="ScErrCantExpandTransLogNoMemory">
+      <message>ransaction log could not be expanded because of a failure to allocate disk memory.</message>
+    </code>
+    <code hex="00FC" severity="Error" name="ScErrCantInitTransLogWriter">
+      <message>An error occured when initializing transaction log writer.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3290,6 +3306,9 @@
     </code>
     <code hex="0042" severity="Error" name="ScErrUnhandledWeaverException">
       <message>An unhandled, unidentified (non-Starcounter) exception occurred in the weaver.</message>
+    </code>
+    <code hex="0043" severity="Error" name="ScErrUnexpPlatformAPIError">
+      <message>An unexpected error occured calling a platform API function.</message>
     </code>
   </facility>
 
@@ -4196,6 +4215,12 @@
     </code>
     <code hex="0008" severity="Error" name="ScErrMissingDataTypeBindingJson">
       <message>Cannot create binding between typed json and dataobject. The datatype needs to be specified.</message>
+    </code>
+    <code hex="0009" severity="Error" name="ScErrDuplicateDataTypeJson">
+      <message>
+        Datatype cannot be specified in the json file if a code-behind class exists. 
+        The datatype needs to be set as generic argument on the inheritance on the class.
+      </message>
     </code>
     </facility>
     
