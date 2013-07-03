@@ -3304,6 +3304,9 @@
     <code hex="0042" severity="Error" name="ScErrUnhandledWeaverException">
       <message>An unhandled, unidentified (non-Starcounter) exception occurred in the weaver.</message>
     </code>
+    <code hex="0043" severity="Error" name="ScErrUnexpPlatformAPIError">
+      <message>An unexpected error occured calling a platform API function.</message>
+    </code>
   </facility>
 
   <facility name="Sql" hex="0007">
