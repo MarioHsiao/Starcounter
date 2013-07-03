@@ -97,13 +97,15 @@ restart:
                                 }
                             }
 
-                            if (valueSize != -1 && childObjArr != null) {
-                                if (buf.Length < (offset + valueSize))
-                                    goto restart;
-                                Buffer.BlockCopy(childObjArr, 0, buf, offset, valueSize);
+                            if (valueSize != -1) {
+                                if (childObjArr != null) {
+                                    if (buf.Length < (offset + valueSize + 1))
+                                        goto restart;
+                                    Buffer.BlockCopy(childObjArr, 0, buf, offset, valueSize);
+                                    childObjArr = null;
+                                }
                                 pfrag += valueSize;
                                 offset += valueSize;
-                                childObjArr = null;
                             } else
                                 goto restart;
                         } else if (tProperty is TObjArr) {
