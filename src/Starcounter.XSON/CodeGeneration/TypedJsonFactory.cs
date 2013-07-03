@@ -49,6 +49,10 @@ namespace Starcounter.XSON.CodeGeneration
 //        private ICompilerService compiler;
         private MonoCSharpCompiler compiler;
 
+        static TypedJsonFactory() {
+            HelperFunctions.LoadNonGACDependencies();
+        }
+
         public TypedJsonFactory() {
             this.compiler = new MonoCSharpCompiler();
 //            this.compiler = new RoslynCSharpCompiler();
