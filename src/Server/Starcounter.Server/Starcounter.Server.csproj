@@ -95,6 +95,7 @@
     <Compile Include="PublicModel\Commands\ActionCommand.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="PublicModel\Commands\DeleteDatabaseCommand.cs" />
     <Compile Include="PublicModel\Commands\InvokableCommand.cs" />
     <Compile Include="PublicModel\Commands\CreateDatabaseCommand.cs" />
     <Compile Include="PublicModel\Commands\DatabaseCommand.cs" />
