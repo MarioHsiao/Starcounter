@@ -43,6 +43,15 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Creates a key that the server can use when creating and deleting
+        /// database files and folders to assure they are unique.
+        /// </summary>
+        /// <returns>An opaque key to use in the form of a string.</returns>
+        internal string NewKey() {
+            return DateTime.Now.ToString("yyyyMMddTHHmmssfff");
+        }
+
+        /// <summary>
         /// Creates a new storage for with the given values.
         /// </summary>
         /// <param name="name">The name of database to create a new storage for.</param>
