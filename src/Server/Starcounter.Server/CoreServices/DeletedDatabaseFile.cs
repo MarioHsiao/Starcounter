@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -124,10 +125,15 @@ namespace Starcounter.Server {
         /// deleted.</param>
         public DeletedDatabaseFile(string file) {
             this.FilePath = file;
-            // Name - everything before the extension ("db.config").
-            // Key
-            // Deletion type.
-            // TODO:
+            
+            var filename = Path.GetFileName(file);
+            int indexOfMetadataDelimiter = filename.LastIndexOf('.');
+            var original = filename.Substring(0, indexOfMetadataDelimiter);
+            var metadata = filename.Substring(indexOfMetadataDelimiter + 1);
+
+            this.DatabaseName = original.Replace(DatabaseConfiguration.FileExtension, "");
+            this.Key = metadata.Substring(0, metadata.IndexOf('+'));
+            this.KindOfDelete = GetKindFromExtension(filename);
         }
     }
 }
