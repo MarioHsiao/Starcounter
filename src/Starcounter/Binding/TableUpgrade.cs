@@ -413,12 +413,9 @@ namespace Starcounter.Binding
 
                     if (createIndex) 
                     {
-                        // TODO: 
-                        // Read flags from existing index.
-                        uint flags = 0;
                         fixed (Int16* paii = &(attrIndexArr[0])) 
                         {
-                            ec = sccoredb.sccoredb_create_index(newTableDef_.TableId, indexName, index.sortMask, paii, flags);
+                            ec = sccoredb.sccoredb_create_index(newTableDef_.TableId, indexName, index.sortMask, paii, index.flags);
                         }
 
                         if (ec != 0) 
