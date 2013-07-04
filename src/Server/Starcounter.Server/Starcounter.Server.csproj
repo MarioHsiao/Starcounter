@@ -71,6 +71,7 @@
     <Compile Include="Commands\ICommandProcessor.cs" />
     <Compile Include="Commands\InternalCommands\DropDeletedDatabaseFilesCommand.cs" />
     <Compile Include="Commands\Processors\DeleteDatabaseCommandProcessor.cs" />
+    <Compile Include="Commands\Processors\DropDeletedDatabaseFilesCommandProcessor.cs" />
     <Compile Include="Commands\Processors\InvokableCommandProcessor.cs" />
     <Compile Include="Commands\Processors\CreateDatabaseCommandProcessor.cs" />
     <Compile Include="Commands\Processors\ExecCommandProcessor.Meta.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="CoreServices\DatabaseSetup.cs" />
     <Compile Include="CoreServices\DatabaseSetupProperties.cs" />
     <Compile Include="CoreServices\DatabaseStorageService.cs" />
+    <Compile Include="CoreServices\DeletedDatabaseFile.cs" />
     <Compile Include="CoreServices\ExecutableService.cs" />
     <Compile Include="CoreServices\GatewayService.cs" />
     <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
