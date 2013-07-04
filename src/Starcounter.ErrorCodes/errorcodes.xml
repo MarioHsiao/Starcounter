@@ -3829,6 +3829,12 @@
         log.
       </message>
     </code>
+    <code hex="001E" severity="Error" name="ScErrDeleteDbRenameConfig">
+      <message>
+        Failed to rename the database configuration file when asked to
+        delete the database.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
