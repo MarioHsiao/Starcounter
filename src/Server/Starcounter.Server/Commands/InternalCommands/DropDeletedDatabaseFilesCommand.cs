@@ -7,7 +7,7 @@ namespace Starcounter.Server.Commands.InternalCommands {
     /// Allows the server to dispatch a task that will try to drop orphaned,
     /// deleted database files.
     /// </summary>
-    internal sealed class DropDeletedDatabaseFilesCommand : ServerCommand {
+    internal sealed class DropDeletedDatabaseFilesCommand : DatabaseCommand {
         /// <summary>
         /// The file pattern used by the server to find database files that
         /// have been marked deleted/removed.
@@ -35,23 +35,15 @@ namespace Starcounter.Server.Commands.InternalCommands {
         public const string DeletedDatabaseAndDataFileExtension = "+++deleted";
 
         /// <summary>
-        /// Gets the name of the database whose orphaned files this
-        /// command specifies dropping of.
-        /// </summary>
-        public readonly string DatabaseName;
-
-        /// <summary>
         /// Initializes a new <see cref="DropDeletedDatabaseFilesCommand"/>.
         /// </summary>
         /// <param name="engine">The server engine the command runs in.</param>
         /// <param name="databaseName">The name of the database.</param>
         public DropDeletedDatabaseFilesCommand(ServerEngine engine, string databaseName)
-            : base(engine, "Removing orphaned database files of deleted database {0}", databaseName) {
+            : base(engine, CreateDatabaseUri(engine, databaseName), "Removing orphaned database files of deleted database {0}", databaseName) {
             if (string.IsNullOrEmpty(databaseName)) {
                 throw new ArgumentNullException("databaseName");
             }
-
-            this.DatabaseName = databaseName;
         }
     }
 }
