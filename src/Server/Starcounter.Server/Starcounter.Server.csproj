@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="Commands\ICommandProcessor.cs" />
     <Compile Include="Commands\InternalCommands\DropDeletedDatabaseFilesCommand.cs" />
+    <Compile Include="Commands\Processors\DeleteDatabaseCommandProcessor.cs" />
     <Compile Include="Commands\Processors\InvokableCommandProcessor.cs" />
     <Compile Include="Commands\Processors\CreateDatabaseCommandProcessor.cs" />
     <Compile Include="Commands\Processors\ExecCommandProcessor.Meta.cs" />
