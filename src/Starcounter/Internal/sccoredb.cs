@@ -671,6 +671,11 @@ namespace Starcounter.Internal
         public extern static uint sccoredb_reset_abort();
 
         /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_external_abort();
+
+        /// <summary>
         /// Sccoredb_wait_for_low_checkpoint_urgencies the specified flags.
         /// </summary>
         /// <param name="flags">The flags.</param>
