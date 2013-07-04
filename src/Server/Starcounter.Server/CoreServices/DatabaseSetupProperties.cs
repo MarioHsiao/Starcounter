@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter.Configuration;
+using System.IO;
 
 namespace Starcounter.Server {
 
@@ -17,6 +18,12 @@ namespace Starcounter.Server {
         /// property set applies.
         /// </summary>
         public readonly string Name;
+
+        /// <summary>
+        /// Gets the key used by the server when resolving and creating
+        /// the image- and log directories respectively.
+        /// </summary>
+        public readonly string Key;
 
         /// <summary>
         /// Gets the resolved management configuration of the database
@@ -39,6 +46,7 @@ namespace Starcounter.Server {
         /// <see cref="DatabaseSetupProperties"/> are to reprsent.</param>
         internal DatabaseSetupProperties(ServerEngine engine, string databaseName) {
             this.Name = databaseName;
+            this.Key = string.Format("{0}-{1}", this.Name, engine.StorageService.NewKey());
 
             // Deep clone the default server management configuration and do
             // replacement strategies and apply defaults.
@@ -55,10 +63,22 @@ namespace Starcounter.Server {
             this.StorageConfiguration.CollationFile = engine.DatabaseDefaultValues.CollationFile;
         }
 
+        /// <summary>
+        /// Wraps up the editing of the current database setup properties,
+        /// applying values enforced by the server library.
+        /// </summary>
+        internal void MakeFinal() {
+            var config = this.Configuration.Runtime;
+            config.ImageDirectory = Path.Combine(config.ImageDirectory, this.Key);
+            config.TransactionLogDirectory = Path.Combine(config.TransactionLogDirectory, this.Key);
+            config.TempDirectory = Path.Combine(config.TempDirectory, this.Key);
+        }
+
         void ExpandPlaceholdersInConfigurationStrings() {
-            this.Configuration.Runtime.ImageDirectory = this.Configuration.Runtime.ImageDirectory.Replace("[DatabaseName]", this.Name);
-            this.Configuration.Runtime.TransactionLogDirectory = this.Configuration.Runtime.TransactionLogDirectory.Replace("[DatabaseName]", this.Name);
-            this.Configuration.Runtime.TempDirectory = this.Configuration.Runtime.TempDirectory.Replace("[DatabaseName]", this.Name);
+            var config = this.Configuration.Runtime;
+            config.ImageDirectory = config.ImageDirectory.Replace("[DatabaseName]", this.Name);
+            config.TransactionLogDirectory = config.TransactionLogDirectory.Replace("[DatabaseName]", this.Name);
+            config.TempDirectory = config.TempDirectory.Replace("[DatabaseName]", this.Name);
         }
     }
 }
