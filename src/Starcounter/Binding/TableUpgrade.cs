@@ -89,9 +89,9 @@ namespace Starcounter.Binding
 
             BuildColumnValueTransferSet();
 
-            MoveRecordsToNewTable();
+            MoveIndexesToNewTable();
 
-            // TODO: Add all indexes defined on old table to new table.
+            MoveRecordsToNewTable();
 
             DropOldTable();
 
@@ -150,10 +150,9 @@ namespace Starcounter.Binding
 
                 BuildColumnValueTransferSet();
 
-                MoveRecordsToNewTable();
+                MoveIndexesToNewTable();
 
-                // TODO:
-                // Assure that all indexes defined on old table is defined on new table.
+                MoveRecordsToNewTable();
 
                 DropOldTable();
             }
@@ -304,6 +303,133 @@ namespace Starcounter.Binding
             }
 
             columnValueTransferSet_ = output.ToArray();
+        }
+
+        /// <summary>
+        /// Moves all existing indexes to the new table.
+        /// </summary>
+        /// <remarks>
+        /// If an index is specified on column(s) that no longer exists the index will be dropped.
+        /// </remarks>
+        private void MoveIndexesToNewTable() 
+        {
+            short[] attrIndexArr;
+            bool createIndex;
+            uint ec;
+            sccoredb.SC_INDEX_INFO[] indexArr;
+            uint indexCount;
+            string indexName;
+            ColumnDef newColumn;
+            ColumnDef oldColumn;
+            
+            unsafe 
+            {
+                ec = sccoredb.sccoredb_get_index_infos(
+                    oldTableDef_.TableId,
+                    &indexCount,
+                    null
+                    );
+                if (ec != 0) throw ErrorCode.ToException(ec);
+                if (indexCount == 0) return;
+
+                indexArr = new sccoredb.SC_INDEX_INFO[indexCount];
+                fixed (sccoredb.SC_INDEX_INFO* pii = &(indexArr[0])) 
+                {
+                    ec = sccoredb.sccoredb_get_index_infos(
+                        oldTableDef_.TableId,
+                        &indexCount,
+                        pii
+                        );
+                }
+                if (ec != 0) throw ErrorCode.ToException(ec);
+
+                foreach (var index in indexArr) 
+                {
+                    createIndex = true;
+                    indexName = new string(index.name);
+                    if (indexName.Equals("auto")) continue;
+
+                    attrIndexArr = new short[index.attributeCount + 1];
+                    attrIndexArr[attrIndexArr.Length - 1] = -1; // Terminator.
+
+                    for (int oai = 0; oai < index.attributeCount; oai++) 
+                    {
+                        oldColumn = null;
+                        switch (oai) {
+                            case 0:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_0];
+                                break;
+                            case 1:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_1];
+                                break;
+                            case 2:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_2];
+                                break;
+                            case 3:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_3];
+                                break;
+                            case 4:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_4];
+                                break;
+                            case 5:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_5];
+                                break;
+                            case 6:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_6];
+                                break;
+                            case 7:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_7];
+                                break;
+                            case 8:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_8];
+                                break;
+                            case 9:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_9];
+                                break;
+                            case 10:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_10];
+                                break;
+                        }
+
+                        // Find the new column
+                        short newAttributeIndex = -1;
+                        for (short nai = 0; nai < newTableDef_.ColumnDefs.Length; nai++) 
+                        {
+                            newColumn = newTableDef_.ColumnDefs[nai];
+                            if (newColumn.Name.Equals(oldColumn.Name)) 
+                            {
+                                newAttributeIndex = nai;
+                                break;
+                            }
+                        }
+
+                        if (newAttributeIndex == -1) 
+                        {
+                            createIndex = false;
+                            break;
+                        }
+                        attrIndexArr[oai] = newAttributeIndex;
+                    } // End for attributeCount.
+
+                    if (createIndex) 
+                    {
+                        // TODO: 
+                        // Read flags from existing index.
+                        uint flags = 0;
+                        fixed (Int16* paii = &(attrIndexArr[0])) 
+                        {
+                            ec = sccoredb.sccoredb_create_index(newTableDef_.TableId, indexName, index.sortMask, paii, flags);
+                        }
+
+                        if (ec != 0) 
+                        {
+                            if (ec == Error.SCERRNAMEDINDEXALREADYEXISTS)
+                                continue;
+                            throw ErrorCode.ToException(ec);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
