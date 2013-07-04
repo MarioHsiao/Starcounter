@@ -9,41 +9,28 @@ namespace Starcounter.Server.Commands.InternalCommands {
     /// </summary>
     internal sealed class DropDeletedDatabaseFilesCommand : DatabaseCommand {
         /// <summary>
-        /// The file pattern used by the server to find database files that
-        /// have been marked deleted/removed.
+        /// Gets an optional key that can be used to scope this command
+        /// to a particular identified database instance, uniquely named
+        /// by the given key.
         /// </summary>
-        public const string DeletedFilesPattern = "*+deleted";
-
-        /// <summary>
-        /// The file extension used by the server to mark a database as
-        /// "removed", i.e. hiding it from the server when exposing state
-        /// but where files should be left intact.
-        /// </summary>
-        public const string RemovedDatabaseFileExtension = "+deleted";
-
-        /// <summary>
-        /// The file extension used by the server to mark a database as
-        /// deleted, i.e. its configuration should be deleted but database
-        /// data files should be left untouched.
-        /// </summary>
-        public const string DeletedDatabaseFileExtension = "++deleted";
-
-        /// <summary>
-        /// The file extension used by the server to mark a database as
-        /// deleted, including the deletion of it's referenced data files.
-        /// </summary>
-        public const string DeletedDatabaseAndDataFileExtension = "+++deleted";
+        /// <remarks>
+        /// The default is to process any orphaned database file collection
+        /// for the specified database.
+        /// </remarks>
+        public readonly string DatabaseKey;
 
         /// <summary>
         /// Initializes a new <see cref="DropDeletedDatabaseFilesCommand"/>.
         /// </summary>
         /// <param name="engine">The server engine the command runs in.</param>
         /// <param name="databaseName">The name of the database.</param>
-        public DropDeletedDatabaseFilesCommand(ServerEngine engine, string databaseName)
+        /// <param name="key">Optional database key to scope this command to.</param>
+        public DropDeletedDatabaseFilesCommand(ServerEngine engine, string databaseName, string key = "")
             : base(engine, CreateDatabaseUri(engine, databaseName), "Removing orphaned database files of deleted database {0}", databaseName) {
             if (string.IsNullOrEmpty(databaseName)) {
                 throw new ArgumentNullException("databaseName");
             }
+            this.DatabaseKey = key;
         }
     }
 }
