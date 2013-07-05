@@ -216,7 +216,6 @@ public:
     // Allocates different channels and pools.
     WorkerDbInterface(
         const int32_t new_slot_index,
-        const core::shared_interface& workerSharedInt,
         const int32_t worker_id);
 
     // Deallocates active database.

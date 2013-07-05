@@ -76,7 +76,7 @@ CoutSafe::~CoutSafe()
 #endif
 }
 
-void GatewayLogWriter::Init(std::wstring& log_file_path)
+void GatewayLogWriter::Init(const std::wstring& log_file_path)
 {
     log_write_pos_ = 0;
 
@@ -1126,19 +1126,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
             GW_ASSERT(empty_db_index < MAX_ACTIVE_DATABASES);
 
-            // Workers shared interface instances.
-            core::shared_interface *workers_shared_ints =
-                new core::shared_interface[setting_num_workers_];
-            
-            // Adding to the databases list.
-            err_code = InitSharedMemory(current_db_name, workers_shared_ints);
-            if (err_code != 0)
-            {
-                // Leaving global lock.
-                LeaveGlobalLock();
-                return err_code;
-            }
-
             // Filling necessary fields.
             active_databases_[empty_db_index].Init(
                 current_db_name,
@@ -1152,9 +1139,39 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 num_dbs_slots_++;
 
             // Adding to workers database interfaces.
+            bool db_init_failed = false;
             for (int32_t i = 0; i < setting_num_workers_; i++)
             {
-                err_code = gw_workers_[i].AddNewDatabase(empty_db_index, workers_shared_ints[i]);
+                try
+                {
+                    err_code = gw_workers_[i].AddNewDatabase(empty_db_index);
+                }
+                catch (...)
+                {
+                    // Reporting a warning to server log.
+                    std::wstring temp_str = std::wstring(L"Attaching new database failed: ") +
+                        std::wstring(current_db_name.begin(), current_db_name.end());
+                    g_gateway.LogWriteWarning(temp_str.c_str());
+
+                    // Deleting worker database parts.
+                    for (int32_t i = 0; i < setting_num_workers_; i++)
+                        gw_workers_[i].DeleteInactiveDatabase(empty_db_index);
+
+                    // Resetting newly created database.
+                    active_databases_[empty_db_index].Reset(true);
+
+                    // Removing the database slot if it was the last.
+                    if (num_dbs_slots_ == empty_db_index + 1)
+                        num_dbs_slots_--;
+
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    db_init_failed = true;
+                    
+                    break;
+                }
+                
                 if (err_code)
                 {
                     // Leaving global lock.
@@ -1162,6 +1179,10 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     return err_code;
                 }
             }
+
+            // Checking if any error occurred.
+            if (db_init_failed)
+                continue;
 
             // Spawning channels events monitor.
             err_code = active_databases_[empty_db_index].SpawnChannelsEventsMonitor();
@@ -1377,6 +1398,43 @@ void ActiveDatabase::Init(
     is_ready_for_cleanup_ = false;
 
     num_holding_workers_ = g_gateway.setting_num_workers();
+
+    // Construct the database_shared_memory_parameters_name. The format is
+    // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
+    std::string shm_params_name = (std::string)DATABASE_NAME_PREFIX + "_" +
+        g_gateway.setting_sc_server_type_upper() + "_" + StringToUpperCopy(db_name_) + "_0";
+
+    // Open the database shared memory parameters file and obtains a pointer to
+    // the shared structure.
+    core::database_shared_memory_parameters_ptr db_shm_params(shm_params_name.c_str());
+
+    // Name of the database shared memory segment.
+    char seq_num_str[16];
+    itoa(db_shm_params->get_sequence_number(), seq_num_str, 10);
+    shm_seg_name_ = std::string(DATABASE_NAME_PREFIX) + "_" +
+        g_gateway.setting_sc_server_type_upper() + "_" +
+        StringToUpperCopy(db_name_) + "_" +
+        std::string(seq_num_str);
+}
+
+// Resets database slot.
+void ActiveDatabase::Reset(bool hard_reset)
+{
+    // Removing handlers table.
+    if (user_handlers_)
+    {
+        delete user_handlers_;
+        user_handlers_ = NULL;
+    }
+
+    unique_num_unsafe_ = INVALID_UNIQUE_DB_NUMBER;
+    db_name_ = "";
+
+    if (hard_reset)
+    {
+        were_sockets_closed_ = true;
+        is_empty_ = true;
+    }
 }
 
 // Checks if this database slot empty.
@@ -1422,15 +1480,8 @@ void ActiveDatabase::StartDeletion()
     // Closing all database sockets/sessions data.
     CloseSocketData();
 
-    // Removing handlers table.
-    if (user_handlers_)
-    {
-        delete user_handlers_;
-        user_handlers_ = NULL;
-    }
-
-    unique_num_unsafe_ = INVALID_UNIQUE_DB_NUMBER;
-    db_name_ = "";
+    // Resetting slot.
+    Reset(false);
 }
 
 // Closes all tracked sockets.
@@ -1664,47 +1715,6 @@ uint32_t Gateway::Init()
     time(&raw_time);
     tm *timeinfo = localtime(&raw_time);
     GW_PRINT_GLOBAL << "New logging session: " << asctime(timeinfo) << GW_ENDL;
-
-    return 0;
-}
-
-// Initializes everything related to shared memory.
-uint32_t Gateway::InitSharedMemory(
-    std::string setting_databaseName,
-    core::shared_interface* shared_int)
-{
-    using namespace core;
-
-    // Construct the database_shared_memory_parameters_name. The format is
-    // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
-    std::string shm_params_name = (std::string)DATABASE_NAME_PREFIX + "_" +
-        setting_sc_server_type_upper_ + "_" + StringToUpperCopy(setting_databaseName) + "_0";
-
-    // Open the database shared memory parameters file and obtains a pointer to
-    // the shared structure.
-    database_shared_memory_parameters_ptr db_shm_params(shm_params_name.c_str());
-
-    // Open the database shared memory segment.
-    if (db_shm_params->get_sequence_number() == 0)
-    {
-        // Cannot open the database shared memory segment, because it is not
-        // initialized yet.
-        GW_COUT << "Cannot open the database shared memory segment!" << GW_ENDL;
-    }
-
-    // Name of the database shared memory segment.
-    char seq_num_str[16];
-    itoa(db_shm_params->get_sequence_number(), seq_num_str, 10);
-    std::string shm_seg_name = std::string(DATABASE_NAME_PREFIX) + "_" +
-        setting_sc_server_type_upper_ + "_" +
-        StringToUpperCopy(setting_databaseName) + "_" +
-        std::string(seq_num_str);
-
-    // Construct a shared_interface.
-    for (int32_t i = 0; i < setting_num_workers_; i++)
-    {
-        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), gateway_pid_, gateway_owner_id_);
-    }
 
     return 0;
 }
