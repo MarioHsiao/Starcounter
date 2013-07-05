@@ -51,6 +51,18 @@ namespace Starcounter.Server {
             return DateTime.Now.ToString("yyyyMMddTHHmmssfff");
         }
 
+        /// <summary>
+        /// Creates a key that the server can use when creating and deleting
+        /// database files and folders to assure they are unique, including
+        /// the name of the database.
+        /// </summary>
+        /// <param name="databaseName">The name of the database to be included
+        /// in the generated key.</param>
+        /// <returns>An opaque key to use in the form of a string.</returns>
+        internal string NewNamedKey(string databaseName) {
+            return string.Format("{0}-{1}", databaseName, NewKey());
+        }
+
         internal string[] GetImageFiles(string directory, string databaseName) {
             var pattern = string.Format("{0}.?.sci", databaseName);
             return Directory.GetFiles(directory, pattern);

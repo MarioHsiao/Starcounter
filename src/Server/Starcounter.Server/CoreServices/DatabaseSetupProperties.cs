@@ -46,7 +46,7 @@ namespace Starcounter.Server {
         /// <see cref="DatabaseSetupProperties"/> are to reprsent.</param>
         internal DatabaseSetupProperties(ServerEngine engine, string databaseName) {
             this.Name = databaseName;
-            this.Key = string.Format("{0}-{1}", this.Name, engine.StorageService.NewKey());
+            this.Key = engine.StorageService.NewNamedKey(databaseName);
 
             // Deep clone the default server management configuration and do
             // replacement strategies and apply defaults.
