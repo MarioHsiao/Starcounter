@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Configuration;
 using Starcounter.Server.Commands.InternalCommands;
 using Starcounter.Server.PublicModel.Commands;
 using System;
@@ -6,12 +7,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Starcounter.Server.Commands {
 
     [CommandProcessor(typeof(DropDeletedDatabaseFilesCommand), IsInternal = true)]
     internal sealed class DropDeletedDatabaseFilesCommandProcessor : CommandProcessor {
+        static TimeSpan TimeBetweenRetries = TimeSpan.FromSeconds(3);
+        static int MaxRetries = 20;
+
         /// <summary>
         /// Initializes a new <see cref="DropDeletedDatabaseFilesCommandProcessor"/>.
         /// </summary>
@@ -22,19 +27,37 @@ namespace Starcounter.Server.Commands {
             : base(server, command, true) {
         }
 
-        protected override void Execute() {
-            try {
-                ExecuteSafe();
-            } catch (Exception e) {
-                // TODO: Internal error describing this case, and on the wiki it should
-                // say it's to no harm. It is considered "normal".
-                var safe = ErrorCode.ToException(Error.SCERRUNSPECIFIED, e);
-                Log.LogException(safe);
+        /// <summary>
+        /// Runs the functionality of this processor once, in the scope of
+        /// the caller.
+        /// </summary>
+        /// <param name="file">The file whose related files that are to be
+        /// dropped from the file system.</param>
+        internal static void RunOnce(DeletedDatabaseFile file) {
+            bool delete = file.KindOfDelete == DeletedDatabaseFile.Kind.Deleted || file.KindOfDelete == DeletedDatabaseFile.Kind.DeletedFully;
+            if (delete) {
+                DeleteDatabaseFile(file);
             }
         }
 
-        void ExecuteSafe() {
+        protected override void Execute() {
             var command = (DropDeletedDatabaseFilesCommand)this.Command;
+            try {
+                ExecuteSafe(command);
+            } catch (Exception exception) {
+                var safe = ErrorCode.ToException(
+                    Error.SCERRDELETEDBFILESPOSTPONED,
+                    exception,
+                    string.Format("Database: '{0}'.", command.DatabaseUri)
+                    );
+                Log.LogException(safe);
+                RescheduleIfApplicable(command);
+            }
+        }
+
+        void ExecuteSafe(DropDeletedDatabaseFilesCommand command) {
+            AwaitTimeToRetry(command);
+
             var databaseDirectory = Path.Combine(this.Engine.DatabaseDirectory, command.Name);
             if (!Directory.Exists(databaseDirectory)) {
                 Log.Debug("Database directory {0} for database {1} does not exist. File deletion not needed.", databaseDirectory, command.Name);
@@ -66,24 +89,63 @@ namespace Starcounter.Server.Commands {
             }
         }
 
-        void DeleteDatabaseFile(DeletedDatabaseFile file, string restrainToKey) {
-            // 1. Check if restrained to key. Ignore if not matching.
-            // 2. Check if we should delete data files - do that first.
-            // 3. Delete the file itself.
-
+        static bool DeleteDatabaseFile(DeletedDatabaseFile file, string restrainToKey = null) {
+            // Check if restrained to key. Ignore if not matching.
             if (!string.IsNullOrEmpty(restrainToKey)) {
                 if (!file.Key.Equals(restrainToKey)) {
-                    return;
+                    return false;
                 }
             }
 
+            // Check if we should delete data files - do that first.
             if (file.KindOfDelete == DeletedDatabaseFile.Kind.DeletedFully) {
-                // Locate the image- and log files and deleted them if they
+                // Locate the image- and log files and delete them if they
                 // still exist. In any case of error, raise an exception.
                 // TODO:
+                // var config = DatabaseConfiguration.Load(file.FilePath);
+                // config.Runtime.ImageDirectory
+                throw new NotImplementedException();
             }
 
+            // Delete the file itself.
+            // Then Delete the directory it resides in, if empty. Don't
+            // fail if this does not succeed (deleting the directory is
+            // never crucial).
             File.Delete(file.FilePath);
+            try {
+                var dir = Path.GetDirectoryName(file.FilePath);
+                var files = Directory.GetFiles(dir);
+                if (files.Length == 0) {
+                    Directory.Delete(dir);
+                }
+            } catch { }
+
+            return true;
+        }
+
+        void RescheduleIfApplicable(DropDeletedDatabaseFilesCommand command) {
+            if (command.RetryCount < MaxRetries) {
+                var retry = new DropDeletedDatabaseFilesCommand(this.Engine, command.Name, command.DatabaseKey);
+                retry.EnableWaiting = command.EnableWaiting;
+                retry.LastAttempt = DateTime.Now;
+                retry.RetryCount = command.RetryCount + 1;
+                this.Engine.Dispatcher.Enqueue(retry);
+            }
+        }
+
+        void AwaitTimeToRetry(DropDeletedDatabaseFilesCommand command) {
+            if (command.LastAttempt == null) {
+                return;
+            }
+
+            var last = command.LastAttempt.Value;
+            var now = DateTime.Now;
+            var timeSinceLast = now.Subtract(last);
+            
+            if (timeSinceLast < TimeBetweenRetries) {
+                var wait = TimeBetweenRetries.Subtract(timeSinceLast);
+                Thread.Sleep(wait);
+            }
         }
     }
 }
