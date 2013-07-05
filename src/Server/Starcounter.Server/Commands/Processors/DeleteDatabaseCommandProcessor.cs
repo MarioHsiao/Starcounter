@@ -35,7 +35,7 @@ namespace Starcounter.Server.Commands {
             // deleted and not considered by the server the next time
             // it refresh its state from disk
             var key = this.Engine.StorageService.NewKey();
-            MarkDatabaseDeletedInFileSystem(database, key, command.DeleteDataFiles);
+            var deletedFile = MarkDatabaseDeletedInFileSystem(database, key, command.DeleteDataFiles);
 
             // Remove database from public and internal state
             // After this succeeds, the database delete is considered
@@ -49,14 +49,17 @@ namespace Starcounter.Server.Commands {
 
             // Just try this particular instance, and then schedule for all
             // occurances if this does not work.
-            // TODO:
 
-            // DropDeletedDatabaseFilesCommandProcessor.RunOnce(database.Name, key);
-
-            // Until the above is in place, we always end with saying that we
-            // failed to delete the files.
-            throw ErrorCode.ToException(Error.SCERRDELETEDBFILESPOSTPONED, 
-                string.Format("Database: '{0}'.", command.DatabaseUri));
+            try {
+                DropDeletedDatabaseFilesCommandProcessor.RunOnce(deletedFile);
+            } catch (Exception exception) {
+                var safe = ErrorCode.ToException(Error.SCERRDELETEDBFILESPOSTPONED,
+                    exception,
+                    string.Format("Database: '{0}'.", command.DatabaseUri));
+                Log.LogException(safe);
+                var drop = new DropDeletedDatabaseFilesCommand(this.Engine, command.Name);
+                Engine.Dispatcher.Enqueue(drop);
+            }
         }
 
         void CheckPrerequisites(out Database database, out DeleteDatabaseCommand command) {
