@@ -666,14 +666,20 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// Underlying memory stream.
+        /// </summary>
+        MemoryStream mem_stream_ = null;
+
+        /// <summary>
         /// Setting the response buffer.
         /// </summary>
         /// <param name="response_buf"></param>
         /// <param name="response_len_bytes"></param>
-        public void SetResponseBuffer(Byte[] response_buf, Int32 response_len_bytes)
+        public void SetResponseBuffer(Byte[] response_buf, MemoryStream mem_stream, Int32 response_len_bytes)
         {
-            // Setting the uncompressed bytes.
             uncompressed_response_ = response_buf;
+
+            mem_stream_ = mem_stream;
 
             unsafe
             {
@@ -703,7 +709,7 @@ namespace Starcounter.Advanced
         public void ParseResponseFromUncompressed()
         {
             if (uncompressed_response_ != null)
-                TryParseResponse(uncompressed_response_, uncompressed_response_.Length, true);
+                TryParseResponse(uncompressed_response_, 0, uncompressed_response_.Length, true);
         }
 
         /// <summary>
@@ -712,7 +718,7 @@ namespace Starcounter.Advanced
         /// <param name="buf"></param>
         /// <param name="bufLenBytes"></param>
         /// <param name="complete"></param>
-        public void TryParseResponse(Byte[] buf, Int32 bufLenBytes, Boolean complete)
+        public void TryParseResponse(Byte[] buf, Int32 offsetBytes, Int32 bufLenBytes, Boolean complete)
         {
             UInt32 err_code;
             unsafe
@@ -731,7 +737,7 @@ namespace Starcounter.Advanced
                 if (complete)
                 {
                     // Setting the internal buffer.
-                    SetResponseBuffer(buf, bufLenBytes);
+                    SetResponseBuffer(buf, null, bufLenBytes);
 
                     // Executing HTTP response parser and getting Response structure as result.
                     err_code = sc_parse_http_response(http_response_struct_->socket_data_, (UInt32)bufLenBytes, (Byte*)http_response_struct_);
@@ -741,7 +747,7 @@ namespace Starcounter.Advanced
                     fixed (Byte* pbuf = buf)
                     {
                         // Executing HTTP response parser and getting Response structure as result.
-                        err_code = sc_parse_http_response(pbuf, (UInt32)bufLenBytes, (Byte*)http_response_struct_);
+                        err_code = sc_parse_http_response(pbuf + offsetBytes, (UInt32)bufLenBytes, (Byte*)http_response_struct_);
                     }
                 }
 
@@ -767,12 +773,12 @@ namespace Starcounter.Advanced
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public Response(Byte[] buf, Int32 lenBytes, Request httpRequest = null, Boolean complete = true)
+        public Response(Byte[] buf, Int32 offset, Int32 lenBytes, Request httpRequest = null, Boolean complete = true)
         {
             unsafe
             {
                 // Parsing given buffer.
-                TryParseResponse(buf, lenBytes, complete);
+                TryParseResponse(buf, offset, lenBytes, complete);
 
                 // Setting corresponding HTTP request.
                 http_request_ = httpRequest;
@@ -789,6 +795,13 @@ namespace Starcounter.Advanced
                 // Checking if already destroyed.
                 if (http_response_struct_ == null)
                     return;
+
+                // Closing the memory stream if any.
+                if (null != mem_stream_)
+                {
+                    mem_stream_.Close();
+                    mem_stream_ = null;
+                }
 
                 // Checking if we have constructed this Response
                 // internally in Apps or externally in Gateway.

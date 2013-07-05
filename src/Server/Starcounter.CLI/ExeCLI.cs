@@ -43,9 +43,20 @@ namespace Starcounter.CLI {
             if (admin == null) {
                 admin = new AdminAPI();
             }
+
             try {
                 SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
                 SharedCLI.ResolveDatabase(args, out database);
+
+                if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(serverName, StringComparison.CurrentCultureIgnoreCase)) {
+                    ShowHeadline("[Checking personal server]");
+                    ShowStatus("Retrieving server status");
+                    if (!PersonalServerProcess.IsOnline()) {
+                        ShowStatus("Starting server");
+                        PersonalServerProcess.Start();
+                    }
+                    ShowStatus("Server is online");
+                }
 
                 var node = new Node(serverHost, (ushort)serverPort);
 

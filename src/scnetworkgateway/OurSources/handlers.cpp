@@ -81,12 +81,12 @@ uint32_t HandlersTable::RegisterPortHandler(
             // Checking if port is the same.
             if (port_num == registered_handlers_[i].get_port())
             {
-                // TODO: Report to the log.
                 GW_COUT << "Attempt to register handler duplicate: port " << port_num << GW_ENDL;
 
                 // Disallowing handler duplicates.
-                return /*SCERRHANDLERALREADYREGISTERED*/0;
+                return SCERRHANDLERALREADYREGISTERED;
 
+                /*
                 // Checking same handler id.
                 if (GetBmxHandlerIndex(handler_info) == registered_handlers_[i].get_handler_index())
                 {
@@ -105,6 +105,7 @@ uint32_t HandlersTable::RegisterPortHandler(
                 {
                     return SCERRGWWRONGHANDLERINSLOT;
                 }
+                */
             }
         }
     }
@@ -222,12 +223,12 @@ uint32_t HandlersTable::RegisterSubPortHandler(
             {
                 if (subport == registered_handlers_[i].get_subport())
                 {
-                    // TODO: Report to the log.
                     GW_COUT << "Attempt to register handler duplicate: port " << port_num << ", sub-port " << subport << GW_ENDL;
 
                     // Disallowing handler duplicates.
-                    return /*SCERRHANDLERALREADYREGISTERED*/0;
+                    return SCERRHANDLERALREADYREGISTERED;
 
+                    /*
                     // Checking same handler id.
                     if (GetBmxHandlerIndex(handler_info) == registered_handlers_[i].get_handler_index())
                     {
@@ -246,6 +247,7 @@ uint32_t HandlersTable::RegisterSubPortHandler(
                     {
                         return SCERRGWWRONGHANDLERINSLOT;
                     }
+                    */
                 }
             }
         }
@@ -378,12 +380,12 @@ uint32_t HandlersTable::RegisterUriHandler(
                 // Checking the same URI.
                 if (!strcmp(processed_uri_string, registered_handlers_[i].get_processed_uri_info()))
                 {
-                    // TODO: Report to the log.
                     GW_COUT << "Attempt to register handler duplicate: port " << port_num << ", URI " << processed_uri_string << GW_ENDL;
 
                     // Disallowing handler duplicates.
-                    return /*SCERRHANDLERALREADYREGISTERED*/0;
+                    return SCERRHANDLERALREADYREGISTERED;
 
+                    /*
                     // Checking same handler id.
                     if (GetBmxHandlerIndex(handler_info) == registered_handlers_[i].get_handler_index())
                     {
@@ -402,6 +404,7 @@ uint32_t HandlersTable::RegisterUriHandler(
                     {
                         return SCERRGWWRONGHANDLERINSLOT;
                     }
+                    */
                 }
             }
         }
