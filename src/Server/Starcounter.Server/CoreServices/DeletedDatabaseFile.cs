@@ -65,7 +65,7 @@ namespace Starcounter.Server {
             private set;
         }
 
-        public static string MarkDeleted(string databaseConfigFile, string key, DeletedDatabaseFile.Kind kind) {
+        public static DeletedDatabaseFile MarkDeleted(string databaseConfigFile, string key, DeletedDatabaseFile.Kind kind) {
             if (kind == Kind.Unsupported) {
                 throw new ArgumentOutOfRangeException("kind");
             }
@@ -80,7 +80,7 @@ namespace Starcounter.Server {
                     string.Format("Config path: \"{0}\". Tried: \"{1}\", ", databaseConfigFile, renamedPath));
             }
 
-            return renamedPath;
+            return new DeletedDatabaseFile(renamedPath);
         }
 
         public static string ToFileExtension(DeletedDatabaseFile.Kind kind) {
@@ -134,6 +134,6 @@ namespace Starcounter.Server {
             this.DatabaseName = original.Replace(DatabaseConfiguration.FileExtension, "");
             this.Key = metadata.Substring(0, metadata.IndexOf('+'));
             this.KindOfDelete = GetKindFromExtension(filename);
-        }
+        } 
     }
 }

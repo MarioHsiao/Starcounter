@@ -73,9 +73,9 @@ namespace Starcounter.Server.Commands {
             }
         }
 
-        void MarkDatabaseDeletedInFileSystem(Database database, string key, bool deleteDataFiles) {
+        DeletedDatabaseFile MarkDatabaseDeletedInFileSystem(Database database, string key, bool deleteDataFiles) {
             var kind = deleteDataFiles ? DeletedDatabaseFile.Kind.DeletedFully : DeletedDatabaseFile.Kind.Deleted;
-            DeletedDatabaseFile.MarkDeleted(database.Configuration.ConfigurationFilePath, key, kind); 
+            return DeletedDatabaseFile.MarkDeleted(database.Configuration.ConfigurationFilePath, key, kind);
         }
     }
 }
