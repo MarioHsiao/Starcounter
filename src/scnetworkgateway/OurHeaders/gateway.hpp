@@ -1000,6 +1000,9 @@ class ActiveDatabase
     // Original database name.
     std::string db_name_;
 
+    // Shared memory segment name.
+    std::string shm_seg_name_;
+
     // Unique sequence number.
     volatile uint64_t unique_num_unsafe_;
 
@@ -1034,6 +1037,12 @@ class ActiveDatabase
     CRITICAL_SECTION cs_db_checks_;
 
 public:
+
+    // Shared memory segment name.
+    const std::string& get_shm_seg_name()
+    {
+        return shm_seg_name_;
+    }
 
     // Printing the database information.
     void PrintInfo(std::stringstream& global_port_statistics_stream);
@@ -1103,7 +1112,7 @@ public:
     }
 
     // Gets database name.
-    std::string& get_db_name()
+    const std::string& get_db_name()
     {
         return db_name_;
     }
@@ -1119,6 +1128,9 @@ public:
 
     // Makes this database slot empty.
     void StartDeletion();
+
+    // Makes this database slot empty.
+    void Reset(bool hard_reset);
 
     // Checks if this database slot empty.
     bool IsEmpty();
@@ -1330,7 +1342,7 @@ class GatewayLogWriter
 
 public:
 
-    void Init(std::wstring& log_file_path);
+    void Init(const std::wstring& log_file_path);
 
     ~GatewayLogWriter()
     {
@@ -1382,7 +1394,7 @@ class Gateway
     // Maximum total number of sockets aka connections.
     int32_t setting_max_connections_;
 
-    // Starcounter server type.
+    // Starcounter server type upper case.
     std::string setting_sc_server_type_upper_;
 
     // Gateway log file name.
@@ -1755,7 +1767,7 @@ public:
     }
 
     // Full path to gateway log file.
-    std::wstring& setting_log_file_path()
+    const std::wstring& setting_log_file_path()
     {
         return setting_log_file_path_;
     }
@@ -2090,22 +2102,46 @@ public:
 
 #endif
 
+    // Gateway pid.
+    core::pid_type get_gateway_pid()
+    {
+        return gateway_pid_;
+    }
+
+    // Gateway owner id.
+    core::owner_id get_gateway_owner_id()
+    {
+        return gateway_owner_id_;
+    }
+
+    // Shared memory monitor interface name.
+    const std::string& get_shm_monitor_int_name()
+    {
+        return shm_monitor_int_name_;
+    }
+
     // Getting settings log file directory.
-    std::wstring& get_setting_server_output_dir()
+    const std::wstring& get_setting_server_output_dir()
     {
         return setting_server_output_dir_;
     }
 
     // Getting gateway output directory.
-    std::wstring& get_setting_gateway_output_dir()
+    const std::wstring& get_setting_gateway_output_dir()
     {
         return setting_gateway_output_dir_;
     }
 
     // Getting Starcounter bin directory.
-    std::wstring& get_setting_sc_bin_dir()
+    const std::wstring& get_setting_sc_bin_dir()
     {
         return setting_sc_bin_dir_;
+    }
+
+    // Starcounter server type upper case.
+    const std::string& setting_sc_server_type_upper()
+    {
+        return setting_sc_server_type_upper_;
     }
 
     // Getting maximum number of connections.
@@ -2336,11 +2372,6 @@ public:
 
     // Initialize the network gateway.
     uint32_t Init();
-
-    // Initializes shared memory.
-    uint32_t InitSharedMemory(
-        std::string setting_databaseName,
-        core::shared_interface* sharedInt_readOnly);
 
     // Checking for database changes.
     uint32_t CheckDatabaseChanges(const std::set<std::string>& active_databases);
