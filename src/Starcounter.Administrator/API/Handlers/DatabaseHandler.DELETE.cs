@@ -4,12 +4,7 @@ using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Server.Rest.Representations.JSON;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Starcounter.Administrator.API.Handlers {
 
@@ -41,13 +36,13 @@ namespace Starcounter.Administrator.API.Handlers {
             // but the response does not include an entity."
 			//
 			// We will use 202 (if pending deleting database files) and 204 if all
-			// was OK, deleted instantly.
+			// was OK (i.e. everything deleted instantly).
 
-            var stop = new DeleteDatabaseCommand(serverEngine, name, true);
-            stop.EnableWaiting = true;
+            var delete = new DeleteDatabaseCommand(serverEngine, name, true);
+            delete.EnableWaiting = true;
 
-            var commandInfo = runtime.Execute(stop);
-            if (stop.EnableWaiting) {
+            var commandInfo = runtime.Execute(delete);
+            if (delete.EnableWaiting) {
                 commandInfo = runtime.Wait(commandInfo);
             }
             // Just to be sure we don't forget to change this some, once
@@ -55,12 +50,48 @@ namespace Starcounter.Administrator.API.Handlers {
             Trace.Assert(commandInfo.IsCompleted);
             
             if (commandInfo.HasError) {
-                // Fix a good error handling response.
-                // TODO:
-                return 500;
+                return ErrorToResponse(commandInfo);
             }
 
             return 204;
+        }
+
+        static Response ErrorToResponse(CommandInfo commandInfo) {
+            ErrorInfo single;
+
+            single = null;
+            if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
+                uint code = single.GetErrorCode();
+                if (code == Error.SCERRDATABASENOTFOUND) {
+                    var msg = single.ToErrorMessage();
+                    var errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
+                    return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 404);
+                }
+
+                if (code == Error.SCERRDATABASERUNNING) {
+					// Conflicting state; map to HTTP 409.
+                    var msg = single.ToErrorMessage();
+                    var errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
+                    return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 409);
+                }
+
+                if (code == Error.SCERRDELETEDBFILESPOSTPONED) {
+					// This, we map to a success, but to a 202 to indicate
+					// the server still has outstanding work to do.
+                    var msg = single.ToErrorMessage();
+                    var errDetail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
+                    return RESTUtility.JSON.CreateResponse(errDetail.ToJson(), 202);
+                }
+            }
+
+            if (single == null)
+                single = commandInfo.Errors[0];
+
+            // Create a 500. Right now we do it the sloppy way, letting
+            // the server craft it for us based on the exception. We should
+            // switch to a non-exception-based approach.
+
+            throw single.ToErrorMessage().ToException();
         }
     }
 }
