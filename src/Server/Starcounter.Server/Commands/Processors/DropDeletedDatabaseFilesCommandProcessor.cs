@@ -42,6 +42,8 @@ namespace Starcounter.Server.Commands {
 
         protected override void Execute() {
             var command = (DropDeletedDatabaseFilesCommand)this.Command;
+            Log.Debug("Running \"{0}\", attempt {1}", command.Description, command.RetryCount);
+
             try {
                 ExecuteSafe(command);
             } catch (Exception exception) {
@@ -129,7 +131,7 @@ namespace Starcounter.Server.Commands {
                 retry.EnableWaiting = command.EnableWaiting;
                 retry.LastAttempt = DateTime.Now;
                 retry.RetryCount = command.RetryCount + 1;
-                this.Engine.Dispatcher.Enqueue(retry);
+                this.Engine.Dispatcher.Enqueue(retry, this);
             }
         }
 
