@@ -72,6 +72,7 @@ namespace Starcounter.Server {
             string imageDirectory;
             string transactionLogDirectory;
             string liveDatabaseDirectory;
+            string databaseTempDirectory;
 
             // Create a temporary directory for the configuration and such.
             // The idea is that we never let the database reach the server repository
@@ -96,6 +97,10 @@ namespace Starcounter.Server {
             transactionLogDirectory = SetupProperties.Configuration.Runtime.TransactionLogDirectory;
             if (!Directory.Exists(transactionLogDirectory)) {
                 Directory.CreateDirectory(transactionLogDirectory);
+            }
+            databaseTempDirectory = SetupProperties.Configuration.Runtime.TempDirectory;
+            if (!Directory.Exists(databaseTempDirectory)) {
+                Directory.CreateDirectory(databaseTempDirectory);
             }
 
             this.Engine.StorageService.CreateStorage(
