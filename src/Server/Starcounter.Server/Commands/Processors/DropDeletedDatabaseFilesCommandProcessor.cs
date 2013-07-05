@@ -117,9 +117,23 @@ namespace Starcounter.Server.Commands {
                 foreach (var imageFile in imageFiles) {
                     File.Delete(imageFile);
                 }
+                if (storage.IsNamedKeyDirectory(config.Runtime.ImageDirectory, file.DatabaseName)) {
+                    SafeDeleteDirectoryIfEmpty(config.Runtime.ImageDirectory);
+                }
 
                 foreach (var logFile in logFiles) {
                     File.Delete(logFile);
+                }
+                if (storage.IsNamedKeyDirectory(config.Runtime.TransactionLogDirectory, file.DatabaseName)) {
+                    SafeDeleteDirectoryIfEmpty(config.Runtime.TransactionLogDirectory);
+                }
+
+                // Delete the temporary directory if unique for this database
+                // and it can be done without hazzle. We currently leave no
+                // guarantee for it's deletion.
+
+                if (storage.IsNamedKeyDirectory(config.Runtime.TempDirectory, file.DatabaseName)) {
+                    SafeDeleteDirectoryIfEmpty(config.Runtime.TempDirectory);
                 }
             }
 
@@ -128,15 +142,21 @@ namespace Starcounter.Server.Commands {
             // fail if this does not succeed (deleting the directory is
             // never crucial).
             File.Delete(file.FilePath);
-            try {
-                var dir = Path.GetDirectoryName(file.FilePath);
-                var files = Directory.GetFiles(dir);
-                if (files.Length == 0) {
-                    Directory.Delete(dir);
-                }
-            } catch { }
+            SafeDeleteDirectoryIfEmpty(Path.GetDirectoryName(file.FilePath));
 
             return true;
+        }
+
+        static bool SafeDeleteDirectoryIfEmpty(string directory) {
+            bool deleted = false;
+            try {
+                var files = Directory.GetFiles(directory);
+                if (files.Length == 0) {
+                    Directory.Delete(directory);
+                    deleted = true;
+                }
+            } catch {}
+            return deleted;
         }
 
         void RescheduleIfApplicable(DropDeletedDatabaseFilesCommand command) {
