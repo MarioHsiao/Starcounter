@@ -20,6 +20,18 @@ namespace Starcounter.Server.Commands.InternalCommands {
         public readonly string DatabaseKey;
 
         /// <summary>
+        /// Gets or sets the time of the last attempt to run this command.
+        /// Used by the server to retry failed attempts up until a certain
+        /// retry count.
+        /// </summary>
+        public DateTime? LastAttempt;
+
+        /// <summary>
+        /// Gets or sets number of retry attempts for this command.
+        /// </summary>
+        public int RetryCount;
+
+        /// <summary>
         /// Initializes a new <see cref="DropDeletedDatabaseFilesCommand"/>.
         /// </summary>
         /// <param name="engine">The server engine the command runs in.</param>
@@ -30,6 +42,9 @@ namespace Starcounter.Server.Commands.InternalCommands {
             if (string.IsNullOrEmpty(databaseName)) {
                 throw new ArgumentNullException("databaseName");
             }
+
+            this.LastAttempt = null;
+            this.RetryCount = 0;
             this.DatabaseKey = key;
         }
     }
