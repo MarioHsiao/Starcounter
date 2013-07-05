@@ -51,6 +51,16 @@ namespace Starcounter.Server {
             return DateTime.Now.ToString("yyyyMMddTHHmmssfff");
         }
 
+        internal string[] GetImageFiles(string directory, string databaseName) {
+            var pattern = string.Format("{0}.?.sci", databaseName);
+            return Directory.GetFiles(directory, pattern);
+        }
+
+        internal string[] GetTransactionLogFiles(string directory, string databaseName) {
+            var pattern = string.Format("{0}.???.log", databaseName);
+            return Directory.GetFiles(directory, pattern);
+        }
+
         /// <summary>
         /// Creates a new storage for with the given values.
         /// </summary>
