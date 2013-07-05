@@ -3845,6 +3845,12 @@
         database is first stopped, and the operation is issued again.
       </remarks>
     </code>
+    <code hex="0020" severity="Error" name="ScErrDeleteDbFilesPostponed">
+      <message>
+        At least one database-related file could not be deleted. Deleting
+        will be retried until it succeeds or is cancelled.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
