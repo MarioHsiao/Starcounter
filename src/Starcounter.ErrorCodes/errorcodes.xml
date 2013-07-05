@@ -2031,6 +2031,7 @@
     <code hex="0057" severity="Error" name="ScErrReloadFailed">
       <message>The database reload routine failed to execute.</message>
     </code>
+<!--
     <code hex="0058" severity="Error" name="ScErrTransactionAlreadyAborted">
       <message>Transaction abort failed because the transaction already was aborted.</message>
       <remarks>
@@ -2040,6 +2041,7 @@
         </para>
       </remarks>
     </code>
+-->
     <code hex="0059" severity="Error" name="ScErrTransactionScopeOwned">
       <message>Context not accessible because it's owned by a scope.</message>
     </code>
@@ -3437,6 +3439,7 @@
         this one should only access objects fetched within the context of the current transaction is possible.
       </remarks>
     </code>
+<!--
     <code hex="0003" severity="Error" name="ScErrImplicitExternalAbort">
       <message>
         The transaction has been aborted by the framework because of an external event that
@@ -3456,6 +3459,7 @@
         The transaction has been explicitly aborted by user code.
       </message>
     </code>
+-->
     <code hex="0005" severity="Error" name="ScErrOutOfMemoryAbort">
       <message>
         The transaction was aborted because of a failure to allocate memory.
@@ -3596,6 +3600,12 @@
       <message>
         The transaction was aborted because unable to evaluate if sufficient
         space for the log entry could be allocated in the log file.
+      </message>
+    </code>
+    <code hex="0022" severity="Error" name="ScErrExternalAbort">
+      <message>
+        The transaction has been aborted by the framework because of an external event that
+        suggested that the transaction should be considered invalid.
       </message>
     </code>
   </facility>
