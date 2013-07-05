@@ -1529,11 +1529,9 @@ uint32_t GatewayWorker::CreateSocketData(
 }
 
 // Adds new active database.
-uint32_t GatewayWorker::AddNewDatabase(
-    int32_t db_index,
-    const core::shared_interface& worker_shared_int)
+uint32_t GatewayWorker::AddNewDatabase(int32_t db_index)
 {
-    worker_dbs_[db_index] = new WorkerDbInterface(db_index, worker_shared_int, worker_id_);
+    worker_dbs_[db_index] = new WorkerDbInterface(db_index, worker_id_);
 
     return 0;
 }
@@ -1580,8 +1578,11 @@ uint32_t GatewayWorker::CloneChunkForAnotherDatabase(
 // Deleting inactive database.
 void GatewayWorker::DeleteInactiveDatabase(int32_t db_index)
 {
-    delete worker_dbs_[db_index];
-    worker_dbs_[db_index] = NULL;
+    if (worker_dbs_[db_index] != NULL)
+    {
+        delete worker_dbs_[db_index];
+        worker_dbs_[db_index] = NULL;
+    }
 }
 
 // Sends given predefined response.
