@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Starcounter.Configuration;
 using System.IO;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Starcounter.Server {
     
@@ -20,6 +21,7 @@ namespace Starcounter.Server {
     /// database storages, i.e. sets of image- and transaction log files.
     /// </summary>
     internal sealed class DatabaseStorageService {
+        const string keyFormat = "yyyyMMddTHHmmssfff";
         readonly ServerEngine engine;
         string creationToolPath;
 
@@ -48,7 +50,7 @@ namespace Starcounter.Server {
         /// </summary>
         /// <returns>An opaque key to use in the form of a string.</returns>
         internal string NewKey() {
-            return DateTime.Now.ToString("yyyyMMddTHHmmssfff");
+            return DateTime.Now.ToString(keyFormat);
         }
 
         /// <summary>
@@ -60,7 +62,36 @@ namespace Starcounter.Server {
         /// in the generated key.</param>
         /// <returns>An opaque key to use in the form of a string.</returns>
         internal string NewNamedKey(string databaseName) {
-            return string.Format("{0}-{1}", databaseName, NewKey());
+            return ToNamedKeyFormat(databaseName, NewKey());
+        }
+
+        /// <summary>
+        /// Checks if the given directory (optinally part of a path) is considered
+        /// named with a specified named key combination.
+        /// </summary>
+        /// <param name="directory">The directory to consult.</param>
+        /// <param name="database">The database name in the named key.</param>
+        /// <param name="key">The unique, opaque key part of the named key.</param>
+        /// <returns>True if the directory match the named key; false otherwise.</returns>
+        internal bool IsNamedKeyDirectory(string directory, string database, string key = null) {
+            var namedKey = ToNamedKeyFormat(database, key);
+            directory = Path.GetFileName(directory.TrimEnd('\\'));
+            if (!string.IsNullOrEmpty(key)) {
+                // Match exact, including key information.
+                return namedKey.Equals(directory, StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            string dirDatabaseName;
+            FromNamedKeyFormat(directory, out dirDatabaseName, out key);
+            if (database.Equals(dirDatabaseName, StringComparison.InvariantCultureIgnoreCase)) {
+                try {
+                    DateTime.ParseExact(key, keyFormat, CultureInfo.InvariantCulture);
+                    return true;
+                } catch {
+                }
+            }
+
+            return false;
         }
 
         internal string[] GetImageFiles(string directory, string databaseName) {
@@ -98,6 +129,16 @@ namespace Starcounter.Server {
             processStart = new ProcessStartInfo(this.creationToolPath, args.ToString().Trim());
 
             ToolInvocationHelper.InvokeTool(processStart);
+        }
+
+        static void FromNamedKeyFormat(string namedKey, out string database, out string key) {
+            var tokens = namedKey.Split('-');
+            database = tokens[0];
+            key = tokens[1];
+        }
+
+        string ToNamedKeyFormat(string database, string key) {
+            return string.Format("{0}-{1}", database, key);
         }
     }
 }
