@@ -96,10 +96,14 @@ namespace Starcounter.VisualStudio.Projects {
                 System.Diagnostics.Debugger.Launch();
             }
 
-            // Assure personal server is running; will be done as soon
-            // as Christian has implemented the code to do so.
-            // TODO:
-
+            this.debugLaunchDescription = "Checking personal server";
+            if (!PersonalServerProcess.IsOnline()) {
+                this.WriteDebugLaunchStatus("starting");
+                this.WriteLine("Starting personal server.");
+                PersonalServerProcess.Start();
+            }
+            this.WriteDebugLaunchStatus("online");
+            
             // Pass it on:
             try {
                 result = DoBeginDebug(debugConfiguration, flags, cmdLine);

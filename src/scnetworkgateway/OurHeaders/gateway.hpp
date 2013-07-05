@@ -107,7 +107,6 @@ typedef uint64_t ip_info_type;
 #define SCERRGWWEBSOCKETOPCODECLOSE 12351
 #define SCERRGWWEBSOCKETUNKNOWNOPCODE 12352
 #define SCERRGWMAXPORTHANDLERS 12355
-#define SCERRGWHANDLEREXISTS 12356
 #define SCERRGWWRONGHANDLERTYPE 12357
 #define SCERRGWHANDLERNOTFOUND 12358
 #define SCERRGWPORTNOTHANDLED 12359
@@ -278,9 +277,6 @@ const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
 
 // Maximum blacklisted IPs per worker.
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
-
-// Hard-coded gateway test port number on server.
-const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 123;
 
 // Session life time multiplier.
 const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
@@ -698,7 +694,7 @@ public:
 
         // Adjusting pointers.
         orig_buf_ptr_ = new_base;
-        cur_buf_ptr_ = orig_buf_ptr_ + accum_len_bytes_;
+        cur_buf_ptr_ = orig_buf_ptr_ + (accum_buffer->cur_buf_ptr_ - accum_buffer->orig_buf_ptr_);
     }
 
     // Initializes accumulative buffer.
@@ -1428,6 +1424,9 @@ class Gateway
     // Number of tracked echoes to master.
     int32_t setting_num_echoes_to_master_;
 
+    // Server test port.
+    uint16_t setting_server_test_port_;
+
     // Gateway operational mode.
     GatewayTestingMode setting_mode_;
 
@@ -1889,6 +1888,12 @@ public:
     int32_t setting_num_echoes_to_master()
     {
         return setting_num_echoes_to_master_;
+    }
+
+    // Server test port.
+    int32_t setting_server_test_port()
+    {
+        return setting_server_test_port_;
     }
 
     // Registering confirmed HTTP echo.
