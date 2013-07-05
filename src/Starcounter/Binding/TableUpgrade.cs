@@ -316,11 +316,12 @@ namespace Starcounter.Binding
             short[] attrIndexArr;
             bool createIndex;
             uint ec;
+            sccoredb.SC_INDEX_INFO index;
             sccoredb.SC_INDEX_INFO[] indexArr;
             uint indexCount;
-            string indexName;
             ColumnDef newColumn;
             ColumnDef oldColumn;
+            string[] indexNameArr;
             
             unsafe 
             {
@@ -343,12 +344,17 @@ namespace Starcounter.Binding
                 }
                 if (ec != 0) throw ErrorCode.ToException(ec);
 
-                foreach (var index in indexArr) 
-                {
-                    createIndex = true;
-                    indexName = new string(index.name);
-                    if (indexName.Equals("auto")) continue;
+                // The names of all indexes is saved in the internal threadbuffer which is also used by 
+                // the createindex function, so we need to store them locally before we create any new indexes.
+                indexNameArr = new string[indexCount];
+                for (int i = 0; i < indexCount; i++) {
+                    indexNameArr[i] = new string(indexArr[i].name);
+                }
 
+                for (int i = 0; i < indexCount; i++)
+                {
+                    index = indexArr[i];
+                    createIndex = true;
                     attrIndexArr = new short[index.attributeCount + 1];
                     attrIndexArr[attrIndexArr.Length - 1] = -1; // Terminator.
 
@@ -413,12 +419,9 @@ namespace Starcounter.Binding
 
                     if (createIndex) 
                     {
-                        // TODO: 
-                        // Read flags from existing index.
-                        uint flags = 0;
                         fixed (Int16* paii = &(attrIndexArr[0])) 
                         {
-                            ec = sccoredb.sccoredb_create_index(newTableDef_.TableId, indexName, index.sortMask, paii, flags);
+                            ec = sccoredb.sccoredb_create_index(newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
                         }
 
                         if (ec != 0) 

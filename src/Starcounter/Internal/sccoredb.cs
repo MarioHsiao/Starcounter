@@ -405,6 +405,10 @@ namespace Starcounter.Internal
         public static extern uint sccoredb_drop_table(string name);
 
         /// <summary>
+        /// </summary>
+        public const UInt32 SC_UNIQUE_CONSTRAINT = 1;
+
+        /// <summary>
         /// Struct SC_INDEX_INFO
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -470,6 +474,10 @@ namespace Starcounter.Internal
             /// The attr index arr_10
             /// </summary>
             public Int16 attrIndexArr_10;
+
+            /// <summary>
+            /// </summary>
+            public UInt16 flags;
         };
 
         /// <summary>
@@ -531,7 +539,7 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = 0x00000001;
+        public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = SC_UNIQUE_CONSTRAINT;
 
         /// <summary>
         /// </summary>
@@ -661,6 +669,11 @@ namespace Starcounter.Internal
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_reset_abort();
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint sccoredb_external_abort();
 
         /// <summary>
         /// Sccoredb_wait_for_low_checkpoint_urgencies the specified flags.

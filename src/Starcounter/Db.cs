@@ -188,7 +188,16 @@ namespace Starcounter
                     // for example in the context of a trigger): Just invoke the
                     // callback and exit.
 
-                    action();
+                    try {
+                        action();
+                    }
+                    catch {
+                        // Operation will fail only if transaction is already
+                        // aborted (in which case we need not abort it).
+
+                        sccoredb.sccoredb_external_abort();
+                        throw;
+                    }
                     return;
                 }
 
