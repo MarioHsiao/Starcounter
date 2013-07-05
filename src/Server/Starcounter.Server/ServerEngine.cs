@@ -6,6 +6,7 @@
 
 using Starcounter.Configuration;
 using Starcounter.Server.Commands;
+using Starcounter.Server.Commands.InternalCommands;
 using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
@@ -190,12 +191,13 @@ namespace Starcounter.Server {
             this.Dispatcher.Setup();
             this.DatabaseEngine.Setup();
             this.DatabaseDefaultValues.Update(this.Configuration);
-            SetupDatabases();
-            this.CurrentPublicModel = new PublicModelProvider(this);
             this.ExecutableService.Setup();
             this.WeaverService.Setup();
             this.StorageService.Setup();
             this.DatabaseHostService.Setup();
+
+            SetupDatabases();
+            this.CurrentPublicModel = new PublicModelProvider(this);
         }
 
         /// <summary>
@@ -245,9 +247,21 @@ namespace Starcounter.Server {
                 var databaseName = Path.GetFileName(databaseDirectory).ToLowerInvariant();
                 var databaseConfigPath = Path.Combine(databaseDirectory, databaseName + DatabaseConfiguration.FileExtension);
 
-                var config = DatabaseConfiguration.Load(databaseConfigPath);
-                var database = new Database(this, config);
-                this.Databases.Add(databaseName, database);
+                if (File.Exists(databaseConfigPath)) {
+                    // If the file exist, it means this database exist and should
+                    // be considered by the server.
+                    var config = DatabaseConfiguration.Load(databaseConfigPath);
+                    var database = new Database(this, config);
+                    this.Databases.Add(databaseName, database);
+                }
+
+                // Check for orphaned database files and enque a command to drop
+                // them if it does.
+
+                var files = DeletedDatabaseFile.GetAllFromDirectory(databaseDirectory);
+                if (files.Length > 0) {
+                    Dispatcher.Enqueue(new DropDeletedDatabaseFilesCommand(this, databaseName));
+                }
             }
         }
     }

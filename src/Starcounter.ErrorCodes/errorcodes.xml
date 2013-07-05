@@ -3858,6 +3858,28 @@
         log.
       </message>
     </code>
+    <code hex="001E" severity="Error" name="ScErrDeleteDbRenameConfig">
+      <message>
+        Failed to rename the database configuration file when asked to
+        delete the database.
+      </message>
+    </code>
+    <code hex="001F" severity="Error" name="ScErrDatabaseRunning">
+      <message>
+        The database is running.
+      </message>
+      <remarks>
+        Indicates a management operation was attempted but could not succeed
+        because the database was running. The operation might succeed if the
+        database is first stopped, and the operation is issued again.
+      </remarks>
+    </code>
+    <code hex="0020" severity="Error" name="ScErrDeleteDbFilesPostponed">
+      <message>
+        At least one database-related file could not be deleted. Deleting
+        will be retried until it succeeds or is cancelled.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
