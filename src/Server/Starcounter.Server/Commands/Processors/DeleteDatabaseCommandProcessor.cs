@@ -51,7 +51,7 @@ namespace Starcounter.Server.Commands {
             // occurances if this does not work.
 
             try {
-                DropDeletedDatabaseFilesCommandProcessor.RunOnce(deletedFile);
+                DropDeletedDatabaseFilesCommandProcessor.RunOnce(this.Engine, deletedFile);
             } catch (Exception exception) {
                 var safe = ErrorCode.ToException(Error.SCERRDELETEDBFILESPOSTPONED,
                     exception,

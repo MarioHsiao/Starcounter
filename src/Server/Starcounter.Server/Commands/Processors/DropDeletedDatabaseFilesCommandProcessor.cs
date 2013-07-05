@@ -31,12 +31,14 @@ namespace Starcounter.Server.Commands {
         /// Runs the functionality of this processor once, in the scope of
         /// the caller.
         /// </summary>
+        /// <param name="engine">The server engine in which to run the
+        /// processor.</param>
         /// <param name="file">The file whose related files that are to be
         /// dropped from the file system.</param>
-        internal static void RunOnce(DeletedDatabaseFile file) {
+        internal static void RunOnce(ServerEngine engine, DeletedDatabaseFile file) {
             bool delete = file.KindOfDelete == DeletedDatabaseFile.Kind.Deleted || file.KindOfDelete == DeletedDatabaseFile.Kind.DeletedFully;
             if (delete) {
-                DeleteDatabaseFile(file);
+                DeleteDatabaseFile(engine, file);
             }
         }
 
@@ -78,7 +80,7 @@ namespace Starcounter.Server.Commands {
                 switch (deleted.KindOfDelete) {
                     case DeletedDatabaseFile.Kind.Deleted:
                     case DeletedDatabaseFile.Kind.DeletedFully:
-                        DeleteDatabaseFile(deleted, command.DatabaseKey);
+                        DeleteDatabaseFile(this.Engine, deleted, command.DatabaseKey);
                         break;
                     case DeletedDatabaseFile.Kind.Removed:
                         Log.Debug("Ignoring deleted database file(s) for database {0}. It was marked removed only.", command.Name);
@@ -91,7 +93,7 @@ namespace Starcounter.Server.Commands {
             }
         }
 
-        static bool DeleteDatabaseFile(DeletedDatabaseFile file, string restrainToKey = null) {
+        static bool DeleteDatabaseFile(ServerEngine engine, DeletedDatabaseFile file, string restrainToKey = null) {
             // Check if restrained to key. Ignore if not matching.
             if (!string.IsNullOrEmpty(restrainToKey)) {
                 if (!file.Key.Equals(restrainToKey)) {
@@ -101,12 +103,24 @@ namespace Starcounter.Server.Commands {
 
             // Check if we should delete data files - do that first.
             if (file.KindOfDelete == DeletedDatabaseFile.Kind.DeletedFully) {
-                // Locate the image- and log files and delete them if they
-                // still exist. In any case of error, raise an exception.
-                // TODO:
-                // var config = DatabaseConfiguration.Load(file.FilePath);
-                // config.Runtime.ImageDirectory
-                throw new NotImplementedException();
+                var storage = engine.StorageService;
+                DatabaseConfiguration config;
+
+                using (FileStream stream = new FileStream(file.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                    var fakePath = file.FilePath + DatabaseConfiguration.FileExtension;
+                    config = DatabaseConfiguration.Load(stream, fakePath);
+                }
+
+                var imageFiles = storage.GetImageFiles(config.Runtime.ImageDirectory, file.DatabaseName);
+                var logFiles = storage.GetTransactionLogFiles(config.Runtime.ImageDirectory, file.DatabaseName);
+
+                foreach (var imageFile in imageFiles) {
+                    File.Delete(imageFile);
+                }
+
+                foreach (var logFile in logFiles) {
+                    File.Delete(logFile);
+                }
             }
 
             // Delete the file itself.
