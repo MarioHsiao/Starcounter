@@ -3835,6 +3835,16 @@
         delete the database.
       </message>
     </code>
+    <code hex="001F" severity="Error" name="ScErrDatabaseRunning">
+      <message>
+        The database is running.
+      </message>
+      <remarks>
+        Indicates a management operation was attempted but could not succeed
+        because the database was running. The operation might succeed if the
+        database is first stopped, and the operation is issued again.
+      </remarks>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
