@@ -689,23 +689,30 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
 // Allocates different channels and pools.
 WorkerDbInterface::WorkerDbInterface(
     const int32_t new_db_index,
-    const core::shared_interface& shared_int,
     const int32_t worker_id)
 {
     channels_ = NULL;
 
     Reset();
 
-    // Allocating channels.
-    num_schedulers_ = shared_int.common_scheduler_interface().number_of_active_schedulers();
-    channels_ = new core::channel_number[num_schedulers_];
-
     // Setting private/overflow chunk pool capacity.
     private_chunk_pool_.set_capacity(core::chunks_total_number_max);
 
     db_index_ = new_db_index;
     worker_id_ = worker_id;
-    shared_int_ = shared_int;
+
+    ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
+
+    // Initializing worker shared memory interface.
+    shared_int_.init(
+        active_db->get_shm_seg_name().c_str(),
+        g_gateway.get_shm_monitor_int_name().c_str(),
+        g_gateway.get_gateway_pid(),
+        g_gateway.get_gateway_owner_id());
+
+    // Allocating channels.
+    num_schedulers_ = shared_int_.common_scheduler_interface().number_of_active_schedulers();
+    channels_ = new core::channel_number[num_schedulers_];
 
     // Getting unique client interface for this worker.
     bool shared_int_acquired = shared_int_.acquire_client_number();
@@ -713,7 +720,7 @@ WorkerDbInterface::WorkerDbInterface(
 
 #ifdef GW_DATABASES_DIAG
     // Diagnostics.
-    GW_PRINT_WORKER << "Database \"" << g_gateway.GetDatabase(db_index_)->get_db_name() <<
+    GW_PRINT_WORKER << "Database \"" << active_db->get_db_name() <<
         "\" acquired client interface " << shared_int_.get_client_number() << " and " << num_schedulers_ << " channel(s): ";
 #endif
 

@@ -209,9 +209,7 @@ public:
     }
 
     // Adds new active database.
-    uint32_t AddNewDatabase(
-        int32_t db_index,
-        const core::shared_interface& worker_shared_int);
+    uint32_t AddNewDatabase(int32_t db_index);
 
     // Sets worker suspend state.
     void set_worker_suspended(bool value)
