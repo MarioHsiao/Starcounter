@@ -534,10 +534,10 @@ void ServerPort::Erase()
     {
         if (closesocket(listening_sock_))
         {
-#ifdef GW_ERRORS_DIAG
+#ifdef GW_WARNINGS_DIAG
             GW_COUT << "closesocket() failed." << GW_ENDL;
-#endif
             PrintLastError();
+#endif
         }
         listening_sock_ = INVALID_SOCKET;
     }
@@ -821,7 +821,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     all_sessions_unsafe_ = (ScSessionStructPlus*)_aligned_malloc(sizeof(ScSessionStructPlus) * setting_max_connections_, 64);
     free_session_indexes_unsafe_ = new session_index_type[setting_max_connections_];
     sessions_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
-    num_active_sessions_unsafe_ = 0;
+    num_active_sessions_ = 0;
     num_sessions_to_cleanup_unsafe_ = 0;
 
     // Cleaning all sessions and free session indexes.
@@ -831,13 +831,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         free_session_indexes_unsafe_[i] = i;
 
         // Resetting all sessions.
-        all_sessions_unsafe_[i].session_.Reset();
-
-        // Resetting sessions time stamps.
-        all_sessions_unsafe_[i].session_timestamp_ = 0;
-
-        // Resetting active sockets flags.
-        all_sessions_unsafe_[i].active_socket_flag_ = false;
+        all_sessions_unsafe_[i].Reset();
     }
 
     delete [] config_contents;
@@ -1522,10 +1516,10 @@ void ActiveDatabase::CloseSocketData()
             // NOTE: Closing socket which will results in stop of all pending operations on that socket.
             if (closesocket(s))
             {
-#ifdef GW_ERRORS_DIAG
+#ifdef GW_WARNINGS_DIAG
                 GW_COUT << "closesocket() failed." << GW_ENDL;
-#endif
                 PrintLastError();
+#endif
             }
 
             //GW_COUT << "closesocket: " << s << GW_ENDL;
@@ -2286,7 +2280,20 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
-#ifndef GW_NEW_SESSIONS_APPROACH
+// Disconnects arbitrary socket.
+void Gateway::DisconnectSocket(GatewayWorker* gw, SOCKET sock)
+{
+    // Getting existing session copy.
+    ScSessionStructPlus global_session_copy = GetGlobalSessionPlusCopy(sock);
+
+    // Creating new socket data and setting required parameters.
+    SocketDataChunk* sd;
+    gw->CreateSocketData(sock, global_session_copy.port_index_, 0, sd);
+    sd->AssignSession(global_session_copy.session_);
+    sd->set_unique_socket_id(global_session_copy.unique_socket_id_);
+    sd->set_socket_trigger_disconnect_flag(true);
+    gw->DisconnectAndReleaseChunk(sd);
+}
 
 // Cleans up all collected inactive sessions.
 uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
@@ -2297,14 +2304,30 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
 
     // Going through all collected inactive sessions.
     int64_t num_sessions_to_cleanup = num_sessions_to_cleanup_unsafe_;
+
     for (int32_t i = 0; i < num_sessions_to_cleanup; i++)
     {
-        // Getting existing session copy.
-        ScSessionStruct global_session_copy = GetGlobalSessionCopy(sessions_to_cleanup_unsafe_[i]);
+        // Getting existing session reference.
+        ScSessionStructPlus* global_session = all_sessions_unsafe_ + sessions_to_cleanup_unsafe_[i];
 
         // Checking if session is valid.
-        if (global_session_copy.IsValid())
+        if (0 != global_session->session_timestamp_)
         {
+            // Resetting the session cell.
+            global_session->session_.Reset();
+
+            // Setting the session time stamp to zero.
+            global_session->session_timestamp_ = 0;
+
+#ifdef GW_SESSIONS_DIAG
+            GW_COUT << "Disconnecting inactive socket " << sessions_to_cleanup_unsafe_[i] << "." << GW_ENDL;
+#endif
+
+            // Triggering special light disconnect to reuse the socket.
+            DisconnectSocket(gw, sessions_to_cleanup_unsafe_[i]);
+
+#ifndef GW_NEW_SESSIONS_APPROACH
+
             // Killing the session.
             bool session_was_killed;
             KillSession(sessions_to_cleanup_unsafe_[i], &session_was_killed);
@@ -2328,19 +2351,19 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
                         continue;
 
                     // Getting and checking Apps unique session number.
-                    apps_unique_session_num_type apps_unique_session_num = global_db->GetAppsUniqueSessionNumber(global_session_copy.gw_session_index_);
+                    apps_unique_session_num_type apps_unique_session_num = global_db->GetAppsUniqueSessionNumber(global_session->gw_session_index_);
 
                     // Checking if Apps session information is correct.
                     if (apps_unique_session_num != INVALID_APPS_UNIQUE_SESSION_NUMBER)
                     {
                         // Getting Apps session salt.
-                        session_salt_type apps_session_salt = global_db->GetAppsSessionSalt(global_session_copy.gw_session_index_);
+                        session_salt_type apps_session_salt = global_db->GetAppsSessionSalt(global_session->gw_session_index_);
 
                         // Sending session destroyed message.
                         err_code = worker_db->PushDeadSession(
                             apps_unique_session_num,
                             apps_session_salt,
-                            global_session_copy.scheduler_id_);
+                            global_session->scheduler_id_);
 
                         if (err_code)
                         {
@@ -2351,10 +2374,12 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
                 }
 
 #ifdef GW_SESSIONS_DIAG
-                GW_COUT << "Inactive session " << global_session_copy.gw_session_index_ << ":"
-                    << global_session_copy.gw_session_salt_ << " was destroyed." << GW_ENDL;
+                GW_COUT << "Inactive session " << global_session->session_.linear_index_ << ":"
+                    << global_session->session_.random_salt_ << " was destroyed." << GW_ENDL;
 #endif
             }
+
+#endif
         }
 
         // Inactive session was successfully cleaned up.
@@ -2388,12 +2413,29 @@ uint32_t Gateway::CollectInactiveSessions()
         if ((all_sessions_unsafe_[i].session_timestamp_) &&
             (global_timer_unsafe_ - all_sessions_unsafe_[i].session_timestamp_) >= setting_inactive_session_timeout_seconds_)
         {
-            sessions_to_cleanup_unsafe_[num_inactive] = i;
-            ++num_inactive;
+            // Disconnecting socket.
+            switch (all_sessions_unsafe_[i].type_of_network_protocol_)
+            {
+                case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
+                {
+                    sessions_to_cleanup_unsafe_[num_inactive] = i;
+                    ++num_inactive;
+
+                    break;
+                }
+
+                /*case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
+                {
+                    sessions_to_cleanup_unsafe_[num_inactive] = i;
+                    ++num_inactive;
+
+                    break;
+                }*/
+            }
         }
 
         // Checking if we have checked all active sessions.
-        if (num_inactive >= num_active_sessions_unsafe_)
+        if (num_inactive >= num_active_sessions_)
             break;
     }
 
@@ -2401,7 +2443,7 @@ uint32_t Gateway::CollectInactiveSessions()
 
     LeaveCriticalSection(&cs_sessions_cleanup_);
 
-    if (num_active_sessions_unsafe_)
+    if (num_active_sessions_)
     {
         // Waking up the worker 0 thread with APC.
         WakeUpThreadUsingAPC(worker_thread_handles_[0]);
@@ -2409,7 +2451,6 @@ uint32_t Gateway::CollectInactiveSessions()
 
     return 0;
 }
-#endif
 
 // Entry point for inactive sessions cleanup.
 uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
@@ -2419,7 +2460,8 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 
     while (true)
     {
-#ifndef GW_NEW_SESSIONS_APPROACH
+#ifdef GW_COLLECT_INACTIVE_SOCKETS
+
         // Sleeping minimum interval.
         Sleep(g_gateway.get_min_inactive_session_life_seconds() * 1000);
 
@@ -2730,7 +2772,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         global_statistics_stream_ << "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
             ", overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
 #ifndef GW_NEW_SESSIONS_APPROACH
-            ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
+            ", active sessions " << g_gateway.get_num_active_sessions() <<
 #endif
             ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
             ", reusable conn-socks " << g_gateway.NumberOfReusableConnectSockets() <<
