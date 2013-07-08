@@ -18,9 +18,10 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
     SOCKET_DATA_FLAGS_JUST_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND,
     SOCKET_DATA_FLAGS_JUST_DISCONNECT = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 256,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 512,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 1024    
+    SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 256,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 512,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 1024,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048
 };
 
 // Socket data chunk.
@@ -186,7 +187,7 @@ public:
     // Setting new unique socket number.
     void CreateUniqueSocketId()
     {
-        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_);
+        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_, port_index_);
     }
 
     // Checking if unique socket number is correct.
@@ -209,11 +210,27 @@ public:
             g_gateway.SetGlobalSessionCopy(sock_, session_);
     }
 
+    // Updates connection timestamp if socket is correct.
+    void UpdateConnectionTimeStamp()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId())
+            g_gateway.UpdateSessionTimeStamp(sock_);
+    }
+
+    // Sets connection type if socket is correct.
+    void SetConnectionType(MixedCodeConstants::NetworkProtocolType proto_type)
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId())
+            g_gateway.SetConnectionType(sock_, proto_type);
+    }
+
     // Sets session if socket is correct.
     void SetSdSessionIfEmpty()
     {
         // Checking unique socket id and session.
-        if ((!session_.IsActive()) && CompareUniqueSocketId() && (g_gateway.IsGlobalSessionActive(sock_)))
+        if ((!session_.IsActive()) && (g_gateway.IsGlobalSessionActive(sock_)))
             session_ = g_gateway.GetGlobalSessionCopy(sock_);
     }
 
@@ -274,9 +291,10 @@ public:
     }
 
     // Setting type of network protocol.
-    void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType protocol_type)
+    void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType proto_type)
     {
-        type_of_network_protocol_ = protocol_type;
+        type_of_network_protocol_ = proto_type;
+        SetConnectionType(proto_type);
     }
 
     // Getting saved user handler id.
@@ -337,6 +355,21 @@ public:
             flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
         else
             flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+    }
+
+    // Getting socket trigger disconnect flag.
+    bool get_socket_trigger_disconnect_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+    }
+
+    // Setting socket trigger disconnect flag.
+    void set_socket_trigger_disconnect_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS

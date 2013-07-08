@@ -182,7 +182,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                     else
                     {
                         // Updating session time stamp.
-                        g_gateway.SetSessionTimeStamp(gw_session_index);
+                        g_gateway.UpdateSessionTimeStamp(gw_session_index);
                     }
                 }
                 else
@@ -418,7 +418,7 @@ void WorkerDbInterface::PushLinkedChunksToDb(
 void WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunkRef sd)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Returning chunk: " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
+    GW_PRINT_WORKER << "Returning chunk: " << sd->get_socket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -498,7 +498,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         session_index_type session_index = sd->get_session_index();
 
         // Updating session time stamp.
-        g_gateway.SetSessionTimeStamp(session_index);
+        g_gateway.UpdateSessionTimeStamp(session_index);
 
         // Setting Apps specific information.
         sd->set_apps_unique_session_num(current_db->GetAppsUniqueSessionNumber(session_index));
