@@ -72,7 +72,7 @@ namespace Starcounter.CLI {
                     Engine engine;
                     Executable exe;
                     DoExec(node, admin, exePath, database, args, entrypointArgs, out engine, out exe);
-                    ShowResultAndSetExitCode(engine, exe, args);
+                    ShowResultAndSetExitCode(node, engine, exe, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
                     return;
@@ -240,10 +240,16 @@ namespace Starcounter.CLI {
             ConsoleUtil.ToConsoleWithColor(string.Format("  - {0}", status), ConsoleColor.DarkGray);
         }
 
-        static void ShowResultAndSetExitCode(Engine engine, Executable exe, ApplicationArguments args) {
+        static void ShowResultAndSetExitCode(Node node, Engine engine, Executable exe, ApplicationArguments args) {
             var color = ConsoleColor.Green;
+            
             ConsoleUtil.ToConsoleWithColor(
-                string.Format("Successfully started \"{0}\" (engine PID:{1})", Path.GetFileName(exe.Path), engine.CodeHostProcess.PID), color);
+                string.Format("Successfully started \"{0}\" (engine PID:{1}, default port is {2} (Executable), {3} (Admin))", 
+                             Path.GetFileName(exe.Path), 
+                             engine.CodeHostProcess.PID, 
+                             exe.DefaultUserPort, 
+                             node.PortNumber), 
+                color);
             color = ConsoleColor.DarkGray;
             ConsoleUtil.ToConsoleWithColor(string.Format("Started by \"{0}\"", exe.StartedBy), color);
             Environment.ExitCode = 0;

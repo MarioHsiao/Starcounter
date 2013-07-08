@@ -3,6 +3,7 @@
     "Path": "C:\\path\to\\the\\exe\\foo.exe",
     "Description": "Implements the Foo module",
 	"Arguments": [{"dummy":""}],
+    "DefaultUserPort": 1,
     "ResourceDirectories": [{"dummy":""}],
 	"IsTool":false,
 	"StartedBy": "Per Samuelsson, per@starcounter.com",
