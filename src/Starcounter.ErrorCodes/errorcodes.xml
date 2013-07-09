@@ -3061,6 +3061,12 @@
     <code hex="00FC" severity="Error" name="ScErrCantInitTransLogWriter">
       <message>An error occured when initializing transaction log writer.</message>
     </code>
+    <code hex="00FE" severity="Error" name="ScErrNoTransLogSpaceAvailable">
+      <message>Transaction could not be committed because of a lack of available log space.</message>
+    </code>
+    <code hex="00FF" severity="Error" name="ScErrTransLogSpaceCantBeExpanded">
+      <message>Transaction could not be committed because of a lack of available log space and log space can't be expanded.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
