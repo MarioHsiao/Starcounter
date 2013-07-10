@@ -7,6 +7,26 @@ using Starcounter.Metadata;
 namespace QueryProcessingTest {
     public static class SqlBugsTest {
         public static void QueryTests() {
+            TestFetchOrderBy();
+            TestLike();
+            TestProjectionName();
+            HelpMethods.LogEvent("Some tests on variables and case insensitivity");
+            Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
+            Trace.Assert(account == null);
+            var row = Db.SlowSQL("select Client, count(accountid) from account group by Client").First;
+            var row2 = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
+            Trace.Assert(row is IObjectView);
+            Trace.Assert(row2 is IObjectView);
+            Trace.Assert((row as IObjectView).GetObject(0).GetObjectNo() == (row2 as IObjectView).GetObject(0).GetObjectNo());
+            Trace.Assert((row as IObjectView).GetInt64(1) == (row2 as IObjectView).GetInt64(1));
+            account = Db.SQL<Account>("select a from account a where accountid = ?", null).First;
+            Trace.Assert(account == null);
+            HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
+            TestComparison();
+            TestEnumerators();
+        }
+
+        public static void TestFetchOrderBy() {
             HelpMethods.LogEvent("Test queries with fetch and order by");
             // Test query with FETCH and ORDER BY
             decimal amounts = 0;
@@ -36,10 +56,13 @@ namespace QueryProcessingTest {
             Trace.Assert(nrs == 20);
             TestOffsetkeyWithSorting();
             HelpMethods.LogEvent("Finished test query with fetch and sorting");
+        }
+
+        public static void TestLike() {
             HelpMethods.LogEvent("Test queries with like");
             // Test queries with LIKE ?
             //HelpMethods.PrintQueryPlan("select u from user u where userid like ?");
-            nrs = 0;
+            int nrs = 0;
             foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "kati%"))
                 nrs++;
             Trace.Assert(nrs == 157);
@@ -54,27 +77,6 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(nrs == 1);
             HelpMethods.LogEvent("Finished test queries with like");
-            HelpMethods.LogEvent("Start testing projections");
-            TestProjectionName();
-            HelpMethods.LogEvent("Finished testing projections");
-            HelpMethods.LogEvent("Some tests on variables and case insensitivity");
-            Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
-            Trace.Assert(account == null);
-            var row = Db.SlowSQL("select Client, count(accountid) from account group by Client").First;
-            var row2 = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
-            Trace.Assert(row is IObjectView);
-            Trace.Assert(row2 is IObjectView);
-            Trace.Assert((row as IObjectView).GetObject(0).GetObjectNo() == (row2 as IObjectView).GetObject(0).GetObjectNo());
-            Trace.Assert((row as IObjectView).GetInt64(1) == (row2 as IObjectView).GetInt64(1));
-            account = Db.SQL<Account>("select a from account a where accountid = ?", null).First;
-            Trace.Assert(account == null);
-            HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
-            HelpMethods.LogEvent("Start testing queries on comparison bug");
-            TestComparison();
-            HelpMethods.LogEvent("Finished testing queries on comparison bug");
-            HelpMethods.LogEvent("Test enumerator related bugs");
-            TestEnumerators();
-            HelpMethods.LogEvent("Finished testing enumerator related bugs");
         }
 
         public static void TestOffsetkeyWithSorting() {
@@ -133,6 +135,7 @@ namespace QueryProcessingTest {
         }
 
         public static void TestProjectionName() {
+            HelpMethods.LogEvent("Start testing projections");
             var q = Db.SlowSQL("select userid, useridnr from User u where useridnr <?", 2);
             var e = q.GetEnumerator();
             string n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0)).DisplayName;
@@ -235,10 +238,12 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "ObjectID");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(10).Name;
             Trace.Assert(n == "10");
+            HelpMethods.LogEvent("Finished testing projections");
         }
 
         public static void TestComparison() {
-            var e = Db.SQL<SysTable>("select s from systable s where tableid = ?",4).GetEnumerator();
+            HelpMethods.LogEvent("Start testing queries on comparison bug");
+            var e = Db.SQL<SysTable>("select s from systable s where tableid = ?", 4).GetEnumerator();
             Trace.Assert(e.MoveNext());
             SysTable s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
@@ -256,9 +261,11 @@ namespace QueryProcessingTest {
             e = Db.SlowSQL<SysTable>("select s from systable s where tableid = 1.0E1").GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
+            HelpMethods.LogEvent("Finished testing queries on comparison bug");
         }
 
         public static void TestEnumerators() {
+            HelpMethods.LogEvent("Test enumerator related bugs");
             SqlResult<dynamic> accounts = Db.SQL("select accountid as accountid, client.name as name, amount as amount from account where accountid = ?", 1);
             Type t = accounts.First.GetType();
             Trace.Assert(t == typeof(Starcounter.Query.Execution.Row));
@@ -277,6 +284,7 @@ namespace QueryProcessingTest {
             decimal newAmount = accounts.First.Amount;
             Trace.Assert(amount + 10 == newAmount);
 #endif
+            HelpMethods.LogEvent("Finished testing enumerator related bugs");
         }
     }
 }
