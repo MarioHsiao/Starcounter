@@ -269,11 +269,11 @@ internal class ComparisonDecimal : CodeGenFilterNode, IComparison
         {
             return null;
         }
-        if (expr1 is IPath && (expr1 as IPath).ExtentNumber == extentNumber && (expr1 as IPath).FullName == strPath)
+        if (expr1 is IPath && (expr1 as IPath).ExtentNumber == extentNumber && (expr1 as IPath).ColumnName == strPath)
         {
             return new NumericalRangePoint(compOperator, expr2);
         }
-        if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).FullName == strPath && Optimizer.ReversableOperator(compOperator))
+        if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).ColumnName == strPath && Optimizer.ReversableOperator(compOperator))
         {
             return new NumericalRangePoint(Optimizer.ReverseOperator(compOperator), expr1);
         }
