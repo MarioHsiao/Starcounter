@@ -44,6 +44,8 @@ namespace QueryProcessingTest {
                 Starcounter.Db.SlowSQL("create index nicknameindx on User(NickName)");
                 Starcounter.Db.SlowSQL("create index anothernicknameindx on User(AnotherNickName)");
             }
+            if (Starcounter.Db.SQL("select i from sysindex i where name = ?", "UserCompoundIndx").First == null)
+                Starcounter.Db.SlowSQL("create index UserCompoundIndx on user(NickName, LastName)");
         }
     }
 }

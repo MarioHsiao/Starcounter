@@ -24,6 +24,7 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
             TestComparison();
             TestEnumerators();
+            TestIndexQueryOptimization();
         }
 
         public static void TestFetchOrderBy() {
@@ -277,7 +278,6 @@ namespace QueryProcessingTest {
             decimal amount = accounts.First.amount;
             amount = accounts.First.Amount;
 
-            Trace.Assert(((SqlEnumerator<User>)Db.SQL<User>("select u from user u where nickname = ?", "Nk1").GetEnumerator()).subEnumerator.GetType() == typeof(Starcounter.Query.Execution.IndexScan));
             //Console.WriteLine(Db.SQL("select u from user u where nickname = ?", "Nk1").GetEnumerator().ToString());
 #if false // Does not work
             accounts.First.Amount += 10;
@@ -285,6 +285,19 @@ namespace QueryProcessingTest {
             Trace.Assert(amount + 10 == newAmount);
 #endif
             HelpMethods.LogEvent("Finished testing enumerator related bugs");
+        }
+
+        public static void TestIndexQueryOptimization() {
+            HelpMethods.LogEvent("Test query optimization with indexes");
+            // Issue #563
+            Trace.Assert(((SqlEnumerator<User>)Db.SQL<User>("select u from user u where nickname = ?", "Nk1").GetEnumerator()).subEnumerator.GetType() == typeof(Starcounter.Query.Execution.IndexScan));
+
+            // Issue #645
+            var query = Db.SQL<User>("select u from user u where nickname = ? and lastname = ?", "Nk2", "Ln2");
+            var qEnum = query.GetEnumerator();
+            String enumStr = qEnum.ToString();
+            Trace.Assert(!enumStr.Contains("ComparisonString"));
+            HelpMethods.LogEvent("Finished testing query optimization with indexes");
         }
     }
 }
