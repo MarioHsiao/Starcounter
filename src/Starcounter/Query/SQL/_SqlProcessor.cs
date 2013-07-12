@@ -167,7 +167,14 @@ internal static class SqlProcessor
         }
 
         // Prepare array of attributes
-        TypeBinding typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+        TypeBinding typeBind;
+        try {
+            typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+        } catch (DbException e) {
+            if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH)
+                throw new SqlException("Table " + typePath + " is not found");
+            throw e;
+        }
         PropertyBinding propBind = null;
         //if (typeBind == null)
         //    TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
