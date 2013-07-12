@@ -178,7 +178,7 @@ internal static class SqlProcessor
         {
             propBind = typeBind.GetPropertyBindingInsensitive(propertyList[i]);
             if (propBind == null)
-                throw new SqlException("Column " + propertyList[i] + "is not found in table " + typeBind.Name);
+                throw new SqlException("Column " + propertyList[i] + " is not found in table " + typeBind.Name);
             attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
         }
 
