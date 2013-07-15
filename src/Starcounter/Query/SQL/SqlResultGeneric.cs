@@ -101,8 +101,9 @@ namespace Starcounter
                 if (typeof(T).Name != "Object") // T = dynamic
                     if (execEnum.TypeBinding == null) {
                         if (((Starcounter.Binding.DbTypeCode)execEnum.ProjectionTypeCode).ToString() != typeof(T).Name)
-                            throw new Exception("The result type " + typeof(T).Name + " cannot be assigned from the query result, which is of primitive type " +
-                                ((Starcounter.Binding.DbTypeCode)execEnum.ProjectionTypeCode).ToString());
+                            throw ErrorCode.ToException(Error.SCERRQUERYRESULTTYPEMISMATCH, "The result type " + typeof(T).Name + 
+                                " cannot be assigned from the query result, which is of primitive type " +
+                                ((Starcounter.Binding.DbTypeCode)execEnum.ProjectionTypeCode).ToString() + ".");
                     } else {
                         Type resultType = Type.GetType(execEnum.TypeBinding.Name);
 
@@ -117,8 +118,9 @@ namespace Starcounter
                                 }
                         Debug.Assert(resultType != null);
                         if (!typeof(T).IsAssignableFrom(resultType))
-                            throw new Exception("The result type " + typeof(T).FullName + " cannot be assigned from the query result, which is of type " +
-                                execEnum.TypeBinding.Name);
+                            throw ErrorCode.ToException(Error.SCERRQUERYRESULTTYPEMISMATCH, "The result type " + 
+                                typeof(T).FullName + " cannot be assigned from the query result, which is of type " +
+                                execEnum.TypeBinding.Name + ".");
                     }
 
                 // Setting SQL parameters if any are given.
