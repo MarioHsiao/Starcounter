@@ -3323,6 +3323,7 @@
     </code>
   </facility>
 
+  <!-- Error codes related to query processing. -->
   <facility name="Sql" hex="0007">
     <code hex="0000" severity="Error" name="ScErrSqlInternalError">
       <message>Unexpected internal error in SQL module.</message>
@@ -3425,6 +3426,9 @@
     <code hex="001E" severity="Error" name="ScErrUnsupportAggregate">
       <message>Aggregates are not supported in the query.</message>
     </code>
+	<code hex="001F" severity="Error" name="ScErrQueryResultTypeMismatch">
+	  <message>Expected generic result type does not match with query result type.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
