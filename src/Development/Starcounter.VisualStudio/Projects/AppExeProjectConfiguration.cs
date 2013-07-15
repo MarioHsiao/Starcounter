@@ -17,8 +17,8 @@ namespace Starcounter.VisualStudio.Projects {
     using Starcounter.Server.Rest;
     using Starcounter.Server.Rest.Representations.JSON;
     using System.Net.Sockets;
-    using EngineReference = Starcounter.Server.Rest.Representations.JSON.EngineCollection.EnginesApp;
-    using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesApp.ExecutingApp;
+    using EngineReference = Starcounter.Server.Rest.Representations.JSON.EngineCollection.EnginesObj;
+    using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesObj.ExecutingObj;
     using Option = Starcounter.CLI.SharedCLI.Option;
 
     /// <summary>

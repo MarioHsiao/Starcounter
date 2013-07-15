@@ -37,8 +37,8 @@ namespace Starcounter.Administrator.API.Handlers {
             // defined in XSON-based class EngineCollection, the Engines
             // array instances.
 
-            EngineCollection.EnginesApp engine;
-            var response = RESTUtility.JSON.CreateFromRequest<EngineCollection.EnginesApp>(request, out engine);
+            EngineCollection.EnginesObj engine;
+            var response = RESTUtility.JSON.CreateFromRequest<EngineCollection.EnginesObj>(request, out engine);
             if (response != null) return response;
 
             var name = engine.Name;
