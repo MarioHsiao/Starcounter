@@ -10,8 +10,8 @@ using System.IO;
 using System.Net.Sockets;
 
 namespace Starcounter.CLI {
-    using EngineReference = EngineCollection.EnginesApp;
-    using ExecutableReference = Engine.ExecutablesApp.ExecutingApp;
+    using EngineReference = EngineCollection.EnginesObj;
+    using ExecutableReference = Engine.ExecutablesObj.ExecutingObj;
     using Option = Starcounter.CLI.SharedCLI.Option;
 
     /// <summary>

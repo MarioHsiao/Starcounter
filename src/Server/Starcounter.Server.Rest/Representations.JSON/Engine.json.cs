@@ -2,7 +2,7 @@
 using Starcounter;
 
 namespace Starcounter.Server.Rest.Representations.JSON {
-    using ExecutableReference = Engine.ExecutablesApp.ExecutingApp;
+    using ExecutableReference = Engine.ExecutablesObj.ExecutingObj;
 
     /// <summary>
     /// Represents an engine resource.
