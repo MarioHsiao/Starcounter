@@ -278,6 +278,13 @@ namespace QueryProcessingTest {
             decimal amount = accounts.First.amount;
             amount = accounts.First.Amount;
 
+            var accs = Db.SQL<Account>("select * from account a");
+            var a = accs.First;
+            var users = Db.SQL<User>("select * from user u");
+            var res = users.GetEnumerator();
+            Trace.Assert(res.MoveNext());
+            var row = res.Current;
+
             //Console.WriteLine(Db.SQL("select u from user u where nickname = ?", "Nk1").GetEnumerator().ToString());
 #if false // Does not work
             accounts.First.Amount += 10;
