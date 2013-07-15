@@ -95,15 +95,15 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         /// <summary>
-        /// Adds "App" to the end of a name
+        /// 
         /// </summary>
         /// <param name="name">The name to amend</param>
         /// <returns>A name that ends with the text "App"</returns>
-        public static string AppifyName(string name) {
+        private static string AppifyName(string name) {
             //            if (name.EndsWith("s")) {
             //                name = name.Substring(0, name.Length - 1);
             //            }
-            return name + "App";
+            return name + "Obj";
         }
 
         /// <summary>
