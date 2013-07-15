@@ -223,22 +223,22 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "0");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0).Name;
             Trace.Assert(n == "0");
-            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7)).DisplayName;
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8)).DisplayName;
             Trace.Assert(n == "Name");
-            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7).DisplayName;
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).DisplayName;
             Trace.Assert(n == "Name");
-            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7)).Name;
-            Trace.Assert(n == "7");
-            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(7).Name;
-            Trace.Assert(n == "7");
-            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(9).DisplayName;
-            Trace.Assert(n == "ObjectNo");
-            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(9).Name;
-            Trace.Assert(n == "9");
+            n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8)).Name;
+            Trace.Assert(n == "8");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(8).Name;
+            Trace.Assert(n == "8");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(10).DisplayName;
-            Trace.Assert(n == "ObjectID");
+            Trace.Assert(n == "ObjectNo");
             n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(10).Name;
             Trace.Assert(n == "10");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(11).DisplayName;
+            Trace.Assert(n == "ObjectID");
+            n = ((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(11).Name;
+            Trace.Assert(n == "11");
             HelpMethods.LogEvent("Finished testing projections");
         }
 
