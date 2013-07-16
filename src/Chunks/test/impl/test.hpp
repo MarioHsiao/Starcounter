@@ -23,11 +23,7 @@ test::test(int argc, wchar_t* argv[])
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 {
 	///=========================================================================
-	/// Initialize the test. Change to the debug or release directory:
-	/// > cd %UserProfile%\code\Level1\bin\Debug
-	/// or
-	/// > cd %UserProfile%\code\Level1\bin\Release
-	///
+	/// Initialize the test. Change to the debug or release directory.
 	/// First argument: The server name, for example "PERSONAL" or "SYSTEM".
 	///
 	/// Following argument(s): The name(s) of the database(s), for example
@@ -66,9 +62,10 @@ test::test(int argc, wchar_t* argv[])
 		if (ipc_shm_params_name.size() > 0) {
 			initialize(ipc_shm_params_name);
 			
-			for (std::size_t i = 0; i < number_of_shared_; ++i)
-			active_schedulers_[i] = shared_[i].common_scheduler_interface()
-			.number_of_active_schedulers();
+			for (std::size_t i = 0; i < number_of_shared_; ++i) {
+				active_schedulers_[i] = shared_[i].common_scheduler_interface()
+				.number_of_active_schedulers();
+			}
 		}
 		else {
 			std::cout << "error: no database name(s) entered after server name." << std::endl;
@@ -126,8 +123,6 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		// the shared structure.
 		database_shared_memory_parameters_ptr db_shm_params
 		(database_shared_memory_parameters_name);
-		
-		//std::cout << "opened parameter file: " << database_shared_memory_parameters_name << std::endl;
 		
 		char monitor_interface_name[segment_name_size
 		+sizeof(MONITOR_INTERFACE_SUFFIX) +2 /* delimiter and null */];
@@ -206,7 +201,7 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		///=========================================================================
 		/// Construct a shared_interface.
 		///=========================================================================
-		
+
 		shared_[n].init(segment_name, monitor_interface_name, pid_, owner_id_);
 		++number_of_shared_;
 
@@ -216,10 +211,10 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 			.set_pid(pid_)
 			.set_owner_id(owner_id_);
 		}
-	} // n
+	}
 }
 
-inline test& test::set_segment_name(std::size_t n,  std::string& segment_name) {
+inline test& test::set_segment_name(std::size_t n, std::string& segment_name) {
 	segment_name_[n] = segment_name;
 	return *this;
 }
@@ -270,7 +265,6 @@ void test::run(uint32_t interval_time_milliseconds) {
 
 		// Start the worker - starts the workers thread.
 		worker_[i].start();
-		std::cout << "test::run(): Started worker[" << i << "]" << std::endl;
 	}
 	
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)

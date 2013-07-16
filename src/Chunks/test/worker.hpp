@@ -116,7 +116,7 @@ public:
 		// pop before waiting, in case did not push or pop for spin_count_reset
 		// number of times. Need to experiment with this value.
 		// NOTE: scan_counter_preset must be > 0.
-		scan_counter_preset = 1 << 0,
+		scan_counter_preset = 1 << 10,
 
 		// The thread can give up waiting after wait_for_work_milli_seconds, but
 		// if not, set it to INFINITE.

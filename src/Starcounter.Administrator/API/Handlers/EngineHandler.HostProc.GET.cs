@@ -25,7 +25,7 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var engineInfo = applicationDatabase.Engine;
             if (engineInfo != null &&  engineInfo.HostProcessId != 0) {
-                var host = new Engine.CodeHostProcessApp();
+                var host = new Engine.CodeHostProcessObj();
                 host.Uri = uriTemplateHostProcess.ToAbsoluteUri(name);
                 host.PID = engineInfo.HostProcessId;
                 return RESTUtility.JSON.CreateResponse(host.ToJson());
