@@ -12,6 +12,7 @@ using System.Diagnostics;
 using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
 using Sc.Query.Execution;
+using System.ComponentModel;
 
 namespace Starcounter
 {
@@ -80,7 +81,7 @@ namespace Starcounter
                 //execEnum = Scheduler.GetInstance().ClientExecEnumCache.GetCachedEnumerator(query);
 #endif
             try {
-                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query);
+                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query, typeof(T));
 
                 // Check if the query includes anything non-supported.
                 if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {
@@ -96,32 +97,6 @@ namespace Starcounter
                                 execEnum.LiteralValue + ". Use variable and parameter instead.");
                     //throw new SqlException("Method Starcounter.Db.SQL does not support queries with literals. Use variable and parameter instead.");
                 }
-
-                // Check if Generic type corresponds to the query result type
-                if (typeof(T).Name != "Object") // T = dynamic
-                    if (execEnum.TypeBinding == null) {
-                        if (((Starcounter.Binding.DbTypeCode)execEnum.ProjectionTypeCode).ToString() != typeof(T).Name)
-                            throw ErrorCode.ToException(Error.SCERRQUERYRESULTTYPEMISMATCH, "The result type " + typeof(T).Name + 
-                                " cannot be assigned from the query result, which is of primitive type " +
-                                ((Starcounter.Binding.DbTypeCode)execEnum.ProjectionTypeCode).ToString() + ".");
-                    } else {
-                        Type resultType = Type.GetType(execEnum.TypeBinding.Name);
-
-                        if (resultType == null)
-                            if (execEnum.TypeBinding.Name == "Starcounter.Row")
-                                resultType = typeof(Row);
-                            else
-                                foreach (var a in AppDomain.CurrentDomain.GetAssemblies()) {
-                                    resultType = a.GetType(execEnum.TypeBinding.Name);
-                                    if (resultType != null)
-                                        break;
-                                }
-                        Debug.Assert(resultType != null);
-                        if (!typeof(T).IsAssignableFrom(resultType))
-                            throw ErrorCode.ToException(Error.SCERRQUERYRESULTTYPEMISMATCH, "The result type " + 
-                                typeof(T).FullName + " cannot be assigned from the query result, which is of type " +
-                                execEnum.TypeBinding.Name + ".");
-                    }
 
                 // Setting SQL parameters if any are given.
                 if (sqlParams != null)
@@ -172,7 +147,7 @@ namespace Starcounter
                     if (execEnum != null) execEnum.Dispose();
                 }
 
-                return current;
+                    return current;
             }
         }
 
