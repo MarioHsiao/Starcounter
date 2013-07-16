@@ -160,10 +160,10 @@ public:
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	
 	void gotoxy(int16_t x, int16_t y) {
-		COORD coord;
+		::COORD coord;
 		coord.X = x;
 		coord.Y = y;
-		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+		::SetConsoleCursorPosition(::GetStdHandle(STD_OUTPUT_HANDLE), coord);
 	}
 	
 #if 0
@@ -190,7 +190,7 @@ public:
 	/**
 	 * @param A reference to the active_databases_updates_event_.
 	 */ 
-	HANDLE& active_databases_updates_event() {
+	::HANDLE& active_databases_updates_event() {
 		return active_databases_updates_event_;
 	}
 
@@ -198,7 +198,7 @@ public:
 	/**
 	 * @param A const reference to the active_databases_updates_event_.
 	 */ 
-	const HANDLE& active_databases_updates_event() const {
+	const ::HANDLE& active_databases_updates_event() const {
 		return active_databases_updates_event_;
 	}
 
@@ -232,7 +232,7 @@ private:
 	owner_id owner_id_;
 
 	// Event to wait for active databases update.
-	HANDLE active_databases_updates_event_;
+	::HANDLE active_databases_updates_event_;
 
 	// message queue - to simulate fetching messages from a interprocess_communication via Win32API
 	
