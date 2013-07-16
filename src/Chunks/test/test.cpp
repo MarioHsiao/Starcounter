@@ -17,16 +17,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	// Start the interprocess_communication test application.
 	starcounter::interprocess_communication::test app(argc, argv);
-	
-	std::cout << "workers: " << starcounter::interprocess_communication::test::workers << std::endl;
-
 	app.run(200 /* interval time milliseconds */);
-	
-	//app->stop_worker(0);
-	//app->stop_all_workers();
-	
 	Sleep(INFINITE);
-	std::cout << "test: exit." << std::endl;
 }
 catch (starcounter::interprocess_communication::test_exception& e) {
 	std::cout << "error: test_exception "
