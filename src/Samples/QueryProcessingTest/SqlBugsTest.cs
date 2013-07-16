@@ -24,6 +24,7 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
             TestComparison();
             TestEnumerators();
+            QueryResultMismatch();
             TestIndexQueryOptimization();
         }
 
@@ -278,13 +279,6 @@ namespace QueryProcessingTest {
             decimal amount = accounts.First.amount;
             amount = accounts.First.Amount;
 
-            var accs = Db.SQL<Account>("select * from account a");
-            var a = accs.First;
-            var users = Db.SQL<User>("select * from user u");
-            var res = users.GetEnumerator();
-            Trace.Assert(res.MoveNext());
-            var row = res.Current;
-
             //Console.WriteLine(Db.SQL("select u from user u where nickname = ?", "Nk1").GetEnumerator().ToString());
 #if false // Does not work
             accounts.First.Amount += 10;
@@ -292,6 +286,76 @@ namespace QueryProcessingTest {
             Trace.Assert(amount + 10 == newAmount);
 #endif
             HelpMethods.LogEvent("Finished testing enumerator related bugs");
+        }
+
+        public static void QueryResultMismatch() {
+            HelpMethods.LogEvent("Start testing query result mismatch errors.");
+            var accs = Db.SQL<Account>("select * from account a");
+            bool wasException = false;
+            try {
+                var a = accs.First;
+            } catch (Exception exc) {
+                if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
+                    throw exc;
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            wasException = false;
+            var users = Db.SQL<User>("select * from user u");
+            try {
+                var res = users.GetEnumerator();
+                Trace.Assert(res.MoveNext());
+                var row = res.Current;
+            } catch (Exception exc) {
+                if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
+                    throw exc;
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            wasException = false;
+            var users2 = Db.SQL<Account>("select a.client from account a");
+            try {
+                var res = users2.GetEnumerator();
+                Trace.Assert(res.MoveNext());
+                var row = res.Current;
+            } catch (Exception exc) {
+                if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
+                    throw exc;
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            wasException = false;
+            var astrs = Db.SQL<Account>("select name from user");
+            try {
+                var res = astrs.GetEnumerator();
+                Trace.Assert(res.MoveNext());
+                var row = res.Current;
+            } catch (Exception exc) {
+                if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
+                    throw exc;
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            wasException = false;
+            var decs = Db.SQL<Decimal>("select name from user");
+            try {
+                var decsres = astrs.First;
+            } catch (Exception exc) {
+                if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
+                    throw exc;
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            // No exceptions
+            var res1 = Db.SQL("select * from account").First;
+            var query2 = Db.SQL<Starcounter.Query.Execution.Row>("select * from account").GetEnumerator();
+            Debug.Assert(query2.MoveNext());
+            var res2 = query2.Current;
+            var res3 = Db.SQL<Account>("select a from account a").First;
+            var res4 = Db.SQL<Decimal>("select amount from account").First;
+            var res5 = Db.SQL<Decimal>("select accountid from account").First;
+
+            HelpMethods.LogEvent("Finished testing query result mismatch errors.");
         }
 
         public static void TestIndexQueryOptimization() {
