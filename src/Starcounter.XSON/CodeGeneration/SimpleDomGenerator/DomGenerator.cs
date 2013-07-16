@@ -199,6 +199,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             MoveNestedClassToBottom(root);
 
             if (metadata != CodeBehindMetadata.Empty) {
+                // if there is codebehind and the class is not inherited from Json we need 
+                // to change the inheritance on the template and metadata classes as well.
+                if (!string.IsNullOrEmpty(metadata.BaseClassName) && !metadata.BaseClassName.Equals("Json")) {
+                    tcn._Inherits = "T" + metadata.BaseClassName;
+                    mcn._Inherits = metadata.BaseClassName + "Metadata";
+                }
+
                 var json = new NJsonAttributeClass(this) {
                     Parent = acn,
                     IsStatic = true,
