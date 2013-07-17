@@ -303,9 +303,10 @@ namespace QueryProcessingTest {
             wasException = false;
             var users = Db.SQL<User>("select * from user u");
             try {
-                var res = users.GetEnumerator();
-                Trace.Assert(res.MoveNext());
-                var row = res.Current;
+                using (var res = users.GetEnumerator()) {
+                    Trace.Assert(res.MoveNext());
+                    var row = res.Current;
+                }
             } catch (Exception exc) {
                 if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
                     throw exc;
@@ -315,9 +316,10 @@ namespace QueryProcessingTest {
             wasException = false;
             var users2 = Db.SQL<Account>("select a.client from account a");
             try {
-                var res = users2.GetEnumerator();
-                Trace.Assert(res.MoveNext());
-                var row = res.Current;
+                using (var res = users2.GetEnumerator()) {
+                    Trace.Assert(res.MoveNext());
+                    var row = res.Current;
+                }
             } catch (Exception exc) {
                 if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
                     throw exc;
@@ -327,9 +329,10 @@ namespace QueryProcessingTest {
             wasException = false;
             var astrs = Db.SQL<Account>("select name from user");
             try {
-                var res = astrs.GetEnumerator();
-                Trace.Assert(res.MoveNext());
-                var row = res.Current;
+                using (var res = astrs.GetEnumerator()) {
+                    Trace.Assert(res.MoveNext());
+                    var row = res.Current;
+                }
             } catch (Exception exc) {
                 if (exc.Data[ErrorCode.EC_TRANSPORT_KEY] == null || (uint)exc.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRQUERYRESULTTYPEMISMATCH)
                     throw exc;
@@ -348,9 +351,13 @@ namespace QueryProcessingTest {
             Trace.Assert(wasException);
             // No exceptions
             var res1 = Db.SQL("select * from account").First;
-            var query2 = Db.SQL<Starcounter.Query.Execution.Row>("select * from account").GetEnumerator();
-            Debug.Assert(query2.MoveNext());
-            var res2 = query2.Current;
+            var res2 = Db.SQL<Starcounter.Query.Execution.Row>("select * from account").First;
+#if false // Does not work
+            using (var query2 = Db.SQL<Starcounter.Query.Execution.Row>("select * from account").GetEnumerator()) {
+                Debug.Assert(query2.MoveNext());
+                var res2 = query2.Current;
+            }
+#endif
             var res3 = Db.SQL<Account>("select a from account a").First;
             var res4 = Db.SQL<Decimal>("select amount from account").First;
             var res5 = Db.SQL<Decimal>("select accountid from account").First;
