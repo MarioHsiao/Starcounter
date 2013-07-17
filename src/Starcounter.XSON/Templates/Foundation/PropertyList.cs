@@ -9,6 +9,7 @@ using System.Collections.Generic;
 
 using Starcounter;
 using System.Collections;
+
 namespace Starcounter.Templates {
 
     /// <summary>
@@ -18,31 +19,32 @@ namespace Starcounter.Templates {
     public class PropertyList : IEnumerable<Template>, IList<Template>
     {
         /// <summary>
-        /// The Obj having the properties in this collection
+        /// The owner of this list.
         /// </summary>
-        private TObj _Parent;
+        private TObj parent;
 
         /// <summary>
         /// The full name dictionary. These names can contain characters that are not valid for C# properties,
         /// such as the $ character often found in Javascript identifiers.
         /// </summary>
-        private readonly Dictionary<string, Template> _NameLookup = new Dictionary<string, Template>();
+        private readonly Dictionary<string, Template> nameLookup = new Dictionary<string, Template>();
 
         /// <summary>
         /// The property name dictionary contains property names that are legal to use in C#.
         /// </summary>
-        private readonly Dictionary<string, Template> _PropertyNameLookup = new Dictionary<string, Template>();
+        private readonly Dictionary<string, Template> propertyNameLookup = new Dictionary<string, Template>();
+        
         /// <summary>
-        /// The _ list
+        /// 
         /// </summary>
-        private List<Template> _List = new List<Template>();
+        private List<Template> list = new List<Template>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PropertyList" /> class.
+        /// 
         /// </summary>
-        /// <param name="parent">The parent.</param>
+        /// <param name="parent"></param>
         internal PropertyList(TObj parent) {
-            _Parent = parent;
+            this.parent = parent;
         }
 
         /// <summary>
@@ -52,7 +54,7 @@ namespace Starcounter.Templates {
         /// <returns>Template.</returns>
         /// <exception cref="System.NotImplementedException"></exception>
         public Template this[int index] {
-            get { return _List[index]; }
+            get { return list[index]; }
             set {
                 throw new NotImplementedException();
 
@@ -68,58 +70,58 @@ namespace Starcounter.Templates {
         public Template this[string id] {
             get {
                 Template ret;
-                if (!_PropertyNameLookup.TryGetValue(id, out ret))
+                if (!propertyNameLookup.TryGetValue(id, out ret))
                     return null;
                 return ret;
             }
         }
 
         /// <summary>
-        /// Gets the name of the template by.
+        /// Gets the <see cref="Template" /> with the specified name.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>Template.</returns>
         public Template GetTemplateByName(string name)
         {
             Template ret;
-            _NameLookup.TryGetValue(name, out ret);
+            nameLookup.TryGetValue(name, out ret);
             return ret;
         }
 
         /// <summary>
-        /// Get the template with the specified propertyname.
+        /// Gets the <see cref="Template" /> with the specified propertyname.
         /// </summary>
         /// <param name="propertyName"></param>
         /// <returns></returns>
         public Template GetTemplateByPropertyName(string propertyName) {
             Template ret;
-            _PropertyNameLookup.TryGetValue(propertyName, out ret);
+            propertyNameLookup.TryGetValue(propertyName, out ret);
             return ret;
         }
 
         /// <summary>
-        /// Childs the name is set.
+        /// 
         /// </summary>
-        /// <param name="item">The item.</param>
+        /// <param name="item"></param>
         internal void ChildNameIsSet(Template item) {
-            _NameLookup[item.TemplateName] = (Template)item;
+            nameLookup[item.TemplateName] = (Template)item;
         }
 
         /// <summary>
-        /// Childs the property name is set.
+        /// 
         /// </summary>
-        /// <param name="item">The item.</param>
+        /// <param name="item"></param>
         internal void ChildPropertyNameIsSet(Template item) {
-            _PropertyNameLookup[item.PropertyName] = (Template)item;
+            propertyNameLookup[item.PropertyName] = (Template)item;
         }
 
         /// <summary>
-        /// Copies to.
+        /// Copies all items to the specified array.
         /// </summary>
-        /// <param name="array">The array.</param>
-        /// <param name="arrayIndex">Index of the array.</param>
+        /// <param name="array">The destination array.</param>
+        /// <param name="arrayIndex">The start index in the source.</param>
         public void CopyTo(Template[] array, int arrayIndex) {
-            _List.CopyTo((Template[])array, arrayIndex);
+            list.CopyTo((Template[])array, arrayIndex);
         }
 
         /// <summary>
@@ -128,20 +130,20 @@ namespace Starcounter.Templates {
         /// <value>The count.</value>
         /// <returns>The number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.</returns>
         public int Count {
-            get { return _List.Count; }
+            get { return list.Count; }
         }
 
         /// <summary>
-        /// Indexes the of.
+        /// Gets the index in the list of the specified item.
         /// </summary>
         /// <param name="item">The item.</param>
         /// <returns>System.Int32.</returns>
         int IList<Template>.IndexOf(Template item) {
-            return _List.IndexOf((Template)item);
+            return list.IndexOf((Template)item);
         }
 
         /// <summary>
-        /// Inserts the specified index.
+        /// Inserts the item at the specified index.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="item">The item.</param>
@@ -152,7 +154,7 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Removes at.
+        /// Removed the item at the specified index.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <exception cref="System.NotImplementedException"></exception>
@@ -169,7 +171,7 @@ namespace Starcounter.Templates {
         /// <exception cref="System.NotImplementedException"></exception>
         Template IList<Template>.this[int index] {
             get {
-                return _List[index];
+                return list[index];
             }
             set {
                 throw new NotImplementedException();
@@ -189,28 +191,28 @@ namespace Starcounter.Templates {
             Template newTemplate = (Template)item;
             PropertyList props;
 
-            if (_Parent.Sealed)
+            if (parent.Sealed)
                 throw new Exception("This template is already used by an App. Cannot add more properties.");
             if (newTemplate.Parent != null)
                 throw new Exception("Item already has a parent");
 
-            existing = _NameLookup[newTemplate.TemplateName];
+            existing = nameLookup[newTemplate.TemplateName];
             if (existing == null)
                 throw new Exception("No item to replace found.");
 
-            props = _Parent.Properties;
-            props._NameLookup.Remove(newTemplate.TemplateName);
+            props = parent.Properties;
+            props.nameLookup.Remove(newTemplate.TemplateName);
             props.ChildNameIsSet(newTemplate);
 
             if (newTemplate.PropertyName != null)
             {
-                props._PropertyNameLookup.Remove(existing.PropertyName);
+                props.propertyNameLookup.Remove(existing.PropertyName);
                 props.ChildPropertyNameIsSet(newTemplate);
             }
-            newTemplate._Parent = _Parent;
+            newTemplate._Parent = parent;
             newTemplate.TemplateIndex = existing.TemplateIndex;
-            _List[newTemplate.TemplateIndex] = newTemplate;
-            _Parent.OnPropertyAdded(newTemplate);
+            list[newTemplate.TemplateIndex] = newTemplate;
+            parent.OnPropertyAdded(newTemplate);
         }
 
         /// <summary>
@@ -220,22 +222,22 @@ namespace Starcounter.Templates {
         /// <exception cref="System.Exception">This template is already used by an App. Cannot add more properties.</exception>
         public void Add(Template item) {
             Template t = (Template)item;
-            if (_Parent.Sealed)
+            if (parent.Sealed)
                 throw new Exception("This template is already used by an App. Cannot add more properties.");
             if (t.Parent != null)
                 throw new Exception("Item already has a parent");
             if (t.TemplateName != null) {
-                var props = (PropertyList)(_Parent.Properties);
+                var props = (PropertyList)(parent.Properties);
                 props.ChildNameIsSet(t);
             }
             if (item.PropertyName != null) {
-                var props = (PropertyList)(_Parent.Properties);
+                var props = (PropertyList)(parent.Properties);
                 props.ChildPropertyNameIsSet(t);
             }
-            t._Parent = this._Parent;
+            t._Parent = this.parent;
             t.TemplateIndex = this.Count; // Last one in list (added below)
-            _List.Add(t);
-            _Parent.OnPropertyAdded(t);
+            list.Add(t);
+            parent.OnPropertyAdded(t);
         }
 
         /// <summary>
@@ -248,21 +250,21 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Determines whether [contains] [the specified item].
+        /// Checks if the specified item exists in the list.
         /// </summary>
         /// <param name="item">The item.</param>
         /// <returns><c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.</returns>
         bool ICollection<Template>.Contains(Template item) {
-            return _List.Contains((Template)item);
+            return list.Contains((Template)item);
         }
 
         /// <summary>
-        /// Copies to.
+        /// Copies all items to the specified array.
         /// </summary>
-        /// <param name="array">The array.</param>
-        /// <param name="arrayIndex">Index of the array.</param>
+        /// <param name="array">The destination array.</param>
+        /// <param name="arrayIndex">The start index in the source.</param>
         void ICollection<Template>.CopyTo(Template[] array, int arrayIndex) {
-            _List.CopyTo((Template[])array, arrayIndex);
+            list.CopyTo((Template[])array, arrayIndex);
         }
 
         /// <summary>
@@ -271,7 +273,7 @@ namespace Starcounter.Templates {
         /// <value>The count.</value>
         /// <returns>The number of elements contained in the <see cref="T:System.Collections.Generic.ICollection`1" />.</returns>
         int ICollection<Template>.Count {
-            get { return _List.Count; }
+            get { return list.Count; }
         }
 
         /// <summary>
@@ -299,7 +301,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <returns>IEnumerator{ITemplate}.</returns>
         IEnumerator<Template> IEnumerable<Template>.GetEnumerator() {
-            return (IEnumerator<Template>)_List.GetEnumerator();
+            return (IEnumerator<Template>)list.GetEnumerator();
         }
 
         /// <summary>
@@ -307,7 +309,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <returns>An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.</returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-            return _List.GetEnumerator();
+            return list.GetEnumerator();
         }
 
         /// <summary>
