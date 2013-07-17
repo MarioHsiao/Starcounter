@@ -8,7 +8,6 @@ namespace Starcounter.Internal {
     // Can't figure out a good name for this class. Should probably be renamed and moved.
     public static class PersonalServerProcess {
         private const string serverOnlineEventName = "SCCODE_EXE_ADMINISTRATOR";
-        private static EventWaitHandle serverOnlineEvent = new EventWaitHandle(false, EventResetMode.ManualReset, serverOnlineEventName);
 
         /// <summary>
         /// Checks if the personal server is up and running and is available for new requests.
@@ -51,22 +50,27 @@ namespace Starcounter.Internal {
         /// <param name="serverProcess"></param>
         private static void WaitUntilServerIsOnline(Process serverProcess) {
             int retries = 60;
-            int timeout = 1000; // Will wait maximum 1 minute for server to come online.
+            int timeout = 1000; // timeout per wait for signal, not total timeout wait.
             bool signaled;
+            EventWaitHandle serverOnlineEvent = null;
 
             while (true) {
                 retries--;
                 if (retries == 0)
                     throw ErrorCode.ToException(Error.SCERRWAITTIMEOUT);
 
-                signaled = serverOnlineEvent.WaitOne(timeout);
-                if (signaled)
-                    break;
+                if (serverOnlineEvent == null && !EventWaitHandle.TryOpenExisting(serverOnlineEventName, out serverOnlineEvent)) {
+                    Thread.Sleep(100);
+                } else {
+                    signaled = serverOnlineEvent.WaitOne(timeout);
+                    if (signaled)
+                        break;
+                }
 
                 if (serverProcess.HasExited) {
                     uint errorCode = (uint)serverProcess.ExitCode;
                     if (errorCode != 0) {
-                        throw ErrorCode.ToException(errorCode);    
+                        throw ErrorCode.ToException(errorCode);
                     }
                     throw ErrorCode.ToException(Error.SCERRSERVERNOTAVAILABLE);
                 }
