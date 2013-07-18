@@ -39,8 +39,23 @@ namespace Starcounter.Internal {
         public static void Start() {
             string scBin = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
             string exePath = Path.Combine(scBin, StarcounterConstants.ProgramNames.ScService) + ".exe";
+
+            UglyWorkaroundForExistingOnlineEvent();
             Process p = Process.Start(exePath);
             WaitUntilServerIsOnline(p);
+        }
+
+        /// <summary>
+        /// Workaround for the online event that sometimes exists even though the server is 
+        /// not started. If it exists we reset it. We assume here that the server is not started.
+        /// </summary>
+        private static void UglyWorkaroundForExistingOnlineEvent() {
+            EventWaitHandle serverOnlineEvent;
+
+            if (EventWaitHandle.TryOpenExisting(serverOnlineEventName, out serverOnlineEvent)) {
+                // The event exists. Let reset it so we can block until the new server is online.
+                serverOnlineEvent.Reset();
+            }
         }
 
         /// <summary>
