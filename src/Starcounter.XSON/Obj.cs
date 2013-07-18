@@ -144,6 +144,7 @@ namespace Starcounter {
                 return (IBindable)data;
             }
             set {
+                if (Template == null) throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
                 InternalSetData(value);
             }
         }
