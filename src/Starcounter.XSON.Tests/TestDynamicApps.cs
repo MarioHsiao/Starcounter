@@ -29,6 +29,33 @@ namespace Starcounter.XSON.Tests {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        [Test]
+        public static void UseJsonWithNoTemplate() {
+            var json = new Json();
+            AssertCorrectErrorCodeIsThrown(() => { json.Data = new SubClass1(); }, Error.SCERRTEMPLATENOTSPECIFIED);
+            AssertCorrectErrorCodeIsThrown(() => { var str = json.ToJson(); }, Error.SCERRTEMPLATENOTSPECIFIED);
+        }
+
+        private static void AssertCorrectErrorCodeIsThrown(Action action, uint expectedErrorCode) {
+            uint ec;
+
+            try {
+                action();
+                Assert.Fail("An exception with error " + ErrorCode.ToFacilityCode(expectedErrorCode) + " should have been thrown");
+            } catch (Exception ex) {
+                if (ErrorCode.TryGetCode(ex, out ec)) {
+                    if (ec != expectedErrorCode)
+                        Assert.Fail("An exception with error " + ErrorCode.ToFacilityCode(expectedErrorCode) + " should have been thrown");
+                } else {
+                    Assert.Fail("An exception with error " + ErrorCode.ToFacilityCode(expectedErrorCode) + " should have been thrown");
+                }
+            }
+        }
+
+
+        /// <summary>
         /// Creates a template (schema) and Puppets using that schema in code.
         /// </summary>
         /// <remarks>

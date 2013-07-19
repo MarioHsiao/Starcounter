@@ -8,9 +8,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+//using System.Linq;
 using Starcounter.LucentObjects;
 using Starcounter.Query.Execution;
 using Sc.Query.Execution;
+using System.ComponentModel;
 
 namespace Starcounter
 {
@@ -79,7 +81,7 @@ namespace Starcounter
                 //execEnum = Scheduler.GetInstance().ClientExecEnumCache.GetCachedEnumerator(query);
 #endif
             try {
-                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query);
+                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query, typeof(T));
 
                 // Check if the query includes anything non-supported.
                 if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {
@@ -145,7 +147,7 @@ namespace Starcounter
                     if (execEnum != null) execEnum.Dispose();
                 }
 
-                return current;
+                    return current;
             }
         }
 

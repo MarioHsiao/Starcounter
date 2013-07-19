@@ -115,7 +115,7 @@ public sealed class SqlEnumCache
     /// <summary>
     /// Gets an already existing enumerator corresponding to the query from the cache or creates a new one.
     /// </summary>
-    internal IExecutionEnumerator GetCachedEnumerator(String query)
+    internal IExecutionEnumerator GetCachedEnumerator(String query, Type expectedType)
     {
         // Trying last used enumerator.
         if (query == globalQueryCache.GetQueryString(lastUsedEnumIndex))
@@ -129,9 +129,9 @@ public sealed class SqlEnumCache
         // Checking if its completely new query.
         if (enumIndex < 0)
         {
-            enumIndex = globalQueryCache.AddNewQuery(query);
+            enumIndex = globalQueryCache.AddNewQuery(query, expectedType);
             if (totalCachedEnum == 0) // Cache was reset
-                enumIndex = globalQueryCache.AddNewQuery(query);
+                enumIndex = globalQueryCache.AddNewQuery(query, expectedType);
         }
 
         // Fetching existing enumerator using index.
