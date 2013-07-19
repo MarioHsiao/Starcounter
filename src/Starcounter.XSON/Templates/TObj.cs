@@ -121,7 +121,7 @@ namespace Starcounter.Templates {
         public string Include { get; set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private PropertyList _PropertyTemplates;
 
@@ -175,7 +175,10 @@ namespace Starcounter.Templates {
             if (t == null) {
                 t = new T() { TemplateName = name };
                 Properties.Add(t);
+            } else {
+                Properties.Expose(t);
             }
+
             return t;
         }
 
@@ -192,8 +195,10 @@ namespace Starcounter.Templates {
             if (t == null) {
                 t = new T() { TemplateName = name, App = type };
                 Properties.Add(t);
+            } else {
+                Properties.Expose(t);
             }
-            Properties.Add(t);
+
             return t;
         }
 
@@ -210,8 +215,10 @@ namespace Starcounter.Templates {
             if (t == null) {
                 t = new T() { TemplateName = name, Bind = bind, Bound = true };
                 Properties.Add(t);
+            } else {
+                Properties.Expose(t);
             }
-            Properties.Add(t);
+
             return t;
         }
 
@@ -229,8 +236,10 @@ namespace Starcounter.Templates {
             if (t == null) {
                 t = new T() { TemplateName = name, App = type, Bind = bind, Bound = true };
                 Properties.Add(t);
+            } else {
+                Properties.Expose(t);
             }
-            Properties.Add(t);
+
             return t;
         }
 

@@ -410,6 +410,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append("\";");
             a.Prefix.Add(sb.ToString());
 
+            a.Prefix.Add("        Properties.ClearExposed();");
             foreach (NBase kid in cst.Children)
             {
                 if (kid is NProperty)
