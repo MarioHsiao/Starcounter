@@ -40,11 +40,51 @@ namespace Starcounter.Templates {
         private List<Template> list = new List<Template>();
 
         /// <summary>
+        /// All properties in this list will be included when serializing a 
+        /// typed json object to ordinary json.
+        /// </summary>
+        private List<Template> exposedProperties = new List<Template>();
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="parent"></param>
         internal PropertyList(TObj parent) {
             this.parent = parent;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ClearExposed() {
+            exposedProperties.Clear();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Expose(Template template) {
+            if (template.Parent != parent)
+                throw new Exception("TODO: Errorcode. Template belongs to another object.");
+
+            exposedProperties.Add(template);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public bool IsExposed(Template template) {
+            // TODO: Faster way to look this up...
+            return exposedProperties.Contains(template);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal List<Template> ExposedProperties {
+            get { return exposedProperties; }
         }
 
         /// <summary>
@@ -237,6 +277,7 @@ namespace Starcounter.Templates {
             t._Parent = this.parent;
             t.TemplateIndex = this.Count; // Last one in list (added below)
             list.Add(t);
+            exposedProperties.Add(item);
             parent.OnPropertyAdded(t);
         }
 
