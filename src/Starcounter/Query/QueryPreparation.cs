@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using Starcounter.Binding;
 using Starcounter.Query.Execution;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.Sql;
@@ -14,7 +16,7 @@ namespace Starcounter.Query {
         /// </summary>
         /// <param name="query">Input query string to prepare</param>
         /// <returns>The result enumerated with the execution plan.</returns>
-        internal static IExecutionEnumerator PrepareQuery(String query) {
+        internal static IExecutionEnumerator PrepareQuery(String query, Type expectedType) {
 #if HELLOTEST
             Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest newAnalyzer = null;
 #else
@@ -103,10 +105,72 @@ namespace Starcounter.Query {
 
             // Checking if its LikeExecEnumerator.
             if (newEnum is LikeExecEnumerator) {
-                (newEnum as LikeExecEnumerator).CreateLikeCombinations();
+                (newEnum as LikeExecEnumerator).CreateLikeCombinations(expectedType);
             }
-
+            MatchEnumeratorResultAndExpectedType(newEnum, expectedType);
             return newEnum;
+        }
+
+        internal static void MatchEnumeratorResultAndExpectedType(IExecutionEnumerator execEnum, Type expectedType) {
+            // Check if Generic type corresponds to the query result type
+            // dynamic type corresponds to Object
+            if (expectedType == typeof(Object))
+                return;
+            Type queryResultType;
+            Boolean isValueType = false;
+            if (execEnum.TypeBinding == null) {
+                queryResultType = Type.GetType("System." + ((Starcounter.Binding.DbTypeCode)execEnum.ProjectionTypeCode).ToString());
+                isValueType = true;
+            } else {
+                queryResultType = Type.GetType(execEnum.TypeBinding.Name);
+                if (queryResultType == null)
+                    if (execEnum.TypeBinding.Name == "Starcounter.Row")
+                        queryResultType = typeof(Row);
+                    else
+                        foreach (var a in AppDomain.CurrentDomain.GetAssemblies()) {
+                            queryResultType = a.GetType(execEnum.TypeBinding.Name);
+                            if (queryResultType != null)
+                                break;
+                        }
+            }
+            Debug.Assert(queryResultType != null);
+            if (!MatchResultTypeAndExpectedType(queryResultType, isValueType, expectedType))
+                throw ErrorCode.ToException(Error.SCERRQUERYRESULTTYPEMISMATCH, "The result type " +
+                    expectedType.FullName + " cannot be assigned from the query result, which is of type " +
+                    queryResultType.FullName + ".");
+        }
+
+        public static Boolean MatchResultTypeAndExpectedType(Type sourceType, Boolean isSourceValueType, Type targetType) {
+            if (sourceType.IsValueType) {
+                Debug.Assert(isSourceValueType);
+                return Check(sourceType, targetType);
+            } else
+                return targetType.IsAssignableFrom(sourceType);
+        }
+
+        public static bool Check(Type fromType, Type toType) {
+            Type converterType = typeof(TypeConverterChecker<,>).MakeGenericType(fromType, toType);
+            object instance = Activator.CreateInstance(converterType);
+            return (bool)converterType.GetProperty("CanConvert").GetGetMethod().Invoke(instance, null);
+        }
+
+        public class TypeConverterChecker<TFrom, TTo> {
+            public bool CanConvert { get; private set; }
+
+            public TypeConverterChecker() {
+                TFrom from = default(TFrom);
+                if (from == null)
+                    if (typeof(TFrom).Equals(typeof(String)))
+                        from = (TFrom)(dynamic)"";
+                    else
+                        from = (TFrom)Activator.CreateInstance(typeof(TFrom));
+                try {
+                    TTo to = (dynamic)from;
+                    CanConvert = true;
+                } catch {
+                    CanConvert = false;
+                }
+            }
         }
     }
 }
