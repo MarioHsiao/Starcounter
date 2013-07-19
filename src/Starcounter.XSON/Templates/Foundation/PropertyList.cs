@@ -33,6 +33,11 @@ namespace Starcounter.Templates {
         /// The property name dictionary contains property names that are legal to use in C#.
         /// </summary>
         private readonly Dictionary<string, Template> propertyNameLookup = new Dictionary<string, Template>();
+
+        /// <summary>
+        /// Dictionary of names of all exposed properties.
+        /// </summary>
+        private readonly Dictionary<string, Template> exposedPropertyLookup = new Dictionary<string, Template>();
         
         /// <summary>
         /// 
@@ -58,16 +63,26 @@ namespace Starcounter.Templates {
         /// </summary>
         public void ClearExposed() {
             exposedProperties.Clear();
+            exposedPropertyLookup.Clear();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Expose(Template template) {
-            if (template.Parent != parent)
-                throw new Exception("TODO: Errorcode. Template belongs to another object.");
-
+        internal void Expose(Template template) {
             exposedProperties.Add(template);
+            exposedPropertyLookup.Add(template.TemplateName, template);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        internal Template GetExposedTemplateByName(string name) {
+            Template template;
+            exposedPropertyLookup.TryGetValue(name, out template);
+            return template;
         }
 
         /// <summary>
@@ -75,9 +90,8 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public bool IsExposed(Template template) {
-            // TODO: Faster way to look this up...
-            return exposedProperties.Contains(template);
+        internal bool IsExposed(Template template) {
+            return exposedPropertyLookup.ContainsKey(template.TemplateName);
         }
 
         /// <summary>
@@ -277,7 +291,7 @@ namespace Starcounter.Templates {
             t._Parent = this.parent;
             t.TemplateIndex = this.Count; // Last one in list (added below)
             list.Add(t);
-            exposedProperties.Add(item);
+            Expose(t);
             parent.OnPropertyAdded(t);
         }
 
