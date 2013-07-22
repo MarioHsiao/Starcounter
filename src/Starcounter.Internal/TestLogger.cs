@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -238,12 +239,12 @@ namespace Starcounter.TestFramework
             lock (LockingObject)
             {
                 // LAL_NUM_TRANSACTIONS3 2.5.1.0 300000 PUBLIC 2013-07-16-22-02-03 SCBUILDSERVER2
-                String statsString = 
+                String statsString =
                     valueName + " " +
                     BuildNumber + " " +
-                    value + " " +
+                    value.ToString("0.00", CultureInfo.InvariantCulture) + " " +
                     (IsPersonalBuild() ? "PERSONAL" : "PUBLIC") + " " +
-                    DateTime.Now + " " +
+                    DateTime.Now.ToString("s") + " " +
                     MachineName + "\n";
 
                 Console.WriteLine(statsString);
