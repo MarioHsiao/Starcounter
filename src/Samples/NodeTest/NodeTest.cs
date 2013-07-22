@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Starcounter.TestFramework;
 
 namespace NodeTest
 {
@@ -423,7 +424,11 @@ namespace NodeTest
             timer.Stop();
 
             Console.WriteLine("Test succeeded, took ms: " + timer.ElapsedMilliseconds);
-            Console.WriteLine("Echoes/second: " + ((settings.NumWorkers * settings.NumEchoesPerWorker) * 1000.0) / timer.ElapsedMilliseconds);
+
+            Double echoesPerSecond = ((settings.NumWorkers * settings.NumEchoesPerWorker) * 1000.0) / timer.ElapsedMilliseconds;
+            TestLogger.ReportStatistics("nodetest_echoes_per_second", echoesPerSecond);
+
+            Console.WriteLine("Echoes/second: " + echoesPerSecond);
 
             return 0;
         }

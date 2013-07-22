@@ -112,7 +112,6 @@
     <Compile Include="Internal\ExceptionManager.cs" />
     <Compile Include="Internal\Initialized.cs" />
     <Compile Include="Internal\TaskHelper.cs" />
-    <Compile Include="Internal\TestLogger.cs" />
     <Compile Include="Binding\IObjectProxy.cs" />
     <Compile Include="Internal\X6Decimal.cs" />
     <Compile Include="ITransactionConflictException.cs" />

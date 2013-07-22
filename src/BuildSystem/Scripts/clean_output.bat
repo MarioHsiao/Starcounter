@@ -1,3 +1,5 @@
+EXIT 0
+
 :: Checking cleanup variable.
 IF NOT "%SC_CLEAN_OUTPUT%"=="True" EXIT 0
 

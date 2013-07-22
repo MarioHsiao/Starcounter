@@ -348,7 +348,7 @@ namespace LoadAndLatency
             if (TestLogger.IsNightlyBuild())
             {
                 // Disabling logging through error console.
-                logger.TurnOffStatistics = true;
+                TestLogger.TurnOffStatistics = true;
 
                 // Running more complex multi-workers scalability test.
                 for (Int32 i = 1; i <= NumOfWorkers; i++)
@@ -390,7 +390,7 @@ namespace LoadAndLatency
                 }
 
                 // Enabling logging through error console and important messages.
-                logger.TurnOffStatistics = false;
+                TestLogger.TurnOffStatistics = false;
             }
 
             // Indicating successful finish of the work.
@@ -455,9 +455,9 @@ namespace LoadAndLatency
             Int32 averageObjInsertNs = (Int32)(averageObjInsertMcs * 1000.0);
 
             if (startedOnClient)
-                ReportStatistics("LALInsertAverageBigTransClient", averageObjInsertNs);
+                TestLogger.ReportStatistics("loadandlatency_insert_average_big_transaction_client", averageObjInsertNs);
             else
-                ReportStatistics("LALInsertAverageBigTransServer", averageObjInsertNs);
+                TestLogger.ReportStatistics("loadandlatency_insert_average_big_transaction_server", averageObjInsertNs);
         }
 
         /// <summary>
@@ -842,38 +842,30 @@ namespace LoadAndLatency
             LogEvent("---------------------------------------------------------------");
         }
 
-        void ReportStatistics(String valueName, Int32 value)
-        {
-            if (TestLogger.IsPersonalBuild() || TestLogger.IsNightlyBuild())
-                return;
-
-            logger.ReportStatistics(valueName, value);
-        }
-
         void ReportStatisticsValueForType(Boolean useIndividualTransactions, Int32 nsPerSelect, String transType, String dataType)
         {
             if (useIndividualTransactions)
             {
                 if (startedOnClient)
-                    ReportStatistics("LAL" + dataType + transType + "IndivTransClient", nsPerSelect);
+                    TestLogger.ReportStatistics("loadandlatency_" + dataType.ToLower() + "_" + transType.ToLower() + "_individual_transaction_client", nsPerSelect);
                 else
-                    ReportStatistics("LAL" + dataType + transType + "IndivTransServer", nsPerSelect);
+                    TestLogger.ReportStatistics("loadandlatency_" + dataType.ToLower() + "_" + transType.ToLower() + "_individual_transaction_server", nsPerSelect);
             }
             else
             {
                 if (startedOnClient)
-                    ReportStatistics("LAL" + dataType + transType + "BigTransClient", nsPerSelect);
+                    TestLogger.ReportStatistics("loadandlatency_" + dataType.ToLower() + "_" + transType.ToLower() + "_big_transaction_client", nsPerSelect);
                 else
-                    ReportStatistics("LAL" + dataType + transType + "BigTransServer", nsPerSelect);
+                    TestLogger.ReportStatistics("loadandlatency_" + dataType.ToLower() + "_" + transType.ToLower() + "_big_transaction_server", nsPerSelect);
             }
         }
 
         void ReportStatisticsValueForTrans(Int32 numberOfTrans, String transType, String dataType)
         {
             if (startedOnClient)
-                ReportStatistics("LAL" + dataType + transType + "TransMachineClient", numberOfTrans);
+                TestLogger.ReportStatistics("loadandlatency_" + dataType.ToLower() + "_" + transType.ToLower() + "_transactions_per_machine_client", numberOfTrans);
             else
-                ReportStatistics("LAL" + dataType + transType + "TransMachineServer", numberOfTrans);
+                TestLogger.ReportStatistics("loadandlatency_" + dataType.ToLower() + "_" + transType.ToLower() + "_transactions_per_machine_server", numberOfTrans);
         }
 
         void SQLSelectTest_Client(Object workerParams)
@@ -1754,9 +1746,9 @@ namespace LoadAndLatency
                     elapsedMcs));
 
                 if (startedOnClient)
-                    ReportStatistics(String.Format("LALClient{0}Trans{1}_Objects{2}", operString, numTransactions, objectsPerTransaction), nsPerSimpleObj);
+                    TestLogger.ReportStatistics(String.Format("loadandlatency_client_{0}_transactions_{1}_objects_{2}", operString, numTransactions, objectsPerTransaction), nsPerSimpleObj);
                 else
-                    ReportStatistics(String.Format("LALServer{0}Trans{1}_Objects{2}", operString, numTransactions, objectsPerTransaction), nsPerSimpleObj);
+                    TestLogger.ReportStatistics(String.Format("loadandlatency_server_{0}_transactions_{1}_objects_{2}", operString, numTransactions, objectsPerTransaction), nsPerSimpleObj);
             }
 
             // Adding to global counter.

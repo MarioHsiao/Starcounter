@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackArtifactsAndUpload", "P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorHelpPages", "ErrorHelpPages\ErrorHelpPages.csproj", "{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostBuildTask", "PostBuildTask\PostBuildTask.csproj", "{D5BF23F4-CF2A-46A6-9148-C79CF50A729B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -79,6 +81,10 @@ Global
 		{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}.Debug|AnyCPU.Build.0 = Debug|Any CPU
 		{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}.Release|AnyCPU.Build.0 = Release|Any CPU
+		{D5BF23F4-CF2A-46A6-9148-C79CF50A729B}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
+		{D5BF23F4-CF2A-46A6-9148-C79CF50A729B}.Debug|AnyCPU.Build.0 = Debug|Any CPU
+		{D5BF23F4-CF2A-46A6-9148-C79CF50A729B}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{D5BF23F4-CF2A-46A6-9148-C79CF50A729B}.Release|AnyCPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
