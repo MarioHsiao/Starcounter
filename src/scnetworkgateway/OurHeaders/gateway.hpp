@@ -996,13 +996,18 @@ _declspec(align(64)) struct ScSessionStructPlus
         Reset();
     }
 
+    void ResetTimestamp()
+    {
+        session_timestamp_ = 0;
+    }
+
     // Resets the session struct.
     void Reset()
     {
         session_.Reset();
 
         port_index_ = INVALID_PORT_INDEX;
-        session_timestamp_ = 0;
+        ResetTimestamp();
         unique_socket_id_ = INVALID_SESSION_SALT;
         active_socket_flag_ = false;
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
@@ -1728,11 +1733,11 @@ public:
     }
 
     // Checking if unique socket number is correct.
-    bool CompareUniqueSocketId(SOCKET s, session_salt_type socket_id)
+    bool CompareUniqueSocketId(SOCKET s, session_salt_type unique_socket_id)
     {
         GW_ASSERT(s < setting_max_connections_);
 
-        return (all_sessions_unsafe_[s].unique_socket_id_ == socket_id);
+        return (all_sessions_unsafe_[s].unique_socket_id_ == unique_socket_id);
     }
 
     // Setting client IP address info.
@@ -2483,7 +2488,7 @@ public:
                 session_plus->session_.Reset();
 
                 // Setting the session time stamp to zero.
-                session_plus->session_timestamp_ = 0;
+                session_plus->ResetTimestamp();
 
                 // Decrementing number of active sessions.
                 ChangeNumActiveSessions(-1);

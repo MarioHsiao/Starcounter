@@ -147,11 +147,12 @@ namespace NodeTest
             if (!async_)
             {
                 Response resp = node.POST("/nodetest", body_bytes_, null, null);
+
                 return CheckResponse(resp);
             }
             else
             {
-                node.POST("/nodetest", body_bytes_, null, null, (Response resp) =>
+                node.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
                 {
                     CheckResponse(resp);
                     return null;

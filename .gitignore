@@ -27,6 +27,19 @@ src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.dll
 src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.pdb
 src/Starcounter.ErrorCodes/scerrres/scerrres.h
 
+# Documentation build
+src/BuildSystem/Documentation/InternalDoc/build
+src/BuildSystem/Documentation/InternalDoc/script
+src/BuildSystem/Documentation/InternalDoc/scripts
+src/BuildSystem/Documentation/InternalDoc/images
+src/BuildSystem/Documentation/InternalDoc/dotnetimages
+
+src/BuildSystem/Documentation/PublicDoc/build
+src/BuildSystem/Documentation/PublicDoc/script
+src/BuildSystem/Documentation/PublicDoc/scripts
+src/BuildSystem/Documentation/PublicDoc/images
+src/BuildSystem/Documentation/PublicDoc/dotnetimages
+
 *.ncrunchsolution
 
 src/Starcounter.SqlParser/Parser/gram.c
