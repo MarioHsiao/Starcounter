@@ -83,8 +83,12 @@ namespace PostBuildTask
 
             Console.WriteLine("Writing build statistics to public statistics...");
 
-            String tempString = File.ReadAllText(buildTempStatisticsFilePath) + "\";";
-            Byte[] tempBytes = Encoding.ASCII.GetBytes(tempString);
+            String[] tempLines = File.ReadAllLines(buildTempStatisticsFilePath);
+            String tempString = "";
+            foreach (String line in tempLines)
+                tempString += "\\n\\" + Environment.NewLine + line;
+
+            Byte[] tempBytes = Encoding.ASCII.GetBytes(tempString + "\";");
 
             FileStream fs = null;
 
