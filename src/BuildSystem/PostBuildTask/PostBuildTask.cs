@@ -117,35 +117,44 @@ namespace PostBuildTask
         // Path to build statistics file.
         static readonly String BuildStatisticsFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "ScBuildStatistics.txt");
 
-        static void Main(string[] args)
+        static Int32 Main(string[] args)
         {
-            // Getting current build configuration.
-            String configuration = Environment.GetEnvironmentVariable("Configuration");
-            if (configuration == null)
+            try
             {
-                throw new Exception("Environment variable 'Configuration' does not exist.");
-            }
+                // Getting current build configuration.
+                String configuration = Environment.GetEnvironmentVariable("Configuration");
+                if (configuration == null)
+                {
+                    throw new Exception("Environment variable 'Configuration' does not exist.");
+                }
 
-            // Getting sources directory.
-            String sourcesDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
-            if (sourcesDir == null)
+                // Getting sources directory.
+                String sourcesDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
+                if (sourcesDir == null)
+                {
+                    throw new Exception("Environment variable 'SC_CHECKOUT_DIR' does not exist.");
+                }
+
+                // Getting the path to current build consolidated folder.
+                String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
+
+                // Killing interrupting processes.
+                Console.WriteLine("Killing disturbing processes...");
+                BuildSystem.KillAll();
+                Thread.Sleep(10000);
+
+                // Checking if output should be cleaned.
+                CleanOutputDirectory(outputFolder);
+
+                // Copying build statistics file into public statistics.
+                WriteStatisticsFromBuildToPublic(BuildStatisticsFilePath, PublicStatisticsFilePath);
+
+                return 0;
+            }
+            catch (Exception generalException)
             {
-                throw new Exception("Environment variable 'SC_CHECKOUT_DIR' does not exist.");
+                return BuildSystem.LogException(generalException);
             }
-
-            // Getting the path to current build consolidated folder.
-            String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
-
-            // Killing interrupting processes.
-            Console.WriteLine("Killing disturbing processes...");
-            BuildSystem.KillAll();
-            Thread.Sleep(10000);
-
-            // Checking if output should be cleaned.
-            CleanOutputDirectory(outputFolder);
-
-            // Copying build statistics file into public statistics.
-            WriteStatisticsFromBuildToPublic(BuildStatisticsFilePath, PublicStatisticsFilePath);
         }
     }
 }
