@@ -111,6 +111,7 @@
     <Compile Include="Mock\StarcounterEnvironment.cs" />
     <Compile Include="ScUri.cs" />
     <Compile Include="StarcounterBase.cs" />
+    <Compile Include="TestLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
