@@ -329,8 +329,9 @@ namespace LoadAndLatency
             }
 
             // Testing that recreation/offset key works.
-            SQLTestOffsetKeySimple();
-            SQLTestOffsetKey();
+            // TODO: Reenable.
+            //SQLTestOffsetKeySimple();
+            //SQLTestOffsetKey();
 
             // First VS Foreach performance.
             FirstVsForeach();
