@@ -108,13 +108,13 @@ namespace LoadAndLatency
 
         public enum LALSpecificTestType
         {
-            LAL_STANDARD_TEST,
+            LAL_DEFAULT_TEST,
             LAL_PARALLEL_READ_ONLY_TEST,
             LAL_PARALLEL_UPDATES_TEST
         }
 
         // Specific LAL test type if any.
-        public LALSpecificTestType SpecificTestType = LALSpecificTestType.LAL_STANDARD_TEST;
+        public LALSpecificTestType SpecificTestType = LALSpecificTestType.LAL_DEFAULT_TEST;
 
         // Number of different query types.
         readonly Int32 NumOfQueryTypes = 0;

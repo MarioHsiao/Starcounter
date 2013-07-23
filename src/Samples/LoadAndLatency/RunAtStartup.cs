@@ -78,7 +78,7 @@ namespace LoadAndLatencyStartup
         static Int32 Main(string[] args)
         {
             Int32 numWorkers = 0, transactionsMagnifier = 0, minNightlyWorkers = 0;
-            LoadAndLatencyCore.LALSpecificTestType specificTestType = LoadAndLatencyCore.LALSpecificTestType.LAL_STANDARD_TEST;
+            LoadAndLatencyCore.LALSpecificTestType specificTestType = LoadAndLatencyCore.LALSpecificTestType.LAL_DEFAULT_TEST;
 
             // Processing command line arguments.
             if (!ProcessParams(
@@ -100,7 +100,7 @@ namespace LoadAndLatencyStartup
                 lal.ChangeTransactionsMagnifier(transactionsMagnifier);
 
             // Setting specific type of test, if any.
-            if (specificTestType != LoadAndLatencyCore.LALSpecificTestType.LAL_STANDARD_TEST)
+            if (specificTestType != LoadAndLatencyCore.LALSpecificTestType.LAL_DEFAULT_TEST)
                 lal.SpecificTestType = specificTestType;
 
             // Setting number of logical processors.
