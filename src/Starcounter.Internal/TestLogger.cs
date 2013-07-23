@@ -207,7 +207,7 @@ namespace Starcounter.TestFramework
         }
 
         // Path to build statistics file.
-        static readonly String BuildStatisticsFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "ScBuildStatistics.txt");
+        static readonly String BuildStatisticsFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScBuildStatistics.txt");
 
         // Machine name e.g. SCBUILDSERVER
         static readonly String MachineName = System.Environment.MachineName;
@@ -215,16 +215,7 @@ namespace Starcounter.TestFramework
         // Build number e.g. 2.0.0.1
         static readonly String BuildNumber = Environment.GetEnvironmentVariable("BUILD_NUMBER");
 
-        // Static constructor on statistics logger.
-        static TestLogger()
-        {
-            lock (LockingObject)
-            {
-                if (File.Exists(BuildStatisticsFilePath))
-                    File.Delete(BuildStatisticsFilePath);
-            }
-        }
-
+        // Object used for exclusive access for statistics reporting.
         static Object LockingObject = new Object();
 
         /// <summary>
