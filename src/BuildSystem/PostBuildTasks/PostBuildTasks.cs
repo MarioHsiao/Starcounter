@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PostBuildTask
+namespace PostBuildTasks
 {
-    class PostBuildTask
+    class PostBuildTasks
     {
         /// <summary>
         /// Directories in output that should be deleted before packaging into one installer.
@@ -114,9 +114,6 @@ namespace PostBuildTask
         // Path to final statistics file.
         static readonly String PublicStatisticsFilePath = BuildSystem.PublicLogDir + "\\BuildsStatistics.js";
 
-        // Path to build statistics file.
-        static readonly String BuildStatisticsFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "ScBuildStatistics.txt");
-
         static Int32 Main(string[] args)
         {
             try
@@ -147,7 +144,7 @@ namespace PostBuildTask
                 CleanOutputDirectory(outputFolder);
 
                 // Copying build statistics file into public statistics.
-                WriteStatisticsFromBuildToPublic(BuildStatisticsFilePath, PublicStatisticsFilePath);
+                WriteStatisticsFromBuildToPublic(BuildSystem.BuildStatisticsFilePath, PublicStatisticsFilePath);
 
                 return 0;
             }

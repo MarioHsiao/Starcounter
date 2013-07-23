@@ -41,6 +41,9 @@ namespace BuildSystemHelper
         // Temporary directory path.
         public static readonly String TempDirectory = Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.Machine);
 
+        // Path to build statistics file.
+        public static readonly String BuildStatisticsFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScBuildStatistics.txt");
+
         // Random numbers generator.
         static Random RandomGen = new Random();
 
