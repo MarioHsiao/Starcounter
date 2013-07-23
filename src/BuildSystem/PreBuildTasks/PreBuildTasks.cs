@@ -15,7 +15,10 @@ namespace PreBuildTasks
             try
             {
                 if (File.Exists(BuildSystem.BuildStatisticsFilePath))
+                {
+                    Console.WriteLine("Deleting existing build statistics file...");
                     File.Delete(BuildSystem.BuildStatisticsFilePath);
+                }
 
                 return 0;
             }

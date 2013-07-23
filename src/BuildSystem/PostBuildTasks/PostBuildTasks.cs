@@ -105,7 +105,7 @@ namespace PostBuildTasks
                 }
             }
 
-            fs.Seek(2, SeekOrigin.End);
+            fs.Seek(-2, SeekOrigin.End);
             fs.Write(tempBytes, 0, tempBytes.Length);
 
             fs.Close();
