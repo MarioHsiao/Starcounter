@@ -121,6 +121,26 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scop
     }
 
     // Init
+    // Handsontable (fixed the height)
+    var $window = $(window);
+    var winHeight = $window.height();
+    var winWidth = $window.width();
+
+    $window.resize(function () {
+        winHeight = $window.height();
+        winWidth = $window.width();
+    });
+
+    $scope.calcHeight = function () {
+        var border = 12;
+        var topOffset = $("#handsontable").offset().top;
+        var height = winHeight - topOffset - 2 * border;
+        if (height < 50) {
+            return 50;
+        }
+        return height;
+    };
+
     $scope._RefreshDatabases(function () {
         // success
         for (var i = 0 ; i < $scope.databases.length ; i++) {
