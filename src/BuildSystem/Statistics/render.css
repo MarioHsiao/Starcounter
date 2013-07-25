@@ -1,0 +1,23 @@
+﻿body {
+    background: #ffffff;
+    margin: 0 auto;
+    font-family: Arial;
+    font-size: larger;
+}
+
+hr {
+    color: #AAAAAA;
+    background-color: #AAAAAA;
+    height: 2px;
+}
+
+.floating-menu
+{
+    position: fixed;
+    right: 0px;
+    background: #eeeeee;
+    border: 5px solid #99BB99;
+    width: 800px;
+    z-index: 100;
+    overflow: scroll;
+}
