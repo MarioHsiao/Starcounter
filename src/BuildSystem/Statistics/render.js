@@ -44,10 +44,10 @@ function DrawPlot(plotName, plotWidth, plotHeight, testInfo) {
     }
         
 	var lines = r.linechart(
-        50,
-        50,
-        plotWidth - 300,
-        plotHeight - 100,
+        100,
+        100,
+        plotWidth - 400,
+        plotHeight - 200,
         [plotXValues],
         [plotYValues],
         { nostroke: false, axis: "0 0 0 1", symbol: "circle", smooth: true, width: 3, colors: ["#008888"], dash: ["-"] }
@@ -75,7 +75,7 @@ function RenderAllPlots(tests) {
 
     // Drawing new plot entries.
     for (var i = 0; i < globalTests.allTests.length; i++)
-        DrawPlot("canvas" + i, 1200, 300, tests.allTests[i]);
+        DrawPlot("canvas" + i, 1200, 600, tests.allTests[i]);
 }
 
 window.onload = function () {
