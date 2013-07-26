@@ -527,7 +527,7 @@ namespace Starcounter.Advanced
                 Byte[] responseBytes = new Byte[headersBytes.Length + bytes.Length];
 
                 System.Buffer.BlockCopy(headersBytes, 0, responseBytes, 0, headersBytes.Length);
-                System.Buffer.BlockCopy(bodyBytes_, 0, responseBytes, headersBytes.Length, bytes.Length);
+                System.Buffer.BlockCopy(bytes, 0, responseBytes, headersBytes.Length, bytes.Length);
 
                 // Finally setting the uncompressed bytes.
                 Uncompressed = responseBytes;
