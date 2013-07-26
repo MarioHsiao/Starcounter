@@ -87,7 +87,6 @@
     <Compile Include="ExtensionMethods\NodeExtensions.cs" />
     <Compile Include="ExtensionMethods\ResponseExtensions.cs" />
     <Compile Include="Http\HttpRequestNext.cs" />
-    <Compile Include="Http\HttpStatusCodeAndReason.cs" />
     <Compile Include="RequestHandler\AstTree\AstTreeGenerator.VerificationBytes.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstAtEndVerifier.cs" />
     <Compile Include="RequestHandler\AstTree\Nodes\AstError.cs" />
@@ -118,7 +117,6 @@
     <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />
     <Compile Include="RequestHandler\RequestHandler.cs" />
     <Compile Include="Http\HttpRequestWriter.cs" />
-    <Compile Include="Http\HttpResponseBuilder.cs" />
     <Compile Include="RequestHandler\RequestProcessor\RequestProcessor.cs" />
     <Compile Include="RequestHandler\RequestProcessor\SingleRequestProcessor.cs" />
     <Compile Include="RequestHandler\RequestProcessor\TopLevelRequestProcessor.cs" />

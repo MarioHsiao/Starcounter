@@ -83,10 +83,14 @@
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
-    <Compile Include="HttpSessions.cs" />
-    <Compile Include="HttpStructs.cs" />
+    <Compile Include="Http\HttpSessions.cs" />
+    <Compile Include="Http\HttpStructs.cs" />
+    <Compile Include="Http\HttpResponseBuilder.cs" />
+    <Compile Include="Http\HttpStatusCodeAndReason.cs" />
     <Compile Include="Http\Request.cs" />
+    <Compile Include="Http\Response.Construction.cs" />
     <Compile Include="Http\Response.cs" />
+    <Compile Include="Http\Response.Fixed.cs" />
     <Compile Include="IDb.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="Error.cs" />
@@ -98,7 +102,9 @@
     <Compile Include="ErrorHandling\ParsedErrorMessage.cs" />
     <Compile Include="IBindable.cs" />
     <Compile Include="IHttpRestServer.cs" />
+    <Compile Include="Intrinsics.cs" />
     <Compile Include="IREST.cs" />
+    <Compile Include="IHypermedia.cs" />
     <Compile Include="ISqlResult.cs" />
     <Compile Include="ITransaction.cs" />
     <Compile Include="KeyValueBinary.cs" />

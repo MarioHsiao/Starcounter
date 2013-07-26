@@ -2,6 +2,7 @@
 using HttpStructs;
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -70,6 +71,26 @@ namespace Starcounter.Advanced {
             get { return port_number_; }
             set { port_number_ = value; }
         }
+
+
+        /// <summary>
+        /// TODO! Implement!
+        /// </summary>
+        public MimeType PreferredMimeType {
+            get {
+                return MimeType.application_json;
+            }
+        }
+
+        /// <summary>
+        /// TODO! Implement!
+        /// </summary>
+        public IEnumerator<MimeType> PreferredMimeTypes {
+            get {
+                return (new List<MimeType>()).GetEnumerator();
+            }
+        }
+
 
         /// <summary>
         /// Indicates if this Request is internally constructed from Apps.

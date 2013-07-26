@@ -69,7 +69,7 @@ namespace Starcounter {
     /// the garbage collected heap. This is such that stateful sessions can employ them without causing unnecessary system
     /// stress.
     /// </remarks>
-    public abstract partial class Obj : Container {
+    public abstract partial class Obj : Container, IHypermedia {
 
         /// <summary>
         /// Static constructor to automatically initialize XSON.
@@ -335,5 +335,11 @@ namespace Starcounter {
         public bool LogChanges { get; set; }
 
         public abstract void ProcessInput<V>(TValue<V> template, V value);
+
+
     }
+
+
+
+
 }
