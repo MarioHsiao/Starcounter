@@ -5,6 +5,7 @@ using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
+using Starcounter.Internal.Web;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -105,7 +106,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                         #endregion
 
-                        return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
+                        return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
 
                     }
                     catch (Exception e) {

@@ -49,7 +49,7 @@ namespace Starcounter.Internal {
             StarcounterBase._DB = new DbImpl();
 
             // Setting the response handler.
-            Node.SetHandleResponse(AppServer_.HandleResponse);
+            Node.SetHandleResponse(AppServer_.OnResponse);
 
             // Giving REST needed delegates.
             UserHandlerCodegen.Setup(
@@ -154,8 +154,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(Request request)
-        {
+        private static Boolean OnHttpMessageRoot(Request request) {
             Response response = AppServer_.HandleRequest(request);
 
             if (response != null)

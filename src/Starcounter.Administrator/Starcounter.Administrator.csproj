@@ -387,9 +387,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+<<<<<<< Updated upstream
   <ItemGroup>
     <Compile Include="API\Handlers\DatabaseHandler.DELETE.cs" />
   </ItemGroup>
+=======
+>>>>>>> Stashed changes
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

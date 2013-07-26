@@ -1,4 +1,6 @@
-﻿/*--------------------------------------------------------------------------
+﻿using Starcounter.Advanced;
+using Starcounter.Internal.Web;
+/*--------------------------------------------------------------------------
 * DynamicJson
 * ver 1.2.0.0 (May. 21th, 2010)
 *
@@ -427,5 +429,13 @@ namespace Codeplex.Data
             }
             return CreateJsonString(new XStreamingElement("root", CreateTypeAttr(jsonType), xml.Elements()));
         }
+
+        public static implicit operator Response(DynamicJson dynJson) {
+            var response = new Response() {
+                Uncompressed = HttpResponseBuilder.FromJsonUTF8Content(System.Text.Encoding.UTF8.GetBytes(dynJson.ToString()))
+            };
+            return response;
+        }
+
     }
 }

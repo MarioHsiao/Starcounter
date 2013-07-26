@@ -51,6 +51,15 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Master.json.cs">
+      <DependentUpon>Master.json</DependentUpon>
+    </Compile>
+    <Compile Include="Page1.json.cs">
+      <DependentUpon>Page1.json</DependentUpon>
+    </Compile>
+    <Compile Include="Page2.json.cs">
+      <DependentUpon>Page2.json</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -88,11 +97,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <TypedJSON Include="TestMsg.json">
+    <TypedJSON Include="Page1.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Page2.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
   <ItemGroup>
+    <TypedJSON Include="Master.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
     <None Include="run_SPA.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
