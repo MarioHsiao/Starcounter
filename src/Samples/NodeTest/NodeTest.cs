@@ -93,6 +93,8 @@ namespace NodeTest
 
         Boolean async_;
 
+        Boolean useNodeX_;
+
 #if !FASTEST_POSSIBLE
         Byte[] correct_hash_;
 #endif
@@ -115,6 +117,7 @@ namespace NodeTest
             worker_ = worker;
             unique_id_ = unique_id;
             async_ = async;
+            useNodeX_ = ((num_echo_bytes_ % 2) == 0) ? true : false;
 
             num_echo_bytes_ = num_echo_bytes;
             body_bytes_ = new Byte[num_echo_bytes_];
@@ -147,17 +150,35 @@ namespace NodeTest
         {
             if (!async_)
             {
-                Response resp = node.POST("/nodetest", body_bytes_, null, null);
-
-                return CheckResponse(resp);
+                if (useNodeX_)
+                {
+                    Response resp = NodeX.POST("/nodetest", body_bytes_, null, null);
+                    return CheckResponse(resp);
+                }
+                else
+                {
+                    Response resp = node.POST("/nodetest", body_bytes_, null, null);
+                    return CheckResponse(resp);
+                }
             }
             else
             {
-                node.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                if (useNodeX_)
                 {
-                    CheckResponse(resp);
-                    return null;
-                });
+                    NodeX.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    {
+                        CheckResponse(resp);
+                        return null;
+                    });
+                }
+                else
+                {
+                    node.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    {
+                        CheckResponse(resp);
+                        return null;
+                    });
+                }
 
                 return true;
             }

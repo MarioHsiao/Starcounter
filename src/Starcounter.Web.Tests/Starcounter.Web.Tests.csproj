@@ -60,6 +60,12 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="nunit.framework">
@@ -69,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BigPregeneratedRequestProcessor.cs" />
+    <Compile Include="NodeRelatedTests.cs" />
     <Compile Include="PersonMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="Temp.cs" />
