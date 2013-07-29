@@ -58,6 +58,10 @@ namespace Starcounter.Internal
             public const string ScData = "scdata";
 
             /// <summary>
+            /// </summary>
+            public const string LogWriter = "log_writer";
+
+            /// <summary>
             /// ScNetworkGateway
             /// </summary>
             public const string ScNetworkGateway = "scnetworkgateway";
