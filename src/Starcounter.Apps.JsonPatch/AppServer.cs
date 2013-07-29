@@ -109,6 +109,7 @@ namespace Starcounter.Internal.Web {
                         if (request.HasSession) {
                             Session.End();
                         } else {
+                            // Checking if a new session was created during handler call.
                             if (null != Session.Current) {
 
                                 // Creating session on Request as well.
