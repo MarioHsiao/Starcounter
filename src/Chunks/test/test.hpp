@@ -2,7 +2,7 @@
 // test.hpp
 // IPC test
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -13,8 +13,8 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <iostream>
-#include <fstream> /// For debug - remove
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 # include <cmath> // log()
 #endif //defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
@@ -28,7 +28,6 @@
 #include <map>
 #include <utility>
 #include <stdexcept>
-#include <boost/cstdint.hpp>
 //#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
@@ -41,7 +40,6 @@
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/win32/thread_primitives.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/timer.hpp>
@@ -53,6 +51,7 @@
 ////#include "../common/pid_type.hpp"
 ////#include "../common/owner_id.hpp"
 #include "../common/macro_definitions.hpp"
+#include "../common/noncopyable.hpp"
 //#include "../common/interprocess.hpp"
 #include "../common/config_param.hpp"
 #include "../common/shared_interface.hpp"
@@ -101,8 +100,8 @@ private:
 /**
  * @throws test_exception when something can not be achieved.
  */
-// Objects of type boost::thread are not copyable.
-class test : private boost::noncopyable {
+// Objects of type thread are not copyable.
+class test : private noncopyable {
 public:
 	//typedef std::set<std::string> monitor_interface_name_type;
 
@@ -137,7 +136,7 @@ public:
 	owner_id get_owner_id() const;
 
 	/// Start the test.
-	void run(uint32_t interval_time_milliseconds, uint32_t duration_time_milliseconds);
+	void run(uint32_t interval_time_milliseconds);
 	
 	/// Stop a worker.
     /**
@@ -153,15 +152,18 @@ public:
 	void print_rate(double rate);
 	
 	/// Show statistics.
-	void show_statistics(uint32_t interval_time_milliseconds, uint32_t
-	duration_time_milliseconds);
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void show_statistics(std::pair<test*,std::size_t> arg);
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	void show_statistics(uint32_t interval_time_milliseconds);
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	
 	void gotoxy(int16_t x, int16_t y) {
-		COORD coord;
+		::COORD coord;
 		coord.X = x;
 		coord.Y = y;
-		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+		::SetConsoleCursorPosition(::GetStdHandle(STD_OUTPUT_HANDLE), coord);
 	}
 	
 #if 0
@@ -184,13 +186,11 @@ public:
 
 	void open_active_databases_updated_event();
 
-	void watch_active_databases_updates();
-
 	/// Get a reference to the active_databases_updates_event_.
 	/**
 	 * @param A reference to the active_databases_updates_event_.
 	 */ 
-	HANDLE& active_databases_updates_event() {
+	::HANDLE& active_databases_updates_event() {
 		return active_databases_updates_event_;
 	}
 
@@ -198,8 +198,16 @@ public:
 	/**
 	 * @param A const reference to the active_databases_updates_event_.
 	 */ 
-	const HANDLE& active_databases_updates_event() const {
+	const ::HANDLE& active_databases_updates_event() const {
 		return active_databases_updates_event_;
+	}
+
+	shared_interface& shared(std::size_t i) {
+		return shared_[i];
+	}
+
+	worker& get_worker(std::size_t i) {
+		return worker_[i];
 	}
 
 private:
@@ -224,7 +232,7 @@ private:
 	owner_id owner_id_;
 
 	// Event to wait for active databases update.
-	HANDLE active_databases_updates_event_;
+	::HANDLE active_databases_updates_event_;
 
 	// message queue - to simulate fetching messages from a interprocess_communication via Win32API
 	
@@ -233,10 +241,12 @@ private:
 
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	// Statistics thread.
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	thread statistics_thread_;
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::thread statistics_thread_;
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 #endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
-	
-	boost::thread active_databases_updates_;
 };
 
 } // namespace interprocess_communication

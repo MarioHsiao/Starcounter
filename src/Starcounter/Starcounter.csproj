@@ -41,9 +41,10 @@
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>..\..\bin\Release\Starcounter.XML</DocumentationFile>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
@@ -111,7 +112,6 @@
     <Compile Include="Internal\ExceptionManager.cs" />
     <Compile Include="Internal\Initialized.cs" />
     <Compile Include="Internal\TaskHelper.cs" />
-    <Compile Include="Internal\TestLogger.cs" />
     <Compile Include="Binding\IObjectProxy.cs" />
     <Compile Include="Internal\X6Decimal.cs" />
     <Compile Include="ITransactionConflictException.cs" />
@@ -393,9 +393,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Web" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Starcounter.snk" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">

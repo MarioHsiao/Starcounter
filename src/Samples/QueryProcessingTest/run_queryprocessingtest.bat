@@ -30,6 +30,12 @@ START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 :: Weaving the test.
 scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
 
+:: Path to signed assembly.
+SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
+
+:: Re-signing the assembly.
+"c:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe" -R "%TEST_WEAVED_ASSEMBLY%" "..\..\src\Starcounter.snk"
+
 :: Starting database memory management process.
 START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 
@@ -40,4 +46,4 @@ START CMD /C "32bitComponents\scsqlparser.exe 8066"
 ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
-sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway
+sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway

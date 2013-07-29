@@ -75,6 +75,14 @@ internal class StringPath : Path, IStringExpression, IPath
         }
     }
 
+    public String ColumnName {
+        get {
+            if (member is IMember)
+                return (member as IMember).ColumnName;
+            else return null;
+        }
+    }
+
     /// <summary>
     /// The DbTypeCode of (the end member of) this path.
     /// </summary>

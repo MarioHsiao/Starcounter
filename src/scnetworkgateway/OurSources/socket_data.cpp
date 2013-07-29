@@ -154,6 +154,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->set_unique_socket_id(unique_socket_id_);
     sd_clone->set_proxy_socket(proxy_sock_);
     sd_clone->set_saved_user_handler_id(saved_user_handler_id_);
+    sd_clone->set_origin_ip_info(origin_ip_info_);
 
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag(true);
@@ -168,7 +169,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     gw->SetReceiveClone(sd_clone);
 
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "Cloned socket " << sock_ << ":" << chunk_index_ << " to " <<
+    GW_COUT << "Cloned socket " << sock_ << ":" << unique_socket_id_ << ":" << chunk_index_ << " to " <<
         sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << GW_ENDL;
 #endif
 

@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Test
     [TestFixture]
     public class UserHttpDelegateTests
     {
-        public static String UserFunc1(Int32 p1, Int64 p2, Request r, String p3)
+        public static Response UserFunc1(Int32 p1, Int64 p2, Request r, String p3)
         {
             Assert.IsTrue(123 == p1);
             Assert.IsTrue(21 == p2);
@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc1!";
         }
 
-        public static String UserFunc2(Int32 p1, Int64 p2, String p3, Decimal p4)
+        public static Response UserFunc2(Int32 p1, Int64 p2, String p3, Decimal p4)
         {
             Assert.IsTrue(123 == p1);
             Assert.IsTrue(21 == p2);
@@ -40,7 +40,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc2!";
         }
 
-        public static String UserFunc3(Int32 p1, Int64 p2, String p3, Request r, Decimal p4, Double p5, Boolean p6)
+        public static Response UserFunc3(Int32 p1, Int64 p2, String p3, Request r, Decimal p4, Double p5, Boolean p6)
         {
             Assert.IsTrue(123 == p1);
             Assert.IsTrue(21 == p2);
@@ -53,7 +53,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc3!";
         }
 
-        public static String UserFunc4(Int32 p1, Int64 p2, String p3, Decimal p4, Double p5, Boolean p6, DateTime p7, Request r)
+        public static Response UserFunc4(Int32 p1, Int64 p2, String p3, Decimal p4, Double p5, Boolean p6, DateTime p7, Request r)
         {
             Assert.IsTrue(123 == p1);
             Assert.IsTrue(21 == p2);
@@ -67,7 +67,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc4!";
         }
 
-        public static String UserFunc5(Int64 p1, Decimal p2, Int32 p3, Int32 p4)
+        public static Response UserFunc5(Int64 p1, Decimal p2, Int32 p3, Int32 p4)
         {
             Assert.IsTrue(-3853984 == p1);
             Assert.IsTrue(-3535m == p2);
@@ -77,7 +77,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc5!";
         }
 
-        public static String UserFunc6(Int64 p1, Decimal p2, Int32 p3, Int32 p4, PersonMessage m)
+        public static Response UserFunc6(Int64 p1, Decimal p2, Int32 p3, Int32 p4, PersonMessage m)
         {
             Assert.IsTrue(-3853984 == p1);
             Assert.IsTrue(-3535m == p2);
@@ -93,7 +93,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc6!";
         }
 
-        public static String UserFunc7(PersonMessage m, Int64 p1, Decimal p2, Int32 p3, Int32 p4, Request r)
+        public static Response UserFunc7(PersonMessage m, Int64 p1, Decimal p2, Int32 p3, Int32 p4, Request r)
         {
             Assert.IsTrue(-3853984 == p1);
             Assert.IsTrue(-3535m == p2);
@@ -109,7 +109,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc7!";
         }
 
-        public static String UserFunc8(PersonMessage m, dynamic dj, Int64 p1, Decimal p2, Int32 p3, Int32 p4, Request r)
+        public static Response UserFunc8(PersonMessage m, dynamic dj, Int64 p1, Decimal p2, Int32 p3, Int32 p4, Request r)
         {
             Assert.IsTrue(-3853984 == p1);
             Assert.IsTrue(-3535m == p2);
@@ -119,7 +119,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc8!";
         }
 
-        public static String UserFunc9(dynamic dj, Request r) {
+        public static Response UserFunc9(dynamic dj, Request r) {
             Assert.AreEqual("Allan", dj.FirstName);
             Assert.AreEqual("Ballan", dj.LastName);
             Assert.AreEqual(19, dj.Age);
@@ -128,7 +128,7 @@ namespace Starcounter.Internal.Test
             return "UserFunc9!";
         }
 
-        public static String UserFunc10(PersonMessage m, Request r) {
+        public static Response UserFunc10(PersonMessage m, Request r) {
             dynamic dj = m; // Using dynamic just to use properties instead of template lookups.
             Assert.AreEqual("Allan", dj.FirstName);
             Assert.AreEqual("Ballan", dj.LastName);
@@ -191,17 +191,17 @@ namespace Starcounter.Internal.Test
                 prevOffset = (UInt16)(curOffset + 1);
             }
 
-            Func<Request, IntPtr, IntPtr, Object> genDel1 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, Request, String, Object>(UserHttpDelegateTests.UserFunc1));
-            Func<Request, IntPtr, IntPtr, Object> genDel2 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Object>(UserHttpDelegateTests.UserFunc2));
-            Func<Request, IntPtr, IntPtr, Object> genDel3 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Request, Decimal, Double, Boolean, Object>(UserHttpDelegateTests.UserFunc3));
-            Func<Request, IntPtr, IntPtr, Object> genDel4 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, Request, Object>(UserHttpDelegateTests.UserFunc4));
-            Func<Request, IntPtr, IntPtr, Object> genDel5 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Object>(UserHttpDelegateTests.UserFunc5));
-            Func<Request, IntPtr, IntPtr, Object> genDel6 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, PersonMessage, Object>(UserHttpDelegateTests.UserFunc6));
-            Func<Request, IntPtr, IntPtr, Object> genDel7 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Int64, Decimal, Int32, Int32, Request, Object>(UserHttpDelegateTests.UserFunc7));
-            Func<Request, IntPtr, IntPtr, Object> genDel8 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Object, Int64, Decimal, Int32, Int32, Request, Object>(UserHttpDelegateTests.UserFunc8));
+            Func<Request, IntPtr, IntPtr, Response> genDel1 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, Request, String, Response>(UserHttpDelegateTests.UserFunc1));
+            Func<Request, IntPtr, IntPtr, Response> genDel2 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Response>(UserHttpDelegateTests.UserFunc2));
+            Func<Request, IntPtr, IntPtr, Response> genDel3 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Request, Decimal, Double, Boolean, Response>(UserHttpDelegateTests.UserFunc3));
+            Func<Request, IntPtr, IntPtr, Response> genDel4 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, Request, Response>(UserHttpDelegateTests.UserFunc4));
+            Func<Request, IntPtr, IntPtr, Response> genDel5 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, Response>(UserHttpDelegateTests.UserFunc5));
+            Func<Request, IntPtr, IntPtr, Response> genDel6 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Int64, Decimal, Int32, Int32, PersonMessage, Response>(UserHttpDelegateTests.UserFunc6));
+            Func<Request, IntPtr, IntPtr, Response> genDel7 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Int64, Decimal, Int32, Int32, Request, Response>(UserHttpDelegateTests.UserFunc7));
+            Func<Request, IntPtr, IntPtr, Response> genDel8 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Object, Int64, Decimal, Int32, Int32, Request, Response>(UserHttpDelegateTests.UserFunc8));
 
-            Func<Request, IntPtr, IntPtr, Object> genDel9 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Object, Request, Object>(UserHttpDelegateTests.UserFunc9));
-            Func<Request, IntPtr, IntPtr, Object> genDel10 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Request, Object>(UserHttpDelegateTests.UserFunc10));
+            Func<Request, IntPtr, IntPtr, Response> genDel9 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<Object, Request, Response>(UserHttpDelegateTests.UserFunc9));
+            Func<Request, IntPtr, IntPtr, Response> genDel10 = UserHandlerCodegen.NewNativeUriCodegen.GenerateParsingDelegate(80, "GET /", new Func<PersonMessage, Request, Response>(UserHttpDelegateTests.UserFunc10));
 
             unsafe
             {
@@ -216,21 +216,21 @@ namespace Starcounter.Internal.Test
                             + "\r\n\r\n" 
                             + jsonContent);
 
-                        Assert.IsTrue("UserFunc1!" == (String)genDel1(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
-                        Assert.IsTrue("UserFunc2!" == (String)genDel2(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
-                        Assert.IsTrue("UserFunc3!" == (String)genDel3(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
-                        Assert.IsTrue("UserFunc4!" == (String)genDel4(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2));
-                        Assert.IsTrue("UserFunc5!" == (String)genDel5(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc1!" == genDel1(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2).Body);
+                        Assert.IsTrue("UserFunc2!" == (String)genDel2(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2).Body);
+                        Assert.IsTrue("UserFunc3!" == (String)genDel3(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2).Body);
+                        Assert.IsTrue("UserFunc4!" == (String)genDel4(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)p2).Body);
+                        Assert.IsTrue("UserFunc5!" == (String)genDel5(new Request(requestStrNoContent), (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
 
                         Request req = new Request(requestStrWithContent);
                         req.ArgMessageObjectType = typeof(PersonMessage);
 
-                        Assert.IsTrue("UserFunc6!" == (String)genDel6(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
-                        Assert.IsTrue("UserFunc7!" == (String)genDel7(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
-                        Assert.IsTrue("UserFunc8!" == (String)genDel8(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc6!" == (String)genDel6(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
+                        Assert.IsTrue("UserFunc7!" == (String)genDel7(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
+                        Assert.IsTrue("UserFunc8!" == (String)genDel8(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
 
-                        Assert.IsTrue("UserFunc9!" == (String)genDel9(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
-                        Assert.IsTrue("UserFunc10!" == (String)genDel10(req, (IntPtr)p1, (IntPtr)(p2 + 7)));
+                        Assert.IsTrue("UserFunc9!" == (String)genDel9(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
+                        Assert.IsTrue("UserFunc10!" == (String)genDel10(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
                     }
                 }
             }

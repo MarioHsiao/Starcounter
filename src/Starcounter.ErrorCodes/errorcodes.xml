@@ -313,13 +313,11 @@
     <code hex="0021" severity="Error" name="ScErrWrongErrorMessageFormat">
       <message>Parsing an error message string failed due to an incorrect message format.</message>
     </code>
-    <!-- 
-    General error code representing a cancelled operation.
-    NOTE: About the spelling, both "canceled" (US) and "cancelled" (UK) is
-    correct.
-    -->
     <code hex="0022" severity="Error" name="ScErrOperationCancelled">
       <message>The operation was cancelled.</message>
+      <remarks>
+        General error code representing a cancelled operation.
+      </remarks>
     </code>
     <code hex="0023" severity="Error" name="ScErrSharedInterfaceOpenDbShm">
       <message>Opening the managed segment with the segment_name failed. Invalid segment or does not exist.</message>
@@ -1304,6 +1302,15 @@
     <code hex="008C" severity="Error" name="ScErrWeaverFailedLoadFile">
       <message>The weaver failed to load a binary user code file.</message>
     </code>
+    <code hex="008D" severity="Error" name="ScErrScServiceIsAlreadyRunning">
+      <message>An instance of scservice is already running in the same session.</message>
+    </code>
+    <code hex="008E" severity="Error" name="ScErrScServiceFailedCreateLck">
+      <message>scservice tried to create a mutex named scservice_is_running_lock but CreateMutex() returned NULL.</message>
+    </code>
+    <code hex="008F" severity="Error" name="ScErrWeaverFailedStrongNameAsm">
+      <message>A locally deployed strong-named assembly was detected.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
@@ -2024,6 +2031,7 @@
     <code hex="0057" severity="Error" name="ScErrReloadFailed">
       <message>The database reload routine failed to execute.</message>
     </code>
+<!--
     <code hex="0058" severity="Error" name="ScErrTransactionAlreadyAborted">
       <message>Transaction abort failed because the transaction already was aborted.</message>
       <remarks>
@@ -2033,6 +2041,7 @@
         </para>
       </remarks>
     </code>
+-->
     <code hex="0059" severity="Error" name="ScErrTransactionScopeOwned">
       <message>Context not accessible because it's owned by a scope.</message>
     </code>
@@ -3004,16 +3013,16 @@
       <message>The assembly specification type was not found in the given assembly.</message>
     </code>
     <code hex="00F1" severity="Error" name="ScErrBackingRetreivalFailed">
-      <!--
-      A general backing retreival error, used when no more specific backing error applies.
-      Exceptions with this error will carry more detailed information (such as postfixes
-      describing the case, and inner exceptions) and we are strict when logging this when
-      it occurs in a real (i.e. non-testing) context.
-      -->
       <message>
         Unable to retrieve well-known metadata from a transformed binary. Check inner
         exceptions and/or logs to find more information.
       </message>
+      <remarks>
+        A general backing retreival error, used when no more specific backing error applies.
+        Exceptions with this error will carry more detailed information (such as postfixes
+        describing the case, and inner exceptions) and we are strict when logging this when
+        it occurs in a real (i.e. non-testing) context.
+      </remarks>
     </code>
     <code hex="00F2" severity="Error" name="ScErrBackingDbIndexTypeNotFound">
       <message>The database class index backing type was not found in the given assembly.</message>
@@ -3035,6 +3044,31 @@
         A property in a database class can not have the same name as a public/protected
         field in the same class, or in a base class, not even if they differ in casing.
       </message>
+    </code>
+    <code hex="00F8" severity="Error" name="ScErrCantExpandTransLog">
+      <message>An error occured when attempting to expand transaction log.</message>
+      <remarks>The reason for the failure is logged seperatly."</remarks>
+    </code>
+    <code hex="00F9" severity="Error" name="ScErrCantExpandTransLogBadFile">
+      <message>Transaction log could not be expanded because a faulty log element file was found in the log directory.</message>
+    </code>
+    <code hex="00FA" severity="Error" name="ScErrCantExpandTransLogDiskFull">
+      <message>Transaction log could not be expanded because of a failure to allocate disk space.</message>
+    </code>
+    <code hex="00FB" severity="Error" name="ScErrCantExpandTransLogNoMemory">
+      <message>ransaction log could not be expanded because of a failure to allocate disk memory.</message>
+    </code>
+    <code hex="00FC" severity="Error" name="ScErrCantInitTransLogWriter">
+      <message>An error occured when initializing transaction log writer.</message>
+    </code>
+    <code hex="00FE" severity="Error" name="ScErrNoTransLogSpaceAvailable">
+      <message>Transaction could not be committed because of a lack of available log space.</message>
+    </code>
+    <code hex="00FF" severity="Error" name="ScErrTransLogSpaceCantBeExpanded">
+      <message>Transaction could not be committed because of a lack of available log space and log space can't be expanded.</message>
+    </code>
+    <code hex="0100" severity="Error" name="ScErrTransLogWriterNotAvailable">
+      <message>Transaction log writer is not available.</message>
     </code>
   </facility>
   
@@ -3280,9 +3314,16 @@
     </code>
     <code hex="0041" severity="Error" name="ScErrUriMatcherCodeGeneratorFailure">
       <message>Exception occurred inside URI matcher code generator.</message>
-    </code>  
+    </code>
+    <code hex="0042" severity="Error" name="ScErrUnhandledWeaverException">
+      <message>An unhandled, unidentified (non-Starcounter) exception occurred in the weaver.</message>
+    </code>
+    <code hex="0043" severity="Error" name="ScErrUnexpPlatformAPIError">
+      <message>An unexpected error occured calling a platform API function.</message>
+    </code>
   </facility>
 
+  <!-- Error codes related to query processing. -->
   <facility name="Sql" hex="0007">
     <code hex="0000" severity="Error" name="ScErrSqlInternalError">
       <message>Unexpected internal error in SQL module.</message>
@@ -3385,6 +3426,9 @@
     <code hex="001E" severity="Error" name="ScErrUnsupportAggregate">
       <message>Aggregates are not supported in the query.</message>
     </code>
+	<code hex="001F" severity="Error" name="ScErrQueryResultTypeMismatch">
+	  <message>Expected generic result type does not match with query result type.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
@@ -3408,6 +3452,7 @@
         this one should only access objects fetched within the context of the current transaction is possible.
       </remarks>
     </code>
+<!--
     <code hex="0003" severity="Error" name="ScErrImplicitExternalAbort">
       <message>
         The transaction has been aborted by the framework because of an external event that
@@ -3427,6 +3472,7 @@
         The transaction has been explicitly aborted by user code.
       </message>
     </code>
+-->
     <code hex="0005" severity="Error" name="ScErrOutOfMemoryAbort">
       <message>
         The transaction was aborted because of a failure to allocate memory.
@@ -3569,6 +3615,12 @@
         space for the log entry could be allocated in the log file.
       </message>
     </code>
+    <code hex="0022" severity="Error" name="ScErrExternalAbort">
+      <message>
+        The transaction has been aborted by the framework because of an external event that
+        suggested that the transaction should be considered invalid.
+      </message>
+    </code>
   </facility>
 
 <!--
@@ -3607,13 +3659,17 @@
       <message>A database with the specified name was not found.</message>
     </code>
     <code hex="0003" severity="Error" name="ScErrServerNotRunning">
-      <!--
-      This error is used when a management client, such as star.exe,
-      can not communicate properly with the admin server and decide
-      it is because the admin server process is not running.
-      -->
-      <!--See also: ScErrServerNotAvailable-->
       <message>The administrator server is not running.</message>
+      <remarks>
+        <para>
+          This error is used when a management client, such as star.exe,
+          can not communicate properly with the admin server and decide
+          it is because the admin server process is not running.
+        </para>
+        <para>
+          See also: ScErrServerNotAvailable
+        </para>
+      </remarks>
     </code>
     <code hex="0004" severity="Error" name="ScErrCantStartDatabase">
       <message>Attempting to start the database failed.</message>
@@ -3655,14 +3711,18 @@
       </message>
     </code>
     <code hex="000B" severity="Error" name="ScErrServerCommandFailed">
-      <!--
-      This error is used as a general error for all server commands that don't provide
-      a custom, more specific one.
-      Example message when full: "The operation "Starting database 'MyDatabase'" failed.".
-      -->
       <message>
         The operation "{0}" failed.
       </message>
+      <remarks>
+        <para>
+          This error is used as a general error for all server commands that don't provide
+          a custom, more specific one.
+        </para>
+        <para>
+          Example message when expanded: "The operation "Starting database 'MyDatabase'" failed.".
+        </para>
+      </remarks>
     </code>
     <code hex="000C" severity="Error" name="ScErrDatabaseDeleteFailed">
       <message>
@@ -3687,15 +3747,19 @@
       </message>
     </code>
     <code hex="0010" severity="Error" name="ScErrUnexpectedCommandException">
-      <!--
-      The server detected that a command failed with an exception that was
-      not an exception based on a Starcounter error code (and hence unexpected).
-      The exception details are logged along with this error.
-      Example message when full: "Starting database 'MyDatabase' failed due to an unexpected problem".
-      -->
       <message>
         {0} failed due to an unexpected problem.
       </message>
+      <remarks>
+        <para>
+          The server detected that a command failed with an exception that was
+          not an exception based on a Starcounter error code (and hence unexpected).
+          The exception details are logged along with this error.
+        </para>
+        <para>
+          Example message when expanded: "Starting database 'MyDatabase' failed due to an unexpected problem".
+        </para>
+      </remarks>
     </code>
     <code hex="0011" severity="Error" name="ScErrCodeHostProcessRefusedStop">
       <message>
@@ -3709,30 +3773,36 @@
       </message>
     </code>
     <code hex="0013" severity="Error" name="ScErrExecutableNotFound">
-      <!--
-      Error used mainly by the server library when asked to run an executable
-      and the executable file could not be found where specified. The error
-      message should include the full path used (if possible).
-      -->
       <message>
         The executable file cound not be found.
       </message>
+      <remarks>
+        Error used mainly by the server library when asked to run an executable
+        and the executable file could not be found where specified. The error
+        message should include the full path used (if possible).
+      </remarks>
     </code>
     <code hex="0014" severity="Error" name="ScErrServerNotAvailable">
-      <!--
-      This error is used when a management client, such as star.exe,
-      can not communicate properly with the admin server and the exact
-      reason why doesn't map one to one to any other, more specific
-      Starcounter error (such as ScErrServerNotRunning).
-        When constructing and logging/showing an error message based
-      on this code, make sure to supply more low-level, detailed info
-      such as socket level error codes, etc, to make support for this
-      easier.
-      -->
-      <!--See also: ScErrServerNotRunning-->
       <message>
         Unable to communicate with the administrator server.
       </message>
+      <remarks>
+        <para>
+          This error is used when a management client, such as star.exe,
+          can not communicate properly with the admin server and the exact
+          reason why doesn't map one to one to any other, more specific
+          Starcounter error (such as ScErrServerNotRunning).
+        </para>
+        <para>
+          When constructing and logging/showing an error message based
+          on this code, make sure to supply more low-level, detailed info
+          such as socket level error codes, etc, to make support for this
+          easier.
+        </para>
+        <para>
+          See also: ScErrServerNotRunning
+        </para>
+      </remarks>
     </code>
     <code hex="0015" severity="Error" name="ScErrNetworkGatewayTerminated">
       <message>
@@ -3747,39 +3817,80 @@
       </message>
     </code>
     <code hex="0017" severity="Error" name="ScErrCommandPreconditionFailed">
-      <!--
-      This error allows server command processors to report about a condition
-      failing to be met based on a given fingerprint. The server design for
-      fingerprint matching is closely related and largely influenced by the
-      HTTP Etag- and conditional invocation concepts and hence, this error
-      can be considered the equivivalent to HTTP status 412.
-      -->
       <message>
         The server detected a precondition that was not met; the command was
         therefore not executed.
       </message>
+      <remarks>
+        This error allows server command processors to report about a condition
+        failing to be met based on a given fingerprint. The server design for
+        fingerprint matching is closely related and largely influenced by the
+        HTTP Etag- and conditional invocation concepts and hence, this error
+        can be considered the equivivalent to HTTP status 412.
+      </remarks>
     </code>
     <code hex="0018" severity="Error" name="ScErrDatabaseEngineNotRunning">
-      <!--
-      Indicates a management operation was attempted but could not succeed
-      because the database engine was not running, as expected too.
-      -->
       <message>
         The database engine is not running.
       </message>
+      <remarks>
+        Indicates a management operation was attempted but could not succeed
+        because the database engine was not running, as expected too.
+      </remarks>
     </code>
     <code hex="0019" severity="Error" name="ScErrExecutableAlreadyRunning">
-      <!--
-      Indicates an executable is already loaded in a certain database engine
-      and that state was considered worth reporting as an error.
-      -->
       <message>
         The executable is already running.
       </message>
+      <remarks>
+        Indicates an executable is already loaded in a certain database engine
+        and that state was considered worth reporting as an error.
+      </remarks>
     </code>
     <code hex="001A" severity="Error" name="ScErrExecutableNotRunning">
       <message>
         The executable is not running.
+      </message>
+    </code>
+    <code hex="001B" severity="Error" name="ScErrDbProcNotSignaling">
+      <message>
+        The database data process, when started, didn't signal it was
+        operational in time.
+      </message>
+    </code>
+    <code hex="001C" severity="Error" name="ScErrDbProcTerminated">
+      <message>
+        The server detected that the database data process unexpectedly
+        terminated during a management operation.
+      </message>
+    </code>
+    <code hex="001D" severity="Error" name="ScErrEngineProcFailedStart">
+      <message>
+        The database engine process failed to start due to an unexpected
+        internal error. The full error detail can be found in the server
+        log.
+      </message>
+    </code>
+    <code hex="001E" severity="Error" name="ScErrDeleteDbRenameConfig">
+      <message>
+        Failed to rename the database configuration file when asked to
+        delete the database.
+      </message>
+    </code>
+    <code hex="001F" severity="Error" name="ScErrDatabaseRunning">
+      <message>
+        The database is running.
+      </message>
+      <remarks>
+        Indicates a management operation was attempted but could not succeed
+        because the database was running. The operation might succeed if the
+        database is first stopped, and the operation is issued again.
+      </remarks>
+    </code>
+    <code hex="0020" severity="Error" name="ScErrDeleteDbFilesPostponed">
+      <message>
+        At least one database-related file could not be deleted. Deleting
+        will be retried until it succeeds or is cancelled.
       </message>
     </code>
   </facility>
@@ -3985,68 +4096,94 @@
         The cache directory could not be created.
       </message>
     </code>
-    <!-- 
-    Occurs when the weaver executable is given a file that can not be found.
-    -->
     <code hex="0008" severity="Error" name="ScErrWeaverFileNotFound">
       <message>
         The specified file seem not to exist.
       </message>
+      <remarks>
+        Occurs when the weaver executable is given a file that can not be found.
+      </remarks>
     </code>
-    <!-- 
-    Occurs when the weaver executable is given a file with an extension that
-    is not supported.
-    -->
     <code hex="0009" severity="Error" name="ScErrWeaverFileNotSupported">
       <message>
         The specified files extension is not supported.
       </message>
+      <remarks>
+        Occurs when the weaver executable is given a file with an extension that
+        is not supported.
+      </remarks>
     </code>
-    <!-- 
-    Occurs when the Visual Studio extension runs the debugging sequence, in
-    order to debug a Starcounter module, and the server (i.e. Starcounter Administrator)
-    does not answer to the request being sent over the pipe. Usually indicates
-    that the server is not running.
-    -->
     <code hex="000A" severity="Error" name="ScErrDebugFailedConnectToServer">
       <message>
         Debugging the executable failed because Visual Studio was unable to connect to the
         server (a.k.a Starcounter Administrator). Usually indicates that the server is not
         running.
       </message>
+      <remarks>
+        Occurs when the Visual Studio extension runs the debugging sequence, in
+        order to debug a Starcounter module, and the server (i.e. Starcounter Administrator)
+        does not answer to the request being sent over the pipe. Usually indicates
+        that the server is not running.
+      </remarks>
     </code>
-    <!-- 
-    Occurs when the Visual Studio extension runs the debugging sequence, in
-    order to debug a Starcounter module, and the server (i.e. Starcounter Administrator)
-    reports an error in response to the request to weave and host the module inside
-    the user code process.
-    -->
     <code hex="000B" severity="Error" name="ScErrDebugFailedServerErrorStarting">
       <message>
         Debugging the executable failed because the server (a.k.a Starcounter Administrator)
         returned an error when trying to run the code. Consult the server log for more
         detailed information.
       </message>
+      <remarks>
+        Occurs when the Visual Studio extension runs the debugging sequence, in
+        order to debug a Starcounter module, and the server (i.e. Starcounter Administrator)
+        reports an error in response to the request to weave and host the module inside
+        the user code process.
+      </remarks>
     </code>
     <code hex="000C" severity="Error" name="ScErrDebugFailedReported">
-      <!--
-      Used internally to communicate the failure of the debug sequence using an
-      exception. Indicates the debug sequence has failed, but that the raising component
-      has logged detailed error messages to the error list and hence, no such action
-      must be taken by the catching party.
-      -->
       <message>
         The debug sequence failed. Consult the Visual Studio error list for more information.
       </message>
+      <remarks>
+        Used internally to communicate the failure of the debug sequence using an
+        exception. Indicates the debug sequence has failed, but that the raising component
+        has logged detailed error messages to the error list and hence, no such action
+        must be taken by the catching party.
+      </remarks>
     </code>
     <code hex="000D" severity="Error" name="ScErrDebuggerAlreadyAttached">
-      <!--
-      Indicates the debugging of a Starcounter application failed b/c attaching the
-      debugger was not possible, since a debugger was already attached to the database
-      code host process the about-to-be-debugged application targets.
-      -->
       <message>
         Unable to attach a debugger to the code host process. A debugger is already attached.
+      </message>
+      <remarks>
+        Indicates the debugging of a Starcounter application failed b/c attaching the
+        debugger was not possible, since a debugger was already attached to the database
+        code host process the about-to-be-debugged application targets.
+      </remarks>
+    </code>
+    <code hex="000E" severity="Error" name="ScErrDebugDbHigherPrivilege">
+      <message>
+        Unable to attach the debugger to the database process because the database runs
+        with a higher privilege than Visual Studio.
+      </message>
+      <remarks>
+        To resolve this, either restart Visual Studio and run it as an administrator, or
+        make sure the database runs in non-elevated mode.
+      </remarks>
+    </code>
+    <code hex="000F" severity="Error" name="ScErrDebugNoDbProcess">
+      <message>
+        Unable to attach the debugger to the database process because the database
+        process was not found.
+      </message>
+      <remarks>
+        This indicate the database process terminated in between it was started
+        and when Visual Studio tried attaching a debugger to it.
+      </remarks>
+    </code>
+    <code hex="0010" severity="Error" name="ScErrDebugSequenceFailUnexpect">
+      <message>
+        The debugging sequence failed with an unexpected error. Consult the
+        Visual Studio activity log for additional information.
       </message>
     </code>
   </facility>
@@ -4068,7 +4205,7 @@
 
         <code hex="0003" severity="Error" name="ScErrHandlerAlreadyRegistered">
             <message>
-                This handler has already been registered. Please unregister it first to do a new registration.
+                This handler has already been registered.
             </message>
         </code>
 
@@ -4087,29 +4224,51 @@
     example "Rest" or "Web".
     -->
   <facility name="Apps" hex="000E">
-        <code hex="0001" severity="Error" name="ScErrAppsHttpParserIncompleteHeaders">
+    <code hex="0001" severity="Error" name="ScErrAppsHttpParserIncompleteHeaders">
             <message>HTTP request has incomplete headers.</message>
         </code>
         <code hex="0002" severity="Error" name="ScErrAppsHttpParserIncorrect">
             <message>HTTP contains incorrect data.</message>
         </code>
       <code hex="0003" severity="Error" name="ScErrJsonPropertyNotFound">
-        <!-- Error code used when parsing a Json document against a well-defined
-        template and a given property name is not found in the template.-->
         <message>The property is not defined in the template.</message>
+        <remarks>
+          Error code used when parsing a Json document against a well-defined
+          template and a given property name is not found in the template.
+        </remarks>
       </code>
       <code hex="0004" severity="Error" name="ScErrJsonValueWrongType">
-        <!-- Error code used when parsing a Json document against a well-defined
-        template and a given property value is not valid according to the type of
-        the property. For example, when doing "Name":false and "Name" is a string.
-        -->
         <message>The value does not correspond to the template property type.</message>
+        <remarks>
+          Error code used when parsing a Json document against a well-defined
+          template and a given property value is not valid according to the type of
+          the property. For example, when doing "Name":false and "Name" is a string.
+        </remarks>
       </code>
     <code hex="0005" severity="Error" name="ScErrJsonUnexpectedEndOfContent">
-      <!-- Error code used when populating a typed json object using plain json as input
-           and the end of the content is reached before the end of the json.
-        -->
-      <message>ScErrJsonUnexpectedEndOfContent</message>
+      <message>End of content reached unexpectedly</message>
+      <remarks>
+        Error code used when populating a typed json object using plain json as input
+        and the end of the content is reached before the end of the json.
+      </remarks>
+    </code>
+    <code hex="0006" severity="Error" name="ScErrCreateDataBindingForJson">
+     <message>Cannot create binding between typed json and dataobject.</message>
+    </code>
+    <code hex="0007" severity="Error" name="ScErrInvalidJsonForInput">
+      <message>Invalid json found when populating an typed json object.</message>
+    </code>
+    <code hex="0008" severity="Error" name="ScErrMissingDataTypeBindingJson">
+      <message>Cannot create binding between typed json and dataobject. The datatype needs to be specified.</message>
+    </code>
+    <code hex="0009" severity="Error" name="ScErrDuplicateDataTypeJson">
+      <message>
+        Datatype cannot be specified in the json file if a code-behind class exists. 
+        The datatype needs to be set as generic argument on the inheritance on the class.
+      </message>
+    </code>
+    <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
+      <message> A template needs to be specified before this object can be used. </message>
     </code>
     </facility>
     

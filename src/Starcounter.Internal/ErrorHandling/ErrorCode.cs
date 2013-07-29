@@ -127,7 +127,7 @@ namespace Starcounter
         /// <returns>System.String.</returns>
         public static string ToHelpLink(uint errorCode)
         {
-            return string.Format("{0}SCERR{1}",
+            return string.Format("{0}/SCERR{1}",
                 StarcounterEnvironment.InternetAddresses.StarcounterWiki,
                 errorCode
                 );
@@ -669,7 +669,7 @@ namespace Starcounter
             {
                 resourceBinaryPath = Path.GetDirectoryName(typeof(ErrorCode).Assembly.Location);
                 if (IntPtr.Size == 4) {
-                    resourceBinaryPath = Path.Combine(resourceBinaryPath, "32BitComponents");
+                    resourceBinaryPath = Path.Combine(resourceBinaryPath, StarcounterEnvironment.Directories.Bit32Components);
                 }
 
                 moduleHandle = LoadLibrary(Path.Combine(resourceBinaryPath, "scerrres.dll"));

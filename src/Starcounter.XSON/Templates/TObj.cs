@@ -17,13 +17,23 @@ namespace Starcounter.Templates {
     /// Defines the properties of an App instance.
     /// </summary>
     public abstract class TObj : TContainer {
+
+        /// <summary>
+        /// Static constructor to automatically initialize XSON.
+        /// </summary>
+        static TObj() {
+            HelperFunctions.LoadNonGACDependencies();
+            XSON.CodeGeneration.Initializer.InitializeXSON();
+        }
+
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
         private static bool shouldUseCodegeneratedSerializer = true;
 
-        private DataValueBinding<IBindable> dataBinding;
+        internal DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
         private TypedJsonSerializer codegenSerializer;
         private bool codeGenStarted = false;
+        private string instanceDataTypeName;
 
         internal void GenerateSerializer(object state){
             // it doesn't really matter if setting the variable in the template is synchronized 
@@ -111,7 +121,7 @@ namespace Starcounter.Templates {
         public string Include { get; set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private PropertyList _PropertyTemplates;
 
@@ -144,7 +154,14 @@ namespace Starcounter.Templates {
         /// <summary>
         /// 
         /// </summary>
-        public string InstanceDataTypeName { get; set; }
+        public string InstanceDataTypeName {
+            get { return instanceDataTypeName; }
+            set {
+                instanceDataTypeName = value;
+                if (!string.IsNullOrEmpty(value))
+                    BindChildren = true;
+            }
+        }
 
         /// <summary>
         /// Creates a new template with the specified name and type and
@@ -154,8 +171,14 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new template</param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name) where T : Template, new() {
-            T t = new T() { TemplateName = name };
-            Properties.Add(t);
+            T t = (T)Properties.GetTemplateByName(name);
+            if (t == null) {
+                t = new T() { TemplateName = name };
+                Properties.Add(t);
+            } else {
+                Properties.Expose(t);
+            }
+
             return t;
         }
 
@@ -168,8 +191,14 @@ namespace Starcounter.Templates {
         /// <param name="type"></param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, TObj type) where T : TObjArr, new() {
-            T t = new T() { TemplateName = name, App = type };
-            Properties.Add(t);
+            T t = (T)Properties.GetTemplateByName(name);
+            if (t == null) {
+                t = new T() { TemplateName = name, App = type };
+                Properties.Add(t);
+            } else {
+                Properties.Expose(t);
+            }
+
             return t;
         }
 
@@ -182,8 +211,14 @@ namespace Starcounter.Templates {
         /// <param name="bind">The name of the property in the dataobject to bind to.</param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, string bind) where T : TValue, new() {
-            T t = new T() { TemplateName = name, Bind = bind, Bound = true };
-            Properties.Add(t);
+            T t = (T)Properties.GetTemplateByName(name);
+            if (t == null) {
+                t = new T() { TemplateName = name, Bind = bind, Bound = true };
+                Properties.Add(t);
+            } else {
+                Properties.Expose(t);
+            }
+
             return t;
         }
 
@@ -197,8 +232,14 @@ namespace Starcounter.Templates {
         /// <param name="bind">The name of the property in the dataobject to bind to.</param>
         /// <returns>A new instance of the specified template</returns>
         public T Add<T>(string name, TObj type, string bind) where T : TObjArr, new() {
-            T t = new T() { TemplateName = name, App = type, Bind = bind, Bound = true };
-            Properties.Add(t);
+            T t = (T)Properties.GetTemplateByName(name);
+            if (t == null) {
+                t = new T() { TemplateName = name, App = type, Bind = bind, Bound = true };
+                Properties.Add(t);
+            } else {
+                Properties.Expose(t);
+            }
+
             return t;
         }
 
@@ -227,10 +268,14 @@ namespace Starcounter.Templates {
         public bool BindChildren {
             get { return bindChildren; }
             set {
-                if (Properties.Count > 0) {
-                    throw new InvalidOperationException("Cannot change this property after children have been added.");
-                }
                 bindChildren = value;
+                if (Properties.Count > 0) {
+                    if (value == true) {
+                        foreach (var child in Properties) {
+                            CheckBindingForChild(child);
+                        }
+                    }
+                }
             }
         }
 
@@ -239,21 +284,29 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="property"></param>
         internal void OnPropertyAdded(Template property) {
+            if (BindChildren) {
+                CheckBindingForChild(property);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="child"></param>
+        private void CheckBindingForChild(Template child) {
             TValue value;
             string propertyName;
 
-            if (BindChildren) {
-                value = property as TValue;
-                if (value != null) {
-                    if (!value.Bound) {
-                        propertyName = value.PropertyName;
-                        if (!string.IsNullOrEmpty(propertyName)
-                            && !(propertyName[0] == '_')) {
-                            value.Bind = propertyName;
-                        }
-                    } else if (value.Bind == null) {
-                        value.Bound = false;
+            value = child as TValue;
+            if (value != null) {
+                if (!value.Bound) {
+                    propertyName = value.PropertyName;
+                    if (!string.IsNullOrEmpty(propertyName)
+                        && !(propertyName[0] == '_')) {
+                        value.Bind = propertyName;
                     }
+                } else if (value.Bind == null) {
+                    value.Bound = false;
                 }
             }
         }
@@ -269,8 +322,7 @@ namespace Starcounter.Templates {
         }
 
         internal DataValueBinding<IBindable> GetBinding(IBindable data) {
-            dataBinding = DataBindingFactory.VerifyOrCreateBinding<IBindable>(this, dataBinding, data.GetType(), Bind);
-            return dataBinding;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
         }
     }
 }

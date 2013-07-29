@@ -54,10 +54,10 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
         chunk_popped = false;
 
         // Running through all channels.
-        for (int32_t i = 0; i < num_schedulers_; i++)
+        for (scheduler_id_type sched_id = 0; sched_id < num_schedulers_; sched_id++)
         {
             // Obtaining the channel.
-            core::channel_type& the_channel = shared_int_.channel(channels_[i]);
+            core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
 
             // Trying to pop the chunk from channel.
             if (false == the_channel.out.try_pop_back(&cur_chunk_index))
@@ -89,7 +89,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                 gw->EnterGlobalLock();
 
                 // Handling management chunks.
-                err_code = HandleManagementChunks(gw, smc);
+                err_code = HandleManagementChunks(sched_id, gw, smc);
 
                 // Releasing management chunks.
                 ReturnLinkedChunksToPool(1, cur_chunk_index);
@@ -124,12 +124,18 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             if (!smc->is_terminated())
             {
                 // Creating special chunk for keeping WSA buffers information there.
-                sd->CreateWSABuffers(
+                err_code = sd->CreateWSABuffers(
                     this,
                     smc,
                     MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + sd->get_user_data_offset_in_socket_data(),
                     MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data(),
                     sd->get_user_data_written_bytes());
+
+                if (err_code)
+                {
+                    gw->DisconnectAndReleaseChunk(sd);
+                    continue;
+                }
 
                 GW_ASSERT(sd->get_num_chunks() > 2);
 
@@ -176,7 +182,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
                     else
                     {
                         // Updating session time stamp.
-                        g_gateway.SetSessionTimeStamp(gw_session_index);
+                        g_gateway.UpdateSessionTimeStamp(gw_session_index);
                     }
                 }
                 else
@@ -412,7 +418,7 @@ void WorkerDbInterface::PushLinkedChunksToDb(
 void WorkerDbInterface::ReturnSocketDataChunksToPool(GatewayWorker* gw, SocketDataChunkRef sd)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Returning chunk: " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
+    GW_PRINT_WORKER << "Returning chunk: " << sd->get_socket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -492,7 +498,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         session_index_type session_index = sd->get_session_index();
 
         // Updating session time stamp.
-        g_gateway.SetSessionTimeStamp(session_index);
+        g_gateway.UpdateSessionTimeStamp(session_index);
 
         // Setting Apps specific information.
         sd->set_apps_unique_session_num(current_db->GetAppsUniqueSessionNumber(session_index));
@@ -614,6 +620,46 @@ uint32_t WorkerDbInterface::PushSessionCreate(SocketDataChunkRef sd)
     return 0;
 }
 
+// Sends error message.
+uint32_t WorkerDbInterface::PushErrorMessage(
+    scheduler_id_type sched_id,
+    uint32_t err_code_num,
+    const wchar_t* const err_msg)
+{
+    // Get a reference to the chunk.
+    shared_memory_chunk *smc = NULL;
+
+    // Getting a free chunk.
+    core::chunk_index new_chunk_index;
+    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk_index, &smc);
+    if (err_code)
+        return err_code;
+
+    // Predefined BMX management handler.
+    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
+
+    request_chunk_part* request = smc->get_request_chunk();
+    request->reset_offset();
+
+    // Writing BMX message type.
+    request->write(bmx::BMX_ERROR);
+
+    // Writing error code number.
+    request->write(err_code_num);
+
+    // Writing error string.
+    request->write_wstring(err_msg, wcslen(err_msg));
+
+    // Checking scheduler id validity.
+    if (INVALID_SCHEDULER_ID == sched_id)
+        sched_id = GetSchedulerId();
+
+    // Pushing the chunk.
+    PushLinkedChunksToDb(new_chunk_index, 1, sched_id);
+
+    return 0;
+}
+
 // Requesting previously registered handlers.
 uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
 {
@@ -643,23 +689,30 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_num)
 // Allocates different channels and pools.
 WorkerDbInterface::WorkerDbInterface(
     const int32_t new_db_index,
-    const core::shared_interface& shared_int,
     const int32_t worker_id)
 {
     channels_ = NULL;
 
     Reset();
 
-    // Allocating channels.
-    num_schedulers_ = shared_int.common_scheduler_interface().number_of_active_schedulers();
-    channels_ = new core::channel_number[num_schedulers_];
-
     // Setting private/overflow chunk pool capacity.
     private_chunk_pool_.set_capacity(core::chunks_total_number_max);
 
     db_index_ = new_db_index;
     worker_id_ = worker_id;
-    shared_int_ = shared_int;
+
+    ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
+
+    // Initializing worker shared memory interface.
+    shared_int_.init(
+        active_db->get_shm_seg_name().c_str(),
+        g_gateway.get_shm_monitor_int_name().c_str(),
+        g_gateway.get_gateway_pid(),
+        g_gateway.get_gateway_owner_id());
+
+    // Allocating channels.
+    num_schedulers_ = shared_int_.common_scheduler_interface().number_of_active_schedulers();
+    channels_ = new core::channel_number[num_schedulers_];
 
     // Getting unique client interface for this worker.
     bool shared_int_acquired = shared_int_.acquire_client_number();
@@ -667,7 +720,7 @@ WorkerDbInterface::WorkerDbInterface(
 
 #ifdef GW_DATABASES_DIAG
     // Diagnostics.
-    GW_PRINT_WORKER << "Database \"" << g_gateway.GetDatabase(db_index_)->get_db_name() <<
+    GW_PRINT_WORKER << "Database \"" << active_db->get_db_name() <<
         "\" acquired client interface " << shared_int_.get_client_number() << " and " << num_schedulers_ << " channel(s): ";
 #endif
 
@@ -737,7 +790,10 @@ uint32_t WorkerDbInterface::RequestRegisteredHandlers()
 }
 
 // Handles management chunks.
-uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_memory_chunk* smc)
+uint32_t WorkerDbInterface::HandleManagementChunks(
+    scheduler_id_type sched_id,
+    GatewayWorker *gw,
+    shared_memory_chunk* smc)
 {
     // Getting the response part of the chunk.
     response_chunk_part* resp_chunk = smc->get_response_chunk();
@@ -821,6 +877,19 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     db_index_,
                     AppsPortProcessData);
 
+                if (err_code)
+                {
+                    wchar_t temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
+                    swprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, L"Can't register port handler on port %d", port);
+
+                    // Pushing error message to initial database.
+                    PushErrorMessage(sched_id, err_code, temp_str);
+
+                    // Ignoring error code if its existing handler.
+                    if (SCERRHANDLERALREADYREGISTERED == err_code)
+                        err_code = 0;
+                }
+
                 break;
             }
             
@@ -849,6 +918,19 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     handler_info,
                     db_index_,
                     AppsSubportProcessData);
+
+                if (err_code)
+                {
+                    wchar_t temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
+                    swprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, L"Can't register sub-port handler on port %d", port);
+
+                    // Pushing error message to initial database.
+                    PushErrorMessage(sched_id, err_code, temp_str);
+
+                    // Ignoring error code if its existing handler.
+                    if (SCERRHANDLERALREADYREGISTERED == err_code)
+                        err_code = 0;
+                }
 
                 break;
             }
@@ -909,6 +991,19 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
                     db_index_,
                     AppsUriProcessData);
 
+                if (err_code)
+                {
+                    wchar_t temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
+                    swprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, L"Can't register URI handler '%S' on port %d", original_uri_info, port);
+
+                    // Pushing error message to initial database.
+                    PushErrorMessage(sched_id, err_code, temp_str);
+
+                    // Ignoring error code if its existing handler.
+                    if (SCERRHANDLERALREADYREGISTERED == err_code)
+                        err_code = 0;
+                }
+
                 break;
             }
 
@@ -966,12 +1061,12 @@ uint32_t WorkerDbInterface::HandleManagementChunks(GatewayWorker *gw, shared_mem
         {
             switch (err_code)
             {
-            case SCERRGWFAILEDTOBINDPORT:
-                // Ignore.
-                break;
+                case SCERRGWFAILEDTOBINDPORT:
+                    // Ignore.
+                    break;
 
-            default:
-                return err_code;
+                default:
+                    return err_code;
             }
         }
 

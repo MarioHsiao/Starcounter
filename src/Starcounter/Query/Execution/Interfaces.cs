@@ -266,6 +266,13 @@ internal interface IPath : IValueExpression
     {
         get;
     }
+
+    /// <summary>
+    /// The full name of the column of the path. It uniquely identifies column in the database.
+    /// </summary>
+    String ColumnName {
+        get;
+    }
 }
 
 /// <summary>
@@ -753,6 +760,14 @@ internal interface ILogicalExpression : IConditionTreeNode
     /// <param name="varArray">Variable array.</param>
     /// <returns>Cloned logical expression.</returns>
     ILogicalExpression Clone(VariableArray varArray);
+
+    /// <summary>
+    /// Gets a set of extents, 
+    /// which represents all extents of which this logical expression must be executed outside, 
+    /// due to IS- and ISNOT-comparisons and outer joins.
+    /// </summary>
+    /// <returns></returns>
+    ExtentSet GetOutsideJoinExtentSet();
 
 #if DEBUG
     bool AssertEquals(ILogicalExpression other);

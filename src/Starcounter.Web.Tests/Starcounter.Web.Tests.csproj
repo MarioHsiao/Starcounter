@@ -42,7 +42,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>
@@ -60,6 +60,12 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="nunit.framework">
@@ -69,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BigPregeneratedRequestProcessor.cs" />
+    <Compile Include="NodeRelatedTests.cs" />
     <Compile Include="PersonMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="Temp.cs" />
@@ -109,10 +116,10 @@
     <Content Include="..\..\bin\$(Configuration)\GatewayClang.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\bin\$(Configuration)\HttpParser.dll">
+    <Content Include="..\..\bin\$(Configuration)\schttpparser.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\bin\$(Configuration)\HttpParser.pdb">
+    <Content Include="..\..\bin\$(Configuration)\schttpparser.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\bin\$(Configuration)\scerrres.dll">

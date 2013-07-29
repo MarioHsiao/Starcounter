@@ -38,6 +38,11 @@ namespace Starcounter.XSON.Metadata
         public bool AutoBindToDataObject;
 
         /// <summary>
+        /// The name of the baseclass (if any) specified for the class.
+        /// </summary>
+        public string BaseClassName;
+
+        /// <summary>
         /// Contains the generic argument (if any) for the class.
         /// </summary>
         public string GenericArgument;

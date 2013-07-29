@@ -26,26 +26,6 @@ namespace GenerateInstaller
         const String productName = "Starcounter Components";
         public static readonly String certificateFile = BuildSystem.LocalToolsFolder + "\\starcounter-2014.cer";
 
-        /// <summary>
-        /// Directories in output that should be deleted before packaging into one installer.
-        /// </summary>
-        static readonly String[] OutputDirsToDelete =
-        {
-            ".db",
-            ".db.output",
-            ".srv",
-            "s",
-            "NetworkIoTest"
-        };
-
-        /// <summary>
-        /// Files in output that should be deleted before packaging into one installer.
-        /// </summary>
-        static readonly String[] OutputFilesToDelete =
-        {
-            
-        };
-
         // Uploads build on FTP.
         static void UploadBuildToFtp(
             String buildType,
@@ -151,7 +131,7 @@ namespace GenerateInstaller
                 String sourcesDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
                 if (sourcesDir == null)
                 {
-                    throw new Exception("Environment variable 'WORKSPACE' does not exist.");
+                    throw new Exception("Environment variable 'SC_CHECKOUT_DIR' does not exist.");
                 }
 
                 // Indicating that we want to skip local FTP.
@@ -242,6 +222,9 @@ namespace GenerateInstaller
                 String currentDatePlus60Days = DateTime.Now.AddDays(60).ToString("MMMM dd, yyyy").ToUpper();
                 File.WriteAllText(licenseFilePath, modifiedLicense.Replace(licenseDatePattern, currentDatePlus60Days));
 
+                // Replacing unique installer version string.
+                ReplaceStringInFile(Path.Combine(installerWpfFolder, "App.xaml.cs"), @"String ScVersion = ""[0-9\.]+"";", "String ScVersion = \"" + version + "\";");
+
                 // Restoring fake archive file if needed.
                 File.WriteAllText(Path.Combine(installerWpfFolder, "Resources\\Archive.zip"), "This is an empty file...");
 
@@ -267,47 +250,11 @@ namespace GenerateInstaller
                 String signingError = "error";
 
                 // Trying to sign several times.
-                for (Int32 i = 0; i < 5; i++)
-                {
-                    signingError = BuildSystem.SignFiles(allFilesToSign, companyName, productName, certificateFile);
-                    if (signingError == null) break;
-
-                    Thread.Sleep(5000);
-                }
+                signingError = BuildSystem.SignFiles(allFilesToSign, companyName, productName, certificateFile);
 
                 // Checking if there are any errors during signing process.
                 if (signingError != null)
-                {
                     throw new Exception("Failed to sign files:" + Environment.NewLine + signingError);
-                }
-
-                Console.WriteLine("Deleting selected directories and files...");
-
-                // Removing selected directories from output.
-                foreach (String delDir in OutputDirsToDelete)
-                {
-                    String delDirPath = Path.Combine(outputFolder, delDir);
-
-                    if (Directory.Exists(delDirPath))
-                    {
-                        Directory.Delete(delDirPath, true);
-
-                        Console.WriteLine("  Deleted directory: " + delDirPath);
-                    }
-                }
-
-                // Removing selected files from output.
-                foreach (String delFile in OutputFilesToDelete)
-                {
-                    String delFilePath = Path.Combine(outputFolder, delFile);
-
-                    if (File.Exists(delFilePath))
-                    {
-                        File.Delete(delFilePath);
-
-                        Console.WriteLine("  Deleted file: " + delFilePath);
-                    }
-                }
 
                 // Now packing everything into one big ZIP archive.
                 Console.WriteLine("Packaging consolidated folder and building complete installer...");
@@ -329,40 +276,33 @@ namespace GenerateInstaller
                 }
                 msbuildProcess.Close();
 
-                // Trying to sign several times.
-                for (Int32 i = 0; i < 5; i++)
-                {
-                    // Signing the main Starcounter setup.
-                    signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, companyName, productName, certificateFile);
-                    if (signingError == null) break;
-
-                    Thread.Sleep(5000);
-                }
+                // Signing the main Starcounter setup.
+                signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, companyName, productName, certificateFile);
 
                 // Checking if there are any errors during signing process.
                 if (signingError != null)
-                {
-                    throw new Exception("Failed to sign main Starcounter setup file...");
-                }
+                    throw new Exception("Failed to sign static Starcounter setup file...");
 
                 Console.WriteLine("Building installer wrapper...");
 
                 // Copying necessary embedded files.
-                String installerWrapperDir = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper");
+                String installerWrapperDir = Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper");
 
                 File.Copy(Path.Combine(BuildSystem.MappedBuildServerFTP, @"SCDev\ThirdParty\dotNET\dotnetfx45_full_x86_x64.exe"),
                     Path.Combine(installerWrapperDir, "resources", "dotnetfx45_full_x86_x64.exe"), true);
 
+                // Setting current installer version.
+                ReplaceStringInFile(Path.Combine(installerWrapperDir, "Starcounter.InstallerNativeWrapper.cpp"),
+                    @"wchar_t\* ScVersion = L""[0-9\.]+"";", "wchar_t* ScVersion = L\"" + version + "\";");
+
                 File.Copy(staticSetupFilePath, Path.Combine(installerWrapperDir, "resources", staticSetupFileName), true);
 
-                String installerWrapperVersionFilePath = Path.Combine(installerWrapperDir, "Starcounter.InstallerWrapper.cs");
-
-                // Setting current installer version.
-                ReplaceStringInFile(installerWrapperVersionFilePath, @"String ScSetupVersion = ""[0-9\.]+"";", "String ScSetupVersion = \"" + version + "\";");
-
                 // Compiling second time with archive.
-                msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerWrapper\Starcounter.InstallerWrapper.csproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=AnyCPU";
+                msbuildArgs = "\"" + Path.Combine(sourcesDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.vcxproj") + "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=Win32 /p:VisualStudioVersion=11.0";
                 msbuildInfo.Arguments = msbuildArgs + ";SC_CREATE_STANDALONE_SETUP=True";
+
+                Console.WriteLine("Running: \"" + msbuildInfo.FileName + "\" " + msbuildArgs);
+
                 msbuildProcess = Process.Start(msbuildInfo);
                 msbuildProcess.WaitForExit();
                 if (msbuildProcess.ExitCode != 0)
@@ -370,6 +310,13 @@ namespace GenerateInstaller
                     throw new Exception("Building installer wrapper project has failed with error code: " + msbuildProcess.ExitCode);
                 }
                 msbuildProcess.Close();
+
+                // Signing the main Starcounter setup.
+                signingError = BuildSystem.SignFiles(new String[] { specificSetupFilePath }, companyName, productName, certificateFile);
+
+                // Checking if there are any errors during signing process.
+                if (signingError != null)
+                    throw new Exception("Failed to sign specific Starcounter setup file...");
 
                 // Uploading changes to FTP server (only if its not a personal build).
                 if (Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) == "True")

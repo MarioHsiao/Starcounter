@@ -411,7 +411,7 @@ namespace Starcounter.InstallerEngine
             return false;
         }
 
-        [DllImport("Starcounter.InstallerNativeHelper.dll." + CurrentVersion.Version, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("Starcounter.InstallerNativeHelper.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static void sc_check_cpu_features(
             ref Boolean popcnt_instr
         );
@@ -616,65 +616,6 @@ namespace Starcounter.InstallerEngine
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "During installation current user must have administrative rights on the local computer and Starcounter installer must be run with administrative rights.");
             }
-        }
-
-        /// <summary>
-        /// Checks if another version of Starcounter is installed.
-        /// </summary>
-        /// <returns></returns>
-        public static Boolean IsAnotherVersionInstalled()
-        {
-            // Compares installation versions.
-            String previousVersion = InstallerMain.CompareScVersions();
-            if (previousVersion != null)
-            {
-                if (Utilities.AskUserForDecision(
-                    "Would you like to uninstall previous(" + previousVersion + ") version of Starcounter now?",
-                    "Starcounter is already installed..."))
-                {
-                    // Asking to launch previous version uninstaller.
-                    String installDir = CInstallationBase.GetInstalledDirFromEnv();
-
-                    // Trying "Starcounter-[Version]-Setup.exe".
-                    String prevSetupExeName = "Starcounter-" + previousVersion + "-Setup.exe";
-                    String prevSetupExePath = Path.Combine(installDir, prevSetupExeName);
-                    if (!File.Exists(prevSetupExePath))
-                    {
-                        // Trying "Starcounter-Setup.exe".
-                        prevSetupExeName = ConstantsBank.SCInstallerGUI + ".exe";
-                        prevSetupExePath = Path.Combine(installDir, prevSetupExeName);
-                        if (!File.Exists(prevSetupExePath))
-                        {
-                            throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
-                                "Can't find " + prevSetupExeName + " for Starcounter " + previousVersion +
-                                " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
-                        }
-                    }
-
-                    Process prevSetupProcess = new Process();
-                    prevSetupProcess.StartInfo.FileName = prevSetupExePath;
-                    prevSetupProcess.StartInfo.Arguments = ConstantsBank.DontCheckOtherInstancesArg;
-                    prevSetupProcess.Start();
-
-                    // Waiting until previous installer finishes its work.
-                    prevSetupProcess.WaitForExit();
-
-                    // Checking version once again.
-                    previousVersion = InstallerMain.CompareScVersions();
-
-                    // No more old installation - just continue the new one.
-                    if (null == previousVersion)
-                        return false;
-                }
-
-                Utilities.MessageBoxInfo(
-                    "Please uninstall previous(" + previousVersion + ") version of Starcounter before installing this one.",
-                    "Starcounter is already installed...");
-
-                return true;
-            }
-
-            return false;
         }
 
         // Currently logged in user name.
@@ -1162,9 +1103,9 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Message box information alternative.
         /// </summary>
-        public static void MessageBoxInfo(String message, String title)
+        public static void MessageBoxInfo(String message, String title, Boolean forceDefaultMsgBox = false)
         {
-            if (InstallerMain.GuiMessageboxCallback != null)
+            if ((!forceDefaultMsgBox) && (InstallerMain.GuiMessageboxCallback != null))
             {
                 // Calling installer GUI message box.
                 InstallerMain.GuiMessageboxCallback(null,

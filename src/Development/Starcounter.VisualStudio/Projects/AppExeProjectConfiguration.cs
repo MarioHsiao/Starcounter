@@ -17,8 +17,8 @@ namespace Starcounter.VisualStudio.Projects {
     using Starcounter.Server.Rest;
     using Starcounter.Server.Rest.Representations.JSON;
     using System.Net.Sockets;
-    using EngineReference = Starcounter.Server.Rest.Representations.JSON.EngineCollection.EnginesApp;
-    using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesApp.ExecutingApp;
+    using EngineReference = Starcounter.Server.Rest.Representations.JSON.EngineCollection.EnginesObj;
+    using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesObj.ExecutingObj;
     using Option = Starcounter.CLI.SharedCLI.Option;
 
     /// <summary>
@@ -37,8 +37,6 @@ namespace Starcounter.VisualStudio.Projects {
         bool debugFlagSpecified = false;
 
         internal static void Initialize() {
-            RequestHandler.InitREST();
-
             var appSyntax = new ApplicationSyntaxDefinition();
             appSyntax.DefaultCommand = "exec";
             SharedCLI.DefineWellKnownOptions(appSyntax, true);
@@ -98,10 +96,14 @@ namespace Starcounter.VisualStudio.Projects {
                 System.Diagnostics.Debugger.Launch();
             }
 
-            // Assure personal server is running; will be done as soon
-            // as Christian has implemented the code to do so.
-            // TODO:
-
+            this.debugLaunchDescription = "Checking personal server";
+            if (!PersonalServerProcess.IsOnline()) {
+                this.WriteDebugLaunchStatus("starting");
+                this.WriteLine("Starting personal server.");
+                PersonalServerProcess.Start();
+            }
+            this.WriteDebugLaunchStatus("online");
+            
             // Pass it on:
             try {
                 result = DoBeginDebug(debugConfiguration, flags, cmdLine);
@@ -183,7 +185,11 @@ namespace Starcounter.VisualStudio.Projects {
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
                 engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
+
                 response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                response.FailIfNotSuccess();
+
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                 response.FailIfNotSuccess();
             }
             engine = new Engine();
@@ -233,6 +239,10 @@ namespace Starcounter.VisualStudio.Projects {
 
                     response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
                     response.FailIfNotSuccess();
+
+                    response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                    response.FailIfNotSuccess();
+
                     engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
                 }
             }
@@ -263,11 +273,12 @@ namespace Starcounter.VisualStudio.Projects {
                 errorDetail = new ErrorDetail();
                 errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
                 if (errorDetail.ServerCode == Error.SCERRWEAVERFAILEDLOADFILE) {
-                    ReportError("{0}: {1}\n{2}\n{3}",
-                        ErrorCode.ToDecoratedCode(Error.SCERRWEAVERFAILEDLOADFILE),
+                    var msg = ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDLOADFILE);
+                    ReportError("{0} ({1})\n{2}",
+                        Error.SCERRWEAVERFAILEDLOADFILE,
                         errorDetail.Text,
-                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project.",
-                        ErrorCode.ToHelpLink(Error.SCERRWEAVERFAILEDLOADFILE)
+                        msg.Header,
+                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project."
                         );
                     return false;
                 } else {
@@ -283,7 +294,6 @@ namespace Starcounter.VisualStudio.Projects {
         bool AttachDebugger(Engine engine) {
             DTE dte;
             bool attached;
-            string errorMessage;
             
             try {
                 dte = this.package.DTE;
@@ -300,9 +310,8 @@ namespace Starcounter.VisualStudio.Projects {
 
                 if (attached == false) {
                     this.ReportError(
-                        "Cannot attach the debugger to the database {0}. Process {1} not found.",
-                        engine.Database.Name,
-                        engine.CodeHostProcess.PID
+                        (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGNODBPROCESS,
+                        string.Format("Database \"{0}\" in process {1}.", engine.Database.Name, engine.CodeHostProcess.PID))
                         );
                 }
 
@@ -320,14 +329,9 @@ namespace Starcounter.VisualStudio.Projects {
                     // http://blogs.msdn.com/b/joshpoley/archive/2008/01/04/errors-004-facility-itf.aspx
                     // http://msdn.microsoft.com/en-us/library/ms734241(v=vs.85).aspx
 
-                    errorMessage = string.Format(
-                        "Attaching the debugger to the database \"{0}\" in process {1} was not allowed. ",
-                        engine.Database.Name, engine.CodeHostProcess.PID);
-                    errorMessage +=
-                        "The database runs with higher privileges than Visual Studio. Either restart Visual Studio " +
-                        "and run it as an administrator, or make sure the database runs in non-elevated mode.";
-
-                    this.ReportError(errorMessage);
+                    this.ReportError(
+                        (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGDBHIGHERPRIVILEGE,
+                        string.Format("Database \"{0}\" in process {1}.", engine.Database.Name, engine.CodeHostProcess.PID)));
                     return false;
 
                 } else if (comException.ErrorCode == -2147221503) {

@@ -5,7 +5,7 @@
 
     <link rel="shortcut icon" href="/img/favicon.ico">
 
-    <link rel="stylesheet" media="screen" href="/css/angular-ui-handsontable.full-0.3.9.css">
+    <link rel="stylesheet" media="screen" href="/css/angular-ui-handsontable.full-0.3.10.css">
 
     <!-- angular-ui,  Used by: CodeMirror -->
     <link rel="stylesheet" type="text/css" href="/css/angular-ui-0.3.0.css">
@@ -41,19 +41,21 @@
     <script src="sys/angular-ui-0.4.0.js"></script>
 
     <!-- UI-Bootstrap, Used by: Modal window, toogle button -->
-    <script src="/sys/ui-bootstrap-tpls-0.2.0.js"></script>
+    <script src="/sys/ui-bootstrap-tpls-0.3.0.js"></script>
 
-    <!-- This will break the toogle button
+    <!-- This will break the toogle button -->
     <!--<script src="/sys/bootstrap-2.3.0.min.js"></script>-->
 
     <!-- Json Patch, Used by: Global -->
     <script src="/sys/json-patch-duplex.js"></script>
 
     <!-- Handsontable, Used in: Log and Sql window -->
-    <script src="/sys/angular-ui-handsontable.full-0.3.9.js"></script>
+    <script src="/sys/angular-ui-handsontable.full-0.3.10.js"></script>
 
-    <!--<script src="/js/services.js"></script>-->
-    <!--<script src="/js/controllers.js"></script>-->
+    <!-- Type conversion from Starcounter DbTypeCode to HandsonTable types. See https://gist.github.com/warpech/c33eabf2b72741eb927b -->
+
+    <script src="/js/scTypesPlugin.js"></script>
+
     <script src="/js/scmodule.js"></script>
 
 </head>

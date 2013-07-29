@@ -1,7 +1,7 @@
 //
 // shared_interface.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 // 
 
@@ -12,14 +12,13 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <cstddef>
-#include <boost/cstdint.hpp>
 #include <memory>
 #include <string>
 #include <utility>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include "../common/client_number.hpp"
 #include "../common/circular_buffer.hpp"
@@ -407,7 +406,7 @@ public:
 	 *		get_client_number() to pass the value of i.
 	 * @return A reference to the client work event, or 0 if failed to open.
 	 */ 
-	HANDLE& open_client_work_event(std::size_t i);
+	::HANDLE& open_client_work_event(std::size_t i);
 
 	/// Close client work event. It does not actually close the event, the
 	/// database do that before terminating, instead it sets the event to 0.
@@ -417,13 +416,13 @@ public:
 	/**
 	 * @return A reference to the client work event.
 	 */ 
-	HANDLE& client_work_event();
+	::HANDLE& client_work_event();
 	
 	/// Get a const reference to the client work event.
 	/**
 	 * @param A const reference to the client work event.
 	 */ 
-	const HANDLE& client_work_event() const;
+	const ::HANDLE& client_work_event() const;
 
 	//--------------------------------------------------------------------------
 	/// Open scheduler work event (i) and return a reference to it.
@@ -433,7 +432,7 @@ public:
 	 * @param i The scheduler's number, related to scheduler number i.
 	 * @return A reference to scheduler work event (i). NULL if failed to open.
 	 */ 
-	HANDLE& open_scheduler_work_event(std::size_t i);
+	::HANDLE& open_scheduler_work_event(std::size_t i);
 
 	/// Close scheduler work event (i). It does not actually close the event,
 	/// the database do that before terminating, instead it sets the event to 0.
@@ -448,7 +447,7 @@ public:
 	 *		scheduler_interface[i].
 	 * @return A reference to scheduler work event (i).
 	 */ 
-	HANDLE& scheduler_work_event(std::size_t i);
+	::HANDLE& scheduler_work_event(std::size_t i);
 	
 	/// Get a const reference to scheduler work event (i).
 	/**
@@ -456,7 +455,7 @@ public:
 	 *		scheduler_interface[i].
 	 * @param A const reference to scheduler work event (i).
 	 */ 
-	const HANDLE& scheduler_work_event(std::size_t i) const;
+	const ::HANDLE& scheduler_work_event(std::size_t i) const;
 
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	/// Open scheduler_number_pool_not_empty event (i) and return a reference to it.
@@ -466,7 +465,7 @@ public:
 	 * @param i The scheduler's number, related to scheduler number i.
 	 * @return A reference to scheduler_number_pool_not_empty event (i). NULL if failed to open.
 	 */ 
-	HANDLE& open_scheduler_number_pool_not_empty_event(std::size_t i);
+	::HANDLE& open_scheduler_number_pool_not_empty_event(std::size_t i);
 
 	/// Close scheduler_number_pool_not_empty event (i). It does not actually close the event,
 	/// the database do that before terminating, instead it sets the event to 0.
@@ -482,7 +481,7 @@ public:
 	 * @param i The scheduler's number, related to scheduler number i.
 	 * @return A reference to scheduler_number_pool_not_full event (i). NULL if failed to open.
 	 */ 
-	HANDLE& open_scheduler_number_pool_not_full_event(std::size_t i);
+	::HANDLE& open_scheduler_number_pool_not_full_event(std::size_t i);
 
 	/// Close scheduler_number_pool_not_full event (i). It does not actually close the event,
 	/// the database do that before terminating, instead it sets the event to 0.
@@ -497,7 +496,7 @@ public:
 	 *		scheduler_interface[i].
 	 * @return A reference to scheduler_number_pool_not_empty event (i).
 	 */ 
-	HANDLE& scheduler_number_pool_not_empty_event(std::size_t i);
+	::HANDLE& scheduler_number_pool_not_empty_event(std::size_t i);
 	
 	/// Get a const reference to scheduler_number_pool_not_empty event (i).
 	/**
@@ -505,7 +504,7 @@ public:
 	 *		scheduler_interface[i].
 	 * @param A const reference to scheduler_number_pool_not_empty event (i).
 	 */ 
-	const HANDLE& scheduler_number_pool_not_empty_event(std::size_t i) const;
+	const ::HANDLE& scheduler_number_pool_not_empty_event(std::size_t i) const;
 
 	/// Get a reference to scheduler_number_pool_not_full event (i).
 	/**
@@ -513,7 +512,7 @@ public:
 	 *		scheduler_interface[i].
 	 * @return A reference to scheduler_number_pool_not_full event (i).
 	 */ 
-	HANDLE& scheduler_number_pool_not_full_event(std::size_t i);
+	::HANDLE& scheduler_number_pool_not_full_event(std::size_t i);
 	
 	/// Get a const reference to scheduler_number_pool_not_full event (i).
 	/**
@@ -521,7 +520,7 @@ public:
 	 *		scheduler_interface[i].
 	 * @param A const reference to scheduler_number_pool_not_full event (i).
 	 */ 
-	const HANDLE& scheduler_number_pool_not_full_event(std::size_t i) const;
+	const ::HANDLE& scheduler_number_pool_not_full_event(std::size_t i) const;
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 private:
@@ -552,20 +551,20 @@ private:
 	mapped_region mapped_region_;
 	
 	// Each client need to have all events (HANDLEs) already opened and ready to be used.
-	HANDLE client_work_;
+	::HANDLE client_work_;
 
 	// To notify any scheduler. In this array of HANDLEs, only those that correspond to
 	// an active scheduler will be opened/closed.
-	HANDLE scheduler_work_[max_number_of_schedulers];
+	::HANDLE scheduler_work_[max_number_of_schedulers];
 
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	// To notify that scheduler_number_pool_not_empty_[n]. In this array of HANDLEs,
 	// only those that correspond to an active scheduler will be opened/closed.
-	HANDLE scheduler_number_pool_not_empty_[max_number_of_schedulers];
+	::HANDLE scheduler_number_pool_not_empty_[max_number_of_schedulers];
 
 	// To notify that scheduler_number_pool_not_full_[n]. In this array of HANDLEs,
 	// only those that correspond to an active scheduler will be opened/closed.
-	HANDLE scheduler_number_pool_not_full_[max_number_of_schedulers];
+	::HANDLE scheduler_number_pool_not_full_[max_number_of_schedulers];
 #endif // defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
 	
 protected:

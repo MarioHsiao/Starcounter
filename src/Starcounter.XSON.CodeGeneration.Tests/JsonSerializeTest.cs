@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
-using Starcounter.XSON.CodeGeneration;
 using Starcounter.XSON.Serializers;
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
@@ -19,36 +18,127 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            Obj.Factory = new TypedJsonFactory();
+
             newtonSerializer = new NewtonsoftSerializer();
             defaultSerializer = new DefaultSerializer();
         }
 
         [Test]
-        public static void DefaultSerializerTest() {
-            TestSerializationFor(File.ReadAllText("person.json"));
-            TestSerializationFor(File.ReadAllText("supersimple.json"));
-            TestSerializationFor(File.ReadAllText("simple.json"));
-            TestSerializationFor(File.ReadAllText("TestMessage.json"));
+        public static void TestSerializeJsonString() {
+            
+            // needed size includes the quotations around the string.
+            SerializeString("First!", 8);
+            SerializeString("FirstWithSpecial\n", 20);
+            SerializeString("\n\b\t", 8);
+            SerializeString("\u001f", 8); 
+        }
+
+        private static void SerializeString(string value, int neededSize) {
+            byte[] dest;
+            int written;
+
+            unsafe {
+                // Assert that we dont write outside of the available space.
+                dest = new byte[neededSize - 2];
+                fixed (byte* pdest = dest) {
+                    written = JsonHelper.WriteString((IntPtr)pdest, dest.Length, value);
+                    Assert.AreEqual(-1, written);
+                }
+
+                // Assert that we write correct amount of bytes.
+                dest = new byte[neededSize*2];
+                fixed (byte* pdest = dest) {
+                    written = JsonHelper.WriteString((IntPtr)pdest, dest.Length, value);
+                    Assert.AreEqual(neededSize, written);
+                }
+            }
         }
 
         [Test]
-        public static void CodegenSerializerTest() {
-            TestSerializationFor(File.ReadAllText("person.json"), true);
-            TestSerializationFor(File.ReadAllText("supersimple.json"), true);
-            TestSerializationFor(File.ReadAllText("simple.json"), true);
-            TestSerializationFor(File.ReadAllText("TestMessage.json"), true);
+        public static void TestAllSerializers() {
+            TestDefaultSerializer();
+            TestCodegenSerializer();
         }
 
-        private static void TestSerializationFor(string json, bool useCodegen = false) {
+        [Test]
+        public static void TestDefaultSerializer() {
+            TestSerializationFor("jsstyle.json", File.ReadAllText("jsstyle.json"));
+            TestSerializationFor("person.json", File.ReadAllText("person.json"));
+            TestSerializationFor("supersimple.json", File.ReadAllText("supersimple.json"));
+            TestSerializationFor("simple.json", File.ReadAllText("simple.json"));
+            TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"));
+        }
+
+        [Test]
+        public static void TestCodegenSerializer() {
+            TestSerializationFor("jsstyle.json", File.ReadAllText("jsstyle.json"), true);
+            TestSerializationFor("person.json", File.ReadAllText("person.json"), true);
+            TestSerializationFor("supersimple.json", File.ReadAllText("supersimple.json"), true);
+            TestSerializationFor("simple.json", File.ReadAllText("simple.json"), true);
+            TestSerializationFor("TestMessage.json", File.ReadAllText("TestMessage.json"), true);
+        }
+
+        [Test]
+        public static void TestIncorrectInputJsonForDefaultSerializer() {
+            TObj tObj = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+
+            TObj.UseCodegeneratedSerializer = false;
+            Obj obj = (Obj)tObj.CreateInstance();
+
+            string invalidJson = "message";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "PlayerId: \"Hey!\" }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: \"Hey!\" ";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: Hey }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: 123";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+        }
+
+        [Test]
+        public static void TestIncorrectInputJsonForCodegenSerializer() {
+            TObj tObj = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+
+            TObj.UseCodegeneratedSerializer = true;
+            TObj.DontCreateSerializerInBackground = true;
+            Obj obj = (Obj)tObj.CreateInstance();
+
+            string invalidJson = "message";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "PlayerId: \"Hey!\" }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: \"Hey!\" ";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: Hey }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ PlayerId: 123";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+        }
+
+        private static void TestSerializationFor(string name, string json, bool useCodegen = false) {
             byte[] correctJson;
             byte[] defaultJson;
             int count;
             Obj correctObj;
             Obj actualObj;
             TObj tObj;
+            string serializerName = "default serializer";
+            if (useCodegen)
+                serializerName = "codegenerated serializer";
 
-            tObj = Obj.Factory.CreateJsonTemplate(json);
+            Console.WriteLine("Testing serialization/deserialization for '" + name + "' with " + serializerName);
+
+            tObj = Obj.Factory.CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), json);
             TObj.UseCodegeneratedSerializer = false;
             correctObj = (Obj)tObj.CreateInstance();
 
@@ -71,77 +161,106 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             Assert.AreEqual(correctJson.Length, count);
 
             AssertAreEqual(correctObj, actualObj);
+
+            Console.WriteLine("Done.");
         }
 
         [Test]
-        public static void BenchmarkSerializers() {
-            int count;
+        public static void BenchmarkDefaultSerializer() {
+            BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, true, false);
+            BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, true, false);
+        }
+
+        [Test]
+        public static void BenchmarkCodegenSerializer() {
+            BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, false, true);
+            BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, false, true);
+        }
+
+        [Test]
+        public static void BenchmarkAllSerializers() {
+            BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, true, true);
+            BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, true, true);
+        }
+
+        private static void BenchmarkSerializers(string json, bool testNewton, bool testDefault, bool testCodegen) {
+            int count = 0;
             string newtonJson;
-            byte[] defaultJson;
-            TObj tPerson;
+            byte[] jsonUtf8;
+            byte[] outJsonArr;
+            TObj tObj;
             double newtonTime;
             double defaultTime;
             double codegenTime;
             int nrOfTimes = 1000000;
 
+            Console.WriteLine(json);
+            Console.WriteLine();
+
             var newtonSerializer = new NewtonsoftSerializer();
             var defaultSerializer = DefaultSerializer.Instance;
 
-            tPerson = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+            tObj = Obj.Factory.CreateJsonTemplate(null, json);
             TObj.UseCodegeneratedSerializer = false;
 
-            dynamic person = tPerson.CreateInstance();
-            person.PlayerId = 35684;
-//            var account = person.Accounts.Add();
-//            account.AccountId = 35684;
-            SetDefaultPersonValues(person);
-
+            dynamic obj = tObj.CreateInstance();
             TObj.FallbackSerializer = newtonSerializer;
-            newtonJson = person.ToJson(); 
-            newtonTime = BenchmarkSerializer(person, nrOfTimes);
+            obj.PopulateFromJson(json);
 
-            TObj.FallbackSerializer = defaultSerializer;
-            count = person.ToJsonUtf8(out defaultJson);
-            defaultTime = BenchmarkSerializer(person, nrOfTimes);
-
-//            TObj.FallbackSerializer = new __starcountergenerated__.PreGeneratedSerializer();
-            TObj.UseCodegeneratedSerializer = true;
-            count = person.ToJsonUtf8(out defaultJson); // Run once to start the codegen.
-            Thread.Sleep(1000);
-            count = person.ToJsonUtf8(out defaultJson); // And then again to make sure everything is initialized.
-            codegenTime = BenchmarkSerializer(person, nrOfTimes);            
-
+            jsonUtf8 = System.Text.Encoding.UTF8.GetBytes(json);
+            count = jsonUtf8.Length;
+            
             Console.WriteLine("Serializing " + nrOfTimes + " number of times.");
-            Console.WriteLine("NewtonSoft:" + newtonTime + " ms.");
-            Console.WriteLine("Default:" + defaultTime + " ms.");
-            Console.WriteLine("Codegenerated:" + codegenTime + " ms.");
+            if (testNewton) {
+                TObj.FallbackSerializer = newtonSerializer;
+                newtonJson = obj.ToJson();
+                newtonTime = BenchmarkSerializer(obj, nrOfTimes);
+                Console.WriteLine("NewtonSoft:" + newtonTime + " ms.");
+            }
+
+            if (testDefault) {
+                TObj.FallbackSerializer = defaultSerializer;
+                count = obj.ToJsonUtf8(out outJsonArr);
+                defaultTime = BenchmarkSerializer(obj, nrOfTimes);
+                Console.WriteLine("Default:" + defaultTime + " ms.");
+            }
+
+            if (testCodegen) {
+                //            TObj.FallbackSerializer = new __starcountergenerated__.PreGeneratedSerializer();
+                TObj.UseCodegeneratedSerializer = true;
+                count = obj.ToJsonUtf8(out outJsonArr); // Run once to start the codegen.
+                Thread.Sleep(1000);
+                count = obj.ToJsonUtf8(out outJsonArr); // And then again to make sure everything is initialized.
+                codegenTime = BenchmarkSerializer(obj, nrOfTimes);
+                Console.WriteLine("Codegenerated:" + codegenTime + " ms.");
+            }
             Console.WriteLine();
-
-            Console.WriteLine("Count : " + count);
-            Console.WriteLine(Encoding.UTF8.GetString(defaultJson, 0, count));
-
-            TObj.UseCodegeneratedSerializer = false;
-            TObj.FallbackSerializer = newtonSerializer;
-            person.PopulateFromJson(newtonJson);
-            newtonTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
-
-            TObj.FallbackSerializer = defaultSerializer;
-            person.PopulateFromJson(defaultJson, count);
-            defaultTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
-
-            TObj.UseCodegeneratedSerializer = true;
-            person.PopulateFromJson(defaultJson, count);
-            codegenTime = BenchmarkDeserializer(person, defaultJson, count, nrOfTimes);
 
             Console.WriteLine("Deserializing " + nrOfTimes + " number of times.");
-            Console.WriteLine("NewtonSoft:" + newtonTime + " ms.");
-            Console.WriteLine("Default:" + defaultTime + " ms.");
-            Console.WriteLine("Codegenerated:" + codegenTime + " ms.");
+
+            if (testNewton) {
+                TObj.UseCodegeneratedSerializer = false;
+                TObj.FallbackSerializer = newtonSerializer;
+                obj.PopulateFromJson(json);
+                newtonTime = BenchmarkDeserializer(obj, jsonUtf8, jsonUtf8.Length, nrOfTimes);
+                Console.WriteLine("NewtonSoft:" + newtonTime + " ms.");
+            }
+
+            if (testDefault) {
+                TObj.FallbackSerializer = defaultSerializer;
+                obj.PopulateFromJson(jsonUtf8, jsonUtf8.Length);
+                defaultTime = BenchmarkDeserializer(obj, jsonUtf8, jsonUtf8.Length, nrOfTimes);
+                Console.WriteLine("Default:" + defaultTime + " ms.");
+            }
+
+            if (testCodegen) {
+                TObj.UseCodegeneratedSerializer = true;
+                obj.PopulateFromJson(jsonUtf8, jsonUtf8.Length);
+                codegenTime = BenchmarkDeserializer(obj, jsonUtf8, jsonUtf8.Length, nrOfTimes);
+                Console.WriteLine("Codegenerated:" + codegenTime + " ms.");
+            }
 
             Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine(newtonJson);
-
         }
 
         private static double BenchmarkSerializer(Obj person, int nrOfTimes) {
@@ -156,13 +275,13 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             return (stop - start).TotalMilliseconds;
         }
 
-        private static double BenchmarkDeserializer(Obj person, byte[] json, int jsonSize, int nrOfTimes) {
+        private static double BenchmarkDeserializer(Obj obj, byte[] json, int jsonSize, int nrOfTimes) {
             DateTime start;
             DateTime stop;
 
             start = DateTime.Now;
             for (int i = 0; i < nrOfTimes; i++) {
-                person.PopulateFromJson(json, jsonSize);
+                obj.PopulateFromJson(json, jsonSize);
             }
             stop = DateTime.Now;
             return (stop - start).TotalMilliseconds;
@@ -213,7 +332,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             TObj objTemplate;
 
 
-            objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("person.json"));
+            objTemplate = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
 
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
             Console.WriteLine(parseTree.ToString());
@@ -223,7 +342,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         public static void GenerateSerializationAstTreeOverview() {
             TObj objTemplate;
 
-            objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("person.json"));
+            objTemplate = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
             
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate).ToString());
         }
@@ -232,7 +351,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         public static void GenerateSerializationCsCode() {
             TObj objTemplate;
 
-            objTemplate = (TObj)Obj.Factory.CreateJsonTemplate(File.ReadAllText("supersimple.json"));
+            objTemplate = (TObj)Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
             objTemplate.ClassName = "PreGenerated";
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate, false).GenerateCsSourceCode());
         }
@@ -246,24 +365,25 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             string codegenJson;
             TObj tPerson;
 
-            tPerson = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
+            tPerson = (TObj)Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
             Obj person = (Obj)tPerson.CreateInstance();
-            SetDefaultPersonValues(person);
+            //SetDefaultPersonValues(person);
 
             TypedJsonSerializer serializer = new __starcountergenerated__.PreGeneratedSerializer();
 
-            // First use fallback serializer (Newtonsoft) to create a correct json string.
+            // First use fallback serializer to create a correct json string.
             TObj.UseCodegeneratedSerializer = false;
+            TObj.FallbackSerializer = new NewtonsoftSerializer();
+            person.PopulateFromJson(File.ReadAllText("supersimple.json"));
             correctJson = person.ToJson();
 
             // Then we do the same but use codegeneration. We use the pregenerated serializer here
             // to be able to debug it, but we will get the same result by enabling codegenerated serializer 
             // on the template.
             TObj.UseCodegeneratedSerializer = true;
+            TObj.FallbackSerializer = DefaultSerializer.Instance;
 
             size = serializer.ToJsonUtf8(person, out jsonArr);
-//            size = person.ToJsonUtf8(out jsonArr);
-
             codegenJson = Encoding.UTF8.GetString(jsonArr, 0, size);
 
             Console.WriteLine("Count: " + size);
@@ -275,7 +395,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             // Now we populate a new person instance with values from the serializer json.
             // And compare it to the original. All values should be identical.
             Obj person2 = (Obj)tPerson.CreateInstance();
-            sizeAfterPopulate = person2.PopulateFromJson(jsonArr, size);
+            sizeAfterPopulate = serializer.PopulateFromJson(person2, jsonArr, size);
 
             Assert.AreEqual(size, sizeAfterPopulate);
             AssertAreEqual(person, person2);

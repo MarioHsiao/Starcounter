@@ -15,7 +15,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// <param name="request">
         /// The REST request.</param>
         /// <returns>The response to be sent back to the client.</returns>
-        static object OnDatabaseProcessGET(string name, Request request) {
+        static Response OnDatabaseProcessGET(string name, Request request) {
             var server = RootHandler.Host.Runtime;
             var applicationDatabase = server.GetDatabaseByName(name);
             if (applicationDatabase == null) {
@@ -25,7 +25,7 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var engineInfo = applicationDatabase.Engine;
             if (engineInfo != null && engineInfo.DatabaseProcessRunning) {
-                var host = new Engine.DatabaseProcessApp();
+                var host = new Engine.DatabaseProcessObj();
                 host.Uri = uriTemplateDbProcess.ToAbsoluteUri(name);
                 host.Running = true;
                 return RESTUtility.JSON.CreateResponse(host.ToJson());

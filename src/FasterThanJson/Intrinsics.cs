@@ -11,7 +11,7 @@ namespace Starcounter.Internal
     /// <summary>
     /// Class Intrinsics
     /// </summary>
-   public unsafe class Intrinsics
+   internal unsafe class Intrinsics
    {
        /// <summary>
        /// Delegate MemCpyFunction

@@ -1,7 +1,7 @@
 //
 // channel_mask.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -21,7 +21,7 @@
 #include <iostream>
 #include <cstddef>
 #include <climits>
-#include <boost/cstdint.hpp>
+#include <cstdint>
 #define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 # include <intrin.h>

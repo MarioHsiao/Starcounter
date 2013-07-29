@@ -17,6 +17,11 @@ namespace Starcounter.Internal
         public const string DefaultDatabaseName = "Default";
 
         /// <summary>
+        /// Maximum possible schedulers number.
+        /// </summary>
+        public const Byte MaximumSchedulersNumber = 128;
+
+        /// <summary>
         /// Network related constants.
         /// </summary>
         public static class NetworkConstants
@@ -224,13 +229,6 @@ namespace Starcounter.Internal
             /// Indicates if this host Apps is not utilizing the network gateway.
             /// </summary>
             public const string NoNetworkGateway = "NoNetworkGateway";
-
-            /// <summary>
-            /// Gets the string we support as a flag on the command-line to allow
-            /// the host process to accept management input on standard streams/console
-            /// rather than named pipes (with named pipes being the default).
-            /// </summary>
-            public const string UseConsole = "UseConsole";
 
             /// <summary>
             /// Specifies the path to executable that should be run on startup.

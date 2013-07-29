@@ -40,6 +40,12 @@ namespace QueryProcessingTest {
         internal static void CreateIndexes() {
             if (Starcounter.Db.SQL("select i from sysindex i where name = ?", "accountidindx").First == null)
                 Starcounter.Db.SlowSQL("create index accountidindx on Account(accountid)");
+            if (Starcounter.Db.SQL("select i from sysindex i where name = ?", "nicknameindx").First == null) {
+                Starcounter.Db.SlowSQL("create index nicknameindx on User(NickName)");
+                Starcounter.Db.SlowSQL("create index anothernicknameindx on User(AnotherNickName)");
+            }
+            if (Starcounter.Db.SQL("select i from sysindex i where name = ?", "UserCompoundIndx").First == null)
+                Starcounter.Db.SlowSQL("create index UserCompoundIndx on user(NickName, LastName)");
         }
     }
 }

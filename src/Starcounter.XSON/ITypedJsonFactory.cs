@@ -25,7 +25,7 @@ namespace Starcounter.Internal {
         /// 
         /// </summary>
         /// <returns></returns>
-        TObj CreateJsonTemplate(string json);
+        TObj CreateJsonTemplate(string className, string json);
 
         /// <summary>
         /// 

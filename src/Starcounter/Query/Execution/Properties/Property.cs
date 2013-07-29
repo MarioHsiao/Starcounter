@@ -131,6 +131,14 @@ internal abstract class Property : CodeGenFilterNode, IProperty
         }
     }
 
+    public virtual String ColumnName {
+        get {
+            if (typeBinding is TypeBinding && propBinding != null)
+                return (typeBinding as TypeBinding).TypeDef.PropertyDefs[propBinding.Index].ColumnName;
+            else return null;
+        }
+    }
+
     /// <summary>
     /// The DbTypeCode of this property.
     /// </summary>

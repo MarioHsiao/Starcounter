@@ -24,6 +24,12 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
         TypeDefDeclaration typeDef;
         TypeDefDeclaration emittedSpec;
 
+        public string Name {
+            get {
+                return string.Concat(typeDef.Name, "+", TypeSpecification.Name);
+            }
+        }
+
         public FieldDefDeclaration TableHandle {
             get;
             private set;
@@ -131,17 +137,23 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             IType synonymTargetType;
 
             var module = assemblySpec.Module;
-            var specificationName = typeNameDeclaring + "+" + TypeSpecification.Name;
-            if (specificationName.Equals(this.emittedSpec.Name)) {
+            var specificationName = string.Concat(typeNameDeclaring, "+", TypeSpecification.Name);
+            if (specificationName.Equals(this.Name)) {
                 synonymTargetType = this.emittedSpec;
             } else {
                 synonymTargetType = (IType)module.FindType(specificationName, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
                 if (synonymTargetType == null) {
+                    var consultedAssemblies = new List<string>();
                     var typeEnumerator = module.GetDeclarationEnumerator(TokenType.TypeRef);
                     while (typeEnumerator.MoveNext()) {
                         var typeRef = (TypeRefDeclaration)typeEnumerator.Current;
-                        if (ScAnalysisTask.GetTypeReflectionName(typeRef).Equals(typeNameDeclaring)) {
-                            synonymTargetType = (IType)typeRef.GetTypeDefinition().Module.FindType(specificationName, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                        if (consultedAssemblies.Contains(typeRef.DeclaringAssembly.Name))
+                            continue;
+
+                        consultedAssemblies.Add(typeRef.DeclaringAssembly.Name);
+                        var candidate = (IType)typeRef.GetTypeDefinition().Module.FindType(specificationName, BindingOptions.OnlyExisting | BindingOptions.DontThrowException);
+                        if (candidate != null) {
+                            synonymTargetType = candidate;
                             break;
                         }
                     }

@@ -123,7 +123,7 @@ namespace Starcounter.InstallerEngine
                     {
                         Utilities.MessageBoxInfo("Your installation directory \"" + InstallerMain.InstallationDir + "\" was not deleted since it contains probably important files." +
                             Environment.NewLine + "Please check that no Starcounter servers/databases are located under your installation directory.",
-                            "Installation directory is left untouched.");
+                            "Installation directory is left untouched.", true);
                     }
 
                     return; // If any important files exist - we are not deleting directory.
@@ -140,7 +140,7 @@ namespace Starcounter.InstallerEngine
                     try
                     {
                         rmdirCmd.StartInfo.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
-                        rmdirCmd.StartInfo.Arguments = "/C TIMEOUT 5 /NOBREAK & RMDIR \"" + InstallerMain.InstallationDir + "\" /S /Q";
+                        rmdirCmd.StartInfo.Arguments = "/C TIMEOUT 3 /NOBREAK & RMDIR \"" + InstallerMain.InstallationDir + "\" /S /Q";
                         rmdirCmd.StartInfo.UseShellExecute = false;
                         rmdirCmd.StartInfo.CreateNoWindow = true;
                         rmdirCmd.Start();

@@ -30,7 +30,6 @@ namespace Starcounter.XSON.Compiler.Mono {
             settings.AssemblyReferences.Clear();
             settings.AssemblyReferences.Add("Starcounter.Internal.dll");
             settings.AssemblyReferences.Add("Starcounter.XSON.dll");
-            settings.AssemblyReferences.Add("Starcounter.XSON.CodeGeneration.dll");
 
             var context = new CompilerContext(settings, new ConsoleReportPrinter());
             var eval = new Evaluator(context);

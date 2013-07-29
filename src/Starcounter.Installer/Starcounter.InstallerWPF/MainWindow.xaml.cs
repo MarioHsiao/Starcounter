@@ -120,6 +120,8 @@ namespace Starcounter.InstallerWPF {
             if (e.Handled == false && e.OriginalSource is Hyperlink && !string.IsNullOrEmpty(e.Parameter as string)) {
                 // Used to go to web page
 
+                this.linksUserClickedOn += e.Parameter + Environment.NewLine;
+
                 try {
                     Process.Start(new ProcessStartInfo(e.Parameter as string));
                     e.Handled = true;
@@ -307,6 +309,8 @@ namespace Starcounter.InstallerWPF {
 
         #region Properties
 
+        private string linksUserClickedOn = string.Empty;
+
         // Setup Options
         private SetupOptions _SetupOptions = SetupOptions.None;
         public SetupOptions SetupOptions {
@@ -369,6 +373,7 @@ namespace Starcounter.InstallerWPF {
             this.Closing += new CancelEventHandler(MainWindow_Closing);
             this.PropertyChanged += new PropertyChangedEventHandler(MainWindow_PropertyChanged);
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
+            this.Closed += new EventHandler(CleanUpAfterUninstall);
 
             InitializeComponent();
         }
@@ -509,12 +514,20 @@ namespace Starcounter.InstallerWPF {
             return false;
         }
 
+        private bool bDelayedClose = false;
+
         /// <summary>
         /// Handles the Closing event of the MainWindow control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.ComponentModel.CancelEventArgs"/> instance containing the event data.</param>
         void MainWindow_Closing(object sender, CancelEventArgs e) {
+
+            if (bDelayedClose == true) {
+                e.Cancel = false;
+                return;
+            }
+
             if (this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
                 BasePage page = this.pages_lb.Items.CurrentItem as BasePage;
                 e.Cancel = !page.CanClose;
@@ -522,13 +535,50 @@ namespace Starcounter.InstallerWPF {
 
             if (e.Cancel == false && this.pages_lb != null && this.pages_lb.Items.CurrentItem != null) {
                 if (!(this.pages_lb.Items.CurrentItem is IFinishedPage || this.pages_lb.Items.CurrentItem is ErrorPage)) {
+
                     WpfMessageBoxResult result = WpfMessageBox.Show("Do you want to exit the setup program?", "Starcounter - Setup", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
-                    if (result != WpfMessageBoxResult.Yes) {
+                    if (result == WpfMessageBoxResult.Yes) {
+                        e.Cancel = false;
+                    }
+                    else {
                         e.Cancel = true;
+
                     }
                 }
             }
 
+
+            // Cancel the close down and use a delayed closedown
+            if (e.Cancel == false && this.bDelayedClose == false) {
+                e.Cancel = true;
+
+                this.bDelayedClose = true;
+
+                this.Hide();
+
+                // Send the tracking data before we close down.
+                Dispatcher disp = Dispatcher.FromThread(Thread.CurrentThread);
+
+                Starcounter.Tracking.Client.Instance.SendInstallerEnd(this.linksUserClickedOn,
+                      delegate(object sender2, Starcounter.Tracking.CompletedEventArgs args) {
+                          // Send compleated (success or error)
+                          disp.BeginInvoke(DispatcherPriority.Normal, new Action(delegate {
+                              // Close down on our main thread
+                              this.Close();
+                          }));
+                      }
+                );
+            }
+        }
+
+        /// <summary>
+        /// Handles the Closed event of the MainWindow control when uninstalling.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.ComponentModel.CancelEventArgs"/> instance containing the event data.</param>
+        void CleanUpAfterUninstall(object sender, EventArgs e) {
+            if (SetupOptions.Uninstall == this.SetupOptions)
+                UninstallEngine.DeleteInstallationDir(false);
         }
 
         #region Setup Components
@@ -540,7 +590,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         private void SetupComponents() {
             // Pre
-            
+
             VisualStudio2012 visualStudio2012 = new VisualStudio2012(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2012);
 
@@ -577,7 +627,7 @@ namespace Starcounter.InstallerWPF {
             //this._InternalComponents.Add(liveObjects);
 
             // Developer tools
-            
+
             VisualStudio2012Integration visualStudio2012Integration = new VisualStudio2012Integration(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2012Integration);
 

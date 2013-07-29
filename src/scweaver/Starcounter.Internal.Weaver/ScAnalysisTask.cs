@@ -23,7 +23,7 @@ using System.Reflection.Emit;
 using System.Text;
 
 namespace Starcounter.Internal.Weaver {
-    
+
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
@@ -406,6 +406,14 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
+        /// Signed assemblies that should be ignored.
+        /// </summary>
+        static readonly String[] SignedAssembliesIngore = {
+            "QueryProcessingTest.exe",
+            "IndexQueryTest.exe"
+        };
+
+        /// <summary>
         /// Principal entry point of the task. Invoked by PostSharp.
         /// </summary>
         /// <returns><b>true</b> in case of success, otherwise <b>false</b>.</returns>
@@ -432,7 +440,21 @@ namespace Starcounter.Internal.Weaver {
             // We currently can't transform such assemblies.
 
             if (_module.AssemblyManifest.GetPublicKey() != null) {
-                ScMessageSource.Write(SeverityType.Error, "SCATV05", new Object[] { _module.AssemblyManifest.GetFullName() });
+                Boolean isIgnored = false;
+
+                // Excluding assemblies from ignore list.
+                foreach (String s in SignedAssembliesIngore) {
+                    if (0 == String.Compare(s, _module.Name, true)) {
+                        isIgnored = true;
+                        break;
+                    }
+                }
+
+                if (!isIgnored) {
+                    var consideration = "Consider excluding this file by adding a \"weaver.ignore\" file to your project.";
+                    var postfix = string.Format("Assembly: {0}. {1}", _module.AssemblyManifest.GetFullName(), consideration);
+                    ScMessageSource.WriteError(MessageLocation.Unknown, Error.SCERRWEAVERFAILEDSTRONGNAMEASM, postfix);
+                }
             }
 
             // Find the reference to Starcounter

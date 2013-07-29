@@ -76,7 +76,7 @@ CoutSafe::~CoutSafe()
 #endif
 }
 
-void GatewayLogWriter::Init(std::wstring& log_file_path)
+void GatewayLogWriter::Init(const std::wstring& log_file_path)
 {
     log_write_pos_ = 0;
 
@@ -534,10 +534,10 @@ void ServerPort::Erase()
     {
         if (closesocket(listening_sock_))
         {
-#ifdef GW_ERRORS_DIAG
+#ifdef GW_WARNINGS_DIAG
             GW_COUT << "closesocket() failed." << GW_ENDL;
-#endif
             PrintLastError();
+#endif
         }
         listening_sock_ = INVALID_SOCKET;
     }
@@ -700,6 +700,8 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     if (cmd_setting_num_echoes_to_master_)
         setting_num_echoes_to_master_ = cmd_setting_num_echoes_to_master_;
 
+    setting_server_test_port_ = atoi(rootElem->first_node("ServerTestPort")->value());
+
     GW_ASSERT(setting_num_echoes_to_master_ <= MAX_TEST_ECHOES);
     ResetEchoTests();
 
@@ -819,7 +821,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     all_sessions_unsafe_ = (ScSessionStructPlus*)_aligned_malloc(sizeof(ScSessionStructPlus) * setting_max_connections_, 64);
     free_session_indexes_unsafe_ = new session_index_type[setting_max_connections_];
     sessions_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
-    num_active_sessions_unsafe_ = 0;
+    num_active_sessions_ = 0;
     num_sessions_to_cleanup_unsafe_ = 0;
 
     // Cleaning all sessions and free session indexes.
@@ -829,13 +831,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         free_session_indexes_unsafe_[i] = i;
 
         // Resetting all sessions.
-        all_sessions_unsafe_[i].session_.Reset();
-
-        // Resetting sessions time stamps.
-        all_sessions_unsafe_[i].session_timestamp_ = 0;
-
-        // Resetting active sockets flags.
-        all_sessions_unsafe_[i].active_socket_flag_ = false;
+        all_sessions_unsafe_[i].Reset();
     }
 
     delete [] config_contents;
@@ -1124,19 +1120,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
             GW_ASSERT(empty_db_index < MAX_ACTIVE_DATABASES);
 
-            // Workers shared interface instances.
-            core::shared_interface *workers_shared_ints =
-                new core::shared_interface[setting_num_workers_];
-            
-            // Adding to the databases list.
-            err_code = InitSharedMemory(current_db_name, workers_shared_ints);
-            if (err_code != 0)
-            {
-                // Leaving global lock.
-                LeaveGlobalLock();
-                return err_code;
-            }
-
             // Filling necessary fields.
             active_databases_[empty_db_index].Init(
                 current_db_name,
@@ -1150,9 +1133,39 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 num_dbs_slots_++;
 
             // Adding to workers database interfaces.
+            bool db_init_failed = false;
             for (int32_t i = 0; i < setting_num_workers_; i++)
             {
-                err_code = gw_workers_[i].AddNewDatabase(empty_db_index, workers_shared_ints[i]);
+                try
+                {
+                    err_code = gw_workers_[i].AddNewDatabase(empty_db_index);
+                }
+                catch (...)
+                {
+                    // Reporting a warning to server log.
+                    std::wstring temp_str = std::wstring(L"Attaching new database failed: ") +
+                        std::wstring(current_db_name.begin(), current_db_name.end());
+                    g_gateway.LogWriteWarning(temp_str.c_str());
+
+                    // Deleting worker database parts.
+                    for (int32_t i = 0; i < setting_num_workers_; i++)
+                        gw_workers_[i].DeleteInactiveDatabase(empty_db_index);
+
+                    // Resetting newly created database.
+                    active_databases_[empty_db_index].Reset(true);
+
+                    // Removing the database slot if it was the last.
+                    if (num_dbs_slots_ == empty_db_index + 1)
+                        num_dbs_slots_--;
+
+                    // Leaving global lock.
+                    LeaveGlobalLock();
+
+                    db_init_failed = true;
+                    
+                    break;
+                }
+                
                 if (err_code)
                 {
                     // Leaving global lock.
@@ -1160,6 +1173,10 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                     return err_code;
                 }
             }
+
+            // Checking if any error occurred.
+            if (db_init_failed)
+                continue;
 
             // Spawning channels events monitor.
             err_code = active_databases_[empty_db_index].SpawnChannelsEventsMonitor();
@@ -1172,7 +1189,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
 #ifdef GW_TESTING_MODE
 
-            uint16_t port_number = GATEWAY_TEST_PORT_NUMBER_SERVER;
+            uint16_t port_number = g_gateway.setting_server_test_port();
             if (!g_gateway.setting_is_master())
                 port_number++;
 
@@ -1375,6 +1392,43 @@ void ActiveDatabase::Init(
     is_ready_for_cleanup_ = false;
 
     num_holding_workers_ = g_gateway.setting_num_workers();
+
+    // Construct the database_shared_memory_parameters_name. The format is
+    // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
+    std::string shm_params_name = (std::string)DATABASE_NAME_PREFIX + "_" +
+        g_gateway.setting_sc_server_type_upper() + "_" + StringToUpperCopy(db_name_) + "_0";
+
+    // Open the database shared memory parameters file and obtains a pointer to
+    // the shared structure.
+    core::database_shared_memory_parameters_ptr db_shm_params(shm_params_name.c_str());
+
+    // Name of the database shared memory segment.
+    char seq_num_str[16];
+    itoa(db_shm_params->get_sequence_number(), seq_num_str, 10);
+    shm_seg_name_ = std::string(DATABASE_NAME_PREFIX) + "_" +
+        g_gateway.setting_sc_server_type_upper() + "_" +
+        StringToUpperCopy(db_name_) + "_" +
+        std::string(seq_num_str);
+}
+
+// Resets database slot.
+void ActiveDatabase::Reset(bool hard_reset)
+{
+    // Removing handlers table.
+    if (user_handlers_)
+    {
+        delete user_handlers_;
+        user_handlers_ = NULL;
+    }
+
+    unique_num_unsafe_ = INVALID_UNIQUE_DB_NUMBER;
+    db_name_ = "";
+
+    if (hard_reset)
+    {
+        were_sockets_closed_ = true;
+        is_empty_ = true;
+    }
 }
 
 // Checks if this database slot empty.
@@ -1420,15 +1474,8 @@ void ActiveDatabase::StartDeletion()
     // Closing all database sockets/sessions data.
     CloseSocketData();
 
-    // Removing handlers table.
-    if (user_handlers_)
-    {
-        delete user_handlers_;
-        user_handlers_ = NULL;
-    }
-
-    unique_num_unsafe_ = INVALID_UNIQUE_DB_NUMBER;
-    db_name_ = "";
+    // Resetting slot.
+    Reset(false);
 }
 
 // Closes all tracked sockets.
@@ -1469,10 +1516,10 @@ void ActiveDatabase::CloseSocketData()
             // NOTE: Closing socket which will results in stop of all pending operations on that socket.
             if (closesocket(s))
             {
-#ifdef GW_ERRORS_DIAG
+#ifdef GW_WARNINGS_DIAG
                 GW_COUT << "closesocket() failed." << GW_ENDL;
-#endif
                 PrintLastError();
+#endif
             }
 
             //GW_COUT << "closesocket: " << s << GW_ENDL;
@@ -1587,7 +1634,7 @@ uint32_t Gateway::Init()
         memset(server_addr_, 0, sizeof(sockaddr_in));
         server_addr_->sin_family = AF_INET;
         server_addr_->sin_addr.s_addr = inet_addr(g_gateway.setting_master_ip().c_str());
-        server_addr_->sin_port = htons(GATEWAY_TEST_PORT_NUMBER_SERVER);
+        server_addr_->sin_port = htons(g_gateway.setting_server_test_port());
     }
 
     InitTestHttpEchoRequests();
@@ -1662,47 +1709,6 @@ uint32_t Gateway::Init()
     time(&raw_time);
     tm *timeinfo = localtime(&raw_time);
     GW_PRINT_GLOBAL << "New logging session: " << asctime(timeinfo) << GW_ENDL;
-
-    return 0;
-}
-
-// Initializes everything related to shared memory.
-uint32_t Gateway::InitSharedMemory(
-    std::string setting_databaseName,
-    core::shared_interface* shared_int)
-{
-    using namespace core;
-
-    // Construct the database_shared_memory_parameters_name. The format is
-    // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
-    std::string shm_params_name = (std::string)DATABASE_NAME_PREFIX + "_" +
-        setting_sc_server_type_upper_ + "_" + StringToUpperCopy(setting_databaseName) + "_0";
-
-    // Open the database shared memory parameters file and obtains a pointer to
-    // the shared structure.
-    database_shared_memory_parameters_ptr db_shm_params(shm_params_name.c_str());
-
-    // Open the database shared memory segment.
-    if (db_shm_params->get_sequence_number() == 0)
-    {
-        // Cannot open the database shared memory segment, because it is not
-        // initialized yet.
-        GW_COUT << "Cannot open the database shared memory segment!" << GW_ENDL;
-    }
-
-    // Name of the database shared memory segment.
-    char seq_num_str[16];
-    itoa(db_shm_params->get_sequence_number(), seq_num_str, 10);
-    std::string shm_seg_name = std::string(DATABASE_NAME_PREFIX) + "_" +
-        setting_sc_server_type_upper_ + "_" +
-        StringToUpperCopy(setting_databaseName) + "_" +
-        std::string(seq_num_str);
-
-    // Construct a shared_interface.
-    for (int32_t i = 0; i < setting_num_workers_; i++)
-    {
-        shared_int[i].init(shm_seg_name.c_str(), shm_monitor_int_name_.c_str(), gateway_pid_, gateway_owner_id_);
-    }
 
     return 0;
 }
@@ -2274,7 +2280,22 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
-#ifndef GW_NEW_SESSIONS_APPROACH
+// Disconnects arbitrary socket.
+void Gateway::DisconnectSocket(GatewayWorker* gw, SOCKET sock)
+{
+    // Getting existing session copy.
+    ScSessionStructPlus global_session_copy = GetGlobalSessionPlusCopy(sock);
+
+    // Creating new socket data and setting required parameters.
+    SocketDataChunk* sd;
+    gw->CreateSocketData(sock, global_session_copy.port_index_, 0, sd);
+
+    sd->AssignSession(global_session_copy.session_);
+    sd->set_socket_trigger_disconnect_flag(true);
+    sd->set_unique_socket_id(global_session_copy.unique_socket_id_);
+    
+    gw->DisconnectAndReleaseChunk(sd);
+}
 
 // Cleans up all collected inactive sessions.
 uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
@@ -2285,14 +2306,30 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
 
     // Going through all collected inactive sessions.
     int64_t num_sessions_to_cleanup = num_sessions_to_cleanup_unsafe_;
+
     for (int32_t i = 0; i < num_sessions_to_cleanup; i++)
     {
-        // Getting existing session copy.
-        ScSessionStruct global_session_copy = GetGlobalSessionCopy(sessions_to_cleanup_unsafe_[i]);
+        // Getting existing session reference.
+        ScSessionStructPlus* global_session = all_sessions_unsafe_ + sessions_to_cleanup_unsafe_[i];
 
         // Checking if session is valid.
-        if (global_session_copy.IsValid())
+        if (0 != global_session->session_timestamp_)
         {
+            // Resetting the session cell.
+            global_session->session_.Reset();
+
+            // Setting the session time stamp to zero.
+            global_session->ResetTimestamp();
+
+#ifdef GW_SESSIONS_DIAG
+            GW_COUT << "Disconnecting inactive socket " << sessions_to_cleanup_unsafe_[i] << "." << GW_ENDL;
+#endif
+
+            // Triggering special light disconnect to reuse the socket.
+            DisconnectSocket(gw, sessions_to_cleanup_unsafe_[i]);
+
+#ifndef GW_NEW_SESSIONS_APPROACH
+
             // Killing the session.
             bool session_was_killed;
             KillSession(sessions_to_cleanup_unsafe_[i], &session_was_killed);
@@ -2316,19 +2353,19 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
                         continue;
 
                     // Getting and checking Apps unique session number.
-                    apps_unique_session_num_type apps_unique_session_num = global_db->GetAppsUniqueSessionNumber(global_session_copy.gw_session_index_);
+                    apps_unique_session_num_type apps_unique_session_num = global_db->GetAppsUniqueSessionNumber(global_session->gw_session_index_);
 
                     // Checking if Apps session information is correct.
                     if (apps_unique_session_num != INVALID_APPS_UNIQUE_SESSION_NUMBER)
                     {
                         // Getting Apps session salt.
-                        session_salt_type apps_session_salt = global_db->GetAppsSessionSalt(global_session_copy.gw_session_index_);
+                        session_salt_type apps_session_salt = global_db->GetAppsSessionSalt(global_session->gw_session_index_);
 
                         // Sending session destroyed message.
                         err_code = worker_db->PushDeadSession(
                             apps_unique_session_num,
                             apps_session_salt,
-                            global_session_copy.scheduler_id_);
+                            global_session->scheduler_id_);
 
                         if (err_code)
                         {
@@ -2339,10 +2376,12 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
                 }
 
 #ifdef GW_SESSIONS_DIAG
-                GW_COUT << "Inactive session " << global_session_copy.gw_session_index_ << ":"
-                    << global_session_copy.gw_session_salt_ << " was destroyed." << GW_ENDL;
+                GW_COUT << "Inactive session " << global_session->session_.linear_index_ << ":"
+                    << global_session->session_.random_salt_ << " was destroyed." << GW_ENDL;
 #endif
             }
+
+#endif
         }
 
         // Inactive session was successfully cleaned up.
@@ -2376,12 +2415,29 @@ uint32_t Gateway::CollectInactiveSessions()
         if ((all_sessions_unsafe_[i].session_timestamp_) &&
             (global_timer_unsafe_ - all_sessions_unsafe_[i].session_timestamp_) >= setting_inactive_session_timeout_seconds_)
         {
-            sessions_to_cleanup_unsafe_[num_inactive] = i;
-            ++num_inactive;
+            // Disconnecting socket.
+            switch (all_sessions_unsafe_[i].type_of_network_protocol_)
+            {
+                case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
+                {
+                    sessions_to_cleanup_unsafe_[num_inactive] = i;
+                    ++num_inactive;
+
+                    break;
+                }
+
+                /*case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
+                {
+                    sessions_to_cleanup_unsafe_[num_inactive] = i;
+                    ++num_inactive;
+
+                    break;
+                }*/
+            }
         }
 
         // Checking if we have checked all active sessions.
-        if (num_inactive >= num_active_sessions_unsafe_)
+        if (num_inactive >= num_active_sessions_)
             break;
     }
 
@@ -2389,7 +2445,7 @@ uint32_t Gateway::CollectInactiveSessions()
 
     LeaveCriticalSection(&cs_sessions_cleanup_);
 
-    if (num_active_sessions_unsafe_)
+    if (num_active_sessions_)
     {
         // Waking up the worker 0 thread with APC.
         WakeUpThreadUsingAPC(worker_thread_handles_[0]);
@@ -2397,7 +2453,6 @@ uint32_t Gateway::CollectInactiveSessions()
 
     return 0;
 }
-#endif
 
 // Entry point for inactive sessions cleanup.
 uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
@@ -2407,7 +2462,8 @@ uint32_t __stdcall InactiveSessionsCleanupRoutine(LPVOID params)
 
     while (true)
     {
-#ifndef GW_NEW_SESSIONS_APPROACH
+#ifdef GW_COLLECT_INACTIVE_SOCKETS
+
         // Sleeping minimum interval.
         Sleep(g_gateway.get_min_inactive_session_life_seconds() * 1000);
 
@@ -2718,7 +2774,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         global_statistics_stream_ << "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
             ", overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
 #ifndef GW_NEW_SESSIONS_APPROACH
-            ", active sessions " << g_gateway.get_num_active_sessions_unsafe() <<
+            ", active sessions " << g_gateway.get_num_active_sessions() <<
 #endif
             ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
             ", reusable conn-socks " << g_gateway.NumberOfReusableConnectSockets() <<
@@ -3126,7 +3182,8 @@ uint32_t Gateway::AddUriHandler(
         db_index,
         new_handler_index);
 
-    GW_ERR_CHECK(err_code);
+    if (err_code)
+        return err_code;
 
     // Search for handler index by URI string.
     BMX_HANDLER_TYPE handler_index = handlers_table->FindUriHandlerIndex(
@@ -3138,11 +3195,11 @@ uint32_t Gateway::AddUriHandler(
     ServerPort* server_port = g_gateway.FindServerPort(port);
 
     // Registering URI on port.
-    RegisteredUris* all_port_uris = server_port->get_registered_uris();
-    int32_t index = all_port_uris->FindRegisteredUri(processed_uri_info);
+    RegisteredUris* port_uris = server_port->get_registered_uris();
+    int32_t uri_index = port_uris->FindRegisteredUri(processed_uri_info);
 
     // Checking if there is an entry.
-    if (index < 0)
+    if (uri_index < 0)
     {
         // Checking if there is a session in parameters.
         uint8_t session_param_index = INVALID_PARAMETER_INDEX;
@@ -3164,12 +3221,16 @@ uint32_t Gateway::AddUriHandler(
             is_gateway_handler);
 
         // Adding entry to global list.
-        all_port_uris->AddNewUri(new_entry);
+        port_uris->AddNewUri(new_entry);
     }
     else
     {
+        // Disallowing handler duplicates.
+        return SCERRHANDLERALREADYREGISTERED;
+
+        /*
         // Obtaining existing URI entry.
-        RegisteredUri* reg_uri = all_port_uris->GetEntryByIndex(index);
+        RegisteredUri* reg_uri = port_uris->GetEntryByIndex(uri_index);
 
         // Checking if there is no database for this URI.
         if (!reg_uri->ContainsDb(db_index))
@@ -3177,8 +3238,11 @@ uint32_t Gateway::AddUriHandler(
             // Adding new handler list for this database to the URI.
             reg_uri->Add(handlers_table->get_handler_list(handler_index));
         }
+        */
     }
-    GW_ERR_CHECK(err_code);
+
+    if (err_code)
+        return err_code;
 
     return 0;
 }

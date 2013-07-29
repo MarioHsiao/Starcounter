@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Starcounter.Internal;
 using System;
 using System.Globalization;
 using System.IO;
@@ -21,7 +22,7 @@ namespace Starcounter.VisualStudio {
         /// <summary>
         /// Gets the full path to Starcounter 32-bit components.
         /// </summary>
-        internal static readonly string Installed32BitComponponentsDirectory = Path.Combine(InstallationDirectory, "32BitComponents");
+        internal static readonly string Installed32BitComponponentsDirectory = Path.Combine(InstallationDirectory, StarcounterEnvironment.Directories.Bit32Components);
         
         static BaseVsPackage() {
             AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
@@ -42,7 +43,7 @@ namespace Starcounter.VisualStudio {
                     resourceBinaryPath = Installed32BitComponponentsDirectory;
                 }
 
-                moduleHandle = LoadLibrary(Path.Combine(resourceBinaryPath, "HttpParser.dll"));
+                moduleHandle = LoadLibrary(Path.Combine(resourceBinaryPath, "schttpparser.dll"));
             } catch { }
 
             return moduleHandle != IntPtr.Zero;

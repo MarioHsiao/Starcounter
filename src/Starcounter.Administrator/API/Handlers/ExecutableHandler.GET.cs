@@ -18,7 +18,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// executables from, the collection.</param>
         /// <param name="request">The REST request.</param>
         /// <returns>The response to be sent back to the client.</returns>
-        static object OnGET(string engineName, string key, Request request) {
+        static Response OnGET(string engineName, string key, Request request) {
             var server = RootHandler.Host.Runtime;
             var applicationDatabase = server.GetDatabaseByName(engineName);
             if (applicationDatabase == null) {

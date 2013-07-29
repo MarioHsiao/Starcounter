@@ -6,6 +6,7 @@
 
 using Starcounter.Internal;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -35,6 +36,25 @@ namespace Starcounter.Internal
                 Byte cpun;
                 cm3_get_cpun(null, &cpun);
                 return cpun;
+            }
+        }
+
+        static Nullable<Boolean> isCodeHosted = null;
+
+        /// <summary>
+        /// Returns if current code is hosted in Starcounter
+        /// (i.e. runs in sccode.exe instance).
+        /// </summary>
+        public static Boolean IsCodeHosted
+        {
+            get
+            {
+                if (null != isCodeHosted)
+                    return isCodeHosted.Value;
+
+                isCodeHosted = (Process.GetCurrentProcess().ProcessName == StarcounterConstants.ProgramNames.ScCode);
+
+                return isCodeHosted.Value;
             }
         }
 
@@ -142,6 +162,11 @@ namespace Starcounter.Internal
             /// Weaver temp sub directory.
             /// </summary>
             public const String WeaverTempSubDirectory = "weaver";
+
+            /// <summary>
+            /// 32BitComponents directory.
+            /// </summary>
+            public const String Bit32Components = "32BitComponents";
         }
 
         /// <summary>
@@ -264,7 +289,7 @@ namespace Starcounter.Internal
             /// <summary>
             /// The starcounter wiki
             /// </summary>
-            public const string StarcounterWiki = "http://www.starcounter.com/wiki/";
+            public const string StarcounterWiki = "https://github.com/Starcounter/Starcounter/wiki";
             /// <summary>
             /// The administrator start page
             /// </summary>

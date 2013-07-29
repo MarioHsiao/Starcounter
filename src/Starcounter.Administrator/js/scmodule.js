@@ -1,162 +1,152 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * sc.engine
+ * sc.sqlquery
  * ----------------------------------------------------------------------------
  */
-var engineModule = angular.module('sc.engine', ['sc.engine.service'], function ($routeProvider) { });
+var sqlQueryModule = angular.module('sc.sqlquery', ['sc.sqlquery.service', 'sc.sqlquery.directive'], function ($routeProvider) {
 
-engineModule.config(function ($routeProvider) {
-
-    // List of all Engines
-    $routeProvider.when('/engines', {
-        templateUrl: '/partials/engines.html',
-        controller: 'EnginesCtrl'
+    $routeProvider.when('/sql', {
+        templateUrl: '/partials/sql.html',
+        controller: 'SqlQueryCtrl'
     });
 
-    // One Engine
-    $routeProvider.when('/engines/:name', {
-        templateUrl: '/partials/engine.html',
-        controller: 'EngineCtrl'
-    });
-
+}).value('ui.config', {
+    codemirror: {
+        mode: 'text/x-mysql',
+        lineNumbers: true,
+        matchBrackets: true
+    }
 });
 
-
 /**
- * Engines Controller
+ * Sql Query Controller
  */
-engineModule.controller('EnginesCtrl', ['$scope', '$dialog', 'Engine', function ($scope, $dialog, Engine) {
+sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scope, SqlQuery) {
 
-    $scope.stopEngine = function (engine) {
+    $scope.alerts.length = 0;
+    $scope.isBusy = false;
 
-        var job = { message: "Stopping engine " + engine.name };
-        $scope.jobs.push(job);
+    $scope.selectedDatabaseName = null;
+    $scope.sqlQuery = "";
+    $scope.columns = [];
+    $scope.rows = [];
 
-        Engine.stop({ name: engine.name }, function (response) {
+    $scope.executeButtonTitle = function () {
+        if ($scope.isBusy) {
+            return "Executing...";
+        }
+        else {
+            return "Execute";
+        }
+    }
+
+    $scope.executeQuery = function () {
+
+        $scope.isBusy = true;
+
+        $scope.columns = [];
+        $scope.rows = [];
+
+        SqlQuery.send({ name: $scope.selectedDatabaseName }, $scope.sqlQuery, function (response, headers) {
+
+            $scope.isBusy = false;
+
             // Success
-            //
-            // Example response: 
-            // {
-            //     "Code":10024,
-            //     "Message":"The database engine is not running."
-            // }
+            $scope.columns = response.columns;
+            $scope.rows = response.rows;
 
-            // Remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
+            // Make all columns readonly
+            for (var i = 0; i < $scope.columns.length ; i++) {
+                $scope.columns[i].readOnly = true;
             }
 
-            $scope.refreshEngineAndExecutableList();
+            if (response.queryPlan != null) {
+                $scope.queryPlan = response.queryPlan.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
+                $scope.queryPlan = $scope.queryPlan.replace(/\t/g, "&emsp;");  // Replace all occurrences of \t with &emsp;
+            }
 
-            // Remove engine or refresh engines
-            //var index = $scope.engines.indexOf(engine);
-            //if (index == -1) {
-            //    // Recover by getting the compleat list
-            //    $scope.refreshEnginesList();
-            //}
-            //else {
-            //    $scope.engines.splice(index, 1);
-            //}
+            if (response.sqlException != null) {
+                // Show message
+                //$scope.sqlException.beginPosition
+                //$scope.sqlException.endPosition
+                //$scope.sqlException.helpLink
+                //$scope.sqlException.message
+                //$scope.sqlException.query
+                //$scope.sqlException.scErrorCode
+                //$scope.sqlException.token
+                //$scope.sqlException.stackTrace
 
+                $scope.alerts.push({ type: 'error', msg: response.sqlException.message, helpLink: response.sqlException.helpLink });
+            }
+
+            if (response.exception != null) {
+                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
+            }
 
         }, function (response) {
             // Error
-
-            // Remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
-
+            $scope.isBusy = false;
             if (response instanceof SyntaxError) {
                 $scope.showException(response.message, null, response.stack);
             }
             else {
-                $scope.showException(response.data, null, null);
+
+
+                $scope._handleErrorReponse(response);
+
+                //if (response.status == 404) {
+                //    // 404	Not Found
+                //    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
+                //}
+                //else if (response.status == 500) {
+                //    // 500 Internal Server Error
+                //    $scope.showException(response.data.message, response.data.helpLink, response.data.stackTrace);
+                //}
+                //else if (response.status == 503) {
+                //    // 503 ServiceUnavailable
+                //    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
+                //}
+                //else {
+                //    $scope.showException("Unhandled http statuscode " + response.status, null, ".getDatabase()");
+                //}
             }
         });
     }
 
-    $scope.btnStopEngine = function (engine) {
 
-        var title = 'Stop engine';
-        var msg = 'Do you want to stop the engine ' + engine.name;
-        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Stop', cssClass: 'btn-danger' }];
-
-        $dialog.messageBox(title, msg, btns)
-          .open()
-          .then(function (result) {
-              if (result == 0) {
-                  $scope.stopEngine(engine);
-              }
-          });
-
-
+    // User clicked the "Execute" button
+    $scope.btnExecute = function () {
+        $scope.alerts.length = 0;
+        $scope.executeQuery();
     }
 
     // Init
-    $scope.refreshEnginesList();
+    // Handsontable (fixed the height)
+    var $window = $(window);
+    var winHeight = $window.height();
+    var winWidth = $window.width();
 
-}]);
+    $window.resize(function () {
+        winHeight = $window.height();
+        winWidth = $window.width();
+    });
 
-
-/**
- * Engine Controller (TODO)
- */
-engineModule.controller('EngineCtrl', ['$scope', '$routeParams', 'Engine', 'HostProcess', 'Database', function ($scope, $routeParams, Engine, HostProcess, Database) {
-
-    $scope.isBusy = true;
-    //    console.log("Get Engine:" + $routeParams.name);
-    Engine.get({ name: $routeParams.name }, function (response) {
-        // Success
-        //console.log("Got response");
-        $scope.isBusy = false;
-        $scope.engine = response;
-        $scope.name = $routeParams.name;
-
-        // Get Database process status
-        Database.status({ name: $routeParams.name }, function (response) {
-            // Success
-            $scope.databaseProcess = response;
-        }, function (response) {
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-                $scope.showException(response.data, null, null);
-            }
-        });
-
-        // Get Code host process status
-        HostProcess.get({ name: $routeParams.name }, function (response) {
-            // Success
-            $scope.hostProcess = response;
-        }, function (response) {
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-                $scope.showException(response.data, null, null);
-            }
-        });
-
-    }, function (response) {
-        // Error
-        $scope.isBusy = false;
-        if (response instanceof SyntaxError) {
-            $scope.showException(response.message, null, response.stack);
+    $scope.calcHeight = function () {
+        var border = 12;
+        var topOffset = $("#handsontable").offset().top;
+        var height = winHeight - topOffset - 2 * border;
+        if (height < 50) {
+            return 50;
         }
-        else {
+        return height;
+    };
 
-            if (response.status == 404) {
-                // 404	Not Found
-                $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.Helplink });
-            }
-            else {
-                $scope.showException(response.data, null, null);
+    $scope._RefreshDatabases(function () {
+        // success
+        for (var i = 0 ; i < $scope.databases.length ; i++) {
+            if ($scope.databases[i].running == true) {
+                $scope.selectedDatabaseName = $scope.databases[0].name;
+                break;
             }
         }
 
@@ -166,33 +156,163 @@ engineModule.controller('EngineCtrl', ['$scope', '$routeParams', 'Engine', 'Host
 
 
 /**
- * sc.engine.service
+ * sc.sqlquery.service
  */
-angular.module('sc.engine.service', ['ngResource'], function ($provide) {
+angular.module('sc.sqlquery.service', ['ngResource'], function ($provide) {
 
-    // Engine
-    $provide.factory('Engine', function ($resource) {
-        return $resource('/api/engines/:name', { name: '@name' }, {
-            query: { method: 'GET', isArray: false },
-            get: { method: 'GET' },
-            start: { method: 'POST' },
-            stop: { method: 'DELETE' },
-            startExecutable: { method: 'POST', url: '/api/engines/:name/executables' }
+    $provide.factory('SqlQuery', function ($resource) {
+        return $resource('/api/admin/databases/:name/sql', { name: '@name' }, {
+            send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
         });
     });
-
 
 
 });
 
-/*
+
+/**
+ * sc.sqlquery.directive
+ */
+angular.module('sc.sqlquery.directive', ['ui.config', 'uiHandsontable']);
+
+
+/**
  * ----------------------------------------------------------------------------
- * sc.database
+ * sc.log
  * ----------------------------------------------------------------------------
  */
-var databaseModule = angular.module('sc.database', ['sc.database.service'], function ($routeProvider) { });
+var logModule = angular.module('sc.log', ['sc.log.service', 'sc.log.directive'], function ($routeProvider) {
 
-databaseModule.config(function ($routeProvider) {
+    $routeProvider.when('/log', {
+        templateUrl: '/partials/log.html',
+        controller: 'LogCtrl'
+    });
+
+});
+
+
+/**
+ * Log Controller
+ */
+logModule.controller('LogCtrl', ['$scope', 'Log', function ($scope, Log) {
+
+    $scope.alerts.length = 0;
+    $scope.log = {};
+    $scope.log.LogEntries = [];
+
+    $scope.filterModel = {
+        debug: false,
+        notice: false,
+        warning: true,
+        error: true
+    };
+
+
+    // Watch for changes in the filer
+    $scope.$watch('filterModel', function () {
+        $scope.getLog();
+    }, true);
+
+    // Retrive log information
+    $scope.getLog = function () {
+
+        Log.query($scope.filterModel, function (response) {
+            // Success
+            $scope.log = response;
+
+            if (response == null) {
+                $scope.showException("Invalid response, log property was null", null, ".saveSettings()");
+            }
+
+        }, function (response) {
+            // Error
+            if (response instanceof SyntaxError) {
+                $scope.showException(response.message, null, response.stack);
+            }
+            else {
+
+                var message = "Can not retrive the log";
+                if (response.status != null) {
+                    message += " " + "Status code:" + response.status;
+                }
+
+                // 500 Internal Server Error
+                if (response.status === 500) {
+                    $scope.showException(message, null, response.data);
+                }
+                else {
+                    $scope.alerts.push({ type: 'error', msg: message });
+                }
+            }
+
+        });
+    }
+
+    $scope.btnRefresh = function () {
+        $scope.alerts.length = 0;
+        $scope.getLog();
+    }
+
+    // Init 
+    // Handsontable (fixed the height)
+    var $window = $(window);
+    var winHeight = $window.height();
+    var winWidth = $window.width();
+    $window.resize(function () {
+        winHeight = $window.height();
+        winWidth = $window.width();
+    });
+
+    $scope.calcHeight = function () {
+        var border = 12;
+        var topOffset = $("#handsontable").offset().top;
+        var height = winHeight - topOffset - 2 * border;
+        if (height < 50) {
+            return 50;
+        }
+        return height;
+    };
+
+    $scope.calcWidth = function () {
+        var border = 12;
+        var leftOffset = $("#handsontable").offset().left;
+        var width = winWidth - leftOffset - 2 * border;
+        if (width < 50) {
+            return 50;
+        }
+        return width;
+    };
+
+}]);
+
+
+/**
+ * sc.log.service
+ */
+angular.module('sc.log.service', ['ngResource'], function ($provide) {
+
+    $provide.factory('Log', function ($resource) {
+        return $resource('/api/admin/log', {}, {
+            query: { method: 'GET', isArray: false }
+        });
+    });
+
+});
+
+
+/**
+ * sc.log.directive
+ */
+angular.module('sc.log.directive', ['uiHandsontable']);
+
+
+
+/**
+ * ----------------------------------------------------------------------------
+ * scadmin
+ * ----------------------------------------------------------------------------
+ */
+var adminModule = angular.module('scadmin', ['sc.sqlquery', 'sc.log', 'ui', 'ui.bootstrap'], function ($routeProvider) {
 
     // List of all Databases
     $routeProvider.when('/databases', {
@@ -212,84 +332,1288 @@ databaseModule.config(function ($routeProvider) {
         controller: 'DatabaseEditCtrl'
     });
 
+    // Create database
+    $routeProvider.when('/database_create', {
+        templateUrl: '/partials/database_create.html',
+        controller: 'DatabaseCreateCtrl'
+    })
+
+    // List of all Exectuables
+    $routeProvider.when('/executables', {
+        templateUrl: '/partials/executables.html',
+        controller: 'ExecutablesCtrl'
+    });
+
+    // List of all Exectuables
+    $routeProvider.when('/executable_start', {
+        templateUrl: '/partials/executable_start.html',
+        controller: 'ExecutableStartCtrl'
+    });
+
+    $routeProvider.when('/server_edit', {
+        templateUrl: '/partials/server_edit.html',
+        controller: 'ServerEditCtrl'
+    });
+
+    $routeProvider.when('/gateway', {
+        templateUrl: '/partials/gateway.html',
+        controller: 'GatewayCtrl'
+    });
+
+    $routeProvider.otherwise({ redirectTo: '/executables' });
+
+    //$locationProvider.html5Mode(true);
 
 });
+
+/**
+ * Head Controller
+ */
+adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '$rootScope', function ($scope, $http, $location, $dialog, $rootScope) {
+
+
+    $scope.alerts = [];
+    $scope.jobs = [];           // { message:"default" }
+    $scope.engines = [];        // { uri:"http://localhost:8181/api/engines/default", name:"default" }
+    $scope.databases = [];      // { "uri":"http://headsutv19:8181/api/databases/default", name:"default", running:true, engineUri:"http://headsutv19:8181/api/engines/default" }
+    $scope.executables = [];    // { path:"c:\tmp\some.exe", databaseName:"default" }
+    //    $scope.server =           // { name:"Personal", httpPort:8181, version:"2.0.0.0"}
+
+    $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
+        $scope.showNetworkDownError();
+    });
+
+    // Handles the active navbar item
+    $scope.isActiveUrl = function (path) {
+        return $location.path() == path;
+    }
+
+    // Close alert box
+    $scope.closeAlert = function (index) {
+        $scope.alerts.splice(index, 1);
+    };
+
+    // Show Exception dialog
+    $scope.showException = function (message, helpLink, stackTrace) {
+
+        $scope.opts = {
+            backdrop: true,
+            keyboard: true,
+            backdropClick: true,
+            templateUrl: "partials/error.html",
+            controller: 'DialogController',
+            data: { header: "Internal Server Error", message: message, stackTrace: stackTrace, helpLink: helpLink }
+        };
+
+        var d = $dialog.dialog($scope.opts);
+        d.open();
+        // TODO: Handle if the server went down, the we can not get the error.html to show the error message..
+
+    }
+
+    // Show Client Error dialog
+    $scope.showClientError = function (message, helpLink, stackTrace) {
+        $scope.showError("Client Error", message, helpLink, stackTrace);
+    }
+
+    // Show Server Error dialog
+    $scope.showServerError = function (message, helpLink, stackTrace) {
+        $scope.showError("Server Error", message, helpLink, stackTrace);
+    }
+
+    // Show Network down..
+    $scope.showNetworkDownError = function (helpLink) {
+        $scope.alerts.push({ type: 'error', msg: "The server is not responding or is not reachable. For help, contact your network administrator.", helpLink: helpLink });
+    }
+
+    // Show Exception dialog
+    $scope.showError = function (title, message, helpLink, stackTrace) {
+
+        $scope.opts = {
+            backdrop: true,
+            keyboard: true,
+            backdropClick: true,
+            templateUrl: "partials/error.html",
+            controller: 'DialogController',
+            data: { header: title, message: message, stackTrace: stackTrace, helpLink: helpLink }
+        };
+
+        var d = $dialog.dialog($scope.opts);
+        d.open();
+        // TODO: Handle if the server went down, the we can not get the error.html to show the error message..
+
+    }
+
+    $scope.addJob = function (job) {
+        $scope.jobs.push(job);
+        return job;
+    }
+
+    $scope.removeJob = function (job) {
+
+        // Remove job
+        var index = $scope.jobs.indexOf(job);
+        if (index != -1) {
+            $scope.jobs.splice(index, 1);
+        }
+        return job;
+    }
+
+    // Private
+
+    // Get Execuables from all engines
+    $scope._GetExecutables = function (readyCallback) {
+
+        var executableList = [];
+
+        $scope.engines.length = 0;
+
+        $http.get('/api/engines').then(function (response) {
+            // success handler
+            if (response.data.hasOwnProperty("Engines") == true) {
+                var engineList = response.data.Engines;
+
+                var countDown = engineList.length;
+
+                // 2. Get Each engine
+                for (var i = 0; i < engineList.length ; i++) {
+
+                    var engine = engineList[i];
+                    $scope.engines.push({ name: engine.Name, uri: engine.Uri });
+
+                    $scope._GetEngineExecutables(engine.Name, function (list) {
+                        countDown--;
+
+                        for (var n = 0 ; n < list.length; n++) {
+                            executableList.push(list[n]);
+                        }
+
+                        if (countDown == 0 && readyCallback != null) {
+                            readyCallback(executableList);
+                        }
+                    });
+
+                }
+
+                if (engineList.length == 0 && readyCallback != null) {
+                    readyCallback(executableList);
+                }
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._GetExecutables() " + JSON.stringify(response.data));
+                if (readyCallback != null) {
+                    readyCallback(executables);
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (readyCallback != null) {
+                readyCallback(executableList);
+            }
+        });
+
+
+    }
+
+    // Get Running executables in one engine
+    $scope._GetEngineExecutables = function (name, readyCallback) {
+
+        var executables = [];
+
+        $http.get('/api/engines/' + name).then(function (response) {
+            // success handler
+
+            if (response.data.hasOwnProperty("Executables") == true &&
+                response.data.Executables.hasOwnProperty("Executing")) {
+
+                var executablList = response.data.Executables.Executing;
+                for (var n = 0 ; n < executablList.length ; n++) {
+                    var executable = executablList[n];
+                    executables.push({ path: executable.Path, databaseName: name });
+                }
+
+                if (readyCallback != null) {
+                    readyCallback(executables);
+                }
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._GetEngineExecutables() " + JSON.stringify(response.data));
+            }
+
+
+        }, function (response) {
+            // error handler
+
+            if (response.status == 404) {
+                // No engine = no executables
+
+            } else {
+                $scope._handleErrorReponse(response);
+            }
+
+
+            if (readyCallback != null) {
+                readyCallback(executables);
+            }
+
+        });
+
+    }
+
+    // Get the status of one database
+    $scope._GetDatabaseStatus = function (name, readyCallback) {
+
+        $http.get('/api/engines/' + name).then(function (response) {
+            // success handler
+
+            if (response.data.hasOwnProperty("DatabaseProcess") == true) {
+
+                dbStatus = { uri: response.data.DatabaseProcess.Uri, running: response.data.DatabaseProcess.Running };
+
+                if (readyCallback != null) {
+                    readyCallback(dbStatus);
+                }
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._GetEngineExecutables() " + JSON.stringify(response.data));
+            }
+
+
+        }, function (response) {
+            // error handler
+
+            if (response.status == 404) {
+                // Database is not running
+            }
+            else {
+                $scope._handleErrorReponse(response);
+            }
+
+            if (readyCallback != null) {
+                readyCallback(null);
+            }
+
+        });
+
+    }
+
+    // Gets an database with status
+    $scope._GetDatabase = function (name, readyCallback) {
+
+        $http.get('/api/databases/' + name).then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("Engine") == true) {
+
+                var remoteDatabase = response.data;
+
+                var relativeEngineUri = toRelativePath(remoteDatabase.Engine.Uri);
+
+                var database = { name: remoteDatabase.Name, uri: remoteDatabase.Uri, running: false, engineUri: relativeEngineUri };
+
+                // GET Database status
+                $scope._GetDatabaseStatus(remoteDatabase.Name, function (status) {
+                    // Ready
+                    if (status != null) {
+                        database.running = status.running;
+                        database.uri = status.uri;
+                    }
+
+                    if (readyCallback != null) {
+                        readyCallback(database);
+                    }
+
+                });
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._GetDatabase() " + JSON.stringify(response.data));
+            }
+
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (readyCallback != null) {
+                readyCallback(null);
+            }
+
+        });
+
+    }
+
+    // Get all databases
+    $scope._GetDatabases = function (readyCallback) {
+
+        var databaseList = [];
+
+
+        $http.get('/api/databases').then(function (response) {
+            // success handler
+            if (response.data.hasOwnProperty("Databases") == true) {
+                var remoteDatabaseList = response.data.Databases;
+
+                var countDown = remoteDatabaseList.length;
+
+                // 2. Get Each database
+                for (var i = 0; i < remoteDatabaseList.length ; i++) {
+
+                    $scope._GetDatabase(remoteDatabaseList[i].Name, function (database) {
+                        countDown--;
+
+                        databaseList.push(database);
+
+                        if (countDown == 0 && readyCallback != null) {
+                            readyCallback(databaseList);
+                        }
+                    });
+
+                }
+
+                if (remoteDatabaseList.length == 0 && readyCallback != null) {
+                    readyCallback(databaseList);
+                }
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._GetDatabases() " + JSON.stringify(response.data));
+                if (readyCallback != null) {
+                    readyCallback(databaseList);
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (readyCallback != null) {
+                readyCallback(databaseList);
+            }
+        });
+
+
+    }
+
+    // Gets an database with status
+    $scope._GetServerSettings = function (name, successCallback, errorCallback) {
+
+        $http.get('/api/admin/servers/' + name + '/settings').then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("settings") == true) {
+
+                if (successCallback != null) {
+                    successCallback(response.data.settings);
+                }
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._GetServerSettings() " + JSON.stringify(response.data));
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (errorCallback != null) {
+                errorCallback(null);
+            }
+
+        });
+
+    }
+
+    // Verify database properties
+    $scope._VerifyServerProperties = function (properties, successCallback, errorCallback) {
+
+        $http.post('/api/admin/verify/serverproperties', properties).then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("validationErrors") == true) {
+
+                if (successCallback != null) {
+                    successCallback(response.data.validationErrors);
+                }
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._VerifyServerProperties() " + JSON.stringify(response));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+    // Save database information
+    $scope._SaveServerSettings = function (server, successCallback, errorCallback) {
+
+        $http.put('/api/admin/servers/' + server.name + '/settings', server).then(function (response) {
+            // success handler
+
+            if (response.data.hasOwnProperty("message") == true) {
+                $scope.alerts.push({ type: 'success', msg: response.data.message });
+            }
+
+            if (response.data.hasOwnProperty("settings") == true) {
+                if (successCallback != null) {
+                    successCallback(response.data.settings);
+                }
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._SaveServerSettings() " + JSON.stringify(response.data));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (errorCallback != null) {
+                errorCallback();
+            }
+        });
+
+    }
+
+    // PUBLIC
+
+    // Handle errors (Show user dialog/message)
+    $scope._handleErrorReponse = function (response) {
+
+        // error handler
+        if (response instanceof SyntaxError) {
+            $scope.showClientError(response.message, null, response.stack);
+        }
+        else if (response.status == 404) {
+            // 404 Not Found
+
+            if (response.data.hasOwnProperty("Text") == true) {
+                $scope.showServerError(response.data.Text, response.data.Helplink);
+            }
+            else if (response.data.hasOwnProperty("message") == true) {
+                $scope.showServerError(response.data.message, response.data.helpLink, response.data.stackTrace);
+            }
+            else {
+
+                if (response.data == "") {
+                    $scope.showServerError("404 Not found", null, null);
+                }
+                else {
+                    $scope.showServerError(response.data, null, null);
+                }
+            }
+
+        }
+        else if (response.status == 405) {
+            // 405 Method Not Allowed
+            if (response.data.hasOwnProperty("Allow") == true) {
+                $scope.showClientError("Allowed methods are " + response.data.Allow, response.data.Helplink);
+            }
+            else {
+                $scope.showClientError(response.data, null, null);
+            }
+
+        }
+        else if (response.status == 409) {
+            // 409 Conflict
+            if (response.data.hasOwnProperty("Text") == true) {
+                $scope.showServerError(response.data.Text, response.data.Helplink);
+            }
+            else {
+                $scope.showServerError(response.data, null, null);
+            }
+
+        }
+        else if (response.status == 500) {
+
+            if (response.data.hasOwnProperty("exception") == true) {
+                $scope.showServerError(response.data.exception.message, response.data.exception.helpLink, response.data.exception.stackTrace);
+            }
+            else {
+                if (response.data.hasOwnProperty("message") == true) {
+                    $scope.showServerError(response.data.message, response.data.helpLink, response.data.stackTrace);
+                }
+                else if (response.data.hasOwnProperty("Text") == true) {
+                    $scope.showServerError(response.data.Text, response.data.Helplink);
+                }
+                else {
+                    $scope.showServerError(response.data, null, null);
+                }
+            }
+
+        }
+        else if (response.status == 0) {
+            // "The server is not responding or is not reachable. For help, contact your network administrator."
+            $scope.showNetworkDownError();
+        }
+        else {
+            $scope.showClientError("Unhandled http statuscode " + response.status, null, ".refreshApplications()");
+        }
+
+    }
+
+    $scope._RefreshExecutables = function (readyCallback) {
+
+        $scope._GetExecutables(function (executables) {
+
+            $scope.executables.length = 0;
+            $scope.executables = executables;
+
+            if (readyCallback != null) {
+                readyCallback();
+            }
+        });
+
+    }
+
+    $scope._RefreshDatabases = function (readyCallback) {
+
+        $scope._GetDatabases(function (databases) {
+
+            $scope.databases.length = 0;
+            $scope.databases = databases;
+
+            if (readyCallback != null) {
+                readyCallback();
+            }
+        });
+
+
+    }
+
+    // Stop the executable's engine code host (All executables running in the database will be stopped)
+    $scope._StopAllExecutables = function (engine, readyCallback) {
+
+        $http.delete('/api/engines/' + engine.name + '/host').then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true) {
+
+                if (readyCallback != null) {
+                    readyCallback();
+                }
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._StopAllExecutables() " + JSON.stringify(response.data));
+            }
+
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (readyCallback != null) {
+                readyCallback();
+            }
+
+        });
+
+
+    }
+
+    // Start engine if it's not running
+    $scope._StartEngine = function (engineData, successCallback, errorCallback) {
+
+        //        var engineData = { Name: engineName, NoDb: false, LogSteps: false };    // TODO: get NoDb and LogSteps from argumens
+
+        $http.post('/api/engines', engineData).then(function (response) {
+            // success handler
+
+            // TODO: Refresh engines..?
+
+            if (response.hasOwnProperty("data") == true) {
+                if (successCallback != null) {
+                    successCallback();
+                }
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._StartEngine() " + JSON.stringify(response));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+    // Start Executable
+    $scope._StartExecutable = function (databaseName, data, successCallback, errorCallback) {
+
+        var bodyData = { Path: data.file, StartedBy: data.startedBy, Arguments: data.arguments };
+
+        $http.post('/api/engines/' + databaseName + '/executables', bodyData).then(function (response) {
+            // success handler
+
+            // TODO: Refresh engines..?
+
+            if (response.hasOwnProperty("data") == true) {
+
+                $scope.alerts.push({ type: 'success', msg: response.data.Description }); // TODO Move to successcallback
+
+                if (successCallback != null) {
+                    successCallback();
+                }
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._StartExecutable() " + JSON.stringify(response));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+
+            if (response.status == 409) {
+                // 409 Conflict (Already running)
+                if (response.data.hasOwnProperty("Text") == true) {
+                    $scope.alerts.push({ type: 'info', msg: response.data.Text, helpLink: response.data.Helplink }); // TODO Move to successcallback
+                }
+                else {
+                    $scope._handleErrorReponse(response);
+                }
+            }
+            else if (response.status == 422) {
+                // 422 Unprocessable Entity (WebDAV; RFC 4918)
+                if (response.data.hasOwnProperty("Text") == true) {
+                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.Helplink });
+                }
+                else {
+                    $scope._handleErrorReponse(response);
+                }
+            }
+            else {
+                $scope._handleErrorReponse(response);
+            }
+
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+    }
+
+    // Start database
+    $scope._startDatabase = function (database, successCallback, errorCallback) {
+
+        $http.post('/api/engines', { Name: database.name }).then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true) {
+
+                $scope._RefreshDatabases(function () {
+                    if (successCallback != null) {
+                        successCallback();
+                    }
+                });
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._startDatabase() " + JSON.stringify(response));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            if (response.status == 422) {
+                // 409 Conflict
+                if (response.data.hasOwnProperty("Text") == true) {
+                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
+                }
+                else {
+                    $scope._handleErrorReponse(response);
+                }
+
+            }
+            else {
+                $scope._handleErrorReponse(response);
+            }
+
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+    // Stop database
+    $scope._stopDatabase = function (database, successCallback, errorCallback) {
+
+        $http.delete(database.engineUri, { Name: name }).then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true) {
+
+                $scope._RefreshDatabases(function () {
+                    if (successCallback != null) {
+                        successCallback();
+                    }
+                });
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._stoptDatabase() " + JSON.stringify(response));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            if (response.status == 422) {
+                // 409 Conflict
+                if (response.data.hasOwnProperty("Text") == true) {
+                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
+                }
+                else {
+                    $scope._handleErrorReponse(response);
+                }
+
+            }
+            else {
+                $scope._handleErrorReponse(response);
+            }
+
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+    // Verify database properties
+    $scope._VerifyDatabaseProperties = function (properties, successCallback, errorCallback) {
+
+        $http.post('/api/admin/verify/databaseproperties', properties).then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("validationErrors") == true) {
+
+                if (successCallback != null) {
+                    successCallback(response.data.validationErrors);
+                }
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._VerifyDatabaseProperties() " + JSON.stringify(response));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+    // Save database information
+    $scope._SaveDatabaseSettings = function (database, successCallback, errorCallback) {
+
+        $http.put('/api/admin/databases/' + database.name + '/settings', database).then(function (response) {
+            // success handler
+
+            if (response.data.hasOwnProperty("message") == true) {
+                $scope.alerts.push({ type: 'success', msg: response.data.message });
+            }
+
+            if (response.data.hasOwnProperty("settings") == true) {
+                if (successCallback != null) {
+                    successCallback(response.data.settings);
+                }
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._SaveDatabaseSettings() " + JSON.stringify(response.data));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (errorCallback != null) {
+                errorCallback();
+            }
+        });
+
+
+
+    }
+
+    // Gets an database with status
+    $scope._GetDefaultDatabaseSettings = function (successCallback, errorCallback) {
+
+        $http.get('/api/admin/settings/database').then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("settings") == true) {
+
+                if (successCallback != null) {
+                    successCallback(response.data.settings);
+                }
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._GetDefaultDatabaseSettings() " + JSON.stringify(response.data));
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (errorCallback != null) {
+                errorCallback(null);
+            }
+
+        });
+
+    }
+
+    // Gets an database with status
+    $scope._GetDatabaseSettings = function (name, successCallback, errorCallback) {
+
+        $http.get('/api/admin/databases/' + name + '/settings').then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("settings") == true) {
+
+                if (successCallback != null) {
+                    successCallback(response.data.settings);
+                }
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._GetDatabaseSettings() " + JSON.stringify(response.data));
+            }
+
+        }, function (response) {
+            // error handler
+            $scope._handleErrorReponse(response);
+            if (errorCallback != null) {
+                errorCallback(null);
+            }
+
+        });
+
+    }
+
+
+    // Create database properties
+    $scope._CreateDatabaseNEWAPI = function (properties, successCallback, errorCallback) {
+
+        var data = { Name: properties.name };
+
+        $http.post('/api/databases', data).then(function (response) {
+            // success handler
+            if (successCallback != null) {
+                successCallback(response.data.validationErrors);
+            }
+
+        }, function (response) {
+            // error handler
+
+            if (response.status == 422) {
+                // 422 Unprocessable Entity (WebDAV; RFC 4918)
+                // The request was well-formed but was unable to be followed due to semantic errors
+                if (response.data.hasOwnProperty("Text") == true) {
+                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
+                }
+                else {
+                    $scope._handleErrorReponse(response);
+                }
+
+            }
+            else {
+                $scope._handleErrorReponse(response);
+            }
+
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+    // Verify database properties
+    $scope._CreateDatabase = function (settings, successCallback, errorCallback) {
+
+
+        $http.post('/api/admin/databases/' + settings.name + '/createdatabase', settings).then(function (response) {
+            // success handler
+
+            if (response.data.hasOwnProperty("errors") == true) {
+                for (var i = 0; i < response.data.errors.length; i++) {
+                    $scope.alerts.push({ type: 'error', msg: response.data.errors[i].message, helpLink: response.data.errors[i].helplink });
+                }
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+
+            }
+            else {
+                if (successCallback != null) {
+                    successCallback();
+                }
+
+            }
+
+
+
+        }, function (response) {
+            // error handler
+
+            if (response.status == 422) {
+                // 422 Unprocessable Entity (WebDAV; RFC 4918)
+                // The request was well-formed but was unable to be followed due to semantic errors
+                if (response.data.hasOwnProperty("Text") == true) {
+                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
+                }
+                else {
+                    $scope._handleErrorReponse(response);
+                }
+
+            }
+            else {
+                $scope._handleErrorReponse(response);
+            }
+
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+
+    // Get console output for one database
+    $scope._GetConsole = function (database, successCallback, errorCallback) {
+
+        $http.get('/api/admin/databases/' + database.name + '/console').then(function (response) {
+            // success handler
+
+            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("console") == true) {
+
+                if (successCallback != null) {
+                    successCallback(response.data.console);
+                }
+
+            }
+            else {
+                $scope.showClientError("Unknown server response", null, "._stoptDatabase() " + JSON.stringify(response));
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            }
+
+        }, function (response) {
+            // error handler
+
+            if (response.status == 404) {
+                // 404	Not Found
+
+                if (response.data.hasOwnProperty("message") == true) {
+                    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
+                }
+                else {
+                    $scope.alerts.push({ type: 'error', msg: response.data });
+                }
+
+
+
+            }
+            else if (response.status == 500) {
+                // 500 Internal Server Error
+                $scope.showException(response.data.message, response.data.helpLink, response.data.stackTrace);
+            }
+            else {
+                $scope._handleErrorReponse(response);
+            }
+
+            //if (response.status == 422) {
+            //    // 409 Conflict
+            //    if (response.data.hasOwnProperty("Text") == true) {
+            //        $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
+            //    }
+            //    else {
+            //        $scope._handleErrorReponse(response);
+            //    }
+
+            //}
+            //else {
+            //$scope._handleErrorReponse(response);
+            //}
+
+
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+}]);
+
+
+/**
+ * Executables Controller
+ */
+adminModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', function ($scope, $routeParams, $dialog) {
+
+    $scope.alerts.length = 0;
+
+    $scope.stopAllExecutables = function (engine) {
+        var job = $scope.addJob({ message: "Stopping all executables running in database " + engine.name });
+        $scope._StopAllExecutables(engine, function () {
+
+            $scope._RefreshExecutables(function () {
+                // Done
+                $scope.isBusy = false;
+
+                // Remove job
+                $scope.removeJob(job);
+
+                // Refresh database statuses
+                $scope._RefreshDatabases();
+
+
+            });
+        });
+    }
+
+    $scope.btnStopAllExecutable = function (engine) {
+
+        $scope.alerts.length = 0;
+
+        var title = 'Stop all running executable';
+        var msg = 'Do you want to stop all executable running in database ' + engine.name;
+        var btns = [ { result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+
+        $dialog.messageBox(title, msg, btns)
+          .open()
+          .then(function (result) {
+              if (result == 0) {
+                  $scope.stopAllExecutables(engine);
+              }
+          });
+    }
+
+    // Init
+    $scope.isBusy = true;
+    $scope._RefreshExecutables(function () {
+        // Ready
+        $scope.isBusy = false;
+
+    });
+
+
+}]);
+
+
+/**
+ * Executable Start Controller
+ */
+adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$location', function ($scope, $routeParams, $location) {
+
+    $scope.alerts.length = 0;
+    $scope.selectedDatabaseName = null;
+
+    $scope.file = "";
+    $scope.recentExecutables = [];
+
+    $scope.prepareExecutable = function (job, engineName, successCallback, errorCallback) {
+
+        var engineData = { Name: engineName, NoDb: false, LogSteps: false };    // TODO: get NoDb and LogSteps from argumens
+
+        job.message = "Starting Executable in database " + engineName;
+
+        $scope._StartEngine(engineData, function () {
+            // Success 
+
+            // TODO:
+            var startedBy = "unknown-user@unknown-computer (via webadmin)";
+            var arguments = []
+
+            var data = { engineName: engineName, file: $scope.file, startedBy: startedBy, arguments: arguments };
+
+            $scope._StartExecutable(engineName, data, function (message) {
+                // success
+                if (successCallback != null) {
+                    successCallback();
+                }
+
+            }, function () {
+                // Error
+                if (errorCallback != null) {
+                    errorCallback();
+                }
+            });
+
+
+        }, function () {
+            // Error 
+            if (errorCallback != null) {
+                errorCallback();
+            }
+
+        });
+
+    }
+
+    $scope.btn_startExecutable = function () {
+
+        // Clear any previous alerts
+        $scope.alerts.length = 0;
+
+        var job = $scope.addJob({ message: "Starting Executable" });
+
+        $scope.prepareExecutable(job, $scope.selectedDatabaseName, function () {
+            // success
+
+            // Remember successfully started executables
+            $scope.rememberRecentFile($scope.file);
+
+            $scope._RefreshDatabases();
+            $scope._RefreshExecutables();
+
+            // Remove job
+            $scope.removeJob(job);
+
+        }, function () {
+            // Error 
+            // Remove job
+            $scope.removeJob(job);
+        });
+    }
+
+    $scope.btn_SetCurrent = function (file) {
+        $scope.file = file.name;
+    }
+
+    $scope.rememberRecentFile = function (filename) {
+
+        var maxItems = 5;
+        // Check if file is already 'rememberd'
+        for (var i = 0; i < $scope.recentExecutables.length ; i++) {
+
+            // File already rememberd
+            if (filename == $scope.recentExecutables[i].name) {
+                return;
+            }
+
+        }
+        $scope.recentExecutables.unshift({ name: filename });
+
+        var toMany = $scope.recentExecutables.length - maxItems;
+
+        if (toMany > 0) {
+            $scope.recentExecutables.splice(maxItems, toMany);
+        }
+
+        localStorage.recentExecutables = JSON.stringify($scope.recentExecutables);
+    }
+
+    $scope.getRecentExecutables = function () {
+        if (typeof (Storage) !== "undefined") {
+            if (localStorage.recentExecutables != null) {
+                $scope.recentExecutables = JSON.parse(localStorage.recentExecutables);
+            }
+        }
+        else {
+            // No web storage support..
+        }
+    }
+
+    // Init
+    $scope.getRecentExecutables();
+
+    $scope._RefreshDatabases(function () {
+        if ($scope.databases.length > 0) {
+            $scope.selectedDatabaseName = $scope.databases[0].name;
+        }
+    });
+
+}]);
+
 
 
 /**
  * Databases Controller
  */
-databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', 'Database', function ($scope, $dialog, Database) {
+adminModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', function ($scope, $dialog, $http) {
+
+    $scope.alerts.length = 0;
+
+    $scope.startDatabase = function (database) {
+
+        var job = $scope.addJob({ message: "Starting database " + database.name });
+
+        $scope._startDatabase(database, function () {
+            // Success
+            $scope.removeJob(job);
+            $scope.alerts.push({ type: 'success', msg: "Database " + database.name + " was started" });
+        }, function () {
+            // Error
+            $scope.removeJob(job);
+        });
+
+    }
 
     $scope.stopDatabase = function (database) {
 
-        Database.stop({ name: database.name }, function () {
+        var job = $scope.addJob({ message: "Stopping database " + database.name });
+
+        $scope._stopDatabase(database, function () {
             // Success
-
-            // Refresh engine and executable list
-            $scope.refreshEngineAndExecutableList();
-
-            // Refresh database list
-            $scope.refreshDatabaseProcessStatus();
-
-        }, function (response) {
+            $scope.removeJob(job);
+            $scope.alerts.push({ type: 'success', msg: "Database " + database.name + " was stopped" });
+        }, function () {
             // Error
-
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-                if (response.status == 405) {
-                    // 405 MethodNotAllowed
-                    $scope.alerts.push({ type: 'info', msg: "Database " + database.name + " can not be stopped (405 MethodNotAllowed)", helpLink: null });
-                }
-                else {
-                    $scope.showException(response.data, null, null);
-                }
-            }
+            $scope.removeJob(job);
         });
 
-    }
-
-    $scope.deleteDatabase = function (database) {
-
-        Database.delete({ name: database.name }, function () {
-            // Success
-
-            // Refresh engine and executable list
-            $scope.refreshEngineAndExecutableList();
-
-            // Refresh database list
-            $scope.refreshDatabaseProcessStatus();
-
-        }, function (response) {
-            // Error
-
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-                if (response.status == 405) {
-                    // 405 MethodNotAllowed
-                    $scope.alerts.push({ type: 'info', msg: "Database " + database.name + " can not be deleted (405 MethodNotAllowed)", helpLink: null });
-                }
-                else {
-                    $scope.showException(response.data, null, null);
-                }
-            }
-        });
-
-    }
-
-    $scope.btn_createDatabase = function () {
-        $scope.alerts.push({ type: 'info', msg: "Not implemented" });
     }
 
     $scope.btnDeleteDatabase = function (database) {
 
+        $scope.alerts.length = 0;
+
         var title = 'Stop engine';
         var msg = 'Do you want to delete the database ' + database.name;
-        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Delete', cssClass: 'btn-danger' }];
+        var btns = [{ result: 0, label: 'Delete', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+
 
         $dialog.messageBox(title, msg, btns)
           .open()
@@ -304,9 +1628,11 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', 'Database', fun
 
     $scope.btnStopDatabase = function (database) {
 
-        var title = 'Stop engine';
+        $scope.alerts.length = 0;
+
+        var title = 'Stop database';
         var msg = 'Do you want to stop the database ' + database.name;
-        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Stop', cssClass: 'btn-danger' }];
+        var btns = [ { result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         $dialog.messageBox(title, msg, btns)
           .open()
@@ -319,8 +1645,27 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', 'Database', fun
 
     }
 
+    $scope.btnStartDatabase = function (database) {
+
+        $scope.alerts.length = 0;
+
+        var title = 'Start database';
+        var msg = 'Do you want to start the database ' + database.name;
+        var btns = [{ result: 0, label: 'Start', cssClass: 'btn-success' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+
+        $dialog.messageBox(title, msg, btns)
+          .open()
+          .then(function (result) {
+              if (result == 0) {
+                  $scope.startDatabase(database);
+              }
+          });
+
+
+    }
+
     // Init
-    $scope.refreshDatabaseList();
+    $scope._RefreshDatabases();
 
 }]);
 
@@ -328,70 +1673,123 @@ databaseModule.controller('DatabasesCtrl', ['$scope', '$dialog', 'Database', fun
 /**
  * Database Controller
  */
-databaseModule.controller('DatabaseCtrl', ['$scope', '$routeParams', 'Database', function ($scope, $routeParams, Database) {
+adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($scope, $routeParams) {
 
+    $scope.alerts.length = 0;
+    $scope.isExecutableRunning = false;
 
     // Retrive the console output for a specific database
-    $scope.getConsole = function (name) {
+    $scope.getConsole = function (database) {
 
-        Database.console({ name: name }, function (response) {
+        $scope._GetConsole(database, function (text) {
             // Success
 
-            if (response.hasOwnProperty("console") == false) {
-                $scope.showException("Invalid response, missing console property", null, ".getConsole()");
+            if (text == null) {
+                $scope.console = "";;
             }
             else {
-                if (response.console != null) {
-                    $scope.console = response.console.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
-                }
-                else {
-                    $scope.console = "";
-                }
-                $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
+                $scope.console = text.replace(/\r\n/g, "<br>");
             }
 
-        }, function (response) {
+            $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
 
-            if (response.status == 404) {
-                // 404	Not Found
-                $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
-            }
-            else if (response.status == 500) {
-                // 500 Internal Server Error
-                $scope.showException(response.data.message, response.data.helpLink, response.data.stackTrace);
-            }
-            else {
-                $scope.showException("Unhandled http statuscode " + response.status, null, ".getConsole()");
-            }
-
+        }, function () {
+            // Error
         });
-    }
 
+    }
 
     // User clicked the "Refresh" button
     $scope.btnClick_refreshConsole = function () {
-        $scope.getConsole($scope.database.name);
+        $scope.alerts.length = 0;
+
+        $scope.getConsole($scope.database);
+
     }
 
-    // Init
-    $scope.getDatabaseWithConfiguration($routeParams.name, function (database) {
-        // Success
+    $scope.checkIfRunningExecutables = function (database, successCallback) {
 
-        $scope.database = database;
-        $scope.refreshDatabaseProcessStatus(database, function () {
+        $scope.isExecutableRunning = false;
+
+        $scope.refreshEnginesList(function () {
             // Success
-            if (database.running) {
-                $scope.getConsole(database.name);
+
+            var engine = $scope.getEngine(database.name);
+            if (engine != null) {
+
+                $scope.getEngineExecutableList(engine, function (executable) {
+                    // Success
+
+                    $scope.isExecutableRunning = executable.length > 0;
+
+                    if (successCallback != null) {
+                        successCallback();
+                    }
+
+                }, function () {
+                    // Error
+                });
+
             }
+            else {
+                // Error can get engine, TODO: Refresh engine list and retry
+            }
+
+
+
+        }, function () {
+            // Error
+            // could not retrive the engineslist
+        });
+
+    }
+
+    $scope.tryGetConsole = function (name) {
+
+        $scope.isExecutableRunning = false;
+
+        // Init
+        $scope.getDatabaseWithConfiguration(name, function (database) {
+            // Success
+
+            $scope.database = database;
+            $scope.refreshDatabaseProcessStatus(database, function () {
+                // Success
+                if (database.running) {
+
+                    // TODO: Check if there is any executables running in the database.
+                    $scope.checkIfRunningExecutables(database, function () {
+                        // Success
+                        $scope.getConsole(database.name);
+                    });
+
+                }
+            }, function () {
+                // Error
+            });
+
+
         }, function () {
             // Error
         });
 
 
-    }, function () {
-        // Error
-    });
+    }
 
+    // Init
+    $scope.isBusy = true;
+    $scope._RefreshDatabases(function () {
+        // Ready
+        for (var i = 0 ; i < $scope.databases.length ; i++) {
+            if ($scope.databases[i].name == $routeParams.name) {
+                $scope.database = $scope.databases[i];
+                break;
+
+            }
+        }
+        $scope.isBusy = false;
+
+    });
 
     // Console fixe the height.
     var $window = $(window);
@@ -436,33 +1834,31 @@ databaseModule.controller('DatabaseCtrl', ['$scope', '$routeParams', 'Database',
 /**
  * Database Edit Controller
  */
-databaseModule.controller('DatabaseEditCtrl', ['$scope', '$routeParams', '$http', 'Database_Fallback', function ($scope, $routeParams, $http, Database_Fallback) {
+adminModule.controller('DatabaseEditCtrl', ['$scope', '$routeParams', '$http', function ($scope, $routeParams, $http) {
 
-    $scope.database = null;
+    $scope.alerts.length = 0;
+    $scope.settings = null;
 
-    // Refresh database
-    $scope.refreshDatabaseFromAdminApi = function () {
-        Database_Fallback.get({ name: $routeParams.name }, function (response) {
+    // Refresh database settings
+    $scope.refreshSettings = function () {
+
+        $scope._GetDatabaseSettings($routeParams.name, function (settings) {
             // Success
-            $scope.database = response.database;
+            $scope.settings = settings;
+            $scope.myForm.$setPristine(); // This disent work, the <select> breaks the pristine state :-(
 
-        }, function (response) {
+        }, function () {
             // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                $scope.showException(response.data, null, null);
-            }
+            $scope.settings = null;
         });
+
     }
 
-    // Save database information
+    // Save database settings
     $scope.saveSettings = function (name) {
         $scope.isBusy = true;
 
-        $http({ method: 'PUT', url: '/adminapi/v1/databases/' + $scope.database.name, data: $scope.database }).
+        $http({ method: 'PUT', url: ' /api/admin/databases/databases/' + $scope.database.name, data: $scope.database }).
 
           // A response status code between 200 and 299 is considered a success status
           success(function (response, status, headers, config) {
@@ -526,684 +1922,260 @@ databaseModule.controller('DatabaseEditCtrl', ['$scope', '$routeParams', '$http'
           });
     }
 
-    $scope.btnSave = function () {
-        $scope.saveSettings($scope.database.name);
-    }
+    $scope.btn_SaveSettings = function () {
+        $scope.alerts.length = 0;
 
-    // Init
-    $scope.refreshDatabaseFromAdminApi();
+        var job = $scope.addJob({ message: "Verifying properties" });
 
-}]);
+        $scope._VerifyDatabaseProperties($scope.settings, function (validationErrors) {
+            // Validation done
 
+            job.message = "Saving settings " + $scope.settings.name;
 
-/**
- * sc.database.service
- */
-angular.module('sc.database.service', ['ngResource'], function ($provide) {
+            if (validationErrors.length == 0) {
+                // No validation errors, goahead creating database
 
-    // Database
-    $provide.factory('Database', function ($resource) {
-        return $resource('/api/databases/:name', { name: '@name' }, {
-            query: { method: 'GET', isArray: false },
-            get: { method: 'GET' },
-            delete: { method: 'DELETE' },
-            stop: { method: 'DELETE', url: '/api/engines/:name/db' },
-            status: { method: 'GET', url: '/api/engines/:name/db' },
-            console: { method: 'GET', url: '/adminapi/v1/databases/:name/console' }
-        });
-    });
-
-    // OLD API
-    $provide.factory('Database_Fallback', function ($resource) {
-        return $resource('/adminapi/v1/databases/:name', { name: '@name' }, {
-            get: { method: 'GET', isArray: false }
-        });
-    });
-
-});
-
-
-/**
- * ----------------------------------------------------------------------------
- * sc.executable
- * ----------------------------------------------------------------------------
- */
-var executableModule = angular.module('sc.executable', ['sc.executable.service'], function ($routeProvider) {
-
-    // List of all Exectuables
-    $routeProvider.when('/executables', {
-        templateUrl: '/partials/executables.html',
-        controller: 'ExecutablesCtrl'
-    });
-
-    // List of all Exectuables
-    // TODO: Use the engine name in the path
-    $routeProvider.when('/executable_start', {
-        templateUrl: '/partials/executable_start.html',
-        controller: 'ExecutableStartCtrl'
-    });
-});
-
-
-/**
- * Executables Controller
- */
-executableModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', 'Database', 'Engine', 'HostProcess', function ($scope, $routeParams, $dialog, Database, Engine, HostProcess) {
-
-    $scope.stopExecutable = function (executable) {
-
-        $scope.isBusy = true;
-
-        var job = { message: "Stopping executable " + executable.name };
-        $scope.jobs.push(job);
-
-        HostProcess.stop({ name: executable.databaseName }, function (response) {
-            // Success
-            //
-            // Example response: 
-            // {
-            //    "Code":10024,
-            //    "Message":"The database engine is not running."
-            // }
-
-            $scope.isBusy = false;
-
-            // Remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
-
-            // Remove executable
-            for (var i = 0; i < $scope.executables.length ; i++) {
-                if ($scope.executables[i].path == executable.path && $scope.executables[i].databaseName == executable.databaseName) {
-                    $scope.executables.splice(i, 1);
-                    break;
-                }
-            }
-
-
-        }, function (response) {
-            // Error
-
-            // Remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
-
-            $scope.isBusy = false;
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
+                $scope._SaveDatabaseSettings($scope.settings, function () {
+                    // Success
+                    $scope.removeJob(job);
+                    $scope.myForm.$setPristine();
+                }, function () {
+                    $scope.removeJob(job);
+                    // Error
+                });
             }
             else {
-                $scope.showException(response.data, null, null);
+
+                $scope.removeJob(job);
+
+                // Show errors on screen
+                for (var i = 0; i < validationErrors.length; i++) {
+                    $scope.alerts.push({ type: 'error', msg: validationErrors[i].message });
+                    $scope.myForm[validationErrors[i].property].$setValidity("validationError", false);
+                    var id = validationErrors[i].property;
+                    var unregister = $scope.$watch("settings." + validationErrors[i].property, function (newValue, oldValue) {
+                        if (newValue == oldValue) return;
+                        $scope.myForm[id].$setValidity("validationError", true);
+                        unregister();
+                    }, false);
+
+                }
+
             }
 
-            // recover the list
-            $scope.refreshEngineAndExecutableList();
+
+        }, function () {
+            //
+            $scope.removeJob(job);
+
         });
 
 
+        //$scope.createDatabase();
     }
 
-    $scope.btnStopExecutable = function (executable) {
-
-        var title = 'Stop executable';
-        var msg = 'Do you want to stop the executable ' + executable.name;
-        var btns = [{ result: 1, label: 'Cancel', cssClass: 'btn' }, { result: 0, label: 'Stop', cssClass: 'btn-danger' }];
-
-        $dialog.messageBox(title, msg, btns)
-          .open()
-          .then(function (result) {
-              if (result == 0) {
-                  $scope.stopExecutable(executable);
-              }
-          });
+    $scope.btn_ResetSettings = function () {
+        $scope.alerts.length = 0;
+        $scope.refreshSettings();
     }
 
     // Init
-    $scope.refreshEngineAndExecutableList();
+    $scope.refreshSettings();
+
 
 }]);
 
 
 /**
- * Executable Start Controller
+ * Database Create Controller
  */
-executableModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$location', 'Database', 'Engine', function ($scope, $routeParams, $location, Database, Engine) {
+adminModule.controller('DatabaseCreateCtrl', ['$scope', '$http', function ($scope, $http) {
 
-    //$scope.databases = [];
-    $scope.selectedDatabaseName = null;
+    $scope.isBusy = false;
+    $scope.alerts.length = 0;
 
-    $scope.file = "";
+    // Refresh database settings
+    $scope.refreshSettings = function () {
 
-    $scope.prepareExecutable = function (job, engineName, successCallback, errorCallback) {
+        $scope._GetDefaultDatabaseSettings(function (settings) {
+            // Success
 
-        $scope.assureEngine(job, engineName, function () {
-            // success
+            settings.tempDirectory = settings.tempDirectory.replace("[DatabaseName]", settings.name);
+            settings.imageDirectory = settings.imageDirectory.replace("[DatabaseName]", settings.name);
+            settings.transactionLogDirectory = settings.transactionLogDirectory.replace("[DatabaseName]", settings.name);
+            settings.dumpDirectory = settings.dumpDirectory.replace("[DatabaseName]", settings.name);
 
-            // Engine is running
+            $scope.settings = settings;
+            $scope.myForm.$setPristine(); // This disent work, the <select> breaks the pristine state :-(
 
-            // TODO:
-            var startedBy = "unknown-user@unknown-computer (via webadmin)";
-            var arguments = []
+        }, function () {
+            // Error
+            $scope.settings = null;
+        });
 
-            var data = { engineName: engineName, file: $scope.file, startedBy: startedBy, arguments: arguments };
+    }
 
-            $scope.startExecutable(job, data, function () {
-                // success
+    $scope.btn_CreateDatabase = function () {
 
-                // Refresh database process status
-                $scope.refreshDatabaseList(function () {
+        $scope.alerts.length = 0;
+        var job = $scope.addJob({ message: "Verifying properties" });
+
+        $scope._VerifyDatabaseProperties($scope.settings, function (validationErrors) {
+            // Validation done
+
+            job.message = "Creating database " + $scope.settings.name;
+
+            if (validationErrors.length == 0) {
+                // No validation errors, goahead creating database
+
+                $scope._CreateDatabase($scope.settings, function () {
                     // Success
-                    successCallback();
+                    $scope.removeJob(job);
+                    $scope.alerts.push({ type: 'success', msg: "Database " + $scope.settings.name + " was created." });
+
+                }, function () {
+                    $scope.removeJob(job);
+                    // Error
+                });
+            }
+            else {
+
+                $scope.removeJob(job);
+
+                // Show errors on screen
+                for (var i = 0; i < validationErrors.length; i++) {
+                    //$scope.alerts.push({ type: 'error', msg: validationErrors[i].message });
+                    $scope.myForm[validationErrors[i].property].$setValidity("validationError", false);
+                    var id = validationErrors[i].property;
+                    var unregister = $scope.$watch("settings." + validationErrors[i].property, function (newValue, oldValue) {
+                        if (newValue == oldValue) return;
+                        $scope.myForm[id].$setValidity("validationError", true);
+                        unregister();
+                    }, false);
+
+                }
+
+
+            }
+
+
+        }, function () {
+            //
+            $scope.removeJob(job);
+
+        });
+
+
+        //$scope.createDatabase();
+    }
+
+    $scope.btn_ResetSettings = function () {
+
+        $scope.alerts.length = 0;
+        $scope.refreshSettings();
+
+    }
+
+    // init
+    $scope.refreshSettings();
+
+
+
+}]);
+
+
+/**
+ * Server Edit Controller
+ */
+adminModule.controller('ServerEditCtrl', ['$scope', '$http', function ($scope, $http) {
+
+    $scope.alerts.length = 0;
+    $scope.settings = null;
+
+    $scope.refreshSettings = function () {
+
+        $scope._GetServerSettings("personal", function (settings) {
+            // Success
+            $scope.settings = settings;
+            $scope.myForm.$setPristine(); // This disent work, the <select> breaks the pristine state :-(
+
+        }, function () {
+            // Error
+            $scope.settings = null;
+        });
+
+    }
+
+    $scope.btn_SaveSettings = function () {
+
+        $scope.alerts.length = 0;
+
+        var job = $scope.addJob({ message: "Verifying properties" });
+
+        $scope._VerifyServerProperties($scope.settings, function (validationErrors) {
+            // Validation done
+
+            job.message = "Saving settings " + $scope.settings.name;
+
+            if (validationErrors.length == 0) {
+                // No validation errors, goahead creating database
+
+                $scope._SaveServerSettings($scope.settings, function () {
+                    // Success
+                    $scope.removeJob(job);
+                    $scope.myForm.$setPristine();
                 }, function () {
                     // Error
-
-                    // Not it was only the refresh database list how failed,
-                    // the executable was sucessfully started
-                    successCallback();
+                    $scope.removeJob(job);
                 });
 
 
-            }, function () {
-                // Error
-                errorCallback();
-            });
+            }
+            else {
+
+                $scope.removeJob(job);
+
+                // Show errors on screen
+                for (var i = 0; i < validationErrors.length; i++) {
+                    $scope.alerts.push({ type: 'error', msg: validationErrors[i].message });
+                    $scope.myForm[validationErrors[i].property].$setValidity("validationError", false);
+                    var id = validationErrors[i].property;
+                    var unregister = $scope.$watch("settings." + validationErrors[i].property, function (newValue, oldValue) {
+                        if (newValue == oldValue) return;
+                        $scope.myForm[id].$setValidity("validationError", true);
+                        unregister();
+                    }, false);
+
+                }
+
+
+            }
 
 
         }, function () {
-            // Error
-            errorCallback();
-        });
-
-    }
-
-    // Start the engine if it's not started
-    $scope.assureEngine = function (job, name, successCallback, errorCallback) {
-
-        job.message = "Retreiving engine status";
-
-        Engine.get({ name: name }, function (response) {
-            // Success
-            successCallback();
-
-        }, function (response) {
-
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-                errorCallback();
-            }
-            else {
-                if (response.status == 404) {
-                    // 404	Not Found (Not started)
-
-                    // Start the Engine
-                    //$scope.status = "Starting engine";
-
-                    var databaseName = name;
-                    var engineData = { Name: databaseName, NoDb: false, LogSteps: false };    // TODO: get NoDb and LogSteps from argumens
-
-                    $scope.startEngine(job, engineData, function () {
-                        // Success 
-                        successCallback();
-                    }, function () {
-                        // Error 
-                        errorCallback();
-                    });
-                }
-                else {
-                    $scope.showException(response.data, null, null);
-                    errorCallback();
-                }
-            }
-
-        });
-    }
-
-    // Start Engine
-    $scope.startEngine = function (job, engineData, successCallback, errorCallback) {
-
-        job.message = "Starting engine " + engineData.Name;
-
-        Engine.start({}, engineData, function (response) {
-            // Success
-            // {"Uri":"http://headsutv19:8181/api/engines/default","NoDb":false,"LogSteps":false,"Database":{"Name":"default","Uri":"http://localhost:8181/api/databases/default"},"DatabaseProcess":{"Uri":"http://localhost:8181/api/engines/default/db","Running":true},"CodeHostProcess":{"Uri":"http://localhost:8181/api/engines/default/host","PID":7200},"Executables":{"Uri":"http://localhost/api/engines/default/executables","Executing":[]}}
-
-            job.message = "";
-            successCallback();
-
-        }, function (response) {
-            // Error
-
-            job.message = "";
-
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-                // TODO: What error's can we get here?
-                if (response.status == 404) {
-                    // 404	Not Found
-                    $scope.alerts.push({ type: 'error', msg: response.data, helpLink: null });
-                }
-                else {
-                    $scope.showException(response.data, null, null);
-                }
-            }
-            errorCallback();
+            //
+            $scope.removeJob(job);
 
         });
 
     }
 
-    // Start Executable
-    $scope.startExecutable = function (job, data, successCallback, errorCallback) {
-
-
-        job.message = "Starting Executable";
-
-        var bodyData = { Path: data.file, StartedBy: data.startedBy, Arguments: data.arguments };
-
-        Engine.startExecutable({ name: data.engineName }, bodyData, function (response) {
-            // Success
-            job.message = "";
-            successCallback();
-        }, function (response) {
-            // Error
-
-            job.message = "";
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                if (response.status == 404) {
-                    // 404	Not Found
-                    $scope.alerts.push({ type: 'error', msg: response.data, helpLink: null });
-                }
-                else if (response.status == 409) {
-                    // 409	Conflict
-                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.Helplink });
-                }
-                else if (response.status == 422) {
-                    // 422 Unprocessable Entity (WebDAV; RFC 4918)
-                    // {"Text":"The executable file cound not be found. File: 77","ServerCode":10019,"Helplink":"http://www.starcounter.com/wiki/SCERR10019","LogEntry":""}
-                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.Helplink });
-                }
-                else {
-                    $scope.showException("Error retriving the engine", null, null);
-                }
-                errorCallback();
-            }
-
-        });
-
-    }
-
-    $scope.btn_startExecutable = function () {
-
-        // Clear any previous alerts
+    $scope.btn_ResetSettings = function () {
         $scope.alerts.length = 0;
-
-        var job = { message: "Starting Executable" };
-        $scope.jobs.push(job);
-
-        $scope.prepareExecutable(job, $scope.selectedDatabaseName, function () {
-            // success
-
-            $scope.refreshEngineAndExecutableList();
-
-            // remove job
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
-
-            //$location.path("/executables");
-
-        }, function () {
-            // Error
-            var index = $scope.jobs.indexOf(job);
-            if (index != -1) {
-                $scope.jobs.splice(index, 1);
-            }
-            // $scope.isBusy = false;
-        });
+        $scope.refreshSettings();
     }
 
     // Init
-    $scope.refreshDatabaseList(function () {
-        // success
-        if ($scope.databases.length > 0) {
-            $scope.selectedDatabaseName = $scope.databases[0].name;
-        }
-
-    });
-
+    $scope.refreshSettings();
 }]);
-
-
-/**
- * sc.executable.service
- */
-angular.module('sc.executable.service', ['ngResource'], function ($provide) {
-
-    // Host process
-    $provide.factory('HostProcess', function ($resource) {
-        return $resource('/api/engines/:name/host', { name: '@name' }, {
-            get: { method: 'GET' },
-            stop: { method: 'DELETE' }
-        });
-    });
-
-});
-
-
-/**
- * ----------------------------------------------------------------------------
- * sc.sqlquery
- * ----------------------------------------------------------------------------
- */
-var sqlQueryModule = angular.module('sc.sqlquery', ['sc.sqlquery.service', 'sc.sqlquery.directive'], function ($routeProvider) {
-
-    $routeProvider.when('/sql', {
-        templateUrl: '/partials/sql.html',
-        controller: 'SqlQueryCtrl'
-    });
-
-}).value('ui.config', {
-    codemirror: {
-        mode: 'text/x-mysql',
-        lineNumbers: true,
-        matchBrackets: true
-    }
-});
-
-
-/**
- * Sql Query Controller
- */
-sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scope, SqlQuery) {
-
-    $scope.isBusy = false;
-
-    $scope.selectedDatabaseName = null;
-    $scope.sqlQuery = "";
-    $scope.columns = [];
-    $scope.rows = [];
-
-    $scope.executeButtonTitle = function () {
-        if ($scope.isBusy) {
-            return "Executing...";
-        }
-        else {
-            return "Execute";
-        }
-    }
-
-    $scope.executeQuery = function () {
-
-        $scope.isBusy = true;
-        $scope.alerts.length = 0;
-
-        $scope.columns = [];
-        $scope.rows = [];
-
-        SqlQuery.send({ name: $scope.selectedDatabaseName }, $scope.sqlQuery, function (response, headers) {
-
-            $scope.isBusy = false;
-
-            // Success
-            $scope.columns = response.columns;
-            $scope.rows = response.rows;
-
-            // Make all columns readonly
-            for (var i = 0; i < $scope.columns.length ; i++) {
-                $scope.columns[i].readOnly = true;
-            }
-
-            if (response.queryPlan != null) {
-                $scope.queryPlan = response.queryPlan.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
-                $scope.queryPlan = $scope.queryPlan.replace(/\t/g, "&emsp;");  // Replace all occurrences of \t with &emsp;
-            }
-
-            if (response.sqlException != null) {
-                // Show message
-                //$scope.sqlException.beginPosition
-                //$scope.sqlException.endPosition
-                //$scope.sqlException.helpLink
-                //$scope.sqlException.message
-                //$scope.sqlException.query
-                //$scope.sqlException.scErrorCode
-                //$scope.sqlException.token
-                //$scope.sqlException.stackTrace
-
-                $scope.alerts.push({ type: 'error', msg: response.sqlException.message, helpLink: response.sqlException.helpLink });
-            }
-
-            if (response.exception != null) {
-                $scope.showException(response.exception.message, response.exception.helpLink, response.exception.stackTrace);
-            }
-
-        }, function (response) {
-            // Error
-            $scope.isBusy = false;
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                if (response.status == 404) {
-                    // 404	Not Found
-                    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
-                }
-                else if (response.status == 500) {
-                    // 500 Internal Server Error
-                    $scope.showException(response.data.message, response.data.helpLink, response.data.stackTrace);
-                }
-                else if (response.status == 503) {
-                    // 503 ServiceUnavailable
-                    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
-                }
-                else {
-                    $scope.showException("Unhandled http statuscode " + response.status, null, ".getDatabase()");
-                }
-            }
-        });
-    }
-
-
-    // User clicked the "Execute" button
-    $scope.btnExecute = function () {
-        $scope.executeQuery();
-    }
-
-    // Init
-    $scope.refreshDatabaseList(function () {
-        // success
-        for (var i = 0 ; i < $scope.databases.length ; i++) {
-            if ($scope.databases[i].running == true) {
-                $scope.selectedDatabaseName = $scope.databases[0].name;
-                break;
-            }
-        }
-
-    });
-
-}]);
-
-
-/**
- * sc.sqlquery.service
- */
-angular.module('sc.sqlquery.service', ['ngResource'], function ($provide) {
-
-    $provide.factory('SqlQuery', function ($resource) {
-        return $resource('/adminapi/v1/sql/:name', { name: '@name' }, {
-            send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
-        });
-    });
-
-
-});
-
-
-/**
- * sc.sqlquery.directive
- */
-angular.module('sc.sqlquery.directive', ['ui.config', 'uiHandsontable']);
-
-
-/**
- * ----------------------------------------------------------------------------
- * sc.log
- * ----------------------------------------------------------------------------
- */
-var logModule = angular.module('sc.log', ['sc.log.service', 'sc.log.directive'], function ($routeProvider) {
-
-    $routeProvider.when('/log', {
-        templateUrl: '/partials/log.html',
-        controller: 'LogCtrl'
-    });
-
-});
-
-
-/**
- * Log Controller
- */
-logModule.controller('LogCtrl', ['$scope', 'Log', function ($scope, Log) {
-
-    $scope.log = {};
-    $scope.log.LogEntries = [];
-
-    $scope.filterModel = {
-        debug: false,
-        notice: false,
-        warning: true,
-        error: true
-    };
-
-
-    // Watch for changes in the filer
-    $scope.$watch('filterModel', function () {
-        $scope.getLog();
-    }, true);
-
-    // Retrive log information
-    $scope.getLog = function () {
-
-        Log.query($scope.filterModel, function (response) {
-            // Success
-            $scope.log = response;
-
-            if (response == null) {
-                $scope.showException("Invalid response, log property was null", null, ".saveSettings()");
-            }
-
-        }, function (response) {
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                var message = "Can not retrive the log";
-                if (response.status != null) {
-                    message += " " + "Status code:" + response.status;
-                }
-
-                // 500 Internal Server Error
-                if (response.status === 500) {
-                    $scope.showException(message, null, response.data);
-                }
-                else {
-                    $scope.alerts.push({ type: 'error', msg: message });
-                }
-            }
-
-        });
-    }
-
-    $scope.btnRefresh = function () {
-        $scope.getLog();
-    }
-
-    // Init 
-    // Handsontable (fixed the height)
-    var $window = $(window);
-    var winHeight = $window.height();
-    var winWidth = $window.width();
-    $window.resize(function () {
-        winHeight = $window.height();
-        winWidth = $window.width();
-    });
-
-    $scope.calcHeight = function () {
-        var border = 12;
-        var topOffset = $("#handsontable").offset().top;
-        var height = winHeight - topOffset - 2 * border;
-        if (height < 50) {
-            return 50;
-        }
-        return height;
-    };
-
-    $scope.calcWidth = function () {
-        var border = 12;
-        var leftOffset = $("#handsontable").offset().left;
-        var width = winWidth - leftOffset - 2 * border;
-        if (width < 50) {
-            return 50;
-        }
-        return width;
-    };
-
-}]);
-
-
-/**
- * sc.log.service
- */
-angular.module('sc.log.service', ['ngResource'], function ($provide) {
-
-    $provide.factory('Log', function ($resource) {
-        return $resource('/adminapi/v1/log', {}, {
-            query: { method: 'GET', isArray: false }
-        });
-    });
-
-});
-
-
-/**
- * sc.log.directive
- */
-angular.module('sc.log.directive', ['uiHandsontable']);
-
-
-/**
- * ----------------------------------------------------------------------------
- * sc.gateway
- * ----------------------------------------------------------------------------
- */
-var gatewayModule = angular.module('sc.gateway', ['sc.gateway.service'], function ($routeProvider) {
-
-    $routeProvider.when('/gateway', {
-        templateUrl: '/partials/gateway.html',
-        controller: 'GatewayCtrl'
-    });
-
-});
 
 
 /**
  * Gateway Controller
  */
-gatewayModule.controller('GatewayCtrl', ['$scope', '$http', function ($scope, $http) {
+adminModule.controller('GatewayCtrl', ['$scope', '$http', function ($scope, $http) {
+
+    $scope.alerts.length = 0;
 
     // Get Gateway information
     $scope.refreshGatewayStats = function () {
@@ -1244,807 +2216,6 @@ gatewayModule.controller('GatewayCtrl', ['$scope', '$http', function ($scope, $h
 }]);
 
 
-/**
- * sc.gateway.service
- */
-angular.module('sc.gateway.service', ['ngResource'], function ($provide) {
-
-    // TODO: Headers dosent work.. (Not yet supported by angular?)
-    $provide.factory('Gateway', function ($resource) {
-        return $resource('/gwstats', {}, {
-            send: { method: 'GET', isArray: false, headers: { 'Content-Type': 'text/html,text/plain,*/*', 'Accept': 'text/html,text/plain,*/*' } }    // We need to override this (the return type is not an array)
-        });
-    });
-
-});
-
-
-/**
- * ----------------------------------------------------------------------------
- * sc.server
- * ----------------------------------------------------------------------------
- */
-var serverModule = angular.module('sc.server', ['sc.server.service'], function ($routeProvider) {
-
-    $routeProvider.when('/server', {
-        templateUrl: '/partials/server.html',
-        controller: 'ServerCtrl'
-    });
-
-    $routeProvider.when('/server_edit', {
-        templateUrl: '/partials/server_edit.html',
-        controller: 'ServerEditCtrl'
-    });
-
-});
-
-
-/**
- * Server Controller
- */
-serverModule.controller('ServerCtrl', ['$scope', 'Server', function ($scope, Server) {
-
-    $scope.server = null;
-
-    // Retrive server information
-    $scope.refreshtServer = function () {
-
-        Server.get(function (response) {
-            $scope.server = response.server;
-        }, function (response) {
-
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                if (response.status == 404) {
-                    // 404	Not Found
-                    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
-                }
-                else if (response.status == 500) {
-                    // 500 Internal Server Error
-                    $scope.showException(response.data.message, response.data.helpLink, response.data.stackTrace);
-                }
-                else {
-                    $scope.showException("Unhandled http statuscode " + response.status, null, ".getDatabase()");
-                }
-            }
-
-        });
-
-    }
-
-    // Init
-    $scope.refreshtServer();
-
-}]);
-
-
-/**
- * Server Edit Controller
- */
-serverModule.controller('ServerEditCtrl', ['$scope', '$http', 'Server', function ($scope, $http, Server) {
-
-    $scope.server = null;
-
-    // Retrive server information
-    $scope.refreshtServer = function () {
-
-        Server.get(function (response) {
-            $scope.server = response.server;
-        }, function (response) {
-
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                if (response.status == 404) {
-                    // 404	Not Found
-                    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
-                }
-                else if (response.status == 500) {
-                    // 500 Internal Server Error
-                    $scope.showException(response.data.message, response.data.helpLink, response.data.stackTrace);
-                }
-                else {
-                    $scope.showException("Unhandled http statuscode " + response.status, null, ".getDatabase()");
-                }
-            }
-
-        });
-
-    }
-
-    // Save database information
-    $scope.saveSettings = function () {
-
-        $http({ method: 'PUT', url: '/adminapi/v1/server', data: $scope.server }).
-
-          // A response status code between 200 and 299 is considered a success status
-          success(function (response, status, headers, config) {
-
-              if (status == 200) {
-                  // 200 Ok
-                  $scope.isBusy = true;
-
-                  // TODO: Maybe we dont need a 'message' property (look this over)
-                  if (response.message != null) {
-                      $scope.alerts.push({ type: 'success', msg: response.message });
-                  }
-
-                  if (response.server == null) {
-                      $scope.showException("Invalid response, server property was null", null, ".saveSettings()");
-                  }
-                  else {
-                      $scope.server = response.server;
-                      $scope.myForm.$setPristine();
-                  }
-
-              }
-              else {
-                  $scope.showException("Unhandled http statuscode " + status, null, ".saveSettings()");
-              }
-
-          }).
-          error(function (response, status, headers, config) {
-
-              if (status == 403) {
-                  // 403 Forbidden (Validation Error)
-                  if (response.validationErrors != null && response.validationErrors.length > 0) {
-
-                      for (var i = 0; i < response.validationErrors.length; i++) {
-                          $scope.alerts.push({ type: 'error', msg: response.validationErrors[i].message });
-                          $scope.myForm[response.validationErrors[i].property].$setValidity("validationError", false);
-                          var id = response.validationErrors[i].property;
-                          var unregister = $scope.$watch("settings." + response.validationErrors[i].property, function (newValue, oldValue) {
-                              if (newValue == oldValue) return;
-                              $scope.myForm[id].$setValidity("validationError", true);
-                              unregister();
-                          }, false);
-
-                      }
-                  }
-                  else {
-                      $scope.showException("The return code '403 Forbidden' did not return any validation error fields.", null, null);
-                  }
-
-              }
-              else if (status == 500) {
-                  // 500 Internal Server Error
-                  $scope.showException(response.message, response.helpLink, response.stackTrace);
-              }
-              else {
-                  $scope.showException("Unhandled http statuscode " + status, null, ".saveSettings()");
-              }
-
-          });
-    }
-
-    $scope.btnSave = function () {
-        $scope.alerts.length = 0;
-        $scope.saveSettings();
-    }
-
-    $scope.refreshtServer();
-
-}]);
-
-
-/**
- * sc.server.service
- */
-angular.module('sc.server.service', ['ngResource'], function ($provide) {
-
-    $provide.factory('Server', function ($resource) {
-        return $resource('/adminapi/v1/server', {}, {
-            query: { method: 'GET', isArray: false }
-        });
-    });
-
-});
-
-
-/**
- * ----------------------------------------------------------------------------
- * scadmin
- * ----------------------------------------------------------------------------
- */
-angular.module('scadmin', ['sc.engine', 'sc.database', 'sc.executable', 'sc.sqlquery', 'sc.log', 'sc.gateway', 'sc.server', 'sc.service', 'sc.directive'], function ($routeProvider, $locationProvider, $httpProvider) {
-
-
-    //$routeProvider.when('/main', {
-    //    templateUrl: '/partials/main.html',
-    //    controller: MainCtrl
-    //});
-
-    $routeProvider.when('/database_create', {
-        templateUrl: '/partials/database_create.html',
-        controller: DatabaseCreateCtrl
-    })
-
-    $routeProvider.otherwise({ redirectTo: '/executables' });
-
-    //$locationProvider.html5Mode(true);
-
-});
-
-
-/**
- * sc.service
- */
-angular.module('sc.service', ['ngResource'], function ($provide) {
-
-    // Get database or server default settings
-    $provide.factory('Settings', function ($resource) {
-        return $resource('/adminapi/v1/settings/default/:type', { type: '@type' }, {
-            query: { method: 'GET', isArray: false }
-        });
-    });
-
-    // Get command status
-    $provide.factory('CommandStatus', function ($resource) {
-        return $resource('/adminapi/v1/server/commands/:commandId', { commandId: '@commandId' }, {
-            query: { method: 'GET', isArray: false }
-        });
-    });
-
-});
-
-/**
- * sc.directive
- */
-angular.module('sc.directive', ['ui', 'ui.bootstrap']);
-
-
-/**
- * App Controller
- */
-function HeadCtrl($scope, $location, $http, $dialog, Engine, Database) {
-
-    $scope.alerts = [];
-    $scope.jobs = [];           // { message:"default" }
-    $scope.engines = [];        // { uri:"http://localhost:8181/api/engines/default", name:"default", configuration: {noDb:true, logSteps=true} }
-    $scope.databases = [];      // { "uri":"http://headsutv19:8181/api/databases/default", name:"default", running:true, configuration:{} }
-    $scope.executables = [];    // { name:"some.exe", path:"c:\tmp\some.exe", databaseName:"default" }
-
-    // Handles the active navbar item
-    $scope.isActiveUrl = function (path) {
-        return $location.path() == path;
-    }
-
-    // Close alert box
-    $scope.closeAlert = function (index) {
-        $scope.alerts.splice(index, 1);
-    };
-
-    // Show Exception dialog
-    $scope.showException = function (message, helpLink, stackTrace) {
-
-        $scope.opts = {
-            backdrop: true,
-            keyboard: true,
-            backdropClick: true,
-            templateUrl: "partials/error.html",
-            controller: 'DialogController',
-            data: { header: "Internal Server Error", message: message, stackTrace: stackTrace, helpLink: helpLink }
-        };
-
-        var d = $dialog.dialog($scope.opts);
-        d.open();
-        // TODO: Handle if the server went down, the we can not get the error.html to show the error message..
-
-    }
-
-
-    // Refresh Engine List
-    $scope.refreshEnginesList = function (successCallback, errorCallback) {
-        $scope.engines.length = 0;
-
-        Engine.query(function (response) {
-            // Success
-
-            for (var i = 0; i < response.Engines.length ; i++) {
-
-                var remoteEngine = response.Engines[i];
-
-                // Create engine instance
-                var engine = { uri: remoteEngine.Uri, name: remoteEngine.Name, databaseName: null, configuration: { noDb: remoteEngine.NoDb, logSteps: remoteEngine.LogSteps } };
-                $scope.engines.push(engine);
-            }
-
-            if (successCallback != null) {
-                successCallback();
-            }
-
-        }, function (response) {
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                $scope.showException(response.data, null, null);
-            }
-
-            if (errorCallback != null) {
-                errorCallback();
-            }
-
-        });
-    }
-
-    // Refresh Database List and Status
-    $scope.refreshDatabaseList = function (successCallback, errorCallback) {
-
-        $scope.databases.length = 0;
-
-        // Get database list
-        Database.query(function (response) {
-            // Success
-
-            // Example response: 
-            // {
-            //    "Databases":[{
-            //    "Name":"default",
-            //    "Uri":"http://localhost:8181/api/databases/default"}
-            // ]}
-
-            // Get the running status of each database
-            for (var i = 0; i < response.Databases.length ; i++) {
-
-                var remoteDatabase = response.Databases[i];
-
-                // Create database instance
-                var database = { uri: remoteDatabase.Uri, name: remoteDatabase.Name, running: false }
-                $scope.databases.push(database);
-
-                // TODO:  Maybe move this outside the refreshDatabaseList function
-                // refresh database process status
-                $scope.refreshDatabaseProcessStatus(database);
-            }
-
-            if (successCallback != null) {
-                successCallback();
-            }
-
-        }, function (response) {
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                $scope.showException(response.data, null, null);
-            }
-
-            if (errorCallback != null) {
-                errorCallback();
-            }
-        });
-
-    }
-
-    // Refresh database (host) process status 
-    $scope.refreshDatabaseProcessStatus = function (database, successCallback, errorCallback) {
-
-        Database.status({ name: database.name }, function (response) {
-            // Success
-            //
-            // Example response: 
-            // {
-            //     "Uri":"http://localhost:8181/api/engines/default/db",
-            //     "Running":true
-            // }
-            database.running = response.Running;
-            if (successCallback != null) {
-                successCallback();
-            }
-
-        }, function (response) {
-            // Error
-            database.running = false;
-
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-                if (response.status == 404) {
-                    // 404	Not Found = Not running
-                }
-                else {
-                    $scope.showException(response.data, null, null);
-                }
-            }
-            if (errorCallback != null) {
-                errorCallback();
-            }
-
-        });
-
-    }
-
-    // Refresh ExecutableList
-    $scope.refreshEngineAndExecutableList = function () {
-
-        $scope.executables.length = 0;
-
-        $scope.refreshEnginesList(function () {
-
-            // Success
-            for (var i = 0 ; i < $scope.engines.length ; i++) {
-
-                var engine = $scope.engines[i];
-
-                $scope.getEngineExecutableList(engine, function (executables) {
-                    // Success
-
-                    for (var n = 0 ; n < executables.length ; n++) {
-                        $scope.executables.push(executables[n]);
-                    }
-
-                }, function () {
-                    // Error
-                });
-            }
-        }, function () {
-            // Error
-        });
-
-    }
-
-    $scope.getEngineExecutableList = function (engine, successCallback, errorCallback) {
-
-        Engine.get({ name: engine.name }, function (response, headers) {
-            // Success
-            var executables = [];
-
-            // Add Executables to list
-            for (var n = 0; n < response.Executables.Executing.length ; n++) {
-                var remoteExecutable = response.Executables.Executing[n];
-
-                var executable = {};
-                executable.path = remoteExecutable.Path;
-                executable.engine = engine;
-
-                // Get database
-                executable.databaseName = response.Database.Name;
-
-                // Generate executable name (removing the path and extention)
-                // Hopefully this 'extra' property will be included in the api in the future
-                var fullpath = remoteExecutable.Path;
-                var x = fullpath.lastIndexOf("\\");
-                if (x != -1) {
-                    var filename = fullpath.slice(x + 1);
-                    x = filename.lastIndexOf(".");
-                    if (x != -1) {
-                        var filenameWithoutExtention = filename.substr(0, x);
-                        executable.name = filenameWithoutExtention;
-                    }
-                }
-                executables.push(executable);
-            }
-
-            if (successCallback) {
-                successCallback(executables);
-            }
-
-        }, function (response) {
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                if (response.status == 501) {
-                    // 501 Not Implemented
-                    $scope.showException("Could not retrive the engine " + engine.name + " (501 Not Implemented)", null, null);
-                }
-                else if (response.status == 404) {
-                    // 404	Not Found
-                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.Helplink });
-                }
-                else {
-                    $scope.showException(response.data, null, null);
-                }
-            }
-
-            if (errorCallback) {
-                errorCallback();
-            }
-
-        });
-
-    }
-
-    $scope.getDatabaseByName = function (name) {
-
-        for (var i = 0 ; i < $scope.databases.length ; i++) {
-            var database = $scope.databases[i];
-            if (database.name == name) {
-                return database;
-            }
-        }
-        return null;
-    }
-
-    // Get database with configuration
-    $scope.getDatabaseWithConfiguration = function (name, successCallback, errorCallback) {
-
-        Database.get({ name: name }, function (response) {
-            // Success  
-            //
-            // Example response: 
-            // "Uri":"",
-            // "Name":"default",
-            // "Configuration":{
-            //     "Uri":""
-            // },
-            // "Engine":{
-            //     "Uri":"http://localhost:8181/api/engines/default"
-            // }
-
-            var globalDatabase = $scope.getDatabaseByName(response.Name)
-            if (globalDatabase != null) {
-                globalDatabase.configuration = response.Configuration; // TODO:
-
-                if (successCallback != null) {
-                    successCallback(globalDatabase);
-                }
-
-            }
-            else {
-
-                $scope.refreshDatabaseList(function () {
-                    // Success
-                    var globalDatabase = $scope.getDatabaseByName(response.Name)
-                    if (globalDatabase != null) {
-                        globalDatabase.configuration = response.Configuration; // TODO:
-
-                        if (successCallback != null) {
-                            successCallback(globalDatabase);
-                        }
-
-                    }
-                    else {
-                        console.log("Warning - We could not find the database " + name + " in the client global list");
-
-                        if (errorCallback != null) {
-                            errorCallback();
-                        }
-
-                    }
-
-                });
-
-            }
-
-
-        }, function (response) {
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-                if (response.status == 404) {
-                    // 404	Not Found
-                    $scope.alerts.push({ type: 'error', msg: "Database " + $routeParams.name + " not Found", helpLink: null });
-                }
-                else {
-                    $scope.showException(response.data, null, null);
-                }
-            }
-
-            if (errorCallback != null) {
-                errorCallback();
-            }
-
-
-        });
-
-    }
-
-
-}
-
-
-/**
- * Main Controller
- */
-function MainCtrl($scope) {
-
-}
-
-
-/**
- * Database Create Controller
- */
-function DatabaseCreateCtrl($scope, $http, $dialog, $rootScope, $location, Settings, Database, CommandStatus) {
-
-    $scope.isBusy = false;
-    $scope.alerts.length = 0;
-
-    $scope.getDefaultSettings = function () {
-
-        $scope.isBusy = true;
-        $scope.alerts.length = 0;
-
-        // Retrive database list
-        Settings.query({ type: "database" }, function (response) {
-            $scope.isBusy = false;
-            response.tempDirectory = response.tempDirectory.replace("[DatabaseName]", response.name);
-            response.imageDirectory = response.imageDirectory.replace("[DatabaseName]", response.name);
-            response.transactionLogDirectory = response.transactionLogDirectory.replace("[DatabaseName]", response.name);
-            response.dumpDirectory = response.dumpDirectory.replace("[DatabaseName]", response.name);
-
-            $scope.settings = response;
-
-            $scope.myForm.$setPristine(); // This disent work, the <select> breaks the pristine state :-(
-
-        }, function (response) {
-            // Error, Can not retrive a list of databases
-            $scope.isBusy = false;
-            var message = "Can not retrive database detault settings.";
-            if (response.status != null) {
-                message += " " + "Status code:" + response.status;
-            }
-
-            // 500 Internal Server Error
-            if (response.status === 500) {
-                $scope.showException(message, null, response.data);
-            }
-            else {
-                $scope.alerts.push({ type: 'error', msg: message });
-            }
-
-        });
-    }
-
-    $scope.createDatabase = function () {
-
-        $scope.isBusy = true;
-        $scope.alerts.length = 0;
-        $scope.status = "Creating database...";
-        var pollFrequency = 100 // 500ms
-        var pollTimeout = 60000; // 60 Seconds
-
-
-        $http({ method: 'POST', url: '/adminapi/v1/databases', data: $scope.settings }).
-
-          // A response status code between 200 and 299 is considered a success status
-          success(function (response, status, headers, config) {
-
-              $scope.isBusy = false;
-
-              if (status == 202) {
-                  // 202 Accepted
-                  $scope.isBusy = true;
-
-                  // Start polling the commandId for results
-                  (function poll() {
-
-                      $.ajax({
-                          url: "/adminapi/v1/server/commands/" + response.commandId,
-
-                          success: function (response) {
-
-                              if (response.command == null) {
-                                  $scope.showException("Invalid response, command property was null", null, ".createDatabase()");
-                              }
-                              else {
-
-                                  $scope.status = response.command.message;
-
-                                  if (response.command.isCompleted) {
-                                      $scope.isBusy = false;
-                                      $scope.status = "";
-                                      // Check for errors
-                                      if (response.command.errors.length > 0) {
-                                          for (var i = 0; i < response.command.errors.length ; i++) {
-                                              $scope.alerts.push({ type: 'error', msg: response.command.errors[i].message, helpLink: response.command.errors[i].helpLink });
-                                          }
-                                      }
-                                      else {
-                                          $scope.alerts.push({ type: 'success', msg: "Database " + $scope.settings.name + " was successfully created." });
-                                          $scope.settings = null;
-                                          // Refresh the databases list
-                                          //$rootScope.getDatabases();
-                                          // $location.path("/databases");
-                                      }
-                                  }
-                                  else {
-                                      setTimeout(function () { poll(); }, pollFrequency); // wait 3 seconds than call ajax request again
-                                  }
-                              }
-                          },
-
-                          error: function (xhr, textStatus, thrownError) {
-
-                              $scope.isBusy = false;
-
-                              var response = JSON.parse(xhr.responseText);
-
-                              if (xhr.status == 404) {
-                                  // 404	Not Found
-                                  $scope.alerts.push({ type: 'error', msg: response.message, helpLink: response.helpLink });
-                              }
-                              else if (xhr.status == 500) {
-                                  // 500 Internal Server Error
-                                  $scope.showException(response.message, response.helpLink, response.stackTrace);
-                              }
-                              else {
-                                  $scope.showException("Unhandled http error " + textStatus, null, ".pollCommand()");
-                              }
-
-                          },
-
-                          complete: function () {
-                              //console.log("complete");
-                              $scope.$apply();
-
-                          },
-                          dataType: "json",
-                          timeout: pollTimeout
-                      });
-                  })();
-
-
-              }
-              else {
-                  $scope.showException("Unhandled http statuscode " + status, null, ".createDatabase()");
-              }
-
-          }).
-          error(function (response, status, headers, config) {
-
-              $scope.isBusy = false;
-
-              if (status == 403) {
-                  // 403 Forbidden (Validation Error)
-                  if (response.validationErrors != null && response.validationErrors.length > 0) {
-
-                      for (var i = 0; i < response.validationErrors.length; i++) {
-                          $scope.alerts.push({ type: 'error', msg: response.validationErrors[i].message });
-                          $scope.myForm[response.validationErrors[i].property].$setValidity("validationError", false);
-                          var id = response.validationErrors[i].property;
-                          var unregister = $scope.$watch("settings." + response.validationErrors[i].property, function (newValue, oldValue) {
-                              if (newValue == oldValue) return;
-                              $scope.myForm[id].$setValidity("validationError", true);
-                              unregister();
-                          }, false);
-
-                      }
-                  }
-                  else {
-                      $scope.showException("The return code '403 Forbidden' did not return any validation error fields.", null, null);
-                  }
-
-              }
-              else if (status == 500) {
-                  // 500 Internal Server Error
-                  $scope.showException(response.message, response.helpLink, response.stackTrace);
-              }
-              else {
-                  $scope.showException("Unhandled http statuscode " + status, null, ".createDatabase()");
-              }
-
-          });
-    }
-
-    $scope.btnClick_createDatabase = function () {
-        $scope.createDatabase();
-    }
-
-    $scope.btnClick_reset = function () {
-
-        $scope.getDefaultSettings();
-    }
-
-    $scope.getDefaultSettings();
-
-}
-
 
 /**
  * Dialog Controller
@@ -2062,3 +2233,8 @@ function DialogController($scope, dialog) {
 }
 
 
+function toRelativePath(url) {
+    var a = document.createElement('a');
+    a.href = url;
+    return a.pathname;
+}

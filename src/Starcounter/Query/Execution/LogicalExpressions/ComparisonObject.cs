@@ -23,6 +23,7 @@ namespace Starcounter.Query.Execution
 internal class ComparisonObject : CodeGenFilterNode, IComparison
 {
     ComparisonOperator compOperator;
+    ExtentSet outsideJoinExtentSet; // Used to handle IS and ISNOT comparisons w.r.t. outer joins.
     IObjectExpression expr1;
     IObjectExpression expr2;
 
@@ -30,9 +31,11 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
     /// Constructor.
     /// </summary>
     /// <param name="compOp">The comparison operator of the operation.</param>
+    /// <param name="extSet">A set of extents where this comparison cannot be executed 
+    /// (only relevant when operator is IS or ISNOT and there is an outer join).</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal ComparisonObject(ComparisonOperator compOp, IObjectExpression expr1, IObjectExpression expr2)
+    internal ComparisonObject(ComparisonOperator compOp, ExtentSet extSet, IObjectExpression expr1, IObjectExpression expr2)
     {
         if (compOp != ComparisonOperator.Equal && compOp != ComparisonOperator.NotEqual &&
             compOp != ComparisonOperator.IS && compOp != ComparisonOperator.ISNOT)
@@ -48,10 +51,11 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr2.");
         }
         compOperator = compOp;
+        outsideJoinExtentSet = extSet;
         this.expr1 = expr1;
         this.expr2 = expr2;
     }
-
+    
     public ComparisonOperator Operator
     {
         get
@@ -162,7 +166,7 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
     /// <returns>A more instantiated expression.</returns>
     public ILogicalExpression Instantiate(Row obj)
     {
-        return new ComparisonObject(compOperator, expr1.Instantiate(obj), expr2.Instantiate(obj));
+        return new ComparisonObject(compOperator, outsideJoinExtentSet, expr1.Instantiate(obj), expr2.Instantiate(obj));
     }
 
     /// <summary>
@@ -204,7 +208,12 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
 
     public ILogicalExpression Clone(VariableArray varArray)
     {
-        return new ComparisonObject(compOperator, expr1.CloneToObject(varArray), expr2.CloneToObject(varArray));
+        return new ComparisonObject(compOperator, outsideJoinExtentSet, expr1.CloneToObject(varArray), expr2.CloneToObject(varArray));
+    }
+
+    public ExtentSet GetOutsideJoinExtentSet()
+    {
+        return outsideJoinExtentSet;
     }
 
     public IObjectExpression GetReferenceLookUpExpression(Int32 extentNumber)
@@ -247,11 +256,11 @@ internal class ComparisonObject : CodeGenFilterNode, IComparison
         {
             return null;
         }
-        if (expr1 is IPath && (expr1 as IPath).ExtentNumber == extentNumber && (expr1 as IPath).FullName == strPath)
+        if (expr1 is IPath && (expr1 as IPath).ExtentNumber == extentNumber && (expr1 as IPath).ColumnName == strPath)
         {
             return new ObjectRangePoint(compOperator, expr2);
         }
-        if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).FullName == strPath && Optimizer.ReversableOperator(compOperator))
+        if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).ColumnName == strPath && Optimizer.ReversableOperator(compOperator))
         {
             return new ObjectRangePoint(Optimizer.ReverseOperator(compOperator), expr1);
         }

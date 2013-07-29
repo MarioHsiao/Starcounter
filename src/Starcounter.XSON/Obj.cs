@@ -69,7 +69,16 @@ namespace Starcounter {
     /// the garbage collected heap. This is such that stateful sessions can employ them without causing unnecessary system
     /// stress.
     /// </remarks>
-    public abstract partial class Obj : Container {
+    public abstract partial class Obj : Container, IHypermedia {
+
+        /// <summary>
+        /// Static constructor to automatically initialize XSON.
+        /// </summary>
+        static Obj() {
+            HelperFunctions.LoadNonGACDependencies();
+            XSON.CodeGeneration.Initializer.InitializeXSON();
+        }
+
         /// <summary>
         /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
         /// underlying bound object. This is common in database applications where Json messages
@@ -91,7 +100,7 @@ namespace Starcounter {
         /// <summary>
         /// Injection point for generating typed json from different kinds of input.
         /// </summary>
-        public static ITypedJsonFactory Factory;
+        internal static ITypedJsonFactory Factory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
@@ -135,6 +144,7 @@ namespace Starcounter {
                 return (IBindable)data;
             }
             set {
+                if (Template == null) throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
                 InternalSetData(value);
             }
         }
@@ -325,5 +335,11 @@ namespace Starcounter {
         public bool LogChanges { get; set; }
 
         public abstract void ProcessInput<V>(TValue<V> template, V value);
+
+
     }
+
+
+
+
 }

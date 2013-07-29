@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -33,6 +34,7 @@ namespace Starcounter.XSON.Serializers {
             int posInArray;
             int valueSize;
             int offset;
+            List<Template> exposedProperties;
             Obj childObj;
             Template tProperty;
             TObj tObj;
@@ -66,8 +68,9 @@ restart:
                 // Starting from the last written position
                 fixed (byte* p = &buf[offset]) {
                     byte* pfrag = p;
-                    for (int i = templateNo; i < tObj.Properties.Count; i++) {
-                        tProperty = tObj.Properties[i];
+                    exposedProperties = tObj.Properties.ExposedProperties;
+                    for (int i = templateNo; i < exposedProperties.Count; i++) {
+                        tProperty = exposedProperties[i];
 
                         // Property name.
                         if (!nameWritten) {
@@ -97,13 +100,15 @@ restart:
                                 }
                             }
 
-                            if (valueSize != -1 && childObjArr != null) {
-                                if (buf.Length < (offset + valueSize))
-                                    goto restart;
-                                Buffer.BlockCopy(childObjArr, 0, buf, offset, valueSize);
+                            if (valueSize != -1) {
+                                if (childObjArr != null) {
+                                    if (buf.Length < (offset + valueSize + 1))
+                                        goto restart;
+                                    Buffer.BlockCopy(childObjArr, 0, buf, offset, valueSize);
+                                    childObjArr = null;
+                                }
                                 pfrag += valueSize;
                                 offset += valueSize;
-                                childObjArr = null;
                             } else
                                 goto restart;
                         } else if (tProperty is TObjArr) {
@@ -161,7 +166,7 @@ restart:
                             offset += valueSize;
                         }
 
-                        if ((i + 1) < tObj.Properties.Count) {
+                        if ((i + 1) < exposedProperties.Count) {
                             *pfrag++ = (byte)',';
                             offset++;
                         }
