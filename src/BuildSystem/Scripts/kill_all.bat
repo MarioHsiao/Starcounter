@@ -1,6 +1,7 @@
 :: Killing all Starcounter-related processes if any are running.
 TASKKILL /f /t /im sccode.exe
 TASKKILL /f /t /im scdata.exe
+TASKKILL /f /t /im log_writer.exe
 TASKKILL /f /t /im scnetworkgateway.exe
 TASKKILL /f /t /im scnetworkgatewayloopedtest.exe
 TASKKILL /f /t /im scipcmonitor.exe
