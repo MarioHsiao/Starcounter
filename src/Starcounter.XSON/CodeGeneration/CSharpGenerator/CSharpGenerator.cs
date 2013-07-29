@@ -88,6 +88,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             {
                 WriteNode(napp);
             }
+            WriteFooter(Output);
 
             //return DumpTree();
             return Output.ToString();
@@ -409,6 +410,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             sb.Append("\";");
             a.Prefix.Add(sb.ToString());
 
+            a.Prefix.Add("        Properties.ClearExposed();");
             foreach (NBase kid in cst.Children)
             {
                 if (kid is NProperty)
@@ -578,7 +580,12 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             h.Append("using Starcounter;\n");
             h.Append("using Starcounter.Internal;\n");
             h.Append("using Starcounter.Templates;\n");
+            h.Append("#pragma warning disable 0108\n");
             h.Append('\n');
+        }
+
+        static internal void WriteFooter(StringBuilder f) {
+            f.Append("#pragma warning restore 0108");
         }
     }
 }

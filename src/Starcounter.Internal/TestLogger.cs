@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Threading;
 
 namespace Starcounter.TestFramework
@@ -80,17 +82,19 @@ namespace Starcounter.TestFramework
             }
         }
 
-        Boolean _turnOffStatistics = false;
+        static Boolean _turnOffStatistics = false;
+
         /// <summary>
         /// Gets/Sets the statistics flag.
         /// </summary>
-        public Boolean TurnOffStatistics
+        public static Boolean TurnOffStatistics
         {
             get { return _turnOffStatistics; }
             set { _turnOffStatistics = value; }
         }
 
         Boolean _turnOffImportantMessages = true;
+
         /// <summary>
         /// Gets/Sets the important messages flag.
         /// </summary>
@@ -202,31 +206,43 @@ namespace Starcounter.TestFramework
             }
         }
 
-        // Path to mapped FTP folder.
-        const String MappedBuildServerFTP = "Z:"; // Resembles a mapped drive to \\scbuildserver\ftp.
+        // Path to build statistics file.
+        static readonly String BuildStatisticsFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScBuildStatistics.txt");
 
-        // Path to output statistics file.
-        static readonly String PathToStatisticsFile = MappedBuildServerFTP + "\\SCDev\\BuildSystem\\Logs\\" + System.Environment.MachineName + "\\ScBuildStatistics.txt";
+        // Machine name e.g. SCBUILDSERVER
+        static readonly String MachineName = System.Environment.MachineName;
+
+        // Build number e.g. 2.0.0.1
+        static readonly String BuildNumber = Environment.GetEnvironmentVariable("BUILD_NUMBER");
+
+        // Object used for exclusive access for statistics reporting.
+        static Object LockingObject = new Object();
 
         /// <summary>
         /// General function used to report statistics.
         /// </summary>
-        public void ReportStatistics(String valueName, Int32 value)
+        public static void ReportStatistics(String valueName, Double value)
         {
             // We never report statistics for personal builds.
-            if (_turnOffStatistics || IsPersonalBuild() || IsDebugBuild())
+            if (_turnOffStatistics || IsDebugBuild())
                 return;
 
-            lock (_testName)
+            lock (LockingObject)
             {
-                Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']", valueName, value);
+                // LAL_NUM_TRANSACTIONS3 2.5.1.0 300000 PUBLIC 2013-07-16-22-02-03 SCBUILDSERVER2
+                String statsString =
+                    valueName + " " +
+                    BuildNumber + " " +
+                    value.ToString("0.00", CultureInfo.InvariantCulture) + " " +
+                    (IsPersonalBuild() ? "PERSONAL" : "PUBLIC") + " " +
+                    DateTime.Now.ToString("s") + " " +
+                    MachineName + "\n";
+
+                Console.WriteLine(statsString);
 
                 // Appending to build server statistics log.
                 if (IsRunningOnBuildServer())
-                {
-                    AppendAllText(PathToStatisticsFile,
-                        DateTime.Now + "\t" + valueName + "\t" + value + Environment.NewLine);
-                }
+                    File.AppendAllText(BuildStatisticsFilePath, statsString);
             }
         }
 

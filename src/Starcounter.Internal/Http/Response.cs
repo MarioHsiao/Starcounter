@@ -3,9 +3,10 @@ using HttpStructs;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
+
 namespace Starcounter.Advanced
 {
     public class ResponseSchedulerStore
@@ -28,15 +29,34 @@ namespace Starcounter.Advanced
     }
 
     /// <summary>
+    /// Represents an HTTP response.
+    /// </summary>
+    /// <remarks>
     /// The Starcounter Web Server caches resources as complete http responses.
     /// As the exact same response can often not be used, the cashed response also
     /// include useful offsets and injection points to facilitate fast transitions
     /// to individual http responses. The cached response is also used to cache resources
     /// (compressed or uncompressed content) even if the consumer wants to embed the content
     /// in a new http response.
-    /// </summary>
-    public class Response
+    /// </remarks>
+    public partial class Response
     {
+/*        /// <summary>
+        /// If true, the Uncompressed and/or compressed byte arrays contains content AND header.
+        /// If false, the Uncompressed and/or compressed byte arrays contain only content.
+        /// </summary>
+        /// <remarks>
+        /// This is used when constructing responses from texts where the implicit conversion from
+        /// string to response does not know what content type to use by default. The default content
+        /// type will depend on the request. I.e. if the user agent makes a request with an Accept header
+        /// telling the server that it wants "text/html" and the handler return a string, the default
+        /// content type will be "text/html". As the implicit conversion from string to Response does
+        /// not have fast and easy access to the request context, the response is created without a
+        /// header. The header is constructed by Starcounter just 
+        /// </remarks>
+        private bool _ByteArrayContainsHeader = true;
+ */
+
         // From which cache list this response came from.
         protected LinkedList<Response> responseCacheListFrom_ = null;
 
@@ -329,6 +349,30 @@ namespace Starcounter.Advanced
             }
         }
 
+        private IHypermedia _Hypermedia;
+
+        /// <summary>
+        /// The response can be contructed in one of the following ways:
+        /// 
+        /// 1) using a complete binary HTTP response
+        /// in the Uncompressed or Compressed propery (this includes the header)
+        /// 
+        /// 2) using a IHypermedia object in the Hypermedia property
+        /// 
+        /// 3) using the BodyString property (does not include the header)
+        /// 
+        /// 4) using the BodyBytes property (does not include the header)
+        /// </summary>
+        public IHypermedia Hypermedia {
+            get {
+                return _Hypermedia;
+            }
+            set {
+                customFields_ = true;
+                _Hypermedia = value;
+            }
+        }
+
         String headersString_;
 
         /// <summary>
@@ -398,6 +442,28 @@ namespace Starcounter.Advanced
             if (!customFields_)
                 return;
 
+            byte[] bytes = bodyBytes_;
+            if (_Hypermedia != null) {
+                var mimetype = http_request_.PreferredMimeType;
+                bytes = _Hypermedia.AsMimeType(mimetype);
+                if (bytes == null) {
+                    // The preferred requested mime type was not supported, try to see if there are
+                    // other options.
+                    IEnumerator<MimeType> secondaryChoices = http_request_.PreferredMimeTypes;
+                    secondaryChoices.MoveNext(); // The first one is already accounted for
+                    while (bytes == null && secondaryChoices.MoveNext()) {
+                        bytes = _Hypermedia.AsMimeType(secondaryChoices.Current);
+                    }
+                    if (bytes == null) {
+                        // None of the requested mime types were supported.
+                        // We will have to respond with a "Not Acceptable" message.
+                        statusCode_ = 406;
+                    }
+                }
+                // We have our precious bytes. Let's wrap them up in a response.
+            }
+
+
             String str = "HTTP/1.1 ";
             
             if (statusCode_ > 0)
@@ -434,10 +500,12 @@ namespace Starcounter.Advanced
             if (null != setCookiesString_)
                 str += "Set-Cookie: " + setCookiesString_ + StarcounterConstants.NetworkConstants.CRLF;
 
+
+
             if (null != bodyString_)
             {
-                if (null != bodyBytes_)
-                    throw new ArgumentException("Either body string or body bytes can be set for Response.");
+                if (null != bytes)
+                    throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
 
                 str += "Content-Length: " + bodyString_.Length + StarcounterConstants.NetworkConstants.CRLF;
                 str += StarcounterConstants.NetworkConstants.CRLF;
@@ -448,24 +516,23 @@ namespace Starcounter.Advanced
                 // Finally setting the uncompressed bytes.
                 Uncompressed = Encoding.UTF8.GetBytes(str);
             }
-            else if (null != bodyBytes_)
+            else if (null != bytes)
             {
-                str += "Content-Length: " + bodyBytes_.Length + StarcounterConstants.NetworkConstants.CRLF;
+                str += "Content-Length: " + bytes.Length + StarcounterConstants.NetworkConstants.CRLF;
                 str += StarcounterConstants.NetworkConstants.CRLF;
 
                 Byte[] headersBytes = Encoding.UTF8.GetBytes(str);
 
                 // Adding the body.
-                Byte[] responseBytes = new Byte[headersBytes.Length + bodyBytes_.Length];
+                Byte[] responseBytes = new Byte[headersBytes.Length + bytes.Length];
 
                 System.Buffer.BlockCopy(headersBytes, 0, responseBytes, 0, headersBytes.Length);
-                System.Buffer.BlockCopy(bodyBytes_, 0, responseBytes, headersBytes.Length, bodyBytes_.Length);
+                System.Buffer.BlockCopy(bytes, 0, responseBytes, headersBytes.Length, bytes.Length);
 
                 // Finally setting the uncompressed bytes.
                 Uncompressed = responseBytes;
             }
-            else
-            {
+            else {
                 str += "Content-Length: 0" + StarcounterConstants.NetworkConstants.CRLF;
                 str += StarcounterConstants.NetworkConstants.CRLF;
 
@@ -657,12 +724,16 @@ namespace Starcounter.Advanced
         //MixedCodeConstants.NetworkProtocolType protocol_type_;
 
         /// <summary>
-        /// Setting corresponding HTTP request.
+        /// A response may be associated with a request. If a response is created without a content type,
+        /// the primary content type of the Accept header in the request will be assumed.
         /// </summary>
-        /// <param name="httpRequest"></param>
-        public void SetHttpRequest(Request httpRequest)
-        {
-            http_request_ = httpRequest;
+        public Request Request {
+            get {
+                return http_request_;
+            }
+            set {
+                http_request_ = value;
+            }
         }
 
         /// <summary>

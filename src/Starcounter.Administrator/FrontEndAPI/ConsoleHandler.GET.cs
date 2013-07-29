@@ -5,6 +5,7 @@ using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
+using Starcounter.Internal.Web;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -32,12 +33,12 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             errorJson.code = (int)HttpStatusCode.NotFound;
                             errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_" + response.StatusCode; // TODO
 
-                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
                         }
 
                         if (response.StatusCode >= 200 && response.StatusCode < 300) {
                             // Success
-                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, response.GetBodyStringUtf8_Slow()) };
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, response.GetBodyStringUtf8_Slow()) };
                         }
                         else {
                             // Error
@@ -51,7 +52,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             errorJson.code = (int)response.StatusCode;
                             errorJson.helpLink = null;
 
-                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)response.StatusCode, null, errorJson.ToString()) };
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)response.StatusCode, null, errorJson.ToString()) };
 
                         }
 

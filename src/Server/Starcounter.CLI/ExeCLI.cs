@@ -95,8 +95,10 @@ namespace Starcounter.CLI {
 
             // GET or START the engine
             ShowStatus("Retreiving engine status");
+
             var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
             statusCode = response.FailIfNotSuccessOr(404);
+
             if (statusCode == 404) {
                 errorDetail = new ErrorDetail();
                 errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
@@ -118,7 +120,11 @@ namespace Starcounter.CLI {
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
                 engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
+
                 response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                response.FailIfNotSuccess();
+
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                 response.FailIfNotSuccess();
             }
 
@@ -141,6 +147,10 @@ namespace Starcounter.CLI {
 
                     response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
                     response.FailIfNotSuccess();
+
+                    response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                    response.FailIfNotSuccess();
+
                     engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
                 }
             }
@@ -157,6 +167,10 @@ namespace Starcounter.CLI {
 
                 response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
                 response.FailIfNotSuccess();
+
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                response.FailIfNotSuccess();
+
                 engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
             }
 

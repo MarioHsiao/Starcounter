@@ -29,9 +29,9 @@ namespace Starcounter {
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
         public TContainer Template {
             set {
-                if (_Template != null) {
-                    throw new Exception("Template is already set for App. Cannot change template once it is set");
-                }
+                //if (_Template != null) {
+                //    throw new Exception("Template is already set for App. Cannot change template once it is set");
+                //}
                 _Template = (TContainer)value;
                 _Template.Sealed = true;
 #if QUICKTUPLE

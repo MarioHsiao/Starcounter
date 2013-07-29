@@ -2289,9 +2289,11 @@ void Gateway::DisconnectSocket(GatewayWorker* gw, SOCKET sock)
     // Creating new socket data and setting required parameters.
     SocketDataChunk* sd;
     gw->CreateSocketData(sock, global_session_copy.port_index_, 0, sd);
+
     sd->AssignSession(global_session_copy.session_);
-    sd->set_unique_socket_id(global_session_copy.unique_socket_id_);
     sd->set_socket_trigger_disconnect_flag(true);
+    sd->set_unique_socket_id(global_session_copy.unique_socket_id_);
+    
     gw->DisconnectAndReleaseChunk(sd);
 }
 
@@ -2317,7 +2319,7 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
             global_session->session_.Reset();
 
             // Setting the session time stamp to zero.
-            global_session->session_timestamp_ = 0;
+            global_session->ResetTimestamp();
 
 #ifdef GW_SESSIONS_DIAG
             GW_COUT << "Disconnecting inactive socket " << sessions_to_cleanup_unsafe_[i] << "." << GW_ENDL;
