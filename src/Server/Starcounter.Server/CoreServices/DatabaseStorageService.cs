@@ -112,19 +112,14 @@ namespace Starcounter.Server {
         /// <param name="logPath">The path to where transaction logs should be created.</param>
         /// <param name="configuration">The <see cref="DatabaseStorageConfiguration"/> to use
         /// </param>
-        internal void CreateStorage(string name, string imagePath, string logPath, DatabaseStorageConfiguration configuration) {
+        internal void CreateStorage(string name, string imagePath, DatabaseStorageConfiguration configuration) {
             ProcessStartInfo processStart;
             StringBuilder args;
 
             args = new StringBuilder();
             args.AppendFormat(" -ip \"{0}\"", imagePath);
-            args.AppendFormat(" -lp \"{0}\"", logPath);
             args.AppendFormat(" -dbs {0}", configuration.MaxImageSize);
-            args.AppendFormat(" -tls {0}", configuration.TransactionLogSize);
             args.AppendFormat(" -coll {0}", configuration.CollationFile);
-            if (configuration.SupportReplication) {
-                args.Append(" -repl");
-            }
             args.AppendFormat(" {0}", name);
             processStart = new ProcessStartInfo(this.creationToolPath, args.ToString().Trim());
 
