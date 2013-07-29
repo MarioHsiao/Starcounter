@@ -1,7 +1,7 @@
 //
 // impl/shared_interface.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 // Implementation of class shared_interface.
@@ -79,11 +79,10 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 	}
 
 	client_work_event() = 0;
-
+	
 	for (std::size_t i = 0; i < max_number_of_schedulers; ++i) {
 		scheduler_work_event(i) = 0;
-	}
-	for (std::size_t i = 0; i < max_number_of_schedulers; ++i) {
+
 		if (common_scheduler_interface().is_scheduler_active(i)) {
 			if (!open_scheduler_work_event(i)) {
 				// Failed to open the event.
@@ -395,7 +394,7 @@ inline client_number shared_interface::get_client_number() const {
 	return client_number_;
 }
 
-inline HANDLE& shared_interface::open_client_work_event(std::size_t i) {
+inline ::HANDLE& shared_interface::open_client_work_event(std::size_t i) {
 	// Not checking if the event is already open.
 	if ((client_work_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, client_interface(i).work_notify_name())) == NULL) {
@@ -410,15 +409,15 @@ inline void shared_interface::close_client_work_event() {
 	client_work_event() = 0;
 }
 
-inline HANDLE& shared_interface::client_work_event() {
+inline ::HANDLE& shared_interface::client_work_event() {
 	return client_work_;
 }
 
-inline const HANDLE& shared_interface::client_work_event() const {
+inline const ::HANDLE& shared_interface::client_work_event() const {
 	return client_work_;
 }
 
-inline HANDLE& shared_interface::open_scheduler_work_event(std::size_t i) {
+inline ::HANDLE& shared_interface::open_scheduler_work_event(std::size_t i) {
 	// Not checking if the event is already open.
 	if ((scheduler_work_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, scheduler_interface(i).work_notify_name())) == NULL) {
@@ -433,17 +432,17 @@ inline void shared_interface::close_scheduler_work_event(std::size_t i) {
 	scheduler_work_event(i) = 0;
 }
 
-inline HANDLE& shared_interface::scheduler_work_event(std::size_t i) {
+inline ::HANDLE& shared_interface::scheduler_work_event(std::size_t i) {
 	return scheduler_work_[i];
 }
 
-inline const HANDLE& shared_interface::scheduler_work_event(std::size_t i) const
+inline const ::HANDLE& shared_interface::scheduler_work_event(std::size_t i) const
 {
 	return scheduler_work_[i];
 }
 
 #if defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
-inline HANDLE& shared_interface::open_scheduler_number_pool_not_empty_event(std::size_t i) {
+inline ::HANDLE& shared_interface::open_scheduler_number_pool_not_empty_event(std::size_t i) {
 	// Not checking if the event is already open.
 	if ((scheduler_number_pool_not_empty_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, scheduler_interface(i).channel_number_queue().not_empty_notify_name())) == NULL) {
@@ -458,16 +457,16 @@ inline void shared_interface::close_scheduler_number_pool_not_empty_event(std::s
 	scheduler_number_pool_not_empty_event(i) = 0;
 }
 
-inline HANDLE& shared_interface::scheduler_number_pool_not_empty_event(std::size_t i) {
+inline ::HANDLE& shared_interface::scheduler_number_pool_not_empty_event(std::size_t i) {
 	return scheduler_number_pool_not_empty_[i];
 }
 
-inline const HANDLE& shared_interface::scheduler_number_pool_not_empty_event
+inline const ::HANDLE& shared_interface::scheduler_number_pool_not_empty_event
 (std::size_t i) const {
 	return scheduler_number_pool_not_empty_[i];
 }
 
-inline HANDLE& shared_interface::open_scheduler_number_pool_not_full_event(std::size_t i) {
+inline ::HANDLE& shared_interface::open_scheduler_number_pool_not_full_event(std::size_t i) {
 	// Not checking if the event is already open.
 	if ((scheduler_number_pool_not_full_event(i) = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 	FALSE, scheduler_interface(i).channel_number_queue().not_full_notify_name())) == NULL) {
@@ -482,11 +481,11 @@ inline void shared_interface::close_scheduler_number_pool_not_full_event(std::si
 	scheduler_number_pool_not_full_event(i) = 0;
 }
 
-inline HANDLE& shared_interface::scheduler_number_pool_not_full_event(std::size_t i) {
+inline ::HANDLE& shared_interface::scheduler_number_pool_not_full_event(std::size_t i) {
 	return scheduler_number_pool_not_full_[i];
 }
 
-inline const HANDLE& shared_interface::scheduler_number_pool_not_full_event
+inline const ::HANDLE& shared_interface::scheduler_number_pool_not_full_event
 (std::size_t i) const {
 	return scheduler_number_pool_not_full_[i];
 }

@@ -89,9 +89,9 @@ namespace Starcounter.Binding
 
             BuildColumnValueTransferSet();
 
-            MoveRecordsToNewTable();
+            MoveIndexesToNewTable();
 
-            // TODO: Add all indexes defined on old table to new table.
+            MoveRecordsToNewTable();
 
             DropOldTable();
 
@@ -150,10 +150,9 @@ namespace Starcounter.Binding
 
                 BuildColumnValueTransferSet();
 
-                MoveRecordsToNewTable();
+                MoveIndexesToNewTable();
 
-                // TODO:
-                // Assure that all indexes defined on old table is defined on new table.
+                MoveRecordsToNewTable();
 
                 DropOldTable();
             }
@@ -304,6 +303,136 @@ namespace Starcounter.Binding
             }
 
             columnValueTransferSet_ = output.ToArray();
+        }
+
+        /// <summary>
+        /// Moves all existing indexes to the new table.
+        /// </summary>
+        /// <remarks>
+        /// If an index is specified on column(s) that no longer exists the index will be dropped.
+        /// </remarks>
+        private void MoveIndexesToNewTable() 
+        {
+            short[] attrIndexArr;
+            bool createIndex;
+            uint ec;
+            sccoredb.SC_INDEX_INFO index;
+            sccoredb.SC_INDEX_INFO[] indexArr;
+            uint indexCount;
+            ColumnDef newColumn;
+            ColumnDef oldColumn;
+            string[] indexNameArr;
+            
+            unsafe 
+            {
+                ec = sccoredb.sccoredb_get_index_infos(
+                    oldTableDef_.TableId,
+                    &indexCount,
+                    null
+                    );
+                if (ec != 0) throw ErrorCode.ToException(ec);
+                if (indexCount == 0) return;
+
+                indexArr = new sccoredb.SC_INDEX_INFO[indexCount];
+                fixed (sccoredb.SC_INDEX_INFO* pii = &(indexArr[0])) 
+                {
+                    ec = sccoredb.sccoredb_get_index_infos(
+                        oldTableDef_.TableId,
+                        &indexCount,
+                        pii
+                        );
+                }
+                if (ec != 0) throw ErrorCode.ToException(ec);
+
+                // The names of all indexes is saved in the internal threadbuffer which is also used by 
+                // the createindex function, so we need to store them locally before we create any new indexes.
+                indexNameArr = new string[indexCount];
+                for (int i = 0; i < indexCount; i++) {
+                    indexNameArr[i] = new string(indexArr[i].name);
+                }
+
+                for (int i = 0; i < indexCount; i++)
+                {
+                    index = indexArr[i];
+                    createIndex = true;
+                    attrIndexArr = new short[index.attributeCount + 1];
+                    attrIndexArr[attrIndexArr.Length - 1] = -1; // Terminator.
+
+                    for (int oai = 0; oai < index.attributeCount; oai++) 
+                    {
+                        oldColumn = null;
+                        switch (oai) {
+                            case 0:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_0];
+                                break;
+                            case 1:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_1];
+                                break;
+                            case 2:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_2];
+                                break;
+                            case 3:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_3];
+                                break;
+                            case 4:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_4];
+                                break;
+                            case 5:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_5];
+                                break;
+                            case 6:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_6];
+                                break;
+                            case 7:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_7];
+                                break;
+                            case 8:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_8];
+                                break;
+                            case 9:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_9];
+                                break;
+                            case 10:
+                                oldColumn = oldTableDef_.ColumnDefs[index.attrIndexArr_10];
+                                break;
+                        }
+
+                        // Find the new column
+                        short newAttributeIndex = -1;
+                        for (short nai = 0; nai < newTableDef_.ColumnDefs.Length; nai++) 
+                        {
+                            newColumn = newTableDef_.ColumnDefs[nai];
+                            if (newColumn.Name.Equals(oldColumn.Name)) 
+                            {
+                                newAttributeIndex = nai;
+                                break;
+                            }
+                        }
+
+                        if (newAttributeIndex == -1) 
+                        {
+                            createIndex = false;
+                            break;
+                        }
+                        attrIndexArr[oai] = newAttributeIndex;
+                    } // End for attributeCount.
+
+                    if (createIndex) 
+                    {
+                        fixed (Int16* paii = &(attrIndexArr[0])) 
+                        {
+                            ec = sccoredb.sccoredb_create_index(newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
+                        }
+
+                        if (ec != 0) 
+                        {
+                            if (ec == Error.SCERRNAMEDINDEXALREADYEXISTS)
+                                continue;
+                            throw ErrorCode.ToException(ec);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>

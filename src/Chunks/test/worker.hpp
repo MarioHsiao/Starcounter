@@ -2,7 +2,7 @@
 // worker.hpp
 // interprocess_communication/test
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -13,6 +13,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <iostream>
 #include <ios>
 #include <string>
@@ -23,7 +24,6 @@
 #include <memory>
 #include <utility>
 #include <stdexcept>
-#include <boost/cstdint.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -34,7 +34,6 @@
 #include <boost/date_time/microsec_time_clock.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/win32/thread_primitives.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #if defined(_MSC_VER)
@@ -43,6 +42,8 @@
 # include <intrin.h>
 # undef WIN32_LEAN_AND_MEAN
 #endif // (_MSC_VER)
+#include "../common/noncopyable.hpp"
+#include "../common/thread.hpp"
 #include "../common/bit_operations.hpp"
 #include "../common/macro_definitions.hpp"
 #include "../common/config_param.hpp"
@@ -79,8 +80,8 @@ private:
 /**
  * @throws worker_exception when something can not be achieved.
  */
-// Objects of type boost::thread are not copyable.
-class worker : private boost::noncopyable {
+// Objects of type thread are not copyable.
+class worker : private noncopyable {
 public:
 	friend class test;
 	
@@ -115,7 +116,7 @@ public:
 		// pop before waiting, in case did not push or pop for spin_count_reset
 		// number of times. Need to experiment with this value.
 		// NOTE: scan_counter_preset must be > 0.
-		scan_counter_preset = 1 << 0,
+		scan_counter_preset = 1 << 10,
 
 		// The thread can give up waiting after wait_for_work_milli_seconds, but
 		// if not, set it to INFINITE.
@@ -146,7 +147,11 @@ public:
 
 	/// This is the method that this worker's thread call at start. It contains
 	/// the worker loop. Here is where the work is done.
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	static void work(worker*);
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void work();
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	void join();
 	worker& set_worker_number(std::size_t n);
 	worker& set_active_schedulers(std::size_t n);
@@ -180,12 +185,35 @@ public:
 	}
 
 	// Help functions to work with the overflow_pool.
+	std::size_t num_channels() const {
+		return num_channels_;
+	}
+
+	chunk_pool<channel_chunk>& overflow_pool() {
+		return overflow_pool_;
+	}
+	channel_number channel(std::size_t i) {
+		return channel_[i];
+	}
+
+	chunk_pool<chunk_index>& get_chunk_pool() {
+		return chunk_pool_;
+	}
+
+	uint64_t& acquired_chunks() {
+		return acquired_chunks_;
+	}
 
 private:
 	chunk_pool<chunk_index> chunk_pool_;
 	chunk_pool<channel_chunk> overflow_pool_;
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	thread thread_;
+	thread::native_handle_type thread_handle_;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::thread thread_;
 	boost::detail::win32::handle thread_handle_;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	boost::mutex mutex_;
 	std::string monitor_interface_name_;
 	std::string segment_name_;

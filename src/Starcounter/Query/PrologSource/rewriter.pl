@@ -1,11 +1,11 @@
 
 
-/* Rewriter, Peter Idestam-Almquist, Starcounter, 2013-04-25. */
+/* Rewriter, Peter Idestam-Almquist, Starcounter, 2013-05-31. */
 
 /* TODO: Rewrite replace_aliases_xxx? (replace_extent_aliases_xxx and replace_aggr_aliases_xxx) */
 /* TODO: Modify HintSpec in replace_derived_table_aliases_hintspec/2? */
 
-/* 13-04-25: Fixed group-by bug (problem with different cases). */
+/* 13-06-04: Modified is and isNot operators to deal with outer join bug. */
 /* 13-04-11: Fixed alias bug (problem with different cases). */
 /* 13-01-28: Added support of is-type comparison by adding istype_predicate/3. */
 /* 11-11-30: Added fetch specification; modified select1, select2, select3. */
@@ -37,6 +37,7 @@
 *	Also returns an intermediate result Tree1, the number of tables Num, and 
 *	a difference list ErrHead-ErrTail of errors. 
 */
+/***PI130531
 rewrite(noTree,noTree,noTree,[],noNum,Err,Err):- !.
 rewrite(Parse,Tree4,Tree5,Tables1,Num,Err,Err):- 
 	add_table_numbers_select(Parse,0,Num,Tree1,Tables1,Tables2), 
@@ -44,6 +45,18 @@ rewrite(Parse,Tree4,Tree5,Tables1,Num,Err,Err):-
 	replace_table_aliases_select(Tree2,Tree3), 
 	replace_aggregation_aliases_select(Tree3,Tree4,Tables2,[]), 
 	move_join_conditions_select(Tree4,Tree5), !.
+rewrite(_,noTree,noTree,[],noNum,['Unknown error in module rewriter.'|Err],Err):- !.
+***/
+
+rewrite(noTree,noTree,noTree,[],noNum,Err,Err):- !.
+rewrite(Parse,Tree4,Tree6,Tables1,Num,Err,Err):- 
+	add_table_numbers_select(Parse,0,Num,Tree1,Tables1,Tables2), 
+	get_outer_tables_select(Tree1,OuterTables,[]), 
+	modify_select(Tree1,Num,_,Tree2), 
+	replace_table_aliases_select(Tree2,Tree3), 
+	replace_aggregation_aliases_select(Tree3,Tree4,Tables2,[]), 
+	move_join_conditions_select(Tree4,Tree5), 
+	analyze_is_conditions(OuterTables,Tree5,Tree6), !.
 rewrite(_,noTree,noTree,[],noNum,['Unknown error in module rewriter.'|Err],Err):- !.
 
 
@@ -71,6 +84,43 @@ add_table_numbers_tableref(extent(any,IdAtom),Num1,Num2,extent(Num1,IdAtom),[ext
 add_table_numbers_tableref(join1(Type,Table1,Table2,Cond),Num1,Num3,join1(Type,Table3,Table4,Cond),Tables1,Tables3):- !, 
 	add_table_numbers_tableref(Table1,Num1,Num2,Table3,Tables1,Tables2), 
 	add_table_numbers_tableref(Table2,Num2,Num3,Table4,Tables2,Tables3), !.
+
+
+/*===== Get outer tables. =====*/
+
+/* get_outer_tables_xxx(+Tree,-Head,-Tail):- 
+*	Head-Tail is an output difference list of all tables (extents) that are outer joined 
+*	(returns null if there is no match of join condition).
+*/
+
+/* Traverse select. */
+
+get_outer_tables_select(select1(_,_,From,_,_,_,_,_,_),Tables1,Tables2):- 
+	get_outer_tables_tableref(From,Tables1,Tables2), !.
+
+/* Traverse tableref. */
+
+get_outer_tables_tableref(as(Table,_),Tables1,Tables2):- !, 
+	get_outer_tables_tableref(Table,Tables1,Tables2), !.
+get_outer_tables_tableref(extent(_,_),Tables,Tables):- !.
+get_outer_tables_tableref(join1(left,Table1,Table2,_),Tables1,Tables3):- !, 
+	get_outer_tables_tableref(Table1,Tables1,Tables2), 
+	get_outer_tables_tableref_outer(Table2,Tables2,Tables3), !.
+get_outer_tables_tableref(join1(right,Table1,Table2,_),Tables1,Tables3):- !, 
+	get_outer_tables_tableref_outer(Table1,Tables1,Tables2), 
+	get_outer_tables_tableref(Table2,Tables2,Tables3), !.
+get_outer_tables_tableref(join1(_,Table1,Table2,_),Tables1,Tables3):- !, 
+	get_outer_tables_tableref(Table1,Tables1,Tables2), 
+	get_outer_tables_tableref(Table2,Tables2,Tables3), !.
+
+/* tableref_outer. */
+
+get_outer_tables_tableref_outer(as(Table,_),Tables1,Tables2):- !, 
+	get_outer_tables_tableref_outer(Table,Tables1,Tables2), !.
+get_outer_tables_tableref_outer(extent(Num,IdAtom),[extent(Num,IdAtom)|Tables],Tables):- !.
+get_outer_tables_tableref_outer(join1(_,Table1,Table2,_),Tables1,Tables3):- !, 
+	get_outer_tables_tableref_outer(Table1,Tables1,Tables2), 
+	get_outer_tables_tableref_outer(Table2,Tables2,Tables3), !.
 
 
 /*===== Modify select. =====*/
@@ -372,6 +422,7 @@ replace_aliases_valueexpr(setFunction(Function,Quant,Expr1),Aliases,aggr,Expr2):
 
 /* Traverse path. */
 /* TODO: Simplify. */
+
 replace_aliases_path([extent(Num,Id)|Ids1],Aliases,AType,[extent(Num,Id)|Ids2]):- 
 	replace_aliases_path(Ids1,Aliases,AType,Ids2), !.
 replace_aliases_path([cast(extent(Num,Id),Type)|Ids1],Aliases,AType,[cast(extent(Num,Id),Type)|Ids2]):- 
@@ -490,6 +541,51 @@ move_join_conditions_tableref(join1(Type,Table1,Table2,Cond3),join2(Type,Table3,
 	move_join_conditions_tableref(Table2,Table4,Cond2), 
 	concat_cond(Cond1,Cond2,Cond4), 
 	concat_cond(Cond4,Cond3,Cond5), !.
+
+
+/*===== Analyze is-conditions. =====*/
+
+
+analyze_is_conditions([],Tree,Tree):- !.
+analyze_is_conditions([OuterTable|OTs],Tree1,Tree3):- 
+	analyze_is_conditions_select(Tree1,OuterTable,Tree2), 
+	analyze_is_conditions(OTs,Tree2,Tree3), !.
+
+/* Traverse select. */
+
+analyze_is_conditions_select(select2(Quant,Columns,From,Where1,SortSpec,FetchSpec,Hints),OuterTable,Tree):- 
+	analyze_is_conditions_condition(Where1,OuterTable,Where2), 
+	Tree = select2(Quant,Columns,From,Where2,SortSpec,FetchSpec,Hints), !.
+analyze_is_conditions_select(select3(Quant,Columns,From,Where1,GroupBy,SetFuncs,Having,TempExtent,SortSpec,FetchSpec,Hints),OuterTable,Tree):- 
+	analyze_is_conditions_condition(Where1,OuterTable,Where2), 
+	Tree = select3(Quant,Columns,From,Where2,GroupBy,SetFuncs,Having,TempExtent,SortSpec,FetchSpec,Hints), !.
+
+/* Traverse condition. */
+
+analyze_is_conditions_condition(literal(logical,Value),_,literal(logical,Value)):- !.
+ 
+analyze_is_conditions_condition(operation(logical,Operator,Expr1,Expr2),OuterTable,operation(logical,Operator,Expr3,Expr4)):- 
+	analyze_is_conditions_condition(Expr1,OuterTable,Expr3), 
+	analyze_is_conditions_condition(Expr2,OuterTable,Expr4), !.
+analyze_is_conditions_condition(operation(logical,Operator,Expr1),OuterTable,operation(logical,Operator,Expr2)):- 
+	analyze_is_conditions_condition(Expr1,OuterTable,Expr2), !.
+analyze_is_conditions_condition(comparison(Type1,is(NumList),Expr,literal(Type2,null)),extent(Num,Name),comparison(Type1,is([Num|NumList]),Expr,literal(Type2,null))):- 
+	analyze_is_conditions_valueexpr(Expr,extent(Num,Name)), !.
+analyze_is_conditions_condition(comparison(Type1,isNot(NumList),Expr,literal(Type2,null)),extent(Num,Name),comparison(Type1,isNot([Num|NumList]),Expr,literal(Type2,null))):- 
+	analyze_is_conditions_valueexpr(Expr,extent(Num,Name)), !.
+analyze_is_conditions_condition(Comparison,_,Comparison):- !.
+
+/* Traverse valueexpr. */
+
+analyze_is_conditions_valueexpr(operation(_,_,Expr,_),OuterTable):- 
+	analyze_is_conditions_valueexpr(Expr,OuterTable), !.
+analyze_is_conditions_valueexpr(operation(_,_,_,Expr),OuterTable):- 
+	analyze_is_conditions_valueexpr(Expr,OuterTable), !.
+analyze_is_conditions_valueexpr(operation(_,_,Expr),OuterTable):- 
+	analyze_is_conditions_valueexpr(Expr,OuterTable), !.
+analyze_is_conditions_valueexpr(path(_,[extent(unspec,ExtentList)|_]),Extent):- 
+	lists:member(Extent,ExtentList), !.
+analyze_is_conditions_valueexpr(path(_,[extent(Num,Name)|_]),extent(Num,Name)):- !.
 
 
 /*===== Library predicates. =====*/

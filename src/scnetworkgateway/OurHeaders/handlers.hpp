@@ -163,7 +163,7 @@ public:
 
         // Checking if handler already exists.
         if (HandlerAlreadyExists(handler_callback))
-            return SCERRGWHANDLEREXISTS;
+            return SCERRHANDLERALREADYREGISTERED;
 
         // Adding handler to array.
         handlers_.Add(handler_callback);

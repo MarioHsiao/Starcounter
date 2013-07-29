@@ -1,7 +1,7 @@
 //
 // atomic_bounded_buffer.hpp
 //
-// Copyright © 2006-2011 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -14,7 +14,7 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/cstdint.hpp>
+#include <cstdint>
 
 #if defined(_MSC_VER) // Windows
 # include <intrin.h>
@@ -28,8 +28,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/call_traits.hpp>
-#include <boost/bind.hpp>
 #include "macro_definitions.hpp"
 
 namespace starcounter {
@@ -45,7 +43,7 @@ class atomic_bounded_buffer {
 public:
     // type definitions
 	typedef T value_type;
-	typedef typename boost::call_traits<value_type>::param_type param_type;
+	typedef value_type param_type;
     typedef T& reference;
     typedef const T& const_reference;
     typedef int32_t size_type;
@@ -152,7 +150,7 @@ class atomic_bounded_buffer<T, 8> {
 public:
     // type definitions
 	typedef T value_type;
-	typedef typename boost::call_traits<value_type>::param_type param_type;
+	typedef value_type param_type;
     typedef T& reference;
     typedef const T& const_reference;
     typedef int32_t size_type;
@@ -252,7 +250,7 @@ class atomic_bounded_buffer<T, 16> {
 public:
     // type definitions
 	typedef T value_type;
-	typedef typename boost::call_traits<value_type>::param_type param_type;
+	typedef value_type param_type;
     typedef T& reference;
     typedef const T& const_reference;
     typedef int32_t size_type;

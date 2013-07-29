@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Controls;
 using System.Globalization;
 using System.Windows;
+using Starcounter.InstallerEngine;
 
 namespace Starcounter.InstallerWPF.Rules {
     public class DirectoryContainsFilesRule : ValidationRule {
@@ -38,7 +39,6 @@ namespace Starcounter.InstallerWPF.Rules {
 
         }
     }
-
 
     public class DuplicatPathCheckRule : ValidationRule {
 
@@ -95,6 +95,29 @@ namespace Starcounter.InstallerWPF.Rules {
             return new ValidationResult(true, null);
         }
     }
+
+    public class IsLocalPathRule : ValidationRule {
+
+        public override ValidationResult Validate(object value, CultureInfo cultureInfo) {
+
+            try {
+
+                if (value == null ||
+                    string.IsNullOrEmpty(value.ToString()) ||
+                    string.IsNullOrEmpty(value.ToString().Trim()) ||
+                    Utilities.IsLocalPath(value.ToString()) == false) {
+                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Directory needs to point to a local drive" });
+                }
+            }
+            catch (Exception e) {
+                return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path" + Environment.NewLine + e.Message });
+            }
+
+            return new ValidationResult(true, null);
+
+        }
+    }
+
     public class ErrorObject {
         public bool IsError { get; set; }
         public string Message { get; set; }

@@ -23,6 +23,7 @@ namespace Starcounter.Query.Execution
 internal class ComparisonInteger : CodeGenFilterNode, IComparison
 {
     ComparisonOperator compOperator;
+    ExtentSet outsideJoinExtentSet; // Used to handle IS and ISNOT comparisons w.r.t. outer joins.
     INumericalExpression expr1;
     INumericalExpression expr2;
 
@@ -30,9 +31,11 @@ internal class ComparisonInteger : CodeGenFilterNode, IComparison
     /// Constructor.
     /// </summary>
     /// <param name="compOp">The comparison operator of the operation.</param>
+    /// <param name="extSet">A set of extents where this comparison cannot be executed 
+    /// (only relevant when operator is IS or ISNOT and there is an outer join).</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal ComparisonInteger(ComparisonOperator compOp, INumericalExpression expr1, INumericalExpression expr2)
+    internal ComparisonInteger(ComparisonOperator compOp, ExtentSet extSet, INumericalExpression expr1, INumericalExpression expr2)
     {
         if (compOp == ComparisonOperator.LIKEdynamic || compOp == ComparisonOperator.LIKEstatic)
         {
@@ -47,6 +50,7 @@ internal class ComparisonInteger : CodeGenFilterNode, IComparison
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr2.");
         }
         compOperator = compOp;
+        outsideJoinExtentSet = extSet;
         this.expr1 = expr1;
         this.expr2 = expr2;
         throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "ComparisonDecimal is not supported. ComparisonNumerical should be used.");
@@ -202,7 +206,7 @@ internal class ComparisonInteger : CodeGenFilterNode, IComparison
     /// <returns>A more instantiated expression.</returns>
     public ILogicalExpression Instantiate(Row obj)
     {
-        return new ComparisonInteger(compOperator, (INumericalExpression) expr1.Instantiate(obj), (INumericalExpression) expr2.Instantiate(obj));
+        return new ComparisonInteger(compOperator, outsideJoinExtentSet, (INumericalExpression)expr1.Instantiate(obj), (INumericalExpression)expr2.Instantiate(obj));
     }
 
     /// <summary>
@@ -244,7 +248,12 @@ internal class ComparisonInteger : CodeGenFilterNode, IComparison
 
     public ILogicalExpression Clone(VariableArray varArray)
     {
-        return new ComparisonInteger(compOperator, expr1.CloneToNumerical(varArray), expr2.CloneToNumerical(varArray));
+        return new ComparisonInteger(compOperator, outsideJoinExtentSet, expr1.CloneToNumerical(varArray), expr2.CloneToNumerical(varArray));
+    }
+
+    public ExtentSet GetOutsideJoinExtentSet()
+    {
+        return outsideJoinExtentSet;
     }
 
     public override void InstantiateExtentSet(ExtentSet extentSet)
@@ -259,11 +268,11 @@ internal class ComparisonInteger : CodeGenFilterNode, IComparison
         {
             return null;
         }
-        if (expr1 is IPath && (expr1 as IPath).ExtentNumber == extentNumber && (expr1 as IPath).FullName == strPath)
+        if (expr1 is IPath && (expr1 as IPath).ExtentNumber == extentNumber && (expr1 as IPath).ColumnName == strPath)
         {
             return new NumericalRangePoint(compOperator, expr2);
         }
-        if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).FullName == strPath && Optimizer.ReversableOperator(compOperator))
+        if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).ColumnName == strPath && Optimizer.ReversableOperator(compOperator))
         {
             return new NumericalRangePoint(Optimizer.ReverseOperator(compOperator), expr1);
         }

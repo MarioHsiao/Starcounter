@@ -43,7 +43,10 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ABCIPC\Client.cs" />
@@ -79,10 +82,15 @@
     <Compile Include="EnvironmentExtensions.cs" />
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
-    <Compile Include="HttpSessions.cs" />
-    <Compile Include="HttpStructs.cs" />
+    <Compile Include="HelperFunctions.cs" />
+    <Compile Include="Http\HttpSessions.cs" />
+    <Compile Include="Http\HttpStructs.cs" />
+    <Compile Include="Http\HttpResponseBuilder.cs" />
+    <Compile Include="Http\HttpStatusCodeAndReason.cs" />
     <Compile Include="Http\Request.cs" />
+    <Compile Include="Http\Response.Construction.cs" />
     <Compile Include="Http\Response.cs" />
+    <Compile Include="Http\Response.Fixed.cs" />
     <Compile Include="IDb.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="Error.cs" />
@@ -94,20 +102,21 @@
     <Compile Include="ErrorHandling\ParsedErrorMessage.cs" />
     <Compile Include="IBindable.cs" />
     <Compile Include="IHttpRestServer.cs" />
+    <Compile Include="Intrinsics.cs" />
     <Compile Include="IREST.cs" />
+    <Compile Include="IHypermedia.cs" />
     <Compile Include="ISqlResult.cs" />
     <Compile Include="ITransaction.cs" />
     <Compile Include="KeyValueBinary.cs" />
     <Compile Include="NewConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rows.cs" />
+    <Compile Include="PersonalServerProcess.cs" />
     <Compile Include="sccorelog.cs" />
     <Compile Include="Mock\StarcounterEnvironment.cs" />
     <Compile Include="ScUri.cs" />
     <Compile Include="StarcounterBase.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Starcounter.snk" />
+    <Compile Include="TestLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

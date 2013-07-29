@@ -10,11 +10,14 @@ namespace Starcounter.XSON.Serializers {
         internal JsonReader(IntPtr buffer, int bufferSize) {
             this.pBuffer = (byte*)buffer;
             this.bufferSize = bufferSize;
+            this.offset = 0;
+            FindObject();
         }
 
-        internal int Offset {
+        internal int Used {
             get {
-                return offset;
+                // The offset is zero-bound so we add one to get the correct number of bytes read.
+                return offset + 1;
             }
         }
 
@@ -25,11 +28,10 @@ namespace Starcounter.XSON.Serializers {
             if (!JsonHelper.ParseString((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
                 JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "String", ReadString());
 
-            pBuffer += valueSize;
             offset += valueSize;
-
             if (bufferSize < offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
+            pBuffer += valueSize;
 
             return value;
         }
@@ -41,11 +43,10 @@ namespace Starcounter.XSON.Serializers {
             if (!JsonHelper.ParseBoolean((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
                 JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Boolean", ReadString());
 
-            pBuffer += valueSize;
             offset += valueSize;
-
-            if (bufferSize < offset)
+            if (bufferSize <= offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
+            pBuffer += valueSize;
 
             return value;
         }
@@ -57,11 +58,10 @@ namespace Starcounter.XSON.Serializers {
             if (!JsonHelper.ParseDecimal((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
                 JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Decimal", ReadString());
 
-            pBuffer += valueSize;
             offset += valueSize;
-
-            if (bufferSize < offset)
+            if (bufferSize <= offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
+            pBuffer += valueSize;
 
             return value;
         }
@@ -73,11 +73,10 @@ namespace Starcounter.XSON.Serializers {
             if (!JsonHelper.ParseDouble((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
                 JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Double", ReadString());
 
-            pBuffer += valueSize;
             offset += valueSize;
-
-            if (bufferSize < offset)
+            if (bufferSize <= offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
+            pBuffer += valueSize;
 
             return value;
         }
@@ -89,11 +88,10 @@ namespace Starcounter.XSON.Serializers {
             if (!JsonHelper.ParseInt((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
                 JsonHelper.ThrowWrongValueTypeException(null, currentPropertyName, "Int64", ReadString());
 
-            pBuffer += valueSize;
             offset += valueSize;
-
-            if (bufferSize < offset)
+            if (bufferSize <= offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
+            pBuffer += valueSize;
 
             return value;
         }
@@ -105,25 +103,56 @@ namespace Starcounter.XSON.Serializers {
             if (valueSize == -1)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
 
-            pBuffer += valueSize;
             offset += valueSize;
-
-            if (bufferSize < offset)
+            if (bufferSize <= offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
+            pBuffer += valueSize;
+        }
+
+        private bool FindObject() {
+            byte current;
+
+            while (true) {
+                current = *pBuffer;
+
+                if (current == '{')
+                    return true;
+
+                if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
+                    offset++;
+                    if (bufferSize <= offset)
+                        JsonHelper.ThrowInvalidJsonException("Beginning of object not found ('{').");
+                    pBuffer++;
+                    continue;
+                } else {
+                    JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)current + "'.");
+                }
+            }
         }
 
         internal bool GotoProperty() {
+            byte current;
+
             while (true) {
-                if (*pBuffer == '"')
-                    break;
-                if (*pBuffer == '}') {
-                    offset++;
+                if (bufferSize <= offset) {
+                    JsonHelper.ThrowUnexpectedEndOfContentException();
+                }
+                current = *pBuffer;
+                
+                if (current == '}') {
                     return false;
                 }
-                pBuffer++;
-                offset++;
-                if (bufferSize < offset)
-                    JsonHelper.ThrowUnexpectedEndOfContentException();
+
+                if (current == ',' || current == ' '
+                    || current == '\n' || current == '\r'
+                    || current == '\t' || current == '{') {
+                        offset++;
+                        pBuffer++;
+                        continue;
+                }
+
+                // Start of property name
+                break;
             }
 
             currentPropertyName = ReadString();
@@ -138,21 +167,21 @@ namespace Starcounter.XSON.Serializers {
 
         internal void GotoValue() {
             while (*pBuffer != ':') {
-                pBuffer++;
                 offset++;
-                if (bufferSize < offset)
+                if (bufferSize <= offset)
                     JsonHelper.ThrowUnexpectedEndOfContentException();
+                pBuffer++;
             }
-            pBuffer++; // Skip ':' or ','
             offset++;
-            if (bufferSize < offset)
+            if (bufferSize <= offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
+            pBuffer++; // Skip ':' or ','
 
             while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                pBuffer++;
                 offset++;
-                if (bufferSize < offset)
+                if (bufferSize <= offset)
                     JsonHelper.ThrowUnexpectedEndOfContentException();
+                pBuffer++;
             }
         }
 
@@ -165,10 +194,10 @@ namespace Starcounter.XSON.Serializers {
                 } else if (*pBuffer == '{') {
                     return true;
                 }
-                pBuffer++;
                 offset++;
-                if (bufferSize < offset)
+                if (bufferSize <= offset)
                     JsonHelper.ThrowUnexpectedEndOfContentException();
+                pBuffer++;
             }
         }
     }

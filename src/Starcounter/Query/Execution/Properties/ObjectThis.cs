@@ -75,6 +75,8 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
         }
     }
 
+    public String ColumnName { get { return null; } }
+
     /// <summary>
     /// The DbTypeCode of this pseudo property (object).
     /// </summary>
@@ -138,6 +140,8 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
             {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
             }
+            if (partObj is NullObject)
+                return null;
             return partObj;
         }
         return obj;

@@ -199,16 +199,15 @@ public class CInstallationBase : CComponentBase
 
     void InstallGACAssemblies()
     {
-        string gacFilePath;
+        string gacFilesListPath;
         string[] filesToInstall;
 
-        gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
+        gacFilesListPath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesInstall.txt");
 
-        // TODO!
-        if (!File.Exists(gacFilePath))
-            return;
+        if (!File.Exists(gacFilesListPath))
+            throw new FileNotFoundException("Can't find GAC assemblies list!");
 
-        filesToInstall = File.ReadAllLines(gacFilePath);
+        filesToInstall = File.ReadAllLines(gacFilesListPath);
 
         foreach (string fileName in filesToInstall)
         {
@@ -219,47 +218,22 @@ public class CInstallationBase : CComponentBase
     void UninstallGACAssemblies()
     {
         AssemblyCacheUninstallDisposition disposition;
-        string gacFilePath;
+        string gacFilesListPath;
         string[] assembliesToInstall;
 
-        gacFilePath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
+        gacFilesListPath = Path.Combine(InstallerMain.InstallationDir, "GACAssembliesUninstall.txt");
 
-        // TODO!
-        if (!File.Exists(gacFilePath))
-            return;
+        if (!File.Exists(gacFilesListPath))
+            Utilities.ReportSetupEvent(String.Format("Warning: Can't find GAC assemblies uninstall list!"));
 
-        assembliesToInstall = File.ReadAllLines(gacFilePath);
+        assembliesToInstall = File.ReadAllLines(gacFilesListPath);
 
         foreach (string assemblyName in assembliesToInstall)
         {
             AssemblyCache.UninstallAssembly(assemblyName, null, out disposition);
+
             if (disposition != AssemblyCacheUninstallDisposition.Uninstalled)
-                Utilities.ReportSetupEvent(string.Format("Warning: problem removing assembly {0} from GAC.", assemblyName));
-        }
-    }
-
-    void InstallExceptionAssistantContent()
-    {
-        string contentFilePath;
-        string contentFileTargetPath;
-
-        contentFilePath = Path.Combine(InstallerMain.InstallationDir, ConstantsBank.ScExceptionAssistantContentFileName);
-
-        if (Directory.Exists(ConstantsBank.VS2012ExceptionAssistantDirectory))
-        {
-            contentFileTargetPath = Path.Combine(ConstantsBank.VS2012ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
-            File.Copy(contentFilePath, contentFileTargetPath, true);
-        }
-    }
-
-    void UninstallExceptionAssistantContent()
-    {
-        string contentFileTargetPath;
-
-        if (Directory.Exists(ConstantsBank.VS2012ExceptionAssistantDirectory))
-        {
-            contentFileTargetPath = Path.Combine(ConstantsBank.VS2012ExceptionAssistantDirectory, ConstantsBank.ScExceptionAssistantContentFileName);
-            File.Delete(contentFileTargetPath);
+                Utilities.ReportSetupEvent(String.Format("Warning: problem removing assembly {0} from GAC.", assemblyName));
         }
     }
 
@@ -300,12 +274,14 @@ public class CInstallationBase : CComponentBase
         Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
             ComponentPath,
             EnvironmentVariableTarget.User);
+        PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.User);
 
         // Also setting variable for current process (so that subsequently
         // started processes can find the installation path).
         Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
             ComponentPath,
             EnvironmentVariableTarget.Process);
+        PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.Process);
 
         // Logging event.
         Utilities.ReportSetupEvent("Creating base Start Menu items...");
@@ -349,22 +325,13 @@ public class CInstallationBase : CComponentBase
         // Adding firewall exceptions.
         ChangeFirewallExceptions(true);
 
-        // Adding "Reference Assemblies" registry path.
-        RegistryKey refAsmRegistry = Utilities.CreateRegistryPathIfNeeded(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v3.5\AssemblyFoldersEx\" + ConstantsBank.SCProductName + InstallerMain.SCVersion, true);
-        refAsmRegistry.SetValue(null, Path.Combine(InstallerMain.InstallationDir, "Reference Assemblies"));
+        // Adding public assemblies registry path.
+        RegistryKey refAsmRegistry = Utilities.CreateRegistryPathIfNeeded(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx\" + ConstantsBank.SCProductName + InstallerMain.SCVersion, true);
+        refAsmRegistry.SetValue(null, Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCPublicAssembliesDir));
 
         // Installing Starcounter.dll in the GAC.
         Utilities.ReportSetupEvent("Adding libraries to GAC...");
         InstallGACAssemblies();
-
-        // Installing Visual Studio exception assistant integration. By design,
-        // we do this independently of if VS extensions are installed or not. The
-        // integration with the exception assistant functions properly even w/o
-        // any extensions and provides such added value that we will always want
-        // to install it.
-        // TODO: Ask Per!
-        //Utilities.ReportSetupEvent("Installing Starcounter VS exception assistant content...");
-        //InstallExceptionAssistantContent();
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
@@ -402,6 +369,7 @@ public class CInstallationBase : CComponentBase
         Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
             null,
             EnvironmentVariableTarget.User);
+        PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.User);
 
         // Logging event.
         Utilities.ReportSetupEvent("Deleting Starcounter entry from the 'Add/Remove Programs' list...");
@@ -423,8 +391,8 @@ public class CInstallationBase : CComponentBase
         // Removing firewall exceptions.
         ChangeFirewallExceptions(false);
 
-        // Removing "Reference Assemblies" registry path.
-        RegistryKey refAsmRegistry = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v3.5\AssemblyFoldersEx", true);
+        // Removing public assemblies registry path.
+        RegistryKey refAsmRegistry = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx", true);
         if ((refAsmRegistry != null) && (refAsmRegistry.OpenSubKey(ConstantsBank.SCProductName + InstallerMain.SCVersion) != null))
             refAsmRegistry.DeleteSubKeyTree(ConstantsBank.SCProductName + InstallerMain.SCVersion);
 
@@ -432,11 +400,6 @@ public class CInstallationBase : CComponentBase
         Utilities.ReportSetupEvent("Removing assemblies from GAC...");
         try { UninstallGACAssemblies(); }
         catch { Utilities.ReportSetupEvent("Warning: problem running GAC assemblies removal..."); }
-
-        // Uninstalling Starcounter VS exception assistant content
-        // TODO: Ask Per!
-        //Utilities.ReportSetupEvent("Uninstalling Starcounter VS exception assistant content...");
-        //UninstallExceptionAssistantContent();
     }
 
     /// <summary>
@@ -481,6 +444,10 @@ public class CInstallationBase : CComponentBase
     /// <returns>True if component should be installed.</returns>
     public override Boolean ShouldBeInstalled()
     {
+        // NOTE: Installation base should always be installed.
+        return true;
+
+        /*
         // Mapping boolean flags to settings.
         Boolean installPersonalServerSetting = InstallerMain.PersonalServerComponent.ShouldBeInstalled();
         Boolean installSystemServerSetting = InstallerMain.SystemServerComponent.ShouldBeInstalled();
@@ -493,7 +460,7 @@ public class CInstallationBase : CComponentBase
             installVs2012IntegrationSetting)
             return true;
 
-        return false;
+        return false;*/
     }
 
     /// <summary>

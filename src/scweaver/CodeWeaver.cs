@@ -702,14 +702,26 @@ namespace Weaver {
         void AddStandardWeaverExcludes() {
             foreach (var exclude in new string[] {
                 "scerrres.dll",
-                "HttpParser.dll",
-                "HttpStructs.dll",
+                "schttpparser.dll",
                 "PostSharp*.dll",
                 "Roslyn*.dll",
                 "FasterThanJson.dll",
+                "Newtonsoft.Json.dll",
+                "BizArk.Core.dll",
+                "HtmlAgilityPack.dll",
                 "Starcounter.dll",
                 "RGiesecke.DllExport.Metadata.dll",
-                "Starcounter.Rest.dll"
+                "Starcounter.REST.dll",
+                "Starcounter.XSON.dll",
+                "Starcounter.Logging.dll",
+                "Starcounter.Hosting.dll",
+                "Starcounter.Hypermedia.dll",
+                "Starcounter.Bootstrap.dll",
+                "Starcounter.Apps.JsonPatch.dll",
+                "Starcounter.Internal.dll",
+                "Starcounter.BitsAndBytes.Unsafe.dll",
+                "Starcounter.XSON.JsTemplateParser.dll",
+                "Mono.CSharp.dll"
             }
                 ) {
                 AddExcludeExpression(exclude, weaverExcludes);

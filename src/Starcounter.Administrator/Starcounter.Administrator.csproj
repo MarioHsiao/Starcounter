@@ -79,6 +79,19 @@
     <Compile Include="DatabasesApp.json.cs">
       <DependentUpon>DatabasesApp.json</DependentUpon>
     </Compile>
+    <Compile Include="FrontEndAPI\ConsoleHandler.GET.cs" />
+    <Compile Include="FrontEndAPI\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
+    <Compile Include="FrontEndAPI\DatabaseCollectionHandler.POST.cs" />
+    <Compile Include="FrontEndAPI\DatabaseCollectionHandler.GET.cs" />
+    <Compile Include="FrontEndAPI\VerifyServerPropertiesHandler.POST.cs" />
+    <Compile Include="FrontEndAPI\ServerCollectionHandler.GET.cs" />
+    <Compile Include="FrontEndAPI\ServerCollectionHandler.PUT.cs" />
+    <Compile Include="FrontEndAPI\SQLHandler.GET.cs" />
+    <Compile Include="FrontEndAPI\ServerLogHandler.GET.cs" />
+    <Compile Include="FrontEndAPI\DatabaseCollectionHandler.PUT.cs" />
+    <Compile Include="FrontEndAPI\VerifyDatabasePropertiesHandler.POST.cs" />
+    <Compile Include="FrontEndAPI\FrontEndAPI.cs" />
+    <Compile Include="FrontEndAPI\Utilities\RestUtils.cs" />
     <Compile Include="LogApp.json.cs">
       <DependentUpon>LogApp.json</DependentUpon>
     </Compile>
@@ -106,6 +119,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="css\angular-ui-0.3.0.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="css\angular-ui-handsontable.full-0.3.10.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="css\angular-ui-handsontable.full-0.3.10.min.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="css\angular-ui-handsontable.full-0.3.9.css">
@@ -150,6 +169,9 @@
     <Content Include="js\scmodule.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="js\scTypesPlugin.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="partials\server_edit.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -157,9 +179,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="partials\database_create.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="partials\engine.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="partials\engines.html">
@@ -172,9 +191,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="partials\main.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="partials\server.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="partials\executable_start.html">
@@ -190,6 +206,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="sys\angular-resource-1.1.4.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\angular-ui-handsontable.full-0.3.10.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\angular-ui-handsontable.full-0.3.10.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="sys\angular-ui-handsontable.full-0.3.9.js">
@@ -217,6 +239,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="sys\angular-ui-0.4.0.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sys\ui-bootstrap-tpls-0.3.0.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="sys\ui-select2.js">
@@ -306,6 +331,10 @@
       <Name>Starcounter.Rest</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Tracking\Starcounter.Tracking.csproj">
+      <Project>{8d37c0b3-3557-4300-9e73-a2add0ba3cbb}</Project>
+      <Name>Starcounter.Tracking</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
@@ -358,7 +387,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Compile Include="API\Handlers\DatabaseHandler.DELETE.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

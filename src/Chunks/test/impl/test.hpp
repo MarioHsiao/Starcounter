@@ -17,14 +17,13 @@ namespace starcounter {
 namespace interprocess_communication {
 
 test::test(int argc, wchar_t* argv[])
-: active_databases_updates_event_(),
-active_databases_updates_() {
+: active_databases_updates_event_()
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+, statistics_thread_()
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+{
 	///=========================================================================
-	/// Initialize the test. Change to the debug or release directory:
-	/// > cd %UserProfile%\code\Level1\bin\Debug
-	/// or
-	/// > cd %UserProfile%\code\Level1\bin\Release
-	///
+	/// Initialize the test. Change to the debug or release directory.
 	/// First argument: The server name, for example "PERSONAL" or "SYSTEM".
 	///
 	/// Following argument(s): The name(s) of the database(s), for example
@@ -63,16 +62,14 @@ active_databases_updates_() {
 		if (ipc_shm_params_name.size() > 0) {
 			initialize(ipc_shm_params_name);
 			
-			for (std::size_t i = 0; i < number_of_shared_; ++i)
-			active_schedulers_[i] = shared_[i].common_scheduler_interface()
-			.number_of_active_schedulers();
+			for (std::size_t i = 0; i < number_of_shared_; ++i) {
+				active_schedulers_[i] = shared_[i].common_scheduler_interface()
+				.number_of_active_schedulers();
+			}
 		}
 		else {
 			std::cout << "error: no database name(s) entered after server name." << std::endl;
 		}
-
-		// Start the watch_active_databases_updates thread.
-		active_databases_updates_ = boost::thread(boost::bind(&test::watch_active_databases_updates, this));
 	}
 	else {
 		std::cout << "error: please enter <server name> <database name(s)>" << std::endl;
@@ -85,8 +82,10 @@ test::~test() {
 		worker_[i].join();
 	}
 
-	// Join the active_databases_updates thread.
-	active_databases_updates_.join();
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+	// Join the statistics_thread.
+	statistics_thread_.join();
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 }
 
 void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
@@ -124,8 +123,6 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		// the shared structure.
 		database_shared_memory_parameters_ptr db_shm_params
 		(database_shared_memory_parameters_name);
-		
-		//std::cout << "opened parameter file: " << database_shared_memory_parameters_name << std::endl;
 		
 		char monitor_interface_name[segment_name_size
 		+sizeof(MONITOR_INTERFACE_SUFFIX) +2 /* delimiter and null */];
@@ -204,7 +201,7 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		///=========================================================================
 		/// Construct a shared_interface.
 		///=========================================================================
-		
+
 		shared_[n].init(segment_name, monitor_interface_name, pid_, owner_id_);
 		++number_of_shared_;
 
@@ -214,10 +211,10 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 			.set_pid(pid_)
 			.set_owner_id(owner_id_);
 		}
-	} // n
+	}
 }
 
-inline test& test::set_segment_name(std::size_t n,  std::string& segment_name) {
+inline test& test::set_segment_name(std::size_t n, std::string& segment_name) {
 	segment_name_[n] = segment_name;
 	return *this;
 }
@@ -253,8 +250,7 @@ inline owner_id test::get_owner_id() const {
 	return owner_id_;
 }
 
-void test::run(uint32_t interval_time_milliseconds, uint32_t
-duration_time_milliseconds) {
+void test::run(uint32_t interval_time_milliseconds) {
 	// Start workers.
 	for (std::size_t i = 0; i < workers; ++i) {
 		// Set worker parameters.
@@ -269,14 +265,21 @@ duration_time_milliseconds) {
 
 		// Start the worker - starts the workers thread.
 		worker_[i].start();
-		std::cout << "test::run(): Started worker[" << i << "]" << std::endl;
 	}
 	
-	#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+#if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 	// Start statistics thread
+# if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	std::pair<test*,std::size_t>* arg = new std::pair<test*,std::size_t>
+	(this, interval_time_milliseconds); // TODO: Fix this leak.
+	
+	statistics_thread_.create((thread::start_routine_type)
+	&test::show_statistics, arg);
+# else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
 	statistics_thread_ = boost::thread(&test::show_statistics, this,
-	interval_time_milliseconds, duration_time_milliseconds); 
-	#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
+	interval_time_milliseconds); 
+# endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+#endif // defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 }
 
 void test::stop_worker(std::size_t n) {
@@ -327,41 +330,6 @@ void test::open_active_databases_updated_event() {
 	}
 }
 
-void test::watch_active_databases_updates()
-try {
-	open_active_databases_updated_event();
-
-	///=====================================================================
-	/// Wait for active database update events
-	///=====================================================================
-	
-	std::cout << "Waiting for active database update events. . ." << std::endl;
-	std::set<std::string> active_databases;
-
-	while (true) {
-		std::cout << "--------------------------------------------------------------------------------" << std::endl;
-		switch (::WaitForSingleObject(active_databases_updates_event(), INFINITE)) {
-		case WAIT_OBJECT_0:
-			// The IPC monitor updated the active databases set.
-			the_monitor_interface()->active_database_set()
-			.copy(active_databases, active_databases_updates_event());
-
-			for (std::set<std::string>::iterator it = active_databases.begin();
-			it != active_databases.end(); ++it) {
-				std::cout << *it << "\n";
-			}
-			break;
-		case WAIT_TIMEOUT:
-			break;
-		case WAIT_FAILED:
-			break;
-		}
-	}
-}
-catch (const test_exception& e) {
-	std::cout << "test_exception caught: " << e.error_code() << std::endl;
-}
-
 #if defined (STARCOUNTER_CORE_ATOMIC_BUFFER_PERFORMANCE_COUNTERS)
 int test::plot_dots(double rate) {
 	int dots = 0;
@@ -398,8 +366,15 @@ void test::print_rate(double rate) {
 	}
 }
 
-void test::show_statistics(uint32_t interval_time_milliseconds, uint32_t
-duration_time_milliseconds) {
+#if defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+void test::show_statistics(std::pair<test*,std::size_t> arg) {
+	test* test = arg.first;
+	uint32_t interval_time_milliseconds = arg.second;
+#else // !defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+void test::show_statistics(uint32_t interval_time_milliseconds) {
+	test* test = this;
+#endif // defined(IPC_MONITOR_USE_STARCOUNTER_CORE_THREADS)
+	uint32_t duration_time_milliseconds = 6000000;
 	system("cls");
 	boost::timer t;
 	
@@ -474,9 +449,9 @@ duration_time_milliseconds) {
 	///=========================================================================
 
 	while (1000 * t.elapsed() < double(duration_time_milliseconds)
-	&& shared_[0].common_client_interface().database_state() ==
+	&& test->shared(0).common_client_interface().database_state() ==
 	common_client_interface_type::normal) {
-		gotoxy(0, 0);
+		test->gotoxy(0, 0);
 		//std::cout << "\n===================================================\n"
 		std::cout << "Elapsed time: " << stat[0].timestamp << " s\n";
 		
@@ -494,16 +469,16 @@ duration_time_milliseconds) {
 		// Collect new statistics data from each channel.
 		for (std::size_t ch = 0; ch < channels; ++ch) {
 			stat[0].channel[ch].in_pushed
-			= shared_[0].channel(ch).in.pushed_counter().get();
+			= test->shared(0).channel(ch).in.pushed_counter().get();
 			
 			stat[0].channel[ch].in_popped
-			= shared_[0].channel(ch).in.popped_counter().get();
+			= test->shared(0).channel(ch).in.popped_counter().get();
 			
 			stat[0].channel[ch].out_pushed
-			= shared_[0].channel(ch).out.pushed_counter().get();
+			= test->shared(0).channel(ch).out.pushed_counter().get();
 			
 			stat[0].channel[ch].out_popped
-			= shared_[0].channel(ch).out.popped_counter().get();
+			= test->shared(0).channel(ch).out.popped_counter().get();
 		}
 		
 		// Sanity check.
@@ -524,9 +499,9 @@ duration_time_milliseconds) {
 		//----------------------------------------------------------------------
 		// Output statistics for each workers channel:
 		for (std::size_t i = 0; i < workers; ++i) {
-			for (std::size_t j = 0; j < worker_[i].num_channels_; ++j) {
+			for (std::size_t j = 0; j < test->get_worker(i).num_channels_; ++j) {
 				// Get channel index.
-				std::size_t ch = worker_[i].channel_[j];
+				std::size_t ch = test->get_worker(i).channel_[j];
 
 				// Get number of chunks pushed and popped in the current
 				// channels (ch) in and out queues, recently and previously.
@@ -551,7 +526,7 @@ duration_time_milliseconds) {
 				
                 std::cout << "Flow in channel " << ch << " (worker " << i
 				<< " <===> scheduler "
-				<< shared_[0].channel(ch).get_scheduler_number() << "):\n";
+				<< test->shared(0).channel(ch).get_scheduler_number() << "):\n";
 				
 				//--------------------------------------------------------------
 				std::cout << "  in pushed:  ";
@@ -561,7 +536,7 @@ duration_time_milliseconds) {
 				/ elapsed_time;
 				rate = int64_t(rate);
 				
-				print_rate(rate);
+				test->print_rate(rate);
 				std::cout << '\n';
 				//plot_dots(rate);
 
@@ -572,7 +547,7 @@ duration_time_milliseconds) {
 				rate = double(in_popped_recent -in_popped_previous)
 				/ elapsed_time;
 
-				print_rate(rate);
+				test->print_rate(rate);
 				std::cout << '\n';
 				//plot_dots(rate);
 
@@ -583,7 +558,7 @@ duration_time_milliseconds) {
 				rate = double(out_pushed_recent -out_pushed_previous)
 				/ elapsed_time;
 
-				print_rate(rate);
+				test->print_rate(rate);
 				std::cout << '\n';
 				//plot_dots(rate);
 
@@ -594,7 +569,7 @@ duration_time_milliseconds) {
 				rate = double(out_popped_recent -out_popped_previous)
 				/ elapsed_time;
 
-				print_rate(rate);
+				test->print_rate(rate);
 				std::cout << '\n';
 				//plot_dots(rate);
 			}
@@ -611,7 +586,7 @@ duration_time_milliseconds) {
 		rate = double(in_pushed_recent_sum -in_pushed_previous_sum)
 		/ elapsed_time;
 		
-		print_rate(rate);
+		test->print_rate(rate);
 		std::cout << '\n';
 		//plot_dots(rate);
 
@@ -622,7 +597,7 @@ duration_time_milliseconds) {
 		rate = double(in_popped_recent_sum -in_popped_previous_sum)
 		/ elapsed_time;
 
-		print_rate(rate);
+		test->print_rate(rate);
 		std::cout << '\n';
 		//plot_dots(rate);
 
@@ -633,7 +608,7 @@ duration_time_milliseconds) {
 		rate = double(out_pushed_recent_sum -out_pushed_previous_sum)
 		/ elapsed_time;
 		
-		print_rate(rate);
+		test->print_rate(rate);
 		std::cout << '\n';
 		//plot_dots(rate);
 
@@ -644,7 +619,7 @@ duration_time_milliseconds) {
 		rate = double(out_popped_recent_sum -out_popped_previous_sum)
 		/ elapsed_time;
 		
-		print_rate(rate);
+		test->print_rate(rate);
 		std::cout << '\n';
 		//plot_dots(rate);
 
@@ -656,7 +631,7 @@ bypass_statistics_output:
 		// Wait a moment before showing statistics again...
 		// Clear the stringstream content.
 		//gotoxy(0, 0);
-		Sleep(interval_time_milliseconds);
+		::Sleep(interval_time_milliseconds);
 	}
 	
     return;

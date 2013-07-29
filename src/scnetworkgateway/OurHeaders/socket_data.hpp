@@ -18,9 +18,10 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
     SOCKET_DATA_FLAGS_JUST_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND,
     SOCKET_DATA_FLAGS_JUST_DISCONNECT = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 256,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 512,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 1024    
+    SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 256,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 512,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 1024,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048
 };
 
 // Socket data chunk.
@@ -52,6 +53,9 @@ class SocketDataChunk
 
     // Determined handler id.
     BMX_HANDLER_TYPE saved_user_handler_id_;
+
+    // Origin IP information.
+    ip_info_type origin_ip_info_;
 
     /////////////////////////
     // 4 bytes aligned data.
@@ -105,8 +109,8 @@ class SocketDataChunk
     // HTTP protocol instance.
     HttpWsProto http_ws_proto_;
 
-    // Accept data.
-    uint8_t accept_data_or_params_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
+    // Accept or parameters data.
+    uint8_t accept_or_params_data_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
 
     // Blob buffer itself.
     uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];
@@ -142,7 +146,9 @@ public:
 
         GW_ASSERT(((uint8_t*)&saved_user_handler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
 
-        GW_ASSERT((accept_data_or_params_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
+        GW_ASSERT((accept_or_params_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
+
+        GW_ASSERT(((uint8_t*)&origin_ip_info_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_CLIENT_IP);
 
         GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_OFFSET_BLOB);
 
@@ -173,8 +179,6 @@ public:
         return 0;
     }
 
-#ifdef GW_SOCKET_ID_CHECK
-
     void set_unique_socket_id(session_salt_type unique_socket_id)
     {
         unique_socket_id_ = unique_socket_id;
@@ -183,13 +187,19 @@ public:
     // Setting new unique socket number.
     void CreateUniqueSocketId()
     {
-        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_);
+        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_, port_index_);
     }
 
     // Checking if unique socket number is correct.
     bool CompareUniqueSocketId()
     {
         return g_gateway.CompareUniqueSocketId(sock_, unique_socket_id_);
+    }
+
+    // Setting client IP on this socket.
+    void SetSocketClientIpInfo()
+    {
+        return g_gateway.SetClientIpInfo(sock_, origin_ip_info_);
     }
 
     // Sets session if socket is correct.
@@ -200,11 +210,27 @@ public:
             g_gateway.SetGlobalSessionCopy(sock_, session_);
     }
 
+    // Updates connection timestamp if socket is correct.
+    void UpdateConnectionTimeStamp()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId())
+            g_gateway.UpdateSessionTimeStamp(sock_);
+    }
+
+    // Sets connection type if socket is correct.
+    void SetConnectionType(MixedCodeConstants::NetworkProtocolType proto_type)
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId())
+            g_gateway.SetConnectionType(sock_, proto_type);
+    }
+
     // Sets session if socket is correct.
     void SetSdSessionIfEmpty()
     {
         // Checking unique socket id and session.
-        if ((!session_.IsActive()) && CompareUniqueSocketId() && (g_gateway.IsGlobalSessionActive(sock_)))
+        if ((!session_.IsActive()) && (g_gateway.IsGlobalSessionActive(sock_)))
             session_ = g_gateway.GetGlobalSessionCopy(sock_);
     }
 
@@ -222,7 +248,17 @@ public:
         return g_gateway.CompareGlobalSessionSalt(sock_, session_.random_salt_);
     }
 
-#endif
+    // Origin IP information.
+    ip_info_type get_origin_ip_info()
+    {
+        return origin_ip_info_;
+    }
+
+    // Sets origin IP information.
+    void set_origin_ip_info(ip_info_type origin_ip_info)
+    {
+        origin_ip_info_ = origin_ip_info;
+    }
 
     // Deletes global session and sends message to database to delete session there.
     uint32_t SendDeleteSession(GatewayWorker* gw);
@@ -255,9 +291,10 @@ public:
     }
 
     // Setting type of network protocol.
-    void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType protocol_type)
+    void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType proto_type)
     {
-        type_of_network_protocol_ = protocol_type;
+        type_of_network_protocol_ = proto_type;
+        SetConnectionType(proto_type);
     }
 
     // Getting saved user handler id.
@@ -318,6 +355,21 @@ public:
             flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
         else
             flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+    }
+
+    // Getting socket trigger disconnect flag.
+    bool get_socket_trigger_disconnect_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+    }
+
+    // Setting socket trigger disconnect flag.
+    void set_socket_trigger_disconnect_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -619,10 +671,10 @@ public:
         type_of_network_oper_ = (uint8_t)type_of_network_oper;
     }
 
-    // Accept data.
-    uint8_t* const get_accept_data()
+    // Accept data or parameters data.
+    uint8_t* const get_accept_or_params_data()
     {
-        return accept_data_or_params_;
+        return accept_or_params_data_;
     }
 
     // Size in bytes of written user data.
@@ -842,7 +894,7 @@ public:
         return AcceptExFunc(
             g_gateway.get_server_port(port_index_)->get_listening_sock(),
             sock_,
-            accept_data_or_params_,
+            accept_or_params_data_,
             0,
             SOCKADDR_SIZE_EXT,
             SOCKADDR_SIZE_EXT,

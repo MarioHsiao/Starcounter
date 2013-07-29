@@ -23,7 +23,6 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
     public class TestTemplates {
         [TestFixtureSetUp]
         public static void InitializeTest() {
-            Obj.Factory = new TypedJsonFactory();
         }
 
         /// <summary>
@@ -87,7 +86,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
             CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.CreateCodeBehindMetadata(className, className + ".json.cs");
 
-            TJson actual = (TJson)Obj.Factory.CreateJsonTemplate(File.ReadAllText(className + ".json"));
+            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
@@ -116,6 +115,11 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
+        }
+
+        [Test]
+        public static void TestMissingTypeInformationForDataBinding() {
+            Assert.Catch(() => { Obj.Factory.GenerateTypedJsonCode("databound.json", "databound.json.cs"); });
         }
     }
 }

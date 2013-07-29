@@ -63,7 +63,7 @@ namespace LoadAndLatency
         // Indicates SELECT data type.
         readonly String[] QueryStatDataString = new String[]
         {
-            "Int",
+            "Int64",
             "String",
             "Datetime",
             "StringLike",
@@ -108,13 +108,13 @@ namespace LoadAndLatency
 
         public enum LALSpecificTestType
         {
-            LAL_STANDARD_TEST,
+            LAL_DEFAULT_TEST,
             LAL_PARALLEL_READ_ONLY_TEST,
             LAL_PARALLEL_UPDATES_TEST
         }
 
         // Specific LAL test type if any.
-        public LALSpecificTestType SpecificTestType = LALSpecificTestType.LAL_STANDARD_TEST;
+        public LALSpecificTestType SpecificTestType = LALSpecificTestType.LAL_DEFAULT_TEST;
 
         // Number of different query types.
         readonly Int32 NumOfQueryTypes = 0;
@@ -329,8 +329,9 @@ namespace LoadAndLatency
             }
 
             // Testing that recreation/offset key works.
-            SQLTestOffsetKeySimple();
-            SQLTestOffsetKey();
+            // TODO: Reenable.
+            //SQLTestOffsetKeySimple();
+            //SQLTestOffsetKey();
 
             // First VS Foreach performance.
             FirstVsForeach();
@@ -348,7 +349,7 @@ namespace LoadAndLatency
             if (TestLogger.IsNightlyBuild())
             {
                 // Disabling logging through error console.
-                logger.TurnOffStatistics = true;
+                TestLogger.TurnOffStatistics = true;
 
                 // Running more complex multi-workers scalability test.
                 for (Int32 i = 1; i <= NumOfWorkers; i++)
@@ -390,7 +391,7 @@ namespace LoadAndLatency
                 }
 
                 // Enabling logging through error console and important messages.
-                logger.TurnOffStatistics = false;
+                TestLogger.TurnOffStatistics = false;
             }
 
             // Indicating successful finish of the work.
@@ -455,9 +456,9 @@ namespace LoadAndLatency
             Int32 averageObjInsertNs = (Int32)(averageObjInsertMcs * 1000.0);
 
             if (startedOnClient)
-                ReportStatistics("LALInsertAverageBigTransClient", averageObjInsertNs);
+                TestLogger.ReportStatistics("loadandlatency_medium_object_insert_within_big_transaction__nanoseconds_per_object_client", averageObjInsertNs);
             else
-                ReportStatistics("LALInsertAverageBigTransServer", averageObjInsertNs);
+                TestLogger.ReportStatistics("loadandlatency_medium_object_insert_within_big_transaction__nanoseconds_per_object", averageObjInsertNs);
         }
 
         /// <summary>
@@ -836,44 +837,42 @@ namespace LoadAndLatency
                     outerTps));
 
                 // Reporting to the statistics.
-                ReportStatisticsValueForTrans(innerTps, transType, QueryStatDataString[q]);
+                ReportStatisticsValueForTransactions(innerTps, transType, QueryStatDataString[q]);
             }
 
             LogEvent("---------------------------------------------------------------");
         }
 
-        void ReportStatistics(String valueName, Int32 value)
-        {
-            if (TestLogger.IsPersonalBuild() || TestLogger.IsNightlyBuild())
-                return;
-
-            logger.ReportStatistics(valueName, value);
-        }
-
-        void ReportStatisticsValueForType(Boolean useIndividualTransactions, Int32 nsPerSelect, String transType, String dataType)
+        void ReportStatisticsValueForType(Boolean useIndividualTransactions, Int32 nsPerOper, String transType, String dataType)
         {
             if (useIndividualTransactions)
             {
                 if (startedOnClient)
-                    ReportStatistics("LAL" + dataType + transType + "IndivTransClient", nsPerSelect);
+                    TestLogger.ReportStatistics(
+                        String.Format("loadandlatency_datatype_{0}_individual_{1}_transactions__nanoseconds_per_transaction_client", dataType.ToLower(), transType.ToLower()), nsPerOper);
                 else
-                    ReportStatistics("LAL" + dataType + transType + "IndivTransServer", nsPerSelect);
+                    TestLogger.ReportStatistics(
+                        String.Format("loadandlatency_datatype_{0}_individual_{1}_transactions__nanoseconds_per_transaction", dataType.ToLower(), transType.ToLower()), nsPerOper);
             }
             else
             {
                 if (startedOnClient)
-                    ReportStatistics("LAL" + dataType + transType + "BigTransClient", nsPerSelect);
+                    TestLogger.ReportStatistics(
+                        String.Format("loadandlatency_datatype_{0}_within_big_{1}_transaction__nanoseconds_per_operation_client", dataType.ToLower(), transType.ToLower()), nsPerOper);
                 else
-                    ReportStatistics("LAL" + dataType + transType + "BigTransServer", nsPerSelect);
+                    TestLogger.ReportStatistics(
+                        String.Format("loadandlatency_datatype_{0}_within_big_{1}_transaction__nanoseconds_per_operation", dataType.ToLower(), transType.ToLower()), nsPerOper);
             }
         }
 
-        void ReportStatisticsValueForTrans(Int32 numberOfTrans, String transType, String dataType)
+        void ReportStatisticsValueForTransactions(Int32 numberOfTrans, String transType, String dataType)
         {
             if (startedOnClient)
-                ReportStatistics("LAL" + dataType + transType + "TransMachineClient", numberOfTrans);
+                TestLogger.ReportStatistics(
+                    String.Format("loadandlatency_datatype_{0}_individual_{1}_transactions__transactions_per_machine_client", dataType.ToLower(), transType.ToLower()), numberOfTrans);
             else
-                ReportStatistics("LAL" + dataType + transType + "TransMachineServer", numberOfTrans);
+                TestLogger.ReportStatistics(
+                    String.Format("loadandlatency_datatype_{0}_individual_{1}_transactions__transactions_per_machine", dataType.ToLower(), transType.ToLower()), numberOfTrans);
         }
 
         void SQLSelectTest_Client(Object workerParams)
@@ -1083,9 +1082,9 @@ namespace LoadAndLatency
                         mcsPerOper,
                         testTimeMcs / NumOfRepeats));
 
-                    // Reporting to TeamCity statistics.
-                    Int32 nsPerSelect = (Int32)(mcsPerOper * 1000.0);
-                    ReportStatisticsValueForType(indivTrans[t], nsPerSelect, transType, QueryStatDataString[queryId]);
+                    // Reporting to statistics.
+                    Int32 nsPerOper = (Int32)(mcsPerOper * 1000.0);
+                    ReportStatisticsValueForType(indivTrans[t], nsPerOper, transType, QueryStatDataString[queryId]);
                 }
                 else
                 {
@@ -1754,9 +1753,9 @@ namespace LoadAndLatency
                     elapsedMcs));
 
                 if (startedOnClient)
-                    ReportStatistics(String.Format("LALClient{0}Trans{1}_Objects{2}", operString, numTransactions, objectsPerTransaction), nsPerSimpleObj);
+                    TestLogger.ReportStatistics(String.Format("loadandlatency_{0}_{1}_transactions_with_{2}_objects_each__nanoseconds_per_object_client", operString, numTransactions, objectsPerTransaction), nsPerSimpleObj);
                 else
-                    ReportStatistics(String.Format("LALServer{0}Trans{1}_Objects{2}", operString, numTransactions, objectsPerTransaction), nsPerSimpleObj);
+                    TestLogger.ReportStatistics(String.Format("loadandlatency_{0}_{1}_transactions_with_{2}_objects_each__nanoseconds_per_object", operString, numTransactions, objectsPerTransaction), nsPerSimpleObj);
             }
 
             // Adding to global counter.

@@ -100,14 +100,14 @@ namespace Starcounter.Bootstrap.Management {
             Handle.DELETE(port, uri, CodeHostHandler.OnDELETE);
         }
 
-        static object OnGET() {
+        static Response OnGET() {
             if (ManagementService.Unavailable) {
                 return 503;
             }
             return 204;
         }
 
-        static object OnDELETE() {
+        static Response OnDELETE() {
             if (ManagementService.Unavailable) {
                 return 503;
             }

@@ -1,7 +1,7 @@
 //
 // scheduler_interface.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -12,8 +12,8 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <cstddef>
-#include <boost/cstdint.hpp>
 #include <iostream> /// debug
 #include <memory>
 #include <boost/interprocess/managed_shared_memory.hpp>
@@ -211,7 +211,7 @@ public:
 		if ((ipc_monitor_cleanup_event() = ::OpenEvent(SYNCHRONIZE | EVENT_MODIFY_STATE,
 		FALSE, w_ipc_monitor_cleanup_event_name)) == NULL) {
 			// Failed to open the event.
-			unsigned int err = GetLastError();
+			unsigned int err = ::GetLastError();
 			switch (err) {
 			case 2:
 				std::cout << "scheduler_interface::scheduler_interface(): "
@@ -356,13 +356,14 @@ public:
 		_mm_mfence();
 	}
 	
-	/// Clients call notify() each time they push a message to a channel, or
-	/// mark the channel for release, in order to wake up the scheduler it
-	/// communicates with, if but only if it is waiting for work.
+	/// Clients call notify() each time they push a message to channel::in,
+	/// pop a message from channel::out, or mark the channel for release,
+	/// in order to wake up the scheduler it communicates with, if but only
+	/// if it is waiting for work.
 	/**
 	 * @param work The named event that the client have opened.
 	 */
-	void notify(HANDLE work) {
+	void notify(::HANDLE work) {
 		if (get_notify_flag() == false) {
 			// No need to notify the scheduler because it is not waiting.
 			return;
@@ -409,7 +410,7 @@ public:
 	 * @param work The named event that the monitor have opened.
 	 * @return true if successfully notified, otherwise false.
 	 */
-	bool notify_scheduler_to_do_clean_up(HANDLE work) {
+	bool notify_scheduler_to_do_clean_up(::HANDLE work) {
 		if (::SetEvent(work)) {
 			// Successfully notified the scheduler.
 			return true;
@@ -509,7 +510,7 @@ public:
 	/**
 	 * @return A reference to the ipc_monitor_cleanup_event.
 	 */ 
-	HANDLE& ipc_monitor_cleanup_event() {
+	::HANDLE& ipc_monitor_cleanup_event() {
 		return ipc_monitor_cleanup_event_;
 	}
 	
@@ -517,14 +518,14 @@ public:
 	/**
 	 * @param A const reference to the ipc_monitor_cleanup_event.
 	 */ 
-	const HANDLE& ipc_monitor_cleanup_event() const {
+	const ::HANDLE& ipc_monitor_cleanup_event() const {
 		return ipc_monitor_cleanup_event_;
 	}
 
 private:
 	// Condition to wait when all of this scheduler's channels in queues,
 	// and the scheduler channels in queue are empty.
-	HANDLE work_;
+	::HANDLE work_;
 	
 	// Sync access to client_interface - probably not needed.
 	boost::interprocess::interprocess_mutex client_interface_mutex_;
@@ -553,12 +554,12 @@ private:
 	owner_id owner_id_;
 	
 	// Event to notify the monitor to do cleanup.
-	HANDLE ipc_monitor_cleanup_event_;
+	::HANDLE ipc_monitor_cleanup_event_;
 	
 	char cache_line_pad_5_[CACHE_LINE_SIZE
 	-sizeof(uint64_t) // client_interface_
 	-sizeof(owner_id) // owner_id_
-	-sizeof(HANDLE) // ipc_monitor_cleanup_event_
+	-sizeof(::HANDLE) // ipc_monitor_cleanup_event_
 	];
 
 #if defined(INTERPROCESS_COMMUNICATION_USE_WINDOWS_EVENTS_TO_SYNC) // Use Windows Events.

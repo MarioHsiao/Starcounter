@@ -80,6 +80,14 @@ internal class ObjectCast : IObjectPathItem, IPath
         }
     }
 
+    public String ColumnName {
+        get {
+            if (expression is IPath)
+                return (expression as IPath).ColumnName;
+            else return null;
+        }
+    }
+
     /// <summary>
     /// The DbTypeCode of the casted path-item.
     /// </summary>

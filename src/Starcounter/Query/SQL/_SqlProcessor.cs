@@ -167,7 +167,14 @@ internal static class SqlProcessor
         }
 
         // Prepare array of attributes
-        TypeBinding typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+        TypeBinding typeBind;
+        try {
+            typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+        } catch (DbException e) {
+            if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSCHEMACODEMISMATCH)
+                throw new SqlException("Table " + typePath + " is not found");
+            throw e;
+        }
         PropertyBinding propBind = null;
         //if (typeBind == null)
         //    TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
@@ -178,7 +185,7 @@ internal static class SqlProcessor
         {
             propBind = typeBind.GetPropertyBindingInsensitive(propertyList[i]);
             if (propBind == null)
-                throw new SqlException("Column " + propBind + "is not found in table " + typeBind.Name);
+                throw new SqlException("Column " + propertyList[i] + " is not found in table " + typeBind.Name);
             attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
         }
 

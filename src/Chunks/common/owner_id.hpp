@@ -1,7 +1,7 @@
 //
 // owner_id.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -12,10 +12,9 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <iostream>
+#include <cstdint>
 #include <cstddef>
-#include <boost/call_traits.hpp>
-#include <boost/cstdint.hpp>
+#include <iostream>
 #include "owner_id_value_type.h"
 #include "macro_definitions.hpp"
 
@@ -96,13 +95,8 @@ public:
 	typedef const value_type& const_reference;
 	
 	// Helper types.
-	
-	// A type representing the "best" way to pass the value_type to a method.
-	typedef boost::call_traits<value_type>::param_type param_type;
-	
-	// A type representing the "best" way to return the value_type from a const
-	// method.
-	typedef boost::call_traits<volatile value_type>::param_type return_type;
+	typedef value_type param_type;
+	typedef volatile value_type return_type;
 	
 	enum {
 		// none indicates that the resource has no owner-id. Both the owner_id
@@ -247,13 +241,8 @@ public:
 	typedef const value_type& const_reference;
 	
 	// Helper types.
-	
-	// A type representing the "best" way to pass the value_type to a method.
-	typedef boost::call_traits<value_type>::param_type param_type;
-	
-	// A type representing the "best" way to return the value_type from a const
-	// method.
-	typedef boost::call_traits<volatile value_type>::param_type return_type;
+	typedef value_type param_type;
+	typedef volatile value_type return_type;
 	
 	enum {
 		// none indicates that the resource has no owner-id. Both the owner_id

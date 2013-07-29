@@ -3,7 +3,7 @@
 //
 // 
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -18,9 +18,10 @@
 #include <winsock2.h>
 #undef WIN32_LEAN_AND_MEAN
 
-#include <stdint.h>
+#include <cstdint>
 #include <list>
 #include <vector>
+#include <cassert>
 #include "../../Starcounter.Internal/Constants/MixedCodeConstants.cs"
 #include "coalmine.h"
 #include "chunk_helper.h"
@@ -560,6 +561,7 @@ namespace bmx
         uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
         uint32_t HandleSessionDestruction(request_chunk_part* request, TASK_INFO_TYPE* task_info);
         uint32_t HandleSessionCreation(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
+        uint32_t HandleErrorFromGateway(request_chunk_part* request, TASK_INFO_TYPE* task_info);
 
         // Sends information about all registered handlers.
         uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
@@ -648,6 +650,14 @@ namespace bmx
         uint32_t* view_model_index);
 
     extern CreateNewAppsSessionCallback g_create_new_apps_session_callback;
+
+    // Managed callback to handle errors from gateway.
+    typedef void (*ErrorHandlingCallback)(
+        uint32_t err_code,
+        wchar_t* err_string,
+        int32_t err_string_len);
+
+    extern ErrorHandlingCallback g_error_handling_callback;
 
 }  // namespace bmx
 }; // namespace starcounter

@@ -15,13 +15,13 @@ using Starcounter.Query.SQL;
 namespace QueryProcessingTest {
     public static class QueryProcessingPerformance {
         public static void MeasurePrepareQuery() {
-            int nrIterations = 1000;
-            int nrPrologIterations = 100;
+            int nrIterations = 100;
+            int nrPrologIterations = 10;
             String query = "select a from Account a, User u where a.Client = u and u.FirstName = ? fetch ? offset ?";
             Stopwatch timer = new Stopwatch();
             timer.Start();
             try {
-                Starcounter.Query.QueryPreparation.PrepareQuery(query);
+                Starcounter.Query.QueryPreparation.PrepareQuery(query, typeof(Object));
             } catch (Exception e) {
                 if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLINTERNALERROR)
                     throw e;
@@ -32,7 +32,7 @@ namespace QueryProcessingTest {
             timer.Start();
             for (int i = 0; i < nrPrologIterations; i++)
                 try {
-                    Starcounter.Query.QueryPreparation.PrepareQuery(query);
+                    Starcounter.Query.QueryPreparation.PrepareQuery(query, typeof(Object));
                 } catch (Exception e) { 
                     if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLINTERNALERROR)
                         throw e;

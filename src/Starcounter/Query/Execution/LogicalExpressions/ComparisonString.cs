@@ -24,6 +24,7 @@ namespace Starcounter.Query.Execution
 internal class ComparisonString : CodeGenFilterNode, IComparison
 {
     ComparisonOperator compOperator;
+    ExtentSet outsideJoinExtentSet; // Used to handle IS and ISNOT comparisons w.r.t. outer joins.
     IStringExpression expr1;
     IStringExpression expr2;
     IStringExpression expr3;
@@ -32,9 +33,11 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
     /// Constructor.
     /// </summary>
     /// <param name="compOp">The comparison operator of the operation.</param>
+    /// <param name="extSet">A set of extents where this comparison cannot be executed 
+    /// (only relevant when operator is IS or ISNOT and there is an outer join).</param>
     /// <param name="expr1">The first operand of the operation.</param>
     /// <param name="expr2">The second operand of the operation.</param>
-    internal ComparisonString(ComparisonOperator compOp, IStringExpression expr1, IStringExpression expr2)
+    internal ComparisonString(ComparisonOperator compOp, ExtentSet extSet, IStringExpression expr1, IStringExpression expr2)
     {
         if (expr1 == null)
         {
@@ -45,6 +48,7 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr2.");
         }
         compOperator = compOp;
+        outsideJoinExtentSet = extSet;
         this.expr1 = expr1;
         this.expr2 = expr2;
         expr3 = null;
@@ -72,6 +76,7 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect expr3.");
         }
         compOperator = compOp;
+        outsideJoinExtentSet = null;
         this.expr1 = expr1;
         this.expr2 = expr2;
         this.expr3 = expr3;
@@ -299,7 +304,7 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
         {
             return new ComparisonString(compOperator, expr1.Instantiate(obj), expr2.Instantiate(obj), expr3.Instantiate(obj));
         }
-        return new ComparisonString(compOperator, expr1.Instantiate(obj), expr2.Instantiate(obj));
+        return new ComparisonString(compOperator, outsideJoinExtentSet, expr1.Instantiate(obj), expr2.Instantiate(obj));
     }
 
     /// <summary>
@@ -382,7 +387,12 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
         {
             return new ComparisonString(compOperator, expr1.CloneToString(varArray), expr2.CloneToString(varArray), expr3.CloneToString(varArray));
         }
-        return new ComparisonString(compOperator, expr1.CloneToString(varArray), expr2.CloneToString(varArray));
+        return new ComparisonString(compOperator, outsideJoinExtentSet, expr1.CloneToString(varArray), expr2.CloneToString(varArray));
+    }
+
+    public ExtentSet GetOutsideJoinExtentSet()
+    {
+        return outsideJoinExtentSet;
     }
 
     public override void InstantiateExtentSet(ExtentSet extentSet)
@@ -401,11 +411,11 @@ internal class ComparisonString : CodeGenFilterNode, IComparison
         {
             return null;
         }
-        if (expr1 is IPath && (expr1 as IPath).ExtentNumber == extentNumber && (expr1 as IPath).FullName == strPath)
+        if (expr1 is IPath && (expr1 as IPath).ExtentNumber == extentNumber && (expr1 as IPath).ColumnName == strPath)
         {
             return new StringRangePoint(compOperator, expr2);
         }
-        if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).FullName == strPath && Optimizer.ReversableOperator(compOperator))
+        if (expr2 is IPath && (expr2 as IPath).ExtentNumber == extentNumber && (expr2 as IPath).ColumnName == strPath && Optimizer.ReversableOperator(compOperator))
         {
             return new StringRangePoint(Optimizer.ReverseOperator(compOperator), expr1);
         }

@@ -1,7 +1,7 @@
 //
 // database_shared_memory_parameters.hpp
 //
-// Copyright © 2006-2012 Starcounter AB. All rights reserved.
+// Copyright © 2006-2013 Starcounter AB. All rights reserved.
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
@@ -12,10 +12,9 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <boost/call_traits.hpp>
-#include <boost/cstdint.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include "../common/config_param.hpp"
@@ -49,7 +48,6 @@ public:
 	/// Constructor.
 	/**
 	 * @throws Nothing.
-	 *
 	 * @par Complexity
 	 *      Constant.
 	 */
@@ -69,9 +67,7 @@ public:
 	/// Get server_name.
 	/**
 	 * @return The server name as a C-string in char format.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
 	 *      No-throw.
 	 */
@@ -80,11 +76,8 @@ public:
 	/// Set server_name, char version.
 	/**
 	 * @param name The server name, char version.
-	 *
 	 * @return Nothing.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
 	 *      No-throw.
 	 */
@@ -93,11 +86,8 @@ public:
 	/// Set server_name, wchar_t version.
 	/**
 	 * @param name The server name (LPCWSTR c-string) to be set.
-	 *
 	 * @return Nothing.
-	 *
 	 * @throws Nothing.
-	 *
 	 * @par Exception Safety
 	 *      No-throw.
 	 */
@@ -142,12 +132,9 @@ public:
 	/**
 	 * @param segment_name Has the format
 	 *		<DATABASE_NAME_PREFIX>_<DATABASE_NAME>_0
-	 *
 	 * @param is_system Flag is true if the server name is "SYSTEM", false
 	 *		otherwise.
-	 *
 	 * @param mapping Is (default) memory_mapped, or it can be file_mapped.
-	 *
 	 * @param db_data_dir_path Path to where the shared memory parameters are
 	 *		stored if the shared memory object is file mapped, but if it is
 	 *		memory_mapped then this parameter is default 0.
@@ -163,12 +150,9 @@ public:
 	/**
 	 * @param segment_name Has the format
 	 *		<DATABASE_NAME_PREFIX>_<DATABASE_NAME>_0
-	 *
 	 * @param is_system Flag is true if the server name is "SYSTEM", false
 	 *		otherwise.
-	 *
 	 * @param mapping Is (default) memory_mapped, or it can be file_mapped.
-	 *
 	 * @param db_data_dir_path Path to where the shared memory parameters are
 	 *		stored if the shared memory object is file mapped, but if it is
 	 *		memory_mapped then this parameter is default 0.
@@ -214,9 +198,7 @@ public:
 	/**
 	 * @param segment_name Has the format
 	 *		<DATABASE_NAME_PREFIX>_<DATABASE_NAME>_0
-	 *
 	 * @param mapping Is (default) memory_mapped, or it can be file_mapped.
-	 *
 	 * @param db_data_dir_path Path to where the shared memory parameters are
 	 *		stored if the shared memory object is file mapped, but if it is
 	 *		memory_mapped then this parameter is default 0.

@@ -16,6 +16,49 @@ namespace Starcounter.InstallerEngine
     public abstract class VSIntegration : CComponentBase
     {
         /// <summary>
+        /// Returns the root path to the Visual Studio installation directory for a
+        /// certain version.
+        /// </summary>
+        /// <param name="version">Version is 10.0 for Visual Studio 2010, and 11.0 for VS 2012.</param>
+        /// <returns>Path to the installation directory.</returns>
+        public static string GetVisualStudioInstallationDirectory(string version = "11.0") {
+            string installationPath = null;
+            string registryKey = null;
+
+            if (Environment.Is64BitOperatingSystem) {
+                registryKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\{0}\\";
+            } else {
+                registryKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\{0}\\";
+            }
+
+            installationPath = (string)Registry.GetValue(
+                string.Format(registryKey, version),
+                "InstallDir",
+                null
+                );
+
+            return installationPath.Replace(@"\Common7\IDE", string.Empty).TrimEnd('\\');
+        }
+
+        /// <summary>
+        /// Gets the full path to the Visual Studio user extension root folder for
+        /// the given <paramref name="version"/> and the current, non-roaming user.
+        /// </summary>
+        /// <param name="version">The Visual Studio version whose user extension
+        /// root folder is queried.</param>
+        /// <returns>Full path to the user extension root folder for the current,
+        /// non-roaming user.</returns>
+        /// <remarks>
+        /// For more information, consult:
+        /// http://blogs.msdn.com/b/visualstudio/archive/2010/02/19/how-vsix-extensions-are-discovered-and-loaded-in-vs-2010.aspx
+        /// </remarks>
+        public static string GetUserExtensionsRootFolder(VisualStudioVersion version) {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var relativeExtensionPath = @"Microsoft\VisualStudio\{0}\Extensions";
+            return Path.Combine(localAppData, string.Format(relativeExtensionPath, version.BuildNumber));
+        }
+
+        /// <summary>
         /// Gets a list of Visual Studio editions we support integration with and
         /// that are installed on the current machine.
         /// </summary>

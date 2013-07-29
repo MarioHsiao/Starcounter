@@ -27,7 +27,7 @@ namespace Starcounter.XSON.Serializers {
 
                 if (current == ',' || current == ' '
                     || current == '}' || current == '\n'
-                    || current == '\r')
+                    || current == '\r' || current == ':')
                     break;
                 index++;
             }
@@ -326,10 +326,6 @@ namespace Starcounter.XSON.Serializers {
 
                 if (value != null) {
                     valueArr = Encoding.UTF8.GetBytes(value);
-
-                    // TODO:
-                    // initial size. The end result might be higher if there are character we need to encode.
-                    // How do we make sure we have enough space? 
                     usedSize = valueArr.Length + 2;
                     if (bufferSize < usedSize)
                         return -1;
@@ -346,34 +342,22 @@ namespace Starcounter.XSON.Serializers {
                         switch (c){
                             case (byte)'\\':
                             case (byte)'"':
-                                *pfrag++ = (byte)'\\';
-                                *pfrag++ = c;
-                                usedSize++;
+                                // c is already the character to write.
                                 break;
                             case (byte)'\b':
-                                *pfrag++ = (byte)'\\';
-                                *pfrag++ = (byte)'b';
-                                usedSize++;
+                                c = (byte)'b';
                                 break;
                             case (byte)'\f':
-                                *pfrag++ = (byte)'\\';
-                                *pfrag++ = (byte)'f';
-                                usedSize++;
+                                c = (byte)'f';
                                 break;
                             case (byte)'\n':
-                                *pfrag++ = (byte)'\\';
-                                *pfrag++ = (byte)'n';
-                                usedSize++;
+                                c = (byte)'n';
                                 break;
                             case (byte)'\r':
-                                *pfrag++ = (byte)'\\';
-                                *pfrag++ = (byte)'r';
-                                usedSize++;
+                                c = (byte)'r';
                                 break;
                             case (byte)'\t':
-                                *pfrag++ = (byte)'\\';
-                                *pfrag++ = (byte)'t';
-                                usedSize++;
+                                c = (byte)'t';
                                 break;
                             default:
                                 if (c <= '\u001f') {
@@ -390,8 +374,15 @@ namespace Starcounter.XSON.Serializers {
                                 } else {
                                     *pfrag++ = c;
                                 }
-                                break;
+                                continue;
                         }
+
+                        // Check buffersize and write special character (except unicode)
+                        usedSize++;
+                        if (usedSize > bufferSize)
+                            return -1;
+                        *pfrag++ = (byte)'\\';
+                        *pfrag++ = c;
                     }
                     *pfrag = (byte)'"';
                     return usedSize;
@@ -595,6 +586,13 @@ namespace Starcounter.XSON.Serializers {
             throw ErrorCode.ToException(Error.SCERRJSONPROPERTYNOTFOUND, string.Format("Property=\"{0}\"", name));
         }
 
+        public static void ThrowPropertyNotFoundException(IntPtr ptr, int size) {
+            string property = "";
+            int valueSize;
+            JsonHelper.ParseString(ptr, size, out property, out valueSize);
+            ThrowPropertyNotFoundException(property);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -605,6 +603,13 @@ namespace Starcounter.XSON.Serializers {
                             (msg, e) => {
                                 return new FormatException(msg, e);
                             });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void ThrowInvalidJsonException(string message) {
+            throw ErrorCode.ToException(Error.SCERRINVALIDJSONFORINPUT, message);
         }
     }
 }
