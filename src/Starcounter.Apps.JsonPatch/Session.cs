@@ -18,18 +18,20 @@ namespace Starcounter {
     /// </summary>
     public class Session : IAppsSession {
         [ThreadStatic]
-        private static Session current;
+        static Session current;
 
-        private static string dataLocationUri = "/__" + Db.Environment.DatabaseName.ToLower() + "/";
+        static string dataLocationUri = "/__" + Db.Environment.DatabaseName.ToLower() + "/";
 
         internal Obj root;
 
-        private bool isInUse;
+        bool isInUse;
 
-        private ChangeLog changeLog;
+        ChangeLog changeLog;
 
-        // Destroy session delegate.
-        public Action<Session> destroy_user_delegate_;
+        /// <summary>
+        /// Destroy session delegate.
+        /// </summary>
+        internal Action<Session> destroy_user_delegate_;
 
         /// <summary>
         /// Returns the current active session.
@@ -53,7 +55,7 @@ namespace Starcounter {
         /// Creates new empty session.
         /// </summary>
         /// <returns></returns>
-        public static Session CreateNewEmptySession()
+        internal static Session CreateNewEmptySession()
         {
             Debug.Assert(current == null);
 
@@ -64,7 +66,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Sets session data.
         /// </summary>
         public static Obj Data {
             get {
@@ -88,6 +90,10 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// Setting data object.
+        /// </summary>
+        /// <param name="data"></param>
         private void SetData(Obj data) {
             // TODO:
             // Do we allow setting a new dataobject if an old one exists?
@@ -111,7 +117,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Get complete resource locator.
         /// </summary>
         /// <returns></returns>
         internal string GetDataLocation() 
@@ -148,7 +154,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Start usage of given session.
         /// </summary>
         /// <param name="session"></param>
         internal static void Start(Session session)
@@ -164,18 +170,15 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Finish usage of current session.
         /// </summary>
         internal static void End()
         {
-            if (current != null)
-            {
-                current.changeLog.Clear();
-                Session.current = null;
-                ChangeLog.CurrentOnThread = null;
-                if (StarcounterBase._DB.GetCurrentTransaction() != null)
-                    StarcounterBase._DB.SetCurrentTransaction(null);
-            }
+            current.changeLog.Clear();
+            Session.current = null;
+            ChangeLog.CurrentOnThread = null;
+            if (StarcounterBase._DB.GetCurrentTransaction() != null)
+                StarcounterBase._DB.SetCurrentTransaction(null);
         }
 
         /// <summary>
@@ -193,7 +196,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Returns True if session is being used now.
         /// </summary>
         /// <returns></returns>
         public bool IsBeingUsed() {

@@ -51,8 +51,7 @@ namespace Starcounter.Internal.Web {
             try {
                 if (response == null) {
                     response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
-                }
-                else {
+                } else {
                     response.Request = request;
                     response.ConstructFromFields();
                 }
@@ -107,7 +106,19 @@ namespace Starcounter.Internal.Web {
                     }
                     finally
                     {
-                        Session.End();
+                        if (request.HasSession) {
+                            Session.End();
+                        } else {
+                            if (null != Session.Current) {
+
+                                // Creating session on Request as well.
+                                errCode = request.GenerateNewSession(Session.Current);
+                                Session.End();
+
+                                if (errCode != 0)
+                                    throw ErrorCode.ToException(errCode);
+                            }
+                        }
                     }
                 }
 
