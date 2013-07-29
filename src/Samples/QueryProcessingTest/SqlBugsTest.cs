@@ -351,13 +351,10 @@ namespace QueryProcessingTest {
             Trace.Assert(wasException);
             // No exceptions
             var res1 = Db.SQL("select * from account").First;
-            var res2 = Db.SQL<Starcounter.Query.Execution.Row>("select * from account").First;
-#if false // Does not work
             using (var query2 = Db.SQL<Starcounter.Query.Execution.Row>("select * from account").GetEnumerator()) {
-                Debug.Assert(query2.MoveNext());
+                Trace.Assert(query2.MoveNext());
                 var res2 = query2.Current;
             }
-#endif
             var res3 = Db.SQL<Account>("select a from account a").First;
             var res4 = Db.SQL<Decimal>("select amount from account").First;
             var res5 = Db.SQL<Decimal>("select accountid from account").First;
