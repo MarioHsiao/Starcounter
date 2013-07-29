@@ -185,7 +185,11 @@ namespace Starcounter.VisualStudio.Projects {
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
                 engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
+
                 response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                response.FailIfNotSuccess();
+
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                 response.FailIfNotSuccess();
             }
             engine = new Engine();
@@ -235,6 +239,10 @@ namespace Starcounter.VisualStudio.Projects {
 
                     response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
                     response.FailIfNotSuccess();
+
+                    response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                    response.FailIfNotSuccess();
+
                     engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
                 }
             }

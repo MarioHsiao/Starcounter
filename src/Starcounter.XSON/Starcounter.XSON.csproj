@@ -137,6 +137,7 @@
     <Compile Include="Obj.Dynamic.cs" />
     <Compile Include="Obj.GetSetValue.cs" />
     <Compile Include="Obj.IBindable.cs" />
+    <Compile Include="Obj.IHypermedia.cs" />
     <Compile Include="Obj.Json.cs" />
     <Compile Include="Obj.QuickTuple.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

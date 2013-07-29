@@ -34,7 +34,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="objTemplate"></param>
         private static List<TemplateMetadata> GetTemplateMetadata(TObj objTemplate) {
             List<TemplateMetadata> templates = new List<TemplateMetadata>();
-            foreach (Template child in objTemplate.Children) {
+            foreach (Template child in objTemplate.Properties.ExposedProperties) {
                 templates.Add(new TemplateMetadata(child));
             }
             return templates;

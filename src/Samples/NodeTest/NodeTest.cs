@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Starcounter.TestFramework;
 
 namespace NodeTest
 {
@@ -92,6 +93,8 @@ namespace NodeTest
 
         Boolean async_;
 
+        Boolean useNodeX_;
+
 #if !FASTEST_POSSIBLE
         Byte[] correct_hash_;
 #endif
@@ -114,6 +117,7 @@ namespace NodeTest
             worker_ = worker;
             unique_id_ = unique_id;
             async_ = async;
+            useNodeX_ = ((num_echo_bytes_ % 2) == 0) ? true : false;
 
             num_echo_bytes_ = num_echo_bytes;
             body_bytes_ = new Byte[num_echo_bytes_];
@@ -146,16 +150,35 @@ namespace NodeTest
         {
             if (!async_)
             {
-                Response resp = node.POST("/nodetest", body_bytes_, null, null);
-                return CheckResponse(resp);
+                if (useNodeX_)
+                {
+                    Response resp = NodeX.POST("/nodetest", body_bytes_, null, null);
+                    return CheckResponse(resp);
+                }
+                else
+                {
+                    Response resp = node.POST("/nodetest", body_bytes_, null, null);
+                    return CheckResponse(resp);
+                }
             }
             else
             {
-                node.POST("/nodetest", body_bytes_, null, null, (Response resp) =>
+                if (useNodeX_)
                 {
-                    CheckResponse(resp);
-                    return null;
-                });
+                    NodeX.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    {
+                        CheckResponse(resp);
+                        return null;
+                    });
+                }
+                else
+                {
+                    node.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    {
+                        CheckResponse(resp);
+                        return null;
+                    });
+                }
 
                 return true;
             }
@@ -422,7 +445,13 @@ namespace NodeTest
             timer.Stop();
 
             Console.WriteLine("Test succeeded, took ms: " + timer.ElapsedMilliseconds);
-            Console.WriteLine("Echoes/second: " + ((settings.NumWorkers * settings.NumEchoesPerWorker) * 1000.0) / timer.ElapsedMilliseconds);
+
+            Double echoesPerSecond = ((settings.NumWorkers * settings.NumEchoesPerWorker) * 1000.0) / timer.ElapsedMilliseconds;
+            TestLogger.ReportStatistics(
+                String.Format("nodetest_workers_{0}_echo_minbytes_{1}_maxbytes_{2}__echoes_per_second", settings.NumWorkers, settings.MinEchoBytes, settings.MaxEchoBytes),
+                echoesPerSecond);
+
+            Console.WriteLine("Echoes/second: " + echoesPerSecond);
 
             return 0;
         }

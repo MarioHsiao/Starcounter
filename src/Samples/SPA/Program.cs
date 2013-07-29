@@ -1,11 +1,14 @@
 ﻿using Starcounter;
 using Starcounter.Advanced;
 using Starcounter.Internal;
+using System.Diagnostics;
 
 namespace SPA {
     class Program {
-        static void Main(string[] args) {
+        static void Main(string[] args) {            
+
             AppsBootstrapper.Bootstrap(@".\s\SPA");
+            Debugger.Launch();
 
             Handle.GET("/", (Request req) => {
                 // TODO: Example code for redirection. Should probably be handled in a better way.
@@ -13,17 +16,36 @@ namespace SPA {
             });
 
             Handle.GET("/about", () => {
-                return "Single Page Application in Starcounter.";
+                return "<h1>Single bb Page Application in Starcounter.</h1>";
             });
 
-            Handle.POST("/message", () => {
-                var msg = new TestMsg() {
-                    Name = "First Test!",
-                    Value = "Hello SPA!"
+            Handle.GET("/", () => {
+                var master = new Master() {
+                    UserID = "admin",
+                    View="<div>{{UserId}}</div>"
                 };
-                Session.Data = msg;
-                return msg;
+                Session.Data = master;
+                return master;
             });
+
+
+            Handle.GET("/page1", () => {
+                Master master = NodeFake.GET("/");
+                master.Page = new Page1() {
+                    View = "<div>{{FirstName}}</div>"
+                };
+                return master;
+            });
+
         }
     }
+
+    public class NodeFake
+    {
+        public static dynamic GET(string uri)
+        {
+            return null;
+        }
+    }
+
 }

@@ -121,13 +121,15 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// is found, the generic argument will be retrieved as well if it exists.
         /// /// </summary>
         /// <param name="mce"></param>
+        /// <param name="baseClass"></param>
         /// <param name="genericArgument"></param>
         /// <returns></returns>
-        private static bool IsTypedJsonClass(MonoCSharpEnumerator mce, out string genericArgument) {
+        private static bool IsTypedJsonClass(MonoCSharpEnumerator mce, out string baseClass, out string genericArgument) {
             bool isTypedJsonClass;
             string baseClassName;
 
             genericArgument = null;
+            baseClass = null;
             isTypedJsonClass = false;
             if (mce.Peek() == CSharpToken.COLON) { // The class have a inheritance list.
                 mce.MoveNext(); // COLON
@@ -137,7 +139,13 @@ namespace Starcounter.XSON.Compiler.Mono {
 
                     if (mce.Token == CSharpToken.IDENTIFIER) {
                         baseClassName = mce.Value;
-                        if (baseClassName.Equals("Json")) {
+
+                        // Since we allow inheritance we have no idea if the class we found is a valid
+                        // typed json class or not. So we have to assume that the first one is the basetype
+                        // and not an interface or something.
+                        baseClass = baseClassName;
+
+//                        if (baseClassName.Equals("Json")) {
                             // A valid baseclass. This class is a typed json class.
                             // Now we check if a generic argument exists.
                             isTypedJsonClass = true;
@@ -150,7 +158,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                                 genericArgument = mce.Value;
                             }
                             break;
-                        }
+//                        }
                     }
                 }
             }
@@ -254,6 +262,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             string attribute;
             string foundClassName;
             string genericArg;
+            string baseClass;
             
             // First get the name of the class.
             mce.MoveNext();
@@ -264,16 +273,18 @@ namespace Starcounter.XSON.Compiler.Mono {
             attribute = mce.LastFoundJsonAttribute;
             mce.LastFoundJsonAttribute = null;
 
-            if (IsTypedJsonClass(mce, out genericArg)) {
+            if (IsTypedJsonClass(mce, out baseClass, out genericArg)) {
                 if (className.Equals(foundClassName)) {
                     metadata.RootNamespace = mce.CurrentNamespace;
                     metadata.GenericArgument = genericArg;
+                    metadata.BaseClassName = baseClass;
                     metadata.AutoBindToDataObject = (genericArg != null);
                 } else {
                     if (IsJsonMapAttribute(attribute)) {
                         var info = new JsonMapInfo() {
                             AutoBindToDataObject = (genericArg != null),
                             ClassName = foundClassName,
+                            BaseClassName = baseClass,
                             GenericArgument = genericArg,
                             JsonMapName = attribute,
                             Namespace = mce.CurrentNamespace,
@@ -284,9 +295,9 @@ namespace Starcounter.XSON.Compiler.Mono {
                 }
                 mce.PushClass(foundClassName);
                 SkipToOpenBrace(mce);
-           } else {
+            } else {
                 SkipBlock(mce); // Not a typed json class. We skip the whole class.
-           }
+            }
         }
     }
 }

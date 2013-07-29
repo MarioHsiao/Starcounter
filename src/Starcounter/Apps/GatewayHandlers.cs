@@ -116,7 +116,7 @@ namespace Starcounter
 
             port_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(PortOuterHandler);
             subport_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(SubportOuterHandler);
-            uri_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(UriOuterHandler);
+            uri_outer_handler_ = new bmx.BMX_HANDLER_CALLBACK(HandleIncomingHttpRequest);
 		}
 
         /// <summary>
@@ -256,14 +256,15 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// URIs the outer handler.
+        /// This is the main entrypoint of incomming HTTP requests.
+        /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
         /// <param name="session_id">The session_id.</param>
         /// <param name="raw_chunk">The raw_chunk.</param>
         /// <param name="task_info">The task_info.</param>
         /// <param name="is_handled">The is_handled.</param>
         /// <returns>UInt32.</returns>
-        private unsafe static UInt32 UriOuterHandler(
+        private unsafe static UInt32 HandleIncomingHttpRequest(
             UInt64 session_id,
             Byte* raw_chunk,
             bmx.BMX_TASK_INFO* task_info,
