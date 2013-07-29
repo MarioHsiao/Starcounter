@@ -14,6 +14,7 @@ namespace Starcounter.Server.Commands.Processors {
                 CommandDescription = "Stops a database engine.",
                 Tasks = new TaskInfo[] { 
                     Task.StopDatabaseProcess.ToPublicModel(), 
+                    Task.StopLogWriterProcess.ToPublicModel(), 
                     Task.StopCodeHostProcess.ToPublicModel()
                 }
             };
@@ -26,6 +27,13 @@ namespace Starcounter.Server.Commands.Processors {
                 "Stopping database process",
                 TaskDuration.UnknownWithProgress,
                 "Stops the database process. The task is marked as cancelled if the process is found not running."
+                );
+
+            public static readonly CommandTask StopLogWriterProcess = new CommandTask(
+                StopDatabaseCommand.DefaultProcessor.Tasks.StopLogWriterProcess,
+                "Stopping log writer process",
+                TaskDuration.UnknownWithProgress,
+                "Stops the log writer process. The task is marked as cancelled if the process is found not running."
                 );
 
             internal static readonly CommandTask StopCodeHostProcess = new CommandTask(
