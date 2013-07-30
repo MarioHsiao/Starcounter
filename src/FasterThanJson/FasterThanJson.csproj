@@ -61,7 +61,6 @@
     <Compile Include="Base32Int.cs" />
     <Compile Include="Base64Binary.cs" />
     <Compile Include="Base64Int.cs" />
-    <Compile Include="Intrinsics.cs" />
     <Compile Include="SessionBlob.cs" />
     <Compile Include="TupleProxy.cs" />
     <Compile Include="TupleReader.cs" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using NUnit.Framework;
 using Starcounter.Internal;
 
@@ -66,6 +67,7 @@ namespace FasterThanJson.Tests {
                 writeArray.Write(new byte[] { byte.MaxValue });
                 writeArray.Write(new byte[] { });
                 writeArray.Write(new byte[] { 123, 7, 0, 12, 142, 255, 0, 0, 255, 2, 48, 129, 243, 23 });
+                writeArray.SealTuple();
 
                 TupleReader readArray = new TupleReader(start, 5);
                 Assert.AreEqual(new byte[] { byte.MinValue }, readArray.ReadByteArray(0));
@@ -73,6 +75,138 @@ namespace FasterThanJson.Tests {
                 Assert.AreEqual(new byte[] { byte.MaxValue }, readArray.ReadByteArray(2));
                 Assert.AreEqual(new byte[] { }, readArray.ReadByteArray(3));
                 Assert.AreEqual(new byte[] { 123, 7, 0, 12, 142, 255, 0, 0, 255, 2, 48, 129, 243, 23 }, readArray.ReadByteArray(4));
+            }
+        }
+
+        [Test]
+        public static unsafe void PerformanceCompare() {
+            int nrIterations = 100000;
+            int nrExperiments = 10;
+            Random writeRnd = new Random(1);
+            uint tupleSize = 10;
+            uint offsetSize = 2;
+            uint nr0 = RandomValues.RandomUInt(writeRnd);
+            String nr1 = "I've verified that this has been fixed in the next branch. I will keep this issue open until we merged next into develop.";
+            byte[] nr2 = new byte[] { 255, 255, 255, 255, 255, 255, 255, 255 };
+            uint nr3 = uint.MaxValue;
+            uint nr4 = uint.MinValue;
+            String nr5 = "AAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBcccccccccccccccccccccccccccccEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEdddddddddddddddddddddddZZZZZZZZZZZZZZZZZZZZZZ";
+            String nr6 = "";
+            byte[] nr7 = new byte[] { 123, 7, 0, 12, 142, 255, 0, 0, 255, 2, 48, 129, 243, 23 };
+            byte[] nr8 = new byte[] { byte.MinValue };
+            uint nr9 = RandomValues.RandomUInt(writeRnd);
+            Stopwatch timer = new Stopwatch();
+            // Initialize
+            TupleWriterDynamic dynamicWrite = new TupleWriterDynamic();
+            for (int i = 0; i < 1; i++) {
+                byte[] start = new byte[1024];
+                dynamicWrite = new TupleWriterDynamic(start, 0, tupleSize, offsetSize);
+                dynamicWrite.Write(nr0);
+                dynamicWrite.Write(nr1);
+                dynamicWrite.Write(nr2);
+                dynamicWrite.Write(nr3);
+                dynamicWrite.Write(nr4);
+                dynamicWrite.Write(nr5);
+                dynamicWrite.Write(nr6);
+                dynamicWrite.Write(nr7);
+                dynamicWrite.Write(nr8);
+                dynamicWrite.Write(nr9);
+                dynamicWrite.SealTuple();
+            }
+            TupleWriterStatic staticWrite = new TupleWriterStatic();
+            for (int i = 0; i < 1; i++) {
+                fixed (byte* start = new byte[1024]) {
+                    staticWrite = new TupleWriterStatic(start, tupleSize, offsetSize);
+                    staticWrite.Write(nr0);
+                    staticWrite.Write(nr1);
+                    staticWrite.Write(nr2);
+                    staticWrite.Write(nr3);
+                    staticWrite.Write(nr4);
+                    staticWrite.Write(nr5);
+                    staticWrite.Write(nr6);
+                    staticWrite.Write(nr7);
+                    staticWrite.Write(nr8);
+                    staticWrite.Write(nr9);
+                    staticWrite.SealTuple();
+                }
+            }
+
+            long staticTime = 0;
+            long dynamicTime = 0;
+            for (int j = 0; j < nrExperiments; j++) {
+                // Static write
+                timer.Start();
+                for (int i = 0; i < nrIterations; i++) {
+                    fixed (byte* start = new byte[1024]) {
+                        staticWrite = new TupleWriterStatic(start, tupleSize, offsetSize);
+                        staticWrite.Write(nr0);
+                        staticWrite.Write(nr1);
+                        staticWrite.Write(nr2);
+                        staticWrite.Write(nr3);
+                        staticWrite.Write(nr4);
+                        staticWrite.Write(nr5);
+                        staticWrite.Write(nr6);
+                        staticWrite.Write(nr7);
+                        staticWrite.Write(nr8);
+                        staticWrite.Write(nr9);
+                        staticWrite.SealTuple();
+                    }
+                }
+                timer.Stop();
+                staticTime += timer.ElapsedMilliseconds;
+                timer.Reset();
+
+                // Dynamic write
+                timer.Start();
+                for (int i = 0; i < nrIterations; i++) {
+                    byte[] start = new byte[1024];
+                    dynamicWrite = new TupleWriterDynamic(start, 0, tupleSize, offsetSize);
+                    dynamicWrite.Write(nr0);
+                    dynamicWrite.Write(nr1);
+                    dynamicWrite.Write(nr2);
+                    dynamicWrite.Write(nr3);
+                    dynamicWrite.Write(nr4);
+                    dynamicWrite.Write(nr5);
+                    dynamicWrite.Write(nr6);
+                    dynamicWrite.Write(nr7);
+                    dynamicWrite.Write(nr8);
+                    dynamicWrite.Write(nr9);
+                    dynamicWrite.SealTuple();
+                }
+                timer.Stop();
+                dynamicTime += timer.ElapsedMilliseconds;
+                timer.Reset();
+            }
+            Console.WriteLine("Static write - " + (double)1000 * staticTime / nrExperiments / nrIterations+ " mcs.");
+            Console.WriteLine("Dynamic write - " + (double)1000 * dynamicTime / nrExperiments /nrIterations+ " mcs.");
+
+            // Validate static
+            byte* readBytes = staticWrite.AtStart;
+            TupleReader readArray = new TupleReader(readBytes, tupleSize);
+            Assert.AreEqual(nr0, readArray.ReadUInt(0));
+            Assert.AreEqual(nr1, readArray.ReadString(1));
+            Assert.AreEqual(nr2, readArray.ReadByteArray(2));
+            Assert.AreEqual(nr3, readArray.ReadUInt(3));
+            Assert.AreEqual(nr4, readArray.ReadUInt(4));
+            Assert.AreEqual(nr5, readArray.ReadString(5));
+            Assert.AreEqual(nr6, readArray.ReadString(6));
+            Assert.AreEqual(nr7, readArray.ReadByteArray(7));
+            Assert.AreEqual(nr8, readArray.ReadByteArray(8));
+            Assert.AreEqual(nr9, readArray.ReadUInt(9));
+
+            // Validate dynamic
+            fixed (byte* start = dynamicWrite.TuplesBuffer) {
+                readArray = new TupleReader(start, tupleSize);
+                Assert.AreEqual(nr0, readArray.ReadUInt(0));
+                Assert.AreEqual(nr1, readArray.ReadString(1));
+                Assert.AreEqual(nr2, readArray.ReadByteArray(2));
+                Assert.AreEqual(nr3, readArray.ReadUInt(3));
+                Assert.AreEqual(nr4, readArray.ReadUInt(4));
+                Assert.AreEqual(nr5, readArray.ReadString(5));
+                Assert.AreEqual(nr6, readArray.ReadString(6));
+                Assert.AreEqual(nr7, readArray.ReadByteArray(7));
+                Assert.AreEqual(nr8, readArray.ReadByteArray(8));
+                Assert.AreEqual(nr9, readArray.ReadUInt(9));
             }
         }
 

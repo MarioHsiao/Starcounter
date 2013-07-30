@@ -92,9 +92,9 @@ namespace Starcounter.Internal
        /// </summary>
       public byte[] TuplesBuffer;
 
-       /// <summary>
-       /// 
-       /// </summary>
+      // /// <summary>
+      // /// 
+      // /// </summary>
       //public readonly int ThisTupleStart; // As 
 
  //     public byte* OverflowLimit;
