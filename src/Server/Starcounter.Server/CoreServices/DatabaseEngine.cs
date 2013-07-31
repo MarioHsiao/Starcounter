@@ -440,7 +440,9 @@ namespace Starcounter.Server {
             arguments.Append(database.Server.Configuration.LogDirectory.TrimEnd('\\'));
             arguments.Append('\"');
 
-            return new ProcessStartInfo(this.LogWriterExePath, arguments.ToString());
+            var processStartInfo = new ProcessStartInfo(this.LogWriterExePath, arguments.ToString());
+            processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            return processStartInfo;
         }
 
         ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false) {
