@@ -1248,7 +1248,7 @@ namespace Starcounter.Advanced {
                     session_->scheduler_id_,
                     ref session_->linear_index_,
                     ref session_->random_salt_,
-                    ref session_->view_model_index_,
+                    ref session_->reserved_,
                     apps_session);
             }
         }

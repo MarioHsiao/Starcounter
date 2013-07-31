@@ -67,9 +67,8 @@ typedef uint64_t ip_info_type;
 //#define GW_WARNINGS_DIAG
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
-#define GW_SESSIONS_DIAG
+//#define GW_SESSIONS_DIAG
 //#define GW_OLD_ACTIVE_DATABASES_DISCOVER
-#define GW_NEW_SESSIONS_APPROACH
 #define GW_COLLECT_INACTIVE_SOCKETS
 
 #ifdef GW_DEV_DEBUG
@@ -828,8 +827,6 @@ public:
 // Represents a session in terms of gateway/Apps.
 struct ScSessionStruct
 {
-#ifdef GW_NEW_SESSIONS_APPROACH
-
     // Scheduler id.
     scheduler_id_type scheduler_id_;
 
@@ -840,7 +837,7 @@ struct ScSessionStruct
     session_salt_type random_salt_;
 
     // View model number.
-    session_index_type view_model_index_;
+    session_index_type reserved_;
 
     // Reset.
     void Reset()
@@ -848,18 +845,18 @@ struct ScSessionStruct
         scheduler_id_ = (uint8_t)INVALID_SCHEDULER_ID;
         linear_index_ = INVALID_SESSION_INDEX;
         random_salt_ = INVALID_APPS_SESSION_SALT;
-        view_model_index_ = INVALID_VIEW_MODEL_INDEX;
+        reserved_ = INVALID_VIEW_MODEL_INDEX;
     }
 
     // Constructing session from string.
-    void FillFromString(char* str_in, uint32_t len_bytes)
+    void FillFromString(const char* str_in, uint32_t len_bytes)
     {
-        GW_ASSERT(32 == len_bytes);
+        GW_ASSERT(MixedCodeConstants::SESSION_STRING_LEN_CHARS == len_bytes);
 
         scheduler_id_ = hex_string_to_uint64(str_in, 2);
         linear_index_ = hex_string_to_uint64(str_in + 2, 6);
         random_salt_ = hex_string_to_uint64(str_in + 8, 16);
-        view_model_index_ = hex_string_to_uint64(str_in + 24, 8);
+        reserved_ = hex_string_to_uint64(str_in + 24, 8);
     }
 
     // Compare socket stamps of two sessions.
@@ -876,91 +873,6 @@ struct ScSessionStruct
     {
         return (INVALID_SESSION_INDEX != linear_index_);
     }
-
-#else
-
-    // Session random salt.
-    session_salt_type gw_session_salt_;
-
-    // Unique session linear index.
-    // Points to the element in sessions linear array.
-    session_index_type gw_session_index_;
-
-    // Scheduler ID.
-    uint32_t scheduler_id_;
-
-    // Unique number coming from Apps.
-    apps_unique_session_num_type apps_unique_session_num_;
-
-    // Apps unique session salt.
-    session_salt_type random_salt_;
-
-    // Default constructor.
-    ScSessionStruct()
-    {
-        Reset();
-    }
-
-    // Reset.
-    void Reset()
-    {
-        gw_session_index_ = INVALID_SESSION_INDEX;
-        gw_session_salt_ = INVALID_SESSION_SALT;
-        scheduler_id_ = INVALID_SCHEDULER_ID;
-        apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
-        random_salt_ = INVALID_APPS_SESSION_SALT;
-    }
-
-    // Initializes.
-    void Init(
-        session_salt_type session_salt,
-        session_index_type session_index,
-        apps_unique_session_num_type apps_unique_session_num,
-        session_salt_type apps_session_salt,
-        uint32_t scheduler_id)
-    {
-        gw_session_salt_ = session_salt;
-        gw_session_index_ = session_index;
-        scheduler_id_ = scheduler_id;
-        apps_unique_session_num_ = apps_unique_session_num;
-        random_salt_ = apps_session_salt;
-    }
-
-    // Comparing two sessions.
-    bool IsEqual(
-        session_salt_type session_salt,
-        session_index_type session_index)
-    {
-        return (gw_session_salt_ == session_salt) && (gw_session_index_ == session_index);
-    }
-
-    // Comparing two sessions.
-    bool IsEqual(ScSessionStruct* session_struct)
-    {
-        return IsEqual(session_struct->gw_session_salt_, session_struct->gw_session_index_);
-    }
-
-    // Converts session to string.
-    int32_t ConvertToString(char *str_out)
-    {
-        // Translating session index.
-        int32_t sessionStringLen = uint64_to_hex_string(gw_session_index_, str_out, 8, false);
-
-        // Translating session random salt.
-        sessionStringLen += uint64_to_hex_string(gw_session_salt_, str_out + sessionStringLen, 16, false);
-
-        return sessionStringLen;
-    }
-
-    // Compare socket stamps of two sessions.
-    bool CompareSalts(session_salt_type session_salt)
-    {
-        if (INVALID_SESSION_INDEX == gw_session_index_)
-            return false;
-
-        return gw_session_salt_ == session_salt;
-    }
-#endif
 };
 
 // Structure that wraps the session and contains some
@@ -2504,58 +2416,6 @@ public:
 
         return 0;
     }
-
-#ifndef GW_NEW_SESSIONS_APPROACH
-
-    // Generates new global session and returns its copy (or bad session if reached the limit).
-    ScSessionStruct GenerateNewSessionAndReturnCopy(
-        session_salt_type session_salt,
-        apps_unique_session_num_type apps_unique_session_num,
-        session_salt_type apps_session_salt,
-        uint32_t scheduler_id)
-    {
-        // Checking that we have not reached maximum number of sessions.
-        if (num_active_sessions_ >= setting_max_connections_)
-        {
-#ifdef GW_SESSIONS_DIAG
-            GW_COUT << "Exhausted sessions pool!" << GW_ENDL;
-#endif
-
-            return ScSessionStruct();
-        }
-
-        // Entering the critical section.
-        EnterCriticalSection(&cs_session_);
-
-        // Getting index of a free session data.
-        uint32_t free_session_index = free_session_indexes_unsafe_[num_active_sessions_];
-
-        // Creating an instance of new unique session.
-        all_sessions_unsafe_[free_session_index].session_.Init(
-            session_salt,
-            free_session_index,
-            apps_unique_session_num,
-            apps_session_salt,
-            scheduler_id);
-
-        // Setting new time stamp.
-        UpdateSessionTimeStamp(free_session_index);
-
-#ifdef GW_SESSIONS_DIAG
-        GW_COUT << "New session generated: " << free_session_index << ":" << session_salt << GW_ENDL;
-#endif
-
-        // Incrementing number of active sessions.
-        ChangeNumActiveSessions(1);
-
-        // Leaving the critical section.
-        LeaveCriticalSection(&cs_session_);
-
-        // Returning new critical section.
-        return all_sessions_unsafe_[free_session_index].session_;
-    }
-
-#endif
 
     // Checks if global session data is active.
     bool IsGlobalSessionActive(session_index_type session_index)
