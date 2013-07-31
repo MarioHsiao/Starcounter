@@ -107,7 +107,7 @@ namespace Starcounter {
         internal void SetParent(Container value) {
             if (value == null) {
                 if (_parent != null) {
-                    _parent.HasRemovedChild(value.Template, this);
+                    _parent.HasRemovedChild(this);
                 }
             }
             _parent = value;
@@ -119,7 +119,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The name of the property</param>
         /// <param name="child">The old value of the property</param>
-        private void HasRemovedChild( TContainer property, Container child ) {
+        private void HasRemovedChild( Container child ) {
             // This Obj or Arr has been removed from its parent and should be deleted from the
             // URI cache.
             //
