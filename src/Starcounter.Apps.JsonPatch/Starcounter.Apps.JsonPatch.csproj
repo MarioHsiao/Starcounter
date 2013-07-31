@@ -78,6 +78,7 @@
     <Compile Include="InternalHandlers.cs" />
     <Compile Include="JsonPatch.cs" />
     <Compile Include="JsonPointer.cs" />
+    <Compile Include="NodeX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Session.cs" />
   </ItemGroup>

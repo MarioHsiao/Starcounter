@@ -2,6 +2,7 @@
 
 using Starcounter.Advanced;
 using System;
+using System.Text;
 namespace Starcounter {
     public partial class Obj {
 
@@ -22,12 +23,25 @@ namespace Starcounter {
             Container r = this;
             while (r.Parent != null)
                 r = r.Parent;
-            Obj root = (Obj)r;
+            Json root = (Json)r;
 
 //            session = Session.Current;
 //            if (session == null || session.root != root) {
                 // A simple object with no serverstate. Return a 200 OK with the json as content.
-                return root.ToJsonUtf8();
+
+            // TODO: Respect request MIME type.
+            switch (mimeType)
+            {
+                case MimeType.text_html:
+                // TODO: Load file contents from static web-server.
+                    return Encoding.UTF8.GetBytes(root.View);
+
+                case MimeType.application_json:
+                    return root.ToJsonUtf8();
+            }
+
+            throw new ArgumentException("Unknown mime type!");
+                
 //            }
 /*            else {
                 if (root.LogChanges) {
@@ -65,5 +79,8 @@ namespace Starcounter {
             return response;
         }
 
+        public static implicit operator Obj(Response r) {
+            return r.Hypermedia as Obj;
+        }
     }
 }

@@ -11,6 +11,7 @@ using Starcounter.Advanced;
 using HttpStructs;
 using Starcounter.Internal;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Starcounter {
     /// <summary>
@@ -27,6 +28,50 @@ namespace Starcounter {
         bool isInUse;
 
         ChangeLog changeLog;
+
+        /// <summary>
+        /// Cached pages dictionary.
+        /// </summary>
+        Dictionary<String, Obj> JsonNodeCacheDict;
+
+        /// <summary>
+        /// Tries to get cached JSON node.
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        internal Obj GetCachedJsonNode(String uri)
+        {
+            Obj obj;
+            if (!JsonNodeCacheDict.TryGetValue(uri, out obj))
+                return null;
+
+            Debug.Assert(null != obj);
+
+            // Checking if its a root.
+            if (root == obj)
+                return root;
+
+            // Checking if node has no parent, indicating that it was removed from tree.
+            if (null != obj.Parent)
+                return obj;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Adds JSON node to cache.
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="obj"></param>
+        internal void AddJsonNodeToCache(String uri, Obj obj)
+        {
+            // Checking if cached state dictionary is already created.
+            if (null == JsonNodeCacheDict)
+                JsonNodeCacheDict = new Dictionary<String, Obj>();
+
+            // Adding current URI to cache.
+            JsonNodeCacheDict[uri] = obj;
+        }
 
         /// <summary>
         /// Destroy session delegate.
