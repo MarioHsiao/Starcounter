@@ -95,7 +95,7 @@ namespace Starcounter {
             set {
                 if (value == null) {
                     if (_parent != null) {
-                        this.HasRemovedChild(value.Template);
+                        this.HasRemovedChild(value.Template,value);
                     }
                 }
                 else if (_parent != value) {
@@ -105,11 +105,11 @@ namespace Starcounter {
             }
         }
 
-        private void HasRemovedChild( TContainer property ) {
+        private void HasRemovedChild( TContainer property, Container obj ) {
             // This Obj or Arr has been removed from its parent and should be deleted from the
             // URI cache.
             //
-            // TheCache.RemoveEntry( this );
+            // TheCache.RemoveEntry( obj );
             //
         }
 
