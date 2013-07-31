@@ -105,11 +105,16 @@ namespace Starcounter {
             }
         }
 
-        private void HasRemovedChild( TContainer property, Container obj ) {
+        /// <summary>
+        /// Called when a Obj or Arr property value has been removed from its parent.
+        /// </summary>
+        /// <param name="property">The name of the property</param>
+        /// <param name="child">The old value of the property</param>
+        private void HasRemovedChild( TContainer property, Container child ) {
             // This Obj or Arr has been removed from its parent and should be deleted from the
             // URI cache.
             //
-            // TheCache.RemoveEntry( obj );
+            // TheCache.RemoveEntry( child );
             //
         }
 
