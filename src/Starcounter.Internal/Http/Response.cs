@@ -537,7 +537,7 @@ namespace Starcounter.Advanced
                 str += "Set-Cookie: " + setCookiesString_ + StarcounterConstants.NetworkConstants.CRLF;
 
             if (null != AppsSession)
-                str += "Location: /scsssn/" + AppsSession.ToAsciiString() + StarcounterConstants.NetworkConstants.CRLF;
+                str += "Location: " + MixedCodeConstants.SESSION_STRING_PREFIX + AppsSession.ToAsciiString() + StarcounterConstants.NetworkConstants.CRLF;
 
             if (null != bodyString_)
             {

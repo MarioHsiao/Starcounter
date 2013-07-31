@@ -150,104 +150,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             GW_PRINT_WORKER << "Popping chunk: socket " << sd->get_socket() << ":" << sd->get_chunk_index() << GW_ENDL;
 #endif
 
-#ifndef GW_NEW_SESSIONS_APPROACH
-
-            session_index_type gw_session_index = sd->get_session_index();
-            session_salt_type gw_session_salt = sd->get_session_salt();
-            apps_unique_session_num_type apps_session_num = sd->get_apps_unique_session_num();
-            session_salt_type apps_session_salt = sd->get_apps_session_salt();
-
-            // Checking if new session was generated.
-            if (INVALID_SESSION_INDEX != gw_session_index)
-            {
-                // Getting copy of a global session.
-                ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionCopy(gw_session_index);
-
-                // Checking if Apps unique number is valid.
-                if (INVALID_APPS_UNIQUE_SESSION_NUMBER != sd->get_apps_unique_session_num())
-                {
-                    // Checking if session exists.
-                    // Checking if session salt is correct.
-                    if (!global_session_copy.CompareSalts(gw_session_salt))
-                    {
-#ifdef GW_SESSIONS_DIAG
-                        GW_PRINT_WORKER << "Wrong session attached to socket: " << gw_session_salt << GW_ENDL;
-#endif
-                        // Killing session number for this Apps.
-                        current_db->SetAppsSessionValue(gw_session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER, INVALID_SESSION_SALT);
-
-                        // The session was killed.
-                        sd->ResetSdSession();
-                    }
-                    else
-                    {
-                        // Updating session time stamp.
-                        g_gateway.UpdateSessionTimeStamp(gw_session_index);
-                    }
-                }
-                else
-                {
-                    // Killing session number for this Apps session.
-                    current_db->SetAppsSessionValue(gw_session_index, INVALID_APPS_UNIQUE_SESSION_NUMBER, INVALID_SESSION_SALT);
-
-                    // Checking if session salt is correct.
-                    if (!global_session_copy.CompareSalts(gw_session_salt))
-                    {
-#ifdef GW_SESSIONS_DIAG
-                        GW_PRINT_WORKER << "Trying to kill a wrong session: " << gw_session_index << ":" << gw_session_salt << GW_ENDL;
-#endif
-                        // Resetting the socket data session.
-                        sd->ResetSdSession();
-                    }
-                    else
-                    {
-                        // Killing global session.
-                        bool session_was_killed;
-                        sd->KillGlobalAndSdSession(&session_was_killed);
-                    }
-                }
-            }
-            else
-            {
-                // Checking if unique Apps number was supplied.
-                if (INVALID_APPS_UNIQUE_SESSION_NUMBER != sd->get_apps_unique_session_num())
-                {
-                    // Session is newly created.
-                    sd->set_new_session_flag(true);
-
-                    // Creating new session with this salt and scheduler id.
-                    ScSessionStruct new_session_copy = g_gateway.GenerateNewSessionAndReturnCopy(
-                        gw->get_random()->uint64(),
-                        sd->get_apps_unique_session_num(),
-                        sd->get_apps_session_salt(),
-                        i);
-
-                    // Checking if session was generated successfully.
-                    if (new_session_copy.IsValid())
-                    {
-                        // Attaching the session.
-                        sd->AssignSession(new_session_copy);
-
-                        // Updating session number for this Apps.
-                        current_db->SetAppsSessionValue(
-                            new_session_copy.gw_session_index_,
-                            sd->get_apps_unique_session_num(),
-                            sd->get_apps_session_salt());
-                    }
-                    else
-                    {
-#ifdef GW_SESSIONS_DIAG
-                        GW_PRINT_WORKER << "Newly created session is invalid: " << new_session_copy.gw_session_index_ <<
-                            ":" << new_session_copy.gw_session_salt_ << GW_ENDL;
-#endif
-                    }
-                }
-            }
-
-#endif
-
-            // Checking if we have session related socket.
-            sd->SetGlobalSessionIfEmpty();
+            // NOTE: We always override the global session with active session received from database.
+            sd->ForceSetGlobalSessionIfEmpty();
 
             // Resetting the accumulative buffer.
             sd->InitAccumBufferFromUserData();
@@ -489,26 +393,6 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 #endif
         return SCERRGWSOCKETDATAWRONGDATABASE;
     }
-
-#ifndef GW_NEW_SESSIONS_APPROACH
-
-    // Setting the Apps session number right before sending to that Apps (if session exists at all).
-    if (INVALID_SESSION_INDEX != sd->get_session_index())
-    {
-        session_index_type session_index = sd->get_session_index();
-
-        // Updating session time stamp.
-        g_gateway.UpdateSessionTimeStamp(session_index);
-
-        // Setting Apps specific information.
-        sd->set_apps_unique_session_num(current_db->GetAppsUniqueSessionNumber(session_index));
-        sd->set_apps_session_salt(current_db->GetAppsSessionSalt(session_index));
-    }
-
-    // Obtaining the current scheduler id.
-    uint8_t sched_id = g_gateway.GetGlobalSessionSchedulerId(sd->get_session_index());
-
-#endif
 
     // Obtaining the current scheduler id.
     scheduler_id_type sched_id = sd->get_scheduler_id();

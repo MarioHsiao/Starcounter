@@ -833,7 +833,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     UntrackSocket(sd->get_db_index(), sd->get_socket());
 
     // Deleting session.
-    sd->DeleteGlobalSession();
+    sd->DeleteGlobalSessionOnDisconnect();
 
     // Updating the statistics.
 #ifdef GW_COLLECT_SOCKET_STATISTICS
