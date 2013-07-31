@@ -257,7 +257,12 @@ namespace Starcounter {
             if (property.Bound)
                 SetBound(property, value.Data);
 #if QUICKTUPLE
-            _Values[property.TemplateIndex] = value;
+            var i = property.TemplateIndex;
+            Obj oldValue = _Values[i];
+            if (oldValue != null) {
+                oldValue.Parent = null;
+            }
+            _Values[i] = value;
 #else
             throw new NotImplementedException();
 #endif
@@ -316,13 +321,16 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObjArr property, Arr value) {
-            Arr current = this.Get(property);
-            if (current != null)
-                current.Clear();
+            var i = property.TemplateIndex;
+            Arr oldValue = _Values[i]; //this.Get(property);
+            if (oldValue != null) {
+                oldValue.Clear();
+                oldValue.Parent = null;
+            }
 
             value.InitializeAfterImplicitConversion(this, property);
 #if QUICKTUPLE
-            _Values[property.TemplateIndex] = value;
+            _Values[i] = value;
 #else
             throw new NotImplementedException();
 #endif
