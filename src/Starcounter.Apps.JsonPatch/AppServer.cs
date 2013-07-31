@@ -108,10 +108,13 @@ namespace Starcounter.Internal.Web {
                         // In case of returned JSON object within current session we need to save it
                         // for later reuse.
                         Obj rootJsonObj = Session.Data;
-                        Obj curJsonObj = result;
-                        if ((request.IsIdempotent()) &&
-                            (null != curJsonObj) &&
+                        Obj curJsonObj = null;
+                        if (null != result)
+                            curJsonObj = result;
+
+                        if ((null != curJsonObj) &&
                             (null != rootJsonObj) &&
+                            (request.IsIdempotent()) &&
                             (curJsonObj.HasThisRoot(rootJsonObj)))
                         {
                             Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
