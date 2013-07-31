@@ -77,7 +77,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         public override Response HandleRequest(Request request) {
-            Response result;
+            Response result = null;
             UInt32 errCode;
 
             switch (request.ProtocolType)
@@ -87,14 +87,66 @@ namespace Starcounter.Internal.Web {
                     try
                     {
                         // Checking if we are in session already.
-                        if (request.HasSession)
-                            Session.Start((Session)request.AppsSessionInterface);
+                        if (!request.IsInternal) {
+                            if (request.HasSession) {
+                                Session.Start((Session)request.AppsSessionInterface);
+
+                                // Checking if we can reuse the cache.
+                                if (NodeX.CheckLocalCache(request.Uri, request, null, null, out result)) {
+
+                                    // Handling and returning the HTTP response.
+                                    result = OnResponse(request, result);
+
+                                    return result;
+                                }
+                            }
+                        }
 
                         // Invoking original user delegate with parameters here.
                         UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
 
+                        // In case of returned JSON object within current session we need to save it
+                        // for later reuse.
+                        Obj rootJsonObj = Session.Data;
+                        Obj curJsonObj = result;
+                        if ((request.IsIdempotent()) &&
+                            (null != curJsonObj) &&
+                            (null != rootJsonObj) &&
+                            (curJsonObj.HasThisRoot(rootJsonObj)))
+                        {
+                            Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
+                        }
+
+                        // Session operations are only on non-internal requests.
+                        if (!request.IsInternal)
+                        {
+                            if (null != Session.Current)
+                                result.AppsSession = Session.Current.InternalSession;
+
+                            if (request.HasSession)
+                            {
+                                Session.End();
+                            }
+                            else
+                            {
+                                // Checking if a new session was created during handler call.
+                                if (null != Session.Current)
+                                {
+                                    // Creating session on Request as well.
+                                    errCode = request.GenerateNewSession(Session.Current);
+                                    result.AppsSession = Session.Current.InternalSession;
+                                    Session.End();
+
+                                    if (errCode != 0)
+                                        throw ErrorCode.ToException(errCode);
+                                }
+                            }
+                        }
+
                         // Handling and returning the HTTP response.
-                        return OnResponse(request, result);
+                        result = OnResponse(request, result);
+
+                        return result;
                     }
                     catch (Exception exc)
                     {
@@ -106,20 +158,9 @@ namespace Starcounter.Internal.Web {
                     }
                     finally
                     {
-                        if (request.HasSession) {
+                        // Checking if a new session was created during handler call.
+                        if ((null != Session.Current) && (!request.IsInternal))
                             Session.End();
-                        } else {
-                            // Checking if a new session was created during handler call.
-                            if (null != Session.Current) {
-
-                                // Creating session on Request as well.
-                                errCode = request.GenerateNewSession(Session.Current);
-                                Session.End();
-
-                                if (errCode != 0)
-                                    throw ErrorCode.ToException(errCode);
-                            }
-                        }
                     }
                 }
 

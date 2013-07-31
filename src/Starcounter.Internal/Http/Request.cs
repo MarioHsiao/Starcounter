@@ -78,6 +78,7 @@ namespace Starcounter.Advanced {
         /// </summary>
         public MimeType PreferredMimeType {
             get {
+                //return MimeType.text_html;
                 return MimeType.application_json;
             }
         }
@@ -96,6 +97,14 @@ namespace Starcounter.Advanced {
         /// Indicates if this Request is internally constructed from Apps.
         /// </summary>
         Boolean is_internal_request_ = false;
+
+        /// <summary>
+        /// Returns True if request is internal.
+        /// </summary>
+        public Boolean IsInternal
+        {
+            get { return is_internal_request_; }
+        }
 
         /// <summary>
         /// Just using Request as holder for user Message instance type.
@@ -120,6 +129,28 @@ namespace Starcounter.Advanced {
         {
             get { return message_object_type_; }
             set { message_object_type_ = value; }
+        }
+
+        /// <summary>
+        /// Accessors to HTTP method.
+        /// </summary>
+        public HTTP_METHODS MethodEnum { get; set; }
+
+        /// <summary>
+        /// Returns True if method is idempotent.
+        /// </summary>
+        public Boolean IsIdempotent()
+        {
+            switch (MethodEnum)
+            {
+                case HTTP_METHODS.GET:
+                case HTTP_METHODS.PUT:
+                case HTTP_METHODS.DELETE:
+                case HTTP_METHODS.HEAD:
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>

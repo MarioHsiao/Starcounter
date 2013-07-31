@@ -90,6 +90,7 @@
     <Compile Include="MainApp.cs" />
     <Compile Include="Master.cs" />
     <Compile Include="Master.json.g.cs" />
+    <Compile Include="NodeRelatedTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestApp.cs" />
   </ItemGroup>

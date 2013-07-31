@@ -22,42 +22,69 @@ namespace HttpStructs
     public enum HTTP_METHODS
     {
         /// <summary>
-        /// The GE t_ METHOD
+        /// HTTP GET.
         /// </summary>
-        GET_METHOD,
+        GET,
+
         /// <summary>
-        /// The POS t_ METHOD
+        /// HTTP POST.
         /// </summary>
-        POST_METHOD,
+        POST,
+
         /// <summary>
-        /// The PU t_ METHOD
+        /// HTTP PUT.
         /// </summary>
-        PUT_METHOD,
+        PUT,
+
         /// <summary>
-        /// The DELET e_ METHOD
+        /// HTTP PATCH.
         /// </summary>
-        DELETE_METHOD,
+        PATCH,
+
         /// <summary>
-        /// The HEA d_ METHOD
+        /// HTTP DELETE.
         /// </summary>
-        HEAD_METHOD,
+        DELETE,
+
         /// <summary>
-        /// The OPTION s_ METHOD
+        /// HTTP HEAD.
         /// </summary>
-        OPTIONS_METHOD,
+        HEAD,
+
         /// <summary>
-        /// The TRAC e_ METHOD
+        /// HTTP OPTIONS.
         /// </summary>
-        TRACE_METHOD,
+        OPTIONS,
+
         /// <summary>
-        /// The PATC h_ METHOD
+        /// HTTP TRACE.
         /// </summary>
-        PATCH_METHOD,
+        TRACE,
+
         /// <summary>
-        /// The OTHE r_ METHOD
+        /// Other HTTP method.
         /// </summary>
         OTHER_METHOD
     };
+
+    public class Helper
+    {
+        /// <summary>
+        /// Gets method enumeration from given string.
+        /// </summary>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        public static HTTP_METHODS GetMethodFromString(String method)
+        {
+            foreach (HTTP_METHODS m in Enum.GetValues(typeof(HTTP_METHODS)))
+            {
+                if (method.StartsWith(m.ToString()))
+                    return m;
+            }
+
+            return HTTP_METHODS.OTHER_METHOD;
+        }
+    }
 
     /// <summary>
     /// Interface INetworkDataStream

@@ -112,8 +112,25 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Returns True if current Obj is within the given tree.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public Boolean HasThisRoot(Obj treeRoot) {
+            Container r = this;
+            while (r.Parent != null)
+                r = r.Parent;
+            Obj root = (Obj)r;
+
+            if (treeRoot == root)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// In order to support Json pointers (TODO REF), this method is called
-        /// recursivly to fill in a list of relative pointers from the root to
+        /// recursively to fill in a list of relative pointers from the root to
         /// a given node in the Json like tree (the Obj/Arr tree).
         /// </summary>
         /// <param name="path">The patharray to fill</param>
