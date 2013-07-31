@@ -106,7 +106,7 @@ namespace Starcounter.Server {
             if (!File.Exists(databaseExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Database engine executable not found: {0}", databaseExe));
             }
-            var logWriterExe = Path.Combine(this.Server.InstallationDirectory, LogWriterExePath);
+            var logWriterExe = Path.Combine(this.Server.InstallationDirectory, LogWriterExeFileName);
             if (!File.Exists(logWriterExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Log writer executable not found: {0}", logWriterExe));
             }
