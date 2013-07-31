@@ -21,6 +21,9 @@ namespace Starcounter {
         [ThreadStatic]
         static Session current;
 
+        [ThreadStatic]
+        static Request request;
+
         static string dataLocationUri = "/__" + Db.Environment.DatabaseName.ToLower() + "/";
 
         internal Obj root;
@@ -85,6 +88,15 @@ namespace Starcounter {
         public static Session Current { get { return current; } }
 
         /// <summary>
+        /// Returns the original request for session.
+        /// </summary>
+        /// <value></value>
+        internal static Request InitialRequest {
+            get { return request; }
+            set { request = value; }
+        }
+
+        /// <summary>
         /// Getting internal session.
         /// </summary>
         public ScSessionClass InternalSession { get; set; }
@@ -129,7 +141,15 @@ namespace Starcounter {
             }
             set {
                 if (current == null) {
+
+                    // Creating new empty session.
                     current = new Session();
+
+                    // Creating session on Request as well.
+                    UInt32 errCode = request.GenerateNewSession(current);
+
+                    if (errCode != 0)
+                        throw ErrorCode.ToException(errCode);
                 }
                 current.SetData(value);
             }
