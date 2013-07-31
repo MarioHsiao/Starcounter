@@ -325,7 +325,7 @@ namespace Starcounter {
             Arr oldValue = _Values[i]; //this.Get(property);
             if (oldValue != null) {
                 oldValue.Clear();
-                oldValue.Parent = null;
+                oldValue.SetParent(null);
             }
 
             value.InitializeAfterImplicitConversion(this, property);

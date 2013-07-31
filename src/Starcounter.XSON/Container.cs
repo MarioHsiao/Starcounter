@@ -93,17 +93,26 @@ namespace Starcounter {
                 return _parent;
             }
             set {
-                if (value == null) {
-                    if (_parent != null) {
-                        _parent.HasRemovedChild(value.Template,this);
-                    }
-                }
-                else if (_parent != value) {
+                if (_parent != null && _parent != value) {
                     throw new Exception("Cannot change parent of objects in Typed JSON trees");
                 }
-               _parent = value;
+                SetParent(value);
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        internal void SetParent(Container value) {
+            if (value == null) {
+                if (_parent != null) {
+                    _parent.HasRemovedChild(value.Template, this);
+                }
+            }
+            _parent = value;
+        }
+
 
         /// <summary>
         /// Called when a Obj or Arr property value has been removed from its parent.
