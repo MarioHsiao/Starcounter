@@ -252,7 +252,8 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObj property, Obj value) {
-            value.Parent = this;
+            if (value != null)
+                value.Parent = this;
 
             if (property.Bound)
                 SetBound(property, value.Data);
@@ -260,7 +261,7 @@ namespace Starcounter {
             var i = property.TemplateIndex;
             Obj oldValue = _Values[i];
             if (oldValue != null) {
-                oldValue.Parent = null;
+                oldValue.SetParent(null);
             }
             _Values[i] = value;
 #else
@@ -321,6 +322,8 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObjArr property, Arr value) {
+            if (value != null)
+                value.Parent = this;
             var i = property.TemplateIndex;
             Arr oldValue = _Values[i]; //this.Get(property);
             if (oldValue != null) {
