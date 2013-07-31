@@ -63,13 +63,13 @@ namespace Starcounter {
         }
 
 #endif
-        /// <summary>
-        /// Called when [set parent].
-        /// </summary>
-        /// <param name="child">The child.</param>
-        internal virtual void OnSetParent(Container child) {
-            child._parent = this;
-        }
+        ///// <summary>
+        ///// Called when [set parent].
+        ///// </summary>
+        ///// <param name="child">The child.</param>
+        //internal virtual void OnSetParent(Container child) {
+        //    //child._parent = this;
+        //}
 
         public virtual void HasAddedElement(TObjArr property, int elementIndex) {
         }
@@ -93,13 +93,24 @@ namespace Starcounter {
                 return _parent;
             }
             set {
-                if (_parent != null && _parent != value) {
-                    throw new Exception("Cannot change parent in Apps");
+                if (value == null) {
+                    if (_parent != null) {
+                        this.HasRemovedChild(value.Template);
+                    }
                 }
-
-                if (value != null)
-                    value.OnSetParent(this);
+                else if (_parent != value) {
+                    throw new Exception("Cannot change parent of objects in Typed JSON trees");
+                }
+               _parent = value;
             }
+        }
+
+        private void HasRemovedChild( TContainer property ) {
+            // This Obj or Arr has been removed from its parent and should be deleted from the
+            // URI cache.
+            //
+            // TheCache.RemoveEntry( this );
+            //
         }
 
         /// <summary>
