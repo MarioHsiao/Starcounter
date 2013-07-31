@@ -63,13 +63,13 @@ namespace Starcounter {
         }
 
 #endif
-        /// <summary>
-        /// Called when [set parent].
-        /// </summary>
-        /// <param name="child">The child.</param>
-        internal virtual void OnSetParent(Container child) {
-            child._parent = this;
-        }
+        ///// <summary>
+        ///// Called when [set parent].
+        ///// </summary>
+        ///// <param name="child">The child.</param>
+        //internal virtual void OnSetParent(Container child) {
+        //    //child._parent = this;
+        //}
 
         public virtual void HasAddedElement(TObjArr property, int elementIndex) {
         }
@@ -94,12 +94,37 @@ namespace Starcounter {
             }
             set {
                 if (_parent != null && _parent != value) {
-                    throw new Exception("Cannot change parent in Apps");
+                    throw new Exception("Cannot change parent of objects in Typed JSON trees");
                 }
-
-                if (value != null)
-                    value.OnSetParent(this);
+                SetParent(value);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        internal void SetParent(Container value) {
+            if (value == null) {
+                if (_parent != null) {
+                    _parent.HasRemovedChild(this);
+                }
+            }
+            _parent = value;
+        }
+
+
+        /// <summary>
+        /// Called when a Obj or Arr property value has been removed from its parent.
+        /// </summary>
+        /// <param name="property">The name of the property</param>
+        /// <param name="child">The old value of the property</param>
+        private void HasRemovedChild( Container child ) {
+            // This Obj or Arr has been removed from its parent and should be deleted from the
+            // URI cache.
+            //
+            // TheCache.RemoveEntry( child );
+            //
         }
 
         /// <summary>
