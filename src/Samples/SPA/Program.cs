@@ -21,7 +21,7 @@ namespace SPA {
                 Master m = (Master) NodeX.GET("/emails");
                 var page = new MailPage() { View = "email.html" };
                 page.Title = "Hello there!";
-                page.Content = "Wanna meet up: " + id;
+                page.Content = "Email ID: " + id + ", session ID: " + Session.Current.SessionIdString;
 
                 m.Focused = page;
                 return page;
