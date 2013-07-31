@@ -95,7 +95,7 @@ namespace Starcounter {
             set {
                 if (value == null) {
                     if (_parent != null) {
-                        _parent.HasRemovedChild(value.Template,value);
+                        _parent.HasRemovedChild(value.Template,this);
                     }
                 }
                 else if (_parent != value) {
