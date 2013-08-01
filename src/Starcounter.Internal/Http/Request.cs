@@ -73,32 +73,49 @@ namespace Starcounter.Advanced {
         }
 
 
-        /// <summary>
-        /// TODO! Implement!
-        /// </summary>
+        /// Returns the single most preferred mime type according to the Accept header of the request amongst a 
+        /// set of common mime types. If the mime type is not in the enum of known common mime types, the
+        /// value MimeType.Other is returned. If there is no Accept header or if the Accept header is empty,
+        /// the value MimeType.Unspecified is returned.
+        /// <remarks>
+        /// TODO! Implement proper fast method! Include all mime types in xml file and speed up using
+        /// similar code generation as the URI matcher.
+        /// </remarks>
         public MimeType PreferredMimeType {
             get {
                 var a = this["Accept"];
                 if (a != null) {
-                    if (a.StartsWith("application/json-patch+json")) {
-                        return MimeType.application_jsonpatch_json;
+                    a = a.ToUpper();
+                    if (a.StartsWith("APPLICATION/JSON-PATCH+JSON")) {
+                        return MimeType.Application_JsonPatch__Json;
                     }
-                    else if (a.StartsWith("text/html")) {
-                        return MimeType.text_html;
+                    else if (a.StartsWith("TEXT/HTML")) {
+                        return MimeType.Text_Html;
                     }
-                    return MimeType.application_json;
+                    else if (a.StartsWith("APPLICATION/JSON")) {
+                        return MimeType.Application_Json;
+                    }
+                    else if (a.StartsWith("TEXT/PLAIN")) {
+                        return MimeType.Text_Plain;
+                    }
+                    return MimeType.Other;
                 }
-
-                return MimeType.text_plain;
+                return MimeType.Unspecified;
             }
         }
 
         /// <summary>
-        /// TODO! Implement!
+        /// Returns a list of requested mime types in preference order as discovered in the Accept header
+        /// of the request.
         /// </summary>
+        /// <remarks>
+        /// TODO! Implement! Does currently only return a single mime type and supports only a few mime types.
+        /// </remarks>
         public IEnumerator<MimeType> PreferredMimeTypes {
             get {
-                return (new List<MimeType>()).GetEnumerator();
+                var l = new List<MimeType>();
+                l.Add( PreferredMimeType );
+                return l.GetEnumerator();
             }
         }
 

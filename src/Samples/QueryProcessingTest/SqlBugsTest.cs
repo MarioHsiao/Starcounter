@@ -35,7 +35,8 @@ namespace QueryProcessingTest {
             int nrs = 0;
             var accounts = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
             Account acc = accounts.First;
-            foreach (Account a in Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10)) {
+            SqlResult<dynamic> aquery = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
+            foreach (Account a in aquery) {
                 amounts += a.Amount;
                 nrs++;
             }
@@ -214,6 +215,7 @@ namespace QueryProcessingTest {
             Trace.Assert(n == "FirstName");
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(1)).Name;
             Trace.Assert(n == "1");
+
             q = Db.SlowSQL("select * from User u where useridnr <?", 2);
             e = q.GetEnumerator();
             n = ((Starcounter.Query.Execution.PropertyMapping)((SqlEnumerator<object>)e).TypeBinding.GetPropertyBinding(0)).DisplayName;

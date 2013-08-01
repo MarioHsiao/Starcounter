@@ -81,7 +81,15 @@ namespace Starcounter {
             Set((TObj)property, value);
         }
 
-        public string View { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Html { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string HtmlContent { get; set; }
     }
 
     ///// <summary>
