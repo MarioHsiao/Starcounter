@@ -29,7 +29,7 @@ namespace Starcounter.Query
         internal const Int32 MaxQueryRetries = 10;
         internal const Int32 MaxVerifyRetries = 100;
         internal const Int32 TimeBetweenVerifyRetries = 100; // [ms]
-        internal static String DatabaseId = Db.Environment.DatabaseName;
+        internal static String DatabaseId = Db.Environment.DatabaseNameLower;
 
         /// <summary>
         /// Initiates query module. Called during start-up.

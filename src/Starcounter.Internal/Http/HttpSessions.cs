@@ -85,6 +85,11 @@ namespace HttpStructs
         // Linear index node.
         public LinkedListNode<UInt32> linear_index_node_;
 
+        /// <summary>
+        /// Prefix to data location URI.
+        /// </summary>
+        public static string DataLocationUriPrefix = "/__" + StarcounterEnvironment.DatabaseNameLower + "/";
+
         // Is being used.
         public Boolean IsBeingUsed()
         {
