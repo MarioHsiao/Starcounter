@@ -861,19 +861,15 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
-    // Checking HTTP related fields.
-    GW_ASSERT(kFullSessionIdStringLength == (SC_SESSION_STRING_LEN_CHARS + kScSessionIdStringWithExtraCharsLength));
-    GW_ASSERT(kSetCookieStringPrefixLength == 20);
-    GW_ASSERT(kFullSessionIdSetCookieStringLength == 46);
-
     int64_t accept_8bytes = *(int64_t*)"Accept: ";
-    int64_t accept_enc_8bytes = *(int64_t*)"Accept-E";
+    int64_t accept_enc_8bytes = *(int64_t*)"Accept-Encoding: ";
     int64_t cookie_8bytes = *(int64_t*)"Cookie: ";
-    int64_t set_cookie_8bytes = *(int64_t*)"Set-Cook";
-    int64_t content_len_8bytes = *(int64_t*)"Content-Length";
+    int64_t set_cookie_8bytes = *(int64_t*)"Set-Cookie: ";
+    int64_t content_len_8bytes = *(int64_t*)"Content-Length: ";
     int64_t upgrade_8bytes = *(int64_t*)"Upgrade:";
-    int64_t websocket_8bytes = *(int64_t*)"Sec-WebSocket";
-    int64_t scsessionid_8bytes = *(int64_t*)kScSessionIdStringWithExtraChars;
+    int64_t websocket_8bytes = *(int64_t*)"Sec-WebSocket: ";
+    int64_t referer_8bytes = *(int64_t*)"Referer: ";
+    int64_t xreferer_8bytes = *(int64_t*)"X-Referer: ";
 
     GW_ASSERT(ACCEPT_HEADER_VALUE_8BYTES == accept_8bytes);
     GW_ASSERT(ACCEPT_ENCODING_HEADER_VALUE_8BYTES == accept_enc_8bytes);
@@ -882,7 +878,8 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == content_len_8bytes);
     GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == upgrade_8bytes);
     GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == websocket_8bytes);
-    GW_ASSERT(SCSESSIONID_HEADER_VALUE_8BYTES == scsessionid_8bytes);
+    GW_ASSERT(REFERER_HEADER_VALUE_8BYTES == referer_8bytes);
+    GW_ASSERT(XREFERER_HEADER_VALUE_8BYTES == xreferer_8bytes);
 
     return 0;
 
@@ -2327,61 +2324,6 @@ uint32_t Gateway::CleanupInactiveSessions(GatewayWorker* gw)
 
             // Triggering special light disconnect to reuse the socket.
             DisconnectSocket(gw, sessions_to_cleanup_unsafe_[i]);
-
-#ifndef GW_NEW_SESSIONS_APPROACH
-
-            // Killing the session.
-            bool session_was_killed;
-            KillSession(sessions_to_cleanup_unsafe_[i], &session_was_killed);
-
-            // Sending notification only if session was killed.
-            if (session_was_killed)
-            {
-                // Pushing dead session message to all databases.
-                for (int32_t d = 0; d < num_dbs_slots_; d++)
-                {
-                    ActiveDatabase* global_db = g_gateway.GetDatabase(d);
-
-                    // Checking if database was already deleted.
-                    if (global_db->IsDeletionStarted())
-                        continue;
-
-                    WorkerDbInterface *worker_db = gw->GetWorkerDb(d);
-
-                    // Checking if database was already deleted.
-                    if (!worker_db)
-                        continue;
-
-                    // Getting and checking Apps unique session number.
-                    apps_unique_session_num_type apps_unique_session_num = global_db->GetAppsUniqueSessionNumber(global_session->gw_session_index_);
-
-                    // Checking if Apps session information is correct.
-                    if (apps_unique_session_num != INVALID_APPS_UNIQUE_SESSION_NUMBER)
-                    {
-                        // Getting Apps session salt.
-                        session_salt_type apps_session_salt = global_db->GetAppsSessionSalt(global_session->gw_session_index_);
-
-                        // Sending session destroyed message.
-                        err_code = worker_db->PushDeadSession(
-                            apps_unique_session_num,
-                            apps_session_salt,
-                            global_session->scheduler_id_);
-
-                        if (err_code)
-                        {
-                            LeaveCriticalSection(&cs_sessions_cleanup_);
-                            return err_code;
-                        }
-                    }
-                }
-
-#ifdef GW_SESSIONS_DIAG
-                GW_COUT << "Inactive session " << global_session->session_.linear_index_ << ":"
-                    << global_session->session_.random_salt_ << " was destroyed." << GW_ENDL;
-#endif
-            }
-
-#endif
         }
 
         // Inactive session was successfully cleaned up.
@@ -2773,9 +2715,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
         global_statistics_stream_ << "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
             ", overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
-#ifndef GW_NEW_SESSIONS_APPROACH
             ", active sessions " << g_gateway.get_num_active_sessions() <<
-#endif
             ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
             ", reusable conn-socks " << g_gateway.NumberOfReusableConnectSockets() <<
             "<br>" << GW_ENDL;

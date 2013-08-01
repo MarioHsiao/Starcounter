@@ -51,8 +51,7 @@ namespace Starcounter.Internal.Web {
             try {
                 if (response == null) {
                     response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
-                }
-                else {
+                } else {
                     response.Request = request;
                     response.ConstructFromFields();
                 }
@@ -78,7 +77,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         public override Response HandleRequest(Request request) {
-            Response result;
+            Response result = null;
             UInt32 errCode;
 
             switch (request.ProtocolType)
@@ -88,14 +87,58 @@ namespace Starcounter.Internal.Web {
                     try
                     {
                         // Checking if we are in session already.
-                        if (request.HasSession)
-                            Session.Start((Session)request.AppsSessionInterface);
+                        if (!request.IsInternal) {
+
+                            // Setting the original request.
+                            Session.InitialRequest = request;
+
+                            if (request.HasSession) {
+                                Session.Start((Session)request.AppsSessionInterface);
+
+                                // Checking if we can reuse the cache.
+                                if (NodeX.CheckLocalCache(request.Uri, request, null, null, out result)) {
+
+                                    // Setting session on result.
+                                    if (null != result)
+                                        result.AppsSession = Session.Current.InternalSession;
+
+                                    // Handling and returning the HTTP response.
+                                    result = OnResponse(request, result);
+
+                                    return result;
+                                }
+                            }
+                        }
 
                         // Invoking original user delegate with parameters here.
                         UserHandlerCodegen.HandlersManager.RunDelegate(request, out result);
 
+                        // In case of returned JSON object within current session we need to save it
+                        // for later reuse.
+                        Obj rootJsonObj = Session.Data;
+                        Obj curJsonObj = null;
+                        if (null != result) {
+
+                            // Converting response to JSON.
+                            curJsonObj = result;
+
+                            // Session operations are only on non-internal requests.
+                            if (null != Session.Current)
+                                result.AppsSession = Session.Current.InternalSession;
+
+                            if ((null != curJsonObj) &&
+                                (null != rootJsonObj) &&
+                                (request.IsIdempotent()) &&
+                                (curJsonObj.HasThisRoot(rootJsonObj)))
+                            {
+                                Session.Current.AddJsonNodeToCache(request.Uri, curJsonObj);
+                            }
+                        }
+
                         // Handling and returning the HTTP response.
-                        return OnResponse(request, result);
+                        result = OnResponse(request, result);
+
+                        return result;
                     }
                     catch (Exception exc)
                     {
@@ -107,7 +150,9 @@ namespace Starcounter.Internal.Web {
                     }
                     finally
                     {
-                        Session.End();
+                        // Checking if a new session was created during handler call.
+                        if ((null != Session.Current) && (!request.IsInternal))
+                            Session.End();
                     }
                 }
 

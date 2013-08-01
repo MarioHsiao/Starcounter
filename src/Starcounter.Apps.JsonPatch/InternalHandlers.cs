@@ -84,12 +84,16 @@ namespace Starcounter.Internal.JsonPatch {
             if (registeredPorts.Contains(port))
                 return;
 
+            string dbName = Db.Environment.DatabaseName.ToLower();
+
+            if (0 == String.Compare(dbName, "administrator", StringComparison.InvariantCultureIgnoreCase))
+                return;
+
             // We add the internal handlers for stateful access to json-objects
             // for each new port that is used.
             registeredPorts.Add(port);
-            string dbName = Db.Environment.DatabaseName.ToLower();
 
-            Handle.GET(port, "/__" + dbName + "/{?}", (Session session) => {
+            Handle.GET(port, MixedCodeConstants.SESSION_STRING_PREFIX + "{?}", (Session session) => {
                 Obj json = Session.Data;
                 if (json == null) {
                     return HttpStatusCode.NotFound;
@@ -100,7 +104,7 @@ namespace Starcounter.Internal.JsonPatch {
                 };
             });
 
-            Handle.PATCH(port, "/__" + dbName + "/{?}", (Session session, Request request) => {
+            Handle.PATCH(port, MixedCodeConstants.SESSION_STRING_PREFIX + "{?}", (Session session, Request request) => {
                 Obj root;
 
                 try {

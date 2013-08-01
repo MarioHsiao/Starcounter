@@ -24,4 +24,4 @@ FOR /D /R %%X IN (win32) DO IF EXIST "%%X" RMDIR "%%X" /S /Q
 FOR /D /R %%X IN (x64) DO IF EXIST "%%X" RMDIR "%%X" /S /Q
 
 :: Removing bin directory.
-RMDIR "..\bin" /S /Q
+::RMDIR "..\bin" /S /Q

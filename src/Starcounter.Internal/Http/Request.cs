@@ -19,7 +19,7 @@ namespace Starcounter.Advanced {
         /// </remarks>
         /// <param name="uri">The URI.</param>
         /// <returns>System.Object.</returns>
-        public static byte[] RawGET(string uri) {
+        internal static byte[] RawGET(string uri) {
             var length = uri.Length + 3 + 1 + 4;// GET + space + URI + CRLFCRLF
             byte[] vu = new byte[length];
             vu[0] = (byte)'G';
@@ -78,7 +78,18 @@ namespace Starcounter.Advanced {
         /// </summary>
         public MimeType PreferredMimeType {
             get {
-                return MimeType.application_json;
+                var a = this["Accept"];
+                if (a != null) {
+                    if (a.StartsWith("application/json-patch+json")) {
+                        return MimeType.application_jsonpatch_json;
+                    }
+                    else if (a.StartsWith("text/html")) {
+                        return MimeType.text_html;
+                    }
+                    return MimeType.application_json;
+                }
+
+                return MimeType.text_plain;
             }
         }
 
@@ -96,6 +107,14 @@ namespace Starcounter.Advanced {
         /// Indicates if this Request is internally constructed from Apps.
         /// </summary>
         Boolean is_internal_request_ = false;
+
+        /// <summary>
+        /// Returns True if request is internal.
+        /// </summary>
+        public Boolean IsInternal
+        {
+            get { return is_internal_request_; }
+        }
 
         /// <summary>
         /// Just using Request as holder for user Message instance type.
@@ -120,6 +139,28 @@ namespace Starcounter.Advanced {
         {
             get { return message_object_type_; }
             set { message_object_type_ = value; }
+        }
+
+        /// <summary>
+        /// Accessors to HTTP method.
+        /// </summary>
+        public HTTP_METHODS MethodEnum { get; set; }
+
+        /// <summary>
+        /// Returns True if method is idempotent.
+        /// </summary>
+        public Boolean IsIdempotent()
+        {
+            switch (MethodEnum)
+            {
+                case HTTP_METHODS.GET:
+                case HTTP_METHODS.PUT:
+                case HTTP_METHODS.DELETE:
+                case HTTP_METHODS.HEAD:
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -1217,7 +1258,7 @@ namespace Starcounter.Advanced {
                     session_->scheduler_id_,
                     ref session_->linear_index_,
                     ref session_->random_salt_,
-                    ref session_->view_model_index_,
+                    ref session_->reserved_,
                     apps_session);
             }
         }

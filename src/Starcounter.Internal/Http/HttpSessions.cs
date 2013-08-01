@@ -119,10 +119,8 @@ namespace HttpStructs
             linear_index_node_ = null;
         }
 
-        public const Int32 SESSION_STRING_NUM_BYTES = 32;
-
         // Session stored in ASCII bytes.
-        Byte[] session_bytes_ = new Byte[SESSION_STRING_NUM_BYTES];
+        Byte[] session_bytes_ = new Byte[MixedCodeConstants.SESSION_STRING_LEN_CHARS];
 
         // Session string representation.
         String session_string_ = null;
@@ -142,7 +140,7 @@ namespace HttpStructs
             uint64_to_hex_string(session_struct_.scheduler_id_, session_bytes_, 0, 2);
             uint64_to_hex_string(session_struct_.linear_index_, session_bytes_, 2, 8);
             uint64_to_hex_string(session_struct_.random_salt_, session_bytes_, 8, 16);
-            uint64_to_hex_string(session_struct_.view_model_index_, session_bytes_, 24, 8);
+            uint64_to_hex_string(session_struct_.reserved_, session_bytes_, 24, 8);
         }
 
         static Byte[] hex_table = { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
@@ -264,7 +262,7 @@ namespace HttpStructs
             Byte scheduler_id,
             ref UInt32 linear_index,
             ref UInt64 random_salt,
-            ref UInt32 view_model_index,
+            ref UInt32 reserved,
             IAppsSession apps_session_int)
         {
             // Getting free linear session index.
@@ -289,7 +287,7 @@ namespace HttpStructs
                 scheduler_id,
                 linear_index,
                 random_salt,
-                view_model_index); // TODO
+                reserved);
 
             // Serializing to bytes.
             s.SerializeToBytes();
@@ -529,13 +527,13 @@ namespace HttpStructs
             // since they are not used anyway.
             UInt32 linear_index = 0;
             UInt64 random_salt = 0;
-            UInt32 view_model_index = 0;
+            UInt32 reserved = 0;
 
             return scheduler_sessions_[scheduler_id].CreateNewSession(
                 scheduler_id,
                 ref linear_index,
                 ref random_salt,
-                ref view_model_index,
+                ref reserved,
                 apps_session);
         }
 
@@ -551,14 +549,14 @@ namespace HttpStructs
             Byte scheduler_id,
             ref UInt32 linear_index,
             ref UInt64 random_salt,
-            ref UInt32 view_model_index,
+            ref UInt32 reserved,
             IAppsSession apps_session)
         {
             return scheduler_sessions_[scheduler_id].CreateNewSession(
                 scheduler_id,
                 ref linear_index,
                 ref random_salt,
-                ref view_model_index,
+                ref reserved,
                 apps_session);
         }
 
@@ -630,12 +628,12 @@ namespace HttpStructs
         /// <param name="scheduler_id"></param>
         /// <param name="linear_index"></param>
         /// <param name="random_salt"></param>
-        /// <param name="view_model_index"></param>
+        /// <param name="reserved"></param>
         public delegate void CreateNewAppsSessionCallback(
             Byte scheduler_id,
             ref UInt32 linear_index,
             ref UInt64 random_salt,
-            ref UInt32 view_model_index
+            ref UInt32 reserved
             );
         
         public static CreateNewAppsSessionCallback g_create_new_apps_session_callback = CreateNewSessionCallback;
@@ -669,14 +667,14 @@ namespace HttpStructs
             Byte scheduler_id,
             ref UInt32 linear_index,
             ref UInt64 random_salt,
-            ref UInt32 view_model_index
+            ref UInt32 reserved
             )
         {
             AllGlobalSessions.CreateNewSession(
                 scheduler_id,
                 ref linear_index,
                 ref random_salt,
-                ref view_model_index,
+                ref reserved,
                 null
                 );
         }
