@@ -1,6 +1,5 @@
 {
-   UserName:"",
-    Emails:[{Title:"",Content:""}],
+    Emails:[{Title:"",Link:""}],
     Focused:{}
 }
 

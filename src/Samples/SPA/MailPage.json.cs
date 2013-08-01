@@ -2,6 +2,6 @@
 using Starcounter;
 
 
-partial class MailPage : Json {
+partial class MailPage : Json<Email> {
 
 }
