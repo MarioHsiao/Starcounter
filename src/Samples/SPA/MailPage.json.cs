@@ -1,10 +1,7 @@
 ﻿
 using Starcounter;
 
-namespace SPA {
-    partial class MailPage : Json
-    {
-        
-    }
+
+partial class MailPage : Json {
 
 }
