@@ -2,7 +2,11 @@
 
 [Database]
 public class Email {
-    public string Uri;
+    public string Id;
     public string Title;
     public string Content;
+    public string Uri
+    {
+        get { return "/emails/" + Id; }
+    }
 }

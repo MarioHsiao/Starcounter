@@ -80,7 +80,7 @@ namespace Starcounter.Advanced {
             get {
                 var a = this["Accept"];
                 if (a != null) {
-                    if (a.StartsWith("application/json-patch+json") {
+                    if (a.StartsWith("application/json-patch+json")) {
                         return MimeType.application_jsonpatch_json;
                     }
                     else if (a.StartsWith("text/html")) {
@@ -88,6 +88,8 @@ namespace Starcounter.Advanced {
                     }
                     return MimeType.application_json;
                 }
+
+                return MimeType.text_plain;
             }
         }
 
