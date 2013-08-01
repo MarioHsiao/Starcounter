@@ -327,6 +327,41 @@ namespace Starcounter.Advanced
             }
         }
 
+        /// <summary>
+        /// Body string.
+        /// </summary>
+        public Object Content
+        {
+            get
+            {
+                if (null != Hypermedia)
+                    return Hypermedia;
+
+                if (null != bodyBytes_)
+                    return bodyBytes_;
+
+                if (null == bodyString_)
+                    bodyString_ = GetBodyStringUtf8_Slow();
+
+                return bodyString_;
+            }
+
+            set
+            {
+                if (value is String) {
+                    bodyString_ = (String) value;
+                } else if (value is Byte[]) {
+                    bodyBytes_ = (Byte[]) value;
+                } else if (value is IHypermedia) {
+                    _Hypermedia = (IHypermedia) value;
+                } else {
+                    throw new ArgumentException("Wrong content type assigned!");
+                }
+
+                customFields_ = true;
+            }
+        }
+
         Byte[] bodyBytes_;
 
         /// <summary>
@@ -431,6 +466,7 @@ namespace Starcounter.Advanced
             contentEncoding_ = null;
             statusDescription_ = null;
             statusCode_ = 0;
+            AppsSession = null;
         }
 
         /// <summary>
@@ -500,7 +536,8 @@ namespace Starcounter.Advanced
             if (null != setCookiesString_)
                 str += "Set-Cookie: " + setCookiesString_ + StarcounterConstants.NetworkConstants.CRLF;
 
-
+            if (null != AppsSession)
+                str += "Location: " + MixedCodeConstants.SESSION_STRING_PREFIX + AppsSession.ToAsciiString() + StarcounterConstants.NetworkConstants.CRLF;
 
             if (null != bodyString_)
             {
@@ -1310,22 +1347,6 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// New session creation indicator.
-        /// </summary>
-        Boolean newSession_ = false;
-
-        /// <summary>
-        /// Indicates if new session was created.
-        /// </summary>
-        public Boolean HasNewSession
-        {
-            get
-            {
-                return newSession_;
-            }
-        }
-
-        /// <summary>
         /// Returns unique session number.
         /// </summary>
         public UInt64 UniqueSessionIndex
@@ -1352,6 +1373,11 @@ namespace Starcounter.Advanced
                 }
             }
         }
+
+        /// <summary>
+        /// Getting internal Apps session.
+        /// </summary>
+        public ScSessionClass AppsSession { get; set; }
 
         /// <summary>
         /// Gets the session struct.

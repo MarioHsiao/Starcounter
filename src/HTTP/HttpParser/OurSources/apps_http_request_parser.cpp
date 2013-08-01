@@ -164,14 +164,15 @@ inline int HttpRequestOnHeaderValue(http_parser* p, const char *at, size_t lengt
             break;
         }
 
-        case SCSESSIONID_FIELD:
+        case REFERRER_FIELD:
+        case XREFERRER_FIELD:
         {
             // Checking if Starcounter session id is presented.
-            if (SC_SESSION_STRING_LEN_CHARS == length)
+            if (MixedCodeConstants::SESSION_STRING_LEN_CHARS == length)
             {
                 // Setting the session offset.
                 http->http_request_->session_string_offset_ = (uint32_t)(at - (char*)http->request_buf_);
-                http->http_request_->session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
+                http->http_request_->session_string_len_bytes_ = MixedCodeConstants::SESSION_STRING_LEN_CHARS;
             }
 
             break;

@@ -102,6 +102,7 @@
     <Compile Include="ErrorHandling\ParsedErrorMessage.cs" />
     <Compile Include="IBindable.cs" />
     <Compile Include="IHttpRestServer.cs" />
+    <Compile Include="IResponseConverter.cs" />
     <Compile Include="Intrinsics.cs" />
     <Compile Include="IREST.cs" />
     <Compile Include="IHypermedia.cs" />
