@@ -61,10 +61,10 @@
     <Compile Include="Base32Int.cs" />
     <Compile Include="Base64Binary.cs" />
     <Compile Include="Base64Int.cs" />
+    <Compile Include="MemcpyUtil.cs" />
     <Compile Include="SessionBlob.cs" />
     <Compile Include="TupleProxy.cs" />
     <Compile Include="TupleReader.cs" />
-    <Compile Include="TupleWriterDynamic.cs" />
     <Compile Include="TupleWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
