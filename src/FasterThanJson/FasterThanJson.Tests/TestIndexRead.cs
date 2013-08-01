@@ -9,7 +9,7 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void UIntSimpleTest() {
             fixed (byte* start = new byte[1024]) {
-                TupleWriterStatic writeArray = new TupleWriterStatic(start, 10, 1);
+                TupleWriter writeArray = new TupleWriter(start, 10, 1);
                 writeArray.Write(0);
                 writeArray.Write(UInt32.MaxValue);
                 writeArray.Write(UInt32.MinValue);
@@ -38,8 +38,9 @@ namespace FasterThanJson.Tests {
 
         [Test]
         public unsafe void StringSimpleTest() {
-            fixed (byte* start = new byte[1024]) {
-                TupleWriterStatic writeArray = new TupleWriterStatic(start, 5, 2);
+            byte[] buffer = new byte[1024];
+            fixed (byte* start = buffer) {
+                TupleWriter writeArray = new TupleWriter(start, 5, 1);
                 writeArray.Write("a");
                 writeArray.Write("I've verified that this has been fixed in the next branch. I will keep this issue open until we merged next into develop.");
                 writeArray.Write("AAAAAA");
@@ -61,7 +62,7 @@ namespace FasterThanJson.Tests {
         [Test]
         public unsafe void BinarySimpleTest() {
             fixed (byte* start = new byte[1024]) {
-                TupleWriterStatic writeArray = new TupleWriterStatic(start, 5, 2);
+                TupleWriter writeArray = new TupleWriter(start, 5, 2);
                 writeArray.Write(new byte[] { byte.MinValue });
                 writeArray.Write(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255 });
                 writeArray.Write(new byte[] { byte.MaxValue });
@@ -75,6 +76,46 @@ namespace FasterThanJson.Tests {
                 Assert.AreEqual(new byte[] { byte.MaxValue }, readArray.ReadByteArray(2));
                 Assert.AreEqual(new byte[] { }, readArray.ReadByteArray(3));
                 Assert.AreEqual(new byte[] { 123, 7, 0, 12, 142, 255, 0, 0, 255, 2, 48, 129, 243, 23 }, readArray.ReadByteArray(4));
+            }
+        }
+
+        [Test]
+        public unsafe void RandomBinaryResizeTest() {
+            Random rnd = new Random(5);
+            byte[] inputArray1 = new byte[10];
+            for (int i = 0; i < 10; i++)
+                inputArray1[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue);
+            byte[] inputArray2 = new byte[100];
+            for (int i = 0; i < 100; i++)
+                inputArray2[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue);
+            byte[] inputArray3 = new byte[20];
+            for (int i = 0; i < 20; i++)
+                inputArray3[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue);
+            byte[] buffer = new byte[1024];
+            fixed (byte* start = buffer) {
+                TupleWriter tuple = new TupleWriter(start, 3, 1);
+                tuple.Write(inputArray1);
+                tuple.Write(inputArray2);
+                tuple.Write(inputArray3);
+                tuple.SealTuple();
+
+                TupleReader reader = new TupleReader(start, 3);
+                Assert.AreEqual(inputArray1, reader.ReadByteArray(0));
+                Assert.AreEqual(inputArray2, reader.ReadByteArray(1));
+                Assert.AreEqual(inputArray3, reader.ReadByteArray(2));
+            }
+        }
+
+        [Test]
+        public unsafe void SimpleResizeTest() {
+            fixed (byte* start = new byte[1024]) {
+                TupleWriter writeArray = new TupleWriter(start, 100, 1);
+                for (int i = 0; i < 100; i++)
+                    writeArray.Write(16000);
+                writeArray.SealTuple();
+                TupleReader readArray = new TupleReader(start, 100);
+                for (int i = 0; i < 100; i++)
+                    Assert.AreEqual(16000, readArray.ReadUInt(i));
             }
         }
 
@@ -113,10 +154,10 @@ namespace FasterThanJson.Tests {
                 dynamicWrite.Write(nr9);
                 dynamicWrite.SealTuple();
             }
-            TupleWriterStatic staticWrite = new TupleWriterStatic();
+            TupleWriter staticWrite = new TupleWriter();
             for (int i = 0; i < 1; i++) {
                 fixed (byte* start = new byte[1024]) {
-                    staticWrite = new TupleWriterStatic(start, tupleSize, offsetSize);
+                    staticWrite = new TupleWriter(start, tupleSize, offsetSize);
                     staticWrite.Write(nr0);
                     staticWrite.Write(nr1);
                     staticWrite.Write(nr2);
@@ -138,7 +179,7 @@ namespace FasterThanJson.Tests {
                 timer.Start();
                 for (int i = 0; i < nrIterations; i++) {
                     fixed (byte* start = new byte[1024]) {
-                        staticWrite = new TupleWriterStatic(start, tupleSize, offsetSize);
+                        staticWrite = new TupleWriter(start, tupleSize, offsetSize);
                         staticWrite.Write(nr0);
                         staticWrite.Write(nr1);
                         staticWrite.Write(nr2);
@@ -221,7 +262,8 @@ namespace FasterThanJson.Tests {
                 String[] stringValues = new String[nrValues];
                 byte[][] binaryValues = new byte[nrValues][];
                 byte[] tupleBuffer = new byte[nrValues * 200];
-                TupleWriterDynamic arrayWriter = new TupleWriterDynamic(tupleBuffer, 0, nrValues, 2);
+                fixed (byte* start = tupleBuffer) {
+                    TupleWriter arrayWriter = new TupleWriter(start, nrValues, 5);
                     for (int j = 0; j < nrValues; j++) {
                         valueTypes[j] = writeRnd.Next(1, 4);
                         switch (valueTypes[j]) {
@@ -243,8 +285,9 @@ namespace FasterThanJson.Tests {
                         }
                     }
                     arrayWriter.SealTuple();
-                    fixed (byte* start = tupleBuffer) {
-                        TupleReader arrayReader = new TupleReader(start, nrValues);
+                }
+                fixed (byte* start = tupleBuffer) {
+                    TupleReader arrayReader = new TupleReader(start, nrValues);
                     for (int j = 0; j < nrValues; j++) {
                         switch (valueTypes[j]) {
                             case (int)ValueTypes.UINT:

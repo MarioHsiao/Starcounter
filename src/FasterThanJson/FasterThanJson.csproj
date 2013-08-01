@@ -65,7 +65,7 @@
     <Compile Include="TupleProxy.cs" />
     <Compile Include="TupleReader.cs" />
     <Compile Include="TupleWriterDynamic.cs" />
-    <Compile Include="TupleWriterStatic.cs" />
+    <Compile Include="TupleWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -14,7 +14,7 @@ namespace Starcounter.Internal {
        /// <summary>
        /// The tw
        /// </summary>
-      private TupleWriterStatic tw;
+      private TupleWriter tw;
       /// <summary>
       /// The buffer
       /// </summary>
@@ -26,7 +26,7 @@ namespace Starcounter.Internal {
       /// <param name="capacity">The capacity.</param>
       public FtjWriter( int capacity ) {
          buffer = new byte[capacity]; // TODO!
-         tw = new TupleWriterStatic(); // Dummy tuple writer
+         tw = new TupleWriter(); // Dummy tuple writer
       }
 
       /// <summary>
@@ -68,7 +68,7 @@ namespace Starcounter.Internal {
          buffer = null;
          unsafe {
             fixed (byte* pbuf = buffer) {
-               tw = new TupleWriterStatic(pbuf, (uint)valueCount, (uint)initialOffsetElementSize);
+               tw = new TupleWriter(pbuf, (uint)valueCount, (uint)initialOffsetElementSize);
             }
          }
       }
