@@ -78,7 +78,10 @@ namespace Starcounter.Advanced {
         /// </summary>
         public MimeType PreferredMimeType {
             get {
-                //return MimeType.text_html;
+                var a = this["Accept"];
+                if (a != null && a.StartsWith("text/html")) {
+                    return MimeType.text_html;
+                }
                 return MimeType.application_json;
             }
         }
