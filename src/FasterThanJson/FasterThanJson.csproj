@@ -61,7 +61,7 @@
     <Compile Include="Base32Int.cs" />
     <Compile Include="Base64Binary.cs" />
     <Compile Include="Base64Int.cs" />
-    <Compile Include="Intrinsics.cs" />
+    <Compile Include="MemcpyUtil.cs" />
     <Compile Include="SessionBlob.cs" />
     <Compile Include="TupleProxy.cs" />
     <Compile Include="TupleReader.cs" />
@@ -71,6 +71,15 @@
   <ItemGroup>
     <None Include="HostedTuple.md" />
     <None Include="SchemaSchema.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
