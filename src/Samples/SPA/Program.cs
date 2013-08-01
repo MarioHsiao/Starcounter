@@ -8,27 +8,43 @@ class Program {
     static void Main(string[] args) {
 
         AppsBootstrapper.Bootstrap(@"Z:\Dropbox\Puppets");
-
         Debugger.Launch();
+
+        Handle.POST("/add-demo-data", () => {
+            Db.Transaction(() => {
+
+                new Email() {
+                    Uri = "/emails/123",
+                    Title = "Hi there",
+                    Content = "How are you"
+                };
+                new Email() {
+                    Uri = "/emails/124",
+                    Title = "Buy viagra",
+                    Content = "It's good for you"
+                };
+                new Email() {
+                    Uri = "/emails/125",
+                    Title = "Business opportunity in Nigeria",
+                    Content = "My uncle died and somehow you're getting money from this. Good, huh?"
+                };
+
+            });
+            return 201;
+        });
 
         Handle.GET("/emails", () => {
             Master m = new Master() { View = "master.html" };
-            var x = m.Emails.Add();
-            x.Title = "Hi there";
-            x = m.Emails.Add();
-            x.Title = "Buy viagra";
-            x = m.Emails.Add();
-            x.Title = "Business opportunity in Nigeria";
-            x.Content = "My uncle died and somehow you're getting money from this. Good, huh?";
+            m.Emails = Db.SQL("SELECT e FROM Emails e");
             return m;
         });
 
-        Handle.GET("/emails/{?}", (int id) => {
+        Handle.GET("/emails/{?}", (string id) => {
             Master m = (Master)NodeX.GET("/emails");
-            var page = new MailPage() { View = "email.html" };
-            page.Title = "Hello there!";
-            page.Content = "Email ID: " + id + ", session ID: " + Session.Current.SessionIdString;
-
+            var page = new MailPage() { 
+                View = "email.html",
+                Data = Db.SQL("SELECT e FROM Emails WHERE Id=?",id).First
+            };
             m.Focused = page;
             return page;
         });

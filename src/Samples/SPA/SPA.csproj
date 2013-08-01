@@ -54,11 +54,10 @@
     <TypedJSON Include="MailPage.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
-    
+    <Compile Include="Email.cs" />
     <Compile Include="MailPage.json.cs">
       <DependentUpon>MailPage.json</DependentUpon>
     </Compile>
-    
     <Compile Include="Master.json.cs">
       <DependentUpon>Master.json</DependentUpon>
     </Compile>
