@@ -74,22 +74,29 @@ namespace Starcounter.Advanced {
 
 
         /// <summary>
-        /// TODO! Implement!
+        /// TODO! Implement proper fast method! Include all mime types in xml file and speed up using
+        /// similar code generation as the URI matcher.
         /// </summary>
         public MimeType PreferredMimeType {
             get {
                 var a = this["Accept"];
                 if (a != null) {
-                    if (a.StartsWith("application/json-patch+json")) {
-                        return MimeType.application_jsonpatch_json;
+                    a = a.ToUpper();
+                    if (a.StartsWith("APPLICATION/JSON-PATCH+JSON")) {
+                        return MimeType.Application_JsonPatch__Json;
                     }
-                    else if (a.StartsWith("text/html")) {
-                        return MimeType.text_html;
+                    else if (a.StartsWith("TEXT/HTML")) {
+                        return MimeType.Text_Html;
                     }
-                    return MimeType.application_json;
+                    else if (a.StartsWith("APPLICATION/JSON")) {
+                        return MimeType.Application_Json;
+                    }
+                    else if (a.StartsWith("TEXT/PLAIN")) {
+                        return MimeType.Text_Plain;
+                    }
+                    return MimeType.Other;
                 }
-
-                return MimeType.text_plain;
+                return MimeType.Unspecified;
             }
         }
 
