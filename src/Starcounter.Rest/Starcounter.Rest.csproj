@@ -128,7 +128,6 @@
     <Compile Include="Http\HttpParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Http\HttpRestServer.cs" />
-    <Compile Include="RequestHandler\NodeX.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">

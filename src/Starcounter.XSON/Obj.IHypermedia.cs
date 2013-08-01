@@ -1,9 +1,19 @@
 ﻿
 
 using Starcounter.Advanced;
+using Starcounter.Internal;
 using System;
+using System.Text;
 namespace Starcounter {
     public partial class Obj {
+
+        /// <summary>
+        /// In Starcounter, the user (i.e. programmer) can respond with an Obj on an Accept: text/html request.
+        /// In this case, the HTML pertaining to the view of the view model described by the Obj should
+        /// be retrieved. This cannot be done by the Obj itself as it does not know about the static web server
+        /// or how to call any user handlers.
+        /// </summary>
+        public static IResponseConverter _PuppetToViewConverter = null;
 
         /// <summary>
         /// An Obj can be represented as a JSON object.
@@ -22,36 +32,44 @@ namespace Starcounter {
             Container r = this;
             while (r.Parent != null)
                 r = r.Parent;
-            Obj root = (Obj)r;
+            Json root = (Json)r;
 
-//            session = Session.Current;
-//            if (session == null || session.root != root) {
-                // A simple object with no serverstate. Return a 200 OK with the json as content.
+            //            session = Session.Current;
+            //            if (session == null || session.root != root) {
+            // A simple object with no serverstate. Return a 200 OK with the json as content.
+
+            // TODO: Respect request MIME type.
+            if (mimeType == MimeType.application_json) {
                 return root.ToJsonUtf8();
-//            }
-/*            else {
-                if (root.LogChanges) {
-                    // An existing sessionbound object have been updated. Return a batch of jsonpatches.
-                    response = new Response() {
-                        Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread)
-                    };
-                }
-                else {
-                    // A new sessionbound object. Return a 201 Created together with location and content.
-                    if (!request.HasSession) {
-                        errorCode = request.GenerateNewSession(session);
-                        if (errorCode != 0)
-                            throw ErrorCode.ToException(errorCode);
-                    }
-
-                    request.Debug(" (new view model)");
-                    root.LogChanges = true;
-                    response = new Response() {
-                        Uncompressed = HttpResponseBuilder.Create201Response(root.ToJsonUtf8(), session.GetDataLocation())
-                    };
-                }
             }
-*/
+            return _PuppetToViewConverter.Convert(root, mimeType);
+
+            //throw new ArgumentException("Unknown mime type!");
+
+            //            }
+            /*            else {
+                            if (root.LogChanges) {
+                                // An existing sessionbound object have been updated. Return a batch of jsonpatches.
+                                response = new Response() {
+                                    Uncompressed = HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread)
+                                };
+                            }
+                            else {
+                                // A new sessionbound object. Return a 201 Created together with location and content.
+                                if (!request.HasSession) {
+                                    errorCode = request.GenerateNewSession(session);
+                                    if (errorCode != 0)
+                                        throw ErrorCode.ToException(errorCode);
+                                }
+
+                                request.Debug(" (new view model)");
+                                root.LogChanges = true;
+                                response = new Response() {
+                                    Uncompressed = HttpResponseBuilder.Create201Response(root.ToJsonUtf8(), session.GetDataLocation())
+                                };
+                            }
+                        }
+            */
         }
 
         public byte[] AsMimeType(string mimeType) {
@@ -65,5 +83,8 @@ namespace Starcounter {
             return response;
         }
 
+        public static implicit operator Obj(Response r) {            
+            return r.Hypermedia as Obj;
+        }
     }
 }

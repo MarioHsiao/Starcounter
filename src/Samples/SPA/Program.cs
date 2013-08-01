@@ -1,51 +1,52 @@
-﻿using Starcounter;
-using Starcounter.Advanced;
+﻿
+using Starcounter;
 using Starcounter.Internal;
 using System.Diagnostics;
 
-namespace SPA {
-    class Program {
-        static void Main(string[] args) {            
+class Program {
+    static void Main(string[] args) {
 
-            AppsBootstrapper.Bootstrap(@".\s\SPA");
-            Debugger.Launch();
+        AppsBootstrapper.Bootstrap(@"Z:\Dropbox\Puppets");
+        Debugger.Launch();
 
-            Handle.GET("/", (Request req) => {
-                // TODO: Example code for redirection. Should probably be handled in a better way.
-                return (new Node("127.0.0.1", 8080)).GET("/main.html", null, req);
-            });
+        Handle.POST("/add-demo-data", () => {
+            Db.Transaction(() => {
 
-            Handle.GET("/about", () => {
-                return "<h1>Single bb Page Application in Starcounter.</h1>";
-            });
-
-            Handle.GET("/", () => {
-                var master = new Master() {
-                    UserID = "admin",
-                    View="<div>{{UserId}}</div>"
+                new Email() {
+                    Uri = "/emails/123",
+                    Title = "Hi there",
+                    Content = "How are you"
                 };
-                Session.Data = master;
-                return master;
-            });
-
-
-            Handle.GET("/page1", () => {
-                Master master = NodeFake.GET("/");
-                master.Page = new Page1() {
-                    View = "<div>{{FirstName}}</div>"
+                new Email() {
+                    Uri = "/emails/124",
+                    Title = "Buy viagra",
+                    Content = "It's good for you"
                 };
-                return master;
+                new Email() {
+                    Uri = "/emails/125",
+                    Title = "Business opportunity in Nigeria",
+                    Content = "My uncle died and somehow you're getting money from this. Good, huh?"
+                };
+
             });
+            return 201;
+        });
 
-        }
+        Handle.GET("/emails", () => {
+            Master m = new Master() { View = "master.html" };
+            Session.Data = m;
+            m.Emails = Db.SQL("SELECT e FROM Emails e");
+            return m;
+        });
+
+        Handle.GET("/emails/{?}", (string id) => {
+            Master m = (Master)NodeX.GET("/emails");
+            var page = new MailPage() { 
+                View = "email.html",
+                Data = Db.SQL("SELECT e FROM Emails e WHERE Uri=?",id).First
+            };
+            m.Focused = page;
+            return page;
+        });
     }
-
-    public class NodeFake
-    {
-        public static dynamic GET(string uri)
-        {
-            return null;
-        }
-    }
-
 }
