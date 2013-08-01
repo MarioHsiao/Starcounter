@@ -1,5 +1,4 @@
 ﻿
-
 using Starcounter;
 using Starcounter.Internal;
 using System.Diagnostics;
@@ -43,7 +42,7 @@ class Program {
             Master m = (Master)NodeX.GET("/emails");
             var page = new MailPage() { 
                 View = "email.html",
-                Data = Db.SQL("SELECT e FROM Emails WHERE Id=?",id).First
+                Data = Db.SQL("SELECT e FROM Emails e WHERE Uri=?",id).First
             };
             m.Focused = page;
             return page;
