@@ -396,7 +396,7 @@ Retry:
           uint moveValuesRight = ValueCount * moveOffsetsRight;
           // Move values to the right to have space for offset
           byte* values = AtStart + OffsetElementSizeSize + ValueCount * oesBefore;
-          Memcpy16rwd(values + moveValuesRight, values, ValueOffset);
+          MemcpyUtil.Memcpy16rwd(values + moveValuesRight, values, ValueOffset);
 
           byte* newOffsets = AtStart + OffsetElementSizeSize;
 #if BASE256
@@ -430,18 +430,12 @@ Retry:
                       Base64Int.WriteBase64x2(offsetsValue, (IntPtr)newOffsets);
                       break;
                   case 3:
-                      offsets -= oesBefore;
-                      newOffsets -= oesAfter;
                       Base64Int.WriteBase64x3(offsetsValue, (IntPtr)newOffsets);
                       break;
                   case 4:
-                      offsets -= oesBefore;
-                      newOffsets -= oesAfter;
                       Base64Int.WriteBase64x4(offsetsValue, (IntPtr)newOffsets);
                       break;
                   case 5:
-                      offsets -= oesBefore;
-                      newOffsets -= oesAfter;
                       Base64Int.WriteBase64x5(offsetsValue, (IntPtr)newOffsets);
                       break;
                   default: throw new Exception("Tuple too big");
@@ -470,68 +464,70 @@ Retry:
          // Parent tuple must not be sealed.
          return FastSealTuple();
 
-//#if BASE32
-//         uint oesAfter = Base32Int.MeasureNeededSize(this.ValueOffset);
-//#endif
-//#if BASE64
-//         uint oesAfter = Base64Int.MeasureNeededSize(this.ValueOffset);
-//#endif
-//#if BASE256
-//         uint oesAfter = Base256Int.MeasureNeededSize(this.ValueOffset);
-//#endif
-//         uint oesBefore = OffsetElementSize;
-//         uint moveOffsetsLeft = oesBefore - oesAfter;
+#if false
+#if BASE32
+         uint oesAfter = Base32Int.MeasureNeededSize(this.ValueOffset);
+#endif
+#if BASE64
+         uint oesAfter = Base64Int.MeasureNeededSize(this.ValueOffset);
+#endif
+#if BASE256
+         uint oesAfter = Base256Int.MeasureNeededSize(this.ValueOffset);
+#endif
+         uint oesBefore = OffsetElementSize;
+         uint moveOffsetsLeft = oesBefore - oesAfter;
 
 
-//         uint needed = ValueCount*oesAfter;
-//         byte* newOffsets = (AtStart + 1);
-//         uint used = ValueCount*oesBefore;
-//#if BASE256
-//   // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
-//         byte* offsets = newOffsets;
-//#else
-//         byte* offsets = newOffsets + oesBefore - oesAfter;
-//#endif
-//         uint moveValuesLeft = used - needed;
+         uint needed = ValueCount*oesAfter;
+         byte* newOffsets = (AtStart + 1);
+         uint used = ValueCount*oesBefore;
+#if BASE256
+   // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
+         byte* offsets = newOffsets;
+#else
+         byte* offsets = newOffsets + oesBefore - oesAfter;
+#endif
+         uint moveValuesLeft = used - needed;
 
+         // Let's calculate if it is worth while to compact the tuple:
+         // We want moveValuesLeft (equaling the bytes we would save) to be at least an eights of this values.
+         if (ValueOffset >> 3 > moveValuesLeft) {
+             return FastSealTuple();
+         }
+//#if GUESSSIZE
 //         // Let's calculate if it is worth while to compact the tuple:
-//         // We want moveValuesLeft (equaling the bytes we would save) to be at least an eights of this values.
-//         if (ValueOffset >> 3 > moveValuesLeft) {
-//             return FastSealTuple();
-//         }
-////#if GUESSSIZE
-////         // Let's calculate if it is worth while to compact the tuple:
-////         // We want moveValuesLeft (equaling the bytes we would save) to be at least an fourth of this values.
-////         if (ValueOffset >> 2 > moveValuesLeft)
-////         {
-////            return FastSealTuple();
-////         }
-////#else
-////         // Let's calculate if it is worth while to compact the tuple:
-////         // We want moveValuesLeft (equaling the bytes we would save) to be at least an sixteenth of this values.
-////         if (ValueOffset >> 4 > moveValuesLeft)
-////         {
-////            return FastSealTuple();
-////         }
-////#endif
-
-//         for (int t = 0; t < ValueCount; t++)
+//         // We want moveValuesLeft (equaling the bytes we would save) to be at least an fourth of this values.
+//         if (ValueOffset >> 2 > moveValuesLeft)
 //         {
-//            Intrinsics.MemCpy((void*) (newOffsets), offsets, (uint) oesAfter);
-//            offsets += oesBefore;
-//            newOffsets += oesAfter;
+//            return FastSealTuple();
 //         }
-//         byte* values = ((AtStart + 1) + ValueCount*oesBefore);
-//         Intrinsics.MemCpy((void*) (values - moveValuesLeft), (void*) values, (uint) ValueOffset);
-//         //Size -= moveValuesLeft;
-//#if BASE256
-//         *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
 //#else
-//         Base16Int.WriteBase16x1(oesAfter, AtStart); // The first byte in the tuple tells the offset element size of the tuple
+//         // Let's calculate if it is worth while to compact the tuple:
+//         // We want moveValuesLeft (equaling the bytes we would save) to be at least an sixteenth of this values.
+//         if (ValueOffset >> 4 > moveValuesLeft)
+//         {
+//            return FastSealTuple();
+//         }
 //#endif
-//         AtEnd -= moveValuesLeft;
-//         return (uint) (AtEnd - AtStart);
-//         //         Base64.WriteBase64x5(this.Size, &(this.Cached_Blob.Cached_Blob->RootParentOffsetArray)); // TODO! Parent might be another tuple. Write in correct place.
+
+         for (int t = 0; t < ValueCount; t++)
+         {
+            Intrinsics.MemCpy((void*) (newOffsets), offsets, (uint) oesAfter);
+            offsets += oesBefore;
+            newOffsets += oesAfter;
+         }
+         byte* values = ((AtStart + 1) + ValueCount*oesBefore);
+         Intrinsics.MemCpy((void*) (values - moveValuesLeft), (void*) values, (uint) ValueOffset);
+         //Size -= moveValuesLeft;
+#if BASE256
+         *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
+#else
+         Base16Int.WriteBase16x1(oesAfter, AtStart); // The first byte in the tuple tells the offset element size of the tuple
+#endif
+         AtEnd -= moveValuesLeft;
+         return (uint) (AtEnd - AtStart);
+         //         Base64.WriteBase64x5(this.Size, &(this.Cached_Blob.Cached_Blob->RootParentOffsetArray)); // TODO! Parent might be another tuple. Write in correct place.
+#endif
       }
 
        /// <summary>
@@ -542,80 +538,6 @@ Retry:
       public unsafe uint FastSealTuple()
       {
          return (uint) (AtEnd - AtStart);
-      }
-
-      internal unsafe static void Memcpy16fwd(byte* dest, byte* src, uint len) {
-          if (len >= 16) {
-              do {
-                  *(long*)dest = *(long*)src;
-                  *(long*)(dest + 8) = *(long*)(src + 8);
-                  dest += 16;
-                  src += 16;
-              }
-              while ((len -= 16) >= 16);
-          }
-          if (len > 0) {
-              if ((len & 8) != 0) {
-                  *(long*)dest = *(long*)src;
-                  dest += 8;
-                  src += 8;
-              }
-              if ((len & 4) != 0) {
-                  *(int*)dest = *(int*)src;
-                  dest += 4;
-                  src += 4;
-              }
-              if ((len & 2) != 0) {
-                  *(short*)dest = *(short*)src;
-                  dest += 2;
-                  src += 2;
-              }
-              if ((len & 1) != 0) {
-                  byte* expr_75 = dest;
-                  dest = expr_75 + 1;
-                  byte* expr_7C = src;
-                  src = expr_7C + 1;
-                  *expr_75 = *expr_7C;
-              }
-          }
-      }
-
-      internal unsafe static void Memcpy16rwd(byte* dest, byte* src, uint len) {
-          byte* destEnd = dest + len;
-          byte* srcEnd = src + len;
-          if (len >= 16) {
-              do {
-                  destEnd -= 16;
-                  srcEnd -= 16;
-                  *(long*)(destEnd + 8) = *(long*)(srcEnd + 8);
-                  *(long*)destEnd = *(long*)srcEnd;
-              }
-              while ((len -= 16) >= 16);
-          }
-          if (len > 0) {
-              if ((len & 8) != 0) {
-                  destEnd -= 8;
-                  srcEnd -= 8;
-                  *(long*)destEnd = *(long*)srcEnd;
-              }
-              if ((len & 4) != 0) {
-                  destEnd -= 4;
-                  srcEnd -= 4;
-                  *(int*)destEnd = *(int*)srcEnd;
-              }
-              if ((len & 2) != 0) {
-                  destEnd -= 2;
-                  srcEnd -= 2;
-                  *(short*)destEnd = *(short*)srcEnd;
-              }
-              if ((len & 1) != 0) {
-                  destEnd -= 1;
-                  srcEnd -= 1;
-                  *destEnd = *srcEnd;
-              }
-          }
-          Debug.Assert(dest == destEnd);
-          Debug.Assert(src == srcEnd);
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5

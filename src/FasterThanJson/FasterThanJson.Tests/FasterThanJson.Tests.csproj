@@ -59,6 +59,7 @@
     <Compile Include="RandomValues.cs" />
     <Compile Include="TestBaseXint.cs" />
     <Compile Include="TestBinary.cs" />
+    <Compile Include="TestTupleBugs.cs" />
     <Compile Include="TestIndexRead.cs" />
     <Compile Include="TestTuples.cs" />
   </ItemGroup>

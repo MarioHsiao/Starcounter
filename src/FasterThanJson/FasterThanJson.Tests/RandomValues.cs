@@ -22,9 +22,9 @@ namespace FasterThanJson.Tests {
             int length = rnd.Next(0, 200);
             StringBuilder str = new StringBuilder(length);
             for (int i = 0; i < length; i++) {
-                char c = (char)rnd.Next(char.MinValue, char.MaxValue);
+                char c = (char)rnd.Next(char.MinValue, char.MaxValue+1);
                 while (c >= 0xD800)
-                    c = (char)rnd.Next(char.MinValue, char.MaxValue);
+                    c = (char)rnd.Next(char.MinValue, char.MaxValue+1);
                 str.Append(c);
             }
             return str.ToString();
@@ -34,7 +34,7 @@ namespace FasterThanJson.Tests {
             int length = rnd.Next(0, 500);
             byte[] value = new byte[length];
             for (int i = 0; i < length; i++)
-                value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue);
+                value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue+1);
             return value;
         }
     }
