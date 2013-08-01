@@ -16,9 +16,8 @@ namespace SPA {
                 return m;
             });
 
-            Handle.GET("/emails/{?}", (int id) =>
-            {
-                Master m = (Master) NodeX.GET("/emails");
+            Handle.GET("/emails/{?}", (int id) => {
+                Master m = (Master)NodeX.GET("/emails");
                 var page = new MailPage() { View = "email.html" };
                 page.Title = "Hello there!";
                 page.Content = "Email ID: " + id + ", session ID: " + Session.Current.SessionIdString;

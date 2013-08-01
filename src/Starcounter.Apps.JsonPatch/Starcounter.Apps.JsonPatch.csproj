@@ -80,6 +80,7 @@
     <Compile Include="JsonPointer.cs" />
     <Compile Include="NodeX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PuppetToViewConverter.cs" />
     <Compile Include="Session.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -19,7 +19,7 @@ namespace Starcounter.Advanced {
         /// </remarks>
         /// <param name="uri">The URI.</param>
         /// <returns>System.Object.</returns>
-        public static byte[] RawGET(string uri) {
+        internal static byte[] RawGET(string uri) {
             var length = uri.Length + 3 + 1 + 4;// GET + space + URI + CRLFCRLF
             byte[] vu = new byte[length];
             vu[0] = (byte)'G';
