@@ -304,7 +304,7 @@ namespace Starcounter.Internal
 #if BASE256
             int len = (int) Base256Int.Read(OffsetElementSize, (IntPtr)(AtStart + 1));
 #endif
-            len += TupleWriterStatic.OffsetElementSizeSize + OffsetElementSize;
+            len += TupleWriter.OffsetElementSizeSize + OffsetElementSize;
             var buffer = new byte[len];
             System.Runtime.InteropServices.Marshal.Copy((IntPtr) AtStart, buffer, 0, len);
 

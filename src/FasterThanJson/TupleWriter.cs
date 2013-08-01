@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Starcounter.Internal
@@ -45,7 +46,7 @@ namespace Starcounter.Internal
     /// person.Write("United Kingdom");
     /// person.Seal();</code>
     /// </example>
-   public unsafe struct TupleWriterStatic
+   public unsafe struct TupleWriter
    {
 #if BASE32
       public const int MAXOFFSETSIZE = 6;
@@ -101,7 +102,7 @@ namespace Starcounter.Internal
        /// <param name="valueCount"></param>
        /// <param name="offsetElementSize"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public TupleWriterStatic(byte* start, uint valueCount, uint offsetElementSize) {
+      public TupleWriter(byte* start, uint valueCount, uint offsetElementSize) {
           AtStart = start;
           AtOffsetEnd = AtStart + OffsetElementSizeSize;
           AtEnd = AtStart + OffsetElementSizeSize + valueCount * offsetElementSize;
@@ -122,8 +123,8 @@ namespace Starcounter.Internal
        /// <param name="start"></param>
        /// <param name="valueCount"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public TupleWriterStatic(byte* start, uint valueCount)
-         : this(start, valueCount, TupleWriterStatic.MAXOFFSETSIZE)
+      public TupleWriter(byte* start, uint valueCount)
+         : this(start, valueCount, TupleWriter.MAXOFFSETSIZE)
       {
       }
 
@@ -320,57 +321,20 @@ Retry:
          }
 #endif
 #if BASE64
-         switch (OffsetElementSize)
-         {
-            case 1:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 1)
-               {
-                   throw new Exception("Offset size is not enough to store offsets");
-               }
-               else
-               {
-                  Base64Int.WriteBase64x1(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+         if (OffsetElementSize < Base64Int.MeasureNeededSize(ValueOffset)) {
+             Grow(ValueOffset);
+             oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
+         }
+         switch (OffsetElementSize) {
+            case 1: Base64Int.WriteBase64x1(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
-            case 2:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 2)
-               {
-                   throw new Exception("Offset size is not enough to store offsets");
-               }
-               else
-               {
-                  Base64Int.WriteBase64x2(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+            case 2: Base64Int.WriteBase64x2(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
-            case 3:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 3)
-               {
-                   throw new Exception("Offset size is not enough to store offsets");
-               }
-               else
-               {
-                  Base64Int.WriteBase64x3(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+            case 3: Base64Int.WriteBase64x3(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
-            case 4:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 4)
-               {
-                   throw new Exception("Offset size is not enough to store offsets");
-               }
-               else
-               {
-                  Base64Int.WriteBase64x4(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+            case 4: Base64Int.WriteBase64x4(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
-            case 5:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 5)
-               {
-                  throw new Exception("Tuple too big");
-               }
-               else
-               {
-                  Base64Int.WriteBase64x5(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+            case 5: Base64Int.WriteBase64x5(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
             default:
                throw new Exception("Illegal offset element size in tuple");
@@ -407,6 +371,90 @@ Retry:
                throw new Exception("Illegal offset element size in tuple");
          }
 #endif
+      }
+
+
+      /// <summary>
+      /// This is a tricky task. We have guessed a to small size for the element offsets. We have used a to narrow size of
+      /// the element size. It means that the values and the offsets needs to move.
+      /// </summary>
+      public void Grow(uint newValueOffset) {
+#if BASE32
+         uint oesAfter = Base32Int.MeasureNeededSize(newValueOffset);
+#endif
+#if BASE64
+          uint oesAfter = Base64Int.MeasureNeededSize(newValueOffset);
+#endif
+#if BASE256
+         uint oesAfter = Base256Int.MeasureNeededSize(newValueOffset);
+#endif
+          uint oesBefore = OffsetElementSize;
+          uint moveOffsetsRight = oesAfter - oesBefore;
+          uint valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize)) / oesBefore - 1); // Expensive division here!
+          uint needed = valuesWrittenSoFar * oesAfter;
+          uint used = valuesWrittenSoFar * oesBefore;
+          uint moveValuesRight = ValueCount * moveOffsetsRight;
+          // Move values to the right to have space for offset
+          byte* values = AtStart + OffsetElementSizeSize + ValueCount * oesBefore;
+          Memcpy16rwd(values + moveValuesRight, values, ValueOffset);
+
+          byte* newOffsets = AtStart + OffsetElementSizeSize;
+#if BASE256
+   // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
+         byte* offsets = newOffsets;
+#else
+          byte* offsets = newOffsets;
+#endif
+          newOffsets += needed;
+          offsets += used;
+          Debug.Assert(oesBefore < oesAfter);
+          for (uint t = valuesWrittenSoFar; t > 0; t--) {
+              ulong offsetsValue;
+              offsets -= oesBefore;
+              newOffsets -= oesAfter;
+              switch (oesBefore) {
+                  case 1: offsetsValue = Base64Int.ReadBase64x1((IntPtr)offsets);
+                      break;
+                  case 2: offsetsValue = Base64Int.ReadBase64x2((IntPtr)offsets);
+                      break;
+                  case 3: offsetsValue = Base64Int.ReadBase64x3((IntPtr)offsets);
+                      break;
+                  case 4: offsetsValue = Base64Int.ReadBase64x4((IntPtr)offsets);
+                      break;
+                  case 5: offsetsValue = Base64Int.ReadBase64x5((IntPtr)offsets);
+                      break;
+                  default: throw new Exception("Internal error.");
+              }
+              switch (oesAfter) {
+                  case 2:
+                      Base64Int.WriteBase64x2(offsetsValue, (IntPtr)newOffsets);
+                      break;
+                  case 3:
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x3(offsetsValue, (IntPtr)newOffsets);
+                      break;
+                  case 4:
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x4(offsetsValue, (IntPtr)newOffsets);
+                      break;
+                  case 5:
+                      offsets -= oesBefore;
+                      newOffsets -= oesAfter;
+                      Base64Int.WriteBase64x5(offsetsValue, (IntPtr)newOffsets);
+                      break;
+                  default: throw new Exception("Tuple too big");
+              }
+          }
+#if BASE256
+         *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
+#else
+          Base16Int.WriteBase16x1(oesAfter, AtStart); // The first byte in the tuple tells the offset element size of the tuple
+#endif
+          AtEnd += moveValuesRight;
+          OffsetElementSize = oesAfter;
+          AtOffsetEnd += needed - used + OffsetElementSizeSize;
       }
 
        /// <summary>
@@ -494,6 +542,80 @@ Retry:
       public unsafe uint FastSealTuple()
       {
          return (uint) (AtEnd - AtStart);
+      }
+
+      internal unsafe static void Memcpy16fwd(byte* dest, byte* src, uint len) {
+          if (len >= 16) {
+              do {
+                  *(long*)dest = *(long*)src;
+                  *(long*)(dest + 8) = *(long*)(src + 8);
+                  dest += 16;
+                  src += 16;
+              }
+              while ((len -= 16) >= 16);
+          }
+          if (len > 0) {
+              if ((len & 8) != 0) {
+                  *(long*)dest = *(long*)src;
+                  dest += 8;
+                  src += 8;
+              }
+              if ((len & 4) != 0) {
+                  *(int*)dest = *(int*)src;
+                  dest += 4;
+                  src += 4;
+              }
+              if ((len & 2) != 0) {
+                  *(short*)dest = *(short*)src;
+                  dest += 2;
+                  src += 2;
+              }
+              if ((len & 1) != 0) {
+                  byte* expr_75 = dest;
+                  dest = expr_75 + 1;
+                  byte* expr_7C = src;
+                  src = expr_7C + 1;
+                  *expr_75 = *expr_7C;
+              }
+          }
+      }
+
+      internal unsafe static void Memcpy16rwd(byte* dest, byte* src, uint len) {
+          byte* destEnd = dest + len;
+          byte* srcEnd = src + len;
+          if (len >= 16) {
+              do {
+                  destEnd -= 16;
+                  srcEnd -= 16;
+                  *(long*)(destEnd + 8) = *(long*)(srcEnd + 8);
+                  *(long*)destEnd = *(long*)srcEnd;
+              }
+              while ((len -= 16) >= 16);
+          }
+          if (len > 0) {
+              if ((len & 8) != 0) {
+                  destEnd -= 8;
+                  srcEnd -= 8;
+                  *(long*)destEnd = *(long*)srcEnd;
+              }
+              if ((len & 4) != 0) {
+                  destEnd -= 4;
+                  srcEnd -= 4;
+                  *(int*)destEnd = *(int*)srcEnd;
+              }
+              if ((len & 2) != 0) {
+                  destEnd -= 2;
+                  srcEnd -= 2;
+                  *(short*)destEnd = *(short*)srcEnd;
+              }
+              if ((len & 1) != 0) {
+                  destEnd -= 1;
+                  srcEnd -= 1;
+                  *destEnd = *srcEnd;
+              }
+          }
+          Debug.Assert(dest == destEnd);
+          Debug.Assert(src == srcEnd);
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
