@@ -48,6 +48,9 @@ namespace Starcounter.Internal {
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
 
+            // Dependency injection for converting puppets to html
+            Obj._PuppetToViewConverter = new PuppetToViewConverter();
+
             // Setting the response handler.
             Node.SetHandleResponse(AppServer_.OnResponse);
 

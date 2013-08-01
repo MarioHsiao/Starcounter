@@ -601,10 +601,10 @@ uint32_t BmxData::HandleSessionCreation(shared_memory_chunk* smc, TASK_INFO_TYPE
 {
     uint32_t* plinear_index = (uint32_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_LINEAR_INDEX);
     uint64_t* prandom_salt = (uint64_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
-    uint32_t* pview_model_index = (uint32_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_VIEWMODEL_INDEX);
+    uint32_t* preserved = (uint32_t*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SESSION_RESERVED_INDEX);
 
     // Calling managed function to destroy session.
-    g_create_new_apps_session_callback(task_info->scheduler_number, plinear_index, prandom_salt, pview_model_index);
+    g_create_new_apps_session_callback(task_info->scheduler_number, plinear_index, prandom_salt, preserved);
 
     //std::cout << "Session " << apps_unique_session_index << ":" << apps_session_salt << " was created." << std::endl;
 

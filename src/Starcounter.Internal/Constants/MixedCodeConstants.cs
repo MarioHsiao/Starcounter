@@ -72,7 +72,27 @@ namespace Starcounter.Internal
         /// <summary>
         /// Chunk session view model index offset.
         /// </summary>
-        public const int CHUNK_OFFSET_SESSION_VIEWMODEL_INDEX = CHUNK_OFFSET_SESSION_RANDOM_SALT + 8;
+        public const int CHUNK_OFFSET_SESSION_RESERVED_INDEX = CHUNK_OFFSET_SESSION_RANDOM_SALT + 8;
+
+        /// <summary>
+        /// Session string length in characters.
+        /// </summary>
+        public const int SESSION_STRING_LEN_CHARS = 32;
+
+        /// <summary>
+        /// Session string prefix.
+        /// </summary>
+        public const int SESSION_STRING_PREFIX_LEN = 8;
+
+        /// <summary>
+        /// Session string prefix.
+        /// </summary>
+        public const int SESSION_STRING_FULL_LEN = SESSION_STRING_LEN_CHARS + SESSION_STRING_PREFIX_LEN;
+
+        /// <summary>
+        /// Session string prefix.
+        /// </summary>
+        public const String SESSION_STRING_PREFIX = "/scsssn/";
 
         /// <summary>
         /// Size of the session structure in bytes.
