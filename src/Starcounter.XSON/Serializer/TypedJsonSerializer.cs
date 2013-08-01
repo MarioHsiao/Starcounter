@@ -174,6 +174,33 @@ restart:
                         nameWritten = false;
                     }
 
+					var jsonObj = obj as Json;
+					if (jsonObj != null && jsonObj.View != null) {
+						// Property name.
+						if (!nameWritten) {
+							valueSize = JsonHelper.WriteString((IntPtr)(pfrag + 1), buf.Length - offset, "View");
+							if (valueSize == -1 || (buf.Length < (offset + valueSize + 1))) {
+								nameWritten = false;
+								goto restart;
+							}
+
+							*pfrag = (byte)',';
+							nameWritten = true;
+							offset += valueSize + 1;
+							pfrag += valueSize + 1;
+
+							*pfrag++ = (byte)':';
+							offset++;
+						}
+
+						valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, jsonObj.View);
+
+						if ((valueSize == -1) || (buf.Length < (offset + valueSize + 1)))
+							goto restart;
+						pfrag += valueSize;
+						offset += valueSize;
+					}
+
                     if (buf.Length < (offset + 1))
                         goto restart; // Bummer! we dont have any place left for the last char :(
                     *pfrag = (byte)'}';
