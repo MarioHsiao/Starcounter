@@ -34,6 +34,7 @@ class Program {
 
         Handle.GET("/emails", () => {
             Master m = new Master() { View = "master.html" };
+            Session.Data = m;
             m.Emails = Db.SQL("SELECT e FROM Emails e");
             return m;
         });
