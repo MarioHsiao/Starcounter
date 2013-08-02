@@ -15,7 +15,7 @@ _STATIC_ASSERT(sizeof(HANDLE) == sizeof(void *));
 #define PROCESS_NAME_IPCMONITOR L"scipcmonitor.exe"
 #define PROCESS_NAME_CODEHOST L"sccode.exe"
 #define PROCESS_NAME_CODEDATA L"scdata.exe"
-#define PROCESS_NAME_CODELOGW L"log_writer.exe"
+#define PROCESS_NAME_CODELOGW L"scdblog.exe"
 #define PROCESS_NAME_PROLOG L"scsqlparser.exe"
 
 static void (*__shutdown_event_handler)();

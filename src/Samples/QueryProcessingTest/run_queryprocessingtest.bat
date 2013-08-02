@@ -40,7 +40,7 @@ SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
 START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 
 :: Starting log writer process.
-START CMD /C "log_writer.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
+START CMD /C "scdblog.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 
 :: Starting Prolog process.
 START CMD /C "32bitComponents\scsqlparser.exe 8066"

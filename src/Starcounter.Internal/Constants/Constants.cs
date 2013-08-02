@@ -59,7 +59,7 @@ namespace Starcounter.Internal
 
             /// <summary>
             /// </summary>
-            public const string LogWriter = "log_writer";
+            public const string ScDbLog = "scdblog";
 
             /// <summary>
             /// ScNetworkGateway
