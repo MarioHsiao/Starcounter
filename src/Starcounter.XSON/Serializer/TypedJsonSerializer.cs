@@ -175,10 +175,10 @@ restart:
                     }
 
 					var jsonObj = obj as Json;
-					if (jsonObj != null && jsonObj.View != null) {
+					if (jsonObj != null && jsonObj.Html != null) {
 						// Property name.
 						if (!nameWritten) {
-							valueSize = JsonHelper.WriteString((IntPtr)(pfrag + 1), buf.Length - offset, "View");
+							valueSize = JsonHelper.WriteString((IntPtr)(pfrag + 1), buf.Length - offset, "Html");
 							if (valueSize == -1 || (buf.Length < (offset + valueSize + 1))) {
 								nameWritten = false;
 								goto restart;
@@ -193,7 +193,7 @@ restart:
 							offset++;
 						}
 
-						valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, jsonObj.View);
+						valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, jsonObj.Html);
 
 						if ((valueSize == -1) || (buf.Length < (offset + valueSize + 1)))
 							goto restart;
