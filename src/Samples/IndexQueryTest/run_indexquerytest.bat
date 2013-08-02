@@ -22,7 +22,7 @@ IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 
 :: Creating image files.
-sccreatedb.exe -ip %DB_DIR% -lp %DB_DIR% %DB_NAME%
+sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Starting IPC monitor first.
 START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
@@ -38,6 +38,9 @@ SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
 
 :: Starting database memory management process.
 START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
+
+:: Starting log writer process.
+START CMD /C "scdblog.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 
 :: Starting Prolog process.
 START CMD /C "32bitComponents\scsqlparser.exe 8066"

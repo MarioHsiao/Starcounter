@@ -19,6 +19,9 @@ START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 :: Starting database memory management process.
 START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 
+:: Starting log writer process.
+START CMD /C "scdblog.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
+
 :: Starting Prolog process.
 START CMD /C "32bitComponents\scsqlparser.exe 8066"
 
