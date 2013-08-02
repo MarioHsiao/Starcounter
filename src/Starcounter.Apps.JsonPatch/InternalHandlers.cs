@@ -50,7 +50,7 @@ namespace Starcounter.Internal.JsonPatch {
             }
 
             // Do not redirect the administrator console output
-            if (!NewConfig.IsAdministratorApp) {
+            if (!StarcounterEnvironment.IsAdministratorApp) {
 
                 Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console", (Request req) => {
                     //if (StringExistInList("application/json", req["Accept"])) {
