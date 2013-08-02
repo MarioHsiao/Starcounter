@@ -48,6 +48,11 @@ namespace Starcounter.Internal.Web {
         /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
         /// <returns>The same object as provide in the response parameter</returns>
         public Response OnResponse(Request request, Response response) {
+
+            // NOTE: Checking if its internal request then just returning response without modification.
+            if (request.IsInternal)
+                return response;
+
             try {
                 if (response == null) {
                     response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
