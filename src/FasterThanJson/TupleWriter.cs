@@ -53,6 +53,7 @@ namespace Starcounter.Internal
 #endif
 #if BASE64
       public const int MAXOFFSETSIZE=5;
+      public const int DEFAULTOFFSETSIZE = 2;
 #endif
 #if BASE256
        /// <summary>
@@ -124,7 +125,7 @@ namespace Starcounter.Internal
        /// <param name="valueCount"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public TupleWriter(byte* start, uint valueCount)
-         : this(start, valueCount, TupleWriter.MAXOFFSETSIZE)
+          : this(start, valueCount, TupleWriter.DEFAULTOFFSETSIZE)
       {
       }
 
