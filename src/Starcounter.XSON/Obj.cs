@@ -345,18 +345,6 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// If set true and a ChangeLog is set on the current thread, all 
-        /// changes done to this Obj will be logged.
-        /// </summary>
-        public bool LogChanges { get; set; }
-
         public abstract void ProcessInput<V>(TValue<V> template, V value);
-
-
     }
-
-
-
-
 }

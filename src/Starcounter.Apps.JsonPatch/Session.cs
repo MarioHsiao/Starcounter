@@ -167,7 +167,6 @@ namespace Starcounter {
 
             // We don't want any changes logged during this request since
             // we will have to send the whole object anyway in the response.
-            root.LogChanges = false;
             ChangeLog.CurrentOnThread = null;
         }
 
