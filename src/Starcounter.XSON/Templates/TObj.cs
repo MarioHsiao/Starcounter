@@ -27,7 +27,7 @@ namespace Starcounter.Templates {
         }
 
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
-        private static bool shouldUseCodegeneratedSerializer = false;
+        private static bool shouldUseCodegeneratedSerializer = true;
 
         internal DataValueBinding<IBindable> dataBinding;
         private bool bindChildren;
