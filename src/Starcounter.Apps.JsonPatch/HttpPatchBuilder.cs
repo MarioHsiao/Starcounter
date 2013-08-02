@@ -72,7 +72,10 @@ namespace Starcounter.Internal.JsonPatch
         internal static byte[] CreateHttpPatchResponse(ChangeLog changeLog) {
             List<Byte> content = new List<Byte>(100);
             CreateContentFromChangeLog(changeLog, content);
-            return CreateResponse(OK200_WITH_JSON_PATCH, content.ToArray());
+            //return CreateResponse(OK200_WITH_JSON_PATCH, content.ToArray());
+
+            // TODO: Bug fix.
+            return content.ToArray();
         }
 
         /// <summary>
