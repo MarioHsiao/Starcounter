@@ -14,7 +14,7 @@ CMD /C sccreatedb.exe -ip .db SqlTest
 :: start servers
 START scipcmonitor.exe PERSONAL .db.output
 START scdata.exe SQLTEST SqlTest .db.output
-START log_writer.exe SqlTest SqlTest .db.output
+START scdblog.exe SqlTest SqlTest .db.output
 START 32bitComponents\scsqlparser.exe 8066
 :: start the program
 CMD /C scweaver.exe s\SQLTest\SQLTest.exe

@@ -51,7 +51,7 @@ namespace Starcounter.Server {
         }
 
         internal const string DatabaseExeFileName = StarcounterConstants.ProgramNames.ScData + ".exe";
-        internal const string LogWriterExeFileName = StarcounterConstants.ProgramNames.LogWriter + ".exe";
+        internal const string LogWriterExeFileName = StarcounterConstants.ProgramNames.ScDbLog + ".exe";
         internal const string CodeHostExeFileName = StarcounterConstants.ProgramNames.ScCode + ".exe";
 
         /// <summary>
