@@ -19,16 +19,16 @@ namespace Starcounter.Internal {
 
             switch (type) {
 
-                case MimeType.text_html: {
+                case MimeType.Text_Html: {
                     var obj = (Json)before;
-                    string s = obj.View;
+                    string s = obj.Html; ;
                     if (s[0] != '/') // TODO! Needs optimization
-                        s = "/" + obj.View;
+                        s = "/" + obj.Html;
 
                     return NodeX.GET(s).BodyBytes;
                 }
 
-                case MimeType.application_jsonpatch_json: {
+                case MimeType.Application_JsonPatch__Json: {
                     return HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread);
                 }
             }
