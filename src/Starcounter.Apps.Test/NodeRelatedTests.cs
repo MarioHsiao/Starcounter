@@ -71,7 +71,7 @@ namespace Starcounter.Internal.Tests
             NodeX.GetNodeFromUri("/someuri", out node, out relativeUri);
             Assert.IsTrue("/someuri" == relativeUri);
             Assert.IsTrue("127.0.0.1" == node.HostName);
-            Assert.IsTrue(NewConfig.Default.UserHttpPort == node.PortNumber);
+            Assert.IsTrue(StarcounterEnvironment.Default.UserHttpPort == node.PortNumber);
 
             NodeX.GetNodeFromUri("somehost:1234/someuri/", out node, out relativeUri);
             Assert.IsTrue("/someuri/" == relativeUri);

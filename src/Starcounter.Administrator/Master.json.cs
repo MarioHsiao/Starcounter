@@ -43,7 +43,7 @@ namespace Starcounter.Administrator {
             }
 
             // Administrator port.
-            UInt16 adminPort = NewConfig.Default.SystemHttpPort;
+            UInt16 adminPort = StarcounterEnvironment.Default.SystemHttpPort;
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
 #if ANDWAH

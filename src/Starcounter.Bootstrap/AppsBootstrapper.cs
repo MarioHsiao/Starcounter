@@ -40,10 +40,10 @@ namespace Starcounter.Internal {
             String dbName)
         {
             // Setting some configuration settings.
-            NewConfig.Default.UserHttpPort = defaultUserHttpPort;
-            NewConfig.Default.SystemHttpPort = defaultSystemHttpPort;
+            StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
+            StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;
 
-            NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
+            StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
@@ -109,12 +109,12 @@ namespace Starcounter.Internal {
             // Checking for the port.
             if (port == StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
             {
-                port = NewConfig.Default.UserHttpPort;
+                port = StarcounterEnvironment.Default.UserHttpPort;
             }
             else
             {
                 // Setting default user port.
-                NewConfig.Default.UserHttpPort = port;
+                StarcounterEnvironment.Default.UserHttpPort = port;
             }
 
             if (resourceResolvePath != null)
@@ -128,7 +128,7 @@ namespace Starcounter.Internal {
                 //string staticContentDirBase64 = System.Convert.ToBase64String(staticContentDirBytes);
 
                 // Checking if this is not administrator.
-                if (!NewConfig.IsAdministratorApp)
+                if (!StarcounterEnvironment.IsAdministratorApp)
                 {
                     // Putting port and full path to resources directory.
                     String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
