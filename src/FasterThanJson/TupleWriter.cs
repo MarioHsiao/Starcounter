@@ -373,6 +373,8 @@ Retry:
 #endif
       }
 
+      public unsafe delegate UInt64 ReadBase64(IntPtr ptr);
+      public unsafe delegate void WriteBase64(UInt64 value, IntPtr ptr);
 
       /// <summary>
       /// This is a tricky task. We have guessed a to small size for the element offsets. We have used a to narrow size of
@@ -408,38 +410,42 @@ Retry:
           newOffsets += needed;
           offsets += used;
           Debug.Assert(oesBefore < oesAfter);
+          ReadBase64 read;
+          switch (oesBefore) {
+              case 1: read = Base64Int.ReadBase64x1;
+                  break;
+              case 2: read = Base64Int.ReadBase64x2;
+                  break;
+              case 3: read = Base64Int.ReadBase64x3;
+                  break;
+              case 4: read = Base64Int.ReadBase64x4;
+                  break;
+              case 5: read = Base64Int.ReadBase64x5;
+                  break;
+              default: throw new Exception("Internal error.");
+          }
+          WriteBase64 write;
+          switch (oesAfter) {
+              case 2:
+                  write = Base64Int.WriteBase64x2;
+                  break;
+              case 3:
+                  write = Base64Int.WriteBase64x3;
+                  break;
+              case 4:
+                  write = Base64Int.WriteBase64x4;
+                  break;
+              case 5:
+                  write = Base64Int.WriteBase64x5;
+                  break;
+              default: throw new Exception("Tuple too big");
+          }
           for (uint t = valuesWrittenSoFar; t > 0; t--) {
               ulong offsetsValue;
               offsets -= oesBefore;
               newOffsets -= oesAfter;
-              switch (oesBefore) {
-                  case 1: offsetsValue = Base64Int.ReadBase64x1((IntPtr)offsets);
-                      break;
-                  case 2: offsetsValue = Base64Int.ReadBase64x2((IntPtr)offsets);
-                      break;
-                  case 3: offsetsValue = Base64Int.ReadBase64x3((IntPtr)offsets);
-                      break;
-                  case 4: offsetsValue = Base64Int.ReadBase64x4((IntPtr)offsets);
-                      break;
-                  case 5: offsetsValue = Base64Int.ReadBase64x5((IntPtr)offsets);
-                      break;
-                  default: throw new Exception("Internal error.");
-              }
-              switch (oesAfter) {
-                  case 2:
-                      Base64Int.WriteBase64x2(offsetsValue, (IntPtr)newOffsets);
-                      break;
-                  case 3:
-                      Base64Int.WriteBase64x3(offsetsValue, (IntPtr)newOffsets);
-                      break;
-                  case 4:
-                      Base64Int.WriteBase64x4(offsetsValue, (IntPtr)newOffsets);
-                      break;
-                  case 5:
-                      Base64Int.WriteBase64x5(offsetsValue, (IntPtr)newOffsets);
-                      break;
-                  default: throw new Exception("Tuple too big");
-              }
+              offsetsValue = read((IntPtr)offsets);
+              write(offsetsValue, (IntPtr)newOffsets);
           }
 #if BASE256
          *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
