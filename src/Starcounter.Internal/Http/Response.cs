@@ -499,7 +499,6 @@ namespace Starcounter.Advanced
                 // We have our precious bytes. Let's wrap them up in a response.
             }
 
-
             String str = "HTTP/1.1 ";
             
             if (statusCode_ > 0)
