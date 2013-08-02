@@ -167,13 +167,5 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Import Condition="Exists('../packages/UnmanagedExports.1.2.4.23262/tools/RGiesecke.DllExport.targets')"
-          Project="../packages/UnmanagedExports.1.2.4.23262/tools/RGiesecke.DllExport.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <Import Condition="Exists('../packages/UnmanagedExports.1.2.4.23262')" Project="../packages/UnmanagedExports.1.2.4.23262/tools/RGiesecke.DllExport.targets" />
 </Project>
