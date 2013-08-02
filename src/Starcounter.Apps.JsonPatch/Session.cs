@@ -24,8 +24,6 @@ namespace Starcounter {
         [ThreadStatic]
         static Request request;
 
-        static string dataLocationUri = "/__" + Db.Environment.DatabaseName.ToLower() + "/";
-
         internal Obj root;
 
         bool isInUse;
@@ -185,12 +183,12 @@ namespace Starcounter {
         /// Get complete resource locator.
         /// </summary>
         /// <returns></returns>
-        internal string GetDataLocation() 
+        internal string GetDataLocation()
         {
             if (root == null)
                 return null;
 
-            return dataLocationUri + SessionIdString;
+            return ScSessionClass.DataLocationUriPrefix + SessionIdString;
         }
 
         /// <summary>

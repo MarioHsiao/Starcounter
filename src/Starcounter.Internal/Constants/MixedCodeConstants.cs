@@ -80,21 +80,6 @@ namespace Starcounter.Internal
         public const int SESSION_STRING_LEN_CHARS = 32;
 
         /// <summary>
-        /// Session string prefix.
-        /// </summary>
-        public const int SESSION_STRING_PREFIX_LEN = 8;
-
-        /// <summary>
-        /// Session string prefix.
-        /// </summary>
-        public const int SESSION_STRING_FULL_LEN = SESSION_STRING_LEN_CHARS + SESSION_STRING_PREFIX_LEN;
-
-        /// <summary>
-        /// Session string prefix.
-        /// </summary>
-        public const String SESSION_STRING_PREFIX = "/scsssn/";
-
-        /// <summary>
         /// Size of the session structure in bytes.
         /// </summary>
         public const int SESSION_STRUCT_SIZE = 24;

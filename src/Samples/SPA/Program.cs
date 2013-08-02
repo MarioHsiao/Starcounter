@@ -33,7 +33,7 @@ class Program {
         });
 
         Handle.GET("/emails", () => {
-            Master m = new Master() { View = "master.html" };
+            Master m = new Master() { Html = "master.html" };
             Session.Data = m;
             m.Transaction2 = new Transaction();
             m.Emails = Db.SQL("SELECT e FROM Email e");
@@ -43,7 +43,7 @@ class Program {
         Handle.GET("/emails/{?}", (string id) => {
             Master m = (Master)NodeX.GET("/emails");
             var page = new MailPage() { 
-                View = "email.html",
+                Html = "email.html",
                 Data = Db.SQL("SELECT e FROM Email e WHERE Id=?",id).First
             };
             m.Focused = page;

@@ -27,6 +27,11 @@ namespace Starcounter.Internal
         unsafe extern static UInt32 cm3_get_cpun(void* h_opt, Byte* pcpun);
 
         /// <summary>
+        /// Name of the database.
+        /// </summary>
+        public static string DatabaseNameLower { get; internal set; }
+
+        /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
         public static Byte GetCurrentSchedulerId()
