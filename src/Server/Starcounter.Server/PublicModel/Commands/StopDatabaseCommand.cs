@@ -24,7 +24,8 @@ namespace Starcounter.Server.PublicModel.Commands {
 
             public static class Tasks {
                 public const int StopDatabaseProcess = 1;
-                public const int StopCodeHostProcess = 2;
+                public const int StopLogWriterProcess = 2;
+                public const int StopCodeHostProcess = 3;
             }
         }
 
