@@ -1,4 +1,4 @@
-﻿
+
 
 using Starcounter.Advanced;
 using Starcounter.Internal;
@@ -39,11 +39,9 @@ namespace Starcounter {
             // A simple object with no serverstate. Return a 200 OK with the json as content.
 
             // TODO: Respect request MIME type.
-            switch (mimeType) {
-                case MimeType.application_json:
-                    return root.ToJsonUtf8();
+            if (mimeType == MimeType.Application_Json) {
+                return root.ToJsonUtf8();
             }
-
             return _PuppetToViewConverter.Convert(root, mimeType);
 
             //throw new ArgumentException("Unknown mime type!");

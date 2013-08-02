@@ -313,15 +313,18 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case REFERRER_FIELD:
         case XREFERRER_FIELD:
         {
+            // Pointing to the actual value of a session.
+            const char* session_id_start = at + length - MixedCodeConstants::SESSION_STRING_LEN_CHARS;
+
             // Checking if Starcounter session id is presented.
-            if ((MixedCodeConstants::SESSION_STRING_FULL_LEN == length) &&
-                (*(uint64_t*)at == *(uint64_t*)MixedCodeConstants::SESSION_STRING_PREFIX))
+            if ((MixedCodeConstants::SESSION_STRING_LEN_CHARS < length) &&
+                (*(session_id_start - 1) == '/'))
             {
                 // Parsing the session.
-                http->sd_ref_->GetSessionStruct()->FillFromString(at + MixedCodeConstants::SESSION_STRING_PREFIX_LEN, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
+                http->sd_ref_->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
 
                 // Setting the session offset.
-                http->http_request_.session_string_offset_ = at + MixedCodeConstants::SESSION_STRING_PREFIX_LEN - (char*)http->sd_ref_;
+                http->http_request_.session_string_offset_ = session_id_start - (char*)http->sd_ref_;
                 http->http_request_.session_string_len_bytes_ = MixedCodeConstants::SESSION_STRING_LEN_CHARS;
 
                 // Checking if we have session related socket.

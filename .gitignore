@@ -14,6 +14,7 @@ Release
 *.suo
 *.sdf
 *.ipch
+*.aps
 src/Starcounter/Error.cs
 src/Starcounter.Internal/Error.cs
 src/_NCrunch_Level1

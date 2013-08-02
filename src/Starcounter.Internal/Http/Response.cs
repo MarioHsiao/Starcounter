@@ -533,12 +533,18 @@ namespace Starcounter.Advanced
             if (null != contentEncoding_)
                 str += "Content-Encoding: " + contentEncoding_ + StarcounterConstants.NetworkConstants.CRLF;
 
-            if (null != setCookiesString_)
-                str += "Set-Cookie: " + setCookiesString_ + StarcounterConstants.NetworkConstants.CRLF;
+            if (null != setCookiesString_) {
+                str += "Set-Cookie: " + setCookiesString_;
 
-            if (null != AppsSession)
-                str += "Set-Cookie: Location=" + MixedCodeConstants.SESSION_STRING_PREFIX + AppsSession.ToAsciiString() + StarcounterConstants.NetworkConstants.CRLF;
+                if (null != AppsSession)
+                    str += ";Location=" + ScSessionClass.DataLocationUriPrefix + AppsSession.ToAsciiString();
 
+                str += StarcounterConstants.NetworkConstants.CRLF;
+            } else {
+                if (null != AppsSession)
+                    str += "Set-Cookie: Location=" + ScSessionClass.DataLocationUriPrefix + AppsSession.ToAsciiString() + StarcounterConstants.NetworkConstants.CRLF;
+            }
+             
             if (null != bodyString_)
             {
                 if (null != bytes)
