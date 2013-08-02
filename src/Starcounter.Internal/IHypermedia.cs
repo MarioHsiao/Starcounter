@@ -38,10 +38,12 @@ namespace Starcounter {
     /// Common mime types
     /// </summary>
     public enum MimeType {
-        text_plain=1,
-        text_html=2,
-        application_json=3,
-        application_jsonpatch_json=4
+        Unspecified=0,
+        Other=1,
+        Text_Plain=2,
+        Text_Html=3,
+        Application_Json=4,
+        Application_JsonPatch__Json=5
     }
 
     public class MimeTypeHelper {

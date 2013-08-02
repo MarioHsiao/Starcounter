@@ -79,6 +79,7 @@ namespace Starcounter.Internal.Web {
         public override Response HandleRequest(Request request) {
             Response result = null;
             UInt32 errCode;
+            Boolean cameWithSession = request.HasSession;
 
             switch (request.ProtocolType)
             {
@@ -92,15 +93,11 @@ namespace Starcounter.Internal.Web {
                             // Setting the original request.
                             Session.InitialRequest = request;
 
-                            if (request.HasSession) {
+                            if (cameWithSession) {
                                 Session.Start((Session)request.AppsSessionInterface);
 
                                 // Checking if we can reuse the cache.
                                 if (NodeX.CheckLocalCache(request.Uri, request, null, null, out result)) {
-
-                                    // Setting session on result.
-                                    if (null != result)
-                                        result.AppsSession = Session.Current.InternalSession;
 
                                     // Handling and returning the HTTP response.
                                     result = OnResponse(request, result);
@@ -119,12 +116,12 @@ namespace Starcounter.Internal.Web {
                         Obj curJsonObj = null;
                         if (null != result) {
 
+                            // Setting session on result only if its original request.
+                            if ((null != Session.Current) && (!request.IsInternal) && (!cameWithSession))
+                                result.AppsSession = Session.Current.InternalSession;
+
                             // Converting response to JSON.
                             curJsonObj = result;
-
-                            // Session operations are only on non-internal requests.
-                            if (null != Session.Current)
-                                result.AppsSession = Session.Current.InternalSession;
 
                             if ((null != curJsonObj) &&
                                 (null != rootJsonObj) &&
@@ -161,7 +158,7 @@ namespace Starcounter.Internal.Web {
                     try
                     {
                         // Checking if we are in session already.
-                        if (!request.HasSession)
+                        if (!cameWithSession)
                         {
                             // Creating session on Request as well.
                             errCode = request.GenerateNewSession(Session.CreateNewEmptySession());
