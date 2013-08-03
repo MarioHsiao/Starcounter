@@ -17,6 +17,9 @@ SET DEVENV_EXE_PATH=C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\
 "%DEVENV_EXE_PATH%" "..\..\Level0\msbuild\Blue.sln" /clean "Release|Win32"
 "%DEVENV_EXE_PATH%" "..\..\Level0\msbuild\Blue.sln" /clean "Debug|Win32"
 
+:: IF EXIST ".nuget" RMDIR ".nuget" /S /Q
+:: IF EXIST "packages" RMDIR "packages" /S /Q
+
 :: Removing all Visual Studio temporary directories recursively.
 FOR /D /R %%X IN (obj) DO IF EXIST "%%X" RMDIR "%%X" /S /Q
 FOR /D /R %%X IN (bin) DO IF EXIST "%%X" RMDIR "%%X" /S /Q
