@@ -12,6 +12,6 @@ namespace Starcounter.Internal {
         /// <param name="before"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        byte[] Convert( object before, MimeType type );
+        byte[] Convert( object before, MimeType type, out MimeType resultingMimetype );
     }
 }
