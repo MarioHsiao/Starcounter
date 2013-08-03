@@ -109,7 +109,6 @@
     <Compile Include="ISqlResult.cs" />
     <Compile Include="ITransaction.cs" />
     <Compile Include="KeyValueBinary.cs" />
-    <Compile Include="NewConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rows.cs" />
     <Compile Include="PersonalServerProcess.cs" />

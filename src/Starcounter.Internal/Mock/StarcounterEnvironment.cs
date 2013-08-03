@@ -64,6 +64,27 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Is this application a Starcounter Administrator?
+        /// </summary>
+        public static Boolean IsAdministratorApp = false;
+
+        /// <summary>
+        /// Default configuration parameters.
+        /// </summary>
+        public static class Default
+        {
+            /// <summary>
+            /// User HTTP port.
+            /// </summary>
+            public static UInt16 UserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+
+            /// <summary>
+            /// System HTTP port.
+            /// </summary>
+            public static UInt16 SystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+        }
+
+        /// <summary>
         /// The system directory
         /// </summary>
         public static string SystemDirectory;
