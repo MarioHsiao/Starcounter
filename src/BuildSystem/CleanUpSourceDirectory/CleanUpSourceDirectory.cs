@@ -51,7 +51,7 @@ namespace CleanUpSourceDirectory
                             fsi.Delete();
 
                             // Printing the diagnostic message.
-                            Console.Error.WriteLine("Removed file '" + fsi.Name + "' from sources directory.");
+                            Console.WriteLine("Removed file '" + fsi.Name + "' from sources directory.");
                         }
                         catch
                         {
