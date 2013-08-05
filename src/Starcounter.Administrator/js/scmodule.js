@@ -1496,7 +1496,55 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
 
     $scope.alerts.length = 0;
     $scope.isExecutableRunning = false;
+    $scope.console = "";
+    $scope.isWebsocketSupport = ("WebSocket" in window);
 
+    $scope.socket = null;
+
+
+    $scope.$on('$destroy', function iVeBeenDismissed() {
+        if ($scope.socket != null) {
+            $scope.socket.close();
+        }
+    })
+
+    // Websockets
+    // Retrive the console output for a specific database
+    $scope.listenToConsoleOutputs = function () {
+
+        try {
+            // TODO
+            $scope.socket = new WebSocket("ws://" + location.host + "/__" + $scope.database.name + "/console/ws");
+
+            this.socket.onopen = function (evt) {
+                $scope.socket.send("PING");
+            };
+
+            this.socket.onmessage = function (evt) {
+
+                if (evt.data == null) {
+                    $scope.console = "";;
+                }
+                else {
+                    $scope.console += evt.data.replace(/\r\n/g, "<br>");
+                }
+
+                $scope.$apply();
+                $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
+            };
+            this.socket.onerror = function (evt) {
+                console.log("Console websockets onerror:" + evt);
+            };
+        }
+        catch (exception) {
+            console.log("Console websockets exception:" + exception);
+            $scope.isWebsocketSupport = false;
+        }
+
+
+    }
+
+    // Standard
     // Retrive the console output for a specific database
     $scope.getConsole = function (database) {
 
@@ -1517,13 +1565,10 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
         });
 
     }
-
     // User clicked the "Refresh" button
     $scope.btnClick_refreshConsole = function () {
         $scope.alerts.length = 0;
-
         $scope.getConsole($scope.database);
-
     }
 
     $scope.checkIfRunningExecutables = function (database, successCallback) {
@@ -1607,6 +1652,9 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
             }
         }
         $scope.isBusy = false;
+        if ($scope.isWebsocketSupport) {
+            $scope.listenToConsoleOutputs();
+        }
 
     });
 

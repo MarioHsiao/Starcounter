@@ -30,6 +30,8 @@ namespace Starcounter.Internal.JsonPatch {
         public static void Register(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort) {
             string dbName = Db.Environment.DatabaseNameLower;
 
+            List<Session>[] WebSocketSessions = new List<Session>[Db.Environment.SchedulerCount];
+
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
             Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseNameLower) == false, "Db.Environment.DatabaseName is empty or null");
 
@@ -53,31 +55,35 @@ namespace Starcounter.Internal.JsonPatch {
             if (!StarcounterEnvironment.IsAdministratorApp) {
 
                 Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console", (Request req) => {
-                    //if (StringExistInList("application/json", req["Accept"])) {
                     return GetConsoleOutput();
-                    //}
-                    //else {
-                    //    return HttpStatusCode.NotAcceptable;
-                    //}
                 });
 
-                // Redirect console output to circular memory buffer
-                InternalHandlers.consoleWriter = new StreamWriter(new CircularStream(1024)); // Console buffer size (TODO: Maybe a configuration option)
-                InternalHandlers.consoleWriter.AutoFlush = true;
-                Console.SetOut(InternalHandlers.consoleWriter);
+                // Handle Console WebSocket connections
+                Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console/ws", (Request req, Session session) => {
+
+                    Byte schedId = ThreadData.Current.Scheduler.Id;
+                    if (!WebSocketSessions[schedId].Contains(session)) {
+                        WebSocketSessions[schedId].Add(session);
+                        session.SetDestroyCallback((Session s) => {
+                            WebSocketSessions[schedId].Remove(s);
+                        });
+                    }
+
+                    try {
+                        return GetConsoleOutputRaw();
+                    }
+                    catch (Exception) {
+                        session.StopUsing(); // TODO: Is this the correct way to close an socket sesstion?
+                    }
+
+                    return "";
+
+                });
+
+                // Setup console handling and callbacks to sessions etc..
+                SetupConsoleHandling(WebSocketSessions);
             }
 
-        }
-
-        public static bool StringExistInList(string str, string list) {
-            if (string.IsNullOrEmpty(list) || string.IsNullOrEmpty(str)) return false;
-            string[] items = list.Split(',');
-            foreach (string type in items) {
-                if (string.Equals(type, str, StringComparison.CurrentCultureIgnoreCase)) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private static void HandlerRegistered(string uri, ushort port) {
@@ -125,6 +131,64 @@ namespace Starcounter.Internal.JsonPatch {
             });
         }
 
+        private static void SetupConsoleHandling(List<Session>[] WebSocketSessions) {
+
+            DbSession dbSession = new DbSession();
+            for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
+                WebSocketSessions[i] = new List<Session>();
+            }
+
+            CircularStream circularStream = new CircularStream(2048, (String text) => {
+
+                // When someting is writing to the console we will get a callback here.
+                for (Byte i = 0; i < Db.Environment.SchedulerCount; i++) {
+                    Byte k = i;
+
+                    // TODO: Avoid calling RunAsync when there is no "listeners"
+
+                    dbSession.RunAsync(() => {
+
+                        Byte sched = k;
+
+                        for (Int32 m = 0; m < WebSocketSessions[sched].Count; m++) {
+                            Session s = WebSocketSessions[sched][m];
+
+                            // Checking if session is not yet dead.
+                            if (s.IsAlive()) {
+                                s.Push(text);
+                            }
+                            else {
+                                // Removing dead session from broadcast.
+                                WebSocketSessions[sched].Remove(s);
+                            }
+                        }
+                    }, i);
+                }
+
+
+            });
+
+
+            // Redirect console output to circular memory buffer
+            InternalHandlers.consoleWriter = new StreamWriter(circularStream);
+            InternalHandlers.consoleWriter.AutoFlush = true;
+            Console.SetOut(InternalHandlers.consoleWriter);
+
+        }
+
+        private static string GetConsoleOutputRaw() {
+
+            CircularStream circularMemoryStream = (CircularStream)InternalHandlers.consoleWriter.BaseStream;
+            byte[] buffer = new byte[circularMemoryStream.Length];
+            int count = circularMemoryStream.Read(buffer, 0, (int)circularMemoryStream.Length);
+            if (count > 0) {
+                return System.Text.Encoding.UTF8.GetString(buffer);
+            }
+
+            return string.Empty;
+
+        }
+
         private static string GetConsoleOutput() {
 
             dynamic resultJson = new DynamicJson();
@@ -132,12 +196,7 @@ namespace Starcounter.Internal.JsonPatch {
             resultJson.exception = null;
 
             try {
-                CircularStream circularMemoryStream = (CircularStream)InternalHandlers.consoleWriter.BaseStream;
-                byte[] buffer = new byte[circularMemoryStream.Length];
-                int count = circularMemoryStream.Read(buffer, 0, (int)circularMemoryStream.Length);
-                if (count > 0) {
-                    resultJson.console = System.Text.Encoding.UTF8.GetString(buffer);
-                }
+                resultJson.console = GetConsoleOutputRaw();
             }
             catch (Exception e) {
                 resultJson.exception = new { message = e.Message, helpLink = e.HelpLink, stackTrace = e.StackTrace };
@@ -350,6 +409,7 @@ namespace Starcounter.Internal.JsonPatch {
         private long _Position = 0;
         private bool _IsBufferFull = false;
         private byte[] _Buffer;
+        Action<string> CallbackDelegate;
 
         #region properties
 
@@ -367,9 +427,16 @@ namespace Starcounter.Internal.JsonPatch {
 
         #endregion
 
+
         public CircularStream(long size) {
             if (size <= 0) throw new ArgumentException("size");
             this._Buffer = new byte[size];
+        }
+
+        public CircularStream(long size, Action<string> callbackDelegate) {
+            if (size <= 0) throw new ArgumentException("size");
+            this._Buffer = new byte[size];
+            CallbackDelegate = callbackDelegate;
         }
 
         public override void Flush() {
@@ -433,9 +500,13 @@ namespace Starcounter.Internal.JsonPatch {
                         this._IsBufferFull = true;
                     }
                 }
+
+                if (CallbackDelegate != null) {
+                    CallbackDelegate.Invoke(System.Text.Encoding.Default.GetString(buffer, offset, count));
+                }
+
             }
 
         }
     }
-
 }
