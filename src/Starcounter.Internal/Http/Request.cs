@@ -98,6 +98,9 @@ namespace Starcounter.Advanced {
                     else if (a.StartsWith("TEXT/PLAIN")) {
                         return MimeType.Text_Plain;
                     }
+                    else if (a.StartsWith("*/*")) {
+                        return MimeType.Unspecified;
+                    }
                     return MimeType.Other;
                 }
                 return MimeType.Unspecified;

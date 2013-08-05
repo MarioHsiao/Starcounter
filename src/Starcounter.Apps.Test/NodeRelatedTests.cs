@@ -15,70 +15,70 @@ namespace Starcounter.Internal.Tests
         {
             String endpoint, relativeUri;
 
-            NodeX.GetEndpointFromUri("endpoint", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("endpoint", out endpoint, out relativeUri);
             Assert.IsTrue("endpoint" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("endpoint/", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("endpoint/", out endpoint, out relativeUri);
             Assert.IsTrue("endpoint" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("http://endpoint/", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("http://endpoint/", out endpoint, out relativeUri);
             Assert.IsTrue("endpoint" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("http://endpoint", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("http://endpoint", out endpoint, out relativeUri);
             Assert.IsTrue("endpoint" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("http://endpoint/", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("http://endpoint/", out endpoint, out relativeUri);
             Assert.IsTrue("endpoint" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("http://endpoint/a", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("http://endpoint/a", out endpoint, out relativeUri);
             Assert.IsTrue("endpoint" == endpoint);
             Assert.IsTrue("/a" == relativeUri);
 
-            NodeX.GetEndpointFromUri("http://endpoint/a/", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("http://endpoint/a/", out endpoint, out relativeUri);
             Assert.IsTrue("endpoint" == endpoint);
             Assert.IsTrue("/a/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("http://www.starcounter.com", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("http://www.starcounter.com", out endpoint, out relativeUri);
             Assert.IsTrue("www.starcounter.com" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("ws://www.starcounter.com", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("ws://www.starcounter.com", out endpoint, out relativeUri);
             Assert.IsTrue("www.starcounter.com" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("file://scbuildserver/FTP/SCDev/BuildSystem/Logs/StatisticsEngine/default.htm", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("file://scbuildserver/FTP/SCDev/BuildSystem/Logs/StatisticsEngine/default.htm", out endpoint, out relativeUri);
             Assert.IsTrue("scbuildserver" == endpoint);
             Assert.IsTrue("/FTP/SCDev/BuildSystem/Logs/StatisticsEngine/default.htm" == relativeUri);
 
-            NodeX.GetEndpointFromUri("/emails", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("/emails", out endpoint, out relativeUri);
             Assert.IsTrue("127.0.0.1" == endpoint);
             Assert.IsTrue("/emails" == relativeUri);
 
-            NodeX.GetEndpointFromUri("/", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("/", out endpoint, out relativeUri);
             Assert.IsTrue("127.0.0.1" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            NodeX.GetEndpointFromUri("123.456.789.000", out endpoint, out relativeUri);
+            X.GetEndpointFromUri("123.456.789.000", out endpoint, out relativeUri);
             Assert.IsTrue("123.456.789.000" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
             Node node;
-            NodeX.GetNodeFromUri("/someuri", out node, out relativeUri);
+            X.GetNodeFromUri("/someuri", out node, out relativeUri);
             Assert.IsTrue("/someuri" == relativeUri);
             Assert.IsTrue("127.0.0.1" == node.HostName);
             Assert.IsTrue(StarcounterEnvironment.Default.UserHttpPort == node.PortNumber);
 
-            NodeX.GetNodeFromUri("somehost:1234/someuri/", out node, out relativeUri);
+            X.GetNodeFromUri("somehost:1234/someuri/", out node, out relativeUri);
             Assert.IsTrue("/someuri/" == relativeUri);
             Assert.IsTrue("somehost:1234" == node.HostName);
             Assert.IsTrue(1234 == node.PortNumber);
 
-            NodeX.GetNodeFromUri("www.starcounter.com:8081", out node, out relativeUri);
+            X.GetNodeFromUri("www.starcounter.com:8081", out node, out relativeUri);
             Assert.IsTrue("/" == relativeUri);
             Assert.IsTrue("www.starcounter.com:8081" == node.HostName);
             Assert.IsTrue(8081 == node.PortNumber);

@@ -152,7 +152,7 @@ namespace NodeTest
             {
                 if (useNodeX_)
                 {
-                    Response resp = NodeX.POST("/nodetest", body_bytes_, null, null);
+                    Response resp = X.POST("/nodetest", body_bytes_, null, null);
                     return CheckResponse(resp);
                 }
                 else
@@ -165,7 +165,7 @@ namespace NodeTest
             {
                 if (useNodeX_)
                 {
-                    NodeX.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    X.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
                     {
                         CheckResponse(resp);
                         return null;
