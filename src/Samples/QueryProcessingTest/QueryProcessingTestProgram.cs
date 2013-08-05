@@ -8,18 +8,18 @@ namespace QueryProcessingTest {
             try {
                 HelpMethods.LogEvent("Query processing tests are started");
                 Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
-                //BindingTestDirect.DirectBindingTest();
-                //HelpMethods.LogEvent("Test query preparation performance.");
-                //QueryProcessingPerformance.MeasurePrepareQuery();
-                //TestErrorMessages.RunTestErrorMessages();
+                BindingTestDirect.DirectBindingTest();
+                HelpMethods.LogEvent("Test query preparation performance.");
+                QueryProcessingPerformance.MeasurePrepareQuery();
+                TestErrorMessages.RunTestErrorMessages();
                 PopulateData();
-                //SqlBugsTest.QueryTests();
-                //FetchTest.RunFetchTest();
-                //AggregationTest.RunAggregationTest();
-                //CodePropertiesTesting.TestCodeProperties();
-                //SelectClauseExpressionsTests.TestSelectClauseExpressions();
-                //OffsetkeyTest.Master();
-                //ObjectIdentityTest.TestObjectIdentityInSQL();
+                SqlBugsTest.QueryTests();
+                FetchTest.RunFetchTest();
+                AggregationTest.RunAggregationTest();
+                CodePropertiesTesting.TestCodeProperties();
+                SelectClauseExpressionsTests.TestSelectClauseExpressions();
+                OffsetkeyTest.Master();
+                ObjectIdentityTest.TestObjectIdentityInSQL();
                 BenchmarkQueryCache.BenchQueryCache();
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
