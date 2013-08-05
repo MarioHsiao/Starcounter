@@ -548,12 +548,12 @@ namespace Starcounter.Advanced
                 str += "Set-Cookie: " + setCookiesString_;
 
                 if (null != AppsSession)
-                    str += ";Location=" + ScSessionClass.DataLocationUriPrefix + AppsSession.ToAsciiString();
+                    str += ";Location=" + ScSessionClass.DataLocationUriPrefixEscaped + AppsSession.ToAsciiString() + "; path=/";
 
                 str += StarcounterConstants.NetworkConstants.CRLF;
             } else {
                 if (null != AppsSession)
-                    str += "Set-Cookie: Location=" + ScSessionClass.DataLocationUriPrefix + AppsSession.ToAsciiString() + StarcounterConstants.NetworkConstants.CRLF;
+                    str += "Set-Cookie: Location=" + ScSessionClass.DataLocationUriPrefixEscaped + AppsSession.ToAsciiString() + "; path=/" + StarcounterConstants.NetworkConstants.CRLF;
             }
              
             if (null != bodyString_)
