@@ -95,8 +95,10 @@ namespace QueryProcessingTest {
         public static void GetCachedEnumerator(int nrIterations) {
             var scheduler = Scheduler.GetInstance();
             Type t = typeof(Object);
-            for (int i = 0; i < nrIterations; i++)
-                scheduler.SqlEnumCache.GetCachedEnumerator(query, t);
+            for (int i = 0; i < nrIterations; i++) {
+                var e = scheduler.SqlEnumCache.GetCachedEnumerator(query, t);
+                e.Dispose();
+            }
             lock (query) {
                 nrFinishedWorkers++;
             }
