@@ -274,6 +274,34 @@ inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t len
     return 0;
 }
 
+// Processes the session information.
+inline void HttpWsProto::ProcessSessionString(SocketDataChunk* sd, const char* session_id_start)
+{
+    // Parsing the session.
+    sd->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
+
+    // Setting the session offset.
+    http_request_.session_string_offset_ = session_id_start - (char*)sd;
+    http_request_.session_string_len_bytes_ = MixedCodeConstants::SESSION_STRING_LEN_CHARS;
+
+    // Checking if we have session related socket.
+    sd->SetGlobalSessionIfEmpty();
+
+    // Comparing with global session now.
+    // NOTE: We don't care what session the socket has.
+    /*if (!sd->CompareGlobalSessionSalt())
+    {
+#ifdef GW_SESSIONS_DIAG
+        GW_COUT << "Session stored in the HTTP header is wrong/outdated." << GW_ENDL;
+#endif
+
+        // Resetting the session information.
+        http_request_.session_string_offset_ = 0;
+        http_request_.session_string_len_bytes_ = 0;
+        sd->ResetSdSession();
+    }*/
+}
+
 inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
@@ -320,28 +348,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             if ((MixedCodeConstants::SESSION_STRING_LEN_CHARS < length) &&
                 (*(session_id_start - 1) == '/'))
             {
-                // Parsing the session.
-                http->sd_ref_->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
-
-                // Setting the session offset.
-                http->http_request_.session_string_offset_ = session_id_start - (char*)http->sd_ref_;
-                http->http_request_.session_string_len_bytes_ = MixedCodeConstants::SESSION_STRING_LEN_CHARS;
-
-                // Checking if we have session related socket.
-                http->sd_ref_->SetGlobalSessionIfEmpty();
-
-                // Comparing with global session now.
-                if (!http->sd_ref_->CompareGlobalSessionSalt())
-                {
-#ifdef GW_SESSIONS_DIAG
-                    GW_COUT << "Session stored in the HTTP header is wrong/outdated." << GW_ENDL;
-#endif
-
-                    // Resetting the session information.
-                    http->http_request_.session_string_offset_ = 0;
-                    http->http_request_.session_string_len_bytes_ = 0;
-                    http->sd_ref_->ResetSdSession();
-                }
+               http->ProcessSessionString(http->sd_ref_, session_id_start);
             }
 
             break;
@@ -597,7 +604,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
         {
             MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_or_params_data()) + matched_uri->get_session_param_index();
-            sd->GetSessionStruct()->FillFromString(method_and_uri + p->offset_, p->len_);
+            ProcessSessionString(sd, method_and_uri + p->offset_);
         }
 
         // Indicating that matching URI index was found.

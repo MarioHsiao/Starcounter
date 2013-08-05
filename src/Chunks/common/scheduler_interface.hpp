@@ -383,22 +383,7 @@ public:
 	/// Schedulers call notify() each time they push a message to a task or
 	/// signal channel, in order to wake up the scheduler it communicates with,
 	/// if but only if it is waiting for work.
-	void notify() {
-		if (get_notify_flag() == false) {
-			// No need to notify the scheduler because it is not waiting.
-			return;
-		}
-		else {
-			if (::SetEvent(work_)) {
-				// Successfully notified the scheduler.
-				return;
-			}
-			else {
-				// Error. Failed to notify the scheduler.
-				return;
-			}
-		}
-	}
+	void notify() { notify(work_); }
 	
 	//--------------------------------------------------------------------------
 	// The monitor call notify_scheduler_to_do_clean_up() if a client

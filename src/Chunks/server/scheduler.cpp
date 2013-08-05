@@ -820,9 +820,7 @@ unsigned long server_port::send_task_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_task_channel_[port_number];
 	if (the_channel.in.try_push_front(the_chunk_index)) {
-		// Get the work HANDLE...
-		HANDLE work = 0; /// TEST COMPILE
-		scheduler_interface_[port_number].notify(work);
+		scheduler_interface_[port_number].notify();
 		return 0;
 	}
 	return _E_INPUT_QUEUE_FULL;
@@ -832,8 +830,7 @@ unsigned long server_port::send_signal_to_scheduler(unsigned long port_number,
 chunk_index the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_signal_channel_[port_number];
 	if (the_channel.in.try_push_front(the_chunk_index)) {
-		HANDLE work = 0; /// TEST COMPILE
-		scheduler_interface_[port_number].notify(work);
+		scheduler_interface_[port_number].notify();
 		return 0;
 	}
 	return _E_INPUT_QUEUE_FULL;
