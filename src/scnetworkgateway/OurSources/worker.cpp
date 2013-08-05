@@ -541,8 +541,20 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         }
     }
 
-    // Checking if there is a session on this socket and setting it.
-    sd->SetSdSessionIfEmpty();
+    // Processing session according to protocol.
+    switch (sd->get_type_of_network_protocol())
+    {
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
+            sd->ResetSdSession();
+        break;
+
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
+            sd->SetSdSessionIfEmpty();
+        break;
+
+        default:
+            sd->ResetSdSession();
+    }
 
     // Running the handler.
     return RunReceiveHandlers(sd);
