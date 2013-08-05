@@ -50,18 +50,6 @@
             </div>
         </div>
 
-        <div class="control-group" ng-class="{error: myForm.transactionLogSize.$invalid}">
-            <label class="control-label" for="transactionLogSize">Transaction Log Size</label>
-            <div class="controls">
-                <div class="input-append">
-                    <input ng-disabled="isBusy == true" type="number" min="0" name="transactionLogSize" id="transactionLogSize" placeholder="Transactionlog Size" ng-model="settings.transactionLogSize" required>
-                    <span class="add-on">MB</span>
-                </div>
-                <span ng-show="myForm.transactionLogSize.$error.validationError" class="help-inline">Invalid format</span>
-                <span ng-show="myForm.transactionLogSize.$error.required" class="help-inline">Required</span>
-            </div>
-        </div>
-
         <div class="control-group" ng-class="{error: myForm.imageDirectory.$invalid}">
             <label class="control-label" for="imageDirectory">Image Directory</label>
             <div class="controls">
@@ -106,13 +94,6 @@
             <div class="controls">
                 <label class="checkbox">
                     <input ng-disabled="isBusy == true" type="checkbox" name="sqlAggregationSupport" id="sqlAggregationSupport" ng-model="settings.sqlAggregationSupport">SQL Aggregation Support</label>
-            </div>
-        </div>
-
-        <div class="control-group" ng-class="{error: myForm.supportReplication.$invalid}">
-            <div class="controls">
-                <label class="checkbox">
-                    <input ng-disabled="isBusy == true" type="checkbox" name="supportReplication" id="supportReplication" ng-model="settings.supportReplication">Replication Support</label>
             </div>
         </div>
 

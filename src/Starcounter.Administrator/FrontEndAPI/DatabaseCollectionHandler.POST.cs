@@ -82,16 +82,16 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             }
 
                             // supportReplication
-                            bool supportReplication = false;
-                            if (incomingJson.IsDefined("supportReplication") == true && bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
-                                command.SetupProperties.StorageConfiguration.SupportReplication = supportReplication;
-                            }
+                            //bool supportReplication = false;
+                            //if (incomingJson.IsDefined("supportReplication") == true && bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
+                            //    command.SetupProperties.StorageConfiguration.SupportReplication = supportReplication;
+                            //}
 
                             // transactionLogSize
-                            long transactionLogSize = 0;
-                            if (incomingJson.IsDefined("transactionLogSize") == true && long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
-                                command.SetupProperties.StorageConfiguration.TransactionLogSize = transactionLogSize;
-                            }
+                            //long transactionLogSize = 0;
+                            //if (incomingJson.IsDefined("transactionLogSize") == true && long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
+                            //    command.SetupProperties.StorageConfiguration.TransactionLogSize = transactionLogSize;
+                            //}
 
                             if (incomingJson.IsDefined("collationFile") == true && !string.IsNullOrEmpty(incomingJson.collationFile)) {
                                 command.SetupProperties.StorageConfiguration.CollationFile = incomingJson.collationFile;
