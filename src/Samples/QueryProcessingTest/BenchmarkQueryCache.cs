@@ -10,7 +10,7 @@ namespace QueryProcessingTest {
         
         public static void BenchQueryCache() {
             HelpMethods.LogEvent("Start benchmark of query cache");
-            int nrIterations = 200000;
+            int nrIterations = 1000000;
             for (int schedulers = 1; schedulers <= Environment.ProcessorCount; schedulers++) {
                 Stopwatch timer = new Stopwatch();
                 nrFinishedWorkers = 0;
@@ -34,7 +34,7 @@ namespace QueryProcessingTest {
                     Thread.Sleep(1000);
                 timer.Stop();
                 HelpMethods.LogEvent("Accessing cache on " + schedulers + " schedulers took " + timer.ElapsedMilliseconds +
-                    " ms for " + nrIterations + " iterations, i.e., " + 
+                    " ms for " + nrIterations + " iterations on each scheduler, i.e., " + 
                     nrIterations*schedulers*1000 /timer.ElapsedMilliseconds+
                     " cache accesses per second.");
                 HelpMethods.LogEvent("Finished benchmark of query cache");
@@ -42,8 +42,10 @@ namespace QueryProcessingTest {
         }
 
         public static void GetEnumerator(int nrIterations) {
-            for (int i = 0; i < nrIterations; i++)
-                Db.SQL(query, 10).GetEnumerator();
+            for (int i = 0; i < nrIterations; i++) {
+                var results = Db.SQL(query, 10).GetEnumerator();
+                results.Dispose();
+            }
             lock (query) {
                 nrFinishedWorkers++;
             }
