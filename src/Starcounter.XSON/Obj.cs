@@ -238,13 +238,14 @@ namespace Starcounter {
         /// property.
         /// </summary>
         private void RefreshAllBoundValues() {
-            TValue child;
+/*            TValue child;
             for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
                 child = Template.Properties[i] as TValue;
                 if (child != null && child.Bound) {
                     Refresh(child);
                 }
             }
+ */
         }
 
         /// <summary>
