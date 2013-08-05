@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using Starcounter;
+using Starcounter.TestFramework;
 
 namespace QueryProcessingTest {
     public static class BenchmarkQueryCache {
@@ -11,6 +12,8 @@ namespace QueryProcessingTest {
         public static void BenchQueryCache() {
             HelpMethods.LogEvent("Start benchmark of query cache");
             int nrIterations = 1000000;
+            if (TestLogger.IsRunningOnBuildServer())
+                nrIterations = nrIterations * 10;
             for (int schedulers = 1; schedulers <= Environment.ProcessorCount; schedulers++) {
                 Stopwatch timer = new Stopwatch();
                 nrFinishedWorkers = 0;
