@@ -33,6 +33,7 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterations, () => DbSQL(nrIterations), "Calling Db.SQL on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetEnumerator(nrIterations), "Calling GetEnumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetSchedulerInstance(nrIterations), "Getting a scheduler instance on ");
+                BenchmarkAction(schedulers, nrIterations, () => GetType(nrIterations), "Calling typeof on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetCachedEnumerator(nrIterations), "Getting cached enumerator on ");
                 HelpMethods.LogEvent("Finished benchmark of query cache");
             }
@@ -66,8 +67,9 @@ namespace QueryProcessingTest {
         }
 
         public static void DbSQL(int nrIterations) {
+            SqlResult<dynamic> s;
             for (int i=0; i<nrIterations;i++)
-                Db.SQL(query, 10);
+                s = Db.SQL(query, 10);
             lock (query) {
                 nrFinishedWorkers++;
             }
@@ -85,8 +87,18 @@ namespace QueryProcessingTest {
         }
 
         public static void GetSchedulerInstance(int nrIterations) {
+            Scheduler s;
             for (int i = 0; i < nrIterations; i++)
-                Scheduler.GetInstance();
+                s = Scheduler.GetInstance();
+            lock (query) {
+                nrFinishedWorkers++;
+            }
+        }
+
+        public static void GetType(int nrIterations) {
+            Type t;
+            for (int i = 0; i < nrIterations; i++)
+                t = typeof(Object);
             lock (query) {
                 nrFinishedWorkers++;
             }
