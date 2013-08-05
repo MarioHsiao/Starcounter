@@ -175,7 +175,7 @@ restart:
                     }
 
 					var jsonObj = obj as Json;
-					if (jsonObj != null && jsonObj.Html != null) {
+					if (jsonObj != null && jsonObj.HasHtmlContent) {
 						// Property name.
 						if (!nameWritten) {
 							valueSize = JsonHelper.WriteString((IntPtr)(pfrag + 1), buf.Length - offset, "Html");
@@ -193,12 +193,23 @@ restart:
 							offset++;
 						}
 
-						valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, jsonObj.Html);
+						if (childObjArr == null) {
+							childObjArr = jsonObj._HtmlContent;
+						}
+						if (childObjArr != null) {
+							var contentStr = System.Text.Encoding.UTF8.GetString(childObjArr);
+							valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, contentStr);
+							if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
+								goto restart;
 
-						if ((valueSize == -1) || (buf.Length < (offset + valueSize + 1)))
-							goto restart;
-						pfrag += valueSize;
-						offset += valueSize;
+							childObjArr = null;
+							pfrag += valueSize;
+							offset += valueSize;
+						} else {
+							valueSize = JsonHelper.WriteNull((IntPtr)pfrag, buf.Length - offset);
+							if (valueSize == -1)
+								goto restart;
+						}
 					}
 
                     if (buf.Length < (offset + 1))

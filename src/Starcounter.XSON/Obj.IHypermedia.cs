@@ -20,7 +20,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="mimeType"></param>
         /// <returns></returns>
-        public byte[] AsMimeType(MimeType mimeType) {
+        public byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType) {
             // A json object as a response could be the following:
             // 1) A new object not attached to a Session, in which case we just serialize it and
             //    send the response as normal json.
@@ -29,20 +29,7 @@ namespace Starcounter {
             // 3) Updates to a session-bound object, in which case we respond with a batch of json-patches.
 
             // We always start from the root object, even if the object returned from the handler is further down in the tree.
-            Container r = this;
-            while (r.Parent != null)
-                r = r.Parent;
-            Json root = (Json)r;
-
-            //            session = Session.Current;
-            //            if (session == null || session.root != root) {
-            // A simple object with no serverstate. Return a 200 OK with the json as content.
-
-            // TODO: Respect request MIME type.
-            if (mimeType == MimeType.Application_Json) {
-                return root.ToJsonUtf8();
-            }
-            return _PuppetToViewConverter.Convert(root, mimeType);
+            return _PuppetToViewConverter.Convert(this, mimeType, out resultingMimeType);
 
             //throw new ArgumentException("Unknown mime type!");
 
@@ -72,7 +59,7 @@ namespace Starcounter {
             */
         }
 
-        public byte[] AsMimeType(string mimeType) {
+        public byte[] AsMimeType(string mimeType, out MimeType resultingMimeType) {
             throw new NotImplementedException();
         }
 

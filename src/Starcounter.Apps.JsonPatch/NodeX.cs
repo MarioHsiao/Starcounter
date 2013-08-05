@@ -17,7 +17,7 @@ using System.Collections.Generic;
 
 namespace Starcounter
 {
-    public class NodeX
+    public class X
     {
         /// <summary>
         /// Retrieves endpoint and relative URI information from URI.
@@ -100,7 +100,7 @@ namespace Starcounter
         static Boolean IsInSccode = false;
 
         // Static constructor.
-        static NodeX()
+        static X()
         {
             if (StarcounterEnvironment.IsCodeHosted)
                 IsInSccode = true;

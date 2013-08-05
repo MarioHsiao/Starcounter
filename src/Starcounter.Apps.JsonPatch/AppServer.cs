@@ -57,6 +57,13 @@ namespace Starcounter.Internal.Web {
                 if (response == null) {
                     response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
                 } else {
+                    if (response.Hypermedia is Json) {
+                        Container r = (Container)response.Hypermedia;
+                        while (r.Parent != null) {
+                            r = r.Parent;
+                        }
+                        response.Hypermedia = (Json)r;
+                    }
                     response.Request = request;
                     response.ConstructFromFields();
                 }
@@ -102,7 +109,7 @@ namespace Starcounter.Internal.Web {
                                 Session.Start((Session)request.GetAppsSessionInterface());
 
                                 // Checking if we can reuse the cache.
-                                if (NodeX.CheckLocalCache(request.Uri, request, null, null, out result)) {
+                                if (X.CheckLocalCache(request.Uri, request, null, null, out result)) {
 
                                     // Setting the session again.
                                     result.AppsSession = Session.Current.InternalSession;
@@ -200,6 +207,8 @@ namespace Starcounter.Internal.Web {
  //                               byte_result = (Byte[])result;
 //                            else if (result is String)
 //                                byte_result = Encoding.UTF8.GetBytes((String)result);
+
+                            byte_result = result.BodyBytes;
 
                             // TODO
                             if (byte_result.Length > 3000)

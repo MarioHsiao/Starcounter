@@ -15,25 +15,38 @@ namespace Starcounter.Internal {
         /// <param name="before"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public byte[] Convert(object before, MimeType type) {
+        public byte[] Convert(object before, MimeType mimeType, out MimeType resultingMimeType ) {
 
-            switch (type) {
+            switch (mimeType) {
+
+                case MimeType.Application_Json:
+                case MimeType.Unspecified: {
+
+                        Container r = (Container)before;
+                        while (r.Parent != null)
+                            r = r.Parent;
+                        Json root = (Json)r;
+                        resultingMimeType = MimeType.Application_Json;
+                        return root.ToJsonUtf8();
+                    }
 
                 case MimeType.Text_Html: {
                     var obj = (Json)before;
                     string s = obj.Html; ;
                     if (s[0] != '/') // TODO! Needs optimization
                         s = "/" + obj.Html;
-
-                    return NodeX.GET(s).BodyBytes;
+                    resultingMimeType = mimeType;
+                    return X.GET(s).BodyBytes;
                 }
 
                 case MimeType.Application_JsonPatch__Json: {
-                    return HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread);
+                        resultingMimeType = mimeType;
+                        return HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread);
                 }
             }
            
-            throw new ArgumentException("Unsupported mime type.");
+            throw new ArgumentException(
+                String.Format("Unsupported mime type {0}.",mimeType.ToString()));
         }
     }
 }

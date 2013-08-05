@@ -93,16 +93,16 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         }
 
                         // supportReplication
-                        bool supportReplication;
-                        if (incomingJson.IsDefined("supportReplication") == true && !bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
-                            resultJson.validationErrors[validationErrors++] = new { property = "supportReplication", message = "invalid support replication" };
-                        }
+                        //bool supportReplication;
+                        //if (incomingJson.IsDefined("supportReplication") == true && !bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
+                        //    resultJson.validationErrors[validationErrors++] = new { property = "supportReplication", message = "invalid support replication" };
+                        //}
 
                         // transactionLogSize
-                        long transactionLogSize;
-                        if (incomingJson.IsDefined("transactionLogSize") == true && !long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
-                            resultJson.validationErrors[validationErrors++] = new { property = "transactionLogSize", message = "invalid transaction log size" };
-                        }
+                        //long transactionLogSize;
+                        //if (incomingJson.IsDefined("transactionLogSize") == true && !long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
+                        //    resultJson.validationErrors[validationErrors++] = new { property = "transactionLogSize", message = "invalid transaction log size" };
+                        //}
 
                         #endregion
 
