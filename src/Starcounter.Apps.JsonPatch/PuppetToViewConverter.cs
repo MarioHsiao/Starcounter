@@ -31,14 +31,10 @@ namespace Starcounter.Internal {
                     }
 
                 case MimeType.Text_Html: {
-                        Container r = (Container)before;
-                        while (r.Parent != null)
-                            r = r.Parent;
-                        Json root = (Json)r;
-                        
-                    string s = root.Html; ;
+                    var obj = (Json)before;
+                    string s = obj.Html; ;
                     if (s[0] != '/') // TODO! Needs optimization
-                        s = "/" + root.Html;
+                        s = "/" + obj.Html;
                     resultingMimeType = mimeType;
                     return X.GET(s).BodyBytes;
                 }
