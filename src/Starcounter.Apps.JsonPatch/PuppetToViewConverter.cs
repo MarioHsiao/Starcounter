@@ -36,7 +36,7 @@ namespace Starcounter.Internal {
                     if (s[0] != '/') // TODO! Needs optimization
                         s = "/" + obj.Html;
                     resultingMimeType = mimeType;
-                    return NodeX.GET(s).BodyBytes;
+                    return X.GET(s).BodyBytes;
                 }
 
                 case MimeType.Application_JsonPatch__Json: {
