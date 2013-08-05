@@ -12,10 +12,10 @@ namespace QueryProcessingTest {
         public static void BenchQueryCache() {
             HelpMethods.LogEvent("Start benchmark of query cache");
             int nrIterations = 1000000;
-            int sleepTimeout = 100;
+            //int sleepTimeout = 100;
             if (TestLogger.IsRunningOnBuildServer()) {
                 nrIterations = nrIterations * 10;
-                sleepTimeout = sleepTimeout * 10;
+                //sleepTimeout = sleepTimeout * 10;
             }
             for (int schedulers = 1; schedulers <= Environment.ProcessorCount; schedulers++) {
                 Stopwatch timer = new Stopwatch();
@@ -26,7 +26,7 @@ namespace QueryProcessingTest {
                     dbs.RunAsync(() => QueryEnumerator(2), schedulerId);
                 }
                 while (nrFinishedWorkers != schedulers)
-                    Thread.Sleep(sleepTimeout);
+                    Thread.Sleep(100);
                 timer.Stop();
                 HelpMethods.LogEvent("Warm up of " + schedulers + " schedulers took " + timer.ElapsedMilliseconds + " ms.");
                 BenchmarkAction(schedulers, nrIterations, () => QueryEnumerator(nrIterations), "Obtaining enumerator on ");
@@ -35,7 +35,7 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterations, () => GetExecutionEnumerator(nrIterations), "Calling GetExecutionEnumerator on ");
                 //BenchmarkAction(schedulers, nrIterations, () => NewSqlEnumerator(nrIterations), "Creating new SqlEnumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetSchedulerInstance(nrIterations), "Getting a scheduler instance on ");
-                BenchmarkAction(schedulers, nrIterations, () => GetType(nrIterations), "Calling typeof on ");
+                BenchmarkAction(schedulers, nrIterations, () => GetType<Object>(nrIterations), "Calling typeof on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetCachedEnumerator(nrIterations), "Getting cached enumerator on ");
                 HelpMethods.LogEvent("Finished benchmark of query cache");
             }
@@ -120,10 +120,10 @@ namespace QueryProcessingTest {
             }
         }
 
-        public static void GetType(int nrIterations) {
+        public static void GetType<T>(int nrIterations) {
             Type t;
             for (int i = 0; i < nrIterations; i++)
-                t = typeof(Object);
+                t = typeof(T);
             lock (query) {
                 nrFinishedWorkers++;
             }
