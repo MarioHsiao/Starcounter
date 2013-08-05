@@ -82,6 +82,15 @@ namespace Starcounter {
             Set((TObj)property, value);
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		internal bool HasHtmlContent {
+			get {
+				return (_htmlFile != null || _htmlContent != null);
+			}
+		}
+
         /// <summary>
         /// 
         /// </summary>
