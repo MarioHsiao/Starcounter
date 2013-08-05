@@ -9,6 +9,7 @@ using System;
 using System.ComponentModel;
 using Starcounter.Templates;
 using System.Diagnostics;
+using System.Text;
 
 
 namespace Starcounter {
@@ -84,12 +85,54 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public string Html { get; set; }
+        public string Html {
+            get {
+                return _htmlFile;
+            }
+            set {
+                _htmlContent = null;
+                _htmlFile = value;
+            }
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        public string HtmlContent { get; set; }
+        private byte[] _htmlContent;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private string _htmlFile;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string HtmlContent {
+            get {
+                return Encoding.UTF8.GetString(_HtmlContent);
+            }
+            set {
+                _htmlContent = Encoding.UTF8.GetBytes(value);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal byte[] _HtmlContent {
+            get {
+                if (_htmlContent == null) {
+                    MimeType mt;
+                    _htmlContent = this.AsMimeType(MimeType.Text_Html, out mt);
+                }
+                return _htmlContent;
+            }
+            set {
+                _htmlContent = value;
+            }
+        }
+
     }
 
     ///// <summary>
