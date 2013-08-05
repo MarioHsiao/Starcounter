@@ -256,7 +256,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// This is the main entrypoint of incomming HTTP requests.
+        /// This is the main entry point of incoming HTTP requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
         /// <param name="session_id">The session_id.</param>
@@ -322,6 +322,9 @@ namespace Starcounter
                         data_stream,
                         protocol_type);
 
+                    // Checking for the correct session.
+                    http_request.GetAppsSessionInterface();
+
                     // Calling user callback.
                     *is_handled = user_callback(http_request);
                 }
@@ -338,6 +341,9 @@ namespace Starcounter
                     socket_data_begin,
                     data_stream,
                     protocol_type);
+
+                // Checking for the correct session.
+                http_request.GetAppsSessionInterface();
 
                 // Calling user callback.
                 *is_handled = user_callback(http_request);

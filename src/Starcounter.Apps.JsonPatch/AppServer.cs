@@ -99,7 +99,7 @@ namespace Starcounter.Internal.Web {
                             Session.InitialRequest = request;
 
                             if (cameWithSession) {
-                                Session.Start((Session)request.AppsSessionInterface);
+                                Session.Start((Session)request.GetAppsSessionInterface());
 
                                 // Checking if we can reuse the cache.
                                 if (NodeX.CheckLocalCache(request.Uri, request, null, null, out result)) {
@@ -147,6 +147,10 @@ namespace Starcounter.Internal.Web {
                     }
                     catch (Exception exc)
                     {
+                        // Checking if session is incorrect.
+                        if (exc is HandlersManagement.IncorrectSessionException)
+                            return new Response() { Uncompressed = HttpResponseBuilder.BadRequest400 };
+
                         // Logging the exception to server log.
                         LogSources.Hosting.LogException(exc);
 
@@ -176,7 +180,7 @@ namespace Starcounter.Internal.Web {
                         else
                         {
                             // Start using specific session.
-                            Session.Start((Session)request.AppsSessionInterface);
+                            Session.Start((Session)request.GetAppsSessionInterface());
                         }
 
                         // Updating session information (sockets info, WebSockets, etc).

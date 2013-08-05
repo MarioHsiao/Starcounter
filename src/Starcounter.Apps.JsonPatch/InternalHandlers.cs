@@ -91,6 +91,9 @@ namespace Starcounter.Internal.JsonPatch {
             registeredPorts.Add(port);
 
             Handle.GET(port, ScSessionClass.DataLocationUriPrefix + "{?}", (Session session) => {
+
+                Debug.Assert(null != session);
+
                 Obj json = Session.Data;
                 if (json == null) {
                     return HttpStatusCode.NotFound;
@@ -103,6 +106,9 @@ namespace Starcounter.Internal.JsonPatch {
 
 
             Handle.PATCH(port, ScSessionClass.DataLocationUriPrefix + "{?}", (Session session, Request request) => {
+
+                Debug.Assert(null != session);
+
                 Obj root;
 
                 try {
