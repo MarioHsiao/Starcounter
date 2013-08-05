@@ -57,6 +57,13 @@ namespace Starcounter.Internal.Web {
                 if (response == null) {
                     response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
                 } else {
+                    if (response.Hypermedia is Json) {
+                        Container r = (Container)response.Hypermedia;
+                        while (r.Parent != null) {
+                            r = r.Parent;
+                        }
+                        response.Hypermedia = (Json)r;
+                    }
                     response.Request = request;
                     response.ConstructFromFields();
                 }
