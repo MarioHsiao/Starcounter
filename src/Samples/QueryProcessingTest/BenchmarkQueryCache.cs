@@ -35,7 +35,7 @@ namespace QueryProcessingTest {
                 timer.Stop();
                 HelpMethods.LogEvent("Accessing cache on " + schedulers + " schedulers took " + timer.ElapsedMilliseconds +
                     " ms for " + nrIterations + " iterations on each scheduler, i.e., " + 
-                    nrIterations*schedulers*1000 /timer.ElapsedMilliseconds+
+                    (long)nrIterations*schedulers*1000 /timer.ElapsedMilliseconds+
                     " cache accesses per second.");
                 HelpMethods.LogEvent("Finished benchmark of query cache");
             }
