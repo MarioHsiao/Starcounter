@@ -67,15 +67,6 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scop
 
             if (response.sqlException != null) {
                 // Show message
-                //$scope.sqlException.beginPosition
-                //$scope.sqlException.endPosition
-                //$scope.sqlException.helpLink
-                //$scope.sqlException.message
-                //$scope.sqlException.query
-                //$scope.sqlException.scErrorCode
-                //$scope.sqlException.token
-                //$scope.sqlException.stackTrace
-
                 $scope.alerts.push({ type: 'error', msg: response.sqlException.message, helpLink: response.sqlException.helpLink });
             }
 
@@ -91,24 +82,16 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scop
             }
             else {
 
+                if (response.status == 404) {
+                    // 404	Not Found
+                    var message = "Could not execute the query on " + $scope.selectedDatabaseName + " database, Caused by a missing or not started database";
+                    $scope.alerts.push({ type: 'error', msg: message });
 
-                $scope._handleErrorReponse(response);
+                }
+                else {
+                    $scope._handleErrorReponse(response);
+                }
 
-                //if (response.status == 404) {
-                //    // 404	Not Found
-                //    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
-                //}
-                //else if (response.status == 500) {
-                //    // 500 Internal Server Error
-                //    $scope.showException(response.data.message, response.data.helpLink, response.data.stackTrace);
-                //}
-                //else if (response.status == 503) {
-                //    // 503 ServiceUnavailable
-                //    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
-                //}
-                //else {
-                //    $scope.showException("Unhandled http statuscode " + response.status, null, ".getDatabase()");
-                //}
             }
         });
     }
@@ -160,8 +143,15 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scop
  */
 angular.module('sc.sqlquery.service', ['ngResource'], function ($provide) {
 
+    // OLDWAY TO EXECUT THE SQL QUERY
+    //$provide.factory('SqlQuery', function ($resource) {
+    //    return $resource('/api/admin/databases/:name/sql', { name: '@name' }, {
+    //        send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
+    //    });
+    //});
+
     $provide.factory('SqlQuery', function ($resource) {
-        return $resource('/api/admin/databases/:name/sql', { name: '@name' }, {
+        return $resource('/__:name/sql', { name: '@name' }, {
             send: { method: 'POST', isArray: false }    // We need to override this (the return type is not an array)
         });
     });
@@ -173,146 +163,14 @@ angular.module('sc.sqlquery.service', ['ngResource'], function ($provide) {
 /**
  * sc.sqlquery.directive
  */
-angular.module('sc.sqlquery.directive', ['ui.config', 'uiHandsontable']);
-
-
-/**
- * ----------------------------------------------------------------------------
- * sc.log
- * ----------------------------------------------------------------------------
- */
-var logModule = angular.module('sc.log', ['sc.log.service', 'sc.log.directive'], function ($routeProvider) {
-
-    $routeProvider.when('/log', {
-        templateUrl: '/partials/log.html',
-        controller: 'LogCtrl'
-    });
-
-});
-
-
-/**
- * Log Controller
- */
-logModule.controller('LogCtrl', ['$scope', 'Log', function ($scope, Log) {
-
-    $scope.alerts.length = 0;
-    $scope.log = {};
-    $scope.log.LogEntries = [];
-
-    $scope.filterModel = {
-        debug: false,
-        notice: false,
-        warning: true,
-        error: true
-    };
-
-
-    // Watch for changes in the filer
-    $scope.$watch('filterModel', function () {
-        $scope.getLog();
-    }, true);
-
-    // Retrive log information
-    $scope.getLog = function () {
-
-        Log.query($scope.filterModel, function (response) {
-            // Success
-            $scope.log = response;
-
-            if (response == null) {
-                $scope.showException("Invalid response, log property was null", null, ".saveSettings()");
-            }
-
-        }, function (response) {
-            // Error
-            if (response instanceof SyntaxError) {
-                $scope.showException(response.message, null, response.stack);
-            }
-            else {
-
-                var message = "Can not retrive the log";
-                if (response.status != null) {
-                    message += " " + "Status code:" + response.status;
-                }
-
-                // 500 Internal Server Error
-                if (response.status === 500) {
-                    $scope.showException(message, null, response.data);
-                }
-                else {
-                    $scope.alerts.push({ type: 'error', msg: message });
-                }
-            }
-
-        });
-    }
-
-    $scope.btnRefresh = function () {
-        $scope.alerts.length = 0;
-        $scope.getLog();
-    }
-
-    // Init 
-    // Handsontable (fixed the height)
-    var $window = $(window);
-    var winHeight = $window.height();
-    var winWidth = $window.width();
-    $window.resize(function () {
-        winHeight = $window.height();
-        winWidth = $window.width();
-    });
-
-    $scope.calcHeight = function () {
-        var border = 12;
-        var topOffset = $("#handsontable").offset().top;
-        var height = winHeight - topOffset - 2 * border;
-        if (height < 50) {
-            return 50;
-        }
-        return height;
-    };
-
-    $scope.calcWidth = function () {
-        var border = 12;
-        var leftOffset = $("#handsontable").offset().left;
-        var width = winWidth - leftOffset - 2 * border;
-        if (width < 50) {
-            return 50;
-        }
-        return width;
-    };
-
-}]);
-
-
-/**
- * sc.log.service
- */
-angular.module('sc.log.service', ['ngResource'], function ($provide) {
-
-    $provide.factory('Log', function ($resource) {
-        return $resource('/api/admin/log', {}, {
-            query: { method: 'GET', isArray: false }
-        });
-    });
-
-});
-
-
-/**
- * sc.log.directive
- */
-angular.module('sc.log.directive', ['uiHandsontable']);
-
-
+angular.module('sc.sqlquery.directive', ['ui.config']);
 
 /**
  * ----------------------------------------------------------------------------
  * scadmin
  * ----------------------------------------------------------------------------
  */
-var adminModule = angular.module('scadmin', ['sc.sqlquery', 'sc.log', 'ui', 'ui.bootstrap'], function ($routeProvider) {
+var adminModule = angular.module('scadmin', ['sc.sqlquery', 'ui', 'ui.bootstrap', 'uiHandsontable'], function ($routeProvider) {
 
     // List of all Databases
     $routeProvider.when('/databases', {
@@ -355,6 +213,11 @@ var adminModule = angular.module('scadmin', ['sc.sqlquery', 'sc.log', 'ui', 'ui.
         controller: 'ServerEditCtrl'
     });
 
+    $routeProvider.when('/log', {
+        templateUrl: '/partials/log.html',
+        controller: 'LogCtrl'
+    });
+
     $routeProvider.when('/gateway', {
         templateUrl: '/partials/gateway.html',
         controller: 'GatewayCtrl'
@@ -371,13 +234,11 @@ var adminModule = angular.module('scadmin', ['sc.sqlquery', 'sc.log', 'ui', 'ui.
  */
 adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '$rootScope', function ($scope, $http, $location, $dialog, $rootScope) {
 
-
     $scope.alerts = [];
     $scope.jobs = [];           // { message:"default" }
     $scope.engines = [];        // { uri:"http://localhost:8181/api/engines/default", name:"default" }
     $scope.databases = [];      // { "uri":"http://headsutv19:8181/api/databases/default", name:"default", running:true, engineUri:"http://headsutv19:8181/api/engines/default" }
     $scope.executables = [];    // { path:"c:\tmp\some.exe", databaseName:"default" }
-    //    $scope.server =           // { name:"Personal", httpPort:8181, version:"2.0.0.0"}
 
     $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
         $scope.showNetworkDownError();
@@ -401,14 +262,12 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
             keyboard: true,
             backdropClick: true,
             templateUrl: "partials/error.html",
-            controller: 'DialogController',
+            controller: 'DialogCtrl',
             data: { header: "Internal Server Error", message: message, stackTrace: stackTrace, helpLink: helpLink }
         };
 
         var d = $dialog.dialog($scope.opts);
         d.open();
-        // TODO: Handle if the server went down, the we can not get the error.html to show the error message..
-
     }
 
     // Show Client Error dialog
@@ -423,7 +282,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
     // Show Network down..
     $scope.showNetworkDownError = function (helpLink) {
-        $scope.alerts.push({ type: 'error', msg: "The server is not responding or is not reachable. For help, contact your network administrator.", helpLink: helpLink });
+        $scope.alerts.push({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: helpLink });
     }
 
     // Show Exception dialog
@@ -434,14 +293,12 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
             keyboard: true,
             backdropClick: true,
             templateUrl: "partials/error.html",
-            controller: 'DialogController',
+            controller: 'DialogCtrl',
             data: { header: title, message: message, stackTrace: stackTrace, helpLink: helpLink }
         };
 
         var d = $dialog.dialog($scope.opts);
         d.open();
-        // TODO: Handle if the server went down, the we can not get the error.html to show the error message..
-
     }
 
     $scope.addJob = function (job) {
@@ -459,8 +316,6 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
         return job;
     }
 
-    // Private
-
     // Get Execuables from all engines
     $scope._GetExecutables = function (readyCallback) {
 
@@ -475,7 +330,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
                 var countDown = engineList.length;
 
-                // 2. Get Each engine
+                // Get Each engine
                 for (var i = 0; i < engineList.length ; i++) {
 
                     var engine = engineList[i];
@@ -550,11 +405,9 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
             if (response.status == 404) {
                 // No engine = no executables
-
             } else {
                 $scope._handleErrorReponse(response);
             }
-
 
             if (readyCallback != null) {
                 readyCallback(executables);
@@ -660,7 +513,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
                 var countDown = remoteDatabaseList.length;
 
-                // 2. Get Each database
+                // Get Each database
                 for (var i = 0; i < remoteDatabaseList.length ; i++) {
 
                     $scope._GetDatabase(remoteDatabaseList[i].Name, function (database) {
@@ -789,8 +642,6 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
     }
 
-    // PUBLIC
-
     // Handle errors (Show user dialog/message)
     $scope._handleErrorReponse = function (response) {
 
@@ -857,11 +708,10 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
         }
         else if (response.status == 0) {
-            // "The server is not responding or is not reachable. For help, contact your network administrator."
             $scope.showNetworkDownError();
         }
         else {
-            $scope.showClientError("Unhandled http statuscode " + response.status, null, ".refreshApplications()");
+            $scope.showClientError("Unhandled http statuscode " + response.status, null, null);
         }
 
     }
@@ -906,7 +756,6 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
                 if (readyCallback != null) {
                     readyCallback();
                 }
-
             }
             else {
                 $scope.showClientError("Unknown server response", null, "._StopAllExecutables() " + JSON.stringify(response.data));
@@ -927,8 +776,6 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
     // Start engine if it's not running
     $scope._StartEngine = function (engineData, successCallback, errorCallback) {
-
-        //        var engineData = { Name: engineName, NoDb: false, LogSteps: false };    // TODO: get NoDb and LogSteps from argumens
 
         $http.post('/api/engines', engineData).then(function (response) {
             // success handler
@@ -1229,45 +1076,44 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
 
     // Create database properties
-    $scope._CreateDatabaseNEWAPI = function (properties, successCallback, errorCallback) {
+    //$scope._CreateDatabaseNEWAPI = function (properties, successCallback, errorCallback) {
 
-        var data = { Name: properties.name };
+    //    var data = { Name: properties.name };
 
-        $http.post('/api/databases', data).then(function (response) {
-            // success handler
-            if (successCallback != null) {
-                successCallback(response.data.validationErrors);
-            }
+    //    $http.post('/api/databases', data).then(function (response) {
+    //        // success handler
+    //        if (successCallback != null) {
+    //            successCallback(response.data.validationErrors);
+    //        }
 
-        }, function (response) {
-            // error handler
+    //    }, function (response) {
+    //        // error handler
 
-            if (response.status == 422) {
-                // 422 Unprocessable Entity (WebDAV; RFC 4918)
-                // The request was well-formed but was unable to be followed due to semantic errors
-                if (response.data.hasOwnProperty("Text") == true) {
-                    $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
-                }
-                else {
-                    $scope._handleErrorReponse(response);
-                }
+    //        if (response.status == 422) {
+    //            // 422 Unprocessable Entity (WebDAV; RFC 4918)
+    //            // The request was well-formed but was unable to be followed due to semantic errors
+    //            if (response.data.hasOwnProperty("Text") == true) {
+    //                $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
+    //            }
+    //            else {
+    //                $scope._handleErrorReponse(response);
+    //            }
 
-            }
-            else {
-                $scope._handleErrorReponse(response);
-            }
+    //        }
+    //        else {
+    //            $scope._handleErrorReponse(response);
+    //        }
 
-            if (errorCallback != null) {
-                errorCallback();
-            }
+    //        if (errorCallback != null) {
+    //            errorCallback();
+    //        }
 
-        });
+    //    });
 
-    }
+    //}
 
     // Verify database properties
     $scope._CreateDatabase = function (settings, successCallback, errorCallback) {
-
 
         $http.post('/api/admin/databases/' + settings.name + '/createdatabase', settings).then(function (response) {
             // success handler
@@ -1287,8 +1133,6 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
                 }
 
             }
-
-
 
         }, function (response) {
             // error handler
@@ -1320,7 +1164,10 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
     // Get console output for one database
     $scope._GetConsole = function (database, successCallback, errorCallback) {
 
-        $http.get('/api/admin/databases/' + database.name + '/console').then(function (response) {
+
+        // OLDWAY TO GET THE CONSOLE
+        //$http.get('/api/admin/databases/' + database.name + '/console').then(function (response) {
+        $http.get('/__' + database.name + '/console').then(function (response) {
             // success handler
 
             if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("console") == true) {
@@ -1331,7 +1178,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
             }
             else {
-                $scope.showClientError("Unknown server response", null, "._stoptDatabase() " + JSON.stringify(response));
+                $scope.showClientError("Unknown server response", null, "._GetConsole() " + JSON.stringify(response));
                 if (errorCallback != null) {
                     errorCallback();
                 }
@@ -1342,39 +1189,12 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
             if (response.status == 404) {
                 // 404	Not Found
-
-                if (response.data.hasOwnProperty("message") == true) {
-                    $scope.alerts.push({ type: 'error', msg: response.data.message, helpLink: response.data.helpLink });
-                }
-                else {
-                    $scope.alerts.push({ type: 'error', msg: response.data });
-                }
-
-
-
-            }
-            else if (response.status == 500) {
-                // 500 Internal Server Error
-                $scope.showException(response.data.message, response.data.helpLink, response.data.stackTrace);
+                var message = "Could not retrive the console output from the " + database.name + " database, Caused by a missing/not started database or there is no Executable running in the database";
+                $scope.alerts.push({ type: 'error', msg: message });
             }
             else {
                 $scope._handleErrorReponse(response);
             }
-
-            //if (response.status == 422) {
-            //    // 409 Conflict
-            //    if (response.data.hasOwnProperty("Text") == true) {
-            //        $scope.alerts.push({ type: 'error', msg: response.data.Text, helpLink: response.data.HelpLink });
-            //    }
-            //    else {
-            //        $scope._handleErrorReponse(response);
-            //    }
-
-            //}
-            //else {
-            //$scope._handleErrorReponse(response);
-            //}
-
 
             if (errorCallback != null) {
                 errorCallback();
@@ -1419,7 +1239,7 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$routeParams', '$dialog', 
 
         var title = 'Stop all running executable';
         var msg = 'Do you want to stop all executable running in database ' + engine.name;
-        var btns = [ { result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+        var btns = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         $dialog.messageBox(title, msg, btns)
           .open()
@@ -1568,7 +1388,6 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$routeParams', '$locat
 }]);
 
 
-
 /**
  * Databases Controller
  */
@@ -1632,7 +1451,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$dialog', '$http', function 
 
         var title = 'Stop database';
         var msg = 'Do you want to stop the database ' + database.name;
-        var btns = [ { result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+        var btns = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         $dialog.messageBox(title, msg, btns)
           .open()
@@ -1677,7 +1496,55 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
 
     $scope.alerts.length = 0;
     $scope.isExecutableRunning = false;
+    $scope.console = "";
+    $scope.isWebsocketSupport = ("WebSocket" in window);
 
+    $scope.socket = null;
+
+
+    $scope.$on('$destroy', function iVeBeenDismissed() {
+        if ($scope.socket != null) {
+            $scope.socket.close();
+        }
+    })
+
+    // Websockets
+    // Retrive the console output for a specific database
+    $scope.listenToConsoleOutputs = function () {
+
+        try {
+            // TODO
+            $scope.socket = new WebSocket("ws://" + location.host + "/__" + $scope.database.name + "/console/ws");
+
+            this.socket.onopen = function (evt) {
+                $scope.socket.send("PING");
+            };
+
+            this.socket.onmessage = function (evt) {
+
+                if (evt.data == null) {
+                    $scope.console = "";;
+                }
+                else {
+                    $scope.console += evt.data.replace(/\r\n/g, "<br>");
+                }
+
+                $scope.$apply();
+                $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
+            };
+            this.socket.onerror = function (evt) {
+                console.log("Console websockets onerror:" + evt);
+            };
+        }
+        catch (exception) {
+            console.log("Console websockets exception:" + exception);
+            $scope.isWebsocketSupport = false;
+        }
+
+
+    }
+
+    // Standard
     // Retrive the console output for a specific database
     $scope.getConsole = function (database) {
 
@@ -1698,13 +1565,10 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
         });
 
     }
-
     // User clicked the "Refresh" button
     $scope.btnClick_refreshConsole = function () {
         $scope.alerts.length = 0;
-
         $scope.getConsole($scope.database);
-
     }
 
     $scope.checkIfRunningExecutables = function (database, successCallback) {
@@ -1788,6 +1652,9 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
             }
         }
         $scope.isBusy = false;
+        if ($scope.isWebsocketSupport) {
+            $scope.listenToConsoleOutputs();
+        }
 
     });
 
@@ -2180,28 +2047,16 @@ adminModule.controller('GatewayCtrl', ['$scope', '$http', function ($scope, $htt
     // Get Gateway information
     $scope.refreshGatewayStats = function () {
 
-        // We need to use $http instead of $resource ($resource dosent support custom headers yet)
-        $http({ method: 'GET', url: '/gwstats', headers: { 'Accept': 'text/html,text/plain,*/*' } }).
-          success(function (data, status, headers, config) {
-              $scope.gwStats = data;
-          }).
-          error(function (data, status, headers, config) {
-              $scope.gwStats = "";
+        $http.get('/gwstats').then(function (response) {
+            // success handler
+            $scope.gwStats = response.data;
 
-              var message = "Can not retrive the gateway statistics.";
-              message += ", " + data;
-              if (status != null) {
-                  message += " " + "Status code:" + status;
-              }
+        }, function (response) {
+            // error handler
+            $scope.gwStats = "";
+            $scope._handleErrorReponse(response);
+        });
 
-              // 500 Internal Server Error
-              if (status === 500) {
-                  $scope.showException(message, null, null);
-              }
-              else {
-                  $scope.alerts.push({ type: 'error', msg: message });
-              }
-          });
     }
 
     // User clicked the "Refresh" button
@@ -2216,11 +2071,84 @@ adminModule.controller('GatewayCtrl', ['$scope', '$http', function ($scope, $htt
 }]);
 
 
+/**
+ * Log Controller
+ */
+adminModule.controller('LogCtrl', ['$scope', '$http', function ($scope, $http) {
+
+    $scope.alerts.length = 0;
+    $scope.log = {};
+    $scope.log.LogEntries = [];
+
+    $scope.filterModel = {
+        debug: false,
+        notice: false,
+        warning: true,
+        error: true
+    };
+
+    // Watch for changes in the filer
+    $scope.$watch('filterModel', function () {
+        $scope.getLog();
+    }, true);
+
+    // Retrive log information
+    $scope.getLog = function () {
+
+        $http.get('/api/admin/log').then(function (response) {
+            // success handler
+            $scope.log = response.data;
+
+        }, function (response) {
+            // error handler
+            $scope.log = "";
+            $scope._handleErrorReponse(response);
+        });
+
+    }
+
+    $scope.btnRefresh = function () {
+        $scope.alerts.length = 0;
+        $scope.getLog();
+    }
+
+    // Init 
+    // Handsontable (fixed the height)
+    var $window = $(window);
+    var winHeight = $window.height();
+    var winWidth = $window.width();
+    $window.resize(function () {
+        winHeight = $window.height();
+        winWidth = $window.width();
+    });
+
+    $scope.calcHeight = function () {
+        var border = 12;
+        var topOffset = $("#handsontable").offset().top;
+        var height = winHeight - topOffset - 2 * border;
+        if (height < 50) {
+            return 50;
+        }
+        return height;
+    };
+
+    $scope.calcWidth = function () {
+        var border = 12;
+        var leftOffset = $("#handsontable").offset().left;
+        var width = winWidth - leftOffset - 2 * border;
+        if (width < 50) {
+            return 50;
+        }
+        return width;
+    };
+
+}]);
+
 
 /**
  * Dialog Controller
  */
-function DialogController($scope, dialog) {
+adminModule.controller('DialogCtrl', ['$scope', 'dialog', function ($scope, dialog) {
 
     $scope.header = dialog.options.data.header;
     $scope.message = dialog.options.data.message;
@@ -2230,9 +2158,15 @@ function DialogController($scope, dialog) {
     $scope.close = function (result) {
         dialog.close(result);
     };
-}
+   
+}]);
 
-
+/**
+ * Retrives the relative path of an url
+ * Example:
+ * Input: http://localhost:8080/foo/bar?123
+ * Output: /foo/bar
+ */
 function toRelativePath(url) {
     var a = document.createElement('a');
     a.href = url;

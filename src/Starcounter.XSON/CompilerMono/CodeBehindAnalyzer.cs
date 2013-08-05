@@ -79,7 +79,7 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// <param name="attribute"></param>
         /// <returns></returns>
         private static bool IsJsonMapAttribute(string attribute) {
-            return ((attribute != null) && (attribute.StartsWith("json.")));
+            return ((attribute != null) && (attribute.Contains("json.")));
         }
 
         /// <summary>

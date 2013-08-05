@@ -481,19 +481,31 @@ namespace Starcounter.Advanced
             byte[] bytes = bodyBytes_;
             if (_Hypermedia != null) {
                 var mimetype = http_request_.PreferredMimeType;
-                bytes = _Hypermedia.AsMimeType(mimetype);
+                try {
+                    bytes = _Hypermedia.AsMimeType(mimetype,out mimetype);
+                    contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+                }
+                catch (ArgumentException) {
+                    throw new ArgumentException(
+                        String.Format("Unsupported mime-type {0} in request Accept header",http_request_["Accept"]));
+                }
+
                 if (bytes == null) {
                     // The preferred requested mime type was not supported, try to see if there are
                     // other options.
                     IEnumerator<MimeType> secondaryChoices = http_request_.PreferredMimeTypes;
                     secondaryChoices.MoveNext(); // The first one is already accounted for
                     while (bytes == null && secondaryChoices.MoveNext()) {
-                        bytes = _Hypermedia.AsMimeType(secondaryChoices.Current);
+                        mimetype = secondaryChoices.Current;
+                        bytes = _Hypermedia.AsMimeType(mimetype,out mimetype);
                     }
                     if (bytes == null) {
                         // None of the requested mime types were supported.
                         // We will have to respond with a "Not Acceptable" message.
                         statusCode_ = 406;
+                    }
+                    else {
+                        contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
                     }
                 }
                 // We have our precious bytes. Let's wrap them up in a response.
@@ -536,12 +548,12 @@ namespace Starcounter.Advanced
                 str += "Set-Cookie: " + setCookiesString_;
 
                 if (null != AppsSession)
-                    str += ";Location=" + ScSessionClass.DataLocationUriPrefix + AppsSession.ToAsciiString();
+                    str += ";Location=" + ScSessionClass.DataLocationUriPrefixEscaped + AppsSession.ToAsciiString() + "; path=/";
 
                 str += StarcounterConstants.NetworkConstants.CRLF;
             } else {
                 if (null != AppsSession)
-                    str += "Set-Cookie: Location=" + ScSessionClass.DataLocationUriPrefix + AppsSession.ToAsciiString() + StarcounterConstants.NetworkConstants.CRLF;
+                    str += "Set-Cookie: Location=" + ScSessionClass.DataLocationUriPrefixEscaped + AppsSession.ToAsciiString() + "; path=/" + StarcounterConstants.NetworkConstants.CRLF;
             }
              
             if (null != bodyString_)

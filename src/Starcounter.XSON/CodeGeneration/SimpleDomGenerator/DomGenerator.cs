@@ -393,18 +393,25 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Template template;
 
             appTemplate = rootTemplate;
+
+			int index = jsonMapName.IndexOf(".json");
+			if (index != -1) {
+				// Remove the json part before searching for the template.
+				jsonMapName = jsonMapName.Substring(index + 6);
+			}
+
             mapParts = jsonMapName.Split('.');
 
             // We skip the two first parts since the first one will always be "json" 
             // and the second the rootTemplate.
-            for (Int32 i = 1; i < mapParts.Length; i++) {
+            for (Int32 i = 0; i < mapParts.Length; i++) {
                 template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
                 if (template is TObj) {
                     appTemplate = (TObj)template;
                 } else if (template is TObjArr) {
                     appTemplate = ((TObjArr)template).App;
                 } else {
-                    // TODO: 
+                    // TODO:
                     // Change to starcounter errorcode.
                     throw new Exception("Invalid property to bind codebehind.");
                 }
