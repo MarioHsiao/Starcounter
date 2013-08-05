@@ -14,7 +14,7 @@ namespace QueryProcessingTest {
             int nrIterations = 1000000;
             int sleepTimeout = 100;
             if (TestLogger.IsRunningOnBuildServer()) {
-                nrIterations = nrIterations * 100;
+                nrIterations = nrIterations * 10;
                 sleepTimeout = sleepTimeout * 10;
             }
             for (int schedulers = 1; schedulers <= Environment.ProcessorCount; schedulers++) {
@@ -32,6 +32,8 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterations, () => QueryEnumerator(nrIterations), "Obtaining enumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => DbSQL(nrIterations), "Calling Db.SQL on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetEnumerator(nrIterations), "Calling GetEnumerator on ");
+                BenchmarkAction(schedulers, nrIterations, () => GetExecutionEnumerator(nrIterations), "Calling GetExecutionEnumerator on ");
+                //BenchmarkAction(schedulers, nrIterations, () => NewSqlEnumerator(nrIterations), "Creating new SqlEnumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetSchedulerInstance(nrIterations), "Getting a scheduler instance on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetType(nrIterations), "Calling typeof on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetCachedEnumerator(nrIterations), "Getting cached enumerator on ");
@@ -81,6 +83,29 @@ namespace QueryProcessingTest {
                 var results = sqlResults.GetEnumerator();
                 results.Dispose();
             }
+            lock (query) {
+                nrFinishedWorkers++;
+            }
+        }
+
+        public static void GetExecutionEnumerator(int nrIterations) {
+            var sqlResults = Db.SQL(query, 10);
+            for (int i = 0; i < nrIterations; i++) {
+                var results = sqlResults.GetExecutionEnumerator();
+                results.Dispose();
+            }
+            lock (query) {
+                nrFinishedWorkers++;
+            }
+        }
+
+        public static void NewSqlEnumerator(int nrIterations) {
+            var sqlResults = Db.SQL(query, 10);
+            var results = sqlResults.GetExecutionEnumerator();
+            for (int i = 0; i < nrIterations; i++) {
+                var s = new SqlEnumerator<dynamic>(results);
+            }
+            results.Dispose();
             lock (query) {
                 nrFinishedWorkers++;
             }
