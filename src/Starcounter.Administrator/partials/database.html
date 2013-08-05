@@ -12,7 +12,7 @@
     <div class="row-fluid">
 
         <legend>Console output
-            <button ng-disabled="database.running == false" class="btn pull-right" ng-click="btnClick_refreshConsole()"><i class="icon-repeat"></i></button>
+            <button ng-hide="isWebsocketSupport == true" ng-disabled="database.running == false" class="btn pull-right" ng-click="btnClick_refreshConsole()"><i class="icon-repeat"></i></button>
         </legend>
 
         <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html-unsafe="console" />
