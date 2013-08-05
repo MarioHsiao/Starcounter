@@ -162,5 +162,14 @@ namespace HttpStructs
             linear_index_ = Request.INVALID_APPS_SESSION_INDEX;
             random_salt_ = Request.INVALID_APPS_SESSION_SALT;
         }
+
+        // Print current session.
+        public void PrintSession()
+        {
+            Console.WriteLine(String.Format("Session: scheduler={0}, index={1}, salt={2}.", 
+                scheduler_id_,
+                linear_index_,
+                random_salt_));
+        }
     }
 }

@@ -313,6 +313,8 @@ namespace HttpStructs
             // Attaching linear index node.
             s.linear_index_node_ = linear_index_node;
 
+            //s.session_struct_.PrintSession();
+
             return 0;
         }
 
