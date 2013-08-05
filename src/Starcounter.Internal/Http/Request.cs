@@ -1241,25 +1241,22 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Gets certain Apps session.
         /// </summary>
-        public IAppsSession AppsSessionInterface 
+        public IAppsSession GetAppsSessionInterface()
         {
-            get 
+            unsafe 
             {
-                unsafe 
-                {
 
-                    // Obtaining corresponding Apps session.
-                    IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
-                        session_->scheduler_id_,
-                        session_->linear_index_,
-                        session_->random_salt_);
+                // Obtaining corresponding Apps session.
+                IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
+                    session_->scheduler_id_,
+                    session_->linear_index_,
+                    session_->random_salt_);
 
-                    // Destroying the session if Apps session was destroyed.
-                    if (apps_session == null)
-                        session_->Destroy();
+                // Destroying the session if Apps session was destroyed.
+                if (apps_session == null)
+                    session_->Destroy();
 
-                    return apps_session;
-                }
+                return apps_session;
             }
         }
 
