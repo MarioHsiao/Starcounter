@@ -2,9 +2,7 @@
 using Starcounter;
 
 partial class Master : Json {
-}
-
-
-[Master.json.Emails]
-partial class Emails : Json<Email> {
+	[Master.json.Emails]
+	partial class EmailsObj : Json<Email> {
+	}
 }
