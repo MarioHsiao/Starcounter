@@ -41,7 +41,7 @@ class Program {
         });
 
         Handle.GET("/emails/{?}", (string id) => {
-            Master m = (Master)NodeX.GET("/emails");
+            Master m = (Master)X.GET("/emails");
             var page = new MailPage() { 
                 Html = "email.html",
                 Data = Db.SQL("SELECT e FROM Email e WHERE Id=?",id).First
