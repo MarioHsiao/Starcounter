@@ -42,7 +42,16 @@ namespace Starcounter.Server {
             public const string SC_S2MM_PMONLINE_EVENT_NAME_BASE = "SC_S2MM_PMONLINE_";
         }
 
+        public static class ScCodeEvents {
+            /// <summary>
+            /// The base name used for the event signaled by the code
+            /// host when it's services are considered available.
+            /// </summary>
+            public const string OnlineBaseName = "SCCODE_EXE_";
+        }
+
         internal const string DatabaseExeFileName = StarcounterConstants.ProgramNames.ScData + ".exe";
+        internal const string LogWriterExeFileName = StarcounterConstants.ProgramNames.ScDbLog + ".exe";
         internal const string CodeHostExeFileName = StarcounterConstants.ProgramNames.ScCode + ".exe";
 
         /// <summary>
@@ -59,6 +68,14 @@ namespace Starcounter.Server {
         /// Gets the full path to the database executable.
         /// </summary>
         internal string DatabaseExePath {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the full path to the log writer executable.
+        /// </summary>
+        internal string LogWriterExePath {
             get;
             private set;
         }
@@ -89,12 +106,17 @@ namespace Starcounter.Server {
             if (!File.Exists(databaseExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Database engine executable not found: {0}", databaseExe));
             }
+            var logWriterExe = Path.Combine(this.Server.InstallationDirectory, LogWriterExeFileName);
+            if (!File.Exists(logWriterExe)) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Log writer executable not found: {0}", logWriterExe));
+            }
             var codeHostExe = Path.Combine(this.Server.InstallationDirectory, CodeHostExeFileName);
             if (!File.Exists(codeHostExe)) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, string.Format("Code host executable not found: {0}", databaseExe));
             }
 
             this.DatabaseExePath = databaseExe;
+            this.LogWriterExePath = logWriterExe;
             this.CodeHostExePath = codeHostExe;
 
             this.Monitor.Setup();
@@ -167,6 +189,36 @@ namespace Starcounter.Server {
             return !databaseRunning;
         }
 
+        internal bool StartLogWriterProcess(Database database) {
+            string eventName;
+            EventWaitHandle eventHandle;
+            bool logWriterRunning;
+
+            eventName = GetLogWriterControlEventName(database);
+            try {
+                eventHandle = EventWaitHandle.OpenExisting(eventName, EventWaitHandleRights.Synchronize);
+                logWriterRunning = !eventHandle.WaitOne(0);
+                eventHandle.Close();
+
+                if (!logWriterRunning) {
+                    // Process is shutting down. Wait for shutdown to complete and
+                    // restart it.
+
+                    WaitForDatabaseProcessToExit(eventName);
+                }
+            }
+            catch (WaitHandleCannotBeOpenedException) {
+                logWriterRunning = false;
+            }
+
+            if (!logWriterRunning) {
+                var startInfo = GetLogWriterStartInfo(database);
+                var process = DoStartEngineProcess(startInfo, database);
+            }
+
+            return !logWriterRunning;
+        }
+
         /// <summary>
         /// Stops the database process for the given <see cref="Database"/>.
         /// If it turns out already stopped, this method silently returns.
@@ -176,11 +228,19 @@ namespace Starcounter.Server {
         /// <returns>Returns true if the database was actually stopped, false
         /// if it was not (i.e. it was not running).</returns>
         internal bool StopDatabaseProcess(Database database) {
-            string processControlEventName;
+            var processControlEventName = GetDatabaseControlEventName(database);
+            return StopEngineProcess(database, processControlEventName);
+        }
+
+        internal bool StopLogWriterProcess(Database database) {
+            var processControlEventName = GetLogWriterControlEventName(database);
+            return StopEngineProcess(database, processControlEventName);
+        }
+
+        private bool StopEngineProcess(Database database, string processControlEventName) {
             EventWaitHandle processControlEvent;
             string errorReason;
 
-            processControlEventName = GetDatabaseControlEventName(database);
             try {
                 processControlEvent = EventWaitHandle.OpenExisting(processControlEventName, EventWaitHandleRights.Modify);
             } catch (WaitHandleCannotBeOpenedException) {
@@ -209,10 +269,15 @@ namespace Starcounter.Server {
 
         internal bool IsDatabaseProcessRunning(Database database) {
             String processControlEventName = GetDatabaseControlEventName(database);
-            return IsDatabaseProcessRunning(processControlEventName);
+            return IsEngineProcessRunning(processControlEventName);
         }
 
-        internal bool IsDatabaseProcessRunning(string processControlEventName) {
+        internal bool IsLogWriterProcessRunning(Database database) {
+            String processControlEventName = GetLogWriterControlEventName(database);
+            return IsEngineProcessRunning(processControlEventName);
+        }
+
+        internal bool IsEngineProcessRunning(string processControlEventName) {
             IntPtr hProcessControlEvent;
 
             hProcessControlEvent = Win32.OpenEvent(Win32.EVENT_MODIFY_STATE, 0, processControlEventName);
@@ -338,7 +403,7 @@ namespace Starcounter.Server {
         }
 
         void WaitForDatabaseProcessToExit(string processControlEventName) {
-            while (IsDatabaseProcessRunning(processControlEventName)) Thread.Sleep(1);
+            while (IsEngineProcessRunning(processControlEventName)) Thread.Sleep(1);
         }
 
         ProcessStartInfo GetDatabaseStartInfo(Database database) {
@@ -358,6 +423,26 @@ namespace Starcounter.Server {
             arguments.Append('\"');
 
             return new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
+        }
+
+        ProcessStartInfo GetLogWriterStartInfo(Database database) {
+            var arguments = new StringBuilder();
+
+            arguments.Append(database.Name);
+            arguments.Append(' ');
+
+            arguments.Append('\"');
+            arguments.Append(database.Uri);
+            arguments.Append('\"');
+            arguments.Append(' ');
+
+            arguments.Append('\"');
+            arguments.Append(database.Server.Configuration.LogDirectory.TrimEnd('\\'));
+            arguments.Append('\"');
+
+            var processStartInfo = new ProcessStartInfo(this.LogWriterExePath, arguments.ToString());
+            processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            return processStartInfo;
         }
 
         ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false) {
@@ -407,6 +492,14 @@ namespace Starcounter.Server {
         string GetDatabaseOnlineEventName(Database database) {
             string processControlEventName = string.Concat(
                 ScDataEvents.SC_S2MM_PMONLINE_EVENT_NAME_BASE,
+                database.Name.ToUpperInvariant()
+                );
+            return processControlEventName;
+        }
+
+        string GetLogWriterControlEventName(Database database) {
+            string processControlEventName = string.Concat(
+                "STAR_LOG_WRITER_CONTROL_EVENT_NAME", "_",
                 database.Name.ToUpperInvariant()
                 );
             return processControlEventName;

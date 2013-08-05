@@ -60,7 +60,7 @@ namespace DaemonObserver
                         procStartInfo.FileName = "\"" + daemonExePath + "\"";
 
                         // Logging event...
-                        Console.Error.WriteLine("Starting new daemon process from: " + daemonExePath);
+                        Console.WriteLine("Starting new daemon process from: " + daemonExePath);
 
                         // Starting the daemon process.
                         Process daemonProc = Process.Start(procStartInfo);
@@ -69,7 +69,7 @@ namespace DaemonObserver
                 }
                 else
                 {
-                    Console.Error.WriteLine("Daemon '" + daemonExePath + "' is already running. Skipping..." + Environment.NewLine);
+                    Console.WriteLine("Daemon '" + daemonExePath + "' is already running. Skipping..." + Environment.NewLine);
                 }
 
                 // Timeout.
@@ -98,7 +98,7 @@ namespace DaemonObserver
                     // Checking if observer process should be stopped.
                     if (File.Exists(Path.Combine(BuildSystem.GetAssemblyDir(), BuildSystem.StopObserverFileName)))
                     {
-                        Console.Error.WriteLine("Observer stop file found. Quiting.");
+                        Console.WriteLine("Observer stop file found. Quiting.");
                         return 0;
                     }
 

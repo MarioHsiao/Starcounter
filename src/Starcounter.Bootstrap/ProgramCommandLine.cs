@@ -74,7 +74,6 @@ namespace StarcounterInternal.Bootstrap {
 
             commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoDb, "Instructs the program not to connect to the database nor use the SQL engine.");
             commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.NoNetworkGateway, "Indicates that the host does not need to utilize with network gateway.");
-            commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.UseConsole, "Instructs the host to use the console to expose management features, like booting executables.");
             commandDefinition.DefineFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging, "Instructs the host to write anything being traced to the log.");
 
             // Create the syntax, validating it

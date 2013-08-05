@@ -40,16 +40,19 @@ namespace Starcounter.Internal {
             String dbName)
         {
             // Setting some configuration settings.
-            NewConfig.Default.UserHttpPort = defaultUserHttpPort;
-            NewConfig.Default.SystemHttpPort = defaultSystemHttpPort;
+            StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
+            StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;
 
-            NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
+            StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
 
+            // Dependency injection for converting puppets to html
+            Obj._PuppetToViewConverter = new PuppetToViewConverter();
+
             // Setting the response handler.
-            Node.SetHandleResponse(AppServer_.HandleResponse);
+            Node.SetHandleResponse(AppServer_.OnResponse);
 
             // Giving REST needed delegates.
             UserHandlerCodegen.Setup(
@@ -106,12 +109,12 @@ namespace Starcounter.Internal {
             // Checking for the port.
             if (port == StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
             {
-                port = NewConfig.Default.UserHttpPort;
+                port = StarcounterEnvironment.Default.UserHttpPort;
             }
             else
             {
                 // Setting default user port.
-                NewConfig.Default.UserHttpPort = port;
+                StarcounterEnvironment.Default.UserHttpPort = port;
             }
 
             if (resourceResolvePath != null)
@@ -125,13 +128,13 @@ namespace Starcounter.Internal {
                 //string staticContentDirBase64 = System.Convert.ToBase64String(staticContentDirBytes);
 
                 // Checking if this is not administrator.
-                if (!NewConfig.IsAdministratorApp)
+                if (!StarcounterEnvironment.IsAdministratorApp)
                 {
                     // Putting port and full path to resources directory.
                     String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp) =>
+                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, null, (Response resp, Object userObject) =>
                     {
                         String respString = resp.GetBodyStringUtf8_Slow();
 
@@ -154,8 +157,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(Request request)
-        {
+        private static Boolean OnHttpMessageRoot(Request request) {
             Response response = AppServer_.HandleRequest(request);
 
             if (response != null)

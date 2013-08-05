@@ -1,4 +1,4 @@
-START CMD /C "kill_all.bat"
+CMD /C "kill_all.bat"
 
 timeout 1
 

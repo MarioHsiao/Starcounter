@@ -34,5 +34,10 @@ namespace Starcounter.Server.PublicModel.Commands {
 
             this.SetupProperties = new DatabaseSetupProperties(engine, databaseName);
         }
+
+        internal override void GetReadyToEnqueue() {
+            base.GetReadyToEnqueue();
+            this.SetupProperties.MakeFinal();
+        }
     }
 }

@@ -18,9 +18,10 @@ enum SOCKET_DATA_FLAGS
     SOCKET_DATA_FLAGS_ACTIVE_CONN = 32,
     SOCKET_DATA_FLAGS_JUST_SEND = MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND,
     SOCKET_DATA_FLAGS_JUST_DISCONNECT = MixedCodeConstants::SOCKET_DATA_FLAGS_DISCONNECT,
-    HTTP_WS_FLAGS_COMPLETE_HEADER = 256,
-    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 512,
-    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 1024    
+    SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 256,
+    HTTP_WS_FLAGS_COMPLETE_HEADER = 512,
+    HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 1024,
+    HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2048
 };
 
 // Socket data chunk.
@@ -141,7 +142,7 @@ public:
         GW_ASSERT((&session_.scheduler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_SCHEDULER_ID);
         GW_ASSERT(((uint8_t*)&session_.linear_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_LINEAR_INDEX);
         GW_ASSERT(((uint8_t*)&session_.random_salt_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
-        GW_ASSERT(((uint8_t*)&session_.view_model_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_VIEWMODEL_INDEX);
+        GW_ASSERT(((uint8_t*)&session_.reserved_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RESERVED_INDEX);
 
         GW_ASSERT(((uint8_t*)&saved_user_handler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
 
@@ -186,7 +187,7 @@ public:
     // Setting new unique socket number.
     void CreateUniqueSocketId()
     {
-        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_);
+        unique_socket_id_ = g_gateway.CreateUniqueSocketId(sock_, port_index_);
     }
 
     // Checking if unique socket number is correct.
@@ -209,19 +210,43 @@ public:
             g_gateway.SetGlobalSessionCopy(sock_, session_);
     }
 
+    // Forcedly sets session if socket is correct.
+    void ForceSetGlobalSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if (session_.IsActive() && CompareUniqueSocketId())
+            g_gateway.SetGlobalSessionCopy(sock_, session_);
+    }
+
+    // Updates connection timestamp if socket is correct.
+    void UpdateConnectionTimeStamp()
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId())
+            g_gateway.UpdateSessionTimeStamp(sock_);
+    }
+
+    // Sets connection type if socket is correct.
+    void SetConnectionType(MixedCodeConstants::NetworkProtocolType proto_type)
+    {
+        // Checking unique socket id and session.
+        if (CompareUniqueSocketId())
+            g_gateway.SetConnectionType(sock_, proto_type);
+    }
+
     // Sets session if socket is correct.
     void SetSdSessionIfEmpty()
     {
         // Checking unique socket id and session.
-        if ((!session_.IsActive()) && CompareUniqueSocketId() && (g_gateway.IsGlobalSessionActive(sock_)))
+        if ((!session_.IsActive()) && (g_gateway.IsGlobalSessionActive(sock_)))
             session_ = g_gateway.GetGlobalSessionCopy(sock_);
     }
 
     // Deletes global session.
-    void DeleteGlobalSession()
+    void DeleteGlobalSessionOnDisconnect()
     {
         // Checking unique socket id and session.
-        if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
+        //if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
             g_gateway.DeleteGlobalSession(sock_);
     }
 
@@ -274,9 +299,10 @@ public:
     }
 
     // Setting type of network protocol.
-    void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType protocol_type)
+    void set_type_of_network_protocol(MixedCodeConstants::NetworkProtocolType proto_type)
     {
-        type_of_network_protocol_ = protocol_type;
+        type_of_network_protocol_ = proto_type;
+        SetConnectionType(proto_type);
     }
 
     // Getting saved user handler id.
@@ -337,6 +363,21 @@ public:
             flags_ |= SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
         else
             flags_ &= ~SOCKET_DATA_FLAGS_SOCKET_REPRESENTER;
+    }
+
+    // Getting socket trigger disconnect flag.
+    bool get_socket_trigger_disconnect_flag()
+    {
+        return flags_ & SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+    }
+
+    // Setting socket trigger disconnect flag.
+    void set_socket_trigger_disconnect_flag(bool value)
+    {
+        if (value)
+            flags_ |= SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
+        else
+            flags_ &= ~SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT;
     }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -496,46 +537,6 @@ public:
     {
         return INVALID_SESSION_INDEX != session_.linear_index_;
     }
-
-#ifndef GW_NEW_SESSIONS_APPROACH
-
-    // Getting session index.
-    session_index_type get_session_index()
-    {
-        return session_.gw_session_index_;
-    }
-
-    // Getting Apps unique session number.
-    apps_unique_session_num_type get_apps_unique_session_num()
-    {
-        return session_.apps_unique_session_num_;
-    }
-
-    // Getting Apps session salt.
-    session_salt_type get_apps_session_salt()
-    {
-        return session_.random_salt_;
-    }
-
-    // Setting Apps unique session number.
-    void set_apps_unique_session_num(apps_unique_session_num_type apps_unique_session_num)
-    {
-        session_.apps_unique_session_num_ = apps_unique_session_num;
-    }
-
-    // Setting Apps sessions salt.
-    void set_apps_session_salt(session_salt_type apps_session_salt)
-    {
-        session_.random_salt_ = apps_session_salt;
-    }
-
-    // Getting session salt.
-    session_salt_type get_session_salt()
-    {
-        return session_.gw_session_salt_;
-    }
-
-#endif
 
     // Getting unique id.
     session_salt_type get_unique_socket_id()
@@ -942,20 +943,6 @@ public:
     {
         return &session_;
     }
-
-#ifndef GW_NEW_SESSIONS_APPROACH
-
-    // Kills the global and  session.
-    void KillGlobalAndSdSession(bool* was_killed)
-    {
-        // Killing global session.
-        g_gateway.KillSession(session_.gw_session_index_, was_killed);
-
-        // Resetting session data.
-        ResetSdSession();
-    }
-
-#endif
 
     // Resets socket data session.
     void ResetSdSession()

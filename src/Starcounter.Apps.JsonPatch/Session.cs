@@ -11,6 +11,7 @@ using Starcounter.Advanced;
 using HttpStructs;
 using Starcounter.Internal;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Starcounter {
     /// <summary>
@@ -18,24 +19,80 @@ namespace Starcounter {
     /// </summary>
     public class Session : IAppsSession {
         [ThreadStatic]
-        private static Session current;
+        static Session current;
 
-        private static string dataLocationUri = "/__" + Db.Environment.DatabaseName.ToLower() + "/";
+        [ThreadStatic]
+        static Request request;
 
         internal Obj root;
 
-        private bool isInUse;
+        bool isInUse;
 
-        private ChangeLog changeLog;
+        ChangeLog changeLog;
 
-        // Destroy session delegate.
-        public Action<Session> destroy_user_delegate_;
+        /// <summary>
+        /// Cached pages dictionary.
+        /// </summary>
+        Dictionary<String, Obj> JsonNodeCacheDict;
+
+        /// <summary>
+        /// Tries to get cached JSON node.
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        internal Obj GetCachedJsonNode(String uri)
+        {
+            Obj obj;
+            if (!JsonNodeCacheDict.TryGetValue(uri, out obj))
+                return null;
+
+            Debug.Assert(null != obj);
+
+            // Checking if its a root.
+            if (root == obj)
+                return root;
+
+            // Checking if node has no parent, indicating that it was removed from tree.
+            if (null != obj.Parent)
+                return obj;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Adds JSON node to cache.
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="obj"></param>
+        internal void AddJsonNodeToCache(String uri, Obj obj)
+        {
+            // Checking if cached state dictionary is already created.
+            if (null == JsonNodeCacheDict)
+                JsonNodeCacheDict = new Dictionary<String, Obj>();
+
+            // Adding current URI to cache.
+            JsonNodeCacheDict[uri] = obj;
+        }
+
+        /// <summary>
+        /// Destroy session delegate.
+        /// </summary>
+        internal Action<Session> destroy_user_delegate_;
 
         /// <summary>
         /// Returns the current active session.
         /// </summary>
         /// <value></value>
         public static Session Current { get { return current; } }
+
+        /// <summary>
+        /// Returns the original request for session.
+        /// </summary>
+        /// <value></value>
+        internal static Request InitialRequest {
+            get { return request; }
+            set { request = value; }
+        }
 
         /// <summary>
         /// Getting internal session.
@@ -53,7 +110,7 @@ namespace Starcounter {
         /// Creates new empty session.
         /// </summary>
         /// <returns></returns>
-        public static Session CreateNewEmptySession()
+        internal static Session CreateNewEmptySession()
         {
             Debug.Assert(current == null);
 
@@ -64,7 +121,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Sets session data.
         /// </summary>
         public static Obj Data {
             get {
@@ -82,12 +139,24 @@ namespace Starcounter {
             }
             set {
                 if (current == null) {
+
+                    // Creating new empty session.
                     current = new Session();
+
+                    // Creating session on Request as well.
+                    UInt32 errCode = request.GenerateNewSession(current);
+
+                    if (errCode != 0)
+                        throw ErrorCode.ToException(errCode);
                 }
                 current.SetData(value);
             }
         }
 
+        /// <summary>
+        /// Setting data object.
+        /// </summary>
+        /// <param name="data"></param>
         private void SetData(Obj data) {
             // TODO:
             // Do we allow setting a new dataobject if an old one exists?
@@ -98,7 +167,6 @@ namespace Starcounter {
 
             // We don't want any changes logged during this request since
             // we will have to send the whole object anyway in the response.
-            root.LogChanges = false;
             ChangeLog.CurrentOnThread = null;
         }
 
@@ -111,15 +179,15 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Get complete resource locator.
         /// </summary>
         /// <returns></returns>
-        internal string GetDataLocation() 
+        internal string GetDataLocation()
         {
             if (root == null)
                 return null;
 
-            return dataLocationUri + SessionIdString;
+            return ScSessionClass.DataLocationUriPrefix + SessionIdString;
         }
 
         /// <summary>
@@ -148,7 +216,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Start usage of given session.
         /// </summary>
         /// <param name="session"></param>
         internal static void Start(Session session)
@@ -164,18 +232,15 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Finish usage of current session.
         /// </summary>
         internal static void End()
         {
-            if (current != null)
-            {
-                current.changeLog.Clear();
-                Session.current = null;
-                ChangeLog.CurrentOnThread = null;
-                if (StarcounterBase._DB.GetCurrentTransaction() != null)
-                    StarcounterBase._DB.SetCurrentTransaction(null);
-            }
+            current.changeLog.Clear();
+            Session.current = null;
+            ChangeLog.CurrentOnThread = null;
+            if (StarcounterBase._DB.GetCurrentTransaction() != null)
+                StarcounterBase._DB.SetCurrentTransaction(null);
         }
 
         /// <summary>
@@ -193,7 +258,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Returns True if session is being used now.
         /// </summary>
         /// <returns></returns>
         public bool IsBeingUsed() {

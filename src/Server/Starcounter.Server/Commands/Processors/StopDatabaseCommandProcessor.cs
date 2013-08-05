@@ -59,6 +59,11 @@ namespace Starcounter.Server.Commands.Processors {
                     stopped = Engine.DatabaseEngine.StopDatabaseProcess(database);
                     return !stopped;
                 });
+
+                WithinTask(Task.StopLogWriterProcess, (task) => {
+                    stopped = Engine.DatabaseEngine.StartLogWriterProcess(database);
+                    return !stopped;
+                });
             }
             
             result = Engine.CurrentPublicModel.UpdateDatabase(database);

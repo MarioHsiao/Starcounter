@@ -65,6 +65,9 @@
   
   <!-- In which test mode Gateway operates. -->
   <TestingMode>MODE_GATEWAY_SMC_HTTP</TestingMode>
+
+  <!-- Server test port. -->
+  <ServerTestPort>123</ServerTestPort>
   
   <!-- Number of connections to make to master node from this client -->
   <NumConnectionsToMaster>1000</NumConnectionsToMaster>

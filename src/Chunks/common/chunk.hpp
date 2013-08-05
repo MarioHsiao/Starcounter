@@ -96,8 +96,8 @@ public:
 		// user_data_begin should be 0, bmx_protocol_begin should be 8, etc.
 		// Just make sure that all code use these constants.
 		//owner_id_begin = 0,
-		user_data_begin = sizeof(owner_id),
-		bmx_protocol_begin = user_data_begin + sizeof(user_data_type),
+		//user_data_begin = sizeof(owner_id),
+		bmx_protocol_begin = 0, //user_data_begin + sizeof(user_data_type),
 		request_size_begin = bmx_protocol_begin +bmx_handler_size,
 		stream_link_begin = static_size -(1 * sizeof(link_type)),
 		next_link_begin = static_size -(2 * sizeof(link_type))
@@ -182,18 +182,18 @@ public:
 	 * @param u The user_data value to write to the chunk.
 	 * @return A reference to this chunk.
 	 */
-	const chunk& set_user_data(user_data_type u) {
-		InterlockedExchange64((__int64*)(elems +user_data_begin), u);
-		return *this;
-	}
+	//const chunk& set_user_data(user_data_type u) {
+	//	InterlockedExchange64((__int64*)(elems +user_data_begin), u);
+	//	return *this;
+	//}
 	
 	/// get_user_data() returns the user_data value of the chunk.
 	/**
 	 * @return The owner_id.
 	 */
-	user_data_type get_user_data() const {
-		return *((user_data_type*)(elems +user_data_begin));
-	}
+	//user_data_type get_user_data() const {
+	//	return *((user_data_type*)(elems +user_data_begin));
+	//}
 	
 	/**
 	 * @param protocol The protocol value to write to the chunk.

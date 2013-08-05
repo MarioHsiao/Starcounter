@@ -5,6 +5,7 @@ using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
+using Starcounter.Internal.Web;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -36,7 +37,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                 errorJson.code = (int)HttpStatusCode.NotFound;
                                 errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
 
-                                return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
+                                return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
                             }
                             else {
 
@@ -95,7 +96,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                     errorJson.code = (int)HttpStatusCode.NotFound;
                                     errorJson.helpLink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
 
-                                    return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
+                                    return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.NotFound, null, errorJson.ToString()) };
                                 }
                                 else {
 
@@ -109,7 +110,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                         sqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport
                                     };
 
-                                    return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
+                                    return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
                                 }
 
                             }
@@ -124,7 +125,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         }
                         else if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
                             String validationErrors = response.GetBodyStringUtf8_Slow();
-                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
                         }
                         else {
                             // TODO

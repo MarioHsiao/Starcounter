@@ -16,7 +16,7 @@ IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 
 :: Creating database.
-sccreatedb.exe -ip %DB_DIR% -lp %DB_DIR% %DB_NAME%
+sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: HTTP Tests
 

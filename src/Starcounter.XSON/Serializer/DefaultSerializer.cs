@@ -19,7 +19,7 @@ namespace Starcounter.XSON.Serializers {
 
             while (reader.GotoProperty()) {
                 propertyName = reader.CurrentPropertyName;
-                tProperty = tObj.Properties.GetTemplateByName(propertyName);
+                tProperty = tObj.Properties.GetExposedTemplateByName(propertyName);
                 if (tProperty == null) {
                     JsonHelper.ThrowPropertyNotFoundException(propertyName);
                 }

@@ -20,7 +20,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// <param name="request">
         /// The REST request.</param>
         /// <returns>The response to be sent back to the client.</returns>
-        static object OnPOST(Request request) {
+        static Response OnPOST(Request request) {
             var serverEngine = RootHandler.Host.Engine;
             var runtime = RootHandler.Host.Runtime;
             var admin = RootHandler.API;
@@ -37,8 +37,8 @@ namespace Starcounter.Administrator.API.Handlers {
             // defined in XSON-based class EngineCollection, the Engines
             // array instances.
 
-            EngineCollection.EnginesApp engine;
-            var response = RESTUtility.JSON.CreateFromRequest<EngineCollection.EnginesApp>(request, out engine);
+            EngineCollection.EnginesObj engine;
+            var response = RESTUtility.JSON.CreateFromRequest<EngineCollection.EnginesObj>(request, out engine);
             if (response != null) return response;
 
             var name = engine.Name;

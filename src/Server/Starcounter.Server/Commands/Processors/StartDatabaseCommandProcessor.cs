@@ -55,6 +55,15 @@ namespace Starcounter.Server.Commands.Processors {
                 return started;
             });
 
+            WithinTask(Task.StartLogWriterProcess, (task) => {
+                if (Engine.DatabaseEngine.IsLogWriterProcessRunning(database))
+                    return false;
+
+                ProgressTask(task, 1);
+                started = Engine.DatabaseEngine.StartLogWriterProcess(database);
+                return started;
+            });
+
             codeHostProcess = database.GetRunningCodeHostProcess();
             started = codeHostProcess != null;
 
@@ -69,53 +78,38 @@ namespace Starcounter.Server.Commands.Processors {
             });
 
             WithinTask(Task.AwaitCodeHostOnline, (task) => {
-                Engine.CurrentPublicModel.UpdateDatabase(database);
+                // Wait until either the host comes online or until the process
+                // terminates, whichever comes first.
+                EventWaitHandle online = null;
+                var name = string.Concat(DatabaseEngine.ScCodeEvents.OnlineBaseName, database.Name.ToUpperInvariant());
 
-                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-                var keepTrying = true;
-                var hostJustStarted = started;
-
-                if (hostJustStarted) {
-                    // If we in fact just started the engine, we should
-                    // probably give it some time to run the bootstrap
-                    // sequence.
-                    Thread.Sleep(500);
-                }
-
-                while (keepTrying) {
-                    try {
-                        var response = Node.LocalhostSystemPortNode.GET(serviceUris.Host, null, null);
-                        response.FailIfNotSuccessOr(503, 404);
-                        if (response.StatusCode == 404) {
-                            Thread.Sleep(100);
-                            continue;
+                try {
+                    while (!codeHostProcess.HasExited) {
+                        if (online == null) {
+                            if (!EventWaitHandle.TryOpenExisting(name, out online)) {
+                                online = null;
+                                Thread.Yield();
+                            }
                         }
-                        else if (response.StatusCode == 503) {
-                            // It's just not available yet. Most likely in
-                            // between the registering of management handlers and
-                            // when the host is considered fully functional.
-                            // Try again after a yield.
-                            Thread.Yield();
-                            continue;
+                        
+                        if (online != null) {
+                            var ready = online.WaitOne(1000);
+                            if (ready) break;
                         }
-
-                        // Success. We consider the host started.
-                        keepTrying = false;
-
-                    } catch (SocketException se) {
 
                         codeHostProcess.Refresh();
-                        if (codeHostProcess.HasExited) {
-                            throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database, se);
-                        }
-
-                        // The socket exception tells us that the likely cause
-                        // of the problem is that the host is just starting and
-                        // hasn't reach the point where it accepts requests just
-                        // yet. We respond with a 2/10 of a second sleeping and
-                        // the trying again.
-                        Thread.Sleep(200);
                     }
+
+                } finally {
+                    if (online != null) {
+                        online.Close();
+                    }
+                }
+
+                Engine.CurrentPublicModel.UpdateDatabase(database);
+
+                if (codeHostProcess.HasExited) {
+                    throw DatabaseEngine.CreateCodeHostTerminated(codeHostProcess, database);
                 }
             });
         }

@@ -21,7 +21,7 @@ namespace BranchBuild
             if (buildType == BuildSystem.CustomBuildsName)
                 return;
 
-            Console.Error.WriteLine("Stopping other builds of the same type...");
+            Console.WriteLine("Stopping other builds of the same type...");
 
             String buildTypeDir = Path.Combine(BuildSystem.LocalBuildsFolder, buildType);
             DirectoryInfo dirInfo = new DirectoryInfo(buildTypeDir);
@@ -37,7 +37,7 @@ namespace BranchBuild
                     if (!File.Exists(daemonStopFilePath))
                     {
                         File.WriteAllText(daemonStopFilePath, "Stopped!");
-                        Console.Error.WriteLine("Stopped other running build version: " + dir.Name);
+                        Console.WriteLine("Stopped other running build version: " + dir.Name);
                     }
                 }
             }
@@ -143,7 +143,7 @@ namespace BranchBuild
                 String[] buildToolNames = { "BuildsFillupDaemon", "GenerateInstaller" };
 
                 // Diagnostics.
-                Console.Error.WriteLine("Copying sources and binaries to the build directory...");
+                Console.WriteLine("Copying sources and binaries to the build directory...");
 
                 // Copy all needed build tools to target directory.
                 String buildToolsBinDir = Path.Combine(srcRootDir, BuildSystem.CommonDefaultBuildToolsOutputPath);
@@ -230,7 +230,7 @@ namespace BranchBuild
                 buildsFillUpProc.Close();
 
                 // Diagnostics message.
-                Console.Error.WriteLine("Starting builds fill-up process and quiting...");
+                Console.WriteLine("Starting builds fill-up process and quiting...");
 
                 return 0;
             }

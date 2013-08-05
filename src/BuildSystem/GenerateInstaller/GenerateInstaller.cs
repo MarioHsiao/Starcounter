@@ -26,27 +26,6 @@ namespace GenerateInstaller
         const String productName = "Starcounter Components";
         public static readonly String certificateFile = BuildSystem.LocalToolsFolder + "\\starcounter-2014.cer";
 
-        /// <summary>
-        /// Directories in output that should be deleted before packaging into one installer.
-        /// </summary>
-        static readonly String[] OutputDirsToDelete =
-        {
-            ".db",
-            ".db.output",
-            ".srv",
-            "s",
-            "NetworkIoTest",
-            "Programs"
-        };
-
-        /// <summary>
-        /// Files in output that should be deleted before packaging into one installer.
-        /// </summary>
-        static readonly String[] OutputFilesToDelete =
-        {
-            "personal.xml"
-        };
-
         // Uploads build on FTP.
         static void UploadBuildToFtp(
             String buildType,
@@ -152,7 +131,7 @@ namespace GenerateInstaller
                 String sourcesDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
                 if (sourcesDir == null)
                 {
-                    throw new Exception("Environment variable 'WORKSPACE' does not exist.");
+                    throw new Exception("Environment variable 'SC_CHECKOUT_DIR' does not exist.");
                 }
 
                 // Indicating that we want to skip local FTP.
@@ -276,34 +255,6 @@ namespace GenerateInstaller
                 // Checking if there are any errors during signing process.
                 if (signingError != null)
                     throw new Exception("Failed to sign files:" + Environment.NewLine + signingError);
-
-                Console.WriteLine("Deleting selected directories and files...");
-
-                // Removing selected directories from output.
-                foreach (String delDir in OutputDirsToDelete)
-                {
-                    String delDirPath = Path.Combine(outputFolder, delDir);
-
-                    if (Directory.Exists(delDirPath))
-                    {
-                        Directory.Delete(delDirPath, true);
-
-                        Console.WriteLine("  Deleted directory: " + delDirPath);
-                    }
-                }
-
-                // Removing selected files from output.
-                foreach (String delFile in OutputFilesToDelete)
-                {
-                    String delFilePath = Path.Combine(outputFolder, delFile);
-
-                    if (File.Exists(delFilePath))
-                    {
-                        File.Delete(delFilePath);
-
-                        Console.WriteLine("  Deleted file: " + delFilePath);
-                    }
-                }
 
                 // Now packing everything into one big ZIP archive.
                 Console.WriteLine("Packaging consolidated folder and building complete installer...");

@@ -180,6 +180,9 @@ public:
 #endif
 
         port_num_active_conns_[port_index] += change_value;
+
+        // Changing number of active sessions.
+        g_gateway.ChangeNumActiveSessions(change_value);
     }
 
     // Set number of active connections.
@@ -209,9 +212,7 @@ public:
     }
 
     // Adds new active database.
-    uint32_t AddNewDatabase(
-        int32_t db_index,
-        const core::shared_interface& worker_shared_int);
+    uint32_t AddNewDatabase(int32_t db_index);
 
     // Sets worker suspend state.
     void set_worker_suspended(bool value)
@@ -345,7 +346,7 @@ public:
     // Functions to process finished IOCP events.
     uint32_t FinishReceive(SocketDataChunkRef sd, int32_t numBytesReceived, bool& called_from_receive);
     uint32_t FinishSend(SocketDataChunkRef sd, int32_t numBytesSent);
-    uint32_t FinishDisconnect(SocketDataChunkRef sd, bool just_release);
+    uint32_t FinishDisconnect(SocketDataChunkRef sd);
     uint32_t FinishConnect(SocketDataChunkRef sd);
     uint32_t FinishAccept(SocketDataChunkRef sd);
 

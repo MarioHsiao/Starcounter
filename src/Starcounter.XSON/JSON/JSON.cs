@@ -80,6 +80,16 @@ namespace Starcounter {
         public void Set(TJson property, Json value) {
             Set((TObj)property, value);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Html { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string HtmlContent { get; set; }
     }
 
     ///// <summary>
@@ -91,4 +101,5 @@ namespace Starcounter {
             set { base.Data = (IBindable)value; }
         }
     }
+
 }
