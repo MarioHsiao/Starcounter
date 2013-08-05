@@ -21,13 +21,9 @@ namespace Starcounter.Internal {
 
                 case MimeType.Application_Json:
                 case MimeType.Unspecified: {
-
-                        Container r = (Container)before;
-                        while (r.Parent != null)
-                            r = r.Parent;
-                        Json root = (Json)r;
                         resultingMimeType = MimeType.Application_Json;
-                        return root.ToJsonUtf8();
+                        var obj = (Json)before;
+                        return obj.ToJsonUtf8();
                     }
 
                 case MimeType.Text_Html: {
