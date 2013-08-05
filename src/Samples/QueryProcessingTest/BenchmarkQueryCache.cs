@@ -42,6 +42,7 @@ namespace QueryProcessingTest {
         }
 
         public static void BenchmarkAction(int nrSchedulers, int nrIterations, Action work, String prefix) {
+            Thread.Sleep(1000);
             Stopwatch timer = new Stopwatch();
             nrFinishedWorkers = 0;
             timer.Start();
@@ -121,12 +122,14 @@ namespace QueryProcessingTest {
         }
 
         public static void GetType<T>(int nrIterations) {
-            Type t;
+            Type t = null;
             for (int i = 0; i < nrIterations; i++)
                 t = typeof(T);
             lock (query) {
                 nrFinishedWorkers++;
             }
+            if (t != null)
+                t.ToString();
         }
 
         public static void GetCachedEnumerator(int nrIterations) {

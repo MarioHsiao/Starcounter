@@ -13,7 +13,9 @@ namespace Starcounter {
 
 
         internal IExecutionEnumerator subEnumerator;
+#if false
         private XNode node;
+#endif
 
         internal SqlEnumerator(IExecutionEnumerator subEnumerator) {
             if (subEnumerator == null)
@@ -21,8 +23,10 @@ namespace Starcounter {
 
             this.subEnumerator = subEnumerator;
 
+#if false // Removed temporary
             node = new XNode(this, subEnumerator);
             ThreadData.Current.RegisterObject(node);
+#endif
         }
 
         /// <summary>
@@ -53,7 +57,9 @@ namespace Starcounter {
             if (subEnumerator != null) {
                 subEnumerator.Dispose();
                 subEnumerator = null;
+#if false
                 node.MarkAsDead();
+#endif
             }
         }
 
