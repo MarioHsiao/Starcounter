@@ -123,7 +123,7 @@ namespace Starcounter.InstallerEngine
                     {
                         Utilities.MessageBoxInfo("Your installation directory \"" + InstallerMain.InstallationDir + "\" was not deleted since it contains probably important files." +
                             Environment.NewLine + "Please check that no Starcounter servers/databases are located under your installation directory.",
-                            "Installation directory is left untouched.");
+                            "Installation directory is left untouched.", true);
                     }
 
                     return; // If any important files exist - we are not deleting directory.

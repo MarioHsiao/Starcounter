@@ -561,6 +561,7 @@ namespace bmx
         uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
         uint32_t HandleSessionDestruction(request_chunk_part* request, TASK_INFO_TYPE* task_info);
         uint32_t HandleSessionCreation(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
+        uint32_t HandleErrorFromGateway(request_chunk_part* request, TASK_INFO_TYPE* task_info);
 
         // Sends information about all registered handlers.
         uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
@@ -646,9 +647,17 @@ namespace bmx
         uint8_t scheduler_id,
         uint32_t* linear_index,
         uint64_t* random_salt,
-        uint32_t* view_model_index);
+        uint32_t* reserved);
 
     extern CreateNewAppsSessionCallback g_create_new_apps_session_callback;
+
+    // Managed callback to handle errors from gateway.
+    typedef void (*ErrorHandlingCallback)(
+        uint32_t err_code,
+        wchar_t* err_string,
+        int32_t err_string_len);
+
+    extern ErrorHandlingCallback g_error_handling_callback;
 
 }  // namespace bmx
 }; // namespace starcounter

@@ -20,7 +20,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// <param name="request">
         /// The REST request.</param>
         /// <returns>The response to be sent back to the client.</returns>
-        static object OnPOST(string name, Request request) {
+        static Response OnPOST(string name, Request request) {
             Executable exe;
             ErrorDetail errDetail;
             var engine = RootHandler.Host.Engine;

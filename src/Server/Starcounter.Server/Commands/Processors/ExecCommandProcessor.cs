@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Advanced;
 using Starcounter.Bootstrap.Management;
 using Starcounter.Bootstrap.Management.Representations.JSON;
 using Starcounter.Internal;
@@ -110,7 +111,7 @@ namespace Starcounter.Server.Commands {
                     exe.RunEntrypointAsynchronous = command.RunEntrypointAsynchronous;
 
                     if (exe.RunEntrypointAsynchronous) {
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, (ignored) => { return null; });
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
                     } else {
                         var response = node.POST(serviceUris.Executables, exe.ToJson(), null, null);
                         response.FailIfNotSuccess();

@@ -69,7 +69,7 @@ namespace Starcounter {
     /// the garbage collected heap. This is such that stateful sessions can employ them without causing unnecessary system
     /// stress.
     /// </remarks>
-    public abstract partial class Obj : Container {
+    public abstract partial class Obj : Container, IHypermedia {
 
         /// <summary>
         /// Static constructor to automatically initialize XSON.
@@ -112,8 +112,25 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Returns True if current Obj is within the given tree.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public Boolean HasThisRoot(Obj treeRoot) {
+            Container r = this;
+            while (r.Parent != null)
+                r = r.Parent;
+            Obj root = (Obj)r;
+
+            if (treeRoot == root)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// In order to support Json pointers (TODO REF), this method is called
-        /// recursivly to fill in a list of relative pointers from the root to
+        /// recursively to fill in a list of relative pointers from the root to
         /// a given node in the Json like tree (the Obj/Arr tree).
         /// </summary>
         /// <param name="path">The patharray to fill</param>
@@ -144,6 +161,7 @@ namespace Starcounter {
                 return (IBindable)data;
             }
             set {
+                if (Template == null) throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
                 InternalSetData(value);
             }
         }
@@ -326,12 +344,6 @@ namespace Starcounter {
                 return _Metadata;
             }
         }
-
-        /// <summary>
-        /// If set true and a ChangeLog is set on the current thread, all 
-        /// changes done to this Obj will be logged.
-        /// </summary>
-        public bool LogChanges { get; set; }
 
         public abstract void ProcessInput<V>(TValue<V> template, V value);
     }

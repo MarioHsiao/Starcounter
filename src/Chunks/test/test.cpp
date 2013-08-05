@@ -10,38 +10,15 @@
 
 #include <cstdint>
 #include <iostream>
-#include <iomanip>
-#include <ios>
-#include <boost/interprocess/sync/interprocess_mutex.hpp>
-#include <boost/interprocess/sync/scoped_lock.hpp>
-#include <boost/interprocess/sync/interprocess_condition.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
-#include <boost/utility.hpp>
-#include <sccoreerr.h>
-#include "../common/shared_interface.hpp"
-#include "../common/config_param.hpp"
-#include "../common/macro_definitions.hpp"
+//#include <sccoreerr.h>
 #include "test.hpp"
 
-/// This represents C# user code calling ReadDecimal() and WriteDecimal(), etc.
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 try {
 	// Start the interprocess_communication test application.
 	starcounter::interprocess_communication::test app(argc, argv);
-	
-	std::cout << "workers: " << starcounter::interprocess_communication::test::workers << std::endl;
-
-	app.run(200 /* interval time milliseconds */,
-	6000000 /* duration time milliseconds */);
-	
-	// Stop worker 0.
-	//app->stop_worker(0);
-	//app->stop_all_workers();
-	
+	app.run(200 /* interval time milliseconds */);
 	Sleep(INFINITE);
-	std::cout << "test: exit." << std::endl;
 }
 catch (starcounter::interprocess_communication::test_exception& e) {
 	std::cout << "error: test_exception "
@@ -64,7 +41,8 @@ catch (starcounter::core::shared_interface_exception& e) {
 	<< "caught with error code " << e.error_code() << std::endl;
 }
 catch (boost::interprocess::interprocess_exception&) {
-	std::cout << "error: shared_interface_exception caught" << std::endl;
+	std::cout << "error: boost::interprocess::interprocess_exception caught"
+	<< std::endl;
 }
 catch (...) {
 	// An unknown exception was caught.

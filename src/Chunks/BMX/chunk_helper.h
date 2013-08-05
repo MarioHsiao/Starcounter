@@ -138,7 +138,7 @@ public:
 	void write(float value) { write<float>(value); }
 	void write(double value) { write<double>(value); }
 
-    uint32_t write_wstring(wchar_t* str, uint32_t num_chars_to_write)
+    uint32_t write_wstring(const wchar_t* str, uint32_t num_chars_to_write)
     {
         // Writing number of characters in the string.
         write(num_chars_to_write);

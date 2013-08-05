@@ -2,6 +2,7 @@
 using HttpStructs;
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -18,7 +19,7 @@ namespace Starcounter.Advanced {
         /// </remarks>
         /// <param name="uri">The URI.</param>
         /// <returns>System.Object.</returns>
-        public static byte[] RawGET(string uri) {
+        internal static byte[] RawGET(string uri) {
             var length = uri.Length + 3 + 1 + 4;// GET + space + URI + CRLFCRLF
             byte[] vu = new byte[length];
             vu[0] = (byte)'G';
@@ -71,10 +72,66 @@ namespace Starcounter.Advanced {
             set { port_number_ = value; }
         }
 
+
+        /// Returns the single most preferred mime type according to the Accept header of the request amongst a 
+        /// set of common mime types. If the mime type is not in the enum of known common mime types, the
+        /// value MimeType.Other is returned. If there is no Accept header or if the Accept header is empty,
+        /// the value MimeType.Unspecified is returned.
+        /// <remarks>
+        /// TODO! Implement proper fast method! Include all mime types in xml file and speed up using
+        /// similar code generation as the URI matcher.
+        /// </remarks>
+        public MimeType PreferredMimeType {
+            get {
+                var a = this["Accept"];
+                if (a != null) {
+                    a = a.ToUpper();
+                    if (a.StartsWith("APPLICATION/JSON-PATCH+JSON")) {
+                        return MimeType.Application_JsonPatch__Json;
+                    }
+                    else if (a.StartsWith("TEXT/HTML")) {
+                        return MimeType.Text_Html;
+                    }
+                    else if (a.StartsWith("APPLICATION/JSON")) {
+                        return MimeType.Application_Json;
+                    }
+                    else if (a.StartsWith("TEXT/PLAIN")) {
+                        return MimeType.Text_Plain;
+                    }
+                    return MimeType.Other;
+                }
+                return MimeType.Unspecified;
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of requested mime types in preference order as discovered in the Accept header
+        /// of the request.
+        /// </summary>
+        /// <remarks>
+        /// TODO! Implement! Does currently only return a single mime type and supports only a few mime types.
+        /// </remarks>
+        public IEnumerator<MimeType> PreferredMimeTypes {
+            get {
+                var l = new List<MimeType>();
+                l.Add( PreferredMimeType );
+                return l.GetEnumerator();
+            }
+        }
+
+
         /// <summary>
         /// Indicates if this Request is internally constructed from Apps.
         /// </summary>
         Boolean is_internal_request_ = false;
+
+        /// <summary>
+        /// Returns True if request is internal.
+        /// </summary>
+        public Boolean IsInternal
+        {
+            get { return is_internal_request_; }
+        }
 
         /// <summary>
         /// Just using Request as holder for user Message instance type.
@@ -99,6 +156,28 @@ namespace Starcounter.Advanced {
         {
             get { return message_object_type_; }
             set { message_object_type_ = value; }
+        }
+
+        /// <summary>
+        /// Accessors to HTTP method.
+        /// </summary>
+        public HTTP_METHODS MethodEnum { get; set; }
+
+        /// <summary>
+        /// Returns True if method is idempotent.
+        /// </summary>
+        public Boolean IsIdempotent()
+        {
+            switch (MethodEnum)
+            {
+                case HTTP_METHODS.GET:
+                case HTTP_METHODS.PUT:
+                case HTTP_METHODS.DELETE:
+                case HTTP_METHODS.HEAD:
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -1162,25 +1241,22 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Gets certain Apps session.
         /// </summary>
-        public IAppsSession AppsSessionInterface 
+        public IAppsSession GetAppsSessionInterface()
         {
-            get 
+            unsafe 
             {
-                unsafe 
-                {
 
-                    // Obtaining corresponding Apps session.
-                    IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
-                        session_->scheduler_id_,
-                        session_->linear_index_,
-                        session_->random_salt_);
+                // Obtaining corresponding Apps session.
+                IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
+                    session_->scheduler_id_,
+                    session_->linear_index_,
+                    session_->random_salt_);
 
-                    // Destroying the session if Apps session was destroyed.
-                    if (apps_session == null)
-                        session_->Destroy();
+                // Destroying the session if Apps session was destroyed.
+                if (apps_session == null)
+                    session_->Destroy();
 
-                    return apps_session;
-                }
+                return apps_session;
             }
         }
 
@@ -1196,7 +1272,7 @@ namespace Starcounter.Advanced {
                     session_->scheduler_id_,
                     ref session_->linear_index_,
                     ref session_->random_salt_,
-                    ref session_->view_model_index_,
+                    ref session_->reserved_,
                     apps_session);
             }
         }

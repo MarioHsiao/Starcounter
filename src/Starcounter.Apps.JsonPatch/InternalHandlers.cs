@@ -28,31 +28,31 @@ namespace Starcounter.Internal.JsonPatch {
         /// Registers this instance.
         /// </summary>
         public static void Register(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort) {
-            string dbName = Db.Environment.DatabaseName.ToLower();
+            string dbName = Db.Environment.DatabaseNameLower;
 
             Debug.Assert(Db.Environment != null, "Db.Environment is not initialized");
-            Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseName) == false, "Db.Environment.DatabaseName is empty or null");
+            Debug.Assert(string.IsNullOrEmpty(Db.Environment.DatabaseNameLower) == false, "Db.Environment.DatabaseName is empty or null");
 
             HandlersManagement.SetHandlerRegisteredCallback(HandlerRegistered);
 
-            Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/sessions", () => {
+            Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "sessions", () => {
                 // Collecting number of sessions on all schedulers.
                 return "Active sessions for '" + dbName + "':" + Environment.NewLine +
                     GlobalSessions.AllGlobalSessions.GetActiveSessionsStats();
             });
 
             if (Db.Environment.HasDatabase) {
-                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseName);
-                Handle.POST(defaultSystemHttpPort, "/__" + dbName + "/sql", (Request req) => {
+                Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseNameLower);
+                Handle.POST(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "sql", (Request req) => {
                     string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the sql command in the body
                     return ExecuteQuery(bodyData);
                 });
             }
 
             // Do not redirect the administrator console output
-            if (!NewConfig.IsAdministratorApp) {
+            if (!StarcounterEnvironment.IsAdministratorApp) {
 
-                Handle.GET(defaultSystemHttpPort, "/__" + dbName + "/console", (Request req) => {
+                Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console", (Request req) => {
                     //if (StringExistInList("application/json", req["Accept"])) {
                     return GetConsoleOutput();
                     //}
@@ -84,12 +84,16 @@ namespace Starcounter.Internal.JsonPatch {
             if (registeredPorts.Contains(port))
                 return;
 
+            string dbName = Db.Environment.DatabaseNameLower;
+
             // We add the internal handlers for stateful access to json-objects
             // for each new port that is used.
             registeredPorts.Add(port);
-            string dbName = Db.Environment.DatabaseName.ToLower();
 
-            Handle.GET(port, "/__" + dbName + "/{?}", (Session session) => {
+            Handle.GET(port, ScSessionClass.DataLocationUriPrefix + "{?}", (Session session) => {
+
+                Debug.Assert(null != session);
+
                 Obj json = Session.Data;
                 if (json == null) {
                     return HttpStatusCode.NotFound;
@@ -100,7 +104,11 @@ namespace Starcounter.Internal.JsonPatch {
                 };
             });
 
-            Handle.PATCH(port, "/__" + dbName + "/{?}", (Session session, Request request) => {
+
+            Handle.PATCH(port, ScSessionClass.DataLocationUriPrefix + "{?}", (Session session, Request request) => {
+
+                Debug.Assert(null != session);
+
                 Obj root;
 
                 try {

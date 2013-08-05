@@ -24,7 +24,7 @@
   <AggregationPort>0</AggregationPort>
   
   <!-- Number of worker threads -->
-  <WorkersNumber>2</WorkersNumber>
+  <WorkersNumber>1</WorkersNumber>
   
   <!-- Maximum number of connections -->
   <MaxConnections>1000000</MaxConnections>
@@ -64,7 +64,10 @@
   -->
 
   <!-- In which test mode Gateway operates. -->
-  <TestingMode>MODE_GATEWAY_HTTP</TestingMode>
+  <TestingMode>MODE_GATEWAY_RAW</TestingMode>
+
+  <!-- Server test port. -->
+  <ServerTestPort>123</ServerTestPort>
 
   <!-- Number of connections to make to master node from this client -->
   <NumConnectionsToMaster>10</NumConnectionsToMaster>

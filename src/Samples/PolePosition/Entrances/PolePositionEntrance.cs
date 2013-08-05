@@ -39,30 +39,30 @@ public class PolePositionEntrance
         if (!startedOnClient)
         {
             // Reporting reference statistics.
-            logger.ReportStatistics("PPSepangWriteReference", 520);
-            logger.ReportStatistics("PPSepangReadReference", 34);
-            logger.ReportStatistics("PPSepangRead_hotReference", 34);
-            logger.ReportStatistics("PPSepangDeleteReference", 174);
+            TestLogger.ReportStatistics("poleposition_sepang_write_reference", 520);
+            TestLogger.ReportStatistics("poleposition_sepang_read_reference", 34);
+            TestLogger.ReportStatistics("poleposition_sepang_read_hot_reference", 34);
+            TestLogger.ReportStatistics("poleposition_sepang_delete_reference", 174);
 
-            logger.ReportStatistics("PPMelbourneWriteReference", 181);
-            logger.ReportStatistics("PPMelbourneReadReference", 17);
-            logger.ReportStatistics("PPMelbourneRead_hotReference", 17);
-            logger.ReportStatistics("PPMelbourneDeleteReference", 76);
+            TestLogger.ReportStatistics("poleposition_melbourne_write_reference", 181);
+            TestLogger.ReportStatistics("poleposition_melbourne_read_reference", 17);
+            TestLogger.ReportStatistics("poleposition_melbourne_read_hot_reference", 17);
+            TestLogger.ReportStatistics("poleposition_melbourne_delete_reference", 76);
 
-            logger.ReportStatistics("PPImolaRetrieveReference", 50);
+            TestLogger.ReportStatistics("poleposition_imola_retrieve_reference", 50);
 
-            logger.ReportStatistics("PPBarcelonaWriteReference", 26);
-            logger.ReportStatistics("PPBarcelonaReadReference", 4);
-            logger.ReportStatistics("PPBarcelonaQueryReference", 12);
-            logger.ReportStatistics("PPBarcelonaDeleteReference", 12);
+            TestLogger.ReportStatistics("poleposition_barcelona_write_reference", 26);
+            TestLogger.ReportStatistics("poleposition_barcelona_read_reference", 4);
+            TestLogger.ReportStatistics("poleposition_barcelona_query_reference", 12);
+            TestLogger.ReportStatistics("poleposition_barcelona_delete_reference", 12);
 
-            logger.ReportStatistics("PPBahrainWriteReference", 394);
-            logger.ReportStatistics("PPBahrainQuery_indexed_stringReference", 414);
-            logger.ReportStatistics("PPBahrainQuery_stringReference", 353532);
-            logger.ReportStatistics("PPBahrainQuery_indexed_intReference", 137);
-            logger.ReportStatistics("PPBahrainQuery_intReference", 332278);
-            logger.ReportStatistics("PPBahrainUpdateReference", 591);
-            logger.ReportStatistics("PPBahrainDeleteReference", 175);
+            TestLogger.ReportStatistics("poleposition_bahrain_write_reference", 394);
+            TestLogger.ReportStatistics("poleposition_bahrain_query_indexed_string_reference", 414);
+            TestLogger.ReportStatistics("poleposition_bahrain_query_string_reference", 353532);
+            TestLogger.ReportStatistics("poleposition_bahrain_query_indexed_int_reference", 137);
+            TestLogger.ReportStatistics("poleposition_bahrain_query_int_reference", 332278);
+            TestLogger.ReportStatistics("poleposition_bahrain_update_reference", 591);
+            TestLogger.ReportStatistics("poleposition_bahrain_delete_reference", 175);
         }
     }
 
@@ -293,9 +293,9 @@ public class PolePositionEntrance
     void ReportStatistics(String statName, Int32 value)
     {
         if (startedOnClient)
-            logger.ReportStatistics("PP" + statName + "Client", value);
+            TestLogger.ReportStatistics("poleposition_" + statName.ToLower() + "_client", value);
         else
-            logger.ReportStatistics("PP" + statName + "Server", value);
+            TestLogger.ReportStatistics("poleposition_" + statName.ToLower() + "_server", value);
     }
 
     void DoLap(Action lap, String name)

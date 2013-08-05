@@ -41,14 +41,15 @@ void LeaveSafeBmxManagement(BmxData* new_bmx_data)
     //std::cout << "LeaveSafeBmxManagement." << std::endl;
 }
 
-// Callback to Apps sessions.
 DestroyAppsSessionCallback starcounter::bmx::g_destroy_apps_session_callback = NULL;
 CreateNewAppsSessionCallback starcounter::bmx::g_create_new_apps_session_callback = NULL;
+ErrorHandlingCallback starcounter::bmx::g_error_handling_callback = NULL;
 
 // Initializes BMX related data structures.
 EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
-    DestroyAppsSessionCallback dasc,
-    CreateNewAppsSessionCallback cnapsc)
+    DestroyAppsSessionCallback destroy_apps_session_callback,
+    CreateNewAppsSessionCallback create_new_apps_session_callback,
+    ErrorHandlingCallback error_handling_callback)
 {
     // Initializing BMX critical section.
     InitializeCriticalSection(&g_bmx_cs_);
@@ -66,9 +67,9 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
     if (bmx_handler_id != BMX_MANAGEMENT_HANDLER_ID)
         return SCERRUNSPECIFIED; // SCERRWRONGBMXMANAGERHANDLER
 
-    // Saving Apps session callbacks.
-    g_destroy_apps_session_callback = dasc;
-    g_create_new_apps_session_callback = cnapsc;
+    g_destroy_apps_session_callback = destroy_apps_session_callback;
+    g_create_new_apps_session_callback = create_new_apps_session_callback;
+    g_error_handling_callback = error_handling_callback;
 
     return 0;
 }
@@ -353,7 +354,11 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
     {
         case BMX_ERROR:
         {
-            return SCERRUNSPECIFIED; // SCERRBMXFAILURE
+            // Handling session destruction.
+            err_code = g_bmx_data->HandleErrorFromGateway(request, task_info);
+
+            if (err_code)
+                return err_code;
         }
 
         case BMX_PING:

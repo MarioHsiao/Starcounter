@@ -21,7 +21,6 @@ namespace Starcounter.Advanced {
         /// </summary>
         public static IDb _DB;
 
-
         /// <summary>
         /// 
         /// </summary>

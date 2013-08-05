@@ -274,6 +274,34 @@ inline int HttpWsProto::OnHeaderField(http_parser* p, const char *at, size_t len
     return 0;
 }
 
+// Processes the session information.
+inline void HttpWsProto::ProcessSessionString(SocketDataChunk* sd, const char* session_id_start)
+{
+    // Parsing the session.
+    sd->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
+
+    // Setting the session offset.
+    http_request_.session_string_offset_ = session_id_start - (char*)sd;
+    http_request_.session_string_len_bytes_ = MixedCodeConstants::SESSION_STRING_LEN_CHARS;
+
+    // Checking if we have session related socket.
+    sd->SetGlobalSessionIfEmpty();
+
+    // Comparing with global session now.
+    // NOTE: We don't care what session the socket has.
+    /*if (!sd->CompareGlobalSessionSalt())
+    {
+#ifdef GW_SESSIONS_DIAG
+        GW_COUT << "Session stored in the HTTP header is wrong/outdated." << GW_ENDL;
+#endif
+
+        // Resetting the session information.
+        http_request_.session_string_offset_ = 0;
+        http_request_.session_string_len_bytes_ = 0;
+        sd->ResetSdSession();
+    }*/
+}
+
 inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
 {
 #ifdef GW_HTTP_DIAG
@@ -310,57 +338,21 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
             break;
         }
 
-#ifndef GW_NEW_SESSIONS_APPROACH
-        case SCSESSIONID_FIELD:
+        case REFERRER_FIELD:
+        case XREFERRER_FIELD:
         {
+            // Pointing to the actual value of a session.
+            const char* session_id_start = at + length - MixedCodeConstants::SESSION_STRING_LEN_CHARS;
+
             // Checking if Starcounter session id is presented.
-            if (SC_SESSION_STRING_LEN_CHARS == length)
+            if ((MixedCodeConstants::SESSION_STRING_LEN_CHARS < length) &&
+                (*(session_id_start - 1) == '/'))
             {
-                // Setting the session offset.
-                http->http_request_.session_string_offset_ = at - (char*)http->sd_ref_;
-                http->http_request_.session_string_len_bytes_ = SC_SESSION_STRING_LEN_CHARS;
-
-                // Reading received session index (skipping session header name and equality).
-                session_index_type cookie_session_index = hex_string_to_uint64(at, SC_SESSION_STRING_INDEX_LEN_CHARS);
-                if (INVALID_CONVERTED_NUMBER == cookie_session_index)
-                {
-                    GW_COUT << "Session index stored in the HTTP header has wrong format." << GW_ENDL;
-                    return SCERRGWHTTPWRONGSESSIONINDEXFORMAT;
-                }
-
-                // Reading received session random salt.
-                uint64_t cookie_random_salt = hex_string_to_uint64(at + SC_SESSION_STRING_INDEX_LEN_CHARS, SC_SESSION_STRING_SALT_LEN_CHARS);
-                if (INVALID_CONVERTED_NUMBER == cookie_random_salt)
-                {
-                    GW_COUT << "Session random salt stored in the HTTP header has wrong format." << GW_ENDL;
-                    return SCERRGWHTTPWRONGSESSIONSALTFORMAT;
-                }
-
-                // Checking if we have existing session.
-                ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionCopy(cookie_session_index);
-
-                // Compare this session with existing one.
-                if (!global_session_copy.CompareSalts(cookie_random_salt))
-                {
-#ifdef GW_SESSIONS_DIAG
-                    GW_COUT << "Session stored in the HTTP header is wrong/outdated." << GW_ENDL;
-#endif
-
-                    // Resetting the session information.
-                    http->http_request_.session_string_offset_ = 0;
-                    http->http_request_.session_string_len_bytes_ = 0;
-                    http->sd_ref_->ResetSdSession();
-                }
-                else
-                {
-                    // Attaching existing global session.
-                    http->sd_ref_->AssignSession(global_session_copy);
-                }
+               http->ProcessSessionString(http->sd_ref_, session_id_start);
             }
 
             break;
         }
-#endif
 
         case CONTENT_LENGTH_FIELD:
         {
@@ -612,7 +604,7 @@ uint32_t HttpWsProto::HttpUriDispatcher(
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
         {
             MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_or_params_data()) + matched_uri->get_session_param_index();
-            sd->GetSessionStruct()->FillFromString(method_and_uri + p->offset_, p->len_);
+            ProcessSessionString(sd, method_and_uri + p->offset_);
         }
 
         // Indicating that matching URI index was found.
@@ -794,9 +786,6 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                     // Setting the desired number of bytes to accumulate.
                     accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received);
 
-                    // Continue receiving.
-                    accum_buf->ContinueReceive();
-
                     // Trying to continue accumulation.
                     bool is_accumulated;
                     uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
@@ -894,36 +883,6 @@ ALL_DATA_ACCUMULATED:
             gw->DisconnectAndReleaseChunk(sd);
             return 0;
         }
-
-#ifndef GW_NEW_SESSIONS_APPROACH
-        // Correcting the session cookie.
-        if (sd->get_new_session_flag())
-        {
-            // New session cookie was created so searching for it.
-            char* session_cookie = strstr((char*)sd->get_data_blob(), kFullSessionIdSetCookieString);
-            if (NULL == session_cookie)
-            {
-                // Destroying the socket data since session cookie is not embedded.
-                return SCERRGWHTTPCOOKIEISMISSING;
-            }
-
-            // Skipping cookie header and equality symbol.
-            session_cookie += kSetCookieStringPrefixLength;
-
-            // Getting session global copy.
-            ScSessionStruct global_session_copy = g_gateway.GetGlobalSessionCopy(sd->get_session_index());
-
-            // Comparing session salts for correctness.
-            bool correct_session = global_session_copy.CompareSalts(sd->get_session_salt());
-            GW_ASSERT(true == correct_session);
-            
-            // Writing gateway session to response cookie.
-            global_session_copy.ConvertToString(session_cookie);
-
-            // Session has been created.
-            sd->set_new_session_flag(false);
-        }
-#endif
 
         // Prepare buffer to send outside.
         sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
@@ -1099,9 +1058,6 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
 
                     // Setting the desired number of bytes to accumulate.
                     accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received);
-
-                    // Continue receiving.
-                    accum_buf->ContinueReceive();
 
                     // Trying to continue accumulation.
                     bool is_accumulated;

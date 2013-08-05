@@ -119,14 +119,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Compiler\TestCodeCompile.cs" />
-    <Compile Include="TestMessage.g.cs">
+    <None Include="TestMessage.g.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="TestMessage.json.cs">
+    </None>
+    <None Include="TestMessage.json.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
+    </None>
     <Compile Include="TestTemplates.cs" />
     <None Include="TestMessage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

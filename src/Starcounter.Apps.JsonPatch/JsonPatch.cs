@@ -489,7 +489,6 @@ namespace Starcounter.Internal.JsonPatch {
                 if (value is Obj) {
                     var oo = (Obj)value;
                     sb.Append(oo.ToJson());
-                    oo.LogChanges = true;
                 } else {
                     sb.Append(JsonConvert.SerializeObject(value));
                 }

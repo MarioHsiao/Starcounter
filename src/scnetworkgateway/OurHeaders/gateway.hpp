@@ -67,9 +67,9 @@ typedef uint64_t ip_info_type;
 //#define GW_WARNINGS_DIAG
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
-#define GW_SESSIONS_DIAG
+//#define GW_SESSIONS_DIAG
 //#define GW_OLD_ACTIVE_DATABASES_DISCOVER
-#define GW_NEW_SESSIONS_APPROACH
+#define GW_COLLECT_INACTIVE_SOCKETS
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -107,7 +107,6 @@ typedef uint64_t ip_info_type;
 #define SCERRGWWEBSOCKETOPCODECLOSE 12351
 #define SCERRGWWEBSOCKETUNKNOWNOPCODE 12352
 #define SCERRGWMAXPORTHANDLERS 12355
-#define SCERRGWHANDLEREXISTS 12356
 #define SCERRGWWRONGHANDLERTYPE 12357
 #define SCERRGWHANDLERNOTFOUND 12358
 #define SCERRGWPORTNOTHANDLED 12359
@@ -278,9 +277,6 @@ const int32_t MAX_REUSABLE_CONNECT_SOCKETS_PER_WORKER = 10000;
 
 // Maximum blacklisted IPs per worker.
 const int32_t MAX_BLACK_LIST_IPS_PER_WORKER = 10000;
-
-// Hard-coded gateway test port number on server.
-const int32_t GATEWAY_TEST_PORT_NUMBER_SERVER = 123;
 
 // Session life time multiplier.
 const int32_t SESSION_LIFETIME_MULTIPLIER = 3;
@@ -698,7 +694,7 @@ public:
 
         // Adjusting pointers.
         orig_buf_ptr_ = new_base;
-        cur_buf_ptr_ = orig_buf_ptr_ + accum_len_bytes_;
+        cur_buf_ptr_ = orig_buf_ptr_ + (accum_buffer->cur_buf_ptr_ - accum_buffer->orig_buf_ptr_);
     }
 
     // Initializes accumulative buffer.
@@ -831,8 +827,6 @@ public:
 // Represents a session in terms of gateway/Apps.
 struct ScSessionStruct
 {
-#ifdef GW_NEW_SESSIONS_APPROACH
-
     // Scheduler id.
     scheduler_id_type scheduler_id_;
 
@@ -843,7 +837,7 @@ struct ScSessionStruct
     session_salt_type random_salt_;
 
     // View model number.
-    session_index_type view_model_index_;
+    session_index_type reserved_;
 
     // Reset.
     void Reset()
@@ -851,18 +845,18 @@ struct ScSessionStruct
         scheduler_id_ = (uint8_t)INVALID_SCHEDULER_ID;
         linear_index_ = INVALID_SESSION_INDEX;
         random_salt_ = INVALID_APPS_SESSION_SALT;
-        view_model_index_ = INVALID_VIEW_MODEL_INDEX;
+        reserved_ = INVALID_VIEW_MODEL_INDEX;
     }
 
     // Constructing session from string.
-    void FillFromString(char* str_in, uint32_t len_bytes)
+    void FillFromString(const char* str_in, uint32_t len_bytes)
     {
-        GW_ASSERT(32 == len_bytes);
+        GW_ASSERT(MixedCodeConstants::SESSION_STRING_LEN_CHARS == len_bytes);
 
         scheduler_id_ = hex_string_to_uint64(str_in, 2);
         linear_index_ = hex_string_to_uint64(str_in + 2, 6);
         random_salt_ = hex_string_to_uint64(str_in + 8, 16);
-        view_model_index_ = hex_string_to_uint64(str_in + 24, 8);
+        reserved_ = hex_string_to_uint64(str_in + 24, 8);
     }
 
     // Compare socket stamps of two sessions.
@@ -879,97 +873,6 @@ struct ScSessionStruct
     {
         return (INVALID_SESSION_INDEX != linear_index_);
     }
-
-#else
-
-    // Session random salt.
-    session_salt_type gw_session_salt_;
-
-    // Unique session linear index.
-    // Points to the element in sessions linear array.
-    session_index_type gw_session_index_;
-
-    // Scheduler ID.
-    uint32_t scheduler_id_;
-
-    // Unique number coming from Apps.
-    apps_unique_session_num_type apps_unique_session_num_;
-
-    // Apps unique session salt.
-    session_salt_type random_salt_;
-
-    // Default constructor.
-    ScSessionStruct()
-    {
-        Reset();
-    }
-
-    // Checks if session is valid.
-    bool IsValid()
-    {
-        return /*(scheduler_id_ != INVALID_SCHEDULER_ID) &&*/ (gw_session_index_ != INVALID_SESSION_INDEX);
-    }
-
-    // Reset.
-    void Reset()
-    {
-        gw_session_index_ = INVALID_SESSION_INDEX;
-        gw_session_salt_ = INVALID_SESSION_SALT;
-        scheduler_id_ = INVALID_SCHEDULER_ID;
-        apps_unique_session_num_ = INVALID_APPS_UNIQUE_SESSION_NUMBER;
-        random_salt_ = INVALID_APPS_SESSION_SALT;
-    }
-
-    // Initializes.
-    void Init(
-        session_salt_type session_salt,
-        session_index_type session_index,
-        apps_unique_session_num_type apps_unique_session_num,
-        session_salt_type apps_session_salt,
-        uint32_t scheduler_id)
-    {
-        gw_session_salt_ = session_salt;
-        gw_session_index_ = session_index;
-        scheduler_id_ = scheduler_id;
-        apps_unique_session_num_ = apps_unique_session_num;
-        random_salt_ = apps_session_salt;
-    }
-
-    // Comparing two sessions.
-    bool IsEqual(
-        session_salt_type session_salt,
-        session_index_type session_index)
-    {
-        return (gw_session_salt_ == session_salt) && (gw_session_index_ == session_index);
-    }
-
-    // Comparing two sessions.
-    bool IsEqual(ScSessionStruct* session_struct)
-    {
-        return IsEqual(session_struct->gw_session_salt_, session_struct->gw_session_index_);
-    }
-
-    // Converts session to string.
-    int32_t ConvertToString(char *str_out)
-    {
-        // Translating session index.
-        int32_t sessionStringLen = uint64_to_hex_string(gw_session_index_, str_out, 8, false);
-
-        // Translating session random salt.
-        sessionStringLen += uint64_to_hex_string(gw_session_salt_, str_out + sessionStringLen, 16, false);
-
-        return sessionStringLen;
-    }
-
-    // Compare socket stamps of two sessions.
-    bool CompareSalts(session_salt_type session_salt)
-    {
-        if (INVALID_SESSION_INDEX == gw_session_index_)
-            return false;
-
-        return gw_session_salt_ == session_salt;
-    }
-#endif
 };
 
 // Structure that wraps the session and contains some
@@ -985,11 +888,42 @@ _declspec(align(64)) struct ScSessionStructPlus
     // Unique number for socket.
     session_salt_type unique_socket_id_;
 
-    // Active socket flag.
-    uint64_t active_socket_flag_;
-
     // Client IP information.
     ip_info_type client_ip_info_;
+
+    // Active socket flag.
+    uint8_t active_socket_flag_;
+
+    // Network protocol flag.
+    uint8_t type_of_network_protocol_;
+
+    uint8_t unused1_;
+    uint8_t unused2_;
+
+    // Port index.
+    int32_t port_index_;
+
+    ScSessionStructPlus()
+    {
+        Reset();
+    }
+
+    void ResetTimestamp()
+    {
+        session_timestamp_ = 0;
+    }
+
+    // Resets the session struct.
+    void Reset()
+    {
+        session_.Reset();
+
+        port_index_ = INVALID_PORT_INDEX;
+        ResetTimestamp();
+        unique_socket_id_ = INVALID_SESSION_SALT;
+        active_socket_flag_ = false;
+        type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
+    }
 };
 
 // Represents an active database.
@@ -1003,6 +937,9 @@ class ActiveDatabase
 
     // Original database name.
     std::string db_name_;
+
+    // Shared memory segment name.
+    std::string shm_seg_name_;
 
     // Unique sequence number.
     volatile uint64_t unique_num_unsafe_;
@@ -1038,6 +975,12 @@ class ActiveDatabase
     CRITICAL_SECTION cs_db_checks_;
 
 public:
+
+    // Shared memory segment name.
+    const std::string& get_shm_seg_name()
+    {
+        return shm_seg_name_;
+    }
 
     // Printing the database information.
     void PrintInfo(std::stringstream& global_port_statistics_stream);
@@ -1107,7 +1050,7 @@ public:
     }
 
     // Gets database name.
-    std::string& get_db_name()
+    const std::string& get_db_name()
     {
         return db_name_;
     }
@@ -1123,6 +1066,9 @@ public:
 
     // Makes this database slot empty.
     void StartDeletion();
+
+    // Makes this database slot empty.
+    void Reset(bool hard_reset);
 
     // Checks if this database slot empty.
     bool IsEmpty();
@@ -1334,7 +1280,7 @@ class GatewayLogWriter
 
 public:
 
-    void Init(std::wstring& log_file_path);
+    void Init(const std::wstring& log_file_path);
 
     ~GatewayLogWriter()
     {
@@ -1386,7 +1332,7 @@ class Gateway
     // Maximum total number of sockets aka connections.
     int32_t setting_max_connections_;
 
-    // Starcounter server type.
+    // Starcounter server type upper case.
     std::string setting_sc_server_type_upper_;
 
     // Gateway log file name.
@@ -1427,6 +1373,9 @@ class Gateway
 
     // Number of tracked echoes to master.
     int32_t setting_num_echoes_to_master_;
+
+    // Server test port.
+    uint16_t setting_server_test_port_;
 
     // Gateway operational mode.
     GatewayTestingMode setting_mode_;
@@ -1513,7 +1462,7 @@ class Gateway
     session_index_type* free_session_indexes_unsafe_;
 
     // Number of active sessions.
-    volatile int64_t num_active_sessions_unsafe_;
+    volatile int64_t num_active_sessions_;
 
     // Global timer to keep track on old sessions.
     volatile session_timestamp_type global_timer_unsafe_;
@@ -1696,11 +1645,11 @@ public:
     }
 
     // Checking if unique socket number is correct.
-    bool CompareUniqueSocketId(SOCKET s, session_salt_type socket_id)
+    bool CompareUniqueSocketId(SOCKET s, session_salt_type unique_socket_id)
     {
         GW_ASSERT(s < setting_max_connections_);
 
-        return (all_sessions_unsafe_[s].unique_socket_id_ == socket_id);
+        return (all_sessions_unsafe_[s].unique_socket_id_ == unique_socket_id);
     }
 
     // Setting client IP address info.
@@ -1720,11 +1669,12 @@ public:
     }
 
     // Setting new unique socket number.
-    session_salt_type CreateUniqueSocketId(SOCKET s)
+    session_salt_type CreateUniqueSocketId(SOCKET s, int32_t port_index)
     {
         session_salt_type unique_id = get_unique_socket_id();
 
         all_sessions_unsafe_[s].unique_socket_id_ = unique_id;
+        all_sessions_unsafe_[s].port_index_ = port_index;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "New unique socket id " << s << ":" << unique_id << GW_ENDL;
@@ -1756,7 +1706,7 @@ public:
     }
 
     // Full path to gateway log file.
-    std::wstring& setting_log_file_path()
+    const std::wstring& setting_log_file_path()
     {
         return setting_log_file_path_;
     }
@@ -1889,6 +1839,12 @@ public:
     int32_t setting_num_echoes_to_master()
     {
         return setting_num_echoes_to_master_;
+    }
+
+    // Server test port.
+    int32_t setting_server_test_port()
+    {
+        return setting_server_test_port_;
     }
 
     // Registering confirmed HTTP echo.
@@ -2051,12 +2007,16 @@ public:
         return num_processed_http_requests_unsafe_;
     }
 
-#ifndef GW_NEW_SESSIONS_APPROACH
-
     // Number of active sessions.
-    int64_t get_num_active_sessions_unsafe()
+    int64_t get_num_active_sessions()
     {
-        return num_active_sessions_unsafe_;
+        return num_active_sessions_;
+    }
+
+    // Change number of active sessions.
+    void ChangeNumActiveSessions(int64_t value)
+    {
+        InterlockedAdd64(&num_active_sessions_, value);
     }
 
     // Collects outdated sessions if any.
@@ -2071,10 +2031,20 @@ public:
     // Cleans up all collected inactive sessions.
     uint32_t CleanupInactiveSessions(GatewayWorker* gw);
 
-    // Sets current global timer value on given session.
-    void SetSessionTimeStamp(session_index_type session_index)
+    // Disconnects arbitrary socket.
+    void DisconnectSocket(GatewayWorker* gw, SOCKET sock);
+
+    // Updates current global timer value on given session.
+    void UpdateSessionTimeStamp(session_index_type session_index)
     {
         all_sessions_unsafe_[session_index].session_timestamp_ = global_timer_unsafe_;
+    }
+
+    // Sets connection type on given session.
+    void SetConnectionType(session_index_type session_index,
+        MixedCodeConstants::NetworkProtocolType proto_type)
+    {
+        all_sessions_unsafe_[session_index].type_of_network_protocol_ = proto_type;
     }
 
     // Steps global timer value.
@@ -2083,24 +2053,46 @@ public:
         global_timer_unsafe_ += value;
     }
 
-#endif
+    // Gateway pid.
+    core::pid_type get_gateway_pid()
+    {
+        return gateway_pid_;
+    }
+
+    // Gateway owner id.
+    core::owner_id get_gateway_owner_id()
+    {
+        return gateway_owner_id_;
+    }
+
+    // Shared memory monitor interface name.
+    const std::string& get_shm_monitor_int_name()
+    {
+        return shm_monitor_int_name_;
+    }
 
     // Getting settings log file directory.
-    std::wstring& get_setting_server_output_dir()
+    const std::wstring& get_setting_server_output_dir()
     {
         return setting_server_output_dir_;
     }
 
     // Getting gateway output directory.
-    std::wstring& get_setting_gateway_output_dir()
+    const std::wstring& get_setting_gateway_output_dir()
     {
         return setting_gateway_output_dir_;
     }
 
     // Getting Starcounter bin directory.
-    std::wstring& get_setting_sc_bin_dir()
+    const std::wstring& get_setting_sc_bin_dir()
     {
         return setting_sc_bin_dir_;
+    }
+
+    // Starcounter server type upper case.
+    const std::string& setting_sc_server_type_upper()
+    {
+        return setting_sc_server_type_upper_;
     }
 
     // Getting maximum number of connections.
@@ -2332,11 +2324,6 @@ public:
     // Initialize the network gateway.
     uint32_t Init();
 
-    // Initializes shared memory.
-    uint32_t InitSharedMemory(
-        std::string setting_databaseName,
-        core::shared_interface* sharedInt_readOnly);
-
     // Checking for database changes.
     uint32_t CheckDatabaseChanges(const std::set<std::string>& active_databases);
 
@@ -2383,8 +2370,6 @@ public:
     void LogWriteNotice(const wchar_t* msg);
     void LogWriteGeneral(const wchar_t* msg, uint32_t log_type);
 
-#ifndef GW_NEW_SESSIONS_APPROACH
-
     // Deletes existing session.
     uint32_t KillSession(session_index_type session_index, bool* was_killed)
     {
@@ -2392,34 +2377,34 @@ public:
 
         *was_killed = false;
 
-        // Only killing the session is its valid.
+        // Only killing the session if its valid.
         // NOTE: Using double-checked locking.
         ScSessionStructPlus* session_plus = all_sessions_unsafe_ + session_index;
-        if (session_plus->session_.IsValid())
+        if (session_plus->session_.IsActive())
         {
             // Entering the critical section.
             EnterCriticalSection(&cs_session_);
 
             // Only killing the session is its valid.
-            if (session_plus->session_.IsValid())
+            if (session_plus->session_.IsActive())
             {
                 // Number of active sessions should always be correct.
-                GW_ASSERT(num_active_sessions_unsafe_ > 0);
+                GW_ASSERT(num_active_sessions_ > 0);
 
 #ifdef GW_SESSIONS_DIAG
-                GW_COUT << "Session being killed: " << session_plus->session_.gw_session_index_ << ":"
-                    << session_plus->session_.gw_session_salt_ << GW_ENDL;
+                GW_COUT << "Session being killed: " << session_plus->session_.linear_index_ << ":"
+                    << session_plus->session_.random_salt_ << GW_ENDL;
 #endif
 
                 // Resetting the session cell.
                 session_plus->session_.Reset();
 
                 // Setting the session time stamp to zero.
-                session_plus->session_timestamp_ = 0;
+                session_plus->ResetTimestamp();
 
                 // Decrementing number of active sessions.
-                num_active_sessions_unsafe_--;
-                free_session_indexes_unsafe_[num_active_sessions_unsafe_] = session_index;
+                ChangeNumActiveSessions(-1);
+                free_session_indexes_unsafe_[num_active_sessions_] = session_index;
 
                 // Indicating that session is killed.
                 *was_killed = true;
@@ -2431,56 +2416,6 @@ public:
 
         return 0;
     }
-
-    // Generates new global session and returns its copy (or bad session if reached the limit).
-    ScSessionStruct GenerateNewSessionAndReturnCopy(
-        session_salt_type session_salt,
-        apps_unique_session_num_type apps_unique_session_num,
-        session_salt_type apps_session_salt,
-        uint32_t scheduler_id)
-    {
-        // Checking that we have not reached maximum number of sessions.
-        if (num_active_sessions_unsafe_ >= setting_max_connections_)
-        {
-#ifdef GW_SESSIONS_DIAG
-            GW_COUT << "Exhausted sessions pool!" << GW_ENDL;
-#endif
-
-            return ScSessionStruct();
-        }
-
-        // Entering the critical section.
-        EnterCriticalSection(&cs_session_);
-
-        // Getting index of a free session data.
-        uint32_t free_session_index = free_session_indexes_unsafe_[num_active_sessions_unsafe_];
-
-        // Creating an instance of new unique session.
-        all_sessions_unsafe_[free_session_index].session_.Init(
-            session_salt,
-            free_session_index,
-            apps_unique_session_num,
-            apps_session_salt,
-            scheduler_id);
-
-        // Setting new time stamp.
-        SetSessionTimeStamp(free_session_index);
-
-#ifdef GW_SESSIONS_DIAG
-        GW_COUT << "New session generated: " << free_session_index << ":" << session_salt << GW_ENDL;
-#endif
-
-        // Incrementing number of active sessions.
-        num_active_sessions_unsafe_++;
-
-        // Leaving the critical section.
-        LeaveCriticalSection(&cs_session_);
-
-        // Returning new critical section.
-        return all_sessions_unsafe_[free_session_index].session_;
-    }
-
-#endif
 
     // Checks if global session data is active.
     bool IsGlobalSessionActive(session_index_type session_index)
@@ -2505,6 +2440,17 @@ public:
 
         // Fetching the session by index.
         return all_sessions_unsafe_[session_index].session_;
+    }
+
+    // Gets session data by index.
+    ScSessionStructPlus GetGlobalSessionPlusCopy(session_index_type session_index)
+    {
+        // Checking validity of linear session index other wise return a wrong copy.
+        if (INVALID_SESSION_INDEX == session_index)
+            return ScSessionStructPlus();
+
+        // Fetching the session by index.
+        return all_sessions_unsafe_[session_index];
     }
 
     // Gets session data by index.

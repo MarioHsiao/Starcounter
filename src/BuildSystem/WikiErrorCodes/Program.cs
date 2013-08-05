@@ -69,7 +69,7 @@ namespace WikiErrorPageGenerator
                 }
 
                 // Notification.
-                Console.Error.WriteLine("Updating Wiki Error Pages...");
+                Console.WriteLine("Updating Wiki Error Pages...");
 
                 // Read the XML File
                 ErrorFile errorFile = ErrorFileReader.ReadErrorCodes(File.Open(args[0], FileMode.Open, FileAccess.Read));
@@ -99,7 +99,7 @@ namespace WikiErrorPageGenerator
                 }
 
                 // Notification.
-                Console.Error.WriteLine("Update of Wiki Error Pages has been completed successfully!");
+                Console.WriteLine("Update of Wiki Error Pages has been completed successfully!");
             }
             catch (Exception generalException)
             {

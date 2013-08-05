@@ -169,7 +169,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     gw->SetReceiveClone(sd_clone);
 
 #ifdef GW_SOCKET_DIAG
-    GW_COUT << "Cloned socket " << sock_ << ":" << chunk_index_ << " to " <<
+    GW_COUT << "Cloned socket " << sock_ << ":" << unique_socket_id_ << ":" << chunk_index_ << " to " <<
         sd_clone->get_socket() << ":" << sd_clone->get_chunk_index() << GW_ENDL;
 #endif
 

@@ -405,6 +405,10 @@ namespace Starcounter.Internal
         public static extern uint sccoredb_drop_table(string name);
 
         /// <summary>
+        /// </summary>
+        public const UInt32 SC_UNIQUE_CONSTRAINT = 1;
+
+        /// <summary>
         /// Struct SC_INDEX_INFO
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -470,6 +474,10 @@ namespace Starcounter.Internal
             /// The attr index arr_10
             /// </summary>
             public Int16 attrIndexArr_10;
+
+            /// <summary>
+            /// </summary>
+            public UInt16 flags;
         };
 
         /// <summary>
@@ -531,7 +539,7 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = 0x00000001;
+        public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = SC_UNIQUE_CONSTRAINT;
 
         /// <summary>
         /// </summary>
@@ -628,16 +636,20 @@ namespace Starcounter.Internal
             out ulong viter
             );
 
+        public const uint SCCOREDB_WAIT_RETRY_ON_LOG_WRITE_FAILURE = 1;
+
         /// <summary>
         /// Sccoredb_complete_commits the specified tran_locked_on_thread.
         /// </summary>
         /// <param name="tran_locked_on_thread">The tran_locked_on_thread.</param>
         /// <param name="detach_and_free">The detach_and_free.</param>
+        /// <param name="flags">flags.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_complete_commit(
             int tran_locked_on_thread,
-            int detach_and_free
+            int detach_and_free,
+            uint flags
             );
 
         /// <summary>
@@ -656,31 +668,9 @@ namespace Starcounter.Internal
         public extern static uint sccoredb_rollback();
 
         /// <summary>
-        /// Sccoredb_reset_aborts this instance.
         /// </summary>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_reset_abort();
-
-        /// <summary>
-        /// Sccoredb_wait_for_low_checkpoint_urgencies the specified flags.
-        /// </summary>
-        /// <param name="flags">The flags.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_wait_for_low_checkpoint_urgency(
-            uint flags
-            );
-
-        /// <summary>
-        /// Sccoredb_wait_for_high_avail_log_memories the specified flags.
-        /// </summary>
-        /// <param name="flags">The flags.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_wait_for_high_avail_log_memory(
-            uint flags
-            );
+        public extern static uint sccoredb_external_abort();
 
         /// <summary>
         /// </summary>

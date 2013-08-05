@@ -10,14 +10,15 @@ IF EXIST SQLTest RMDIR SQLTest /S /Q
 :: create the database
 MKDIR .db
 MKDIR .db.output
-CMD /C sccreatedb.exe -ip .db -lp .db SqlTest
+CMD /C sccreatedb.exe -ip .db SqlTest
 :: start servers
 START scipcmonitor.exe PERSONAL .db.output
 START scdata.exe SQLTEST SqlTest .db.output
+START scdblog.exe SqlTest SqlTest .db.output
 START 32bitComponents\scsqlparser.exe 8066
 :: start the program
 CMD /C scweaver.exe s\SQLTest\SQLTest.exe
-CALL sccode.exe SQLTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:UseConsole  --FLAG:NoNetworkGateway
+CALL sccode.exe SQLTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway
 IF %ERRORLEVEL% NEQ 0 (
 :: clean up and exit code on fail
 CMD /C kill_all.bat 2> NUL

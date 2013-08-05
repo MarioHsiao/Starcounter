@@ -2031,6 +2031,7 @@
     <code hex="0057" severity="Error" name="ScErrReloadFailed">
       <message>The database reload routine failed to execute.</message>
     </code>
+<!--
     <code hex="0058" severity="Error" name="ScErrTransactionAlreadyAborted">
       <message>Transaction abort failed because the transaction already was aborted.</message>
       <remarks>
@@ -2040,6 +2041,7 @@
         </para>
       </remarks>
     </code>
+-->
     <code hex="0059" severity="Error" name="ScErrTransactionScopeOwned">
       <message>Context not accessible because it's owned by a scope.</message>
     </code>
@@ -3043,6 +3045,31 @@
         field in the same class, or in a base class, not even if they differ in casing.
       </message>
     </code>
+    <code hex="00F8" severity="Error" name="ScErrCantExpandTransLog">
+      <message>An error occured when attempting to expand transaction log.</message>
+      <remarks>The reason for the failure is logged seperatly."</remarks>
+    </code>
+    <code hex="00F9" severity="Error" name="ScErrCantExpandTransLogBadFile">
+      <message>Transaction log could not be expanded because a faulty log element file was found in the log directory.</message>
+    </code>
+    <code hex="00FA" severity="Error" name="ScErrCantExpandTransLogDiskFull">
+      <message>Transaction log could not be expanded because of a failure to allocate disk space.</message>
+    </code>
+    <code hex="00FB" severity="Error" name="ScErrCantExpandTransLogNoMemory">
+      <message>ransaction log could not be expanded because of a failure to allocate disk memory.</message>
+    </code>
+    <code hex="00FC" severity="Error" name="ScErrCantInitTransLogWriter">
+      <message>An error occured when initializing transaction log writer.</message>
+    </code>
+    <code hex="00FE" severity="Error" name="ScErrNoTransLogSpaceAvailable">
+      <message>Transaction could not be committed because of a lack of available log space.</message>
+    </code>
+    <code hex="00FF" severity="Error" name="ScErrTransLogSpaceCantBeExpanded">
+      <message>Transaction could not be committed because of a lack of available log space and log space can't be expanded.</message>
+    </code>
+    <code hex="0100" severity="Error" name="ScErrTransLogWriterNotAvailable">
+      <message>Transaction log writer is not available.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3291,8 +3318,12 @@
     <code hex="0042" severity="Error" name="ScErrUnhandledWeaverException">
       <message>An unhandled, unidentified (non-Starcounter) exception occurred in the weaver.</message>
     </code>
+    <code hex="0043" severity="Error" name="ScErrUnexpPlatformAPIError">
+      <message>An unexpected error occured calling a platform API function.</message>
+    </code>
   </facility>
 
+  <!-- Error codes related to query processing. -->
   <facility name="Sql" hex="0007">
     <code hex="0000" severity="Error" name="ScErrSqlInternalError">
       <message>Unexpected internal error in SQL module.</message>
@@ -3395,6 +3426,9 @@
     <code hex="001E" severity="Error" name="ScErrUnsupportAggregate">
       <message>Aggregates are not supported in the query.</message>
     </code>
+	<code hex="001F" severity="Error" name="ScErrQueryResultTypeMismatch">
+	  <message>Expected generic result type does not match with query result type.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
@@ -3418,6 +3452,7 @@
         this one should only access objects fetched within the context of the current transaction is possible.
       </remarks>
     </code>
+<!--
     <code hex="0003" severity="Error" name="ScErrImplicitExternalAbort">
       <message>
         The transaction has been aborted by the framework because of an external event that
@@ -3437,6 +3472,7 @@
         The transaction has been explicitly aborted by user code.
       </message>
     </code>
+-->
     <code hex="0005" severity="Error" name="ScErrOutOfMemoryAbort">
       <message>
         The transaction was aborted because of a failure to allocate memory.
@@ -3577,6 +3613,12 @@
       <message>
         The transaction was aborted because unable to evaluate if sufficient
         space for the log entry could be allocated in the log file.
+      </message>
+    </code>
+    <code hex="0022" severity="Error" name="ScErrExternalAbort">
+      <message>
+        The transaction has been aborted by the framework because of an external event that
+        suggested that the transaction should be considered invalid.
       </message>
     </code>
   </facility>
@@ -3827,6 +3869,28 @@
         The database engine process failed to start due to an unexpected
         internal error. The full error detail can be found in the server
         log.
+      </message>
+    </code>
+    <code hex="001E" severity="Error" name="ScErrDeleteDbRenameConfig">
+      <message>
+        Failed to rename the database configuration file when asked to
+        delete the database.
+      </message>
+    </code>
+    <code hex="001F" severity="Error" name="ScErrDatabaseRunning">
+      <message>
+        The database is running.
+      </message>
+      <remarks>
+        Indicates a management operation was attempted but could not succeed
+        because the database was running. The operation might succeed if the
+        database is first stopped, and the operation is issued again.
+      </remarks>
+    </code>
+    <code hex="0020" severity="Error" name="ScErrDeleteDbFilesPostponed">
+      <message>
+        At least one database-related file could not be deleted. Deleting
+        will be retried until it succeeds or is cancelled.
       </message>
     </code>
   </facility>
@@ -4141,7 +4205,7 @@
 
         <code hex="0003" severity="Error" name="ScErrHandlerAlreadyRegistered">
             <message>
-                This handler has already been registered. Please unregister it first to do a new registration.
+                This handler has already been registered.
             </message>
         </code>
 
@@ -4196,6 +4260,15 @@
     </code>
     <code hex="0008" severity="Error" name="ScErrMissingDataTypeBindingJson">
       <message>Cannot create binding between typed json and dataobject. The datatype needs to be specified.</message>
+    </code>
+    <code hex="0009" severity="Error" name="ScErrDuplicateDataTypeJson">
+      <message>
+        Datatype cannot be specified in the json file if a code-behind class exists. 
+        The datatype needs to be set as generic argument on the inheritance on the class.
+      </message>
+    </code>
+    <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
+      <message> A template needs to be specified before this object can be used. </message>
     </code>
     </facility>
     

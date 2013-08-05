@@ -343,7 +343,7 @@ namespace Starcounter {
 
             indexesToRemove = QuickAndDirtyArray.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                app.HasAddedElement(property, i );
+                app.HasAddedElement(property, i ); // TODO! Is this really correct!?
             }
             QuickAndDirtyArray.Clear();
 #else
