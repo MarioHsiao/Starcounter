@@ -66,7 +66,7 @@ namespace Starcounter.Query.Execution
         /// <summary>
         /// Creates an array of converted START WITH strings.
         /// </summary>
-        internal void CreateLikeCombinations(Type expectedType)
+        internal void CreateLikeCombinations<T>()
         {
             String[] likeAndStartWith = { " like ", " starts with " };
             String lowerQuery = query.ToLower();
@@ -122,7 +122,7 @@ namespace Starcounter.Query.Execution
                     convertedQueries[i] += likeAndStartWith[combBits[k]] + splittedQuery[k + 1];
 
                 // Creating query in cache and obtaining enumerator.
-                subExecEnums[i] = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(convertedQueries[i], expectedType);
+                subExecEnums[i] = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(convertedQueries[i]);
             }
 
             // Setting variable array to reference most efficient execution enumerator.
