@@ -60,7 +60,6 @@
     <Compile Include="Advanced\DbEnvironment.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
-    <Compile Include="Apps\NetworkDataStream.cs" />
     <Compile Include="Binary.cs" />
     <Compile Include="Binding\BinaryPropertyBinding.cs" />
     <Compile Include="Binding\BindingBuilder.cs" />
@@ -105,7 +104,6 @@
     <Compile Include="Hosting\IDbState.cs" />
     <Compile Include="Hosting\TypeSpecification.cs" />
     <Compile Include="IEntity.cs" />
-    <Compile Include="Internal\bmx.cs" />
     <Compile Include="Internal\DatabaseExceptionFactory.cs">
       <SubType>Code</SubType>
     </Compile>
