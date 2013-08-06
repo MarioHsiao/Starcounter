@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using Starcounter;
+using Starcounter.Query.Execution;
 using Starcounter.TestFramework;
 
 namespace QueryProcessingTest {
@@ -37,6 +38,7 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterations, () => GetSchedulerInstance(nrIterations), "Getting a scheduler instance on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetType<Object>(nrIterations), "Calling typeof on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetCachedEnumerator(nrIterations), "Getting cached enumerator on ");
+                BenchmarkAction(schedulers, nrIterations, () => RestExecutionEnumerator(nrIterations, 10), "Rest of GetExecutionEnumerator on ");
                 HelpMethods.LogEvent("Finished benchmark of query cache");
             }
         }
@@ -138,6 +140,36 @@ namespace QueryProcessingTest {
                 var e = scheduler.SqlEnumCache.GetCachedEnumerator<dynamic>(query);
                 e.Dispose();
             }
+            lock (query) {
+                nrFinishedWorkers++;
+            }
+        }
+
+        public static void RestExecutionEnumerator(int nrIterations, params Object[] sqlParams) {
+            Boolean slowSQL = false;
+            var scheduler = Scheduler.GetInstance();
+            var execEnum = scheduler.SqlEnumCache.GetCachedEnumerator<dynamic>(query);
+            for (int i = 0; i < nrIterations; i++) {
+                if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {
+                    if ((execEnum.QueryFlags & QueryFlags.IncludesAggregation) != QueryFlags.None)
+                        throw ErrorCode.ToException(Error.SCERRUNSUPPORTAGGREGATE, "Method Starcounter.Db.SQL does not support queries with aggregates.");
+                    //throw new SqlException("Method Starcounter.Db.SQL does not support queries with aggregates.");
+
+                    if ((execEnum.QueryFlags & QueryFlags.IncludesLiteral) != QueryFlags.None)
+                        if (String.IsNullOrEmpty(execEnum.LiteralValue))
+                            throw ErrorCode.ToException(Error.SCERRUNSUPPORTLITERAL, "Method Starcounter.Db.SQL does not support queries with literals. Use variable and parameter instead.");
+                        else
+                            throw ErrorCode.ToException(Error.SCERRUNSUPPORTLITERAL, "Method Starcounter.Db.SQL does not support queries with literals. Found literal is " +
+                                execEnum.LiteralValue + ". Use variable and parameter instead.");
+                    //throw new SqlException("Method Starcounter.Db.SQL does not support queries with literals. Use variable and parameter instead.");
+                }
+
+                // Setting SQL parameters if any are given.
+                if (sqlParams != null)
+                    execEnum.SetVariables(sqlParams);
+
+            }
+            execEnum.Dispose();
             lock (query) {
                 nrFinishedWorkers++;
             }
