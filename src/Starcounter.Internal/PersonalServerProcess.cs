@@ -55,25 +55,31 @@ namespace Starcounter.Internal {
             bool signaled;
             EventWaitHandle serverOnlineEvent = null;
 
-            while (true) {
-                retries--;
-                if (retries == 0)
-                    throw ErrorCode.ToException(Error.SCERRWAITTIMEOUT);
+            try {
+                while (true) {
+                    retries--;
+                    if (retries == 0)
+                        throw ErrorCode.ToException(Error.SCERRWAITTIMEOUT);
 
-                if (serverOnlineEvent == null && !EventWaitHandle.TryOpenExisting(serverOnlineEventName, out serverOnlineEvent)) {
-                    Thread.Sleep(100);
-                } else {
-                    signaled = serverOnlineEvent.WaitOne(timeout);
-                    if (signaled)
-                        break;
-                }
-
-                if (serverProcess.HasExited) {
-                    uint errorCode = (uint)serverProcess.ExitCode;
-                    if (errorCode != 0) {
-                        throw ErrorCode.ToException(errorCode);
+                    if (serverOnlineEvent == null && !EventWaitHandle.TryOpenExisting(serverOnlineEventName, out serverOnlineEvent)) {
+                        Thread.Sleep(100);
+                    } else {
+                        signaled = serverOnlineEvent.WaitOne(timeout);
+                        if (signaled)
+                            break;
                     }
-                    throw ErrorCode.ToException(Error.SCERRSERVERNOTAVAILABLE);
+
+                    if (serverProcess.HasExited) {
+                        uint errorCode = (uint)serverProcess.ExitCode;
+                        if (errorCode != 0) {
+                            throw ErrorCode.ToException(errorCode);
+                        }
+                        throw ErrorCode.ToException(Error.SCERRSERVERNOTAVAILABLE);
+                    }
+                }
+            } finally {
+                if (serverOnlineEvent != null) {
+                    serverOnlineEvent.Close();
                 }
             }
         }
