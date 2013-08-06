@@ -50,6 +50,93 @@ namespace HttpStructs
         ScSessionClass InternalSession { get; set; }
     }
 
+    /// <summary>
+    /// Enum HTTP_METHODS
+    /// </summary>
+    public enum HTTP_METHODS
+    {
+        GET,
+        POST,
+        PUT,
+        PATCH,
+        DELETE,
+        HEAD,
+        OPTIONS,
+        TRACE,
+        OTHER_METHOD
+    };
+
+    public class Helper
+    {
+        /// <summary>
+        /// Gets method enumeration from given string.
+        /// </summary>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        public static HTTP_METHODS GetMethodFromString(String method)
+        {
+            foreach (HTTP_METHODS m in Enum.GetValues(typeof(HTTP_METHODS)))
+            {
+                if (method.StartsWith(m.ToString()))
+                    return m;
+            }
+
+            return HTTP_METHODS.OTHER_METHOD;
+        }
+    }
+
+    /// <summary>
+    /// Struct ScSessionStruct
+    /// </summary>
+    public struct ScSessionStruct
+    {
+        // Scheduler id.
+        public Byte scheduler_id_;
+
+        // Session linear index.
+        public UInt32 linear_index_;
+
+        // Unique random salt.
+        public UInt64 random_salt_;
+
+        // View model number.
+        public UInt32 reserved_;
+
+        public void Init(
+            Byte scheduler_id,
+            UInt32 linear_index,
+            UInt64 random_salt,
+            UInt32 reserved)
+        {
+            scheduler_id_ = scheduler_id;
+            linear_index_ = linear_index;
+            random_salt_ = random_salt;
+            reserved_ = reserved;
+        }
+
+        // Checks if this session is active.
+        public Boolean IsAlive()
+        {
+            return linear_index_ != Request.INVALID_APPS_SESSION_INDEX;
+        }
+
+        // Destroys existing session.
+        public void Destroy()
+        {
+            linear_index_ = Request.INVALID_APPS_SESSION_INDEX;
+            random_salt_ = Request.INVALID_APPS_SESSION_SALT;
+        }
+
+        // Print current session.
+        public void PrintSession()
+        {
+            Console.WriteLine(String.Format("Session: scheduler={0}, index={1}, salt={2}.",
+                scheduler_id_,
+                linear_index_,
+                random_salt_));
+        }
+    }
+
     // Session structure 128 bits:
     //
     // | Scheduler Id |  Linear Index | Session Salt | View Model Number |

@@ -207,55 +207,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Creates new Request based on session.
-        /// </summary>
-        public unsafe static Request GenerateNewRequest(
-            ScSessionClass session,
-            MixedCodeConstants.NetworkProtocolType protocol_type)
-        {
-            UInt32 new_chunk_index;
-            Byte* new_chunk_mem;
-            UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&new_chunk_index, &new_chunk_mem);
-            if (0 != err_code)
-                throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
-
-            // Creating network data stream object.
-            NetworkDataStream data_stream = new NetworkDataStream();
-
-            Byte* socket_data_begin = new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
-
-            (*(ScSessionStruct*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = session.session_struct_;
-
-            (*(UInt32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
-
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) protocol_type;
-            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NUM_CHUNKS)) = 1;
-
-            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_NUMBER)) = session.socket_num_;
-            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = session.socket_unique_id_;
-            (*(Int32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_PORT_INDEX)) = session.port_index_;
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = session.ws_opcode_;
-
-            (*(Int32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
-                MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB + 16;
-
-            (*(Int32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_MAX_USER_DATA_BYTES)) = MixedCodeConstants.SOCKET_DATA_BLOB_SIZE_BYTES;
-
-            // Obtaining Request structure.
-            Request new_req = new Request(
-                new_chunk_mem,
-                true,
-                new_chunk_index,
-                0,
-                new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
-                data_stream,
-                protocol_type);
-
-            return new_req;
-        }
-
-        /// <summary>
         /// This is the main entry point of incoming HTTP requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>

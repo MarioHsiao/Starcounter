@@ -56,7 +56,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Internal network data stream.
         /// </summary>
-        public INetworkDataStream data_stream_;
+        public NetworkDataStream data_stream_;
 
         /// <summary>
         /// Network port number.
@@ -239,7 +239,7 @@ namespace Starcounter.Advanced {
             UInt16 handler_id,
             Byte* http_request_begin,
             Byte* socket_data,
-            INetworkDataStream data_stream,
+            NetworkDataStream data_stream,
             MixedCodeConstants.NetworkProtocolType protocol_type)
         {
             http_request_struct_ = (HttpRequestInternal*)http_request_begin;
