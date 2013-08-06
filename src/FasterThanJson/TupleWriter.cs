@@ -338,7 +338,7 @@ Retry:
             case 5: Base64Int.WriteBase64x5(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
             default:
-               throw new Exception("Illegal offset element size in tuple");
+               throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
          }
 
 #endif
@@ -423,7 +423,7 @@ Retry:
                   break;
               case 5: read = Base64Int.ReadBase64x5;
                   break;
-              default: throw new Exception("Internal error.");
+              default: throw ErrorCode.ToException(Error.SCERRUNEXPFASTERTHANJSON, "Unexpected offset size in TupleWriter.");
           }
           WriteBase64 write;
           switch (oesAfter) {
@@ -439,7 +439,7 @@ Retry:
               case 5:
                   write = Base64Int.WriteBase64x5;
                   break;
-              default: throw new Exception("Tuple too big");
+              default: throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
           }
           for (uint t = valuesWrittenSoFar; t > 0; t--) {
               ulong offsetsValue;
