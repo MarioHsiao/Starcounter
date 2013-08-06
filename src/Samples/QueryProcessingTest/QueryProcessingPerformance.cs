@@ -21,7 +21,7 @@ namespace QueryProcessingTest {
             Stopwatch timer = new Stopwatch();
             timer.Start();
             try {
-                Starcounter.Query.QueryPreparation.PrepareQuery(query, typeof(Object));
+                Starcounter.Query.QueryPreparation.PrepareQuery<dynamic>(query);
             } catch (Exception e) {
                 if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLINTERNALERROR)
                     throw e;
@@ -32,7 +32,7 @@ namespace QueryProcessingTest {
             timer.Start();
             for (int i = 0; i < nrPrologIterations; i++)
                 try {
-                    Starcounter.Query.QueryPreparation.PrepareQuery(query, typeof(Object));
+                    Starcounter.Query.QueryPreparation.PrepareQuery<dynamic>(query);
                 } catch (Exception e) { 
                     if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLINTERNALERROR)
                         throw e;

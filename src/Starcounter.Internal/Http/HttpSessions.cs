@@ -90,6 +90,11 @@ namespace HttpStructs
         /// </summary>
         public static string DataLocationUriPrefix = "/__" + StarcounterEnvironment.DatabaseNameLower + "/";
 
+        /// <summary>
+        /// Escaped data location prefix.
+        /// </summary>
+        public static string DataLocationUriPrefixEscaped = "%2F__" + StarcounterEnvironment.DatabaseNameLower + "%2F";
+
         // Is being used.
         public Boolean IsBeingUsed()
         {
