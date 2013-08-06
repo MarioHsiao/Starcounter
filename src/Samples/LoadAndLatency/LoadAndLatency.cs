@@ -1037,7 +1037,7 @@ namespace LoadAndLatency
                     else
                         LogEvent("   With one Big transaction for all SELECTs: ");
                 }
-
+                PrepareSelectQuery((QueryDataTypes)queryId, workerId);
                 // Starting new time measure.
                 perfTimer.Reset();
                 perfTimer.Start();
@@ -1803,6 +1803,42 @@ namespace LoadAndLatency
                 // No suitable objects found, creating DB data from scratch...
                 return false;
             }
+        }
+
+        void PrepareSelectQuery(QueryDataTypes queryType, Int32 workerId) {
+            Object sqlParamObj = null;
+            switch (queryType) {
+                case QueryDataTypes.DATA_INTEGER: {
+                        sqlParamObj = g_shuffledArrayInt64[workerId, 0];
+                        break;
+                    }
+
+                case QueryDataTypes.DATA_STRING: {
+                        sqlParamObj = g_shuffledArrayString[workerId, 0];
+                        break;
+                    }
+
+                case QueryDataTypes.DATA_DATETIME: {
+                        sqlParamObj = g_shuffledArrayDateTime[workerId, 0];
+                        break;
+                    }
+
+                case QueryDataTypes.DATA_STRING_LIKE: {
+                        sqlParamObj = g_shuffledArrayStringLike[workerId, 0];
+                        break;
+                    }
+
+                case QueryDataTypes.DATA_STRING_STARTS_WITH: {
+                        sqlParamObj = g_shuffledArrayString[workerId, 0];
+                        break;
+                    }
+
+                case QueryDataTypes.DATA_DECIMAL: {
+                        sqlParamObj = g_shuffledArrayDecimal[workerId, 0];
+                        break;
+                    }
+            }
+            SqlEnumerator<Object> sqlEnum = (SqlEnumerator<Object>)Db.SQL(QueryStrings[(Int32)queryType], sqlParamObj).GetEnumerator();
         }
 
         /// <summary>
