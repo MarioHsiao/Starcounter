@@ -1,5 +1,5 @@
 ﻿{
-	"$":{"Namespace":"Starcounter.Applications.ErrorReport"},
+	"$":{"Namespace":"Starcounter.Applications.UsageTrackerApp"},
 	"InstallationNo": 123,
     "LoggedItems": [{
          "Date": "120101",

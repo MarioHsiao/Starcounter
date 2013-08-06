@@ -46,8 +46,6 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
             // Bootstrap Tracking Incoming message
             UsageTrackerAPI.Bootstrap(8585);
-
-
         }
     }
 
