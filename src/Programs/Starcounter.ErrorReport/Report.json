@@ -1,0 +1,12 @@
+﻿{
+	"$":{"Namespace":"Starcounter.Applications.ErrorReport"},
+	"InstallationNo": 123,
+    "LoggedItems": [{
+         "Date": "120101",
+         "Errorcode": 123,
+         "Hostname": "Apa",
+         "Message": "Qwerty",
+         "Severity": 1,
+         "Source": "Unknown"
+    }]
+}
