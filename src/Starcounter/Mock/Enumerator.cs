@@ -127,6 +127,7 @@ namespace Starcounter
         /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             // Checking if enumerator was already disposed or not yet created.
             if (_handle == 0 || _verify == 0)
                 return;
