@@ -71,6 +71,7 @@
     <Compile Include="API\Installer\FinishCollectionHandler.POST.cs" />
     <Compile Include="API\Installer\ExecutingCollectionHandler.POST.cs" />
     <Compile Include="API\Installer\StartCollectionHandler.POST.cs" />
+    <Compile Include="API\Reporting\ErrorReport.PUT.cs" />
     <Compile Include="API\Starcounter\GeneralCollectionHandler.POST.cs" />
     <Compile Include="API\Starcounter\InstallerCollectionHandler.cs" />
     <Compile Include="API\Starcounter\UsageCollectionHandler.POST.cs" />
@@ -79,9 +80,11 @@
     <Compile Include="Model\InstallerFinish.cs" />
     <Compile Include="Model\InstallerEnd.cs" />
     <Compile Include="Model\InstallerAbort.cs" />
+    <Compile Include="Model\ErrorReportItem.cs" />
     <Compile Include="Model\StarcounterGeneral.cs" />
     <Compile Include="Model\Installation.cs" />
     <Compile Include="Model\Sequence.cs" />
+    <Compile Include="Model\ErrorReport.cs" />
     <Compile Include="Model\StarcounterUsage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -143,6 +146,11 @@
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Report.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />

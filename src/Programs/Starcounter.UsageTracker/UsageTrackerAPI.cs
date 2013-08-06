@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Starcounter.Applications.UsageTrackerApp.API;
 
 namespace Starcounter.Applications.UsageTrackerApp {
     internal static class UsageTrackerAPI {
@@ -19,8 +20,9 @@ namespace Starcounter.Applications.UsageTrackerApp {
             // Installer tracking
             InstallerCollectionHandler.Bootstrap(port);
 
+			// Error reporting
+			ErrorReportHandler.Setup_PUT(port);
         }
-
 
     }
 }

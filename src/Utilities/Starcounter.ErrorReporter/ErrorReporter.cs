@@ -4,9 +4,13 @@ using System.IO;
 using System.Threading;
 using Codeplex.Data;
 using Sc.Tools.Logging;
+using Starcounter.Advanced;
 using Starcounter.Internal;
 
 namespace Starcounter.ErrorReporting {
+	/// <summary>
+	/// 
+	/// </summary>
 	public class ErrorReporter {
 		private const string NotifyFile = "starcounter.notify";
 		private string logDirectoryPath;
@@ -58,17 +62,25 @@ namespace Starcounter.ErrorReporting {
 
 			// TODO:
 			// Should really use the same typed json object as in Starcounter.ErrorReport (the server app).
-			dynamic json = new DynamicJson();
-			json.InstallationNo = installationNo;
+			var report = new Report();
+			report.InstallationNo = installationNo;
+			foreach (LogEntry entry in logEntries) {
+				var item = report.LoggedItems.Add();
+				item.Date = entry.DateTime.ToString("u");
+				item.Errorcode = entry.ErrorCode;
+				item.Hostname = entry.HostName;
+				item.Message = entry.Message;
+				item.Severity = (long)entry.Severity;
+				item.Source = entry.Source;
+			}
 
-			foreach (var logEntry in logEntries) {
-				dynamic loggedError = new DynamicJson();
-				loggedError.Date = logEntry.DateTime.ToString("u");
-				loggedError.Errorcode = logEntry.ErrorCode;
-				loggedError.Hostname = logEntry.HostName;
-				loggedError.Message = logEntry.Message;
-				loggedError.Severity = (int)logEntry.Severity;
-				loggedError.Source = logEntry.Source;
+			// TODO:
+			// Send the report and use the same config as tracking...
+			Node n = new Node(Starcounter.Tracking.Environment.StarcounterTrackerIp, Starcounter.Tracking.Environment.StarcounterTrackerPort);
+
+			Response resp = n.PUT("/api/usage/errorreport", report.ToJsonUtf8(), null, null);
+			if (resp.StatusCode != 200) {
+				throw new Exception();
 			}
 		}
 
@@ -133,9 +145,10 @@ namespace Starcounter.ErrorReporting {
 			count--;
 
 			while (count-- > 0) {
-				reader.Next();
+				entry = reader.Next();
 				if (entry == null)
 					break;
+				logEntries.Add(entry);
 			}
 			reader.Close();
 
@@ -154,7 +167,7 @@ namespace Starcounter.ErrorReporting {
 			if (!File.Exists(filePath))
 				return false;
 
-			using (FileStream fs = File.OpenRead(filePath)) {
+			using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
 				if (fs.Length < ei.StartFilePosition)
 					return false;
 

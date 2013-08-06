@@ -1,36 +1,41 @@
 ﻿using System;
-using Sc.Tools.Logging;
 
-namespace Starcounter.Applications.ErrorReport.Model {
+namespace Starcounter.Applications.UsageTrackerApp.Model {
 	/// <summary>
 	/// 
 	/// </summary>
 	[Database]
-	public class LoggedItem {
+	public class ErrorReportItem {
 		/// <summary>
 		/// The main report this item belongs to.
 		/// </summary>
-		public StarcounterReport Report;
+		public ErrorReport Report;
+
 		/// <summary>
 		/// 
 		/// </summary>
 		public DateTime Date;
+
 		/// <summary>
 		/// 
 		/// </summary>
 		public uint Errorcode;
+
 		/// <summary>
 		/// 
 		/// </summary>
 		public string Hostname;
+
 		/// <summary>
 		/// 
 		/// </summary>
 		public string Message;
+
 		/// <summary>
 		/// 
 		/// </summary>
-		public Severity Severity;
+		public int Severity;
+
 		/// <summary>
 		/// 
 		/// </summary>
