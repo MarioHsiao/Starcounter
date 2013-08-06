@@ -6,7 +6,7 @@ using System.Diagnostics;
 class Program {
     static void Main(string[] args) {
 
-        AppsBootstrapper.Bootstrap(@"z:\Dropbox\Puppets");
+        AppsBootstrapper.Bootstrap(@"c:\Users\Alexey Moiseenko\Dropbox\Puppets");
         Debugger.Launch();
 
         Handle.POST("/add-demo-data", () => {

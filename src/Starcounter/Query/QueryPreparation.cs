@@ -16,7 +16,7 @@ namespace Starcounter.Query {
         /// </summary>
         /// <param name="query">Input query string to prepare</param>
         /// <returns>The result enumerated with the execution plan.</returns>
-        internal static IExecutionEnumerator PrepareQuery(String query, Type expectedType) {
+        internal static IExecutionEnumerator PrepareQuery<T>(String query) {
 #if HELLOTEST
             Starcounter.Query.RawParserAnalyzer.ParserAnalyzerHelloTest newAnalyzer = null;
 #else
@@ -105,15 +105,16 @@ namespace Starcounter.Query {
 
             // Checking if its LikeExecEnumerator.
             if (newEnum is LikeExecEnumerator) {
-                (newEnum as LikeExecEnumerator).CreateLikeCombinations(expectedType);
+                (newEnum as LikeExecEnumerator).CreateLikeCombinations<T>();
             }
-            MatchEnumeratorResultAndExpectedType(newEnum, expectedType);
+            MatchEnumeratorResultAndExpectedType<T>(newEnum);
             return newEnum;
         }
 
-        internal static void MatchEnumeratorResultAndExpectedType(IExecutionEnumerator execEnum, Type expectedType) {
+        internal static void MatchEnumeratorResultAndExpectedType<T>(IExecutionEnumerator execEnum) {
             // Check if Generic type corresponds to the query result type
             // dynamic type corresponds to Object
+            Type expectedType = typeof(T);
             if (expectedType == typeof(Object))
                 return;
             Type queryResultType;

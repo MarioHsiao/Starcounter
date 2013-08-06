@@ -81,7 +81,7 @@ namespace Starcounter
                 //execEnum = Scheduler.GetInstance().ClientExecEnumCache.GetCachedEnumerator(query);
 #endif
             try {
-                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator(query, typeof(T));
+                execEnum = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(query);
 
                 // Check if the query includes anything non-supported.
                 if (execEnum.QueryFlags != QueryFlags.None && !slowSQL) {
