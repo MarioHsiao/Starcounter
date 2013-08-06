@@ -152,6 +152,10 @@ namespace Starcounter
             throw ErrorCode.ToException(err);
         }
 
+        ~Enumerator() {
+            sccoredb.Mdb_GetLastError();
+        }
+
         /// <summary>
         /// Fetches iterator local time.
         /// </summary>
