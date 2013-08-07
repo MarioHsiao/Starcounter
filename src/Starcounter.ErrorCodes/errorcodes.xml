@@ -3333,6 +3333,9 @@
     <code hex="0047" severity="Error" name="ScErrTupleValueTooBig">
       <message>Input value cannot fit the given tuple lenght.</message>
     </code>
+    <code hex="0048" severity="Error" name="ScErrUnexpEnumeratorDispose">
+      <message>Unexpected error during enumerator dispose.</message>
+    </code>
   </facility>
 
   <!-- Error codes related to query processing. -->
