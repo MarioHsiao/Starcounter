@@ -48,7 +48,14 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="Environment.cs" />
+    <Compile Include="ErrorItem.cs" />
+    <Compile Include="ErrorReporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Report.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Server\Starcounter.Server\Starcounter.Server.csproj">
@@ -67,8 +74,13 @@
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Utilities\Sc.Tools.Logging\Sc.Tools.Logging.csproj">
+      <Project>{d41f6760-fb7d-413b-b07b-3062a9741ef5}</Project>
+      <Name>Sc.Tools.Logging</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
