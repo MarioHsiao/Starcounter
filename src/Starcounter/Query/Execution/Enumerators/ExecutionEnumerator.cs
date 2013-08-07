@@ -388,11 +388,6 @@ internal abstract class ExecutionEnumerator
     {
         Reset(null);
         ReturnToCache();
-        GC.SuppressFinalize(this);
-    }
-
-    ~ExecutionEnumerator() {
-        sccoredb.Mdb_GetLastError();
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal;
+using System.Runtime.CompilerServices;
 
 namespace Starcounter
 {
@@ -30,6 +31,9 @@ namespace Starcounter
         public UInt64 CursorHandle { get { return _handle; } }
 
         private UInt64 _verify = 0; // Also used to check if enumerator has been disposed or not.
+
+        private Int16 _schedId = -1;
+
         /// <summary>
         /// Gets the cursor verify.
         /// </summary>
@@ -56,6 +60,9 @@ namespace Starcounter
             _handle = handle;
             _verify = verify;
             _filterCallback = filterCallback;
+            Scheduler sched=Scheduler.GetInstance(true);
+            if (sched != null)
+                _schedId = sched.Id;
         }
 
         // Enumerator already exists, we need to update the contents.
@@ -74,6 +81,7 @@ namespace Starcounter
             {
                 _handle = handle;
                 _verify = verify;
+                _schedId = Scheduler.GetInstance().Id;
             }
         }
         /// <summary>
@@ -135,12 +143,12 @@ namespace Starcounter
             // Removing reference to current object.
             _current = null;
             UInt32 err = sccoredb.SCIteratorFree(_handle, _verify);
+            _schedId = -1;
 
             // Marking this enumerator as disposed.
             if (err == 0)
             {
-                _handle = 0;
-                _verify = 0;
+                MarkAsDisposed();
                 return;
             }
 
@@ -153,7 +161,15 @@ namespace Starcounter
         }
 
         ~Enumerator() {
-            sccoredb.Mdb_GetLastError();
+            if (_handle == 0 || _verify == 0)
+                return;
+            if (_schedId == -1)
+                throw ErrorCode.ToException(Error.SCERRUNEXPENUMERATORDISPOSE, "Scheduler is unknown for the enumerator.");
+            //XNode node = new XNode(this, subEnumerator);
+            //ThreadData.Current.RegisterObject(node);
+            //    node.MarkAsDead();
+            //Scheduler.GetInstance(_schedId);
+            //Scheduler.
         }
 
         /// <summary>
@@ -212,6 +228,9 @@ namespace Starcounter
             if (ir != 0)
                 goto err;
 
+            if (_schedId == -1)
+                _schedId = Scheduler.GetInstance().Id;
+
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
 
@@ -263,10 +282,12 @@ namespace Starcounter
         /// <summary>
         /// Assumes that enumerator was already disposed and marks it like this.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void MarkAsDisposed()
         {
             _handle = 0;
             _verify = 0;
+            _schedId = -1;
         }
 
         /// <summary>
@@ -277,6 +298,7 @@ namespace Starcounter
             throw new NotSupportedException();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Boolean IsDisposed()
         {
             return (_verify == 0);
