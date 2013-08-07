@@ -485,9 +485,9 @@ namespace Starcounter.Advanced
                     bytes = _Hypermedia.AsMimeType(mimetype,out mimetype);
                     contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
                 }
-                catch (ArgumentException) {
+                catch (ArgumentException exc) {
                     throw new ArgumentException(
-                        String.Format("Unsupported mime-type {0} in request Accept header",http_request_["Accept"]));
+                        String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", http_request_["Accept"], exc.ToString()));
                 }
 
                 if (bytes == null) {
@@ -745,7 +745,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Internal network data stream.
         /// </summary>
-        public INetworkDataStream data_stream_;
+        public NetworkDataStream data_stream_;
 
         /// <summary>
         /// Indicates if this Response is internally constructed from Apps.
@@ -990,7 +990,7 @@ namespace Starcounter.Advanced
             UInt16 handler_id,
             Byte* http_response_begin,
             Byte* socket_data,
-            INetworkDataStream data_stream)
+            NetworkDataStream data_stream)
         {
             http_response_struct_ = (HttpResponseInternal*) http_response_begin;
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
