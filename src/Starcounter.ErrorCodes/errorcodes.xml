@@ -3321,6 +3321,18 @@
     <code hex="0043" severity="Error" name="ScErrUnexpPlatformAPIError">
       <message>An unexpected error occured calling a platform API function.</message>
     </code>
+    <code hex="0044" severity="Error" name="ScErrTupleTooBig">
+      <message>TupleWriter cannot write tuple, since it is too big.</message>
+    </code>
+    <code hex="0045" severity="Error" name="ScErrUnexpFasterThanJson">
+      <message>An unexpected error occured in FasterThanJson library.</message>
+    </code>
+    <code hex="0046" severity="Error" name="ScErrNoTupleWriteSave">
+      <message>TupleWriter cannot safely write tuple, since the maximum length was not provided.</message>
+    </code>
+    <code hex="0047" severity="Error" name="ScErrTupleValueTooBig">
+      <message>Input value cannot fit the given tuple lenght.</message>
+    </code>
   </facility>
 
   <!-- Error codes related to query processing. -->
