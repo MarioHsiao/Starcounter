@@ -138,6 +138,10 @@
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Tracking\Starcounter.Tracking.csproj">
+      <Project>{8d37c0b3-3557-4300-9e73-a2add0ba3cbb}</Project>
+      <Name>Starcounter.Tracking</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
@@ -146,11 +150,6 @@
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <TypedJSON Include="Report.json">
-      <Generator>MsBuild:Compile</Generator>
-    </TypedJSON>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
