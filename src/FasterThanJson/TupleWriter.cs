@@ -61,7 +61,7 @@ namespace Starcounter.Internal
        /// </summary>
       public const int MAXOFFSETSIZE=4;
 #endif
-      internal const int OffsetElementSizeSize = 1; // The tuple begins with an integer telling the size. The size of this integer is always 1 byte.
+      public const int OffsetElementSizeSize = 1; // The tuple begins with an integer telling the size. The size of this integer is always 1 byte.
 
       /// <summary>
       /// Offset integer pointing to the end of the tuple with 0 being the begining of the value count
@@ -97,6 +97,16 @@ namespace Starcounter.Internal
       public uint OffsetElementSize;
 
        /// <summary>
+       /// Maximum possible size of tuple in bytes if set by user
+       /// </summary>
+      public uint TupleMaxLength;
+
+       /// <summary>
+       /// The available size left (in bytes)
+       /// </summary>
+      public uint AvaiableSize;
+
+       /// <summary>
        /// Method
        /// </summary>
        /// <param name="start"></param>
@@ -116,6 +126,8 @@ namespace Starcounter.Internal
 #endif
           ValueOffset = 0;
           ValueCount = valueCount;
+          AvaiableSize = 0;
+          TupleMaxLength = 0;
       }
 
        /// <summary>
@@ -127,6 +139,19 @@ namespace Starcounter.Internal
       public TupleWriter(byte* start, uint valueCount)
           : this(start, valueCount, TupleWriter.DEFAULTOFFSETSIZE)
       {
+      }
+
+       /// <summary>
+       /// Set maximum tuple length in bytes, i.e., how the length of the available memory of the pointer to write to.
+       /// </summary>
+       /// <param name="length">The length</param>
+      public void SetTupleLength(uint length) {
+          if (length >= Math.Pow(64, 5))
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Maximum length of a tuple cannot be bigger than 64^5.");
+          if (AtEnd - AtStart >= length)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Too small length of the tuple");
+          TupleMaxLength = length;
+          AvaiableSize = (uint)(AtEnd - AtStart);
       }
 
       /// <summary>
@@ -201,6 +226,26 @@ namespace Starcounter.Internal
          //     StreamWriteLargestOffsetElementSize = needed;
       }
 
+       /// <summary>
+       /// Checks if string value fits the tuple and writes it
+       /// </summary>
+       /// <param name="str"></param>
+      public void WriteSafe(string str) {
+          if (TupleMaxLength == 0)
+              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+          uint expectedLen = 0;
+          fixed (char* pStr = str) {
+              expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
+              uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
+              if (OffsetElementSize < neededOffsetSize)
+                  expectedLen += MoveValuesRightSize(neededOffsetSize);
+              if (expectedLen > AvaiableSize)
+                  throw ErrorCode.ToException(Error.SCERRUNEXPCHANNELACCEPTERROR);
+          }
+          Write(str);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= expectedLen;
+      }
 
       /// <summary>
       /// Writes an unsigned integer value to the tuple
@@ -377,6 +422,16 @@ Retry:
       public unsafe delegate UInt64 ReadBase64(IntPtr ptr);
       public unsafe delegate void WriteBase64(UInt64 value, IntPtr ptr);
 
+       /// <summary>
+       /// Calculates for how many bytes the values should be moved to the right.
+       /// </summary>
+       /// <param name="newOffsetSize">New offset size to fit offset value, which requires the move</param>
+       /// <returns>The caclulated number of bytes</returns>
+      public uint MoveValuesRightSize(uint newOffsetSize) {
+          Debug.Assert(newOffsetSize - OffsetElementSize > 0);
+          return ValueCount * (newOffsetSize - OffsetElementSize);
+      }
+
       /// <summary>
       /// This is a tricky task. We have guessed a to small size for the element offsets. We have used a to narrow size of
       /// the element size. It means that the values and the offsets needs to move.
@@ -392,24 +447,18 @@ Retry:
          uint oesAfter = Base256Int.MeasureNeededSize(newValueOffset);
 #endif
           uint oesBefore = OffsetElementSize;
-          uint moveOffsetsRight = oesAfter - oesBefore;
           uint valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize)) / oesBefore - 1); // Expensive division here!
           uint needed = valuesWrittenSoFar * oesAfter;
           uint used = valuesWrittenSoFar * oesBefore;
-          uint moveValuesRight = ValueCount * moveOffsetsRight;
+          uint moveValuesRight = MoveValuesRightSize(oesAfter);
           // Move values to the right to have space for offset
           byte* values = AtStart + OffsetElementSizeSize + ValueCount * oesBefore;
           MemcpyUtil.Memcpy16rwd(values + moveValuesRight, values, ValueOffset);
 
           byte* newOffsets = AtStart + OffsetElementSizeSize;
-#if BASE256
-   // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
-         byte* offsets = newOffsets;
-#else
           byte* offsets = newOffsets;
-#endif
-          newOffsets += needed;
           offsets += used;
+          newOffsets += needed;
           Debug.Assert(oesBefore < oesAfter);
           ReadBase64 read;
           switch (oesBefore) {
