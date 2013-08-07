@@ -306,7 +306,7 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
                 throw ErrorCode.ToException(err);
 
             // Since iterator is closed we have to mark it as so.
-            enumerator.MarkAsDisposed();
+            //enumerator.MarkAsDisposed();
 
             // Checking if it was last object.
             if (createdKey == null) {
