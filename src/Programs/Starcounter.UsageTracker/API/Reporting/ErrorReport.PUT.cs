@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Starcounter.ErrorReporting;
 using Starcounter.Applications.UsageTrackerApp.Model;
 
 namespace Starcounter.Applications.UsageTrackerApp.API {
