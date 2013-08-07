@@ -56,6 +56,10 @@ namespace Starcounter.XSON.Serializers {
             recreateBuffer = false;
             valueSize = -1;
 
+			// Quick fix for enabling logging of changes in case jsonpatches are asked for. Should not
+			// be set here but when the object is sent to a client. Needs to be refactored.
+			obj.LogChanges = true;
+
             unsafe {
                 buf[0] = (byte)'{';
                 offset = 1;

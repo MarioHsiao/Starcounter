@@ -209,7 +209,7 @@ namespace Starcounter {
             if (data.Length > 3000)
                 throw new ArgumentException("Current WebSockets implementation supports messages only up to 3000 bytes.");
 
-            Request req = GatewayHandlers.GenerateNewRequest(
+            Request req = bmx.GenerateNewRequest(
                 InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS);
 
             req.SendResponse(data, 0, data.Length);

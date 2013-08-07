@@ -109,6 +109,7 @@ namespace Starcounter {
             : base() {
             cacheIndexInArr = -1;
             transaction = null;
+			LogChanges = false;
         }
 
         /// <summary>
@@ -144,7 +145,13 @@ namespace Starcounter {
                     path[pos] = cacheIndexInArr;
                 }
                 else {
-                    path[pos] = Template.TemplateIndex;
+					// We use the cacheIndexInArr to keep track of obj that is set
+					// in the parent as an untyped object since the template here is not
+					// the template in the parent (which we want).
+					if (cacheIndexInArr != -1)
+						path[pos] = cacheIndexInArr;
+					else 
+						path[pos] = Template.TemplateIndex;
                 }
                 Parent.FillIndexPath(path, pos - 1);
             }
@@ -345,6 +352,12 @@ namespace Starcounter {
                 return _Metadata;
             }
         }
+
+		/// <summary>
+		/// If set true and a ChangeLog is set on the current thread, all 
+		/// changes done to this Obj will be logged.
+		/// </summary>
+		public bool LogChanges { get; set; }
 
         public abstract void ProcessInput<V>(TValue<V> template, V value);
     }
