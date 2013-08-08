@@ -3,6 +3,7 @@ using HttpStructs;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -1224,6 +1225,15 @@ namespace Starcounter.Advanced {
         /// </summary>
         public const UInt32 INVALID_VIEW_MODEL_INDEX = UInt32.MaxValue;
 
+#if DEBUG
+
+        /// <summary>
+        /// Used for forcing no session.
+        /// </summary>
+        Boolean forceNoSession = false;
+
+#endif
+
         /// <summary>
         /// Checks if HTTP request already has session.
         /// </summary>
@@ -1231,6 +1241,12 @@ namespace Starcounter.Advanced {
         {
             get
             {
+#if DEBUG
+                // First checking if no session is enforced.
+                if (forceNoSession)
+                    return false;
+#endif
+
                 unsafe
                 {
                     if (session_ != null)
@@ -1248,42 +1264,65 @@ namespace Starcounter.Advanced {
         {
             unsafe 
             {
-
                 // Obtaining corresponding Apps session.
-                IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
-                    session_->scheduler_id_,
-                    session_->linear_index_,
-                    session_->random_salt_);
+                IAppsSession apps_session =
+                    GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref *session_);
 
                 // Destroying the session if Apps session was destroyed.
-                if (apps_session == null)
+                if (apps_session == null) {
+
+#if DEBUG
+                    // Checking if we have a session predefined.
+                    if (IsSessionPredefined()) {
+                        forceNoSession = true;
+                    } else {
+                        session_->Destroy();
+                    }
+
+#else
                     session_->Destroy();
+#endif
+
+                }
 
                 return apps_session;
             }
         }
 
         /// <summary>
-        /// Generates session number and writes it to response.
+        /// Generates new session.
         /// </summary>
-        public UInt32 GenerateNewSession(IAppsSession apps_session)
+        internal UInt32 GenerateNewSession(IAppsSession apps_session)
         {
             unsafe
             {
                 // Simply generating new session.
                 return GlobalSessions.AllGlobalSessions.CreateNewSession(
-                    session_->scheduler_id_,
-                    ref session_->linear_index_,
-                    ref session_->random_salt_,
-                    ref session_->reserved_,
+                    ref *session_,
                     apps_session);
             }
         }
 
+#if DEBUG
+        /// <summary>
+        /// Generates forced session.
+        /// </summary>
+        internal UInt32 GenerateForcedSession(IAppsSession apps_session)
+        {
+            unsafe
+            {
+                // Simply generating new session.
+                return GlobalSessions.AllGlobalSessions.CreateForcedSession(
+                    ref *session_,
+                    apps_session);
+            }
+        }
+#endif
+
         /// <summary>
         /// Update session details.
         /// </summary>
-        public void UpdateSessionDetails()
+        internal void UpdateSessionDetails()
         {
             // Don't do anything on internal requests.
             if (is_internal_request_)
@@ -1372,6 +1411,16 @@ namespace Starcounter.Advanced {
                 unsafe { return session_->random_salt_; }
             }
         }
+
+#if DEBUG
+        /// <summary>
+        /// Returns true if its a predefined session.
+        /// </summary>
+        /// <returns></returns>
+        internal Boolean IsSessionPredefined() {
+            unsafe { return 1 == session_->random_salt_; }
+        }
+#endif
 
         /// <summary>
         /// Gets the session struct.
