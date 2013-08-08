@@ -88,7 +88,7 @@ namespace Starcounter {
         private IBindable data;
 
         /// <summary>
-        /// 
+        /// Transaction applied to this node.
         /// </summary>
         private ITransaction transaction;
 
@@ -174,7 +174,18 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Sets the underlying dataobject and refreshes all bound values.
+        /// Start usage of given session.
+        /// </summary>
+        /// <param name="jsonNode"></param>
+        internal void ResumeTransaction()
+        {
+            // Starting using current transaction if any.
+            if (transaction != null)
+                StarcounterBase._DB.SetCurrentTransaction(transaction);
+        }
+
+        /// <summary>
+        /// Sets the underlying data object and refreshes all bound values.
         /// This function does not check for a valid transaction as the 
         /// public Data-property does.
         /// </summary>
@@ -216,12 +227,16 @@ namespace Starcounter {
         /// </summary>
         public ITransaction Transaction2 { // TODO: Name clashes with StarcounterBase
             get {
+
+                // Returning first available transaction climbing up the tree starting from this node.
+
                 if (transaction != null)
                     return transaction;
 
-                Obj parent = GetNearestObjParent();
-                if (parent != null)
-                    return ((Obj)parent).Transaction2;
+                Obj parentWithTrans = GetNearestObjParentWithTransaction();
+                if (parentWithTrans != null)
+                    return parentWithTrans.Transaction2;
+
                 return null;
             }
             set {
@@ -236,7 +251,7 @@ namespace Starcounter {
         /// Returns the transaction that is set on this app. Does NOT
         /// look in parents.
         /// </summary>
-        internal ITransaction TransactionOnThisApp {
+        internal ITransaction TransactionOnThisNode {
             get { return transaction; }
         }
 
@@ -265,11 +280,31 @@ namespace Starcounter {
         /// Returns the nearest parent that is not an Arr (list).
         /// </summary>
         /// <returns>An Obj or null if this is the root Obj.</returns>
-        public Obj GetNearestObjParent() {
+        Obj GetNearestObjParent() {
             Container parent = Parent;
             while ((parent != null) && (!(parent is Obj))) {
                 parent = parent.Parent;
             }
+            return (Obj)parent;
+        }
+
+        /// <summary>
+        /// Returns the nearest parent that has a transaction.
+        /// </summary>
+        /// <returns>An Obj or null if this is the root Obj.</returns>
+        Obj GetNearestObjParentWithTransaction()
+        {
+            Container parent = Parent;
+            while (parent != null)
+            {
+                Obj objParent = parent as Obj;
+
+                if ((null != objParent) && (null != objParent.Transaction2))
+                    return objParent;
+
+                parent = parent.Parent;
+            }
+
             return (Obj)parent;
         }
 

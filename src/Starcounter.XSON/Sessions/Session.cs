@@ -127,12 +127,6 @@ namespace Starcounter {
             get {
                 Session s = current;
                 if (s != null && s.root != null) {
-                    // TODO: 
-                    // Better handling of transactions in jsonobjects.
-                    ITransaction t = s.root.Transaction2;
-                    if (t != null)
-                        StarcounterBase._DB.SetCurrentTransaction(t);
-
                     return s.root;
                 }
                 return null;
@@ -150,6 +144,9 @@ namespace Starcounter {
                         throw ErrorCode.ToException(errCode);
                 }
                 current.SetData(value);
+
+                // Creating new implicit read-write transaction.
+                value.Transaction2 = StarcounterBase._DB.NewCurrent();
             }
         }
 
@@ -158,8 +155,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data"></param>
         private void SetData(Obj data) {
-            // TODO:
-            // Do we allow setting a new dataobject if an old one exists?
+
+            // If we are replacing the JSON tree, we need to dispose previous one.
             if (root != null) {
                 DisposeJsonRecursively(current.root);
             }
@@ -239,6 +236,8 @@ namespace Starcounter {
             current.changeLog.Clear();
             Session.current = null;
             ChangeLog.CurrentOnThread = null;
+
+            // Resetting current transaction if any exists.
             if (StarcounterBase._DB.GetCurrentTransaction() != null)
                 StarcounterBase._DB.SetCurrentTransaction(null);
         }
@@ -327,13 +326,18 @@ namespace Starcounter {
             Session.current = null;
         }
 
+        /// <summary>
+        /// Destroys Json tree recursively, including session.
+        /// </summary>
+        /// <param name="json"></param>
         private void DisposeJsonRecursively(Obj json) {
             if (json == null)
                 return;
 
-            //if (json.TransactionOnThisApp != null) {
-            //    json.TransactionOnThisApp.Dispose();
-            //}
+            // Disposing transaction if it exists on this node.
+            if (json.TransactionOnThisNode != null) {
+                json.TransactionOnThisNode.Dispose();
+            }
 
             if (json.Template == null)
                 return;
