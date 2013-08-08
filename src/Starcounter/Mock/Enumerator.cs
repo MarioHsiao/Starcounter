@@ -170,6 +170,29 @@ namespace Starcounter
             //    node.MarkAsDead();
             //Scheduler.GetInstance(_schedId);
             //Scheduler.
+            //UInt32 err = sccoredb.SCAttachThread((byte)_schedId, 1);
+            //if (err != 0)
+            //    throw ErrorCode.ToException(err);
+            _current = null;
+            UInt32 err = 0;
+            DbSession dbs = new DbSession();
+            //dbs.RunAsync(delegate {
+            //    err = sccoredb.SCIteratorFreeAnyThread(_handle, _verify);
+            //}, (byte)_schedId);
+            _schedId = -1;
+
+            // Marking this enumerator as disposed.
+            if (err == 0) {
+                //MarkAsDisposed();
+                return;
+            }
+
+            // Checking for specific behavior.
+            if ((err == Error.SCERRITERATORNOTOWNED) && (_verify == 0))
+                return;
+
+            // Otherwise returning error.
+            throw ErrorCode.ToException(err);
         }
 
         /// <summary>

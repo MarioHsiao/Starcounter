@@ -31,6 +31,8 @@ namespace QueryProcessingTest {
                 timer.Stop();
                 HelpMethods.LogEvent("Warm up of " + schedulers + " schedulers took " + timer.ElapsedMilliseconds + " ms.");
                 BenchmarkAction(schedulers, nrIterations, () => QueryEnumerator(nrIterations), "Obtaining enumerator on ");
+                GC.Collect();
+                Thread.Sleep(10000);
                 BenchmarkAction(schedulers, nrIterations, () => DbSQL(nrIterations), "Calling Db.SQL on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetEnumerator(nrIterations), "Calling GetEnumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetExecutionEnumerator(nrIterations), "Calling GetExecutionEnumerator on ");
@@ -66,7 +68,7 @@ namespace QueryProcessingTest {
         public static void QueryEnumerator(int nrIterations) {
             for (int i = 0; i < nrIterations; i++) {
                 var results = Db.SQL(query, 10).GetEnumerator();
-                results.Dispose();
+                //results.Dispose();
             }
             lock (query) {
                 nrFinishedWorkers++;

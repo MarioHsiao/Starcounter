@@ -1317,6 +1317,12 @@ namespace Starcounter.Internal
             UInt64 h,
             UInt64 v
         );
+        
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static UInt32 SCIteratorFreeAnyThread(
+            UInt64 h,
+            UInt64 v
+        );
 
         /// <summary>
         /// </summary>
