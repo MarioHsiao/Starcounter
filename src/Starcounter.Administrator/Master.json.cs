@@ -71,8 +71,7 @@ namespace Starcounter.Administrator {
             RegisterHandlers();
 
             // Start User Tracking (Send data to tracking server each hour)
-            Tracking.Client.Instance.StartTrackUsage(Master.ServerInterface);
-
+            Tracking.Client.Instance.StartTrackUsage(Master.ServerInterface, Master.ServerEngine.HostLog);
         }
 
         /// <summary>
