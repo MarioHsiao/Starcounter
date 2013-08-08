@@ -86,12 +86,9 @@ namespace Starcounter.Administrator {
             });
 
             // Redirecting root to index.html.
-            GET("/", (Request req) => {
-                // Doing another request with original request attached.
-                Response resp = Node.LocalhostSystemPortNode.GET("/index.html", null, req);
-
+            GET("/", () => {
                 // Returns this response to original request.
-                return resp;
+                return Node.LocalhostSystemPortNode.GET("/index.html", null, null);
             });
 
             POST("/addstaticcontentdir", (Request req) => {
