@@ -86,7 +86,7 @@ namespace Starcounter.Tracking {
                         var pulse = TimeSpan.FromMinutes(1);
                         var usageIntervall = TimeSpan.FromHours(1);
                         var next = DateTime.Now;
-                        var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory);
+                        var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory, null);
                         
                         do {
                             var now = DateTime.Now;

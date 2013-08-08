@@ -6,6 +6,7 @@ using Codeplex.Data;
 using Sc.Tools.Logging;
 using Starcounter.Advanced;
 using Starcounter.Internal;
+using Starcounter.Logging;
 
 namespace Starcounter.ErrorReporting {
 	/// <summary>
@@ -14,30 +15,50 @@ namespace Starcounter.ErrorReporting {
 	public class ErrorReporter {
 		private const string NotifyFile = "starcounter.notify";
 		private string logDirectoryPath;
+        LogSource serverLog;
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="logDirectoryPath"></param>
-		internal ErrorReporter(string logDirectoryPath) {
+        /// <param name="log"></param>
+		internal ErrorReporter(string logDirectoryPath, LogSource log) {
 			this.logDirectoryPath = logDirectoryPath;
+            this.serverLog = log;
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
 		public void CheckAndSendErrorReports() {
-			List<LoggedErrorItem> errors;
+			List<LoggedErrorItem> errors = null;
 			List<LogEntry> logEntries;
-            
-			errors = GetNotifications();
-			foreach (var error in errors) {
-				logEntries = GetLogEntries(error, 10);
-				if (logEntries.Count == 0)
-					continue;
+            string msg;
 
-				SendErrorReport(logEntries);
-			}
+            try {
+                errors = GetNotifications();
+            } catch (Exception  errorFetching) {
+                msg = string.Format("Exception: {0}", errorFetching.Message);
+                msg = ErrorCode.ToMessage(Error.SCERRAUTOREPORTFAILEDCOLLECT, msg);
+                serverLog.LogError(msg);
+                return;
+            }
+
+            try {
+                foreach (var error in errors) {
+                    logEntries = GetLogEntries(error, 10);
+                    if (logEntries.Count == 0)
+                        continue;
+
+                    SendErrorReport(logEntries);
+                }
+
+            } catch (Exception errorSending) {
+                msg = string.Format("Exception: {0}. Notifications collected: {1}.", errorSending.Message, errors.Count);
+                msg = ErrorCode.ToMessage(Error.SCERRAUTOREPORTFAILEDSEND, msg);
+                serverLog.LogError(msg);
+                return;
+            }
 		}
 
 		/// <summary>
