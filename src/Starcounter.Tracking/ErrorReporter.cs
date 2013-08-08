@@ -15,8 +15,6 @@ namespace Starcounter.ErrorReporting {
 		private const string NotifyFile = "starcounter.notify";
 		private string logDirectoryPath;
 
-		private static ErrorReporter instance;
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -28,28 +26,17 @@ namespace Starcounter.ErrorReporting {
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="logDirectoryPath"></param>
-		public static void Setup(string logDirectoryPath) {
-			instance = new ErrorReporter(logDirectoryPath);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public static void CheckAndSendErrorReports() {
+		public void CheckAndSendErrorReports() {
 			List<LoggedErrorItem> errors;
 			List<LogEntry> logEntries;
-
-			if (instance == null)
-				throw new Exception("TODO");
-
-			errors = instance.GetNotifications();
+            
+			errors = GetNotifications();
 			foreach (var error in errors) {
-				logEntries = instance.GetLogEntries(error, 10);
+				logEntries = GetLogEntries(error, 10);
 				if (logEntries.Count == 0)
 					continue;
 
-				instance.SendErrorReport(logEntries);
+				SendErrorReport(logEntries);
 			}
 		}
 

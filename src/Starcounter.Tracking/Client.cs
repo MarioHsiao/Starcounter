@@ -1,4 +1,5 @@
 ﻿using Codeplex.Data;
+using Starcounter.ErrorReporting;
 using Starcounter.Internal;
 using Starcounter.Server.PublicModel;
 using System;
@@ -43,13 +44,8 @@ namespace Starcounter.Tracking {
         private ushort ServerPort { get; set; }
         private string ServerIP { get; set; }
 
-        /// <summary>
-        /// tru if the tracking is acrive
-        /// </summary>
-        public bool IsTracking { get; private set; }
-
-        private AutoResetEvent autoResetEvent = new AutoResetEvent(false);
-        private bool abortTracking = false;
+        Thread thread;
+        AutoResetEvent stop = new AutoResetEvent(false);
 
         #endregion
         /// <summary>
@@ -77,70 +73,73 @@ namespace Starcounter.Tracking {
         /// <summary>
         /// Start the Usage tracking
         /// </summary>
-        /// <param name="ServerInterface"></param>
-        public void StartTrackUsage(IServerRuntime ServerInterface) {
+        /// <param name="serverInterface"></param>
+        public void StartTrackUsage(IServerRuntime serverInterface) {
+            if (serverInterface == null) {
+                throw new ArgumentNullException("serverInterface");
+            }
 
-            if (this.IsTracking) throw new InvalidOperationException("Trying to start Tracking when is was already running");
+            lock (this) {
+                if (thread == null) {
+                    thread = new Thread(new ParameterizedThreadStart(new WaitCallback((object state) => {
+                        var server = state as IServerRuntime;
+                        var pulse = TimeSpan.FromMinutes(1);
+                        var usageIntervall = TimeSpan.FromHours(1);
+                        var next = DateTime.Now;
+                        var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory);
+                        
+                        do {
+                            var now = DateTime.Now;
 
-            ThreadPool.QueueUserWorkItem(PollThread, ServerInterface);
+                            if (now >= next) {
+                                // Collect usage statistics
+                                var databaseInfos = server.GetDatabases();
+                                var databases = databaseInfos.Length;
+                                var runningDatabases = 0;
+                                var runningexecutables = 0;
+                                
+                                foreach (DatabaseInfo dbInfo in databaseInfos) {
+                                    if (dbInfo.Engine != null) {
+                                        if (dbInfo.Engine.HostProcessId > 0) {
+                                            runningDatabases++;
+                                        }
+                                        if (dbInfo.Engine.HostedApps != null) {
+                                            runningexecutables += dbInfo.Engine.HostedApps.Length;
+                                        }
+                                    }
+                                }
+
+                                // Send usage statistics
+                                SendStarcounterUsage(databases, -1, runningDatabases, runningexecutables);
+
+                                next = next.Add(usageIntervall);
+                            }
+
+                            // Send error reports
+                            reporter.CheckAndSendErrorReports();
+                        }
+                        while (!stop.WaitOne(pulse));
+
+                    })));
+
+                    thread.Name = "Starcounter usage statistics thread";
+                    thread.Start(serverInterface);
+                }
+            }
         }
 
         /// <summary>
         /// Stops the stracking usage
         /// </summary>
         public void StopTrackUsage() {
-
-            if (this.IsTracking == false) throw new InvalidOperationException("Trying to stop Tracking when it was not running");
-
-            this.abortTracking = true;
-            this.autoResetEvent.Set();
-
-        }
-
-        private void PollThread(object state) {
-
-            IServerRuntime serverInterface = state as IServerRuntime;
-
-            if (serverInterface == null) throw new ArgumentNullException("state");
-
-            DatabaseInfo[] databaseInfos;
-            int runningDatabases;
-            int runningexecutables;
-
-            while (true) {
-
-
-                // Collect usage statistics
-                databaseInfos = serverInterface.GetDatabases();
-                int databases = databaseInfos.Length;
-                runningDatabases = 0;
-                runningexecutables = 0;
-
-                foreach (DatabaseInfo dbInfo in databaseInfos) {
-                    if (dbInfo.Engine != null) {
-                        if (dbInfo.Engine.HostProcessId > 0) {
-                            runningDatabases++;
-                        }
-                        if (dbInfo.Engine.HostedApps != null) {
-                            runningexecutables += dbInfo.Engine.HostedApps.Length;
-                        }
-                    }
-                }
-
-                // Send usage statistics
-                this.SendStarcounterUsage(databases, -1, runningDatabases, runningexecutables);
-
-                this.autoResetEvent.WaitOne(1000 * 60 * 60); // 1h
-                if (this.abortTracking == true) {
-                    this.abortTracking = false;
-                    break;
+            lock (this) {
+                if (thread != null) {
+                    stop.Set();
+                    thread.Join();
+                    thread = null;
                 }
             }
-
-            this.IsTracking = false;
-
         }
-
 
         /// <summary>
         /// Send installer start tracking message
