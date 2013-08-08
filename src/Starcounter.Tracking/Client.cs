@@ -1,6 +1,7 @@
 ﻿using Codeplex.Data;
 using Starcounter.ErrorReporting;
 using Starcounter.Internal;
+using Starcounter.Logging;
 using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Starcounter.Tracking {
+    using TrackingEnvironment = Starcounter.Tracking.Environment;
 
     /// <summary>
     /// Client for sending Usage Tracking to Tracking Server
@@ -24,8 +26,8 @@ namespace Starcounter.Tracking {
         private static readonly Client instance = new Client();
 
         private Client() {
-            this.ServerIP = Starcounter.Tracking.Environment.StarcounterTrackerIp;
-            this.ServerPort = Starcounter.Tracking.Environment.StarcounterTrackerPort;
+            this.ServerIP = TrackingEnvironment.StarcounterTrackerIp;
+            this.ServerPort = TrackingEnvironment.StarcounterTrackerPort;
         }
 
         /// <summary>
@@ -43,6 +45,7 @@ namespace Starcounter.Tracking {
 
         private ushort ServerPort { get; set; }
         private string ServerIP { get; set; }
+        LogSource serverLog;
 
         Thread thread;
         AutoResetEvent stop = new AutoResetEvent(false);
@@ -74,11 +77,19 @@ namespace Starcounter.Tracking {
         /// Start the Usage tracking
         /// </summary>
         /// <param name="serverInterface"></param>
-        public void StartTrackUsage(IServerRuntime serverInterface) {
+        /// <param name="log"></param>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        public void StartTrackUsage(
+            IServerRuntime serverInterface, 
+            LogSource log = null, 
+            string host = TrackingEnvironment.StarcounterTrackerIp,
+            ushort port = TrackingEnvironment.StarcounterTrackerPort) {
             if (serverInterface == null) {
                 throw new ArgumentNullException("serverInterface");
             }
 
+            serverLog = log;
             lock (this) {
                 if (thread == null) {
                     thread = new Thread(new ParameterizedThreadStart(new WaitCallback((object state) => {
@@ -86,7 +97,7 @@ namespace Starcounter.Tracking {
                         var pulse = TimeSpan.FromMinutes(1);
                         var usageIntervall = TimeSpan.FromHours(1);
                         var next = DateTime.Now;
-                        var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory, null);
+                        var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory, serverLog);
                         
                         do {
                             var now = DateTime.Now;
