@@ -137,8 +137,18 @@ namespace Starcounter {
                     // Creating new empty session.
                     current = new Session();
 
-                    // Creating session on Request as well.
-                    UInt32 errCode = request.GenerateNewSession(current);
+                    UInt32 errCode;
+
+#if DEBUG
+                    // Checking if we have a predefined session.
+                    if (request.IsSessionPredefined()) {
+                        errCode = request.GenerateForcedSession(current);
+                    } else {
+                        errCode = request.GenerateNewSession(current);
+                    }
+#else
+                    errCode = request.GenerateNewSession(current);
+#endif
 
                     if (errCode != 0)
                         throw ErrorCode.ToException(errCode);
@@ -226,6 +236,8 @@ namespace Starcounter {
 
             Session.current = session;
             ChangeLog.CurrentOnThread = session.changeLog;
+
+            Debug.Assert(null != ChangeLog.CurrentOnThread);
         }
 
         /// <summary>
