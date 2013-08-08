@@ -1,0 +1,29 @@
+<!doctype html>
+<head>
+    <title>Menu</title>
+    <script src="/json-patch-duplex.js"></script>
+    <script src="/puppet.js"></script>
+    <script src="/polymer.min.js"></script>
+
+    <script src="/mdv_extra.js"></script>
+    <link rel="import" href="/x-html.html">
+</head>
+
+<body>
+    <div>Menu</div>
+    <a href="/pmail">PMail</a>
+
+    <template bind id="root">
+        <template bind="{{ApplicationPage}}">
+           <x-html content="{{Html}}"></x-html>
+        </template>
+    </template>
+
+
+<script>
+  var puppet = new Puppet(null, function (obj) { 
+    console.log("Hi!", obj);
+    document.getElementById("root").model = obj;
+  });
+</script>
+</body>

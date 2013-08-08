@@ -1,0 +1,15 @@
+﻿<table>
+    <template repeat="{{Mailboxes}}">
+        <tr><td><a href="/mailboxes/{{Name}}">{{Name}}</a></td></tr>
+    </template>
+</table>
+
+<table>
+    <template repeat="{{Mails}}">
+        <tr><td><a href="{{Uri}}">{{Subject}}</a> <input value="{{Subject}}"></td></tr>
+    </template>
+</table>
+
+<template bind="{{FocusedMail}}">
+    <x-html content="{{Html}}"></x-html>
+</template>

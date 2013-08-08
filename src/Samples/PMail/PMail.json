@@ -1,0 +1,14 @@
+{
+  Mailboxes: [{
+    Name: ""
+  }],
+  FocusedMailbox: {
+   Name: ""
+  },
+  Mails: [{
+    From: "",
+	Subject: "",
+	Uri: ""
+  }],
+  FocusedMail: {}
+}
