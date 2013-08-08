@@ -3893,6 +3893,17 @@
         will be retried until it succeeds or is cancelled.
       </message>
     </code>
+    <code hex="0021" severity="Error" name="ScErrAutoReportFailedCollect">
+      <message>
+        Failed to collect reported error notifications from the notification
+        file.
+      </message>
+    </code>
+    <code hex="0022" severity="Error" name="ScErrAutoReportFailedSend">
+      <message>
+        Failed to send a set of collected reported error notifications.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
