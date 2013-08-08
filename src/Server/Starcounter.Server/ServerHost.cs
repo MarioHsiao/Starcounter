@@ -15,6 +15,12 @@ namespace Starcounter.Server {
     /// and can not be accessed from hosting programs themselves.
     /// </remarks>
     internal static class ServerHost {
+        /// <summary>
+        /// References a log source designed to be used by server hosts
+        /// that want to log server-related information occuring outside
+        /// the actual engine.
+        /// </summary>
+        internal static LogSource Log;
 
         /// <summary>
         /// Configures the host using the content as specified in the given
@@ -54,6 +60,7 @@ namespace Starcounter.Server {
 
             LogManager.Setup(hlogs);
 
+            ServerHost.Log = new LogSource("Starcounter.Server.Host");
             return hlogs;
         }
     }
