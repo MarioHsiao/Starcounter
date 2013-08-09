@@ -3070,6 +3070,9 @@
     <code hex="0100" severity="Error" name="ScErrTransLogWriterNotAvailable">
       <message>Transaction log writer is not available.</message>
     </code>
+    <code hex="0101" severity="Error" name="ScErrCantLoadTransLogWriterLib">
+      <message>Transaction log writer client library could not be loaded.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3118,8 +3121,7 @@
     </code>
     <code hex="0005" severity="Error" name="ScErrTransactionLogCorrupt">
       <message>
-        Recovery detected the transaction log to be corrupt, recovery can't be completed. The log file needs to be rebuilded
-        before the recovery can be completed.
+        Recovery detected the transaction log to be corrupt, recovery can't be completed.
       </message>
     </code>
     <code hex="0006" severity="Error" name="ScErrUnexpectedImageFileError">
@@ -3577,24 +3579,19 @@
         This is most likely due to a bug in database binding, not in user code.
       </remarks>
     </code>
+<!--
     <code hex="000F" severity="Error" name="ScErrTransactionToBigAbort">
       <message>
         The transaction was aborted since it violated the maximum size of transactions
         as allowed by the server.
       </message>
     </code>
-    <code hex="0010" severity="Error" name="ScErrLogOverflowAbort">
+-->
+    <code hex="0010" severity="Error" name="ScErrOutOfLogSpaceAbort">
       <message>
-        The transaction was aborted since writing it to disk would cause the log
-        to overflow.
+        The transaction was aborted because space could not be allocated for
+        the transaction log entry.
       </message>
-      <remarks>
-        <para>
-          The server runs in a mode that must assure all transactions are written to
-          the log, and hence the alternative strategy to execute a checkpoint when
-          the log overflows, could not be used.
-        </para>
-      </remarks>
     </code>
     <code hex="0011" severity="Error" name="ScErrOutOfLogMemoryAbort">
       <message>
@@ -3602,6 +3599,7 @@
         transaction log buffer space.
       </message>
     </code>
+<!--
     <code hex="0020" severity="Error" name="ScErrNoWritableLogSpaceAbort">
       <message>
         The transaction was aborted since writing it to disk would cause a space
@@ -3621,12 +3619,15 @@
         </para>
       </remarks>
     </code>
+-->
+<!--
     <code hex="0021" severity="Error" name="ScErrLogSpaceEvalFailedAbort">
       <message>
         The transaction was aborted because unable to evaluate if sufficient
         space for the log entry could be allocated in the log file.
       </message>
     </code>
+-->
     <code hex="0022" severity="Error" name="ScErrExternalAbort">
       <message>
         The transaction has been aborted by the framework because of an external event that
