@@ -3585,18 +3585,11 @@
         as allowed by the server.
       </message>
     </code>
-    <code hex="0010" severity="Error" name="ScErrLogOverflowAbort">
+    <code hex="0010" severity="Error" name="ScErrOutOfLogSpaceAbort">
       <message>
-        The transaction was aborted since writing it to disk would cause the log
-        to overflow.
+        The transaction was aborted because space could not be allocated for
+        the transaction log entry.
       </message>
-      <remarks>
-        <para>
-          The server runs in a mode that must assure all transactions are written to
-          the log, and hence the alternative strategy to execute a checkpoint when
-          the log overflows, could not be used.
-        </para>
-      </remarks>
     </code>
     <code hex="0011" severity="Error" name="ScErrOutOfLogMemoryAbort">
       <message>
