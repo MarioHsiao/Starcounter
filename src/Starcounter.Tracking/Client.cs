@@ -27,6 +27,13 @@ namespace Starcounter.Tracking {
 
         private Client() {
             this.ServerIP = TrackingEnvironment.StarcounterTrackerIp;
+            try {
+                var server = System.Environment.GetEnvironmentVariable("STAR_TRACKER_IP");
+                if (!string.IsNullOrWhiteSpace(server)) {
+                    this.ServerIP = server;
+                }
+            } catch { }
+
             this.ServerPort = TrackingEnvironment.StarcounterTrackerPort;
         }
 
@@ -83,10 +90,16 @@ namespace Starcounter.Tracking {
         public void StartTrackUsage(
             IServerRuntime serverInterface, 
             LogSource log = null, 
-            string host = TrackingEnvironment.StarcounterTrackerIp,
-            ushort port = TrackingEnvironment.StarcounterTrackerPort) {
+            string host = null,
+            ushort port = 0) {
             if (serverInterface == null) {
                 throw new ArgumentNullException("serverInterface");
+            }
+            if (host != null) {
+                this.ServerIP = host;
+            }
+            if (port > 0) {
+                this.ServerPort = port;
             }
 
             serverLog = log;

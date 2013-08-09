@@ -19,9 +19,8 @@ namespace Starcounter.Tracking {
         /// <summary>
         /// The starcounter tracker server IP address
         /// </summary>
-//        public const string StarcounterTrackerIp = "tracker.starcounter.com";
-		public const string StarcounterTrackerIp = "127.0.0.1";
-
+        public const string StarcounterTrackerIp = "tracker.starcounter.com";
+		
         /// <summary>
         /// The starcounter tracker server port
         /// </summary>
