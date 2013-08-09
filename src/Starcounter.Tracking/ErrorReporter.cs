@@ -16,15 +16,21 @@ namespace Starcounter.ErrorReporting {
 		private const string NotifyFile = "starcounter.notify";
 		private string logDirectoryPath;
         LogSource serverLog;
+        string trackingServerHost;
+        ushort trackingServerPort;
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="logDirectoryPath"></param>
-        /// <param name="log"></param>
-		internal ErrorReporter(string logDirectoryPath, LogSource log) {
+		/// <param name="log"></param>
+		/// <param name="serverHost"></param>
+		/// <param name="serverPort"></param>
+		internal ErrorReporter(string logDirectoryPath, LogSource log, string serverHost, ushort serverPort) {
 			this.logDirectoryPath = logDirectoryPath;
             this.serverLog = log;
+            this.trackingServerHost = serverHost;
+            this.trackingServerPort = serverPort;
 		}
 
 		/// <summary>
@@ -68,8 +74,6 @@ namespace Starcounter.ErrorReporting {
 		internal void SendErrorReport(List<LogEntry> logEntries) {
 			int installationNo = Starcounter.Tracking.Environment.GetInstallationNo();
 
-			// TODO:
-			// Should really use the same typed json object as in Starcounter.ErrorReport (the server app).
 			var report = new Report();
 			report.InstallationNo = installationNo;
 			foreach (LogEntry entry in logEntries) {
@@ -82,13 +86,18 @@ namespace Starcounter.ErrorReporting {
 				item.Source = entry.Source;
 			}
 
-			// TODO:
-			// Send the report and use the same config as tracking...
-			Node n = new Node(Starcounter.Tracking.Environment.StarcounterTrackerIp, Starcounter.Tracking.Environment.StarcounterTrackerPort);
+			Node n = new Node(trackingServerHost, trackingServerPort);
 
 			Response resp = n.PUT("/api/usage/errorreport", report.ToJsonUtf8(), null, null);
 			if (resp.StatusCode != 200) {
-				throw new Exception();
+                string msg;
+                try {
+                    msg = resp.ToString();
+                } catch {
+                    msg = "N/A";
+                }
+                msg = string.Format("Unexpected response: Status={0}, Message={1}", resp.StatusCode, msg);
+                throw new Exception(msg);
 			}
 		}
 
