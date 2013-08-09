@@ -29,8 +29,7 @@ namespace Starcounter
                     // r = sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
 
                     r = sccoredb.sccoredb_complete_commit(
-                            tran_locked_on_thread, detach_and_free,
-                            sccoredb.SCCOREDB_WAIT_RETRY_ON_LOG_WRITE_FAILURE
+                            tran_locked_on_thread, detach_and_free
                             );
                     if (r == 0) break;
                 }
