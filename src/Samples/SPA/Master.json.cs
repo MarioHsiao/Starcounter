@@ -7,7 +7,7 @@ partial class Master : Json {
 
         void Handle(Input.Emails.Title input)
         {
-            this.Commit();
+            this.Transaction.Commit();
         }
 	}
 }

@@ -85,17 +85,17 @@ namespace Starcounter {
         /// or view models (Puppets) are often associated with database objects. I.e. a person form might
         /// reflect a person database object (Entity).
         /// </summary>
-        private IBindable data;
+        private IBindable _data;
 
         /// <summary>
         /// Transaction applied to this node.
         /// </summary>
-        private ITransaction transaction;
+        private ITransaction _transaction;
 
         /// <summary>
         /// Cache element index if the parent of this Obj is an array (Arr).
         /// </summary>
-        internal int cacheIndexInArr;
+        internal int _cacheIndexInArr;
 
         /// <summary>
         /// Injection point for generating typed json from different kinds of input.
@@ -107,8 +107,8 @@ namespace Starcounter {
         /// </summary>
         public Obj()
             : base() {
-            cacheIndexInArr = -1;
-            transaction = null;
+            _cacheIndexInArr = -1;
+            _transaction = null;
 			LogChanges = false;
         }
 
@@ -139,17 +139,17 @@ namespace Starcounter {
         internal override void FillIndexPath(int[] path, int pos) {
             if (Parent != null) {
                 if (Parent is Arr) {
-                    if (cacheIndexInArr == -1) {
-                        cacheIndexInArr = ((Arr)Parent).IndexOf(this);
+                    if (_cacheIndexInArr == -1) {
+                        _cacheIndexInArr = ((Arr)Parent).IndexOf(this);
                     }
-                    path[pos] = cacheIndexInArr;
+                    path[pos] = _cacheIndexInArr;
                 }
                 else {
 					// We use the cacheIndexInArr to keep track of obj that is set
 					// in the parent as an untyped object since the template here is not
 					// the template in the parent (which we want).
-					if (cacheIndexInArr != -1)
-						path[pos] = cacheIndexInArr;
+					if (_cacheIndexInArr != -1)
+						path[pos] = _cacheIndexInArr;
 					else 
 						path[pos] = Template.TemplateIndex;
                 }
@@ -165,7 +165,7 @@ namespace Starcounter {
         /// <value>The bound data object (often a database Entity)</value>
         public IBindable Data {
             get {
-                return (IBindable)data;
+                return (IBindable)_data;
             }
             set {
                 if (Template == null) throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
@@ -180,8 +180,8 @@ namespace Starcounter {
         internal void ResumeTransaction()
         {
             // Starting using current transaction if any.
-            if (transaction != null)
-                StarcounterBase._DB.SetCurrentTransaction(transaction);
+            if (Transaction != null)
+                StarcounterBase._DB.SetCurrentTransaction(_transaction);
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace Starcounter {
                 Transaction = StarcounterBase._DB.GetCurrentTransaction();
             }
 
-            this.data = data;
+            this._data = data;
             if (Template.Bound) {
                 ((Obj)this.Parent).SetBound(Template, data);
             }
@@ -205,33 +205,15 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Commits this instance.
+        /// Gets nearest transaction.
         /// </summary>
-        public virtual void Commit() {
-            if (transaction != null) {
-                transaction.Commit();
-            }
-        }
-
-        /// <summary>
-        /// Aborts this instance.
-        /// </summary>
-        public virtual void Abort() {
-            if (transaction != null) {
-                transaction.Rollback();
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public ITransaction Transaction { // TODO: Name clashes with StarcounterBase
+        public ITransaction Transaction {
             get {
 
                 // Returning first available transaction climbing up the tree starting from this node.
 
-                if (transaction != null)
-                    return transaction;
+                if (_transaction != null)
+                    return _transaction;
 
                 Obj parentWithTrans = GetNearestObjParentWithTransaction();
                 if (parentWithTrans != null)
@@ -240,10 +222,10 @@ namespace Starcounter {
                 return null;
             }
             set {
-                if (transaction != null) {
-                    throw new Exception("An transaction is already set for this object. Changing transaction is not allowed.");
+                if (_transaction != null) {
+                    throw new Exception("An transaction is already set for this object. Changing transaction_ is not allowed.");
                 }
-                transaction = value;
+                _transaction = value;
             }
         }
 
@@ -252,7 +234,7 @@ namespace Starcounter {
         /// look in parents.
         /// </summary>
         internal ITransaction TransactionOnThisNode {
-            get { return transaction; }
+            get { return _transaction; }
         }
 
         /// <summary>

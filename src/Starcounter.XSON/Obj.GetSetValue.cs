@@ -262,9 +262,9 @@ namespace Starcounter {
             Obj oldValue = _Values[i];
             if (oldValue != null) {
                 oldValue.SetParent(null);
-				oldValue.cacheIndexInArr = -1;
+				oldValue._cacheIndexInArr = -1;
             }
-			value.cacheIndexInArr = property.TemplateIndex;
+			value._cacheIndexInArr = property.TemplateIndex;
             _Values[i] = value;
 #else
             throw new NotImplementedException();

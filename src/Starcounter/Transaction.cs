@@ -62,6 +62,11 @@ namespace Starcounter
         /// <summary>
         /// </summary>
         public static void SetCurrent(Transaction value) {
+
+            // Checking if current transaction is the same.
+            if (value == _current)
+                return;
+
             ulong handle;
             ulong verify;
 

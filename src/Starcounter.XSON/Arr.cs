@@ -234,7 +234,7 @@ namespace Starcounter {
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem.cacheIndexInArr = i;
+                otherItem._cacheIndexInArr = i;
             }
 
         }
@@ -252,7 +252,7 @@ namespace Starcounter {
 
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem.cacheIndexInArr = i;
+                otherItem._cacheIndexInArr = i;
             }
 #else
          throw new NotImplementedException();
@@ -323,7 +323,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);
-            item.cacheIndexInArr = index;
+            item._cacheIndexInArr = index;
             item.Parent = this;
 #else
          throw new NotImplementedException();
