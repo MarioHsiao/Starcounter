@@ -247,9 +247,8 @@ namespace Starcounter
         /// </summary>
         /// <param name="action"></param>
         public void Add(Action action) {
-            SetCurrent(_current);
+            SetCurrent(this);
             action.Invoke();
-            SetCurrent(null);
         }
 
         /// <summary>
@@ -257,7 +256,7 @@ namespace Starcounter
         /// </summary>
         /// <param name="action"></param>
         public void BeginScope() {
-            SetCurrent(_current);
+            SetCurrent(this);
         }
 
         /// <summary>
