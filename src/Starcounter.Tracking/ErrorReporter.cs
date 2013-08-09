@@ -51,12 +51,15 @@ namespace Starcounter.ErrorReporting {
             }
 
             try {
-                foreach (var error in errors) {
-                    logEntries = GetLogEntries(error, 10);
-                    if (logEntries.Count == 0)
-                        continue;
+                if (errors.Count > 0) {
+                    serverLog.Debug("Detected {0} errors to report - sending...", errors.Count);
+                    foreach (var error in errors) {
+                        logEntries = GetLogEntries(error, 10);
+                        if (logEntries.Count == 0)
+                            continue;
 
-                    SendErrorReport(logEntries);
+                        SendErrorReport(logEntries);
+                    }
                 }
 
             } catch (Exception errorSending) {
