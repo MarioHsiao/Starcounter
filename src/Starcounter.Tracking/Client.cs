@@ -110,7 +110,7 @@ namespace Starcounter.Tracking {
                         var pulse = TimeSpan.FromMinutes(1);
                         var usageIntervall = TimeSpan.FromHours(1);
                         var next = DateTime.Now;
-                        var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory, serverLog);
+                        var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory, serverLog, ServerIP, ServerPort);
                         
                         do {
                             var now = DateTime.Now;
