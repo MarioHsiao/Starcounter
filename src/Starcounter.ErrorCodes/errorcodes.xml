@@ -3070,6 +3070,9 @@
     <code hex="0100" severity="Error" name="ScErrTransLogWriterNotAvailable">
       <message>Transaction log writer is not available.</message>
     </code>
+    <code hex="0101" severity="Error" name="ScErrCantLoadTransLogWriterLib">
+      <message>Transaction log writer client library could not be loaded.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
