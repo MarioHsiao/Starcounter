@@ -191,8 +191,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
         protected virtual void InternalSetData(IBindable data) {
-            if (Transaction2 == null) {
-                Transaction2 = StarcounterBase._DB.GetCurrentTransaction();
+            if (Transaction == null) {
+                Transaction = StarcounterBase._DB.GetCurrentTransaction();
             }
 
             this.data = data;
@@ -225,7 +225,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public ITransaction Transaction2 { // TODO: Name clashes with StarcounterBase
+        public ITransaction Transaction { // TODO: Name clashes with StarcounterBase
             get {
 
                 // Returning first available transaction climbing up the tree starting from this node.
@@ -235,7 +235,7 @@ namespace Starcounter {
 
                 Obj parentWithTrans = GetNearestObjParentWithTransaction();
                 if (parentWithTrans != null)
-                    return parentWithTrans.Transaction2;
+                    return parentWithTrans.Transaction;
 
                 return null;
             }
@@ -299,7 +299,7 @@ namespace Starcounter {
             {
                 Obj objParent = parent as Obj;
 
-                if ((null != objParent) && (null != objParent.Transaction2))
+                if ((null != objParent) && (null != objParent.Transaction))
                     return objParent;
 
                 parent = parent.Parent;
