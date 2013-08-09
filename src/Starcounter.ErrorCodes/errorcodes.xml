@@ -3118,8 +3118,7 @@
     </code>
     <code hex="0005" severity="Error" name="ScErrTransactionLogCorrupt">
       <message>
-        Recovery detected the transaction log to be corrupt, recovery can't be completed. The log file needs to be rebuilded
-        before the recovery can be completed.
+        Recovery detected the transaction log to be corrupt, recovery can't be completed.
       </message>
     </code>
     <code hex="0006" severity="Error" name="ScErrUnexpectedImageFileError">
