@@ -30,7 +30,7 @@ namespace Starcounter.Advanced {
         /// Runs code as an ACID database transaction in the embedding database.
         /// </summary>
         /// <param name="action"></param>
-        public static void Transaction(Action action) {
+        public static void TransactionRun(Action action) {
             _DB.Transaction(action);
         }
 

@@ -10,12 +10,10 @@ using Starcounter.Advanced;
 
 namespace Starcounter
 {
-
     /// <summary>
     /// </summary>
     public partial class Transaction
     {
-
         internal static void Commit(int tran_locked_on_thread, int detach_and_free)
         {
             uint r;
@@ -95,7 +93,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// </summary>´
+        /// </summary>
         public static Transaction NewCurrent() {
             return NewCurrent(false);
         }
@@ -243,6 +241,32 @@ namespace Starcounter
                 return;
             }
             throw ErrorCode.ToException(r);
+        }
+
+        /// <summary>
+        /// Executes some code within this transaction.
+        /// </summary>
+        /// <param name="action"></param>
+        public void Add(Action action) {
+            SetCurrent(_current);
+            action.Invoke();
+            SetCurrent(null);
+        }
+
+        /// <summary>
+        /// Begins the transaction scope.
+        /// </summary>
+        /// <param name="action"></param>
+        public void BeginScope() {
+            SetCurrent(_current);
+        }
+
+        /// <summary>
+        /// Ends the transaction scope.
+        /// </summary>
+        /// <param name="action"></param>
+        public void EndScope() {
+            SetCurrent(null);
         }
 
         /// <summary>
