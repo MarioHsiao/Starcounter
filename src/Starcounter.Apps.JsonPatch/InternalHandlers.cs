@@ -120,9 +120,6 @@ namespace Starcounter.Internal.JsonPatch {
                 try {
                     root = Session.Data;
 
-                    // Resuming transaction if it exists.
-                    root.ResumeTransaction();
-
                     JsonPatch.EvaluatePatches(root, request.GetBodyByteArray_Slow());
 
                     return root;
