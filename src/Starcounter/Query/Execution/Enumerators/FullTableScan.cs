@@ -728,10 +728,10 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// (reset already includes iterator disposal).
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(Row obj)
+    public override void Reset(Row obj, bool fromFinalize)
     {
         // We are disposing the lowest level internal iterator here.
-        enumerator.Dispose();
+        enumerator.Dispose(fromFinalize);
         enumeratorCreated = false;
         //dataStreamChanged = false;
 

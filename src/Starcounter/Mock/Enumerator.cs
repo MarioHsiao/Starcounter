@@ -32,13 +32,13 @@ namespace Starcounter
 
         private UInt64 _verify = 0; // Also used to check if enumerator has been disposed or not.
 
-        private Int16 _schedId = -1;
-
         /// <summary>
         /// Gets the cursor verify.
         /// </summary>
         /// <value>The cursor verify.</value>
         public UInt64 CursorVerify { get { return _verify; } }
+
+        private Int16 _schedId = -1;
 
         private FilterCallback _filterCallback = null;
 
@@ -130,20 +130,28 @@ namespace Starcounter
             }
         }
 
+
+        public void Dispose() {
+            Dispose(false);
+        }
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose()
+        public void Dispose(Boolean fromFinalize)
         {
-            GC.SuppressFinalize(this);
             // Checking if enumerator was already disposed or not yet created.
             if (_handle == 0 || _verify == 0)
                 return;
 
             // Removing reference to current object.
             _current = null;
-            UInt32 err = sccoredb.SCIteratorFree(_handle, _verify);
-            _schedId = -1;
+
+            UInt32 err = 999;
+            if (fromFinalize)
+                err = FreeIteratorFinalize();
+            else
+                err = sccoredb.SCIteratorFree(_handle, _verify);
 
             // Marking this enumerator as disposed.
             if (err == 0)
@@ -152,47 +160,27 @@ namespace Starcounter
                 return;
             }
 
+#if false // Should not be reachable
             // Checking for specific behavior.
             if ((err == Error.SCERRITERATORNOTOWNED) && (_verify == 0))
                 return;
+#endif
 
             // Otherwise returning error.
             throw ErrorCode.ToException(err);
         }
 
-        ~Enumerator() {
-            if (_handle == 0 || _verify == 0)
-                return;
+        /// <summary>
+        /// Frees kernel iterator, while assuming of being in GC thread.
+        /// </summary>
+        /// <returns>Error code returned by the kernel</returns>
+        private UInt32 FreeIteratorFinalize() {
             if (_schedId == -1)
                 throw ErrorCode.ToException(Error.SCERRUNEXPENUMERATORDISPOSE, "Scheduler is unknown for the enumerator.");
-            //XNode node = new XNode(this, subEnumerator);
-            //ThreadData.Current.RegisterObject(node);
-            //    node.MarkAsDead();
-            //Scheduler.GetInstance(_schedId);
-            //Scheduler.
-            //UInt32 err = sccoredb.SCAttachThread((byte)_schedId, 1);
-            //if (err != 0)
-            //    throw ErrorCode.ToException(err);
-            _current = null;
-            UInt32 err = 0;
-            DbSession dbs = new DbSession();
-            //dbs.RunAsync(delegate {
-            //    err = sccoredb.SCIteratorFreeAnyThread(_handle, _verify);
-            //}, (byte)_schedId);
-            _schedId = -1;
-
-            // Marking this enumerator as disposed.
-            if (err == 0) {
-                //MarkAsDisposed();
-                return;
-            }
-
-            // Checking for specific behavior.
-            if ((err == Error.SCERRITERATORNOTOWNED) && (_verify == 0))
-                return;
-
-            // Otherwise returning error.
-            throw ErrorCode.ToException(err);
+            // Should create new working thread on the scheduler where this 
+            // enumerator was created (_schedId) and call specific version
+            // of free iterator in the kernel.
+            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
         }
 
         /// <summary>
@@ -366,6 +354,8 @@ namespace Starcounter
         /// <value>The cursor verify.</value>
         public UInt64 CursorVerify { get { return _verify; } }
 
+        private Int16 _schedId = -1;
+
         private FilterCallback _filterCallback = null;
 
         /// <summary>
@@ -385,6 +375,9 @@ namespace Starcounter
             _handle = handle;
             _verify = verify;
             _filterCallback = filterCallback;
+            Scheduler sched = Scheduler.GetInstance(true);
+            if (sched != null)
+                _schedId = sched.Id;
         }
 
         // Enumerator already exists, we need to update the contents.
@@ -400,6 +393,7 @@ namespace Starcounter
             else {
                 _handle = handle;
                 _verify = verify;
+                _schedId = Scheduler.GetInstance().Id;
             }
         }
         /// <summary>
@@ -441,31 +435,53 @@ namespace Starcounter
             }
         }
 
+        public void Dispose() {
+            Dispose(false);
+        }
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose() {
+        public void Dispose(Boolean fromFinalize) {
             // Checking if enumerator was already disposed or not yet created.
             if (_handle == 0 || _verify == 0)
                 return;
 
             // Removing reference to current object.
             _current = null;
-            UInt32 err = sccoredb.filter_iterator_free(_handle, _verify);
+            UInt32 err = 999;
+            if (fromFinalize)
+                err = FreeIteratorFinalize();
+            else
+                err = sccoredb.SCIteratorFree(_handle, _verify);
 
             // Marking this enumerator as disposed.
             if (err == 0) {
-                _handle = 0;
-                _verify = 0;
+                MarkAsDisposed();
                 return;
             }
 
+#if false // Should not be reachable
             // Checking for specific behavior.
             if ((err == Error.SCERRITERATORNOTOWNED) && (_verify == 0))
                 return;
+#endif
 
             // Otherwise returning error.
             throw ErrorCode.ToException(err);
+        }
+
+        /// <summary>
+        /// Frees kernel iterator, while assuming of being in GC thread.
+        /// </summary>
+        /// <returns>Error code returned by the kernel</returns>
+        private UInt32 FreeIteratorFinalize() {
+            if (_schedId == -1)
+                throw ErrorCode.ToException(Error.SCERRUNEXPENUMERATORDISPOSE, "Scheduler is unknown for the enumerator.");
+            // Should create new working thread on the scheduler where this 
+            // enumerator was created (_schedId) and call specific version
+            // of free iterator in the kernel.
+            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
         }
 
         /// <summary>
@@ -505,6 +521,9 @@ namespace Starcounter
 
             if (ir != 0)
                 goto err;
+
+            if (_schedId == -1)
+                _schedId = Scheduler.GetInstance().Id;
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
@@ -558,6 +577,7 @@ namespace Starcounter
         public void MarkAsDisposed() {
             _handle = 0;
             _verify = 0;
+            _schedId = -1;
         }
 
         /// <summary>

@@ -212,15 +212,15 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(Row obj)
+    public override void Reset(Row obj, Boolean fromFinalize)
     {
         currentObject = null;
         contextObject = obj;
         counter = 0;
         triedEnumeratorRecreation = false;
 
-        leftEnumerator.Reset(contextObject);
-        rightEnumerator.Reset();
+        leftEnumerator.Reset(contextObject, fromFinalize);
+        rightEnumerator.Reset(fromFinalize);
         if (obj == null) { // On Dispose
             stayAtOffsetkey = false;
             useOffsetkey = true;
@@ -291,7 +291,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             if (leftEnumerator.MoveNext())
             {
                 Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
-                rightEnumerator.Reset(rightContext);
+                rightEnumerator.Reset(rightContext, false);
                 // Call to create enumerator on right one if left at recreated key
                 if (!leftEnumerator.IsAtRecreatedKey)
                     rightEnumerator.UseOffsetkey = false;
@@ -334,7 +334,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             while (!rightEnumerator.MoveNextSpecial(false)) {
                 if (leftEnumerator.MoveNext()) {
                     Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
-                    rightEnumerator.Reset(rightContext);
+                    rightEnumerator.Reset(rightContext, false);
                     rightEnumerator.UseOffsetkey = false;
                 } else {
                     currentObject = null;
@@ -345,7 +345,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             while (!rightEnumerator.MoveNext()) {
                 if (leftEnumerator.MoveNext()) {
                     Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
-                    rightEnumerator.Reset(rightContext);
+                    rightEnumerator.Reset(rightContext, false);
                     rightEnumerator.UseOffsetkey = false;
                 } else {
                     currentObject = null;
@@ -367,7 +367,7 @@ internal class Join : ExecutionEnumerator, IExecutionEnumerator
             // Force the creation of NullObjects on the input enumerators.
             leftEnumerator.MoveNextSpecial(true);
             Row rightContext = MergeObjects(contextObject, leftEnumerator.CurrentRow);
-            rightEnumerator.Reset(rightContext);
+            rightEnumerator.Reset(rightContext, false);
             rightEnumerator.MoveNextSpecial(true);
 
             // Create new currentObject.

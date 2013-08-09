@@ -50,17 +50,26 @@ namespace Starcounter {
                 throw new ObjectDisposedException("Enumerator");
         }
 
-        /// <summary>
-        /// Releases unmanaged resources.
-        /// </summary>
         public void Dispose() {
+            Dispose(false);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases unmanaged resources and return enumerator to cache.
+        /// </summary>
+        public void Dispose(bool fromFinalize) {
             if (subEnumerator != null) {
-                subEnumerator.Dispose();
+                subEnumerator.Dispose(fromFinalize);
                 subEnumerator = null;
 #if false
                 node.MarkAsDead();
 #endif
             }
+        }
+
+        ~SqlEnumerator() {
+            Dispose(true);
         }
 
         /// <summary>

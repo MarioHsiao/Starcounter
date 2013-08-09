@@ -304,7 +304,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(Row obj)
+    public override void Reset(Row obj, Boolean fromFinalize)
     {
         contextObject = obj;
         currentObject = null;

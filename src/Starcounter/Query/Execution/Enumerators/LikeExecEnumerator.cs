@@ -271,10 +271,10 @@ namespace Starcounter.Query.Execution
         /// Resets the enumerator with a context object.
         /// </summary>
         /// <param name="obj">Context object from another enumerator.</param>
-        public override void Reset(Row obj)
+        public override void Reset(Row obj, Boolean fromFinalize)
         {
             // Resetting but not disposing (so its not returned back to cache).
-            currentExecEnum.Reset(null);
+            currentExecEnum.Reset(null, fromFinalize);
             counter = 0;
 
             // Setting variable array to reference the most efficient execution enumerator.
