@@ -122,7 +122,7 @@ namespace Starcounter.Internal
       /// <exception cref="System.Exception">Not implemented</exception>
       private void ReferToRootTuple2( IntPtr blob )
       {
-         throw new Exception("Not implemented");
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Not implemented tuple proxy");
 //         BlobHandle = blob;
 //         OffsetInBlob = SessionBlob.PrivateBlobHeaderSize + /*SessionBlob.internalBlobHeaderSize*/ + SessionBlob.RootTupleParentHeaderSize;
       }
