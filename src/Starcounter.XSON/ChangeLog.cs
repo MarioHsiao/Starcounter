@@ -40,7 +40,7 @@ namespace Starcounter {
         /// <param name="obj">The Obj.</param>
         /// <param name="property">The property.</param>
         public static void UpdateValue(Obj obj, TValue property) {
-            if (log != null) {
+			if (obj.LogChanges && log != null) {
                 if (!log.changes.Exists((match) => { return match.IsChangeOf(obj, property); })) {
                     log.changes.Add(Change.Update(obj, property));
                 }
@@ -54,7 +54,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
         public static void AddItemInList(Obj obj, TObjArr list, Int32 index) {
-            if (log != null)
+			if (obj.LogChanges && log != null)
                 log.changes.Add(Change.Add(obj, list, index));
         }
 
@@ -65,7 +65,7 @@ namespace Starcounter {
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
         public static void RemoveItemInList(Obj obj, TObjArr list, Int32 index) {
-            if (log != null)
+			if (obj.LogChanges && log != null)
                 log.changes.Add(Change.Remove(obj, list, index));
         }
 

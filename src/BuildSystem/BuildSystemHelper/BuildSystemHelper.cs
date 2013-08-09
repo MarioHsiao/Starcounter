@@ -296,6 +296,7 @@ namespace BuildSystemHelper
                     {
                         "sccode",
                         "scdata",
+                        "scdblog",
                         "scnetworkgateway",
                         "scnetworkgatewayloopedtest",
                         "scipcmonitor",

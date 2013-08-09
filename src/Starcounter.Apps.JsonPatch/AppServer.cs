@@ -105,8 +105,13 @@ namespace Starcounter.Internal.Web {
                             // Setting the original request.
                             Session.InitialRequest = request;
 
-                            if (cameWithSession) {
-                                Session.Start((Session)request.GetAppsSessionInterface());
+                            // Obtaining session.
+                            Session s = (Session) request.GetAppsSessionInterface();
+
+                            if (cameWithSession && (null != s)) {
+
+                                // Starting session.
+                                Session.Start(s);
 
                                 // Checking if we can reuse the cache.
                                 if (X.CheckLocalCache(request.Uri, request, null, null, out result)) {

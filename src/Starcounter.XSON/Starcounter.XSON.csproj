@@ -144,6 +144,7 @@
     <Compile Include="Serializer\JsonHelper.cs" />
     <Compile Include="Serializer\JsonReader.cs" />
     <Compile Include="Serializer\DefaultSerializer.cs" />
+    <Compile Include="Sessions\Session.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="Templates\Foundation\PropertyList.cs" />
     <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />

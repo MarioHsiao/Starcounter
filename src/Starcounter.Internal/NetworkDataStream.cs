@@ -15,7 +15,7 @@ namespace Starcounter
     /// <summary>
     /// Struct NetworkDataStream
     /// </summary>
-    public unsafe struct NetworkDataStream : INetworkDataStream
+    public unsafe struct NetworkDataStream
     {
         /// <summary>
         /// The unmanaged_chunk_
