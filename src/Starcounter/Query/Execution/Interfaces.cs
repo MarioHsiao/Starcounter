@@ -1013,7 +1013,10 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
     Boolean MoveNextSpecial(Boolean force);
 
     // Used for joins when Row is supplied from the outer scan loop for filtering on inner level.
-    void Reset(Row contextObj);
+    void Reset(Row contextObj, bool fromFinalize);
+    void Reset(bool fromFinalize);
+
+    void Dispose(Boolean fromFinalize);
 
     RowTypeBinding RowTypeBinding
     {
