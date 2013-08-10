@@ -1,4 +1,0 @@
-PMail
-=====
-
-PMail application demo
