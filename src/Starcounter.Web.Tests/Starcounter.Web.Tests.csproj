@@ -74,11 +74,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BigPregeneratedRequestProcessor.cs" />
     <Compile Include="PersonMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="Temp.cs" />
-    <Compile Include="SimplePregeneratedRequestProcessor.cs" />
     <Compile Include="TestHtmlMerge.cs" />
     <Compile Include="TestNewRequestHandlers.cs" />
     <Compile Include="TestHttpRequestWriter.cs" />

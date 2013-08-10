@@ -84,6 +84,7 @@
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
+    <Compile Include="Http\HttpRequestWriter.cs" />
     <Compile Include="Http\HttpResponseBuilder.cs" />
     <Compile Include="Sessions\InternalSessions.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
