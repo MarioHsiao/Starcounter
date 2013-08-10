@@ -86,6 +86,7 @@
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Http\HttpRequestWriter.cs" />
     <Compile Include="Http\HttpResponseBuilder.cs" />
+    <Compile Include="ILogSource.cs" />
     <Compile Include="Sessions\InternalSessions.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
     <Compile Include="Http\Request.cs" />
