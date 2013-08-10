@@ -29,7 +29,7 @@ namespace Starcounter.Internal.Test
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
 
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
-            HttpAppServer appServer = new HttpAppServer(fileServer);
+            RestServer appServer = new RestServer(fileServer);
 
             UserHandlerCodegen.Setup(null, null, appServer.HandleRequest);
         }
