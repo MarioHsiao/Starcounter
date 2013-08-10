@@ -137,10 +137,15 @@ namespace StarcounterInternal.Bootstrap
                 OnBmxManagerInitialized();
 
                 // Initializing package loader.
-                Package.InitPackage(() => InternalHandlers.Register(
+                Package.InitPackage(() => {
+
+                    SqlRestHandler.Register(
                     configuration.DefaultUserHttpPort,
-                    configuration.DefaultSystemHttpPort)
-                );
+                    configuration.DefaultSystemHttpPort);
+
+                    PuppetRestHandler.Register(
+                    configuration.DefaultUserHttpPort);
+                });
             }
 
             // Configuring host environment.

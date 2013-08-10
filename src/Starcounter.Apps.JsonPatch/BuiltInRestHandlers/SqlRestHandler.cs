@@ -15,18 +15,28 @@ using HttpStructs;
 using System.Collections.Generic;
 using System.IO;
 using Starcounter.Query.Execution;
+using jp = Starcounter.Internal.JsonPatch;
+using System.Runtime.CompilerServices;
 
-namespace Starcounter.Internal.JsonPatch {
+[assembly: InternalsVisibleTo("Starcounter.Bootstrap, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e758955f5e1537c52891c61cd689a8dd1643807340bd32cc12aee50d2add85eeeaac0b44a796cefb6055fac91836a8a72b5dbf3b44138f508bc2d92798a618ad5791ff0db51b8662d7c936c16b5720b075b2a966bb36844d375c1481c2c7dc4bb54f6d72dbe9d33712aacb6fa0ad84f04bfa6c951f7b9432fe820884c81d67db")]
+
+
+namespace Starcounter.Internal {
+
     /// <summary>
-    /// Class InternalHandlers
+    /// Every Starcounter application comes with built in REST handlers to allow communication
+    /// with public Session.Data (aka. view-models or puppets) objects and/or with a potentially exposed SQL engine.
     /// </summary>
-    public class InternalHandlers {
+    public static class SqlRestHandler {
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
         private static StreamWriter consoleWriter;
+ 
         /// <summary>
-        /// Registers this instance.
+        /// Registers the built in REST handlers.
         /// </summary>
+        /// <param name="defaultUserHttpPort">The public session data objects (view-models) are accessed using the same port as the user code REST handlers</param>
+        /// <param name="defaultSystemHttpPort">The SQL access uses the system port</param>
         public static void Register(UInt16 defaultUserHttpPort, UInt16 defaultSystemHttpPort) {
             string dbName = Db.Environment.DatabaseNameLower;
 
@@ -120,15 +130,15 @@ namespace Starcounter.Internal.JsonPatch {
                 try {
                     root = Session.Data;
 
-                    JsonPatch.EvaluatePatches(root, request.GetBodyByteArray_Slow());
+                    jp::JsonPatch.EvaluatePatches(root, request.GetBodyByteArray_Slow());
 
                     return root;
                 }
                 catch (NotSupportedException nex) {
-                    return new Response() { Uncompressed = HttpPatchBuilder.Create415Response(nex.Message) };
+                    return new Response() { Uncompressed = jp::HttpPatchBuilder.Create415Response(nex.Message) };
                 }
                 catch (Exception ex) {
-                    return new Response() { Uncompressed = HttpPatchBuilder.Create400Response(ex.Message) };
+                    return new Response() { Uncompressed = jp::HttpPatchBuilder.Create400Response(ex.Message) };
                 }
             });
         }
@@ -172,15 +182,15 @@ namespace Starcounter.Internal.JsonPatch {
 
 
             // Redirect console output to circular memory buffer
-            InternalHandlers.consoleWriter = new StreamWriter(circularStream);
-            InternalHandlers.consoleWriter.AutoFlush = true;
-            Console.SetOut(InternalHandlers.consoleWriter);
+            SqlRestHandler.consoleWriter = new StreamWriter(circularStream);
+            SqlRestHandler.consoleWriter.AutoFlush = true;
+            Console.SetOut(SqlRestHandler.consoleWriter);
 
         }
 
         private static string GetConsoleOutputRaw() {
 
-            CircularStream circularMemoryStream = (CircularStream)InternalHandlers.consoleWriter.BaseStream;
+            CircularStream circularMemoryStream = (CircularStream)SqlRestHandler.consoleWriter.BaseStream;
             byte[] buffer = new byte[circularMemoryStream.Length];
             int count = circularMemoryStream.Read(buffer, 0, (int)circularMemoryStream.Length);
             if (count > 0) {
