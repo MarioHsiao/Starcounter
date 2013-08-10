@@ -23,7 +23,7 @@ namespace Starcounter.Internal.Web {
     /// handler, the request is routed to a standard file based static resource
     /// web serving implementation that will serve html, png, jpg etc. using the file system.
     /// This file based resolver will be injected into the constructor of this class.</remarks>
-    public partial class RestServer : IRestServer {
+    public partial class AppRestServer : IRestServer {
 
         /// <summary>
         /// A standard file based static resource web serving implementation.
@@ -34,10 +34,10 @@ namespace Starcounter.Internal.Web {
         private Dictionary<UInt16, StaticWebServer> StaticFileServers;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestServer" /> class.
+        /// Initializes a new instance of the <see cref="AppRestServer" /> class.
         /// </summary>
         /// <param name="staticFileServer">The static file server.</param>
-        public RestServer(Dictionary<UInt16, StaticWebServer> staticFileServer) {
+        public AppRestServer(Dictionary<UInt16, StaticWebServer> staticFileServer) {
             StaticFileServers = staticFileServer;
         }
 

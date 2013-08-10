@@ -18,8 +18,8 @@ namespace Starcounter.Internal {
     /// </remarks>
     public static class AppsBootstrapper {
 
-        private static RestServer AppServer_;
-        public static RestServer AppServer
+        private static AppRestServer AppServer_;
+        public static AppRestServer AppServer
         {
             get { return AppServer_; }
         }
@@ -83,7 +83,7 @@ namespace Starcounter.Internal {
         /// </summary>
         static AppsBootstrapper() {
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
-            AppServer_ = new RestServer(fileServer);
+            AppServer_ = new AppRestServer(fileServer);
         }
 
         /// <summary>

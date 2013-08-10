@@ -63,7 +63,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scnetworkgateway", "scnetwo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest", "Starcounter.Rest\Starcounter.Rest.csproj", "{C3E5398F-48FB-4565-8720-D73AF2ACFC1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Apps.JsonPatch", "Starcounter.Apps.JsonPatch\Starcounter.Apps.JsonPatch.csproj", "{828ECAC2-9748-4E7F-BDC0-6D154C90B9C3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.App.Server", "Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj", "{828ECAC2-9748-4E7F-BDC0-6D154C90B9C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Apps.Tests", "Starcounter.Apps.Test\Starcounter.Apps.Tests.csproj", "{B7C456DA-CF64-4689-9389-82E912F84F23}"
 EndProject
@@ -115,7 +115,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "08. VMDBMS", "08. VMDBMS", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03. Network Gateway", "03. Network Gateway", "{A5B0117C-DD6D-4C9A-84D0-DCB9F47B7709}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10. REST Server", "10. REST Server", "{6AEA43EE-D1B7-4F8E-9599-7133FB507C66}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10. Application REST Server", "10. Application REST Server", "{6AEA43EE-D1B7-4F8E-9599-7133FB507C66}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "07. Hypermedia", "07. Hypermedia", "{A8A6B3A7-41B4-4FC8-AB0E-6C9799BE7F27}"
 EndProject
