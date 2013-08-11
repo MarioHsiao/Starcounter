@@ -125,6 +125,10 @@
       <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
       <Name>Starcounter.Hypermedia</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.Tests\Starcounter.XSON.Tests.csproj">
+      <Project>{265d58ef-871e-4e67-947c-c46b84ff63f4}</Project>
+      <Name>Starcounter.XSON.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
