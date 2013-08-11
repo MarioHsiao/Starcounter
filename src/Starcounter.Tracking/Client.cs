@@ -1,5 +1,7 @@
 ﻿using Codeplex.Data;
+using Starcounter.ErrorReporting;
 using Starcounter.Internal;
+using Starcounter.Logging;
 using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Starcounter.Tracking {
+    using TrackingEnvironment = Starcounter.Tracking.Environment;
 
     /// <summary>
     /// Client for sending Usage Tracking to Tracking Server
@@ -23,8 +26,15 @@ namespace Starcounter.Tracking {
         private static readonly Client instance = new Client();
 
         private Client() {
-            this.ServerIP = Starcounter.Tracking.Environment.StarcounterTrackerIp;
-            this.ServerPort = Starcounter.Tracking.Environment.StarcounterTrackerPort;
+            this.ServerIP = TrackingEnvironment.StarcounterTrackerIp;
+            try {
+                var server = System.Environment.GetEnvironmentVariable("STAR_TRACKER_IP");
+                if (!string.IsNullOrWhiteSpace(server)) {
+                    this.ServerIP = server;
+                }
+            } catch { }
+
+            this.ServerPort = TrackingEnvironment.StarcounterTrackerPort;
         }
 
         /// <summary>
@@ -42,14 +52,10 @@ namespace Starcounter.Tracking {
 
         private ushort ServerPort { get; set; }
         private string ServerIP { get; set; }
+        LogSource serverLog;
 
-        /// <summary>
-        /// tru if the tracking is acrive
-        /// </summary>
-        public bool IsTracking { get; private set; }
-
-        private AutoResetEvent autoResetEvent = new AutoResetEvent(false);
-        private bool abortTracking = false;
+        Thread thread;
+        AutoResetEvent stop = new AutoResetEvent(false);
 
         #endregion
         /// <summary>
@@ -77,70 +83,87 @@ namespace Starcounter.Tracking {
         /// <summary>
         /// Start the Usage tracking
         /// </summary>
-        /// <param name="ServerInterface"></param>
-        public void StartTrackUsage(IServerRuntime ServerInterface) {
+        /// <param name="serverInterface"></param>
+        /// <param name="log"></param>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
+        public void StartTrackUsage(
+            IServerRuntime serverInterface, 
+            LogSource log = null, 
+            string host = null,
+            ushort port = 0) {
+            if (serverInterface == null) {
+                throw new ArgumentNullException("serverInterface");
+            }
+            if (host != null) {
+                this.ServerIP = host;
+            }
+            if (port > 0) {
+                this.ServerPort = port;
+            }
 
-            if (this.IsTracking) throw new InvalidOperationException("Trying to start Tracking when is was already running");
+            serverLog = log;
+            lock (this) {
+                if (thread == null) {
+                    thread = new Thread(new ParameterizedThreadStart(new WaitCallback((object state) => {
+                        var server = state as IServerRuntime;
+                        var pulse = TimeSpan.FromMinutes(1);
+                        var usageIntervall = TimeSpan.FromHours(1);
+                        var next = DateTime.Now;
+                        var reporter = new ErrorReporter(server.GetServerInfo().Configuration.LogDirectory, serverLog, ServerIP, ServerPort);
+                        
+                        do {
+                            var now = DateTime.Now;
 
-            ThreadPool.QueueUserWorkItem(PollThread, ServerInterface);
+                            if (now >= next) {
+                                // Collect usage statistics
+                                var databaseInfos = server.GetDatabases();
+                                var databases = databaseInfos.Length;
+                                var runningDatabases = 0;
+                                var runningexecutables = 0;
+                                
+                                foreach (DatabaseInfo dbInfo in databaseInfos) {
+                                    if (dbInfo.Engine != null) {
+                                        if (dbInfo.Engine.HostProcessId > 0) {
+                                            runningDatabases++;
+                                        }
+                                        if (dbInfo.Engine.HostedApps != null) {
+                                            runningexecutables += dbInfo.Engine.HostedApps.Length;
+                                        }
+                                    }
+                                }
+
+                                // Send usage statistics
+                                SendStarcounterUsage(databases, -1, runningDatabases, runningexecutables);
+
+                                next = next.Add(usageIntervall);
+                            }
+
+                            // Send error reports
+                            reporter.CheckAndSendErrorReports();
+                        }
+                        while (!stop.WaitOne(pulse));
+
+                    })));
+
+                    thread.Name = "Starcounter usage statistics thread";
+                    thread.Start(serverInterface);
+                }
+            }
         }
 
         /// <summary>
         /// Stops the stracking usage
         /// </summary>
         public void StopTrackUsage() {
-
-            if (this.IsTracking == false) throw new InvalidOperationException("Trying to stop Tracking when it was not running");
-
-            this.abortTracking = true;
-            this.autoResetEvent.Set();
-
-        }
-
-        private void PollThread(object state) {
-
-            IServerRuntime serverInterface = state as IServerRuntime;
-
-            if (serverInterface == null) throw new ArgumentNullException("state");
-
-            DatabaseInfo[] databaseInfos;
-            int runningDatabases;
-            int runningexecutables;
-
-            while (true) {
-
-
-                // Collect usage statistics
-                databaseInfos = serverInterface.GetDatabases();
-                int databases = databaseInfos.Length;
-                runningDatabases = 0;
-                runningexecutables = 0;
-
-                foreach (DatabaseInfo dbInfo in databaseInfos) {
-                    if (dbInfo.Engine != null) {
-                        if (dbInfo.Engine.HostProcessId > 0) {
-                            runningDatabases++;
-                        }
-                        if (dbInfo.Engine.HostedApps != null) {
-                            runningexecutables += dbInfo.Engine.HostedApps.Length;
-                        }
-                    }
-                }
-
-                // Send usage statistics
-                this.SendStarcounterUsage(databases, -1, runningDatabases, runningexecutables);
-
-                this.autoResetEvent.WaitOne(1000 * 60 * 60); // 1h
-                if (this.abortTracking == true) {
-                    this.abortTracking = false;
-                    break;
+            lock (this) {
+                if (thread != null) {
+                    stop.Set();
+                    thread.Join();
+                    thread = null;
                 }
             }
-
-            this.IsTracking = false;
-
         }
-
 
         /// <summary>
         /// Send installer start tracking message
