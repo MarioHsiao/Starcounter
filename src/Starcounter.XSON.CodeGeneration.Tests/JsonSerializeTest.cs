@@ -192,7 +192,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             double newtonTime;
             double defaultTime;
             double codegenTime;
-            int nrOfTimes = 1000000;
+            int nrOfTimes = 10000;
 
             Console.WriteLine(json);
             Console.WriteLine();

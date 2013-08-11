@@ -51,31 +51,34 @@ namespace Starcounter.Internal.Test {
             var appTemplate = new TJson();
             var persons = new TArr<Json, TJson>() { TemplateName = "Persons", Parent = appTemplate };
             var person = new TJson() { Parent = persons };
+
+//            persons.App = person;
+
             var firstName = new TString() { TemplateName = "FirstName", Parent = person };
             var lastName = new TString() { TemplateName = "LastName", Parent = person };
             var address = new TString() { TemplateName = "Address", Parent = person };
             var userId = new TString() { TemplateName = "UserId", Parent = appTemplate };
 
-            var app = new Json() { Template = appTemplate };
+            var obj = new Json() { Template = appTemplate };
             var jocke = new Json() { Template = person };
             jocke.Set(firstName, "Joachim");
             jocke.Set(lastName, "Wester");
-            app.Get(persons).Add(jocke);
+            obj.Get(persons).Add(jocke);
 
             var addie = new Json() { Template = person };
             addie.Set(firstName, "Adrienne");
             addie.Set(lastName, "Wester");
-            app.Get(persons).Add(addie);
+            obj.Get(persons).Add(addie);
 
             //	     Assert.AreEqual("[[[\"Joachim\",\"Wester\",null],[\"Adrienne\",\"Wester\",null]],null]",//
             //	                     app.QuickAndDirtyObject.DebugDump());
-            Assert.AreEqual("Adrienne", app.Get(persons)[1].Get(firstName));
+            Assert.AreEqual("Adrienne", obj.Get(persons)[1].Get(firstName));
 
             Console.WriteLine("Raw tuple:");
             //	     Console.WriteLine(app.QuickAndDirtyObject.DebugDump());
             Console.WriteLine("");
             Console.WriteLine("JSON:");
-            Console.WriteLine(app.ToJson());
+            Console.WriteLine(obj.ToJson());
         }
 
 //        [Test]

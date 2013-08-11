@@ -23,7 +23,7 @@ namespace Starcounter.Internal.Web {
     /// handler, the request is routed to a standard file based static resource
     /// web serving implementation that will serve html, png, jpg etc. using the file system.
     /// This file based resolver will be injected into the constructor of this class.</remarks>
-    public partial class HttpAppServer : HttpRestServer {
+    public partial class AppRestServer : IRestServer {
 
         /// <summary>
         /// A standard file based static resource web serving implementation.
@@ -34,10 +34,10 @@ namespace Starcounter.Internal.Web {
         private Dictionary<UInt16, StaticWebServer> StaticFileServers;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HttpAppServer" /> class.
+        /// Initializes a new instance of the <see cref="AppRestServer" /> class.
         /// </summary>
         /// <param name="staticFileServer">The static file server.</param>
-        public HttpAppServer(Dictionary<UInt16, StaticWebServer> staticFileServer) {
+        public AppRestServer(Dictionary<UInt16, StaticWebServer> staticFileServer) {
             StaticFileServers = staticFileServer;
         }
 
@@ -50,8 +50,9 @@ namespace Starcounter.Internal.Web {
         public Response OnResponse(Request request, Response response) {
 
             // NOTE: Checking if its internal request then just returning response without modification.
-            if (request.IsInternal)
+            if (request.IsInternal) {
                 return response;
+            }
 
             try {
                 if (response == null) {
@@ -88,7 +89,7 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
-        public override Response HandleRequest(Request request) {
+        public Response HandleRequest(Request request) {
             Response result = null;
             UInt32 errCode;
             Boolean cameWithSession = request.HasSession;
@@ -300,7 +301,7 @@ namespace Starcounter.Internal.Web {
         /// <remarks>There is no need to add the directory to the static resolver as the static resolver
         /// will already be bootstrapped as a lower priority handler for stuff that this
         /// AppServer does not handle.</remarks>
-        public override void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
+        public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
         {
             lock (StaticFileServers)
             {
@@ -324,7 +325,7 @@ namespace Starcounter.Internal.Web {
         /// Housekeeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
-        public override int Housekeep()
+        public int Housekeep()
         {
             lock (StaticFileServers)
             {

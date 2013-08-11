@@ -18,8 +18,8 @@ namespace Starcounter.Internal {
     /// </remarks>
     public static class AppsBootstrapper {
 
-        private static HttpAppServer AppServer_;
-        public static HttpAppServer AppServer
+        private static AppRestServer AppServer_;
+        public static AppRestServer AppServer
         {
             get { return AppServer_; }
         }
@@ -83,7 +83,7 @@ namespace Starcounter.Internal {
         /// </summary>
         static AppsBootstrapper() {
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
-            AppServer_ = new HttpAppServer(fileServer);
+            AppServer_ = new AppRestServer(fileServer);
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace Starcounter.Internal {
                     // Sending REST POST request to Administrator to register static resources directory.
                     Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, null, (Response resp, Object userObject) =>
                     {
-                        String respString = resp.GetBodyStringUtf8_Slow();
+                        String respString = resp.Body;
 
                         if ("Success!" != respString)
                             throw new Exception("Could not register static resources directory with administrator!");

@@ -156,7 +156,7 @@ namespace Starcounter {
                 current.SetData(value);
 
                 // Creating new implicit read-write transaction.
-                value.Transaction2 = StarcounterBase._DB.NewCurrent();
+                value.Transaction = StarcounterBase._DB.NewCurrent();
             }
         }
 

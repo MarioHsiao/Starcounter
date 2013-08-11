@@ -378,6 +378,10 @@ namespace Starcounter.Internal.JsonPatch {
         /// <exception cref="System.Exception">TODO:</exception>
         private static void HandleParsedPatch(Obj rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
             AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
+
+            // Resuming transaction if it exists up the tree.
+            aat.App.ResumeTransaction();
+
             ((TValue)aat.Template).ProcessInput(aat.App, value);
         }
 

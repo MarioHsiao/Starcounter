@@ -45,7 +45,19 @@ namespace Starcounter.XSON.Tests {
             return new FakeTransaction();
         }
 
+        public void Add(Action action) {
+
+        }
+
         public void Commit() {
+        
+        }
+
+        public void BeginScope() {
+        
+        }
+
+        public void EndScope() {
         
         }
 

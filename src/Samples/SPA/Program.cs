@@ -41,6 +41,14 @@ class Program {
 
         Handle.GET("/emails/{?}", (string id) => {
             Master m = (Master)X.GET("/emails");
+            m.Transaction = new Transaction();
+
+            m.Transaction.Add(() => { Email e1 = new Email(); });
+
+            m.Transaction.BeginScope();
+            Email e2 = new Email();
+            m.Transaction.EndScope();
+
             var page = new MailPage() { 
                 Html = "email.html",
                 Data = Db.SQL("SELECT e FROM Email e WHERE Id=?",id).First

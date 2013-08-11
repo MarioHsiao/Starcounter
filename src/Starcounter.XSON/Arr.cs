@@ -78,9 +78,12 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         public override void Add(Obj item) {
-            var t = ((TObjArr)Template).App.GetType();
-            if (!t.Equals(item.Template.GetType()))
-                throw new Exception("Cannot add item. Invalid type for this array.");
+            var typedListTemplate = ((TObjArr)Template).App;
+            if (typedListTemplate != null) {
+//                var t = allowedTemplate.GetType();
+                if (item.Template != typedListTemplate)
+                   throw new Exception("Cannot add item. Invalid type for this array.");
+            }
             base.Add(item);
         }
 
@@ -234,7 +237,7 @@ namespace Starcounter {
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem.cacheIndexInArr = i;
+                otherItem._cacheIndexInArr = i;
             }
 
         }
@@ -252,7 +255,7 @@ namespace Starcounter {
 
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
-                otherItem.cacheIndexInArr = i;
+                otherItem._cacheIndexInArr = i;
             }
 #else
          throw new NotImplementedException();
@@ -323,7 +326,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);
-            item.cacheIndexInArr = index;
+            item._cacheIndexInArr = index;
             item.Parent = this;
 #else
          throw new NotImplementedException();
