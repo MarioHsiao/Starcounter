@@ -19,7 +19,7 @@ namespace Starcounter.Internal.Web {
     /// content). Each resource is represented by a WebResource instance.
     /// <para><img src="http://www.rebelslounge.com/res/scweb/WebResource.png" /></para>
     /// </summary>
-   public partial class StaticWebServer : HttpRestServer {
+    public partial class StaticWebServer : IRestServer {
 
 
        /// <summary>
@@ -29,7 +29,7 @@ namespace Starcounter.Internal.Web {
        /// be added in priority order with the most prioritised path first.
        /// </summary>
        /// <param name="path">The file path for the directory to add</param>
-       public override void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
+       public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path)
        {
             Console.WriteLine("Adding path to static web server \"" + path + "\"");
 
@@ -98,7 +98,7 @@ namespace Starcounter.Internal.Web {
       /// </summary>
       /// <param name="request">The http request</param>
       /// <returns>The http response</returns>
-      public override Response HandleRequest(Request request) {
+      public Response HandleRequest(Request request) {
          return GetStatic( request.Uri, request );
       }
 
@@ -182,7 +182,7 @@ namespace Starcounter.Internal.Web {
       /// Housekeeps this instance.
       /// </summary>
       /// <returns>System.Int32.</returns>
-      public override int Housekeep() {
+      public int Housekeep() {
          //ClearCache(); // TODO! Only invalidate individual items
          var invalidated = new List<Response>(CacheOnFilePath.Count);
          foreach (var cached in this.CacheOnFilePath) {

@@ -10,12 +10,10 @@ using Starcounter.Advanced;
 
 namespace Starcounter
 {
-
     /// <summary>
     /// </summary>
     public partial class Transaction
     {
-
         internal static void Commit(int tran_locked_on_thread, int detach_and_free)
         {
             uint r;
@@ -31,8 +29,7 @@ namespace Starcounter
                     // r = sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
 
                     r = sccoredb.sccoredb_complete_commit(
-                            tran_locked_on_thread, detach_and_free,
-                            sccoredb.SCCOREDB_WAIT_RETRY_ON_LOG_WRITE_FAILURE
+                            tran_locked_on_thread, detach_and_free
                             );
                     if (r == 0) break;
                 }
@@ -65,6 +62,11 @@ namespace Starcounter
         /// <summary>
         /// </summary>
         public static void SetCurrent(Transaction value) {
+
+            // Checking if current transaction is the same.
+            if (value == _current)
+                return;
+
             ulong handle;
             ulong verify;
 
@@ -95,7 +97,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// </summary>´
+        /// </summary>
         public static Transaction NewCurrent() {
             return NewCurrent(false);
         }
@@ -243,6 +245,31 @@ namespace Starcounter
                 return;
             }
             throw ErrorCode.ToException(r);
+        }
+
+        /// <summary>
+        /// Executes some code within this transaction.
+        /// </summary>
+        /// <param name="action"></param>
+        public void Add(Action action) {
+            SetCurrent(this);
+            action.Invoke();
+        }
+
+        /// <summary>
+        /// Begins the transaction scope.
+        /// </summary>
+        /// <param name="action"></param>
+        public void BeginScope() {
+            SetCurrent(this);
+        }
+
+        /// <summary>
+        /// Ends the transaction scope.
+        /// </summary>
+        /// <param name="action"></param>
+        public void EndScope() {
+            SetCurrent(null);
         }
 
         /// <summary>

@@ -636,8 +636,6 @@ namespace Starcounter.Internal
             out ulong viter
             );
 
-        public const uint SCCOREDB_WAIT_RETRY_ON_LOG_WRITE_FAILURE = 1;
-
         /// <summary>
         /// Sccoredb_complete_commits the specified tran_locked_on_thread.
         /// </summary>
@@ -647,9 +645,7 @@ namespace Starcounter.Internal
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_complete_commit(
-            int tran_locked_on_thread,
-            int detach_and_free,
-            uint flags
+            int tran_locked_on_thread, int detach_and_free
             );
 
         /// <summary>
