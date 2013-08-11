@@ -11,7 +11,7 @@ using NUnit.Framework;
 using Starcounter.Internal;
 using Starcounter.Templates;
 using System.IO;
-using Starcounter.Internal.JsonTemplate;
+//using Starcounter.Internal.JsonTemplate;
 using Starcounter.Advanced;
 using Starcounter.XSON.Tests;
 
@@ -329,7 +329,7 @@ namespace Starcounter.Internal.JsonPatch.Test
         /// <returns>AppAndTemplate.</returns>
         private static AppAndTemplate CreateSampleApp()
         {
-            dynamic template = TemplateFromJs.CreateFromJs(File.ReadAllText("SampleApp.json"), false);
+            dynamic template = TObj.CreateFromJson(File.ReadAllText("SampleApp.json")); //TemplateFromJs.CreateFromJs(File.ReadAllText("SampleApp.json"), false);
             dynamic app = new Json() { Template = template };
             
             app.FirstName = "Cliff";
