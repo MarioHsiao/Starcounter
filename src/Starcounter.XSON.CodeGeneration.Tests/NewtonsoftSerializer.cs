@@ -6,7 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Starcounter.Internal;
 using Starcounter.Templates;
-using Starcounter.XSON.Serializers;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
     public class NewtonsoftSerializer : TypedJsonSerializer {

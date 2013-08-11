@@ -8,9 +8,11 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Templates;
 using System;
-using Starcounter.XSON.CodeGeneration;
+//using Starcounter.XSON.CodeGeneration;
 using Starcounter.Advanced;
 using Starcounter.Internal;
+using Starcounter.Advanced.XSON;
+using System.IO;
 
 namespace Starcounter.XSON.Tests {
 
@@ -271,13 +273,27 @@ namespace Starcounter.XSON.Tests {
             Assert.AreEqual("Lorem Ipsum", myDataObj.Misc); // Not bound so updating the message should not alter the dataobject.
         }
 
+
+        /// <summary>
+        /// Creates a template from a JSON-by-example file
+        /// </summary>
+        /// <param name="filePath">The file to load</param>
+        /// <returns>The newly created template</returns>
+        private static TObj CreateJsonTemplateFromFile(string filePath) {
+            string json = File.ReadAllText(filePath);
+            string className = Path.GetFileNameWithoutExtension(filePath);
+            var tobj = TObj.CreateFromMarkup<Obj,TObj>("json", json, className);
+            tobj.ClassName = className;
+            return tobj;
+        }
+
         /// <summary>
         /// Tests TestDataBinding.
         /// </summary>
         [Test]
         public static void TestDataBindingWithDifferentClasses() {
             // Bound to SimpleBase datatype.
-            TObj tSimple = Obj.Factory.CreateJsonTemplateFromFile("simple.json");
+            TObj tSimple = CreateJsonTemplateFromFile("simple.json");
             dynamic simpleJson = tSimple.CreateInstance();
 
             var simpleData = new SubClass1(); 

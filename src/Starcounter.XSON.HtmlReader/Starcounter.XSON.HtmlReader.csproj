@@ -60,6 +60,12 @@
     <DocumentationFile>..\..\bin\Release\Starcounter.XSON.HtmlReader.xml</DocumentationFile>
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -67,6 +73,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Properties\Module.cs" />
     <Compile Include="TemplateFromHtml.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -74,6 +81,14 @@
     <ProjectReference Include="..\Starcounter.BitsAndBytes\BitsAndBytes.csproj">
       <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
       <Name>BitsAndBytes</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
+      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
+      <Name>Starcounter.XSON.JsonByExample</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

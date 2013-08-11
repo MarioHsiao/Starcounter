@@ -2,7 +2,7 @@
 using NUnit.Framework;
 
 namespace FasterThanJson.Tests {
-    [TestFixture]
-    public class TestSafeTupleWriter {
-    }
+//    [TestFixture]
+//    public class TestSafeTupleWriter {
+//    }
 }

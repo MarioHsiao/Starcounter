@@ -9,21 +9,59 @@ using System.Collections.Generic;
 using System.Threading;
 using Starcounter.Advanced;
 using Starcounter.Internal;
-using Starcounter.XSON;
-using Starcounter.XSON.Serializers;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public abstract class TObj : TContainer {
+    public class TObj : TContainer {
 
         /// <summary>
         /// Static constructor to automatically initialize XSON.
         /// </summary>
         static TObj() {
             HelperFunctions.LoadNonGACDependencies();
-            XSON.CodeGeneration.Initializer.InitializeXSON();
+//            XSON.CodeGeneration.Initializer.InitializeXSON();
+        }
+
+        /// <summary>
+        /// By default, Starcounter creates
+        /// a JSON-by-example reader that allows you to convert a JSON file to a XOBJ template using the format
+        /// string "json". You can inject other template formats here.
+        /// </summary>
+        public static Dictionary<string, IXsonTemplateMarkupReader> MarkupReaders = new Dictionary<string, IXsonTemplateMarkupReader>();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TTObj"></typeparam>
+        /// <param name="format"></param>
+        /// <param name="markup"></param>
+        /// <param name="origin">Optional origin (i.e. file name) where the markup was obtained. Usefull for debugging in case of syntax errors in the markup.</param>
+        /// <returns></returns>
+        public static TypeTObj CreateFromMarkup<TypeObj,TypeTObj>(string format, string markup, string origin )
+                    where TypeObj : Obj, new()
+                    where TypeTObj : TObj, new() {
+            IXsonTemplateMarkupReader reader;
+            try {
+                reader = TObj.MarkupReaders[format];
+            }
+            catch {
+                throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
+            }
+
+            return reader.CompileMarkup<TypeObj,TypeTObj>(markup,origin);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static TObj CreateFromJson(string json) {
+            return CreateFromMarkup<Obj,TObj>("json", json, null);
         }
 
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
@@ -38,7 +76,7 @@ namespace Starcounter.Templates {
         internal void GenerateSerializer(object state){
             // it doesn't really matter if setting the variable in the template is synchronized 
             // or not since if the serializer is null a fallback serializer will be used instead.
-            this.codegenSerializer = Obj.Factory.CreateJsonSerializer(this);
+            this.codegenSerializer = Modules.Starcounter_XSON.Injections.TypedJsonSerializerFactory.CreateTypedJsonSerializer(this);   //Obj.Factory.CreateJsonSerializer(this);
         }
 
         /// <summary>
@@ -74,8 +112,8 @@ namespace Starcounter.Templates {
         /// </summary>
         public static bool UseCodegeneratedSerializer {
             get {
-                if (Obj.Factory == null)
-                    return false;
+                //if (Obj.Factory == null)
+                //    return false;
                 return shouldUseCodegeneratedSerializer;
             }
             set {
