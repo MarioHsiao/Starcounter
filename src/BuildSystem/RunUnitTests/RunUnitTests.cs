@@ -48,8 +48,8 @@ namespace RunUnitTests
                 }
 
                 String nunitParameters = "";
-                if (BuildSystem.IsNightlyBuild())
-                    nunitParameters = "/include:performance";
+                //if (BuildSystem.IsNightlyBuild())
+                //    nunitParameters = "/include:performance";
 
                 // Getting the path to current build consolidated folder.
                 String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
