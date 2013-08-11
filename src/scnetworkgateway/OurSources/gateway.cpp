@@ -3011,7 +3011,8 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
         GW_COUT << "Average number of ops per second: " << ops_per_second <<
             ". Took " << test_finish_time - test_begin_time_ << " ms." << GW_ENDL;
 
-        GW_COUT << "##teamcity[buildStatisticValue key='" << setting_stats_name_ << "' value='" << ops_per_second << "']" << GW_ENDL;
+        // Reporting statistics to build output and build statistics file.
+        ReportStatistics(setting_stats_name_.c_str(), ops_per_second);
 
         if (is_on_build_server)
             ShutdownGateway(gw, 0);
