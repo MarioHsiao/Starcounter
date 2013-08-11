@@ -131,7 +131,7 @@ namespace GenerateInstaller
                 String sourcesDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
                 if (sourcesDir == null)
                 {
-                    throw new Exception("Environment variable 'SC_CHECKOUT_DIR' does not exist.");
+                    throw new Exception("Environment variable " + BuildSystem.CheckOutDirEnvVar + " does not exist.");
                 }
 
                 // Indicating that we want to skip local FTP.

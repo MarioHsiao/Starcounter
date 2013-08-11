@@ -12,6 +12,8 @@ using Starcounter.Internal;
 using Starcounter.Templates;
 using System.IO;
 using Starcounter.Internal.JsonTemplate;
+using Starcounter.Advanced;
+using Starcounter.XSON.Tests;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {
@@ -21,6 +23,15 @@ namespace Starcounter.Internal.JsonPatch.Test
     [TestFixture]
     public class JsonPatchTest
     {
+        /// <summary>
+        /// Sets up the test.
+        /// </summary>
+        [TestFixtureSetUp]
+        public static void Setup()
+        {
+            StarcounterBase._DB = new FakeDbImpl();
+        }
+
         /// <summary>
         /// Tests the json pointer.
         /// </summary>
