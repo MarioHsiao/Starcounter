@@ -34,6 +34,15 @@ namespace PostBuildTasks
         };
 
         /// <summary>
+        /// Files in output that should be deleted before packaging into one installer.
+        /// </summary>
+        static readonly String[] OutputFilePatternsToDelete =
+        {
+            "*.json",
+            "*.tests.dll"
+        };
+
+        /// <summary>
         /// Clean output directory.
         /// </summary>
         /// <param name="outputFolder"></param>
@@ -59,9 +68,9 @@ namespace PostBuildTasks
             }
 
             // Removing selected files from output.
-            foreach (String delFile in OutputFilesToDelete)
+            foreach (String filesPattern in OutputFilesToDelete)
             {
-                String delFilePath = Path.Combine(outputFolder, delFile);
+                String delFilePath = Path.Combine(outputFolder, filesPattern);
 
                 if (File.Exists(delFilePath))
                 {
@@ -71,13 +80,16 @@ namespace PostBuildTasks
                 }
             }
 
-            // Removing all tests DLLs.
-            String[] testsDlls = Directory.GetFiles(outputFolder, "*.tests.dll");
-            foreach (String testDll in testsDlls)
+            // Removing selected file patterns from output.
+            foreach (String filesPattern in OutputFilePatternsToDelete)
             {
-                File.Delete(testDll);
+                String[] filesToDelete = Directory.GetFiles(outputFolder, filesPattern);
+                foreach (String filePath in filesToDelete)
+                {
+                    File.Delete(filePath);
 
-                Console.WriteLine("  Deleted file: " + testDll);
+                    Console.WriteLine("  Deleted file: " + filePath);
+                }
             }
         }
 
