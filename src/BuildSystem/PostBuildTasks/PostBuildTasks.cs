@@ -29,7 +29,8 @@ namespace PostBuildTasks
         /// </summary>
         static readonly String[] OutputFilesToDelete =
         {
-            "personal.xml"
+            "personal.xml",
+            "facit.cpp.txt"
         };
 
         /// <summary>
