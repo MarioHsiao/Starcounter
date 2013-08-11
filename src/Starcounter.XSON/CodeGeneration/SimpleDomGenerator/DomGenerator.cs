@@ -394,11 +394,17 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
             appTemplate = rootTemplate;
 
-			int index = jsonMapName.IndexOf(".json");
-			if (index != -1) {
-				// Remove the json part before searching for the template.
-				jsonMapName = jsonMapName.Substring(index + 6);
-			}
+            if (jsonMapName.StartsWith("json.")) {
+                jsonMapName = jsonMapName.Substring(5);
+            }
+            else {
+                int index = jsonMapName.IndexOf(".json.");
+	    		    if (index != -1) {
+				    // Remove the json part before searching for the template.
+				    jsonMapName = jsonMapName.Substring(index + 6);
+			    }
+            }
+
 
             mapParts = jsonMapName.Split('.');
 
@@ -413,7 +419,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 } else {
                     // TODO:
                     // Change to starcounter errorcode.
-                    throw new Exception("Invalid property to bind codebehind.");
+                    throw new Exception(
+                        String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found or has the wrong type.",
+                            jsonMapName,
+                            mapParts[i]
+                        ));
                 }
             }
             return appTemplate;

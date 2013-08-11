@@ -304,7 +304,7 @@ RemoveAdministrator = True
                     }
 
                     // Setting StarcounterBin environment variable to newly installed path.
-                    Environment.SetEnvironmentVariable("StarcounterBin", ConsolidatedDir);
+                    Environment.SetEnvironmentVariable(BuildSystem.StarcounterBinVar, ConsolidatedDir);
 
                     ErrOut.WriteLine("    Starcounter has been installed successfully.");
 

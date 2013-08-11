@@ -17,7 +17,7 @@ namespace Starcounter.Internal.Tests {
         /// <summary>
         /// Merges two simple html strings into one
         /// </summary>
-        [Test]
+ //       [Test]
         public static void SimpleMergeHtml() {
             var a = @"
 <div global='Base1'>
@@ -48,7 +48,7 @@ namespace Starcounter.Internal.Tests {
         /// <summary>
         /// Merges two simple html strings with overlapping id
         /// </summary>
-        [Test]
+//        [Test]
         public static void MergeHtmlWithIdOverride() {
             var a = @"
 <div id='Base'>

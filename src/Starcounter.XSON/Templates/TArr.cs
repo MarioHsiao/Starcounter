@@ -44,7 +44,8 @@ namespace Starcounter.Templates {
 
 
         /// <summary>
-        /// Gets or sets the app.
+        /// Instructs the array what object template should be used for each element
+        /// in this object array.
         /// </summary>
         /// <value>The app.</value>
         public override TObj App {

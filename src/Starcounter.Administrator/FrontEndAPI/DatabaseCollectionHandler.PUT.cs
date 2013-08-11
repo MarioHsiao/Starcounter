@@ -18,7 +18,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                     try {
 
-                        String content = req.GetBodyStringUtf8_Slow();
+                        String content = req.Body;
 
                         Response response = Node.LocalhostSystemPortNode.POST("/api/admin/verify/databaseproperties", content, null, null);
 
@@ -124,7 +124,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                         }
                         else if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
-                            String validationErrors = response.GetBodyStringUtf8_Slow();
+                            String validationErrors = response.Body;
                             return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
                         }
                         else {
