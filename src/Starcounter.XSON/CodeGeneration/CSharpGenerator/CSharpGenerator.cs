@@ -581,10 +581,12 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
             h.Append("using Starcounter.Internal;\n");
             h.Append("using Starcounter.Templates;\n");
             h.Append("#pragma warning disable 0108\n");
-            h.Append('\n');
+			h.Append("#pragma warning disable 1591\n");
+			h.Append('\n');
         }
 
         static internal void WriteFooter(StringBuilder f) {
+			f.Append("#pragma warning restore 1591\n");
             f.Append("#pragma warning restore 0108");
         }
     }

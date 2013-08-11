@@ -71,6 +71,7 @@
     <Compile Include="API\Installer\FinishCollectionHandler.POST.cs" />
     <Compile Include="API\Installer\ExecutingCollectionHandler.POST.cs" />
     <Compile Include="API\Installer\StartCollectionHandler.POST.cs" />
+    <Compile Include="API\Reporting\ErrorReport.PUT.cs" />
     <Compile Include="API\Starcounter\GeneralCollectionHandler.POST.cs" />
     <Compile Include="API\Starcounter\InstallerCollectionHandler.cs" />
     <Compile Include="API\Starcounter\UsageCollectionHandler.POST.cs" />
@@ -79,9 +80,11 @@
     <Compile Include="Model\InstallerFinish.cs" />
     <Compile Include="Model\InstallerEnd.cs" />
     <Compile Include="Model\InstallerAbort.cs" />
+    <Compile Include="Model\ErrorReportItem.cs" />
     <Compile Include="Model\StarcounterGeneral.cs" />
     <Compile Include="Model\Installation.cs" />
     <Compile Include="Model\Sequence.cs" />
+    <Compile Include="Model\ErrorReport.cs" />
     <Compile Include="Model\StarcounterUsage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -134,6 +137,10 @@
     <ProjectReference Include="..\..\Starcounter.Rest\Starcounter.Rest.csproj">
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Tracking\Starcounter.Tracking.csproj">
+      <Project>{8d37c0b3-3557-4300-9e73-a2add0ba3cbb}</Project>
+      <Name>Starcounter.Tracking</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
