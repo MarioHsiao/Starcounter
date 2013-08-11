@@ -50,8 +50,9 @@ namespace Starcounter.Internal.Web {
         public Response OnResponse(Request request, Response response) {
 
             // NOTE: Checking if its internal request then just returning response without modification.
-            if (request.IsInternal)
+            if (request.IsInternal) {
                 return response;
+            }
 
             try {
                 if (response == null) {

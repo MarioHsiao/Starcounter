@@ -175,7 +175,7 @@ namespace Starcounter
                         Resp = new Response(NodeInst.AccumBuffer, 0, recievedBytes, OrigReq, false);
 
                         // Getting the whole response size.
-                        ResponseSizeBytes = (Int32)Resp.GetResponseLength();
+                        ResponseSizeBytes = Resp.ResponseLength;
                     }
                     catch (Exception exc)
                     {
@@ -354,7 +354,7 @@ RECONNECT:
                         Resp = new Response(NodeInst.AccumBuffer, 0, recievedBytes, OrigReq, false);
 
                         // Getting the whole response size.
-                        ResponseSizeBytes = (Int32) Resp.GetResponseLength();
+                        ResponseSizeBytes = Resp.ResponseLength;
                     }
                     catch (Exception exc)
                     {

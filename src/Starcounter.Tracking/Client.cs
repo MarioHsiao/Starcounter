@@ -479,7 +479,7 @@ namespace Starcounter.Tracking {
                     // If the tracking server response with a new sequenceNo we will use it
                     // NOTE: This is only for the InstallerStart request, but att the moment we dont know the calling type
                     //       It will be fixed when Node async bug if solved
-                    String responseContent = response.GetBodyStringUtf8_Slow();
+                    String responseContent = response.Body;
                     if (!string.IsNullOrEmpty(responseContent)) {
                         dynamic incomingJson = DynamicJson.Parse(responseContent);
                         if (incomingJson.IsDefined("installation")) {

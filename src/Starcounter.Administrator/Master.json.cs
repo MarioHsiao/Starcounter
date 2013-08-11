@@ -94,7 +94,7 @@ namespace Starcounter.Administrator {
             POST("/addstaticcontentdir", (Request req) => {
 
                 // Getting POST contents.
-                String content = req.GetBodyStringUtf8_Slow();
+                String content = req.Body;
 
                 // Splitting contents.
                 String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
