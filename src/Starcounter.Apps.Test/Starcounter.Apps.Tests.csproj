@@ -109,6 +109,10 @@
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Internal.Tests\Starcounter.Internal.Tests.csproj">
+      <Project>{7dc7044d-7e04-47ee-b5e8-0e1f600ce4a4}</Project>
+      <Name>Starcounter.Internal.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
@@ -124,10 +128,6 @@
     <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
       <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
       <Name>Starcounter.Hypermedia</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.Tests\Starcounter.XSON.Tests.csproj">
-      <Project>{265d58ef-871e-4e67-947c-c46b84ff63f4}</Project>
-      <Name>Starcounter.XSON.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
