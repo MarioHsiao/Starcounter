@@ -54,6 +54,9 @@ namespace RunUnitTests
                 // Getting the path to current build consolidated folder.
                 String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
 
+                // Setting StarcounterBin variable.
+                Environment.SetEnvironmentVariable(BuildSystem.StarcounterBinVar, Path.Combine(sourcesDir, outputFolder));
+
                 // Obtaining all probable unit tests DLLs.
                 String[] testsDlls = Directory.GetFiles(outputFolder, "*.tests.dll");
                 foreach (String testDll in testsDlls)
