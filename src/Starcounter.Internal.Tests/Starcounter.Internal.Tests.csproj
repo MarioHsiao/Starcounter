@@ -64,6 +64,7 @@
     <Compile Include="ABCIPCTest.cs" />
     <Compile Include="CommandLineTest.cs" />
     <Compile Include="ErrorCodeTest.cs" />
+    <Compile Include="FakeDbImpl.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
