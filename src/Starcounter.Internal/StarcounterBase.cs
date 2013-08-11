@@ -24,13 +24,13 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// 
         /// </summary>
-        public static IHttpRestServer Fileserver;
+        public static IRestServer Fileserver;
 
         /// <summary>
         /// Runs code as an ACID database transaction in the embedding database.
         /// </summary>
         /// <param name="action"></param>
-        public static void Transaction(Action action) {
+        public static void TransactionRun(Action action) {
             _DB.Transaction(action);
         }
 

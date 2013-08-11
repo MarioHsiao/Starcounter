@@ -91,7 +91,7 @@ namespace Starcounter.Administrator.API.Utilities {
             public static Response CreateFromRequest<T>(Request request, out T obj) where T : Json, new() {
                 T result = new T();
                 try {
-                    result.PopulateFromJson(request.GetBodyStringUtf8_Slow());
+                    result.PopulateFromJson(request.Body);
                 } catch (FormatException fe) {
                     uint code;
                     if (!ErrorCode.TryGetCode(fe, out code)) {

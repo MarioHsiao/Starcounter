@@ -32,7 +32,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
                 // Sending REST POST request to Administrator to register static resources directory.
                 Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, null, (Response resp, Object userObject) => {
-                    String respString = resp.GetBodyStringUtf8_Slow();
+                    String respString = resp.Body;
                     if ("Success!" != respString) {
                         throw new Exception("Could not register static resources directory with administrator!");
                     }

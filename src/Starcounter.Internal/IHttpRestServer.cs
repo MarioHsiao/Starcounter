@@ -18,7 +18,7 @@ namespace Starcounter.Advanced {
     /// that uses the HTTP protocol (the most commonly used REST protocol). The most commonly used REST Methods
     /// are GET and POST, often used by web browser to get REST resources in the HTML format.
     /// The term REST was introduced by Roy Fielding, one of the authors of the original HTTP protocol.</remarks>
-   public interface IHttpRestServer {
+   public interface IRestServer {
 
         /// <summary>
         /// As an example, GetResource("images/hello.jpg") should return a byte array containing a jpeg image.

@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Starcounter.Logging
 {
-    public class LogSource
+    public class LogSource :ILogSource
     {
 
         private readonly string _source;
