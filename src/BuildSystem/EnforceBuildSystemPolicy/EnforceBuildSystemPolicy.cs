@@ -337,14 +337,34 @@ namespace CheckBuildSystem
             },
         };
 
-        static int Main(string[] args)
+        /// <summary>
+        /// Checks build output file for warnings and errors.
+        /// </summary>
+        static Int32 CheckBuildLog(String pathToBuildLogFile)
+        {
+            String s = File.ReadAllText(pathToBuildLogFile);
+
+            if (s.Contains(": warning ") ||
+                s.Contains(": error ") )
+            {
+                return 1;
+            }
+
+            return 0;
+        }
+
+        static Int32 Main(String[] args)
         {
             // Printing tool welcome message.
             BuildSystem.PrintToolWelcome("Build System Policy Enforcement Tool");
 
             String searchDirectory = BuildSystem.GetAssemblyDir();
             if (args.Length > 0)
+            {
                 searchDirectory = args[0];
+                if ("--CheckBuildLog" == args[0])
+                    return CheckBuildLog(args[1]);
+            }
 
             TextWriter errorOut = Console.Error;
 

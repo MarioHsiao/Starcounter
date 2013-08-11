@@ -101,7 +101,7 @@ namespace Starcounter.CLI {
 
             if (statusCode == 404) {
                 errorDetail = new ErrorDetail();
-                errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                errorDetail.PopulateFromJson(response.Body);
                 if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
                     var allowed = !args.ContainsFlag(Option.NoAutoCreateDb);
                     if (!allowed) {
@@ -129,7 +129,7 @@ namespace Starcounter.CLI {
             }
 
             engine = new Engine();
-            engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+            engine.PopulateFromJson(response.Body);
             
             // Restart the engine if the executable is already running, or
             // make sure the host is started if it's not.
@@ -151,7 +151,7 @@ namespace Starcounter.CLI {
                     response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                     response.FailIfNotSuccess();
 
-                    engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                    engine.PopulateFromJson(response.Body);
                 }
             }
             else {
@@ -171,7 +171,7 @@ namespace Starcounter.CLI {
                 response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                 response.FailIfNotSuccess();
 
-                engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                engine.PopulateFromJson(response.Body);
             }
 
             // Go ahead and run the exe.
@@ -203,7 +203,7 @@ namespace Starcounter.CLI {
 
             response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null);
             response.FailIfNotSuccess();
-            exe.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+            exe.PopulateFromJson(response.Body);
         }
 
         static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
@@ -227,7 +227,7 @@ namespace Starcounter.CLI {
             // Response.ToString implementation).
             try {
                 var detail = new ErrorDetail();
-                detail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                detail.PopulateFromJson(response.Body);
                 ConsoleUtil.ToConsoleWithColor(string.Format("  Starcounter error code: {0}", detail.ServerCode), red);
                 ConsoleUtil.ToConsoleWithColor(string.Format("  Error message: {0}", detail.Text), red);
                 ConsoleUtil.ToConsoleWithColor(string.Format("  Help link: {0}", detail.Helplink), red);

@@ -52,7 +52,7 @@ namespace Starcounter.VisualStudio.Projects {
             ErrorMessage msg;
             try {
                 var detail = new ErrorDetail();
-                detail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                detail.PopulateFromJson(response.Body);
                 msg = ErrorMessage.Parse(detail.Text);
 
             } catch {
@@ -169,7 +169,7 @@ namespace Starcounter.VisualStudio.Projects {
             statusCode = response.FailIfNotSuccessOr(404);
             if (statusCode == 404) {
                 errorDetail = new ErrorDetail();
-                errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                errorDetail.PopulateFromJson(response.Body);
                 if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
                     var allowed = !args.ContainsFlag(Option.NoAutoCreateDb);
                     if (!allowed) {
@@ -193,7 +193,7 @@ namespace Starcounter.VisualStudio.Projects {
                 response.FailIfNotSuccess();
             }
             engine = new Engine();
-            engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+            engine.PopulateFromJson(response.Body);
             var engineETag = response["ETag"];
 
             // The engine is now started. Check if the executable we
@@ -216,7 +216,7 @@ namespace Starcounter.VisualStudio.Projects {
                     response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                     response.FailIfNotSuccessOr(404);
                     if (response.IsSuccessStatusCode) {
-                        engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                        engine.PopulateFromJson(response.Body);
                         var exeHasStopped = engine.GetExecutable(debugConfig.AssemblyPath);
                         if (exeHasStopped != null) {
                             // This we just can't handle.
@@ -243,7 +243,7 @@ namespace Starcounter.VisualStudio.Projects {
                     response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                     response.FailIfNotSuccess();
 
-                    engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                    engine.PopulateFromJson(response.Body);
                 }
             }
 
@@ -271,7 +271,7 @@ namespace Starcounter.VisualStudio.Projects {
             response.FailIfNotSuccessOr(422);
             if (response.StatusCode == 422) {
                 errorDetail = new ErrorDetail();
-                errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                errorDetail.PopulateFromJson(response.Body);
                 if (errorDetail.ServerCode == Error.SCERRWEAVERFAILEDLOADFILE) {
                     var msg = ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDLOADFILE);
                     ReportError("{0} ({1})\n{2}",

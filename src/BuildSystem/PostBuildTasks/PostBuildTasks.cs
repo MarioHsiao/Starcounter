@@ -69,6 +69,15 @@ namespace PostBuildTasks
                     Console.WriteLine("  Deleted file: " + delFilePath);
                 }
             }
+
+            // Removing all tests DLLs.
+            String[] testsDlls = Directory.GetFiles(outputFolder, "*.tests.dll");
+            foreach (String testDll in testsDlls)
+            {
+                File.Delete(testDll);
+
+                Console.WriteLine("  Deleted file: " + testDll);
+            }
         }
 
         /// <summary>
@@ -129,7 +138,7 @@ namespace PostBuildTasks
                 String sourcesDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
                 if (sourcesDir == null)
                 {
-                    throw new Exception("Environment variable 'SC_CHECKOUT_DIR' does not exist.");
+                    throw new Exception("Environment variable " + BuildSystem.CheckOutDirEnvVar + " does not exist.");
                 }
 
                 // Getting the path to current build consolidated folder.

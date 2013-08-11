@@ -12,6 +12,13 @@ using HttpStructs;
 using Starcounter.Advanced;
 namespace Starcounter.Internal.Test {
 
+    // TODO: Reenable all comments.
+    // TODO: Reenable all comments.
+    // TODO: Reenable all comments.
+    // TODO: Reenable all comments.
+    // TODO: Reenable all comments.
+
+
     /// <summary>
     /// Used for HttpStructs tests initialization/shutdown.
     /// </summary>
@@ -267,7 +274,7 @@ namespace Starcounter.Internal.Test {
         /// <summary>
         /// Generates the parse tree overview.
         /// </summary>
-        [Test]
+        /*[Test]
         public void GenerateSimpleParseTreeOverview() {
 
             Reset();
@@ -277,18 +284,18 @@ namespace Starcounter.Internal.Test {
 //            umb.
 //            string str;
             Console.WriteLine(umb.CreateParseTree().ToString());
-        }
+        }*/
 
         /// <summary>
         /// Generates the parse tree details.
         /// </summary>
-        [Test]
+        /*[Test]
         public void GenerateSimpleParseTreeDetails() {
             Reset();
             RegisterSimpleHandlers(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
             Console.WriteLine(umb.CreateParseTree().ToString(true));
-        }
+        }*/
 
         /// <summary>
         /// Generates the request processor in the C# language.
@@ -392,7 +399,7 @@ namespace Starcounter.Internal.Test {
 
        /// <summary>
         /// </summary>
-        [Test]
+        /*[Test]
         public void TestSimpleUriConflict() {
 
             Reset();
@@ -430,13 +437,13 @@ namespace Starcounter.Internal.Test {
             Assert.AreEqual(1, (int)resource);
             Assert.True(um.Invoke(new Request(h2), out resource));
             Assert.AreEqual(2, (int)resource);
-        }
+        }*/
 
 
         /// <summary>
         /// Tests the simple rest handler.
         /// </summary>
-        [Test]
+        /*[Test]
         public void TestSimpleRestHandler() {
 
             Reset();
@@ -473,13 +480,12 @@ namespace Starcounter.Internal.Test {
            Assert.AreEqual("GET /", resource);
            um.Invoke(new Request(h2), out resource);
            Assert.AreEqual("GET /products/@s", resource);
-        }
-
+        }*/
 
         /// <summary>
         /// Tests the rest handler.
         /// </summary>
-        [Test]
+        /*[Test]
         public void TestRestHandler() {
 
            byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
@@ -521,10 +527,10 @@ namespace Starcounter.Internal.Test {
             Assert.False(um.Invoke(new Request(h11), out resource), "PUT /players/123/ should not match a handler (there is a trailing slash)");
             Assert.False(um.Invoke(new Request(h8), out resource), "There is no handler DELETE /allanballan. How could it be called.");
 
-        }
+        }*/
 
 
-        [Test]
+        /*[Test]
         public static void TestAssemblyCache() {
             Main();
 
@@ -532,7 +538,7 @@ namespace Starcounter.Internal.Test {
 
             Console.WriteLine("Assembly signature:" + umb.HandlerSetChecksum);
 
-        }
+        }*/
 
     }
 
