@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter.Configuration;
+using Starcounter.Logging;
 using Starcounter.Server.Commands;
 using Starcounter.Server.Commands.InternalCommands;
 using Starcounter.Server.PublicModel;
@@ -28,6 +29,14 @@ namespace Starcounter.Server {
         /// Gets the URI of this server.
         /// </summary>
         public readonly string Uri;
+
+        /// <summary>
+        /// Gets a reference to the log source dedicated to the server
+        /// host.
+        /// </summary>
+        /// <remarks>This log source is not available until <see cref="Setup"/>
+        /// has been successfully invoked.</remarks>
+        public LogSource HostLog { get; private set; }
 
         /// <summary>
         /// Gets the installed <see cref="CommandDispatcher"/> the current
@@ -198,6 +207,7 @@ namespace Starcounter.Server {
 
             SetupDatabases();
             this.CurrentPublicModel = new PublicModelProvider(this);
+            this.HostLog = ServerHost.Log;
         }
 
         /// <summary>
