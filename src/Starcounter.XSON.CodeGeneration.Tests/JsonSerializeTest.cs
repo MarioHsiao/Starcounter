@@ -6,7 +6,8 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
-using Starcounter.XSON.Serializers;
+using Starcounter.Advanced.XSON;
+using Modules;
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
     /// <summary>
@@ -80,7 +81,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [Test]
         public static void TestIncorrectInputJsonForDefaultSerializer() {
-            TObj tObj = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+            TObj tObj = CreateJsonTemplateFromFile("supersimple.json");
 
             TObj.UseCodegeneratedSerializer = false;
             Obj obj = (Obj)tObj.CreateInstance();
@@ -103,7 +104,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [Test]
         public static void TestIncorrectInputJsonForCodegenSerializer() {
-            TObj tObj = Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+            TObj tObj = CreateJsonTemplateFromFile("supersimple.json");
 
             TObj.UseCodegeneratedSerializer = true;
             TObj.DontCreateSerializerInBackground = true;
@@ -125,6 +126,12 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
         }
 
+        private static TObj CreateJsonTemplate(string className, string json) {
+            var tobj = TObj.CreateFromJson(json);
+            tobj.ClassName = className;
+            return tobj;
+        }
+
         private static void TestSerializationFor(string name, string json, bool useCodegen = false) {
             byte[] correctJson;
             byte[] defaultJson;
@@ -138,7 +145,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
             Console.WriteLine("Testing serialization/deserialization for '" + name + "' with " + serializerName);
 
-            tObj = Obj.Factory.CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), json);
+            tObj = CreateJsonTemplate(Path.GetFileNameWithoutExtension(name), json);
             TObj.UseCodegeneratedSerializer = false;
             correctObj = (Obj)tObj.CreateInstance();
 
@@ -200,7 +207,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             var newtonSerializer = new NewtonsoftSerializer();
             var defaultSerializer = DefaultSerializer.Instance;
 
-            tObj = Obj.Factory.CreateJsonTemplate(null, json);
+            tObj = CreateJsonTemplate(null, json);
             TObj.UseCodegeneratedSerializer = false;
 
             dynamic obj = tObj.CreateInstance();
@@ -332,7 +339,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             TObj objTemplate;
 
 
-            objTemplate = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
+            objTemplate = CreateJsonTemplateFromFile("person.json");
 
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
             Console.WriteLine(parseTree.ToString());
@@ -342,16 +349,29 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         public static void GenerateSerializationAstTreeOverview() {
             TObj objTemplate;
 
-            objTemplate = (TObj)Obj.Factory.CreateJsonTemplateFromFile("person.json");
+            objTemplate = CreateJsonTemplateFromFile("person.json");
             
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate).ToString());
+        }
+
+        /// <summary>
+        /// Creates a template from a JSON-by-example file
+        /// </summary>
+        /// <param name="filePath">The file to load</param>
+        /// <returns>The newly created template</returns>
+        private static TObj CreateJsonTemplateFromFile( string filePath ) {
+            string json = File.ReadAllText(filePath);
+            string className = Path.GetFileNameWithoutExtension(filePath);
+            var tobj = TObj.CreateFromMarkup<Obj,TObj>("json", json, className);
+            tobj.ClassName = className;
+            return tobj;
         }
 
         [Test]
         public static void GenerateSerializationCsCode() {
             TObj objTemplate;
 
-            objTemplate = (TObj)Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+            objTemplate = CreateJsonTemplateFromFile("supersimple.json");
             objTemplate.ClassName = "PreGenerated";
             Console.WriteLine(AstTreeGenerator.BuildAstTree(objTemplate, false).GenerateCsSourceCode());
         }
@@ -365,7 +385,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             string codegenJson;
             TObj tPerson;
 
-            tPerson = (TObj)Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+            tPerson = CreateJsonTemplateFromFile("supersimple.json");
             Obj person = (Obj)tPerson.CreateInstance();
             //SetDefaultPersonValues(person);
 

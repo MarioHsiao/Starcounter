@@ -6,7 +6,7 @@ using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
-using Starcounter.XSON.Serializers;
+using Starcounter.Advanced.XSON;
 
 namespace __starcountergenerated__ {
     public class PreGeneratedSerializer : TypedJsonSerializerBase {
