@@ -57,7 +57,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj">
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
-      <Name>Starcounter.Apps.JsonPatch</Name>
+      <Name>Starcounter.App.Server</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
