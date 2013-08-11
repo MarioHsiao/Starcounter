@@ -25,7 +25,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         int validationErrors = 0;
 
                         // Getting POST contents.
-                        String content = req.GetBodyStringUtf8_Slow();
+                        String content = req.Body;
 
                         var incomingJson = DynamicJson.Parse(content);
 

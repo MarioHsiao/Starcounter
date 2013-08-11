@@ -78,9 +78,12 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         public override void Add(Obj item) {
-            var t = ((TObjArr)Template).App.GetType();
-            if (!t.Equals(item.Template.GetType()))
-                throw new Exception("Cannot add item. Invalid type for this array.");
+            var typedListTemplate = ((TObjArr)Template).App;
+            if (typedListTemplate != null) {
+//                var t = allowedTemplate.GetType();
+                if (item.Template != typedListTemplate)
+                   throw new Exception("Cannot add item. Invalid type for this array.");
+            }
             base.Add(item);
         }
 

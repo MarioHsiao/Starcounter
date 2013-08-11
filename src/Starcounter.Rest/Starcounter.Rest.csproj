@@ -43,7 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;QUICKANDDIRTY;GW_URI_MATCHING_CODEGEN</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;QUICKANDDIRTY</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
@@ -55,7 +55,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE;QUICKANDDIRTY;GW_URI_MATCHING_CODEGEN</DefineConstants>
+    <DefineConstants>TRACE;QUICKANDDIRTY</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -84,50 +84,46 @@
     <Reference Include="System.Net.Http.WebRequest" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExtensionMethods\NodeExtensions.cs" />
-    <Compile Include="ExtensionMethods\ResponseExtensions.cs" />
-    <Compile Include="Http\HttpRequestNext.cs" />
-    <Compile Include="RequestHandler\AstTree\AstTreeGenerator.VerificationBytes.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstAtEndVerifier.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstError.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstIfCallSub.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstCodeStatement.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstNamespace.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstParseCode.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstProcessFail.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstProcessFunction.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstNode.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstRequestProcessorClass.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstRpConstructor.cs" />
-    <Compile Include="RequestHandler\AstTree\AstTreeGenerator.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstCase.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstInvoke.cs" />
-    <Compile Include="RequestHandler\AstTree\AstTreeHelper.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstTrigger.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstUnsafe.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstValueJump.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstVerificationBytes.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstVerificationBytesOffset.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstVerifier.cs" />
-    <Compile Include="RequestHandler\AstTree\Nodes\AstDeserializeMessage.cs" />
-    <Compile Include="RequestHandler\NewRequestHandlers.cs" />
-    <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.cs" />
-    <Compile Include="RequestHandler\ParseTree\ParseNode.PrettyPrint.cs" />
-    <Compile Include="RequestHandler\ParseTree\ParseTreeGenerator.Sort.cs" />
-    <Compile Include="RequestHandler\PreprocessUriTemplate.cs" />
-    <Compile Include="RequestHandler\RequestHandler.cs" />
-    <Compile Include="Http\HttpRequestWriter.cs" />
-    <Compile Include="RequestHandler\RequestProcessor\RequestProcessor.cs" />
-    <Compile Include="RequestHandler\RequestProcessor\SingleRequestProcessor.cs" />
-    <Compile Include="RequestHandler\RequestProcessor\TopLevelRequestProcessor.cs" />
-    <Compile Include="RequestHandler\Compiler\RequestProcessorCompiler.cs" />
-    <Compile Include="RequestHandler\RequestProcessorBuilder.cs" />
-    <Compile Include="RequestHandler\ParseTree\ParseNode.cs" />
-    <Compile Include="RequestHandler\RequestProcessorMetaData.cs" />
-    <Compile Include="RequestHandler\Node.cs" />
-    <Compile Include="Http\HttpParser.cs" />
+    <Compile Include="PLEASE_MOVE\NodeExtensions.cs" />
+    <Compile Include="PLEASE_MOVE\ResponseExtensions.cs" />
+    <Compile Include="AstTree\AstTreeGenerator.VerificationBytes.cs" />
+    <Compile Include="AstTree\Nodes\AstAtEndVerifier.cs" />
+    <Compile Include="AstTree\Nodes\AstError.cs" />
+    <Compile Include="AstTree\Nodes\AstIfCallSub.cs" />
+    <Compile Include="AstTree\Nodes\AstCodeStatement.cs" />
+    <Compile Include="AstTree\Nodes\AstNamespace.cs" />
+    <Compile Include="AstTree\Nodes\AstParseCode.cs" />
+    <Compile Include="AstTree\Nodes\AstProcessFail.cs" />
+    <Compile Include="AstTree\Nodes\AstProcessFunction.cs" />
+    <Compile Include="AstTree\Nodes\AstNode.cs" />
+    <Compile Include="AstTree\Nodes\AstRequestProcessorClass.cs" />
+    <Compile Include="AstTree\Nodes\AstRpConstructor.cs" />
+    <Compile Include="AstTree\AstTreeGenerator.cs" />
+    <Compile Include="AstTree\Nodes\AstCase.cs" />
+    <Compile Include="AstTree\Nodes\AstInvoke.cs" />
+    <Compile Include="AstTree\AstTreeHelper.cs" />
+    <Compile Include="AstTree\Nodes\AstTrigger.cs" />
+    <Compile Include="AstTree\Nodes\AstUnsafe.cs" />
+    <Compile Include="AstTree\Nodes\AstValueJump.cs" />
+    <Compile Include="AstTree\Nodes\AstVerificationBytes.cs" />
+    <Compile Include="AstTree\Nodes\AstVerificationBytesOffset.cs" />
+    <Compile Include="AstTree\Nodes\AstVerifier.cs" />
+    <Compile Include="AstTree\Nodes\AstDeserializeMessage.cs" />
+    <Compile Include="NewRequestHandlers.cs" />
+    <Compile Include="ParseTree\ParseTreeGenerator.cs" />
+    <Compile Include="ParseTree\ParseNode.PrettyPrint.cs" />
+    <Compile Include="ParseTree\ParseTreeGenerator.Sort.cs" />
+    <Compile Include="PreprocessUriTemplate.cs" />
+    <Compile Include="RequestHandler.cs" />
+    <Compile Include="RequestProcessor\RequestProcessor.cs" />
+    <Compile Include="RequestProcessor\SingleRequestProcessor.cs" />
+    <Compile Include="RequestProcessor\TopLevelRequestProcessor.cs" />
+    <Compile Include="Compiler\RequestProcessorCompiler.cs" />
+    <Compile Include="RequestProcessorBuilder.cs" />
+    <Compile Include="ParseTree\ParseNode.cs" />
+    <Compile Include="RequestProcessorMetaData.cs" />
+    <Compile Include="PLEASE_MOVE\Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Http\HttpRestServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
@@ -156,10 +152,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RequestHandler\AstTree\Nodes\AstSwitch.cs" />
+    <Compile Include="AstTree\Nodes\AstSwitch.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="RequestHandler\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

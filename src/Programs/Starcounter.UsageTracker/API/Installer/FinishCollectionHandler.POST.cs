@@ -17,7 +17,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
                 lock (LOCK) {
 
                     try {
-                        String content = request.GetBodyStringUtf8_Slow();
+                        String content = request.Body;
                         IPAddress clientIP = request.GetClientIpAddress();
 
                         int protocolVersion = Utils.GetRequestProtocolVersion(request);

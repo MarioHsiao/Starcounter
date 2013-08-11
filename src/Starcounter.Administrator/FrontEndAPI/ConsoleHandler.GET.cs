@@ -21,7 +21,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                     resultJson.exception = null;
 
                     try {
-                        string bodyData = req.GetBodyStringUtf8_Slow();   // Retrieve the message
+                        string bodyData = req.Body;   // Retrieve the message
 
                         Response response = Node.LocalhostSystemPortNode.GET(string.Format("/__{0}/console", name), null, null);
 
@@ -38,7 +38,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                         if (response.StatusCode >= 200 && response.StatusCode < 300) {
                             // Success
-                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, response.GetBodyStringUtf8_Slow()) };
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, response.Body) };
                         }
                         else {
                             // Error

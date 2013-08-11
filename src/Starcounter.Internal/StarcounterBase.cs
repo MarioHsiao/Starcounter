@@ -24,7 +24,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// 
         /// </summary>
-        public static IHttpRestServer Fileserver;
+        public static IRestServer Fileserver;
 
         /// <summary>
         /// Runs code as an ACID database transaction in the embedding database.
