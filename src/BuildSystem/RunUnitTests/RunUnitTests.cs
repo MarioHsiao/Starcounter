@@ -90,6 +90,9 @@ namespace RunUnitTests
 
                     msbuildProcess.Close();
                 }
+
+                Console.WriteLine("--- All unit tests succeeded!");
+
                 return 0;
             }
             catch (Exception generalException)
