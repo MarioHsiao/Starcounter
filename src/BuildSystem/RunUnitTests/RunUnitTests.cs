@@ -18,9 +18,9 @@ namespace RunUnitTests
         const String NUnitExePath = @"c:\Program Files (x86)\NUnit 2.6.2\bin\nunit-console.exe";
 
         /// <summary>
-        /// Excluded NUnit DLLs.
+        /// Excluded NUnit test assemblies.
         /// </summary>
-        static readonly String[] SkippedTests =
+        static readonly String[] SkippedTestAssemblies =
         {
             "Skip.Tests.dll"
         };
@@ -67,7 +67,7 @@ namespace RunUnitTests
                 foreach (String testAssemblyPath in allTestAssemblies)
                 {
                     Boolean skipped = false;
-                    foreach (String s in SkippedTests)
+                    foreach (String s in SkippedTestAssemblies)
                     {
                         if (0 == String.Compare(Path.GetFileName(testAssemblyPath), s, true))
                         {
