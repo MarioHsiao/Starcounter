@@ -80,6 +80,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             targets.Add("Bind", Bind);
             targets.Add("get_ThisHandle", GetThisHandle);
             targets.Add("get_Identity", GetThisIdentity);
+            //targets.Add("get_Retriever", GetThisRetriever);
             targets.Add("GetBoolean", GetBoolean);
             targets.Add("GetByte", GetByte);
             targets.Add("GetBinary", GetBinary);
@@ -301,6 +302,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
+
+//        void 
 
         void GetThisIdentity(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             // Signature: ulong IBindable.get_Identity()
