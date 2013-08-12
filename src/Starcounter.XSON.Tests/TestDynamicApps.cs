@@ -20,7 +20,7 @@ namespace Starcounter.XSON.Tests {
     /// Class AppTests
     /// </summary>
     [TestFixture]
-    public class AppTests {
+    public static class AppTests {
         /// <summary>
         /// Sets up the test.
         /// </summary>
