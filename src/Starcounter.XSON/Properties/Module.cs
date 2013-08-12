@@ -15,11 +15,6 @@ namespace Modules {
         /// </summary>
         internal static class Injections {
 
-            /// <summary>
-            /// Please inject the serializer factory here
-            /// </summary>
-            internal static ITypedJsonSerializerFactory TypedJsonSerializerFactory;
-
         }
     }
 }

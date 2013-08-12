@@ -9,7 +9,22 @@ using System;
 
 namespace Starcounter.Internal.XSON.DeserializerCompiler {
     
-    internal class SerializerCompiler : ITypedJsonSerializerFactory {
+    internal class SerializerCompiler {
+
+        private static SerializerCompiler _The;
+        private static object Lock = new Object();
+
+        internal static SerializerCompiler The {
+            get {
+                if (_The != null) {
+                    return _The;
+                }
+                lock (Lock) {
+                    _The = new SerializerCompiler();
+                }
+                return _The;
+            }
+        }
 
         public TypedJsonSerializer CreateTypedJsonSerializer(TObj jsonTemplate) {
             AstNamespace node;

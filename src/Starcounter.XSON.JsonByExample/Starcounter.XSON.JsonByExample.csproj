@@ -47,9 +47,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppTemplateFactory.cs" />
-    <Compile Include="JsonByExampleTemplateReader.cs" />
-    <Compile Include="Properties\Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
