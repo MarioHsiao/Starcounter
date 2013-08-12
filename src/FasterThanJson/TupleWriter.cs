@@ -230,7 +230,7 @@ namespace Starcounter.Internal
        /// <summary>
        /// Checks if string value fits the tuple and writes it
        /// </summary>
-       /// <param name="str"></param>
+       /// <param name="str">String to write</param>
       public void WriteSafe(string str) {
           if (TupleMaxLength == 0)
               throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
@@ -265,6 +265,21 @@ namespace Starcounter.Internal
          uint len = Base256Int.Write((IntPtr)AtEnd, n);
 #endif
          HaveWritten(len);
+      }
+
+      public unsafe void WriteSafe(uint n) {
+#if BASE64
+          if (TupleMaxLength == 0)
+              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+          uint expectedLen = Base64Int.MeasureNeededSize(n);
+          if (expectedLen > AvaiableSize)
+              throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
+          Write(n);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= expectedLen;
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
       }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
