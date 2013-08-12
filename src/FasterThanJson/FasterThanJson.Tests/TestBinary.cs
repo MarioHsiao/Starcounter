@@ -132,23 +132,33 @@ namespace Starcounter.Internal {
         }
 
         [Test]
+        [Category("LongRunning")]
         public void BenchmarkBinaries() {
+            this._BenchmarkBinaries(1000000);
+        }
+
+        [Test]
+        public void TestBinaries() {
+            this._BenchmarkBinaries(20);
+        }
+
+        private void _BenchmarkBinaries(int cnt) {
             Random rnd = new Random(2);
             uint valueLength = 10;
             byte[] value = new byte[valueLength];
             for (int i = 0; i < valueLength; i++)
                 value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue + 1);
-            BenchmarkABinary(1000000, value);
+            BenchmarkABinary(cnt, value);
             valueLength = 100;
             value = new byte[valueLength];
             for (int i = 0; i < valueLength; i++)
                 value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue + 1);
-            BenchmarkABinary(1000000, value);
+            BenchmarkABinary(cnt, value);
             valueLength = 1000;
             value = new byte[valueLength];
             for (int i = 0; i < valueLength; i++)
                 value[i] = (byte)rnd.Next(byte.MinValue, byte.MaxValue + 1);
-            BenchmarkABinary(100000, value);
+            BenchmarkABinary(cnt/10, value);
         }
     }
 }

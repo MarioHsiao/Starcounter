@@ -13,6 +13,7 @@ using System.Text;
 using Starcounter.Binding;
 using Starcounter.Logging;
 using System.Diagnostics;
+using Starcounter.Advanced;
 
 namespace Starcounter.Query.Execution
 {
@@ -56,6 +57,7 @@ public sealed class Row : IObjectView, IDynamicMetaObjectProvider
     }
 
     public ulong Identity { get { throw new NotImplementedException(); } }
+    public IBindableRetriever Retriever { get { throw new NotImplementedException(); } }
 
     /// <summary>
     /// A random number used when ordering a result by random (... ORDER BY RANDOM).
