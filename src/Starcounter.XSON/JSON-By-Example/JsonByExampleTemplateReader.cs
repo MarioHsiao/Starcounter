@@ -17,13 +17,13 @@ namespace Starcounter.Internal.XSON.JsonByExample {
     public class JsonByExampleTemplateReader : IXsonTemplateMarkupReader {
 
         /// <summary>
-        /// Converts markup to a TObj template
+        /// Compile markup.
         /// </summary>
-        /// <typeparam name="TTObj">The type to create</typeparam>
-        /// <param name="format">The format (for example "json")</param>
-        /// <param name="markup">The markup (for example {"Name":""}</param>
-        /// <param name="origin">Optional origin (i.e. file name) where the markup was obtained. Usefull for debugging in case of syntax errors in the markup.</param>
-        /// <returns>The newly created template</returns>
+        /// <typeparam name="TypeObj"></typeparam>
+        /// <typeparam name="TypeTObj"></typeparam>
+        /// <param name="markup"></param>
+        /// <param name="origin"></param>
+        /// <returns></returns>
         public TypeTObj CompileMarkup<TypeObj,TypeTObj>(string markup, string origin)
             where TypeObj : Obj, new()
             where TypeTObj : TObj, new() {
