@@ -20,7 +20,7 @@ namespace RunUnitTests
         /// <summary>
         /// Excluded NUnit DLLs.
         /// </summary>
-        static readonly String[] SkipDlls =
+        static readonly String[] SkippedTests =
         {
             "Skip.Tests.dll"
         };
@@ -59,15 +59,20 @@ namespace RunUnitTests
 
                 // Obtaining all probable unit tests DLLs.
                 String[] testsDlls = Directory.GetFiles(outputFolder, "*.tests.dll");
-                foreach (String testDll in testsDlls)
+                String[] testsExes = Directory.GetFiles(outputFolder, "*.tests.exe");
+
+                // Combining tests together.
+                String[] allTestAssemblies = testsDlls.Union(testsExes).ToArray();
+
+                foreach (String testAssemblyPath in allTestAssemblies)
                 {
                     Boolean skipped = false;
-                    foreach (String s in SkipDlls)
+                    foreach (String s in SkippedTests)
                     {
-                        if (0 == String.Compare(Path.GetFileName(testDll), s, true))
+                        if (0 == String.Compare(Path.GetFileName(testAssemblyPath), s, true))
                         {
                             skipped = true;
-                            Console.WriteLine("Skipping unit tests in: " + testDll);
+                            Console.WriteLine("Skipping unit tests in: " + testAssemblyPath);
                             break;
                         }
                     }
@@ -75,11 +80,11 @@ namespace RunUnitTests
                     if (skipped)
                         continue;
 
-                    Console.WriteLine("--- Running unit tests in: " + testDll);
+                    Console.WriteLine("--- Running unit tests in: " + testAssemblyPath);
 
                     ProcessStartInfo nunitProcessInfo = new ProcessStartInfo();
                     nunitProcessInfo.FileName = NUnitExePath;
-                    nunitProcessInfo.Arguments = testDll + " " + nunitParameters;
+                    nunitProcessInfo.Arguments = testAssemblyPath + " " + nunitParameters;
                     nunitProcessInfo.UseShellExecute = false;
 
                     // Starting the NUnit process and waiting for exit.
@@ -88,7 +93,7 @@ namespace RunUnitTests
 
                     if (msbuildProcess.ExitCode != 0)
                     {
-                        throw new Exception("Unit tests failed for: " + testDll);
+                        throw new Exception("Unit tests failed for: " + testAssemblyPath);
                     }
 
                     msbuildProcess.Close();
