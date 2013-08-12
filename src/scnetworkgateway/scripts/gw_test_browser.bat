@@ -9,7 +9,7 @@ CMD /C "kill_all.bat" 2>NUL
 :: Checking if directories exist.
 IF NOT EXIST %DB_DIR% (
 MKDIR %DB_DIR%
-sccreatedb.exe -ip %DB_DIR% -lp %DB_DIR% %DB_NAME%
+sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 
@@ -18,6 +18,9 @@ START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 
 :: Starting database memory management process.
 START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
+
+:: Starting log writer process.
+START CMD /C "scdblog.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
 
 :: Starting Prolog process.
 START CMD /C "32bitComponents\scsqlparser.exe 8066"

@@ -3070,6 +3070,9 @@
     <code hex="0100" severity="Error" name="ScErrTransLogWriterNotAvailable">
       <message>Transaction log writer is not available.</message>
     </code>
+    <code hex="0101" severity="Error" name="ScErrCantLoadTransLogWriterLib">
+      <message>Transaction log writer client library could not be loaded.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3118,8 +3121,7 @@
     </code>
     <code hex="0005" severity="Error" name="ScErrTransactionLogCorrupt">
       <message>
-        Recovery detected the transaction log to be corrupt, recovery can't be completed. The log file needs to be rebuilded
-        before the recovery can be completed.
+        Recovery detected the transaction log to be corrupt, recovery can't be completed.
       </message>
     </code>
     <code hex="0006" severity="Error" name="ScErrUnexpectedImageFileError">
@@ -3321,8 +3323,21 @@
     <code hex="0043" severity="Error" name="ScErrUnexpPlatformAPIError">
       <message>An unexpected error occured calling a platform API function.</message>
     </code>
+    <code hex="0044" severity="Error" name="ScErrTupleTooBig">
+      <message>TupleWriter cannot write tuple, since it is too big.</message>
+    </code>
+    <code hex="0045" severity="Error" name="ScErrUnexpFasterThanJson">
+      <message>An unexpected error occured in FasterThanJson library.</message>
+    </code>
+    <code hex="0046" severity="Error" name="ScErrNoTupleWriteSave">
+      <message>TupleWriter cannot safely write tuple, since the maximum length was not provided.</message>
+    </code>
+    <code hex="0047" severity="Error" name="ScErrTupleValueTooBig">
+      <message>Input value cannot fit the given tuple lenght.</message>
+    </code>
   </facility>
 
+  <!-- Error codes related to query processing. -->
   <facility name="Sql" hex="0007">
     <code hex="0000" severity="Error" name="ScErrSqlInternalError">
       <message>Unexpected internal error in SQL module.</message>
@@ -3425,6 +3440,9 @@
     <code hex="001E" severity="Error" name="ScErrUnsupportAggregate">
       <message>Aggregates are not supported in the query.</message>
     </code>
+	<code hex="001F" severity="Error" name="ScErrQueryResultTypeMismatch">
+	  <message>Expected generic result type does not match with query result type.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">
@@ -3561,24 +3579,19 @@
         This is most likely due to a bug in database binding, not in user code.
       </remarks>
     </code>
+<!--
     <code hex="000F" severity="Error" name="ScErrTransactionToBigAbort">
       <message>
         The transaction was aborted since it violated the maximum size of transactions
         as allowed by the server.
       </message>
     </code>
-    <code hex="0010" severity="Error" name="ScErrLogOverflowAbort">
+-->
+    <code hex="0010" severity="Error" name="ScErrOutOfLogSpaceAbort">
       <message>
-        The transaction was aborted since writing it to disk would cause the log
-        to overflow.
+        The transaction was aborted because space could not be allocated for
+        the transaction log entry.
       </message>
-      <remarks>
-        <para>
-          The server runs in a mode that must assure all transactions are written to
-          the log, and hence the alternative strategy to execute a checkpoint when
-          the log overflows, could not be used.
-        </para>
-      </remarks>
     </code>
     <code hex="0011" severity="Error" name="ScErrOutOfLogMemoryAbort">
       <message>
@@ -3586,6 +3599,7 @@
         transaction log buffer space.
       </message>
     </code>
+<!--
     <code hex="0020" severity="Error" name="ScErrNoWritableLogSpaceAbort">
       <message>
         The transaction was aborted since writing it to disk would cause a space
@@ -3605,12 +3619,15 @@
         </para>
       </remarks>
     </code>
+-->
+<!--
     <code hex="0021" severity="Error" name="ScErrLogSpaceEvalFailedAbort">
       <message>
         The transaction was aborted because unable to evaluate if sufficient
         space for the log entry could be allocated in the log file.
       </message>
     </code>
+-->
     <code hex="0022" severity="Error" name="ScErrExternalAbort">
       <message>
         The transaction has been aborted by the framework because of an external event that
@@ -3887,6 +3904,17 @@
       <message>
         At least one database-related file could not be deleted. Deleting
         will be retried until it succeeds or is cancelled.
+      </message>
+    </code>
+    <code hex="0021" severity="Error" name="ScErrAutoReportFailedCollect">
+      <message>
+        Failed to collect reported error notifications from the notification
+        file.
+      </message>
+    </code>
+    <code hex="0022" severity="Error" name="ScErrAutoReportFailedSend">
+      <message>
+        Failed to send a set of collected reported error notifications.
       </message>
     </code>
   </facility>
@@ -4262,6 +4290,9 @@
         Datatype cannot be specified in the json file if a code-behind class exists. 
         The datatype needs to be set as generic argument on the inheritance on the class.
       </message>
+    </code>
+    <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
+      <message> A template needs to be specified before this object can be used. </message>
     </code>
     </facility>
     

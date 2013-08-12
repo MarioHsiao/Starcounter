@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="AccountDataModel.cs" />
     <Compile Include="AggregationTest.cs" />
+    <Compile Include="BenchmarkQueryCache.cs" />
     <Compile Include="BindingTestDataModel.cs" />
     <Compile Include="BindingTestDirect.cs" />
     <Compile Include="CodePropertiesTesting.cs" />

@@ -647,7 +647,7 @@ namespace bmx
         uint8_t scheduler_id,
         uint32_t* linear_index,
         uint64_t* random_salt,
-        uint32_t* view_model_index);
+        uint32_t* reserved);
 
     extern CreateNewAppsSessionCallback g_create_new_apps_session_callback;
 

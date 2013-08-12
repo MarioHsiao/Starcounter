@@ -62,7 +62,7 @@ namespace BuildsFillupDaemon
                 buildsFolderName = ((XmlElement)buildsFolderNameTags[0]).InnerText; // e.g. StableBuilds
 
                 // Diagnostic message.
-                Console.Error.WriteLine("Changed FTP mapped sub-folder to " + buildsFolderName + "...");
+                Console.WriteLine("Changed FTP mapped sub-folder to " + buildsFolderName + "...");
 
                 // Checking that major parameters are set.
                 if ((configuration == null) || (platform == null) || (version == null))
@@ -122,7 +122,7 @@ namespace BuildsFillupDaemon
                     if (neededCount > 0)
                     {
                         // Printing diagnostic message.
-                        Console.Error.WriteLine("---------------------------------------------------------------");
+                        Console.WriteLine("---------------------------------------------------------------");
                         Stopwatch timer = Stopwatch.StartNew();
 
                         // We need to fill up the build pool again.
@@ -132,7 +132,7 @@ namespace BuildsFillupDaemon
                         genInstallerInfo.UseShellExecute = false;
 
                         // Status update.
-                        Console.Error.WriteLine("Starting new installer generation: " + genInstallerInfo.FileName + " " + genInstallerInfo.Arguments);
+                        Console.WriteLine("Starting new installer generation: " + genInstallerInfo.FileName + " " + genInstallerInfo.Arguments);
 
                         // Start the Installer generation.
                         Process genInstallerProc = Process.Start(genInstallerInfo);
@@ -148,8 +148,8 @@ namespace BuildsFillupDaemon
 
                         // Printing diagnostic message.
                         timer.Stop();
-                        Console.Error.WriteLine("Successfully created new unique installer: " + configuration + " " + version + " in " + timer.ElapsedMilliseconds + " ms.");
-                        Console.Error.WriteLine("---------------------------------------------------------------");
+                        Console.WriteLine("Successfully created new unique installer: " + configuration + " " + version + " in " + timer.ElapsedMilliseconds + " ms.");
+                        Console.WriteLine("---------------------------------------------------------------");
 
                         // Decreasing the needed amount of builds by one and updating the server.
                         neededCountString = null;

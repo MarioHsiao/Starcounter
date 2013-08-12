@@ -20,7 +20,8 @@ namespace BuildSystemHelper
         public static readonly String LocalToolsFolder = BuildSystemDir + "\\ConfigsAndTools";
         public static readonly String FtpClientExePath = LocalToolsFolder + "\\WinScp.exe";
 
-        public static readonly String BuildAgentLogDir = MappedBuildServerFTP + "\\SCDev\\BuildSystem\\Logs\\" + System.Environment.MachineName;
+        public static readonly String PublicLogDir = MappedBuildServerFTP + "\\SCDev\\BuildSystem\\Logs\\";
+        public static readonly String BuildAgentLogDir = PublicLogDir + "\\" + System.Environment.MachineName;
         public static readonly String ExceptionsLogFile = BuildAgentLogDir + "\\ScBuildSystemExceptions.txt";
         public static readonly String SpecialEventsLogFile = BuildAgentLogDir + "\\ScSpecialBuildEvents.txt";
 
@@ -34,11 +35,16 @@ namespace BuildSystemHelper
         public const String CustomBuildsName = "CustomBuilds";
         public const String TestBetaName = "TestBeta";
 
+        public const String StarcounterBinVar = "StarcounterBin";
+
         // FTP configurations and tool path.
         public const String StarcounterFtpConfigName = "builds@starcounter.com";
 
         // Temporary directory path.
         public static readonly String TempDirectory = Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.Machine);
+
+        // Path to build statistics file.
+        public static readonly String BuildStatisticsFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScBuildStatistics.txt");
 
         // Random numbers generator.
         static Random RandomGen = new Random();
@@ -280,6 +286,25 @@ namespace BuildSystemHelper
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Simulates kill_all.bat.
+        /// </summary>
+        public static void KillAll()
+        {
+            BuildSystem.KillDisturbingProcesses(
+                new String[]
+                    {
+                        "sccode",
+                        "scdata",
+                        "scdblog",
+                        "scnetworkgateway",
+                        "scnetworkgatewayloopedtest",
+                        "scipcmonitor",
+                        "scweaver",
+                        "scsqlparser"
+                    });
         }
 
         /// <summary>

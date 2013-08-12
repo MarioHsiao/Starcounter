@@ -11,7 +11,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// </summary>
         /// <param name="request">The HTTP request.</param>
         /// <returns>The response to be sent back to the client.</returns>
-        static object OnGET(Request request) {
+        static Response OnGET(Request request) {
             var server = RootHandler.Host.Runtime;
             var applicationDatabases = server.GetDatabases();
             

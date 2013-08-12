@@ -33,9 +33,9 @@ namespace Starcounter.Administrator.FrontEndAPI {
             FrontEndAPI.Server_PUT(port, server);
             FrontEndAPI.VerifyServerProperties_POST(port, server);
 
-            FrontEndAPI.Console_GET(port);
+//            FrontEndAPI.Console_GET(port);
             FrontEndAPI.ServerLog_GET(port);
-            FrontEndAPI.SQL_GET(port);
+//            FrontEndAPI.SQL_GET(port);
 
 
         }

@@ -19,7 +19,7 @@ namespace Starcounter.Administrator.API.Handlers {
         /// DELETE on.</param>
         /// <param name="request">The REST request.</param>
         /// <returns>The response to be sent back to the client.</returns>
-        static object OnHostDELETE(string name, Request request) {
+        static Response OnHostDELETE(string name, Request request) {
             var serverEngine = RootHandler.Host.Engine;
             var runtime = RootHandler.Host.Runtime;
             ErrorDetail errDetail;

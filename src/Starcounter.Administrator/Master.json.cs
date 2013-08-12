@@ -43,7 +43,7 @@ namespace Starcounter.Administrator {
             }
 
             // Administrator port.
-            UInt16 adminPort = NewConfig.Default.SystemHttpPort;
+            UInt16 adminPort = StarcounterEnvironment.Default.SystemHttpPort;
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
 #if ANDWAH
@@ -71,8 +71,7 @@ namespace Starcounter.Administrator {
             RegisterHandlers();
 
             // Start User Tracking (Send data to tracking server each hour)
-            Tracking.Client.Instance.StartTrackUsage(Master.ServerInterface);
-
+            Tracking.Client.Instance.StartTrackUsage(Master.ServerInterface, Master.ServerEngine.HostLog);
         }
 
         /// <summary>
@@ -86,18 +85,15 @@ namespace Starcounter.Administrator {
             });
 
             // Redirecting root to index.html.
-            GET("/", (Request req) => {
-                // Doing another request with original request attached.
-                Response resp = Node.LocalhostSystemPortNode.GET("/index.html", null, req);
-
+            GET("/", () => {
                 // Returns this response to original request.
-                return resp;
+                return Node.LocalhostSystemPortNode.GET("/index.html", null, null);
             });
 
             POST("/addstaticcontentdir", (Request req) => {
 
                 // Getting POST contents.
-                String content = req.GetBodyStringUtf8_Slow();
+                String content = req.Body;
 
                 // Splitting contents.
                 String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);

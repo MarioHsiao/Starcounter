@@ -55,6 +55,15 @@ namespace Starcounter.Server.Commands.Processors {
                 return started;
             });
 
+            WithinTask(Task.StartLogWriterProcess, (task) => {
+                if (Engine.DatabaseEngine.IsLogWriterProcessRunning(database))
+                    return false;
+
+                ProgressTask(task, 1);
+                started = Engine.DatabaseEngine.StartLogWriterProcess(database);
+                return started;
+            });
+
             codeHostProcess = database.GetRunningCodeHostProcess();
             started = codeHostProcess != null;
 

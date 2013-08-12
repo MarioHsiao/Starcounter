@@ -3,9 +3,10 @@ using HttpStructs;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
+
 namespace Starcounter.Advanced
 {
     public class ResponseSchedulerStore
@@ -28,15 +29,34 @@ namespace Starcounter.Advanced
     }
 
     /// <summary>
+    /// Represents an HTTP response.
+    /// </summary>
+    /// <remarks>
     /// The Starcounter Web Server caches resources as complete http responses.
     /// As the exact same response can often not be used, the cashed response also
     /// include useful offsets and injection points to facilitate fast transitions
     /// to individual http responses. The cached response is also used to cache resources
     /// (compressed or uncompressed content) even if the consumer wants to embed the content
     /// in a new http response.
-    /// </summary>
-    public class Response
+    /// </remarks>
+    public partial class Response
     {
+/*        /// <summary>
+        /// If true, the Uncompressed and/or compressed byte arrays contains content AND header.
+        /// If false, the Uncompressed and/or compressed byte arrays contain only content.
+        /// </summary>
+        /// <remarks>
+        /// This is used when constructing responses from texts where the implicit conversion from
+        /// string to response does not know what content type to use by default. The default content
+        /// type will depend on the request. I.e. if the user agent makes a request with an Accept header
+        /// telling the server that it wants "text/html" and the handler return a string, the default
+        /// content type will be "text/html". As the implicit conversion from string to Response does
+        /// not have fast and easy access to the request context, the response is created without a
+        /// header. The header is constructed by Starcounter just 
+        /// </remarks>
+        private bool _ByteArrayContainsHeader = true;
+ */
+
         // From which cache list this response came from.
         protected LinkedList<Response> responseCacheListFrom_ = null;
 
@@ -220,6 +240,9 @@ namespace Starcounter.Advanced
         {
             get
             {
+                if (customFields_)
+                    return statusDescription_;
+
                 if (null == statusDescription_)
                 {
                     unsafe
@@ -294,8 +317,19 @@ namespace Starcounter.Advanced
         {
             get
             {
-                if (null == bodyString_)
-                    bodyString_ = GetBodyStringUtf8_Slow();
+                if (customFields_) {
+                    if (null == bodyString_) {
+                        if (null != bodyBytes_) {
+                            bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
+                        } else {
+                            bodyString_ = null;
+                        }
+                    }
+
+                    return bodyString_;
+                }
+
+                bodyString_ = GetBodyStringUtf8_Slow();
 
                 return bodyString_;
             }
@@ -304,6 +338,41 @@ namespace Starcounter.Advanced
             {
                 customFields_ = true;
                 bodyString_ = value;
+            }
+        }
+
+        /// <summary>
+        /// Body string.
+        /// </summary>
+        public Object Content
+        {
+            get
+            {
+                if (null != Hypermedia)
+                    return Hypermedia;
+
+                if (null != bodyBytes_)
+                    return bodyBytes_;
+
+                if (null == bodyString_)
+                    bodyString_ = GetBodyStringUtf8_Slow();
+
+                return bodyString_;
+            }
+
+            set
+            {
+                if (value is String) {
+                    bodyString_ = (String) value;
+                } else if (value is Byte[]) {
+                    bodyBytes_ = (Byte[]) value;
+                } else if (value is IHypermedia) {
+                    _Hypermedia = (IHypermedia) value;
+                } else {
+                    throw new ArgumentException("Wrong content type assigned!");
+                }
+
+                customFields_ = true;
             }
         }
 
@@ -329,6 +398,47 @@ namespace Starcounter.Advanced
             }
         }
 
+        /// <summary>
+        /// Resets all custom fields.
+        /// </summary>
+        internal void ResetAllCustomFields()
+        {
+            customFields_ = false;
+
+            setCookiesString_ = null;
+            headersString_ = null;
+            bodyString_ = null;
+            contentType_ = null;
+            contentEncoding_ = null;
+            statusDescription_ = null;
+            statusCode_ = 0;
+            AppsSession = null;
+        }
+
+        private IHypermedia _Hypermedia;
+
+        /// <summary>
+        /// The response can be contructed in one of the following ways:
+        /// 
+        /// 1) using a complete binary HTTP response
+        /// in the Uncompressed or Compressed propery (this includes the header)
+        /// 
+        /// 2) using a IHypermedia object in the Hypermedia property
+        /// 
+        /// 3) using the BodyString property (does not include the header)
+        /// 
+        /// 4) using the BodyBytes property (does not include the header)
+        /// </summary>
+        public IHypermedia Hypermedia {
+            get {
+                return _Hypermedia;
+            }
+            set {
+                customFields_ = true;
+                _Hypermedia = value;
+            }
+        }
+
         String headersString_;
 
         /// <summary>
@@ -338,10 +448,15 @@ namespace Starcounter.Advanced
         {
             get
             {
-                if (null == headersString_)
-                    throw new ArgumentException("Headers field is not set.");
+                if (customFields_)
+                {
+                    if (null == headersString_)
+                        throw new ArgumentException("Headers field is not set.");
 
-                return headersString_;
+                    return headersString_;
+                }
+
+                throw new ArgumentException("Headers field is not set.");
             }
 
             set
@@ -374,22 +489,6 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
-        /// Resets all custom fields.
-        /// </summary>
-        public void ResetAllCustomFields()
-        {
-            customFields_ = false;
-
-            setCookiesString_ = null;
-            headersString_ = null;
-            bodyString_ = null;
-            contentType_ = null;
-            contentEncoding_ = null;
-            statusDescription_ = null;
-            statusCode_ = 0;
-        }
-
-        /// <summary>
         /// Constructs Response from fields that are set.
         /// </summary>
         public void ConstructFromFields()
@@ -397,6 +496,39 @@ namespace Starcounter.Advanced
             // Checking if we have a custom response.
             if (!customFields_)
                 return;
+
+            byte[] bytes = bodyBytes_;
+            if (_Hypermedia != null) {
+                var mimetype = http_request_.PreferredMimeType;
+                try {
+                    bytes = _Hypermedia.AsMimeType(mimetype,out mimetype);
+                    contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+                }
+                catch (ArgumentException exc) {
+                    throw new ArgumentException(
+                        String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", http_request_["Accept"], exc.ToString()));
+                }
+
+                if (bytes == null) {
+                    // The preferred requested mime type was not supported, try to see if there are
+                    // other options.
+                    IEnumerator<MimeType> secondaryChoices = http_request_.PreferredMimeTypes;
+                    secondaryChoices.MoveNext(); // The first one is already accounted for
+                    while (bytes == null && secondaryChoices.MoveNext()) {
+                        mimetype = secondaryChoices.Current;
+                        bytes = _Hypermedia.AsMimeType(mimetype,out mimetype);
+                    }
+                    if (bytes == null) {
+                        // None of the requested mime types were supported.
+                        // We will have to respond with a "Not Acceptable" message.
+                        statusCode_ = 406;
+                    }
+                    else {
+                        contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
+                    }
+                }
+                // We have our precious bytes. Let's wrap them up in a response.
+            }
 
             String str = "HTTP/1.1 ";
             
@@ -431,13 +563,22 @@ namespace Starcounter.Advanced
             if (null != contentEncoding_)
                 str += "Content-Encoding: " + contentEncoding_ + StarcounterConstants.NetworkConstants.CRLF;
 
-            if (null != setCookiesString_)
-                str += "Set-Cookie: " + setCookiesString_ + StarcounterConstants.NetworkConstants.CRLF;
+            if (null != setCookiesString_) {
+                str += "Set-Cookie: " + setCookiesString_;
 
+                if (null != AppsSession)
+                    str += ";Location=" + ScSessionClass.DataLocationUriPrefixEscaped + AppsSession.ToAsciiString() + "; path=/";
+
+                str += StarcounterConstants.NetworkConstants.CRLF;
+            } else {
+                if (null != AppsSession)
+                    str += "Set-Cookie: Location=" + ScSessionClass.DataLocationUriPrefixEscaped + AppsSession.ToAsciiString() + "; path=/" + StarcounterConstants.NetworkConstants.CRLF;
+            }
+             
             if (null != bodyString_)
             {
-                if (null != bodyBytes_)
-                    throw new ArgumentException("Either body string or body bytes can be set for Response.");
+                if (null != bytes)
+                    throw new ArgumentException("Either body string, body bytes or hypermedia can be set for Response.");
 
                 str += "Content-Length: " + bodyString_.Length + StarcounterConstants.NetworkConstants.CRLF;
                 str += StarcounterConstants.NetworkConstants.CRLF;
@@ -448,24 +589,23 @@ namespace Starcounter.Advanced
                 // Finally setting the uncompressed bytes.
                 Uncompressed = Encoding.UTF8.GetBytes(str);
             }
-            else if (null != bodyBytes_)
+            else if (null != bytes)
             {
-                str += "Content-Length: " + bodyBytes_.Length + StarcounterConstants.NetworkConstants.CRLF;
+                str += "Content-Length: " + bytes.Length + StarcounterConstants.NetworkConstants.CRLF;
                 str += StarcounterConstants.NetworkConstants.CRLF;
 
                 Byte[] headersBytes = Encoding.UTF8.GetBytes(str);
 
                 // Adding the body.
-                Byte[] responseBytes = new Byte[headersBytes.Length + bodyBytes_.Length];
+                Byte[] responseBytes = new Byte[headersBytes.Length + bytes.Length];
 
                 System.Buffer.BlockCopy(headersBytes, 0, responseBytes, 0, headersBytes.Length);
-                System.Buffer.BlockCopy(bodyBytes_, 0, responseBytes, headersBytes.Length, bodyBytes_.Length);
+                System.Buffer.BlockCopy(bytes, 0, responseBytes, headersBytes.Length, bytes.Length);
 
                 // Finally setting the uncompressed bytes.
                 Uncompressed = responseBytes;
             }
-            else
-            {
+            else {
                 str += "Content-Length: 0" + StarcounterConstants.NetworkConstants.CRLF;
                 str += StarcounterConstants.NetworkConstants.CRLF;
 
@@ -503,8 +643,20 @@ namespace Starcounter.Advanced
         {
             get
             {
-                if (UncompressedBodyLength_ > 0)
-                    return UncompressedBodyLength_;
+                if (customFields_)
+                {
+                    if (UncompressedBodyLength_ > 0)
+                        return UncompressedBodyLength_;
+
+                    if (null != bodyBytes_)
+                        return bodyBytes_.Length;
+
+                    if (null != bodyString_)
+                        return bodyString_.Length;
+
+                    // By default returning no content.
+                    return 0;
+                }
 
                 unsafe
                 {
@@ -543,8 +695,13 @@ namespace Starcounter.Advanced
         {
             get
             {
-                if (uncompressed_response_ != null)
-                    return uncompressed_response_.Length;
+                if (customFields_)
+                {
+                    if (uncompressed_response_ != null)
+                        return uncompressed_response_.Length;
+
+                    throw new ArgumentException("No response defined!");
+                }
 
                 unsafe
                 {
@@ -624,7 +781,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Internal network data stream.
         /// </summary>
-        public INetworkDataStream data_stream_;
+        public NetworkDataStream data_stream_;
 
         /// <summary>
         /// Indicates if this Response is internally constructed from Apps.
@@ -657,12 +814,16 @@ namespace Starcounter.Advanced
         //MixedCodeConstants.NetworkProtocolType protocol_type_;
 
         /// <summary>
-        /// Setting corresponding HTTP request.
+        /// A response may be associated with a request. If a response is created without a content type,
+        /// the primary content type of the Accept header in the request will be assumed.
         /// </summary>
-        /// <param name="httpRequest"></param>
-        public void SetHttpRequest(Request httpRequest)
-        {
-            http_request_ = httpRequest;
+        public Request Request {
+            get {
+                return http_request_;
+            }
+            set {
+                http_request_ = value;
+            }
         }
 
         /// <summary>
@@ -865,7 +1026,7 @@ namespace Starcounter.Advanced
             UInt16 handler_id,
             Byte* http_response_begin,
             Byte* socket_data,
-            INetworkDataStream data_stream)
+            NetworkDataStream data_stream)
         {
             http_response_struct_ = (HttpResponseInternal*) http_response_begin;
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
@@ -966,24 +1127,18 @@ namespace Starcounter.Advanced
         {
             unsafe
             {
+                if (customFields_)
+                {
+                    if (null == headersString_)
+                        throw new ArgumentException("Headers field is not set.");
+
+                    return (UInt32)headersString_.Length;
+                }
+
                 if (null == http_response_struct_)
                     throw new ArgumentException("HTTP response not initialized.");
 
                 return http_response_struct_->GetHeadersLength();
-            }
-        }
-
-        /// <summary>
-        /// Gets the whole response size.
-        /// </summary>
-        public UInt32 GetResponseLength()
-        {
-            unsafe
-            {
-                if (null == http_response_struct_)
-                    throw new ArgumentException("HTTP response not initialized.");
-
-                return http_response_struct_->response_len_bytes_;
             }
         }
 
@@ -1007,7 +1162,7 @@ namespace Starcounter.Advanced
         /// Gets the content as byte array.
         /// </summary>
         /// <returns>content bytes.</returns>
-        public Byte[] GetBodyByteArray_Slow()
+        Byte[] GetBodyByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
@@ -1043,7 +1198,7 @@ namespace Starcounter.Advanced
         /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8_Slow()
+        String GetBodyStringUtf8_Slow()
         {
             unsafe
             {
@@ -1057,7 +1212,7 @@ namespace Starcounter.Advanced
         /// <summary>
         /// Gets body bytes.
         /// </summary>
-        public Byte[] GetBodyBytes_Slow()
+        Byte[] GetBodyBytes_Slow()
         {
             unsafe
             {
@@ -1072,7 +1227,7 @@ namespace Starcounter.Advanced
         /// Gets headers as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetHeadersStringUtf8_Slow()
+        String GetHeadersStringUtf8_Slow()
         {
             unsafe
             {
@@ -1087,7 +1242,7 @@ namespace Starcounter.Advanced
         /// Gets cookies as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetCookiesStringUtf8_Slow()
+        String GetCookiesStringUtf8_Slow()
         {
             unsafe
             {
@@ -1129,7 +1284,7 @@ namespace Starcounter.Advanced
         /// Gets response as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetResponseStringUtf8_Slow()
+        internal String GetResponseStringUtf8_Slow()
         {
             unsafe
             {
@@ -1214,6 +1369,10 @@ namespace Starcounter.Advanced
         {
             get
             {
+                // TODO: Implement for internal responses.
+                if (customFields_)
+                    return null;
+
                 unsafe
                 {
                     if (null == http_response_struct_)
@@ -1235,22 +1394,6 @@ namespace Starcounter.Advanced
                 {
                     return Request.INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
                 }
-            }
-        }
-
-        /// <summary>
-        /// New session creation indicator.
-        /// </summary>
-        Boolean newSession_ = false;
-
-        /// <summary>
-        /// Indicates if new session was created.
-        /// </summary>
-        public Boolean HasNewSession
-        {
-            get
-            {
-                return newSession_;
             }
         }
 
@@ -1281,6 +1424,11 @@ namespace Starcounter.Advanced
                 }
             }
         }
+
+        /// <summary>
+        /// Getting internal Apps session.
+        /// </summary>
+        public ScSessionClass AppsSession { get; set; }
 
         /// <summary>
         /// Gets the session struct.
@@ -1389,7 +1537,7 @@ namespace Starcounter.Advanced
         /// Gets the response as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetResponseStringUtf8_Slow()
+        internal String GetResponseStringUtf8_Slow()
         {
             return new String((SByte*)(socket_data_ + response_offset_), 0, (Int32)response_len_bytes_, Encoding.UTF8);
         }
@@ -1423,7 +1571,7 @@ namespace Starcounter.Advanced
         /// Gets the content as byte array.
         /// </summary>
         /// <returns>Content bytes.</returns>
-        public Byte[] GetBodyByteArray_Slow()
+        internal Byte[] GetBodyByteArray_Slow()
         {
             // Checking if there is a content.
             if (content_len_bytes_ <= 0)
@@ -1441,7 +1589,7 @@ namespace Starcounter.Advanced
         /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8_Slow()
+        internal String GetBodyStringUtf8_Slow()
         {
             // Checking if there is a content.
             if (content_len_bytes_ <= 0)
@@ -1454,7 +1602,7 @@ namespace Starcounter.Advanced
         /// Gets the cookies as byte array.
         /// </summary>
         /// <returns>Cookies bytes.</returns>
-        public Byte[] GetCookiesByteArray_Slow()
+        internal Byte[] GetCookiesByteArray_Slow()
         {
             // Checking if there are cookies.
             if (set_cookies_len_bytes_ <= 0)
@@ -1472,7 +1620,7 @@ namespace Starcounter.Advanced
         /// Gets cookies as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetCookiesStringUtf8_Slow()
+        internal String GetCookiesStringUtf8_Slow()
         {
             // Checking if there are cookies.
             if (set_cookies_len_bytes_ <= 0)
@@ -1500,7 +1648,7 @@ namespace Starcounter.Advanced
         /// Gets headers as ASCII string.
         /// </summary>
         /// <returns>ASCII string.</returns>
-        public String GetHeadersStringUtf8_Slow()
+        internal String GetHeadersStringUtf8_Slow()
         {
             // Checking if there are cookies.
             if (headers_len_bytes_ <= 0)

@@ -136,10 +136,10 @@ public:
 	}
 	
 	/// Schedulers call notify() each time they push a message on a channel.
-	/// The monitor call notify() if the database goes down.
+	/// The monitor call notify() if the database terminates.
 	void notify() {
 		if (get_notify_flag() == false) {
-			// No need to notify the scheduler because it is not waiting.
+			// No need to notify the client because it is not waiting.
 			return;
 		}
 		else {
@@ -338,7 +338,7 @@ public:
 		return resource_map_.owns_chunk(n);
 	}
 
-	HANDLE get_work_event() const {
+	::HANDLE get_work_event() const {
 		return work_;
 	}
 

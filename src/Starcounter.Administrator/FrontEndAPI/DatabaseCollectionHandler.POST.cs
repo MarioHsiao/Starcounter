@@ -7,6 +7,7 @@ using System.Net;
 using System.Diagnostics;
 using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Internal;
+using Starcounter.Internal.Web;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -19,7 +20,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                     try {
 
-                        String content = req.GetBodyStringUtf8_Slow();
+                        String content = req.Body;
 
                         Response response = Node.LocalhostSystemPortNode.POST("/api/admin/verify/databaseproperties", content, null, null);
 
@@ -81,16 +82,16 @@ namespace Starcounter.Administrator.FrontEndAPI {
                             }
 
                             // supportReplication
-                            bool supportReplication = false;
-                            if (incomingJson.IsDefined("supportReplication") == true && bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
-                                command.SetupProperties.StorageConfiguration.SupportReplication = supportReplication;
-                            }
+                            //bool supportReplication = false;
+                            //if (incomingJson.IsDefined("supportReplication") == true && bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
+                            //    command.SetupProperties.StorageConfiguration.SupportReplication = supportReplication;
+                            //}
 
                             // transactionLogSize
-                            long transactionLogSize = 0;
-                            if (incomingJson.IsDefined("transactionLogSize") == true && long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
-                                command.SetupProperties.StorageConfiguration.TransactionLogSize = transactionLogSize;
-                            }
+                            //long transactionLogSize = 0;
+                            //if (incomingJson.IsDefined("transactionLogSize") == true && long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
+                            //    command.SetupProperties.StorageConfiguration.TransactionLogSize = transactionLogSize;
+                            //}
 
                             if (incomingJson.IsDefined("collationFile") == true && !string.IsNullOrEmpty(incomingJson.collationFile)) {
                                 command.SetupProperties.StorageConfiguration.CollationFile = incomingJson.collationFile;
@@ -120,7 +121,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                             }
 
-                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
 
 
 
@@ -168,8 +169,8 @@ namespace Starcounter.Administrator.FrontEndAPI {
 
                         }
                         else if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
-                            String validationErrors = response.GetBodyStringUtf8_Slow();
-                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
+                            String validationErrors = response.Body;
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
                         }
                         else {
                             // TODO
@@ -197,7 +198,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 //            int validationErrors = 0;
 
 //            // Getting POST contents.
-//            String content = req.GetBodyStringUtf8_Slow();
+//            String content = req.Body;
 
 //            var incomingJson = DynamicJson.Parse(content);
 

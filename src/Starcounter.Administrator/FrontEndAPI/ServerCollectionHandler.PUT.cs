@@ -6,6 +6,7 @@ using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
 using Starcounter.Internal;
+using Starcounter.Internal.Web;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -20,7 +21,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         dynamic resultJson = new DynamicJson();
                         resultJson.validationErrors = new object[] { };
 
-                        String content = req.GetBodyStringUtf8_Slow();
+                        String content = req.Body;
 
                         // Validate settings
                         Response response = Node.LocalhostSystemPortNode.POST("/api/admin/verify/serverproperties",content, null, null);
@@ -58,12 +59,12 @@ namespace Starcounter.Administrator.FrontEndAPI {
                                 version = CurrentVersion.Version
                             };
 
-                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
 
                         }
                         else if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
-                            String validationErrors = response.GetBodyStringUtf8_Slow();
-                            return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
+                            String validationErrors = response.Body;
+                            return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.Forbidden, null, validationErrors) };
                         }
                         else {
                             // TODO

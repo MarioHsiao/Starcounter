@@ -10,8 +10,8 @@ using System.IO;
 using System.Net.Sockets;
 
 namespace Starcounter.CLI {
-    using EngineReference = EngineCollection.EnginesApp;
-    using ExecutableReference = Engine.ExecutablesApp.ExecutingApp;
+    using EngineReference = EngineCollection.EnginesObj;
+    using ExecutableReference = Engine.ExecutablesObj.ExecutingObj;
     using Option = Starcounter.CLI.SharedCLI.Option;
 
     /// <summary>
@@ -95,11 +95,13 @@ namespace Starcounter.CLI {
 
             // GET or START the engine
             ShowStatus("Retreiving engine status");
+
             var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
             statusCode = response.FailIfNotSuccessOr(404);
+
             if (statusCode == 404) {
                 errorDetail = new ErrorDetail();
-                errorDetail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                errorDetail.PopulateFromJson(response.Body);
                 if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
                     var allowed = !args.ContainsFlag(Option.NoAutoCreateDb);
                     if (!allowed) {
@@ -118,12 +120,16 @@ namespace Starcounter.CLI {
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
                 engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
+
                 response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
+                response.FailIfNotSuccess();
+
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                 response.FailIfNotSuccess();
             }
 
             engine = new Engine();
-            engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+            engine.PopulateFromJson(response.Body);
             
             // Restart the engine if the executable is already running, or
             // make sure the host is started if it's not.
@@ -141,7 +147,11 @@ namespace Starcounter.CLI {
 
                     response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
                     response.FailIfNotSuccess();
-                    engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+
+                    response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                    response.FailIfNotSuccess();
+
+                    engine.PopulateFromJson(response.Body);
                 }
             }
             else {
@@ -157,7 +167,11 @@ namespace Starcounter.CLI {
 
                 response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null, null);
                 response.FailIfNotSuccess();
-                engine.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
+                response.FailIfNotSuccess();
+
+                engine.PopulateFromJson(response.Body);
             }
 
             // Go ahead and run the exe.
@@ -189,7 +203,7 @@ namespace Starcounter.CLI {
 
             response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null);
             response.FailIfNotSuccess();
-            exe.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+            exe.PopulateFromJson(response.Body);
         }
 
         static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
@@ -213,7 +227,7 @@ namespace Starcounter.CLI {
             // Response.ToString implementation).
             try {
                 var detail = new ErrorDetail();
-                detail.PopulateFromJson(response.GetBodyStringUtf8_Slow());
+                detail.PopulateFromJson(response.Body);
                 ConsoleUtil.ToConsoleWithColor(string.Format("  Starcounter error code: {0}", detail.ServerCode), red);
                 ConsoleUtil.ToConsoleWithColor(string.Format("  Error message: {0}", detail.Text), red);
                 ConsoleUtil.ToConsoleWithColor(string.Format("  Help link: {0}", detail.Helplink), red);

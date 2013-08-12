@@ -24,6 +24,22 @@
   </Target>
 
   <Target Name="AfterBuild" DependsOnTargets="BootstrapWeaving"></Target>
+  
+  
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);CleanupOldJsonGeneratedFiles
+    </CleanDependsOn>
+  </PropertyGroup>
+  
+  <!-- Cleans up JSON generated source files. -->
+  <Target Name="CleanupOldJsonGeneratedFiles">
+    <ItemGroup>
+      <GeneratedFilesList Include="$(IntermediateOutputPath)\*.json.g.cs" />
+    </ItemGroup>
+    <Delete Files="@(GeneratedFilesList)" />
+  </Target>
+  
 </Project>
 
 

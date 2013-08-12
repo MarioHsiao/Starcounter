@@ -94,9 +94,9 @@
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Apps.JsonPatch\Starcounter.Apps.JsonPatch.csproj">
+    <ProjectReference Include="..\Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj">
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
-      <Name>Starcounter.Apps.JsonPatch</Name>
+      <Name>Starcounter.App.Server</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
       <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
@@ -113,6 +113,10 @@
     <ProjectReference Include="..\Starcounter.XSON.CodeGeneration.Tests\Starcounter.XSON.CodeGeneration.Tests.csproj">
       <Project>{84e160e1-e32f-45f9-be7b-8e093d68975f}</Project>
       <Name>Starcounter.XSON.CodeGeneration.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
+      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
+      <Name>Starcounter.XSON.JsonByExample</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

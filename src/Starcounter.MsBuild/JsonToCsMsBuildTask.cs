@@ -8,20 +8,25 @@ using System;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Starcounter.XSON.CodeGeneration;
+using Modules;
 
 namespace Starcounter.Internal.MsBuild {
     /// <summary>
     /// Class that holds code to MsBuild tasks.
     /// </summary>
     internal static class JsonToCsMsBuildTask {
-        private static ITypedJsonFactory factory = new TypedJsonFactory();
+
+        static JsonToCsMsBuildTask() {
+            Bootstrapper.Bootstrap();
+        }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         internal static bool ExecuteTask(ITaskItem[] InputFiles, ITaskItem[] OutputFiles, TaskLoggingHelper msbuildLog) {
+
+
             bool success = true;
             string jsonFilename;
             string codeBehindFilename;
@@ -34,7 +39,7 @@ namespace Starcounter.Internal.MsBuild {
                 try {
                     msbuildLog.LogMessage("Creating " + OutputFiles[i].ItemSpec);
 
-                    generatedCodeStr = factory.GenerateTypedJsonCode(jsonFilename, codeBehindFilename);
+                    generatedCodeStr = Starcounter.Internal.XSON.PartialClassGenerator.GenerateTypedJsonCode(jsonFilename, codeBehindFilename);
                     File.WriteAllText(OutputFiles[i].ItemSpec, generatedCodeStr);
                 } catch (Starcounter.Internal.JsonTemplate.Error.CompileError ce) {
                     msbuildLog.LogError("json", null, null, jsonFilename, ce.Position.Item1, ce.Position.Item2, 0, 0, ce.Message);

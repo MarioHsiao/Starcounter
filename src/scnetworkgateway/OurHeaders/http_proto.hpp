@@ -574,6 +574,9 @@ public:
     static int OnHeaderField(http_parser* p, const char *at, size_t length);
     static int OnHeaderValue(http_parser* p, const char *at, size_t length);
 
+    // Processes the session information.
+    void ProcessSessionString(SocketDataChunk* sd, const char* session_id_start);
+
     // Initializes HTTP structure.
     void Init()
     {

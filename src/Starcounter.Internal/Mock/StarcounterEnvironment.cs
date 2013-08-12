@@ -6,6 +6,7 @@
 
 using Starcounter.Internal;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -26,6 +27,11 @@ namespace Starcounter.Internal
         unsafe extern static UInt32 cm3_get_cpun(void* h_opt, Byte* pcpun);
 
         /// <summary>
+        /// Name of the database.
+        /// </summary>
+        public static string DatabaseNameLower { get; internal set; }
+
+        /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
         public static Byte GetCurrentSchedulerId()
@@ -36,6 +42,46 @@ namespace Starcounter.Internal
                 cm3_get_cpun(null, &cpun);
                 return cpun;
             }
+        }
+
+        static Nullable<Boolean> isCodeHosted = null;
+
+        /// <summary>
+        /// Returns if current code is hosted in Starcounter
+        /// (i.e. runs in sccode.exe instance).
+        /// </summary>
+        public static Boolean IsCodeHosted
+        {
+            get
+            {
+                if (null != isCodeHosted)
+                    return isCodeHosted.Value;
+
+                isCodeHosted = (Process.GetCurrentProcess().ProcessName == StarcounterConstants.ProgramNames.ScCode);
+
+                return isCodeHosted.Value;
+            }
+        }
+
+        /// <summary>
+        /// Is this application a Starcounter Administrator?
+        /// </summary>
+        public static Boolean IsAdministratorApp = false;
+
+        /// <summary>
+        /// Default configuration parameters.
+        /// </summary>
+        public static class Default
+        {
+            /// <summary>
+            /// User HTTP port.
+            /// </summary>
+            public static UInt16 UserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+
+            /// <summary>
+            /// System HTTP port.
+            /// </summary>
+            public static UInt16 SystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
         }
 
         /// <summary>

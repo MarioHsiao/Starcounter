@@ -17,6 +17,11 @@ namespace Starcounter.Internal
         public const string DefaultDatabaseName = "Default";
 
         /// <summary>
+        /// Maximum possible schedulers number.
+        /// </summary>
+        public const Byte MaximumSchedulersNumber = 128;
+
+        /// <summary>
         /// Network related constants.
         /// </summary>
         public static class NetworkConstants
@@ -51,6 +56,10 @@ namespace Starcounter.Internal
             /// ScData
             /// </summary>
             public const string ScData = "scdata";
+
+            /// <summary>
+            /// </summary>
+            public const string ScDbLog = "scdblog";
 
             /// <summary>
             /// ScNetworkGateway

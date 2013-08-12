@@ -156,11 +156,11 @@ namespace Starcounter.Internal
       /// <summary>
       /// The UTF8 encode
       /// </summary>
-      internal static Encoder Utf8Encode = new UTF8Encoding(false, false).GetEncoder();
+      internal static Encoder Utf8Encode = new UTF8Encoding(false, true).GetEncoder();
       /// <summary>
       /// The UTF8 decode
       /// </summary>
-      internal static Decoder Utf8Decode = new UTF8Encoding(false, false).GetDecoder();
+      internal static Decoder Utf8Decode = new UTF8Encoding(false, true).GetDecoder();
 
       /// <summary>
       /// Pins the BLOB.

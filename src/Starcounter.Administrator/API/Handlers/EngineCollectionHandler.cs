@@ -6,7 +6,7 @@ using Starcounter.Server.PublicModel;
 using Starcounter.Administrator.API.Utilities;
 
 namespace Starcounter.Administrator.API.Handlers {    
-    using EngineReference = EngineCollection.EnginesApp;
+    using EngineReference = EngineCollection.EnginesObj;
     
     /// <summary>
     /// Excapsulates the admin server functionality acting on the
