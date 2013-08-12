@@ -39,7 +39,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             Prefix.Add("using Starcounter.Internal;");
             Prefix.Add("using Starcounter.Internal.Application.CodeGeneration;");
             Prefix.Add("using Starcounter.Templates;");
-            Prefix.Add("using Starcounter.XSON.Serializers;");
+            Prefix.Add("using Starcounter.Advanced.XSON;");
+            Prefix.Add("using Starcounter.Internal.XSON;");
             Prefix.Add("");
             var sb = new StringBuilder();
             sb.Append("namespace ");

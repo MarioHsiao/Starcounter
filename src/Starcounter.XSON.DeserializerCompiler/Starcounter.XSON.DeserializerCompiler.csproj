@@ -40,10 +40,6 @@
     <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -53,40 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeGeneration\Deserialization\AstTree\AstFail.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\AstJSConstructor.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\AstJsonSerializerClass.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\AstNamespace.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\AstNode.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\AstTreeGenerator.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\AstUnsafe.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstCase.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstDeserializeFunction.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstFindObject.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstGotoProperty.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstGotoValue.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstParseJsonObjectArray.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstParseJsonValue.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstSwitch.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstVerifier.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\FromJson\AstWhile.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstCheckAlreadyProcessed.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstFixed.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstJsonDelimiter.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstJsonObject.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstJsonObjectArrayValue.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstJsonObjectValue.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstJsonPrimitiveValue.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstJsonProperty.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstLabel.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstRecreateBuffer.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstReturn.cs" />
-    <Compile Include="CodeGeneration\Deserialization\AstTree\ToJson\AstSerializeFunction.cs" />
-    <Compile Include="CodeGeneration\Deserialization\ParseTree\ParseNode.cs" />
-    <Compile Include="CodeGeneration\Deserialization\ParseTree\ParseTreeGenerator.cs" />
-    <Compile Include="CodeGeneration\Deserialization\ParseTree\TemplateMetadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TypedJsonSerializerFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
@@ -97,9 +60,6 @@
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

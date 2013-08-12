@@ -10,6 +10,8 @@ using System.Threading;
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Advanced.XSON;
+using Modules;
+using Starcounter.Internal.XSON.DeserializerCompiler;
 
 namespace Starcounter.Templates {
     /// <summary>
@@ -23,6 +25,7 @@ namespace Starcounter.Templates {
         static TObj() {
             HelperFunctions.LoadNonGACDependencies();
 //            XSON.CodeGeneration.Initializer.InitializeXSON();
+            Starcounter_XSON_JsonByExample.Initialize();
         }
 
         /// <summary>
@@ -60,8 +63,8 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static TObj CreateFromJson(string json) {
-            return CreateFromMarkup<Obj,TObj>("json", json, null);
+        public static TJson CreateFromJson(string json) {
+            return CreateFromMarkup<Json,TJson>("json", json, null);
         }
 
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
@@ -76,7 +79,7 @@ namespace Starcounter.Templates {
         internal void GenerateSerializer(object state){
             // it doesn't really matter if setting the variable in the template is synchronized 
             // or not since if the serializer is null a fallback serializer will be used instead.
-            this.codegenSerializer = Modules.Starcounter_XSON.Injections.TypedJsonSerializerFactory.CreateTypedJsonSerializer(this);   //Obj.Factory.CreateJsonSerializer(this);
+            this.codegenSerializer = SerializerCompiler.The.CreateTypedJsonSerializer(this);   //Obj.Factory.CreateJsonSerializer(this);
         }
 
         /// <summary>

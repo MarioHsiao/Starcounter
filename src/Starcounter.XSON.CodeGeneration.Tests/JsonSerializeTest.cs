@@ -359,10 +359,10 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         /// <param name="filePath">The file to load</param>
         /// <returns>The newly created template</returns>
-        private static TObj CreateJsonTemplateFromFile( string filePath ) {
+        private static TJson CreateJsonTemplateFromFile( string filePath ) {
             string json = File.ReadAllText(filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TObj.CreateFromMarkup<Obj,TObj>("json", json, className);
+            var tobj = TObj.CreateFromMarkup<Json,TJson>("json", json, className);
             tobj.ClassName = className;
             return tobj;
         }

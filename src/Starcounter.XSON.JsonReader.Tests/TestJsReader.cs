@@ -35,7 +35,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                     }";
 
 
-            TJson actual = (TJson)Starcounter_XSON_JsonByExample.CreateFromJs<Obj,TObj>(script2, false);
+            TJson actual = TObj.CreateFromJson(script2);
             Assert.IsInstanceOf(typeof(TJson), actual);
             Assert.IsInstanceOf<TString>(actual.Properties[0]);
             Assert.IsInstanceOf<TString>(actual.Properties[1]);
@@ -54,7 +54,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                       FirstName:'Joachim'               .Editable(), 
                                     }.Class('TestApp')";
 
-            TJson actual = (TJson)Starcounter_XSON_JsonByExample.CreateFromJs<Obj, TObj>(script2, false);
+            TJson actual = TObj.CreateFromJson(script2);
             Assert.IsInstanceOf(typeof(TJson), actual);
             Assert.IsInstanceOf<TString>(actual.Properties[0]);
             Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
@@ -82,7 +82,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
                                     }.Class('TestApp').Namespace('Test')";
 
 
-            TJson actual = (TJson)Starcounter_XSON_JsonByExample.CreateFromJs<Obj, TObj>(script2, false);
+            TJson actual = TObj.CreateFromMarkup<Json,TJson>("json", script2,null );
             Assert.IsInstanceOf(typeof(TJson), actual);
             Assert.AreEqual("TestApp", actual.ClassName);
             Assert.AreEqual("Test", actual.Namespace);
@@ -158,7 +158,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
     }.Bind('this'),
     HistoryApp: {}.Include('HistoryApp')
 }.Class('CrmApp')";
-            TJson actual = (TJson)Starcounter_XSON_JsonByExample.CreateFromJs<Obj, TObj>(script, false);
+            TJson actual = TObj.CreateFromMarkup<Json, TJson>("json", script, null);
             Assert.IsInstanceOf(typeof(TJson), actual);
         }
     }

@@ -43,6 +43,10 @@
     <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mono.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
@@ -52,9 +56,45 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Code-generated Deserializer\AstTree\AstFail.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\AstJSConstructor.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\AstJsonSerializerClass.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\AstNamespace.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\AstNode.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\AstTreeGenerator.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\AstUnsafe.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstCase.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstDeserializeFunction.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstFindObject.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstGotoProperty.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstGotoValue.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstParseJsonObjectArray.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstParseJsonValue.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstSwitch.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstVerifier.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\FromJson\AstWhile.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstCheckAlreadyProcessed.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstFixed.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstJsonDelimiter.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstJsonObject.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstJsonObjectArrayValue.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstJsonObjectValue.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstJsonPrimitiveValue.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstJsonProperty.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstLabel.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstRecreateBuffer.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstReturn.cs" />
+    <Compile Include="Code-generated Deserializer\AstTree\ToJson\AstSerializeFunction.cs" />
+    <Compile Include="Code-generated Deserializer\ParseTree\ParseNode.cs" />
+    <Compile Include="Code-generated Deserializer\ParseTree\ParseTreeGenerator.cs" />
+    <Compile Include="Code-generated Deserializer\ParseTree\TemplateMetadata.cs" />
+    <Compile Include="Code-generated Deserializer\SerializerCompiler.cs" />
     <Compile Include="Instances\Arr.cs" />
     <Compile Include="Interfaces\IXsonMarkupReader.cs" />
+    <Compile Include="JSON-By-Example\AppTemplateFactory.cs" />
+    <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
     <Compile Include="Properties\Module.cs" />
+    <Compile Include="JSON-By-Example\Module2.cs" />
     <Compile Include="Sessions\ChangeLog.cs" />
     <Compile Include="Instances\Container.cs" />
     <Compile Include="Binding\DataBindingFactory.cs" />
@@ -63,8 +103,6 @@
     <Compile Include="Interfaces\Template\ITemplateCodeGenerator.cs" />
     <Compile Include="Interfaces\Template\ITemplateCodeGeneratorModule.cs" />
     <Compile Include="Input.cs" />
-    <Compile Include="Interfaces\ITypedJsonFactory.cs" />
-    <Compile Include="Interfaces\ITypedJsonSerializerFactory.cs" />
     <Compile Include="Sessions\ManagedTupleWriter.cs" />
     <Compile Include="Instances\JSON.cs" />
     <Compile Include="Instances\TJSON.cs" />
@@ -128,6 +166,13 @@
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
+      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
+      <Name>Starcounter.XSON.JsTemplateParser</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

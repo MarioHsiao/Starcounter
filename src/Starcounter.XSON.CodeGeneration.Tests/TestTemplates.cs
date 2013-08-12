@@ -33,10 +33,10 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         /// <param name="filePath">The file to load</param>
         /// <returns>The newly created template</returns>
-        private static TObj CreateJsonTemplateFromFile(string filePath) {
+        private static TJson CreateJsonTemplateFromFile(string filePath) {
             string json = File.ReadAllText(filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TObj.CreateFromMarkup<Obj,TObj>("json", json, className);
+            var tobj = TObj.CreateFromMarkup<Json,TJson>("json", json, className);
             tobj.ClassName = className;
             return tobj;
         }
@@ -46,7 +46,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void CreateCsFromJsFile() {
-            TJson templ = (TJson)CreateJsonTemplateFromFile("MySampleApp.json");
+            TJson templ = CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.NotNull(templ);
         }
 
@@ -55,7 +55,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCs() {
-            TJson actual = (TJson)CreateJsonTemplateFromFile("MySampleApp.json");
+            TJson actual = CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.IsInstanceOf(typeof(TJson), actual);
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
             var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
@@ -66,7 +66,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
-            TJson actual = (TJson)CreateJsonTemplateFromFile("simple.json");
+            TJson actual = CreateJsonTemplateFromFile("simple.json");
             actual.ClassName = "PlayerApp";
 
             var file = new System.IO.StreamReader("simple.facit.cs");
@@ -85,7 +85,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCsFromSuperSimpleJs() {
-            TJson actual = (TJson)CreateJsonTemplateFromFile("supersimple.json");
+            TJson actual = CreateJsonTemplateFromFile("supersimple.json");
             actual.ClassName = "PlayerApp";
 
             Assert.IsInstanceOf(typeof(TJson), actual);
@@ -102,7 +102,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
             CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, className + ".json.cs");
 
-            TJson actual = (TJson)CreateJsonTemplateFromFile(className + ".json");
+            TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
@@ -122,7 +122,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
             String className = "MySampleApp";
             CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, className + ".json.cs");
 
-            TJson actual = (TJson)CreateJsonTemplateFromFile(className + ".json");
+            TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
