@@ -46,8 +46,8 @@ namespace Starcounter.Internal {
 
             StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
 
-            // Allow reading of JSON-by-example files at runtime
-            Starcounter_XSON_JsonByExample.Initialize();
+            // // Allow reading of JSON-by-example files at runtime
+            // Starcounter_XSON_JsonByExample.Initialize();
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
