@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Starcounter.Binding;
 using Starcounter.Logging;
 using System.Diagnostics;
+using Starcounter.Advanced;
 
 namespace Starcounter.Query.Execution
 {
@@ -625,6 +626,14 @@ internal sealed class TemporaryObject : IObjectView
 
     // TODO/Entity:
     public ulong Identity { get { throw new NotImplementedException(); } }
+
+    // TODO
+    public IBindableRetriever Retriever { 
+        get {
+            throw new NotImplementedException();
+        }
+    }
+
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
