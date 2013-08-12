@@ -4,5 +4,6 @@
 	"ServerKey":"foo.exe-123456789",
 	"Arguments": [{"dummy":""}],
     "ResourceDirectories": [{"dummy":""}],
+	"WorkingDirectory": "C:\\path\\to\\default\\resource\\directory",
 	"RunEntrypointAsynchronous":true
 }

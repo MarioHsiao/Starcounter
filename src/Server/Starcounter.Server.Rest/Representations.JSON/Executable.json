@@ -5,6 +5,7 @@
 	"Arguments": [{"dummy":""}],
     "DefaultUserPort": 1,
     "ResourceDirectories": [{"dummy":""}],
+	"WorkingDirectory": "C:\\path\\to\\default\\resource\\directory",
 	"IsTool":false,
 	"StartedBy": "Per Samuelsson, per@starcounter.com",
 	"Engine": {
