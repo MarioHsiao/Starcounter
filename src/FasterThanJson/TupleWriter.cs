@@ -227,23 +227,41 @@ namespace Starcounter.Internal
          //     StreamWriteLargestOffsetElementSize = needed;
       }
 
-       /// <summary>
-       /// Checks if string value fits the tuple and writes it
-       /// </summary>
-       /// <param name="str">String to write</param>
-      public void WriteSafe(string str) {
-          if (TupleMaxLength == 0)
-              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+      public uint MeasureNeededSize(String str) {
           uint expectedLen = 0;
           fixed (char* pStr = str) {
               expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
               uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
               if (OffsetElementSize < neededOffsetSize)
                   expectedLen += MoveValuesRightSize(neededOffsetSize);
+          }
+          return expectedLen;
+      }
+
+      public uint MeasureNeededSize(uint n) {
+#if BASE64
+          uint expectedLen = 0;
+          expectedLen = Base64Int.MeasureNeededSize(n);
+          uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
+          if (OffsetElementSize < neededOffsetSize)
+              expectedLen += MoveValuesRightSize(neededOffsetSize);
+          return expectedLen;
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
+      /// <summary>
+       /// Checks if string value fits the tuple and writes it
+       /// </summary>
+       /// <param name="value">String to write</param>
+      public void WriteSafe(dynamic value) {
+          if (TupleMaxLength == 0)
+              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+          uint expectedLen = MeasureNeededSize(value);
               if (expectedLen > AvaiableSize)
                   throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
-          }
-          Write(str);
+          Write(value);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvaiableSize -= expectedLen;
       }
@@ -267,20 +285,20 @@ namespace Starcounter.Internal
          HaveWritten(len);
       }
 
-      public unsafe void WriteSafe(uint n) {
-#if BASE64
-          if (TupleMaxLength == 0)
-              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
-          uint expectedLen = Base64Int.MeasureNeededSize(n);
-          if (expectedLen > AvaiableSize)
-              throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
-          Write(n);
-          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-          AvaiableSize -= expectedLen;
-#else
-          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
-#endif
-      }
+//      public unsafe void WriteSafe(uint n) {
+//#if BASE64
+//          if (TupleMaxLength == 0)
+//              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+//          uint expectedLen = Base64Int.MeasureNeededSize(n);
+//          if (expectedLen > AvaiableSize)
+//              throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
+//          Write(n);
+//          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+//          AvaiableSize -= expectedLen;
+//#else
+//          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+//#endif
+//      }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(byte[] value) {

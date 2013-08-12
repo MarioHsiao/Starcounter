@@ -60,7 +60,19 @@ namespace FasterThanJson.Tests {
                 writer.WriteSafe(" \" \n ");
                 writer.WriteSafe("sdj  askld90we");
                 writer.WriteSafe("Рбфюцо[å");
+                writer.SealTuple();
+
+                TupleReader reader = new TupleReader(start, 5);
+                Assert.AreEqual("abdsfklaskl;jfAKDJLKSFHA:SKFLHsadnfkalsn2354432sad", reader.ReadString(0));
+                Assert.AreEqual("1234", reader.ReadString(1));
+                Assert.AreEqual(" \" \n ", reader.ReadString(2));
+                Assert.AreEqual("sdj  askld90we", reader.ReadString(3));
+                Assert.AreEqual("Рбфюцо[å", reader.ReadString(4));
             }
+        }
+
+        [Test]
+        public unsafe void TestSafeIntWriter() {
         }
     }
 }
