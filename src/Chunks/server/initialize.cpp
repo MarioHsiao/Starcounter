@@ -102,42 +102,56 @@ is_system, uint32_t chunks_total_number) try {
 	//--------------------------------------------------------------------------
 	// Compute the memory required for all objects in shared memory.
 	std::size_t shared_memory_segment_size =
+
+	+sizeof(simple_shared_memory_manager)
 	
 	// chunk[s]
 	+sizeof(chunk_type) * chunks_total_number
 	
 	// shared_chunk_pool
 	+sizeof(shared_chunk_pool_type)
+	+64 // Not aligned to 64-byte boundary
 	+sizeof(chunk_index) * chunks_total_number
-	
-	// channel[s]
-	+sizeof(channel_type) * channels
-	
+
 	// common_scheduler_interface
 	+sizeof(common_scheduler_interface_type)
-	
+
+#if 1
+	// scheduler_interface[s]
+	+sizeof(scheduler_interface_type) * max_number_of_schedulers
+	+64 // Not aligned to 64-byte boundary
+
+	// scheduler_interface[s] chunk_pool_
+	+sizeof(chunk_index) * chunks_total_number * max_number_of_schedulers
+
+	// scheduler_interface[s] overflow_pool_
+	+sizeof(chunk_index) * chunks_total_number * max_number_of_schedulers
+
+#if !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+	// scheduler_interface[s] channel_number_
+	+sizeof(channel_number) * channels * max_number_of_schedulers // TODO: Not allocated
+#endif // !defined (IPC_SCHEDULER_INTERFACE_USE_SMP_SPINLOCK_AND_WINDOWS_EVENTS_TO_SYNC)
+#endif
+
+	// client_interface[s]
+	+sizeof(client_interface_type) * max_number_of_clients
+
 	// common_client_interface
 	+sizeof(common_client_interface_type)
 	+sizeof(client_number) * max_number_of_clients
 	
-	// scheduler_interface[s]
-	+sizeof(scheduler_interface_type) * max_number_of_schedulers
-	
-	// scheduler_interface[s] channel_number_
-	+sizeof(channel_number) * channels * max_number_of_schedulers
-	
-	// scheduler_interface[s] overflow_pool_
-	+sizeof(chunk_index) * chunks_total_number * max_number_of_schedulers
-	
-	// client_interface[s]
-	+sizeof(client_interface_type) * max_number_of_clients
-	
+	// channel[s]
+	+sizeof(channel_type) * channels
+					
 	// scheduler_task_channel[s]
-	+sizeof(scheduler_channel_type) * max_number_of_schedulers;
+	+sizeof(scheduler_channel_type) * max_number_of_schedulers
+	+64 // Not aligned to 64-byte boundary
 
 	// scheduler_signal_channel[s]
-	+sizeof(scheduler_channel_type) * max_number_of_schedulers;
-	
+	+sizeof(scheduler_channel_type) * max_number_of_schedulers
+	+64 // Not aligned to 64-byte boundary
+	;
+
 	//--------------------------------------------------------------------------
 	
 	// Create a new segment with given name and size.

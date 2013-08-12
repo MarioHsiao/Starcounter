@@ -5,6 +5,7 @@ using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using System.Net;
 using System.Diagnostics;
+using Starcounter.Internal.Web;
 
 namespace Starcounter.Administrator.FrontEndAPI {
     internal static partial class FrontEndAPI {
@@ -26,7 +27,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         int validationErrors = 0;
 
                         // Getting POST contents.
-                        String content = req.GetBodyStringUtf8_Slow();
+                        String content = req.Body;
 
                         var incomingJson = DynamicJson.Parse(content);
 
@@ -92,20 +93,20 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         }
 
                         // supportReplication
-                        bool supportReplication;
-                        if (incomingJson.IsDefined("supportReplication") == true && !bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
-                            resultJson.validationErrors[validationErrors++] = new { property = "supportReplication", message = "invalid support replication" };
-                        }
+                        //bool supportReplication;
+                        //if (incomingJson.IsDefined("supportReplication") == true && !bool.TryParse(incomingJson.supportReplication.ToString(), out supportReplication)) {
+                        //    resultJson.validationErrors[validationErrors++] = new { property = "supportReplication", message = "invalid support replication" };
+                        //}
 
                         // transactionLogSize
-                        long transactionLogSize;
-                        if (incomingJson.IsDefined("transactionLogSize") == true && !long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
-                            resultJson.validationErrors[validationErrors++] = new { property = "transactionLogSize", message = "invalid transaction log size" };
-                        }
+                        //long transactionLogSize;
+                        //if (incomingJson.IsDefined("transactionLogSize") == true && !long.TryParse(incomingJson.transactionLogSize.ToString(), out transactionLogSize)) {
+                        //    resultJson.validationErrors[validationErrors++] = new { property = "transactionLogSize", message = "invalid transaction log size" };
+                        //}
 
                         #endregion
 
-                        return new Response() { Uncompressed = Starcounter.Internal.Web.HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
+                        return new Response() { Uncompressed = HttpResponseBuilder.Slow.FromStatusHeadersAndStringContent((int)HttpStatusCode.OK, null, resultJson.ToString()) };
 
                     }
                     catch (Exception e) {

@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>$(SolutionDir)\..\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -29,7 +29,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>$(SolutionDir)\..\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -38,7 +38,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>$(SolutionDir)\..\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
@@ -50,7 +50,7 @@
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>$(SolutionDir)\..\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -119,14 +119,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Compiler\TestCodeCompile.cs" />
-    <Compile Include="TestMessage.g.cs">
+    <None Include="TestMessage.g.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="TestMessage.json.cs">
+    </None>
+    <None Include="TestMessage.json.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
+    </None>
     <Compile Include="TestTemplates.cs" />
     <None Include="TestMessage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -150,9 +150,21 @@
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.Compiler.Roslyn\Starcounter.XSON.Compiler.Roslyn.csproj">
+    <ProjectReference Include="..\Starcounter.XSON.Compiler.Roslyn\Starcounter.XSON.Analyzer.Roslyn.csproj">
       <Project>{01382bc3-096b-466f-a115-6ae04766da3d}</Project>
-      <Name>Starcounter.XSON.Compiler.Roslyn</Name>
+      <Name>Starcounter.XSON.Analyzer.Roslyn</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.DeserializerCompiler\Starcounter.XSON.DeserializerCompiler.csproj">
+      <Project>{d8eff98a-2225-4991-860f-70d753190a33}</Project>
+      <Name>Starcounter.XSON.DeserializerCompiler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
+      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
+      <Name>Starcounter.XSON.JsonByExample</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.PartialClassGenerator\Starcounter.XSON.PartialClassGenerator.csproj">
+      <Project>{7824b013-943c-4cf5-b0b9-953a6d828eb6}</Project>
+      <Name>Starcounter.XSON.PartialClassGenerator</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

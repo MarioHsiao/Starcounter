@@ -1,5 +1,6 @@
 ﻿
 using HttpStructs;
+using Modules;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using System;
@@ -18,8 +19,8 @@ namespace Starcounter.Internal {
     /// </remarks>
     public static class AppsBootstrapper {
 
-        private static HttpAppServer AppServer_;
-        public static HttpAppServer AppServer
+        private static AppRestServer AppServer_;
+        public static AppRestServer AppServer
         {
             get { return AppServer_; }
         }
@@ -40,16 +41,22 @@ namespace Starcounter.Internal {
             String dbName)
         {
             // Setting some configuration settings.
-            NewConfig.Default.UserHttpPort = defaultUserHttpPort;
-            NewConfig.Default.SystemHttpPort = defaultSystemHttpPort;
+            StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
+            StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;
 
-            NewConfig.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
+            StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
+
+            // // Allow reading of JSON-by-example files at runtime
+            // Starcounter_XSON_JsonByExample.Initialize();
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
 
+            // Dependency injection for converting puppets to html
+            Obj._PuppetToViewConverter = new PuppetToViewConverter();
+
             // Setting the response handler.
-            Node.SetHandleResponse(AppServer_.HandleResponse);
+            Node.SetHandleResponse(AppServer_.OnResponse);
 
             // Giving REST needed delegates.
             UserHandlerCodegen.Setup(
@@ -80,7 +87,7 @@ namespace Starcounter.Internal {
         /// </summary>
         static AppsBootstrapper() {
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
-            AppServer_ = new HttpAppServer(fileServer);
+            AppServer_ = new AppRestServer(fileServer);
         }
 
         /// <summary>
@@ -106,12 +113,12 @@ namespace Starcounter.Internal {
             // Checking for the port.
             if (port == StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
             {
-                port = NewConfig.Default.UserHttpPort;
+                port = StarcounterEnvironment.Default.UserHttpPort;
             }
             else
             {
                 // Setting default user port.
-                NewConfig.Default.UserHttpPort = port;
+                StarcounterEnvironment.Default.UserHttpPort = port;
             }
 
             if (resourceResolvePath != null)
@@ -125,15 +132,15 @@ namespace Starcounter.Internal {
                 //string staticContentDirBase64 = System.Convert.ToBase64String(staticContentDirBytes);
 
                 // Checking if this is not administrator.
-                if (!NewConfig.IsAdministratorApp)
+                if (!StarcounterEnvironment.IsAdministratorApp)
                 {
                     // Putting port and full path to resources directory.
                     String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp) =>
+                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, null, (Response resp, Object userObject) =>
                     {
-                        String respString = resp.GetBodyStringUtf8_Slow();
+                        String respString = resp.Body;
 
                         if ("Success!" != respString)
                             throw new Exception("Could not register static resources directory with administrator!");
@@ -154,8 +161,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(Request request)
-        {
+        private static Boolean OnHttpMessageRoot(Request request) {
             Response response = AppServer_.HandleRequest(request);
 
             if (response != null)

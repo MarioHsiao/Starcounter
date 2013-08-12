@@ -8,23 +8,6 @@
 namespace starcounter {
 namespace network {
 
-// Starcounter session string in HTTP.
-const char* const kScSessionIdStringWithExtraChars = "ScSsnId: ";
-const int32_t kScSessionIdStringWithExtraCharsLength = (int32_t)strlen(kScSessionIdStringWithExtraChars);
-
-const char* const kFullSessionIdString = "ScSsnId: ########################";
-const char* const kFullSessionIdSetCookieString = "Set-Cookie: ScSsnId=########################\r\n";
-const int32_t kFullSessionIdSetCookieStringLength = (int32_t)strlen(kFullSessionIdSetCookieString);
-
-const int32_t kSetCookieStringPrefixLength = (int32_t)strlen("Set-Cookie: ScSsnId=");
-
-const int32_t kFullSessionIdStringLength = (int32_t)strlen(kFullSessionIdString);
-
-// Session string length in characters.
-const int32_t SC_SESSION_STRING_LEN_CHARS = 24;
-const int32_t SC_SESSION_STRING_INDEX_LEN_CHARS = 8;
-const int32_t SC_SESSION_STRING_SALT_LEN_CHARS = SC_SESSION_STRING_LEN_CHARS - SC_SESSION_STRING_INDEX_LEN_CHARS;
-
 // HTTP/WebSockets fields.
 enum HttpWsFields
 {
@@ -33,6 +16,8 @@ enum HttpWsFields
     COOKIE_FIELD,
     SET_COOKIE_FIELD,
     SCSESSIONID_FIELD,
+    REFERRER_FIELD,
+    XREFERRER_FIELD,
     CONTENT_LENGTH_FIELD,
     ACCEPT_FIELD,
     ACCEPT_ENCODING_FIELD,
@@ -48,12 +33,15 @@ enum HttpWsFields
 
 const int64_t ACCEPT_HEADER_VALUE_8BYTES = 2322296583949083457;
 const int64_t ACCEPT_ENCODING_HEADER_VALUE_8BYTES = 4984768388655178561;
+
+const int64_t REFERER_HEADER_VALUE_8BYTES = 4211540143546721618;
+const int64_t XREFERER_HEADER_VALUE_8BYTES = 7310016635636690264;
+
 const int64_t COOKIE_HEADER_VALUE_8BYTES = 2322280061311348547;
 const int64_t SET_COOKIE_HEADER_VALUE_8BYTES = 7741528618789266771;
 const int64_t CONTENT_LENGTH_HEADER_VALUE_8BYTES = 3275364211029339971;
 const int64_t UPGRADE_HEADER_VALUE_8BYTES = 4207879796541583445;
 const int64_t WEBSOCKET_HEADER_VALUE_8BYTES = 6008476277963711827;
-const int64_t SCSESSIONID_HEADER_VALUE_8BYTES = 4207568690600960851;
 
 // Fast way to determine field type.
 inline HttpWsFields DetermineField(const char *at, size_t length)
@@ -64,6 +52,19 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
         case ACCEPT_HEADER_VALUE_8BYTES:
         {
             return ACCEPT_FIELD; // Accept
+        }
+
+        case REFERER_HEADER_VALUE_8BYTES:
+        {
+            return REFERRER_FIELD; // Referer
+        }
+
+        case XREFERER_HEADER_VALUE_8BYTES:
+        {
+            if (*(int64_t*)(at + 2) == *(int64_t*)"Referer:")
+                return XREFERRER_FIELD; // X-Referer
+
+            break;
         }
 
         case ACCEPT_ENCODING_HEADER_VALUE_8BYTES:
@@ -109,11 +110,6 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
             }
 
             break;
-        }
-
-        case SCSESSIONID_HEADER_VALUE_8BYTES:
-        {
-            return SCSESSIONID_FIELD;
         }
     }
 

@@ -721,7 +721,8 @@ namespace Weaver {
                 "Starcounter.Internal.dll",
                 "Starcounter.BitsAndBytes.Unsafe.dll",
                 "Starcounter.XSON.JsTemplateParser.dll",
-                "Mono.CSharp.dll"
+                "Mono.CSharp.dll",
+                "NetworkIoTest.exe"
             }
                 ) {
                 AddExcludeExpression(exclude, weaverExcludes);

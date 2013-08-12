@@ -41,6 +41,9 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.6.1.12217, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -53,14 +56,25 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bindables.cs" />
-    <Compile Include="FakeDbImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestDynamicApps.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Starcounter.Internal.Tests\Starcounter.Internal.Tests.csproj">
+      <Project>{7dc7044d-7e04-47ee-b5e8-0e1f600ce4a4}</Project>
+      <Name>Starcounter.Internal.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
+      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
+      <Name>Starcounter.XSON.JsonByExample</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.PartialClassGenerator\Starcounter.XSON.PartialClassGenerator.csproj">
+      <Project>{7824b013-943c-4cf5-b0b9-953a6d828eb6}</Project>
+      <Name>Starcounter.XSON.PartialClassGenerator</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

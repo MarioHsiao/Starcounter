@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Internal;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -14,14 +15,15 @@ namespace Starcounter.Advanced {
 
             if (string.IsNullOrEmpty(databaseName)) throw new ArgumentException("databaseName");
 
-            DatabaseName = databaseName;
+            DatabaseNameLower = databaseName.ToLower();
+            StarcounterEnvironment.DatabaseNameLower = DatabaseNameLower;
             HasDatabase = hasDatabase;
         }
 
         /// <summary>
         /// Name of the database.
         /// </summary>
-        public string DatabaseName { get; private set; }
+        public string DatabaseNameLower { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether there is a database attached to the current applet

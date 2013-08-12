@@ -14,6 +14,8 @@ using System.IO;
 using Starcounter.XSON.Metadata;
 using Starcounter.Internal;
 using Starcounter.XSON.CodeGeneration;
+using Modules;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
     /// <summary>
@@ -25,12 +27,26 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         public static void InitializeTest() {
         }
 
+
+        /// <summary>
+        /// Creates a template from a JSON-by-example file
+        /// </summary>
+        /// <param name="filePath">The file to load</param>
+        /// <returns>The newly created template</returns>
+        private static TJson CreateJsonTemplateFromFile(string filePath) {
+            string json = File.ReadAllText(filePath);
+            string className = Path.GetFileNameWithoutExtension(filePath);
+            var tobj = TObj.CreateFromMarkup<Json,TJson>("json", json, className);
+            tobj.ClassName = className;
+            return tobj;
+        }
+
         /// <summary>
         /// Creates the cs from js file.
         /// </summary>
         [Test]
         public static void CreateCsFromJsFile() {
-            TJson templ = (TJson)Obj.Factory.CreateJsonTemplateFromFile("MySampleApp.json");
+            TJson templ = CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.NotNull(templ);
         }
 
@@ -39,7 +55,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCs() {
-            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile("MySampleApp.json");
+            TJson actual = CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.IsInstanceOf(typeof(TJson), actual);
             CodeGenerationModule codegenmodule = new CodeGenerationModule();
             var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
@@ -50,7 +66,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
-            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile("simple.json");
+            TJson actual = CreateJsonTemplateFromFile("simple.json");
             actual.ClassName = "PlayerApp";
 
             var file = new System.IO.StreamReader("simple.facit.cs");
@@ -69,7 +85,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCsFromSuperSimpleJs() {
-            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile("supersimple.json");
+            TJson actual = CreateJsonTemplateFromFile("supersimple.json");
             actual.ClassName = "PlayerApp";
 
             Assert.IsInstanceOf(typeof(TJson), actual);
@@ -84,9 +100,9 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         public static void GenerateCsFromTestMessage() {
             String className = "TestMessage";
 
-            CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.CreateCodeBehindMetadata(className, className + ".json.cs");
+            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, className + ".json.cs");
 
-            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile(className + ".json");
+            TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
@@ -104,9 +120,9 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         public static void GenerateCsWithCodeBehind()
         {
             String className = "MySampleApp";
-            CodeBehindMetadata metadata = (CodeBehindMetadata)Obj.Factory.CreateCodeBehindMetadata(className, className + ".json.cs");
+            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, className + ".json.cs");
 
-            TJson actual = (TJson)Obj.Factory.CreateJsonTemplateFromFile(className + ".json");
+            TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
             actual.Namespace = metadata.RootNamespace;
@@ -119,7 +135,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
 
         [Test]
         public static void TestMissingTypeInformationForDataBinding() {
-            Assert.Catch(() => { Obj.Factory.GenerateTypedJsonCode("databound.json", "databound.json.cs"); });
+            Assert.Catch(() => { PartialClassGenerator.GenerateTypedJsonCode("databound.json", "databound.json.cs"); });
         }
     }
 }

@@ -68,7 +68,7 @@ namespace Starcounter.Bootstrap.Management {
         /// management services need to schedule work to be done.</param>
         /// <param name="setupAPI">Indicates if the API should be set up.</param>
         public static unsafe void Setup(ushort port, void* handleScheduler, bool setupAPI = true) {
-            IsAdministrator = NewConfig.IsAdministratorApp;
+            IsAdministrator = StarcounterEnvironment.IsAdministratorApp;
             Port = port;
             
             if (IsAdministrator) {

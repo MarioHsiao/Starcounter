@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Starcounter.Internal
@@ -52,6 +53,7 @@ namespace Starcounter.Internal
 #endif
 #if BASE64
       public const int MAXOFFSETSIZE=5;
+      public const int DEFAULTOFFSETSIZE = 2;
 #endif
 #if BASE256
        /// <summary>
@@ -59,7 +61,7 @@ namespace Starcounter.Internal
        /// </summary>
       public const int MAXOFFSETSIZE=4;
 #endif
-      internal const int OffsetElementSizeSize = 1; // The tuple begins with an integer telling the size. The size of this integer is always 1 byte.
+      public const int OffsetElementSizeSize = 1; // The tuple begins with an integer telling the size. The size of this integer is always 1 byte.
 
       /// <summary>
       /// Offset integer pointing to the end of the tuple with 0 being the begining of the value count
@@ -75,7 +77,7 @@ namespace Starcounter.Internal
       /// <summary>
       /// Pointer to the start of this tuple
       /// </summary>
-      public byte* AtStart;
+      public readonly byte* AtStart;
 
       /// <summary>
       /// Pointer to the end of the offset list of the tuple
@@ -89,35 +91,43 @@ namespace Starcounter.Internal
 
  //     public byte* OverflowLimit;
 
-#if GUESSSIZE
        /// <summary>
        /// OffsetElementSize
        /// </summary>
       public uint OffsetElementSize;
-#endif
 
-#if GUESSSIZE
+       /// <summary>
+       /// Maximum possible size of tuple in bytes if set by user
+       /// </summary>
+      public uint TupleMaxLength;
+
+       /// <summary>
+       /// The available size left (in bytes)
+       /// </summary>
+      public uint AvaiableSize;
+
        /// <summary>
        /// Method
        /// </summary>
        /// <param name="start"></param>
        /// <param name="valueCount"></param>
-       /// <param name="initialOffsetElementSize"></param>
+       /// <param name="offsetElementSize"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public TupleWriter(byte* start, uint valueCount, uint initialOffsetElementSize )
-      {
-         AtStart = start;
-         AtOffsetEnd = AtStart + 1;
-         AtEnd = AtStart + 1 + valueCount*initialOffsetElementSize;
-         OffsetElementSize = initialOffsetElementSize;
-      //   OverflowLimit = overflowLimit;
+      public TupleWriter(byte* start, uint valueCount, uint offsetElementSize) {
+          AtStart = start;
+          AtOffsetEnd = AtStart + OffsetElementSizeSize;
+          AtEnd = AtStart + OffsetElementSizeSize + valueCount * offsetElementSize;
+          OffsetElementSize = offsetElementSize;
+          //   OverflowLimit = overflowLimit;
 #if BASE256
          AtStart[0] = (byte)OffsetElementSize;
 #else
-         Base16Int.WriteBase16x1(OffsetElementSize, AtStart);
+          Base16Int.WriteBase16x1(OffsetElementSize, AtStart);
 #endif
-         ValueOffset = 0;
-         ValueCount = valueCount;
+          ValueOffset = 0;
+          ValueCount = valueCount;
+          AvaiableSize = 0;
+          TupleMaxLength = 0;
       }
 
        /// <summary>
@@ -127,28 +137,23 @@ namespace Starcounter.Internal
        /// <param name="valueCount"></param>
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public TupleWriter(byte* start, uint valueCount)
-         : this(start, valueCount, TupleWriter.MAXOFFSETSIZE)
+          : this(start, valueCount, TupleWriter.DEFAULTOFFSETSIZE)
       {
       }
 
-#else
-
-      // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public TupleWriter(byte* start, uint valueCount)
-      {
-         AtStart = start;
-         AtOffsetEnd = AtStart + 1;
-         AtEnd = AtStart + 1 + valueCount * TupleWriter.MAXOFFSETSIZE;
-         ValueOffset = 0;
-         ValueCount = valueCount;
-#if BASE256
-         AtStart[0] = (byte)TupleWriter.MAXOFFSETSIZE;
-#else
-         Base16Int.WriteBase16x1(TupleWriter.MAXOFFSETSIZE, AtStart);
-#endif
+       /// <summary>
+       /// Set maximum tuple length in bytes, i.e., how the length of the available memory of the pointer to write to.
+       /// </summary>
+       /// <param name="length">The length</param>
+      public void SetTupleLength(uint length) {
+          if (length >= Math.Pow(64, 5))
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Maximum length of a tuple cannot be bigger than 64^5.");
+          if (AtEnd - AtStart >= length)
+              throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Too small length of the tuple");
+          TupleMaxLength = length;
+          AvaiableSize = (uint)(AtEnd - AtStart);
       }
 
-#endif
       /// <summary>
       /// Writes an unsigned 4 bit integer
       /// </summary>
@@ -221,6 +226,26 @@ namespace Starcounter.Internal
          //     StreamWriteLargestOffsetElementSize = needed;
       }
 
+       /// <summary>
+       /// Checks if string value fits the tuple and writes it
+       /// </summary>
+       /// <param name="str"></param>
+      public void WriteSafe(string str) {
+          if (TupleMaxLength == 0)
+              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+          uint expectedLen = 0;
+          fixed (char* pStr = str) {
+              expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
+              uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
+              if (OffsetElementSize < neededOffsetSize)
+                  expectedLen += MoveValuesRightSize(neededOffsetSize);
+              if (expectedLen > AvaiableSize)
+                  throw ErrorCode.ToException(Error.SCERRUNEXPCHANNELACCEPTERROR);
+          }
+          Write(str);
+          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+          AvaiableSize -= expectedLen;
+      }
 
       /// <summary>
       /// Writes an unsigned integer value to the tuple
@@ -264,14 +289,9 @@ namespace Starcounter.Internal
          ValueOffset = ValueOffset + len;
          AtEnd += len;
      
-#if GUESSSIZE
          AtOffsetEnd += OffsetElementSize;
-#else
-         AtOffsetEnd += TupleWriter.MAXOFFSETSIZE;
-#endif
 
          // Write the offset of the *next* value at the end of the offset list
-#if GUESSSIZE         
 #if BASE32
 Retry:
          switch (OffsetElementSize)
@@ -347,77 +367,23 @@ Retry:
          }
 #endif
 #if BASE64
-      Retry:
-         switch (OffsetElementSize)
-         {
-            case 1:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 1)
-               {
-                  this.Grow(ValueOffset);
-                  oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
-                  //                  oldAtOffsetEnd[0] = 33;
-                  //                  oldAtOffsetEnd[1] = 33;
-                  goto Retry;
-               }
-               else
-               {
-                  Base64Int.WriteBase64x1(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+         if (OffsetElementSize < Base64Int.MeasureNeededSize(ValueOffset)) {
+             Grow(ValueOffset);
+             oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
+         }
+         switch (OffsetElementSize) {
+            case 1: Base64Int.WriteBase64x1(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
-            case 2:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 2)
-               {
-                  this.Grow(ValueOffset);
-                  oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
-                  //                  oldAtOffsetEnd[0] = 33;
-                  //                  oldAtOffsetEnd[1] = 33;
-                  goto Retry;
-               }
-               else
-               {
-                  Base64Int.WriteBase64x2(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+            case 2: Base64Int.WriteBase64x2(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
-            case 3:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 3)
-               {
-                  this.Grow(ValueOffset);
-                  oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
-                  //                  oldAtOffsetEnd[0] = 33;
-                  //                  oldAtOffsetEnd[1] = 33;
-                  goto Retry;
-               }
-               else
-               {
-                  Base64Int.WriteBase64x3(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+            case 3: Base64Int.WriteBase64x3(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
-            case 4:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 4)
-               {
-                  this.Grow(ValueOffset);
-                  oldAtOffsetEnd = AtOffsetEnd - OffsetElementSize;
-                  //                  oldAtOffsetEnd[0] = 33;
-                  //                  oldAtOffsetEnd[1] = 33;
-                  goto Retry;
-               }
-               else
-               {
-                  Base64Int.WriteBase64x4(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+            case 4: Base64Int.WriteBase64x4(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
-            case 5:
-               if (Base64Int.MeasureNeededSize(ValueOffset) > 5)
-               {
-                  throw new Exception("Tuple to big");
-               }
-               else
-               {
-                  Base64Int.WriteBase64x5(ValueOffset, (IntPtr)oldAtOffsetEnd);
-               }
+            case 5: Base64Int.WriteBase64x5(ValueOffset, (IntPtr)oldAtOffsetEnd);
                break;
             default:
-               throw new Exception("Illegal offset element size in tuple");
+               throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
          }
 
 #endif
@@ -451,73 +417,95 @@ Retry:
                throw new Exception("Illegal offset element size in tuple");
          }
 #endif
-#else
-#if BASE32
-         Base32Int.WriteBase32x6((UInt32)ValueOffset, (Base32x6*)oldAtOffsetEnd);
-#endif
-#if BASE64
-         Base64Int.WriteBase64x5((UInt32)ValueOffset, (Base32x5*)oldAtOffsetEnd);
-#endif
-#if BASE256
-         * ((UInt32*)AtOffsetEnd) = newValueOffset;
-#endif
-#endif
       }
 
-#if GUESSSIZE
+      public unsafe delegate UInt64 ReadBase64(IntPtr ptr);
+      public unsafe delegate void WriteBase64(UInt64 value, IntPtr ptr);
+
+       /// <summary>
+       /// Calculates for how many bytes the values should be moved to the right.
+       /// </summary>
+       /// <param name="newOffsetSize">New offset size to fit offset value, which requires the move</param>
+       /// <returns>The caclulated number of bytes</returns>
+      public uint MoveValuesRightSize(uint newOffsetSize) {
+          Debug.Assert(newOffsetSize - OffsetElementSize > 0);
+          return ValueCount * (newOffsetSize - OffsetElementSize);
+      }
+
       /// <summary>
       /// This is a tricky task. We have guessed a to small size for the element offsets. We have used a to narrow size of
       /// the element size. It means that the values and the offsets needs to move.
       /// </summary>
-      public void Grow( uint newValueOffset )
-      {
+      public void Grow(uint newValueOffset) {
 #if BASE32
          uint oesAfter = Base32Int.MeasureNeededSize(newValueOffset);
 #endif
 #if BASE64
-         uint oesAfter = Base64Int.MeasureNeededSize(newValueOffset);
+          uint oesAfter = Base64Int.MeasureNeededSize(newValueOffset);
 #endif
 #if BASE256
          uint oesAfter = Base256Int.MeasureNeededSize(newValueOffset);
 #endif
-         uint oesBefore = OffsetElementSize;
-         uint moveOffsetsRight = oesAfter - oesBefore;
+          uint oesBefore = OffsetElementSize;
+          uint valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize)) / oesBefore - 1); // Expensive division here!
+          uint needed = valuesWrittenSoFar * oesAfter;
+          uint used = valuesWrittenSoFar * oesBefore;
+          uint moveValuesRight = MoveValuesRightSize(oesAfter);
+          // Move values to the right to have space for offset
+          byte* values = AtStart + OffsetElementSizeSize + ValueCount * oesBefore;
+          MemcpyUtil.Memcpy16rwd(values + moveValuesRight, values, ValueOffset);
 
-         var valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize))/oesBefore); // Expensive division here!
- 
-         uint needed = valuesWrittenSoFar*oesAfter;
-         byte* newOffsets = (AtStart + 1);
-         uint used = valuesWrittenSoFar*oesBefore;
-      //   throw new Exception("Move things right " + moveOffsetsRight);
-
-#if BASE256
-   // Due to the little endianess of the Intel x64 architecture, we need to copy differently than in the text based notation
-         byte* offsets = newOffsets;
-#else
-         byte* offsets = newOffsets + oesBefore - oesAfter;
-#endif
-         uint moveValuesRight =  needed - used;
-
-
-         for (uint t = valuesWrittenSoFar; t > 0; t--)
-         {
-            Intrinsics.MemCpy((void*)(newOffsets), offsets, (uint)oesBefore);
-            offsets += oesBefore;
-            newOffsets += oesAfter;
-         }
-         byte* values = ((AtStart + 1) + valuesWrittenSoFar * oesBefore);
-         Intrinsics.MemCpy((void*)(values + moveValuesRight), (void*)values, (uint)ValueOffset);
-         //Size -= moveValuesLeft;
+          byte* newOffsets = AtStart + OffsetElementSizeSize;
+          byte* offsets = newOffsets;
+          offsets += used;
+          newOffsets += needed;
+          Debug.Assert(oesBefore < oesAfter);
+          ReadBase64 read;
+          switch (oesBefore) {
+              case 1: read = Base64Int.ReadBase64x1;
+                  break;
+              case 2: read = Base64Int.ReadBase64x2;
+                  break;
+              case 3: read = Base64Int.ReadBase64x3;
+                  break;
+              case 4: read = Base64Int.ReadBase64x4;
+                  break;
+              case 5: read = Base64Int.ReadBase64x5;
+                  break;
+              default: throw ErrorCode.ToException(Error.SCERRUNEXPFASTERTHANJSON, "Unexpected offset size in TupleWriter.");
+          }
+          WriteBase64 write;
+          switch (oesAfter) {
+              case 2:
+                  write = Base64Int.WriteBase64x2;
+                  break;
+              case 3:
+                  write = Base64Int.WriteBase64x3;
+                  break;
+              case 4:
+                  write = Base64Int.WriteBase64x4;
+                  break;
+              case 5:
+                  write = Base64Int.WriteBase64x5;
+                  break;
+              default: throw ErrorCode.ToException(Error.SCERRTUPLETOOBIG);
+          }
+          for (uint t = valuesWrittenSoFar; t > 0; t--) {
+              ulong offsetsValue;
+              offsets -= oesBefore;
+              newOffsets -= oesAfter;
+              offsetsValue = read((IntPtr)offsets);
+              write(offsetsValue, (IntPtr)newOffsets);
+          }
 #if BASE256
          *AtStart = (byte)oesAfter; // The first byte in the tuple tells the offset element size of the tuple
 #else
-         Base16Int.WriteBase16x1(oesAfter, AtStart); // The first byte in the tuple tells the offset element size of the tuple
+          Base16Int.WriteBase16x1(oesAfter, AtStart); // The first byte in the tuple tells the offset element size of the tuple
 #endif
-         AtEnd += moveValuesRight;
-         OffsetElementSize = oesAfter;
-         AtOffsetEnd += moveValuesRight;
+          AtEnd += moveValuesRight;
+          OffsetElementSize = oesAfter;
+          AtOffsetEnd += needed - used + OffsetElementSizeSize;
       }
-#endif
 
        /// <summary>
        /// Method
@@ -530,10 +518,9 @@ Retry:
          // The default is 5 bytes and often only 1 byte is needed.
          // Update the offset in the parent tuple.
          // Parent tuple must not be sealed.
-#if NOPACK
          return FastSealTuple();
-#endif
 
+#if false
 #if BASE32
          uint oesAfter = Base32Int.MeasureNeededSize(this.ValueOffset);
 #endif
@@ -543,11 +530,7 @@ Retry:
 #if BASE256
          uint oesAfter = Base256Int.MeasureNeededSize(this.ValueOffset);
 #endif
-#if GUESSSIZE
          uint oesBefore = OffsetElementSize;
-#else
-         uint oesBefore = TupleWriter.MAXOFFSETSIZE;
-#endif
          uint moveOffsetsLeft = oesBefore - oesAfter;
 
 
@@ -562,21 +545,26 @@ Retry:
 #endif
          uint moveValuesLeft = used - needed;
 
-#if GUESSSIZE
          // Let's calculate if it is worth while to compact the tuple:
-         // We want moveValuesLeft (equaling the bytes we would save) to be at least an fourth of this values.
-         if (ValueOffset >> 2 > moveValuesLeft)
-         {
-            return FastSealTuple();
+         // We want moveValuesLeft (equaling the bytes we would save) to be at least an eights of this values.
+         if (ValueOffset >> 3 > moveValuesLeft) {
+             return FastSealTuple();
          }
-#else
-         // Let's calculate if it is worth while to compact the tuple:
-         // We want moveValuesLeft (equaling the bytes we would save) to be at least an sixteenth of this values.
-         if (ValueOffset >> 4 > moveValuesLeft)
-         {
-            return FastSealTuple();
-         }
-#endif
+//#if GUESSSIZE
+//         // Let's calculate if it is worth while to compact the tuple:
+//         // We want moveValuesLeft (equaling the bytes we would save) to be at least an fourth of this values.
+//         if (ValueOffset >> 2 > moveValuesLeft)
+//         {
+//            return FastSealTuple();
+//         }
+//#else
+//         // Let's calculate if it is worth while to compact the tuple:
+//         // We want moveValuesLeft (equaling the bytes we would save) to be at least an sixteenth of this values.
+//         if (ValueOffset >> 4 > moveValuesLeft)
+//         {
+//            return FastSealTuple();
+//         }
+//#endif
 
          for (int t = 0; t < ValueCount; t++)
          {
@@ -595,6 +583,7 @@ Retry:
          AtEnd -= moveValuesLeft;
          return (uint) (AtEnd - AtStart);
          //         Base64.WriteBase64x5(this.Size, &(this.Cached_Blob.Cached_Blob->RootParentOffsetArray)); // TODO! Parent might be another tuple. Write in correct place.
+#endif
       }
 
        /// <summary>

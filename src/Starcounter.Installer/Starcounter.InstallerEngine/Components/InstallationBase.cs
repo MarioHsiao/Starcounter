@@ -444,6 +444,10 @@ public class CInstallationBase : CComponentBase
     /// <returns>True if component should be installed.</returns>
     public override Boolean ShouldBeInstalled()
     {
+        // NOTE: Installation base should always be installed.
+        return true;
+
+        /*
         // Mapping boolean flags to settings.
         Boolean installPersonalServerSetting = InstallerMain.PersonalServerComponent.ShouldBeInstalled();
         Boolean installSystemServerSetting = InstallerMain.SystemServerComponent.ShouldBeInstalled();
@@ -456,7 +460,7 @@ public class CInstallationBase : CComponentBase
             installVs2012IntegrationSetting)
             return true;
 
-        return false;
+        return false;*/
     }
 
     /// <summary>

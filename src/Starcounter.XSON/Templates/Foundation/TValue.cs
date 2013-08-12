@@ -8,7 +8,7 @@ using System;
 using Starcounter.Templates;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Starcounter.XSON;
+using Starcounter.Advanced.XSON;
 using Starcounter.Advanced;
 
 namespace Starcounter {

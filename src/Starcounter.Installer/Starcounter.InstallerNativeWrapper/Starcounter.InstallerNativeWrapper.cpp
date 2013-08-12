@@ -12,6 +12,7 @@ const int32_t MAX_PATH_LEN = 1024;
 const wchar_t* Net45ResName = L"\\dotnetfx45_full_x86_x64.exe";
 const wchar_t* ScSetupExtractName = L"\\Starcounter-Setup.exe";
 const wchar_t* ScServiceName = L"\\scservice.exe";
+const wchar_t* ScPersonalServerXmlName = L"\\personal.xml";
 const wchar_t* ScVersion = L"2.0.0.0";
 const wchar_t* ElevatedParam = L"Elevated";
 
@@ -169,6 +170,7 @@ static bool AnotherSetupRunning()
 /// </summary>
 static uint32_t StartScService()
 {
+    wchar_t path_to_server_xml[MAX_PATH_LEN];
     wchar_t path_to_scservice[MAX_PATH_LEN];
     path_to_scservice[0] = '\0';
     DWORD data_len = MAX_PATH_LEN * sizeof(wchar_t);
@@ -177,6 +179,10 @@ static uint32_t StartScService()
     if (ERROR_SUCCESS != result)
         return ERR_NO_STARCOUNTERBIN;
 
+    // Constructing path to server XML config.
+    wcscpy_s(path_to_server_xml, MAX_PATH_LEN, path_to_scservice);
+    wcscat_s(path_to_server_xml, MAX_PATH_LEN, ScPersonalServerXmlName);
+
     // Setting current process StarcounterBin.
     SetEnvironmentVariable(L"StarcounterBin", path_to_scservice);
 
@@ -184,8 +190,8 @@ static uint32_t StartScService()
     wcscat_s(path_to_scservice, MAX_PATH_LEN, ScServiceName);
 
     // Checking if EXE file exists.
-    if ((INVALID_FILE_ATTRIBUTES == GetFileAttributes(path_to_scservice)) &&
-        (GetLastError() == ERROR_FILE_NOT_FOUND))
+    if ((INVALID_FILE_ATTRIBUTES == GetFileAttributes(path_to_server_xml)) && (GetLastError() == ERROR_FILE_NOT_FOUND) ||        
+        (INVALID_FILE_ATTRIBUTES == GetFileAttributes(path_to_scservice)) && (GetLastError() == ERROR_FILE_NOT_FOUND))
     {
         return ERR_SCSERVICE_DOESNT_EXIST;
     }

@@ -4,6 +4,85 @@
 namespace starcounter {
 namespace network {
 
+static CRITICAL_SECTION* StatisticsCS = NULL;
+static char BuildNumber[32];
+static bool IsPersonal = false;
+static bool IsDebugBuild = false;
+static bool IsRunningOnBuildServer = false;
+static char MachineName[128];
+static wchar_t BuildStatisticsFilePath[1024];
+
+// Reports statistics 
+void ReportStatistics(const char* stat_name, const double stat_value)
+{
+    char temp_str[512];
+
+    // Doing statistics initialization once.
+    if (NULL == StatisticsCS)
+    {
+        GetEnvironmentVariableA("SC_RUNNING_ON_BUILD_SERVER", temp_str, 64);
+        if (0 == strcmp(temp_str, "True"))
+            IsRunningOnBuildServer = true;
+        else
+            return; // If we are not on build server - just returning.
+
+        GetEnvironmentVariableA("BUILD_NUMBER", BuildNumber, 32);
+
+        DWORD size = 128;
+        GetComputerNameA(MachineName, &size);
+
+        GetEnvironmentVariableA("BUILD_IS_PERSONAL", temp_str, 64);
+        if (0 == strcmp(temp_str, "True"))
+            IsPersonal = true;
+
+        GetEnvironmentVariableA("Configuration", temp_str, 64);
+        if (0 == strcmp(temp_str, "Debug"))
+            IsDebugBuild = true;
+
+        DWORD data_len = 1024 * sizeof(wchar_t);
+
+        LONG result = RegGetValue(HKEY_CURRENT_USER, L"Environment", L"TEMP", RRF_RT_REG_SZ, NULL, &BuildStatisticsFilePath, &data_len);
+        wcscat_s(BuildStatisticsFilePath, 1024, L"\\ScBuildStatistics.txt");
+
+        StatisticsCS = new CRITICAL_SECTION;
+        InitializeCriticalSection(StatisticsCS);
+    }
+
+    time_t now = time(0); // Get time now
+    tm t;
+    localtime_s(&t, &now);
+    char cur_date[64];
+    sprintf_s(cur_date, 64, "%d-%d-%dT%d:%d:%d",
+        1900 + t.tm_year,
+        t.tm_mon,
+        t.tm_mday,
+        t.tm_hour,
+        t.tm_min,
+        t.tm_sec);
+
+    sprintf_s(temp_str, 512, "%s %s %.2f %s %s %s\n",
+        stat_name,
+        BuildNumber,
+        stat_value,
+        IsPersonal ? "PERSONAL" : "PUBLIC",
+        cur_date,
+        MachineName);
+
+    EnterCriticalSection(StatisticsCS);
+
+    printf(temp_str);
+    std::ofstream build_stats_file;
+
+    if (IsRunningOnBuildServer)
+    {
+        build_stats_file.open(BuildStatisticsFilePath, std::ios_base::app);
+        build_stats_file << temp_str; 
+        build_stats_file.close();
+    }
+
+    LeaveCriticalSection(StatisticsCS);
+}
+
 // Reads decimal from the given string.
 // (reads until characters are digits)
 /*uint64_t ReadDecimal(const char *start)

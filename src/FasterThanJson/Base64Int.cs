@@ -468,7 +468,7 @@ namespace Starcounter.Internal
             case 11:
                return ReadBase64x11(ptr);
             default:
-               throw new Exception("Illegal size");
+               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Incorrect input size, "+size+", in UInt64 read of FasterThanJson.");
            
          }
 		 //var c = (Base64x5*)ptr;

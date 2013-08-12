@@ -58,8 +58,8 @@ namespace Starcounter.Administrator.FrontEndAPI {
                         json.settings.collationFiles[2] = new { name = Starcounter.Internal.StarcounterEnvironment.FileNames.CollationFileNamePrefix + "_nb-NO_3.dll", description = "Norwegian" };
 
                         json.settings.maxImageSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.MaxImageSize ?? -1;
-                        json.settings.supportReplication = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.SupportReplication;
-                        json.settings.transactionLogSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.TransactionLogSize ?? -1;
+                        //json.settings.supportReplication = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.SupportReplication;
+                        //json.settings.transactionLogSize = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.TransactionLogSize ?? -1;
 
                         return json.ToString();
 

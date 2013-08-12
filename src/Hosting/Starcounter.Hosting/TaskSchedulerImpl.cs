@@ -33,6 +33,7 @@ namespace Starcounter.Hosting {
                 }
                 catch {
                     ((GCHandle)hTask).Free();
+                    throw;
                 }
             }
         }

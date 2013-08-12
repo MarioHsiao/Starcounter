@@ -464,9 +464,9 @@ namespace NetworkIoTestApp
                             WebSocketSessions[schedId].Add(session);
                         }
 
-                        session.Push(req.GetBodyByteArray_Slow());
+                        session.Push(req.BodyBytes);
 
-                        String body = req.GetRequestStringUtf8_Slow();
+                        String body = req.Body;
                         Console.WriteLine(body);
                         return body;
                     });
@@ -731,7 +731,7 @@ namespace NetworkIoTestApp
                 file_postfix = p.Uri.Substring(8/*/upload/*/);
 
             String file_name = "uploaded_" + file_postfix;
-            File.WriteAllBytes(file_name, p.GetBodyByteArray_Slow());
+            File.WriteAllBytes(file_name, p.BodyBytes);
             Console.WriteLine("Uploaded file saved: " + file_name);
 
             String responseHeader =
@@ -933,7 +933,7 @@ namespace NetworkIoTestApp
 
         private static Boolean OnHttpEcho(Request p)
         {
-            String responseBody = p.GetBodyStringUtf8_Slow();
+            String responseBody = p.Body;
             Debug.Assert(responseBody.Length == 8);
 
             //Console.WriteLine(responseBody);
@@ -968,9 +968,9 @@ namespace NetworkIoTestApp
 
         private static Boolean OnRestClient(Request req)
         {
-            someNode.GET("/testrest", null, req, (Response resp) => {
+            someNode.GET("/testrest", null, req, null, (Response resp, Object userObject) => {
                 if (resp["Content-Type"] == "text/html; charset=UTF-8") {
-                    dynamic jsonData = DynamicJson.Parse(resp.GetBodyStringUtf8_Slow());
+                    dynamic jsonData = DynamicJson.Parse(resp.Body);
                     string htmlFileName = jsonData.FirstName;
                     return htmlFileName;
                 } else {

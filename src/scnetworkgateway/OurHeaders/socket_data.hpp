@@ -142,7 +142,7 @@ public:
         GW_ASSERT((&session_.scheduler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_SCHEDULER_ID);
         GW_ASSERT(((uint8_t*)&session_.linear_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_LINEAR_INDEX);
         GW_ASSERT(((uint8_t*)&session_.random_salt_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RANDOM_SALT);
-        GW_ASSERT(((uint8_t*)&session_.view_model_index_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_VIEWMODEL_INDEX);
+        GW_ASSERT(((uint8_t*)&session_.reserved_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SESSION_RESERVED_INDEX);
 
         GW_ASSERT(((uint8_t*)&saved_user_handler_id_ - smc) == MixedCodeConstants::CHUNK_OFFSET_SAVED_USER_HANDLER_ID);
 
@@ -210,6 +210,14 @@ public:
             g_gateway.SetGlobalSessionCopy(sock_, session_);
     }
 
+    // Forcedly sets session if socket is correct.
+    void ForceSetGlobalSessionIfEmpty()
+    {
+        // Checking unique socket id and session.
+        if (session_.IsActive() && CompareUniqueSocketId())
+            g_gateway.SetGlobalSessionCopy(sock_, session_);
+    }
+
     // Updates connection timestamp if socket is correct.
     void UpdateConnectionTimeStamp()
     {
@@ -235,10 +243,10 @@ public:
     }
 
     // Deletes global session.
-    void DeleteGlobalSession()
+    void DeleteGlobalSessionOnDisconnect()
     {
         // Checking unique socket id and session.
-        if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
+        //if (CompareUniqueSocketId() && CompareGlobalSessionSalt())
             g_gateway.DeleteGlobalSession(sock_);
     }
 
@@ -529,46 +537,6 @@ public:
     {
         return INVALID_SESSION_INDEX != session_.linear_index_;
     }
-
-#ifndef GW_NEW_SESSIONS_APPROACH
-
-    // Getting session index.
-    session_index_type get_session_index()
-    {
-        return session_.gw_session_index_;
-    }
-
-    // Getting Apps unique session number.
-    apps_unique_session_num_type get_apps_unique_session_num()
-    {
-        return session_.apps_unique_session_num_;
-    }
-
-    // Getting Apps session salt.
-    session_salt_type get_apps_session_salt()
-    {
-        return session_.random_salt_;
-    }
-
-    // Setting Apps unique session number.
-    void set_apps_unique_session_num(apps_unique_session_num_type apps_unique_session_num)
-    {
-        session_.apps_unique_session_num_ = apps_unique_session_num;
-    }
-
-    // Setting Apps sessions salt.
-    void set_apps_session_salt(session_salt_type apps_session_salt)
-    {
-        session_.random_salt_ = apps_session_salt;
-    }
-
-    // Getting session salt.
-    session_salt_type get_session_salt()
-    {
-        return session_.gw_session_salt_;
-    }
-
-#endif
 
     // Getting unique id.
     session_salt_type get_unique_socket_id()
@@ -975,20 +943,6 @@ public:
     {
         return &session_;
     }
-
-#ifndef GW_NEW_SESSIONS_APPROACH
-
-    // Kills the global and  session.
-    void KillGlobalAndSdSession(bool* was_killed)
-    {
-        // Killing global session.
-        g_gateway.KillSession(session_.gw_session_index_, was_killed);
-
-        // Resetting session data.
-        ResetSdSession();
-    }
-
-#endif
 
     // Resets socket data session.
     void ResetSdSession()

@@ -106,7 +106,6 @@ namespace Starcounter.Server {
             this.Engine.StorageService.CreateStorage(
                 databaseName, 
                 imageDirectory, 
-                transactionLogDirectory, 
                 this.SetupProperties.StorageConfiguration
                 );
 
