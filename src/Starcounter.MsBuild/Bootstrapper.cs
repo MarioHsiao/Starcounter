@@ -6,10 +6,8 @@ namespace Starcounter.Internal.MsBuild {
         internal static bool initialized = false;
 
         internal static void Bootstrap () {
-            if (!initialized) {
-                initialized = true;
-                Starcounter_XSON_JsonByExample.Initialize();
-            }
+            // Intentionally left blank
+            // Add any needed initialization here.
         }
 
     }
