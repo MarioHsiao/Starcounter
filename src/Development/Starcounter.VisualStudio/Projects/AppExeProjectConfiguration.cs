@@ -258,6 +258,7 @@ namespace Starcounter.VisualStudio.Projects {
             var exe = new Executable();
             exe.IsTool = false;
             exe.Path = debugConfig.AssemblyPath;
+            exe.WorkingDirectory = debugConfig.WorkingDirectory;
             exe.StartedBy = "Per Samuelsson (per@starcounter.com)";
             foreach (var arg in args.CommandParameters.ToArray()) {
                 exe.Arguments.Add().dummy = arg;

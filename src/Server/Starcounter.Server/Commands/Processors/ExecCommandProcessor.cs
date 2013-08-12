@@ -109,6 +109,7 @@ namespace Starcounter.Server.Commands {
                         }
                     }
                     exe.RunEntrypointAsynchronous = command.RunEntrypointAsynchronous;
+                    exe.WorkingDirectory = command.WorkingDirectory;
 
                     if (exe.RunEntrypointAsynchronous) {
                         node.POST(serviceUris.Executables, exe.ToJson(), null, null, null, (Response resp, Object userObject) => { return null; });
