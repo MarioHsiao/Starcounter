@@ -151,7 +151,8 @@ namespace Starcounter.Internal
           if (AtEnd - AtStart >= length)
               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Too small length of the tuple");
           TupleMaxLength = length;
-          AvaiableSize = (uint)(AtEnd - AtStart);
+          AvaiableSize = length;
+          AvaiableSize -= (uint)(AtEnd - AtStart);
       }
 
       /// <summary>
@@ -240,7 +241,7 @@ namespace Starcounter.Internal
               if (OffsetElementSize < neededOffsetSize)
                   expectedLen += MoveValuesRightSize(neededOffsetSize);
               if (expectedLen > AvaiableSize)
-                  throw ErrorCode.ToException(Error.SCERRUNEXPCHANNELACCEPTERROR);
+                  throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
           }
           Write(str);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
