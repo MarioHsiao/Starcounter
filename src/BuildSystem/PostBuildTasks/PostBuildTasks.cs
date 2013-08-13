@@ -39,7 +39,8 @@ namespace PostBuildTasks
         static readonly String[] OutputFilePatternsToDelete =
         {
             "*.json",
-            "*.tests.dll"
+            "*.tests.dll",
+            "*.tests.exe"
         };
 
         /// <summary>

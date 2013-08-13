@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter;
+using Starcounter.Advanced;
 using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,7 @@ internal sealed class NullObject : IObjectView
     }
 
     public ulong Identity { get { throw new NotImplementedException(); } }
+    public IBindableRetriever Retriever { get { throw new NotImplementedException(); } }
 
     override public String ToString()
     {
