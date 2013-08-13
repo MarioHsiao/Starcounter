@@ -227,6 +227,37 @@ namespace Starcounter.Internal
          //     StreamWriteLargestOffsetElementSize = needed;
       }
 
+      /// <summary>
+      /// Writes an unsigned integer value to the tuple
+      /// </summary>
+      /// <param name="n">The value to write</param>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void Write(uint n)
+      {
+#if BASE32
+         uint len = Base32Int.Write((IntPtr) AtEnd, n);
+#endif
+#if BASE64
+         uint len = Base64Int.Write((IntPtr)AtEnd, n);
+#endif
+#if BASE256
+         uint len = Base256Int.Write((IntPtr)AtEnd, n);
+#endif
+         HaveWritten(len);
+      }
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public unsafe void Write(byte[] value) {
+#if BASE64
+          fixed (byte* valuePtr = value) {
+              uint len = Base64Binary.Write((IntPtr)AtEnd, valuePtr, (uint)value.Length);
+              HaveWritten(len);
+          }
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
+#endif
+      }
+
       public uint MeasureNeededSize(String str) {
           uint expectedLen = 0;
           fixed (char* pStr = str) {
@@ -252,9 +283,9 @@ namespace Starcounter.Internal
       }
 
       /// <summary>
-       /// Checks if string value fits the tuple and writes it
-       /// </summary>
-       /// <param name="value">String to write</param>
+      /// Checks if string value fits the tuple and writes it
+      /// </summary>
+      /// <param name="value">String to write</param>
       private void WriteSafeAny(dynamic value) {
           if (TupleMaxLength == 0)
               throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
@@ -281,52 +312,6 @@ namespace Starcounter.Internal
 
       public void WriteSafe(byte[] b) {
           WriteSafeAny(b);
-      }
-
-      /// <summary>
-      /// Writes an unsigned integer value to the tuple
-      /// </summary>
-      /// <param name="n">The value to write</param>
-      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(uint n)
-      {
-#if BASE32
-         uint len = Base32Int.Write((IntPtr) AtEnd, n);
-#endif
-#if BASE64
-         uint len = Base64Int.Write((IntPtr)AtEnd, n);
-#endif
-#if BASE256
-         uint len = Base256Int.Write((IntPtr)AtEnd, n);
-#endif
-         HaveWritten(len);
-      }
-
-//      public unsafe void WriteSafe(uint n) {
-//#if BASE64
-//          if (TupleMaxLength == 0)
-//              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
-//          uint expectedLen = Base64Int.MeasureNeededSize(n);
-//          if (expectedLen > AvaiableSize)
-//              throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
-//          Write(n);
-//          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
-//          AvaiableSize -= expectedLen;
-//#else
-//          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
-//#endif
-//      }
-
-      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
-      public unsafe void Write(byte[] value) {
-#if BASE64
-          fixed (byte* valuePtr = value) {
-              uint len = Base64Binary.Write((IntPtr)AtEnd, valuePtr, (uint)value.Length);
-              HaveWritten(len);
-          }
-#else
-          throw ErrorCode.ToException(Error.SCERRNOTSUPPORTED);
-#endif
       }
 
       // [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
