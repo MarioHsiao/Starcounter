@@ -75,6 +75,8 @@ namespace Starcounter.Internal
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       private unsafe void GetAtPosition(int index, out byte* valuePos, out int valueLength) {
 #if BASE64
+          if (index >= ValueCount)
+              throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot read value since the index is out of range");
           int firstValue = OffsetElementSizeSize + (int)(ValueCount * OffsetElementSize);
           // Get value position
           int valueOffset;

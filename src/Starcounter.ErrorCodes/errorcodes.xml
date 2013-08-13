@@ -3335,6 +3335,9 @@
     <code hex="0047" severity="Error" name="ScErrTupleValueTooBig">
       <message>Input value cannot fit the given tuple lenght.</message>
     </code>
+    <code hex="0048" severity="Error" name="ScErrTupleOutOfRange">
+      <message>Value is out of range of the tuple.</message>
+    </code>
   </facility>
 
   <!-- Error codes related to query processing. -->
