@@ -73,6 +73,45 @@ namespace FasterThanJson.Tests {
 
         [Test]
         public unsafe void TestSafeIntWriter() {
+            byte[] buffer = new byte[10];
+            fixed (byte* start = buffer) {
+                TupleWriter writer = new TupleWriter(start, 4, 1);
+                writer.SetTupleLength((uint)buffer.Length);
+                writer.WriteSafe((uint)45);
+                writer.WriteSafe(256);
+                Boolean wasException = false;
+                try {
+                    writer.WriteSafe(64 * 64 + 1);
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEVALUETOOBIG, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                writer.WriteSafe(0);
+                writer.WriteSafe(23);
+                try {
+                    writer.WriteSafe(1);
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+
+                TupleReader reader = new TupleReader(start, 4);
+                Assert.AreEqual(45, reader.ReadUInt(0));
+                Assert.AreEqual(256, reader.ReadUInt(1));
+                Assert.AreEqual(0, reader.ReadUInt(2));
+                Assert.AreEqual(23, reader.ReadUInt(3));
+                try {
+                    Assert.AreEqual(1, reader.ReadUInt(4));
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+            }
         }
     }
 }
