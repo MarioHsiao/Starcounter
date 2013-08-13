@@ -2,10 +2,31 @@
 using Starcounter.Advanced;
 
 namespace Starcounter.XSON.Tests {
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class SimpleRetriever : IBindableRetriever {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public IBindable Retrieve(UInt64 id) {
+            return null;
+        }
+    }
+
     /// <summary>
     /// 
     /// </summary>
     public abstract class SimpleBase : IBindable {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public SimpleRetriever SimpleRetriever = new SimpleRetriever();
+        
         /// <summary>
         /// 
         /// </summary>
@@ -22,6 +43,15 @@ namespace Starcounter.XSON.Tests {
         /// 
         /// </summary>
         public ulong Identity { get { return 0; } }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IBindableRetriever Retriever {
+            get {
+                return SimpleRetriever;
+            }
+        }
     }
 
     /// <summary>
@@ -116,6 +146,15 @@ namespace Starcounter.XSON.Tests {
         /// 
         /// </summary>
         public string Number { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IBindableRetriever Retriever {
+            get {
+                return null;
+            }
+        }
     }
 
     /// <summary>
@@ -150,5 +189,16 @@ namespace Starcounter.XSON.Tests {
         /// 
         /// </summary>
         public DateTime Updated { get; set; }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IBindableRetriever Retriever {
+            get {
+                return null;
+            }
+        }
+
     }
 }

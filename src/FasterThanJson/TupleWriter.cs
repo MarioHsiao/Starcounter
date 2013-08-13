@@ -70,7 +70,7 @@ namespace Starcounter.Internal
       public UInt32 ValueOffset;
 
       /// <summary>
-      /// Counter remembering the number of values written
+      /// Counter remembering the number of values to be written
       /// </summary>
       public UInt32 ValueCount;
 
@@ -151,7 +151,8 @@ namespace Starcounter.Internal
           if (AtEnd - AtStart >= length)
               throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Too small length of the tuple");
           TupleMaxLength = length;
-          AvaiableSize = (uint)(AtEnd - AtStart);
+          AvaiableSize = length;
+          AvaiableSize -= (uint)(AtEnd - AtStart);
       }
 
       /// <summary>
@@ -226,25 +227,53 @@ namespace Starcounter.Internal
          //     StreamWriteLargestOffsetElementSize = needed;
       }
 
-       /// <summary>
-       /// Checks if string value fits the tuple and writes it
-       /// </summary>
-       /// <param name="str"></param>
-      public void WriteSafe(string str) {
-          if (TupleMaxLength == 0)
-              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+      public uint MeasureNeededSize(String str) {
           uint expectedLen = 0;
           fixed (char* pStr = str) {
               expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
               uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
               if (OffsetElementSize < neededOffsetSize)
                   expectedLen += MoveValuesRightSize(neededOffsetSize);
-              if (expectedLen > AvaiableSize)
-                  throw ErrorCode.ToException(Error.SCERRUNEXPCHANNELACCEPTERROR);
           }
-          Write(str);
+          return expectedLen;
+      }
+
+      public uint MeasureNeededSize(uint n) {
+#if BASE64
+          uint expectedLen = 0;
+          expectedLen = Base64Int.MeasureNeededSize(n);
+          uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
+          if (OffsetElementSize < neededOffsetSize)
+              expectedLen += MoveValuesRightSize(neededOffsetSize);
+          return expectedLen;
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
+      /// <summary>
+       /// Checks if string value fits the tuple and writes it
+       /// </summary>
+       /// <param name="value">String to write</param>
+      private void WriteSafeAny(dynamic value) {
+          if (TupleMaxLength == 0)
+              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+          if (ValuesWrittenSoFar() == ValueCount)
+              throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot write since the index will be out of range.");
+          uint expectedLen = MeasureNeededSize(value);
+          if (expectedLen > AvaiableSize)
+              throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
+          Write(value);
           Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
           AvaiableSize -= expectedLen;
+      }
+
+      public void WriteSafe(uint n) {
+          WriteSafeAny(n);
+      }
+
+      public void WriteSafe(String str) {
+          WriteSafeAny(str);
       }
 
       /// <summary>
@@ -265,6 +294,21 @@ namespace Starcounter.Internal
 #endif
          HaveWritten(len);
       }
+
+//      public unsafe void WriteSafe(uint n) {
+//#if BASE64
+//          if (TupleMaxLength == 0)
+//              throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
+//          uint expectedLen = Base64Int.MeasureNeededSize(n);
+//          if (expectedLen > AvaiableSize)
+//              throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
+//          Write(n);
+//          Debug.Assert(AtEnd - AtStart <= TupleMaxLength);
+//          AvaiableSize -= expectedLen;
+//#else
+//          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+//#endif
+//      }
 
       [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public unsafe void Write(byte[] value) {
@@ -427,15 +471,21 @@ Retry:
        /// </summary>
        /// <param name="newOffsetSize">New offset size to fit offset value, which requires the move</param>
        /// <returns>The caclulated number of bytes</returns>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public uint MoveValuesRightSize(uint newOffsetSize) {
           Debug.Assert(newOffsetSize - OffsetElementSize > 0);
           return ValueCount * (newOffsetSize - OffsetElementSize);
       }
 
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
+      public uint ValuesWrittenSoFar() {
+          return (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize)) / OffsetElementSize);
+      }
       /// <summary>
       /// This is a tricky task. We have guessed a to small size for the element offsets. We have used a to narrow size of
       /// the element size. It means that the values and the offsets needs to move.
       /// </summary>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)] // Available starting with .NET framework version 4.5
       public void Grow(uint newValueOffset) {
 #if BASE32
          uint oesAfter = Base32Int.MeasureNeededSize(newValueOffset);
@@ -447,7 +497,7 @@ Retry:
          uint oesAfter = Base256Int.MeasureNeededSize(newValueOffset);
 #endif
           uint oesBefore = OffsetElementSize;
-          uint valuesWrittenSoFar = (uint)((AtOffsetEnd - (AtStart + OffsetElementSizeSize)) / oesBefore - 1); // Expensive division here!
+          uint valuesWrittenSoFar = ValuesWrittenSoFar() - 1; // Expensive division here!
           uint needed = valuesWrittenSoFar * oesAfter;
           uint used = valuesWrittenSoFar * oesBefore;
           uint moveValuesRight = MoveValuesRightSize(oesAfter);

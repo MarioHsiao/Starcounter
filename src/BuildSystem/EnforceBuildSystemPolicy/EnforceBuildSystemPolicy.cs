@@ -332,11 +332,21 @@ namespace CheckBuildSystem
                 "Starcounter.Server.Rest.csproj", "Starcounter.InstallerWrapper.csproj",
                 "ErrorHelpPages.csproj", "SPA.csproj", "NodeTest.csproj", "PostBuildTasks.csproj",
                 "PreBuildTasks.csproj", "RunUnitTests.csproj", "Starcounter.XSON.JsonByExample.csproj",
-                "Starcounter.XSON.PartialClassGenerator.csproj", "Starcounter.XSON.DeserializerCompiler.csproj"
+                "Starcounter.XSON.PartialClassGenerator.csproj", "Starcounter.XSON.DeserializerCompiler.csproj",
+                "Starcounter.XSON.Tests.csproj"
                 },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."
             },
+        };
+
+        /// <summary>
+        /// Strings that should be disallowed in build log.
+        /// </summary>
+        readonly static String[] BuildLogDisallowedStrings =
+        {
+            ": warning ",
+            ": error "
         };
 
         /// <summary>
@@ -346,12 +356,23 @@ namespace CheckBuildSystem
         {
             String s = File.ReadAllText(pathToBuildLogFile);
 
-            if (s.Contains(": warning ") ||
-                s.Contains(": error ") )
+            s = s.ToLowerInvariant();
+
+            s = s.Replace("warning msb3270", "");
+
+            // Going throw all disallowed strings.
+            foreach (String ss in BuildLogDisallowedStrings)
             {
-                return 1;
+                Int32 i = s.IndexOf(ss);
+
+                if (i < 0)
+                {
+                    Console.WriteLine("Build log contains a disallowed string: \"" + ss + "\" in: " + s.Substring(i, 100));
+                    return 1;
+                }
             }
 
+            Console.WriteLine("Build log conforms to build policy!");
             return 0;
         }
 
