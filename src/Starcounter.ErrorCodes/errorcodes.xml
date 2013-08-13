@@ -2748,6 +2748,7 @@
         ancestors where analyzed.
       </remarks>
     </code>
+<!--
     <code hex="00B6" severity="Error" name="ScErrToManyOpenIterators">
       <message>Too many open iterators registered with the current thread.</message>
       <remarks>
@@ -2757,6 +2758,7 @@
         given time.
       </remarks>
     </code>
+-->
     <code hex="00B7" severity="Error" name="ScErrCantGenerateDynLibName">
       <message>Unable to generate a name for dynamically generated library.</message>
     </code>
