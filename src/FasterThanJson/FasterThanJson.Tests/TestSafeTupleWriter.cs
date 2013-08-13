@@ -72,7 +72,7 @@ namespace FasterThanJson.Tests {
         }
 
         [Test]
-        public unsafe void TestSafeIntWriter() {
+        public unsafe void TestSafeUIntWriter() {
             byte[] buffer = new byte[10];
             fixed (byte* start = buffer) {
                 TupleWriter writer = new TupleWriter(start, 4, 1);
@@ -98,6 +98,7 @@ namespace FasterThanJson.Tests {
                 }
                 Assert.True(wasException);
                 wasException = false;
+                writer.SealTuple();
 
                 TupleReader reader = new TupleReader(start, 4);
                 Assert.AreEqual(45, reader.ReadUInt(0));
@@ -111,6 +112,103 @@ namespace FasterThanJson.Tests {
                     wasException = true;
                 }
                 Assert.True(wasException);
+            }
+        }
+
+        [Test]
+        public unsafe void TestSafeBinaryWriter() {
+            byte[] buffer = new byte[97]; // (97 - 17) /4 * 3 = 60 original bytes
+            fixed (byte* start = buffer) {
+                TupleWriter writer = new TupleWriter(start, 8, 1);
+                writer.SetTupleLength((uint)buffer.Length);
+                byte[] value = new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 };
+                writer.WriteSafe(value); // 1 of 8 value, 14+9 bytes
+                value = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                writer.WriteSafe(value); // 2 of 8 values, 28+9 of 97 bytes
+                value = new byte[0];
+                writer.WriteSafe(value); // 3 of 8 values, 28+9 of 97 original bytes
+                value = new byte[] { 0 };
+                writer.WriteSafe(value); // 4 of 8 values, 30+9 of 97 original bytes
+                value = new byte[] { 255 };
+                writer.WriteSafe(value); // 5 of 8 values, 32+9 of 97 original bytes
+                value = new byte[] { 123, 4, 53, 239, 0, 43, 255, 1, 13, 45,
+                    123, 4, 53, 239, 0, 43, 255, 1, 13, 45};
+                writer.WriteSafe(value); // 6 of 8 values, 59+9 of 97 original bytes
+                bool wasException = false;
+                try {
+                    value = new byte[] { 123, 4, 53, 239, 0, 43, 255, 1, 13, 45,
+                    123, 4, 53, 239, 0, 17, 34, 28 };
+                    writer.WriteSafe(value);
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEVALUETOOBIG, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                value = new byte[] { 123, 4, 53, 239, 0, 43, 255, 1, 13, 45};
+                writer.WriteSafe(value); // 7 of 8 values, 73 of 80 original bytes
+                try {
+                    value = new byte[] { 123, 4, 53, 239, 0, 43, 255, 1, 13, 45,
+                    123, 4, 53, 239, 0, 43, 255, 1, 13, 45};
+                    writer.WriteSafe(value);
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEVALUETOOBIG, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                value = new byte[] { 123, 4, 53, 239, 0 };
+                writer.WriteSafe(value); // 8 of 8 values, 80 of 80 original bytes
+                try {
+                    writer.WriteSafe(value);
+                } catch (Exception e) {
+                    Assert.AreEqual(Error.SCERRTUPLEOUTOFRANGE, e.Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    wasException = true;
+                }
+                Assert.True(wasException);
+                wasException = false;
+                writer.SealTuple();
+
+                TupleReader reader = new TupleReader(start, 8);
+                Assert.AreEqual(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 }, 
+                    reader.ReadByteArray(0));
+                Assert.AreEqual(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                    reader.ReadByteArray(1));
+                Assert.AreEqual(new byte[0],
+                    reader.ReadByteArray(2));
+                Assert.AreEqual(new byte[] { 0 },
+                    reader.ReadByteArray(3));
+                Assert.AreEqual(new byte[] { 255 },
+                    reader.ReadByteArray(4));
+                Assert.AreEqual(new byte[] { 123, 4, 53, 239, 0, 43, 255, 1, 13, 45,
+                    123, 4, 53, 239, 0, 43, 255, 1, 13, 45},
+                    reader.ReadByteArray(5));
+                Assert.AreEqual(new byte[] { 123, 4, 53, 239, 0, 43, 255, 1, 13, 45 },
+                    reader.ReadByteArray(6));
+                Assert.AreEqual(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 },
+                    reader.ReadByteArray(0));
+                Assert.AreEqual(new byte[] { 123, 4, 53, 239, 0 },
+                    reader.ReadByteArray(7));
+                Assert.AreEqual(new byte[] { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255 },
+                    reader.ReadByteArray(0));
+            }
+        }
+
+        [Test]
+        public unsafe void TestSafeBigUIntWriter() {
+            fixed (byte* start = new byte[20]) {
+                TupleWriter writer = new TupleWriter(start, 3, 2);
+                writer.SetTupleLength(20);
+                // Too big value
+                writer.WriteSafe(64 * 64 * 64 * 64 * 64 -1 + 64 * 64 * 64 * 64 * 64);
+                writer.WriteSafe(64 * 64 * 64 * 64 * 64);
+                writer.WriteSafe(63);
+                writer.SealTuple();
+
+                TupleReader reader = new TupleReader(start, 3);
+                Assert.AreEqual(64 * 64 * 64 * 64 * 64, reader.ReadUInt(1));
+                Assert.AreEqual(63, reader.ReadUInt(2));
+                Assert.AreEqual(64 * 64 * 64 * 64 * 64 - 1 + 64 * 64 * 64 * 64 * 64, reader.ReadUInt(0));
             }
         }
     }

@@ -231,21 +231,21 @@ namespace Starcounter.Internal
           uint expectedLen = 0;
           fixed (char* pStr = str) {
               expectedLen = (uint)SessionBlobProxy.Utf8Encode.GetByteCount(pStr, str.Length, true);
-              uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
-              if (OffsetElementSize < neededOffsetSize)
-                  expectedLen += MoveValuesRightSize(neededOffsetSize);
           }
           return expectedLen;
       }
 
       public uint MeasureNeededSize(uint n) {
 #if BASE64
-          uint expectedLen = 0;
-          expectedLen = Base64Int.MeasureNeededSize(n);
-          uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
-          if (OffsetElementSize < neededOffsetSize)
-              expectedLen += MoveValuesRightSize(neededOffsetSize);
-          return expectedLen;
+          return Base64Int.MeasureNeededSize(n);
+#else
+          throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
+#endif
+      }
+
+      public uint MeasureNeededSize(byte[] b) {
+#if BASE64
+          return Base64Binary.MeasureNeededSizeToEncode((uint)b.Length);
 #else
           throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Support for base 32 or 256 encoding is not implement");
 #endif
@@ -261,6 +261,9 @@ namespace Starcounter.Internal
           if (ValuesWrittenSoFar() == ValueCount)
               throw ErrorCode.ToException(Error.SCERRTUPLEOUTOFRANGE, "Cannot write since the index will be out of range.");
           uint expectedLen = MeasureNeededSize(value);
+          uint neededOffsetSize = Base64Int.MeasureNeededSize((ulong)(ValueOffset + expectedLen));
+          if (OffsetElementSize < neededOffsetSize)
+              expectedLen += MoveValuesRightSize(neededOffsetSize);
           if (expectedLen > AvaiableSize)
               throw ErrorCode.ToException(Error.SCERRTUPLEVALUETOOBIG);
           Write(value);
@@ -274,6 +277,10 @@ namespace Starcounter.Internal
 
       public void WriteSafe(String str) {
           WriteSafeAny(str);
+      }
+
+      public void WriteSafe(byte[] b) {
+          WriteSafeAny(b);
       }
 
       /// <summary>
