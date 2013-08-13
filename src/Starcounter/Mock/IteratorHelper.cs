@@ -190,6 +190,12 @@ namespace Starcounter
         }
 
         private int HandleCreateException(DbException ex, int retry) {
+#if false
+            // SCERRTOMANYOPENITERATORS is no longer raised since limit on
+            // number of kernel iterators has been removed.
+            //
+            // Error code has been removed from output.
+
             if (ex.ErrorCode == Error.SCERRTOMANYOPENITERATORS) {
                 var thread = ThreadData.Current;
                 while (retry < 2) {
@@ -197,6 +203,7 @@ namespace Starcounter
                     if (thread.CollectAndTryToCleanupDeadObjects(retry == 2)) return retry;
                 }
             }
+#endif
             return 0;
         }
 
