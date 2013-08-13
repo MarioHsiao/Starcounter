@@ -255,7 +255,7 @@ namespace Starcounter.Internal
        /// Checks if string value fits the tuple and writes it
        /// </summary>
        /// <param name="value">String to write</param>
-      public void WriteSafeAny(dynamic value) {
+      private void WriteSafeAny(dynamic value) {
           if (TupleMaxLength == 0)
               throw ErrorCode.ToException(Error.SCERRNOTUPLEWRITESAVE);
           if (ValuesWrittenSoFar() == ValueCount)
