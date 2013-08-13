@@ -14,5 +14,6 @@ namespace Starcounter.Advanced {
         /// Returns a unique ID corresponding to the bound data object.
         /// </summary>
         UInt64 Identity { get; }
+      //  IBindableRetriever Retriever { get; }
     }
 }
