@@ -200,6 +200,7 @@ namespace Starcounter.CLI {
                     exe.Arguments.Add().dummy = arg;
                 }
             }
+            exe.WorkingDirectory = Environment.CurrentDirectory;
 
             response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null);
             response.FailIfNotSuccess();
