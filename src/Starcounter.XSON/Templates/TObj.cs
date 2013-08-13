@@ -36,12 +36,13 @@ namespace Starcounter.Templates {
         public static Dictionary<string, IXsonTemplateMarkupReader> MarkupReaders = new Dictionary<string, IXsonTemplateMarkupReader>();
 
         /// <summary>
-        /// 
+        /// CreateFromMarkup
         /// </summary>
-        /// <typeparam name="TTObj"></typeparam>
+        /// <typeparam name="TypeObj"></typeparam>
+        /// <typeparam name="TypeTObj"></typeparam>
         /// <param name="format"></param>
         /// <param name="markup"></param>
-        /// <param name="origin">Optional origin (i.e. file name) where the markup was obtained. Usefull for debugging in case of syntax errors in the markup.</param>
+        /// <param name="origin"></param>
         /// <returns></returns>
         public static TypeTObj CreateFromMarkup<TypeObj,TypeTObj>(string format, string markup, string origin )
                     where TypeObj : Obj, new()

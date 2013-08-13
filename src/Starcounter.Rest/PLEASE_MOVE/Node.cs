@@ -367,7 +367,7 @@ RECONNECT:
                         {
                             // Logging the exception to server log.
                             if (NodeInst.ShouldLogErrors)
-                                Node.ErrorLogger.LogException(exc);
+                                Node.LogException(exc);
 
                             // Freeing connection resources.
                             NodeInst.FreeConnection(this, true);
@@ -402,7 +402,7 @@ RECONNECT:
         {
             // Logging the exception to server log.
             if (NodeInst.ShouldLogErrors)
-                Node.ErrorLogger.LogException(exc);
+                Node.LogException(exc);
 
             Resp = new Response()
             {
@@ -448,7 +448,24 @@ RECONNECT:
         /// <summary>
         /// The Node log source.
         /// </summary>
-        internal static LogSource ErrorLogger = new LogSource("Node");
+        internal static Object ErrorLogger = null;
+
+        /// <summary>
+        /// Initializes server log.
+        /// </summary>
+        static void InitServerLog()
+        {
+            ErrorLogger = new LogSource("Node");
+        }
+
+        /// <summary>
+        /// Logs given exception to server log.
+        /// </summary>
+        /// <param name="exc"></param>
+        internal static void LogException(Exception exc)
+        {
+            ((LogSource)ErrorLogger).LogException(exc);
+        }
 
         /// <summary>
         /// Represents this Starcounter node.
@@ -505,6 +522,10 @@ RECONNECT:
         {
             HelperFunctions.LoadNonGACDependencies();
             RequestHandler.InitREST();
+
+            // Initializing logger if we are hosted.
+            if (StarcounterEnvironment.IsCodeHosted)
+                InitServerLog();
         }
 
         /// <summary>

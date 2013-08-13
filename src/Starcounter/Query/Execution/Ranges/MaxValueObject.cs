@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter;
+using Starcounter.Advanced;
 using Starcounter.Binding;
 using System;
 using System.Collections.Generic;
@@ -120,6 +121,7 @@ internal sealed class MaxValueObject : IObjectView
 
     // TODO/Entity:
     public ulong Identity { get { throw new NotImplementedException(); } }
+    public IBindableRetriever Retriever { get { throw new NotImplementedException(); } }
 
 #if DEBUG
     public bool AssertEquals(IObjectView other) {
