@@ -82,14 +82,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
-        /// underlying bound object. This is common in database applications where Json messages
-        /// or view models (Puppets) are often associated with database objects. I.e. a person form might
-        /// reflect a person database object (Entity).
-        /// </summary>
-        private IBindable _data;
-
-        /// <summary>
         /// Transaction applied to this node.
         /// </summary>
         private ITransaction _transaction;
@@ -159,21 +151,6 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// Gets or sets the bound (underlying) data object (often a database Entity object). This enables
-        /// the Obj to reflect the values of the bound object. The values are matched by property names by default.
-        /// When you declare an Obj using generics, be sure to specify the type of the bound object in the class declaration.
-        /// </summary>
-        /// <value>The bound data object (often a database Entity)</value>
-        public IBindable Data {
-            get {
-                return (IBindable)_data;
-            }
-            set {
-                if (Template == null) throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
-                InternalSetData(value);
-            }
-        }
 
         /// <summary>
         /// Start usage of given session.
@@ -186,25 +163,6 @@ namespace Starcounter {
                 StarcounterBase._DB.SetCurrentTransaction(_transaction);
         }
 
-        /// <summary>
-        /// Sets the underlying data object and refreshes all bound values.
-        /// This function does not check for a valid transaction as the 
-        /// public Data-property does.
-        /// </summary>
-        /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(IBindable data) {
-            if (Transaction == null) {
-                Transaction = StarcounterBase._DB.GetCurrentTransaction();
-            }
-
-            this._data = data;
-            if (Template.Bound) {
-                ((Obj)this.Parent).SetBound(Template, data);
-            }
-
-            RefreshAllBoundValues();
-            OnData();
-        }
 
         /// <summary>
         /// Gets nearest transaction.
@@ -237,27 +195,6 @@ namespace Starcounter {
         /// </summary>
         internal ITransaction TransactionOnThisNode {
             get { return _transaction; }
-        }
-
-        /// <summary>
-        /// Refreshes all bound values of this Obj. Retrieves data from the Data
-        /// property.
-        /// </summary>
-        private void RefreshAllBoundValues() {
-/*            TValue child;
-            for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
-                child = Template.Properties[i] as TValue;
-                if (child != null && child.Bound) {
-                    Refresh(child);
-                }
-            }
- */
-        }
-
-        /// <summary>
-        /// Called after the Data property is set.
-        /// </summary>
-        protected virtual void OnData() {
         }
 
         /// <summary>

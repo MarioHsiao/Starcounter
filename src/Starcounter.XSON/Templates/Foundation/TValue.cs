@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.Advanced.XSON;
 using Starcounter.Advanced;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
     /// <summary>

@@ -12,12 +12,14 @@ using Starcounter.Internal;
 using Starcounter.Advanced.XSON;
 using Modules;
 using Starcounter.Internal.XSON.DeserializerCompiler;
+using Starcounter.Internal.XSON;
+using System.Collections;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public class TObj : TContainer {
+    public partial class TObj : TContainer {
 
         /// <summary>
         /// Static constructor to automatically initialize XSON.
@@ -150,6 +152,8 @@ namespace Starcounter.Templates {
             }
         }
 
+
+
         /// <summary>
         /// Gets or sets the namespace.
         /// </summary>
@@ -206,12 +210,11 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Creates a new template with the specified name and type and
-        /// adds it to this apps propertylist.
+        /// Creates a new property (template) with the specified name and type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name">The name of the new template</param>
-        /// <returns>A new instance of the specified template</returns>
+        /// <param name="name">The name of the new property</param>
+        /// <returns>The new property template</returns>
         public T Add<T>(string name) where T : Template, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
@@ -225,13 +228,12 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Creates a new template with the specified name and type and
-        /// adds it to this apps propertylist.
+        /// Creates a new typed array property (template) with the specified name and type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="name">The name of the new template</param>
-        /// <param name="type"></param>
-        /// <returns>A new instance of the specified template</returns>
+        /// <param name="name">The name of the new property</param>
+        /// <param name="type">The type of each element in the array</param>
+        /// <returns>The new property template</returns>
         public T Add<T>(string name, TObj type) where T : TObjArr, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
@@ -242,6 +244,58 @@ namespace Starcounter.Templates {
             }
 
             return t;
+        }
+
+        /// <summary>
+        /// Creates a new property (template) with the specified name and type.
+        /// </summary>
+        /// <param name="name">The name of the new property</param>
+        /// <param name="type">The type of the new property</param>
+        /// <returns>The new property template</returns>
+        public Template Add(Type type, string name) {
+
+            var @switch = new Dictionary<Type, Func<Template>> {
+                    { typeof(byte), () => { return this.Add<TLong>(name); }},
+                    { typeof(UInt16), () => { return this.Add<TLong>(name); }},
+                    { typeof(Int16), () => { return this.Add<TLong>(name); }},
+                    { typeof(UInt32), () => { return this.Add<TLong>(name); }},
+                    { typeof(Int32), () => { return this.Add<TLong>(name); }},
+                    { typeof(UInt64), () => { return this.Add<TLong>(name); }},
+                    { typeof(Int64), () => { return this.Add<TLong>(name); }},
+                    { typeof(float), () => { return this.Add<TLong>(name); }},
+                    { typeof(double), () => { return this.Add<TDouble>(name); }},
+                    { typeof(decimal), () => { return this.Add<TDecimal>(name); }},
+                    { typeof(bool), () => { return this.Add<TBool>(name); }},
+                    { typeof(string), () => { return this.Add<TString>(name); }}
+            };
+            Func<Template> t;
+            if (@switch.TryGetValue(type,out t)) {
+                return t.Invoke();
+            }
+            if (typeof(IEnumerable<Obj>).IsAssignableFrom(type)) {
+                return this.Add<TArr<Obj,TObj>>(name);
+            }
+//            if (typeof(IEnumerator<Obj>).IsAssignableFrom(type)) {
+//                return this.Add<TArr<Obj, TDynamicObj>>(name);
+//            }
+            if (typeof(Obj).IsAssignableFrom(type)) {
+                return this.Add<TObj>(name);
+            }
+            throw new Exception(String.Format("Cannot add the {0} property to the template as the type {1} is not supported for Json properties", name, type.Name));
+        }
+
+        /// <summary>
+        /// Creates a new typed array property (template) with the specified name and type.
+        /// </summary>
+        /// <param name="name">The name of the new property</param>
+        /// <param name="type">The type of the new property</param>
+        /// <param name="elementType">The type of each element in the array</param>
+        /// <returns>The new property template</returns>
+        public Template Add(Type type, string name, Type elementType ) {
+
+            throw new NotImplementedException();
+
+            throw new Exception( String.Format("Cannot add the {0} property to the template as the type {1} is not supported for Json properties",name,type.Name));
         }
 
         /// <summary>
@@ -299,27 +353,6 @@ namespace Starcounter.Templates {
             get { return (IEnumerable<Template>)Properties; }
         }
 
-        /// <summary>
-        /// If set to true all children will be automatically bound to the dataobject, 
-        /// otherwise the children needs to set binding themselves.
-        /// </summary>
-        /// <remarks>
-        /// If set to true and a child which should not be bound is added the name of the
-        /// child should start with a '_' (underscore).
-        /// </remarks>
-        public bool BindChildren {
-            get { return bindChildren; }
-            set {
-                bindChildren = value;
-                if (Properties.Count > 0) {
-                    if (value == true) {
-                        foreach (var child in Properties) {
-                            CheckBindingForChild(child);
-                        }
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Callback when a child is added to this object properties.
@@ -328,28 +361,6 @@ namespace Starcounter.Templates {
         internal void OnPropertyAdded(Template property) {
             if (BindChildren) {
                 CheckBindingForChild(property);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="child"></param>
-        private void CheckBindingForChild(Template child) {
-            TValue value;
-            string propertyName;
-
-            value = child as TValue;
-            if (value != null) {
-                if (!value.Bound) {
-                    propertyName = value.PropertyName;
-                    if (!string.IsNullOrEmpty(propertyName)
-                        && !(propertyName[0] == '_')) {
-                        value.Bind = propertyName;
-                    }
-                } else if (value.Bind == null) {
-                    value.Bound = false;
-                }
             }
         }
 
@@ -363,8 +374,5 @@ namespace Starcounter.Templates {
             throw new NotImplementedException();
         }
 
-        internal DataValueBinding<IBindable> GetBinding(IBindable data) {
-            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
-        }
     }
 }

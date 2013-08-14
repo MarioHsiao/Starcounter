@@ -30,11 +30,34 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Use this property to access the values internally
+        /// </summary>
+        protected dynamic[] Values {
+            get {
+                if (_Values.Length < this.Template.Properties.Count) {
+                    // We allow adding new properties to dynamic templates
+                    // even after instsances have been created.
+                    // For this reason, we need to allow the expansion of the 
+                    // values.
+                    var old = _Values;
+                    var prop = Template.Properties;
+                    var vc = prop.Count;
+                    _Values = new object[vc];
+                    old.CopyTo(_Values, 0);
+                    for (int t = old.Length; t < _Values.Length;t++ ) {
+                        _Values[t] = ((Template)prop[t]).CreateInstance(this);
+                    }
+                }
+                return _Values;
+            }
+        }
+
+        /// <summary>
         /// Used by the naive reference implementation (see _InitializeValues).
         /// Stores the actual values of each app property. The value is stored according to the Index value
         /// of the Template of the property.
         /// </summary>
-        internal dynamic[] _Values;
+        private dynamic[] _Values;
 #endif
 
     }
