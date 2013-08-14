@@ -13,6 +13,7 @@ namespace QueryProcessingTest {
         public static void BenchQueryCache() {
             HelpMethods.LogEvent("Start benchmark of query cache");
             int nrIterations = 1000000;
+            int nrIterationsNoDispose = 10000;
             //int sleepTimeout = 100;
             if (TestLogger.IsRunningOnBuildServer()) {
                 nrIterations = nrIterations * 10;
@@ -31,8 +32,6 @@ namespace QueryProcessingTest {
                 timer.Stop();
                 HelpMethods.LogEvent("Warm up of " + schedulers + " schedulers took " + timer.ElapsedMilliseconds + " ms.");
                 BenchmarkAction(schedulers, nrIterations, () => QueryEnumerator(nrIterations), "Obtaining enumerator on ");
-                GC.Collect();
-                Thread.Sleep(10000);
                 BenchmarkAction(schedulers, nrIterations, () => DbSQL(nrIterations), "Calling Db.SQL on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetEnumerator(nrIterations), "Calling GetEnumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetExecutionEnumerator(nrIterations), "Calling GetExecutionEnumerator on ");
@@ -41,8 +40,13 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterations, () => GetType<Object>(nrIterations), "Calling typeof on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetCachedEnumerator(nrIterations), "Getting cached enumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => RestExecutionEnumerator(nrIterations, 10), "Rest of GetExecutionEnumerator on ");
-                BenchmarkAction(schedulers, 100, () => GetEnumerator(100), "Calling GetEnumerator on ");
-                BenchmarkAction(schedulers, 100, () => GetEnumeratorNoDispose(100), "Calling GetEnumerator on ");
+                BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumerator(nrIterationsNoDispose), "Calling GetEnumerator on ");
+                BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorNoDispose(nrIterationsNoDispose), "Calling GetEnumerator with no dispose on ");
+                BenchmarkAction(schedulers, nrIterationsNoDispose, () => QueryEnumerator(nrIterationsNoDispose), "Obtaining enumerator on ");
+                BenchmarkAction(schedulers, nrIterationsNoDispose, () => QueryEnumeratorNoDispose(nrIterationsNoDispose), "Obtaining enumerator with no dispose on ");
+                BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorAndMove(nrIterationsNoDispose), "Obtaining enumerator and move next on ");
+                BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorAndMoveNoDispose(nrIterationsNoDispose), 
+                    "Obtaining enumerator and move next with no dispose on ");
                 HelpMethods.LogEvent("Finished benchmark of query cache");
             }
         }
@@ -68,7 +72,7 @@ namespace QueryProcessingTest {
         public static void QueryEnumerator(int nrIterations) {
             for (int i = 0; i < nrIterations; i++) {
                 var results = Db.SQL(query, 10).GetEnumerator();
-                //results.Dispose();
+                results.Dispose();
             }
             lock (query) {
                 nrFinishedWorkers++;
@@ -184,6 +188,36 @@ namespace QueryProcessingTest {
 
             }
             execEnum.Dispose();
+            lock (query) {
+                nrFinishedWorkers++;
+            }
+        }
+    
+        public static void QueryEnumeratorNoDispose(int nrIterations) {
+            for (int i = 0; i < nrIterations; i++) {
+                var results = Db.SQL(query, 10).GetEnumerator();
+            }
+            lock (query) {
+                nrFinishedWorkers++;
+            }
+        }
+
+        public static void GetEnumeratorAndMove(int nrIterations) {
+            for (int i = 0; i < nrIterations; i++) {
+                var results = Db.SQL(query, 10).GetEnumerator();
+                Debug.Assert(results.MoveNext());
+                results.Dispose();
+            }
+            lock (query) {
+                nrFinishedWorkers++;
+            }
+        }
+
+        public static void GetEnumeratorAndMoveNoDispose(int nrIterations) {
+            for (int i = 0; i < nrIterations; i++) {
+                var results = Db.SQL(query, 10).GetEnumerator();
+                Debug.Assert(results.MoveNext());
+            }
             lock (query) {
                 nrFinishedWorkers++;
             }

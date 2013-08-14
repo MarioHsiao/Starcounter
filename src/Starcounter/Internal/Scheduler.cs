@@ -20,6 +20,8 @@ namespace Starcounter
     /// </summary>
     public sealed class Scheduler
     {
+        public const uint NROPENITERATORSPERSCHEDULER = 100;
+
         // Contains all virtual processor instances
         // (up to number of logical cores on a machine).
         /// <summary>
@@ -86,6 +88,20 @@ namespace Starcounter
         public Byte Id
         {
             get { return _id; }
+        }
+
+        uint _NrOpenIterators = 0;
+        /// <summary>
+        /// Keeps track of number of open kernel iterators
+        /// </summary>
+        internal uint NrOpenIterators {
+            get { return _NrOpenIterators; }
+            set {
+                if (value < NROPENITERATORSPERSCHEDULER)
+                    _NrOpenIterators = value;
+                else
+                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
+            }
         }
 
         /// <summary>

@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace Starcounter
 {
@@ -38,7 +39,10 @@ namespace Starcounter
         /// <value>The cursor verify.</value>
         public UInt64 CursorVerify { get { return _verify; } }
 
-        private Int16 _schedId = -1;
+        /// <summary>
+        /// Reference to the scheduler instance, where the enumerator is created
+        /// </summary>
+        internal readonly Scheduler SchedulerOwner;
 
         private FilterCallback _filterCallback = null;
 
@@ -47,22 +51,18 @@ namespace Starcounter
         /// </summary>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
-        public Enumerator(UInt64 handle, UInt64 verify) : this(handle, verify, null) { }
+        public Enumerator() : this(null) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="Enumerator{T}" /> class.
         /// </summary>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
         /// <param name="filterCallback">The filter callback.</param>
-        public Enumerator(UInt64 handle, UInt64 verify, FilterCallback filterCallback)
+        public Enumerator(FilterCallback filterCallback)
             : base()
         {
-            _handle = handle;
-            _verify = verify;
             _filterCallback = filterCallback;
-            Scheduler sched=Scheduler.GetInstance(true);
-            if (sched != null)
-                _schedId = sched.Id;
+            SchedulerOwner = Scheduler.GetInstance();
         }
 
         // Enumerator already exists, we need to update the contents.
@@ -81,7 +81,7 @@ namespace Starcounter
             {
                 _handle = handle;
                 _verify = verify;
-                _schedId = Scheduler.GetInstance().Id;
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
             }
         }
         /// <summary>
@@ -175,12 +175,21 @@ namespace Starcounter
         /// </summary>
         /// <returns>Error code returned by the kernel</returns>
         private UInt32 FreeIteratorFinalize() {
-            if (_schedId == -1)
-                throw ErrorCode.ToException(Error.SCERRUNEXPENUMERATORDISPOSE, "Scheduler is unknown for the enumerator.");
+            Debug.Assert(SchedulerOwner != null);
             // Should create new working thread on the scheduler where this 
             // enumerator was created (_schedId) and call specific version
             // of free iterator in the kernel.
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+            uint err = 999;
+            DbSession dbs = new DbSession();
+            bool finished = false;
+            // Assuming no concurrent threads since the same scheduler runs one thread at a time
+            dbs.RunAsync(() => {
+                err = sccoredb.SCIteratorFree(_handle, _verify);
+                finished = true;
+            },
+                SchedulerOwner.Id);
+            while (!finished) { }
+            return err;
         }
 
         /// <summary>
@@ -230,6 +239,7 @@ namespace Starcounter
 
         next:
             //Application.Profiler.Start("SCIteratorNext", 2);
+            Boolean newIterator = _handle == 0;
             unsafe
             {
                 ir = sccoredb.SCIteratorNext(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
@@ -238,9 +248,12 @@ namespace Starcounter
 
             if (ir != 0)
                 goto err;
+            Debug.Assert(_handle != 0);
 
-            if (_schedId == -1)
-                _schedId = Scheduler.GetInstance().Id;
+            if (newIterator) {
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+                SchedulerOwner.NrOpenIterators++;
+            }
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
@@ -298,7 +311,6 @@ namespace Starcounter
         {
             _handle = 0;
             _verify = 0;
-            _schedId = -1;
         }
 
         /// <summary>
@@ -354,7 +366,10 @@ namespace Starcounter
         /// <value>The cursor verify.</value>
         public UInt64 CursorVerify { get { return _verify; } }
 
-        private Int16 _schedId = -1;
+        /// <summary>
+        /// Reference to the scheduler instance, where the enumerator is created
+        /// </summary>
+        internal readonly Scheduler SchedulerOwner;
 
         private FilterCallback _filterCallback = null;
 
@@ -363,21 +378,17 @@ namespace Starcounter
         /// </summary>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
-        public FilterEnumerator(UInt64 handle, UInt64 verify) : this(handle, verify, null) { }
+        public FilterEnumerator() : this(null) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="Enumerator{T}" /> class.
         /// </summary>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
         /// <param name="filterCallback">The filter callback.</param>
-        public FilterEnumerator(UInt64 handle, UInt64 verify, FilterCallback filterCallback)
+        public FilterEnumerator(FilterCallback filterCallback)
             : base() {
-            _handle = handle;
-            _verify = verify;
             _filterCallback = filterCallback;
-            Scheduler sched = Scheduler.GetInstance(true);
-            if (sched != null)
-                _schedId = sched.Id;
+            SchedulerOwner = Scheduler.GetInstance();
         }
 
         // Enumerator already exists, we need to update the contents.
@@ -393,7 +404,7 @@ namespace Starcounter
             else {
                 _handle = handle;
                 _verify = verify;
-                _schedId = Scheduler.GetInstance().Id;
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
             }
         }
         /// <summary>
@@ -476,12 +487,21 @@ namespace Starcounter
         /// </summary>
         /// <returns>Error code returned by the kernel</returns>
         private UInt32 FreeIteratorFinalize() {
-            if (_schedId == -1)
-                throw ErrorCode.ToException(Error.SCERRUNEXPENUMERATORDISPOSE, "Scheduler is unknown for the enumerator.");
+            Debug.Assert(SchedulerOwner != null);
             // Should create new working thread on the scheduler where this 
             // enumerator was created (_schedId) and call specific version
             // of free iterator in the kernel.
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+            uint err = 999;
+            DbSession dbs = new DbSession();
+            bool finished = false;
+            // Assuming no concurrent threads since the same scheduler runs one thread at a time
+            dbs.RunAsync(() => {
+                err = sccoredb.SCIteratorFree(_handle, _verify);
+                finished = true;
+            },
+                SchedulerOwner.Id);
+            while (!finished) { }
+            return err;
         }
 
         /// <summary>
@@ -514,6 +534,7 @@ namespace Starcounter
 
         next:
             //Application.Profiler.Start("filter_iterator_next", 2);
+            Boolean newIterator = _handle == 0;
             unsafe {
                 ir = sccoredb.filter_iterator_next(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
             }
@@ -521,9 +542,12 @@ namespace Starcounter
 
             if (ir != 0)
                 goto err;
+            Debug.Assert(_handle != 0);
 
-            if (_schedId == -1)
-                _schedId = Scheduler.GetInstance().Id;
+            if (newIterator) {
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+                SchedulerOwner.NrOpenIterators++;
+            }
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
@@ -577,7 +601,6 @@ namespace Starcounter
         public void MarkAsDisposed() {
             _handle = 0;
             _verify = 0;
-            _schedId = -1;
         }
 
         /// <summary>

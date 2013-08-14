@@ -2748,17 +2748,15 @@
         ancestors where analyzed.
       </remarks>
     </code>
-<!--
     <code hex="00B6" severity="Error" name="ScErrToManyOpenIterators">
-      <message>Too many open iterators registered with the current thread.</message>
+      <message>Too many open iterators registered with the current scheduler.</message>
       <remarks>
         Only a limited number of open iterators is allowed at any given time. To
         avoid this error be sure to close iterators (releasing the result set)
-        when done with them and don't keep to many iterators referenced at any
+        when done with them and don't keep too many iterators referenced at any
         given time.
       </remarks>
     </code>
--->
     <code hex="00B7" severity="Error" name="ScErrCantGenerateDynLibName">
       <message>Unable to generate a name for dynamically generated library.</message>
     </code>
