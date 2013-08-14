@@ -76,11 +76,11 @@ public sealed class SqlEnumCache
                         // Giving the cache where all subsequent enumerators should be returned.
                         execEnum.AttachToCache(enumList);
                 } else {
-                    lock (enumList) {
+                    //lock (enumList) {
                         // Cutting last enumerator.
                         execEnum = enumList.Last.Value;
                         enumList.RemoveLast();
-                    }
+                    //}
                 }
             } else {
                 // Fetching existing enumerator from the global cache.
