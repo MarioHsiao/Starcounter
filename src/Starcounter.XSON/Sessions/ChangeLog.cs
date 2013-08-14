@@ -15,7 +15,7 @@ namespace Starcounter {
     /// of each patch-request, all changes will be converted to jsonpatches.
     /// </summary>
     public class ChangeLog : IEnumerable<Change> {
-        private List<Change> changes;
+        private List<Change> _Changes;
         
 //        [ThreadStatic]
         private static ChangeLog log;
@@ -24,7 +24,7 @@ namespace Starcounter {
         /// Initializes a new instance of the <see cref="Log" /> class.
         /// </summary>
         public ChangeLog() {
-            changes = new List<Change>();
+            _Changes = new List<Change>();
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Starcounter {
         public static void UpdateValue(Obj obj, TValue property) {
 			if (obj.LogChanges && log != null) {
                 //if (!log.changes.Exists((match) => { return match.IsChangeOf(obj, property); })) {
-                    log.changes.Add(Change.Update(obj, property));
+                    log._Changes.Add(Change.Update(obj, property));
                 //}
             }
         }
@@ -55,7 +55,7 @@ namespace Starcounter {
         /// <param name="index">The index in the list where the item was added.</param>
         public static void AddItemInList(Obj obj, TObjArr list, Int32 index) {
 			if (obj.LogChanges && log != null)
-                log.changes.Add(Change.Add(obj, list, index));
+                log._Changes.Add(Change.Add(obj, list, index));
         }
 
         /// <summary>
@@ -66,14 +66,14 @@ namespace Starcounter {
         /// <param name="index">The index in the list of the removed item.</param>
         public static void RemoveItemInList(Obj obj, TObjArr list, Int32 index) {
 			if (obj.LogChanges && log != null)
-                log.changes.Add(Change.Remove(obj, list, index));
+                log._Changes.Add(Change.Remove(obj, list, index));
         }
 
         /// <summary>
         /// Clears all changes.
         /// </summary>
         public void Clear() {
-            changes.Clear();
+            _Changes.Clear();
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns>IEnumerator{Change}.</returns>
         public IEnumerator<Change> GetEnumerator() {
-            return changes.GetEnumerator();
+            return _Changes.GetEnumerator();
         }
 
         /// <summary>
@@ -89,14 +89,14 @@ namespace Starcounter {
         /// </summary>
         /// <returns><see cref="T:System.Collections.IEnumerator" /></returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-            return changes.GetEnumerator();
+            return _Changes.GetEnumerator();
         }
 
         /// <summary>
         /// Returns the number of changes in the log.
         /// </summary>
         /// <value></value>
-        public Int32 Count { get { return changes.Count; } }
+        public Int32 Count { get { return _Changes.Count; } }
     }
 
     /// <summary>
