@@ -13,7 +13,9 @@ namespace QueryProcessingTest {
         public static void BenchQueryCache() {
             HelpMethods.LogEvent("Start benchmark of query cache");
             int nrIterations = 1000000;
+#if false
             int nrIterationsNoDispose = 10000;
+#endif
             //int sleepTimeout = 100;
             if (TestLogger.IsRunningOnBuildServer()) {
                 nrIterations = nrIterations * 10;
@@ -40,6 +42,8 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterations, () => GetType<Object>(nrIterations), "Calling typeof on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetCachedEnumerator(nrIterations), "Getting cached enumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => RestExecutionEnumerator(nrIterations, 10), "Rest of GetExecutionEnumerator on ");
+                BenchmarkAction(schedulers, nrIterations, () => GetEnumeratorAndMove(nrIterations), "Obtaining enumerator and move next on ");
+#if false
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumerator(nrIterationsNoDispose), "Calling GetEnumerator on ");
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorNoDispose(nrIterationsNoDispose), "Calling GetEnumerator with no dispose on ");
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => QueryEnumerator(nrIterationsNoDispose), "Obtaining enumerator on ");
@@ -47,6 +51,7 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorAndMove(nrIterationsNoDispose), "Obtaining enumerator and move next on ");
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorAndMoveNoDispose(nrIterationsNoDispose), 
                     "Obtaining enumerator and move next with no dispose on ");
+#endif
                 HelpMethods.LogEvent("Finished benchmark of query cache");
             }
         }
