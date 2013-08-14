@@ -137,18 +137,21 @@ namespace Starcounter {
                     // Creating new empty session.
                     current = new Session();
 
-                    UInt32 errCode;
+                    UInt32 errCode = 0;
 
+                    if (request != null) {
 #if DEBUG
-                    // Checking if we have a predefined session.
-                    if (request.IsSessionPredefined()) {
-                        errCode = request.GenerateForcedSession(current);
-                    } else {
-                        errCode = request.GenerateNewSession(current);
-                    }
+                        // Checking if we have a predefined session.
+                        if (request.IsSessionPredefined()) {
+                            errCode = request.GenerateForcedSession(current);
+                        }
+                        else {
+                            errCode = request.GenerateNewSession(current);
+                        }
 #else
                     errCode = request.GenerateNewSession(current);
 #endif
+                    }
 
                     if (errCode != 0)
                         throw ErrorCode.ToException(errCode);
@@ -156,7 +159,9 @@ namespace Starcounter {
                 current.SetData(value);
 
                 // Creating new implicit read-write transaction.
-                value.Transaction = StarcounterBase._DB.NewCurrent();
+                if (StarcounterBase._DB != null) {
+                    value.Transaction = StarcounterBase._DB.NewCurrent();
+                }
             }
         }
 
