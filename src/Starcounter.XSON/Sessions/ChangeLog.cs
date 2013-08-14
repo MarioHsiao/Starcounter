@@ -41,9 +41,9 @@ namespace Starcounter {
         /// <param name="property">The property.</param>
         public static void UpdateValue(Obj obj, TValue property) {
 			if (obj.LogChanges && log != null) {
-                if (!log.changes.Exists((match) => { return match.IsChangeOf(obj, property); })) {
+                //if (!log.changes.Exists((match) => { return match.IsChangeOf(obj, property); })) {
                     log.changes.Add(Change.Update(obj, property));
-                }
+                //}
             }
         }
 
