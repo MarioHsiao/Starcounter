@@ -24,11 +24,11 @@ namespace Starcounter {
         [ThreadStatic]
         static Request request;
 
-        internal Obj root;
+        internal Obj _Data;
 
         bool isInUse;
 
-        ChangeLog changeLog;
+        ChangeLog _ChangeLog;
 
         /// <summary>
         /// Cached pages dictionary.
@@ -49,8 +49,8 @@ namespace Starcounter {
             Debug.Assert(null != obj);
 
             // Checking if its a root.
-            if (root == obj)
-                return root;
+            if (_Data == obj)
+                return _Data;
 
             // Checking if node has no parent, indicating that it was removed from tree.
             if (null != obj.Parent)
@@ -103,7 +103,7 @@ namespace Starcounter {
         /// Initializes a new instance of the <see cref="Session" /> class.
         /// </summary>
         internal Session() {
-            changeLog = new ChangeLog();
+            _ChangeLog = new ChangeLog();
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Starcounter {
             Debug.Assert(current == null);
 
             current = new Session();
-            ChangeLog.CurrentOnThread = current.changeLog;
+            ChangeLog.CurrentOnThread = current._ChangeLog;
 
             return current;
         }
@@ -126,8 +126,8 @@ namespace Starcounter {
         public static Obj Data {
             get {
                 Session s = current;
-                if (s != null && s.root != null) {
-                    return s.root;
+                if (s != null && s._Data != null) {
+                    return s._Data;
                 }
                 return null;
             }
@@ -172,10 +172,10 @@ namespace Starcounter {
         private void SetData(Obj data) {
 
             // If we are replacing the JSON tree, we need to dispose previous one.
-            if (root != null) {
-                DisposeJsonRecursively(current.root);
+            if (_Data != null) {
+                DisposeJsonRecursively(current._Data);
             }
-            root = data;
+            _Data = data;
 
             // We don't want any changes logged during this request since
             // we will have to send the whole object anyway in the response.
@@ -196,7 +196,7 @@ namespace Starcounter {
         /// <returns></returns>
         internal string GetDataLocation()
         {
-            if (root == null)
+            if (_Data == null)
                 return null;
 
             return ScSessionClass.DataLocationUriPrefix + SessionIdString;
@@ -240,7 +240,7 @@ namespace Starcounter {
                 return;
 
             Session.current = session;
-            ChangeLog.CurrentOnThread = session.changeLog;
+            ChangeLog.CurrentOnThread = session._ChangeLog;
 
             Debug.Assert(null != ChangeLog.CurrentOnThread);
         }
@@ -250,7 +250,7 @@ namespace Starcounter {
         /// </summary>
         internal static void End()
         {
-            current.changeLog.Clear();
+            current._ChangeLog.Clear();
             Session.current = null;
             ChangeLog.CurrentOnThread = null;
 
@@ -327,10 +327,10 @@ namespace Starcounter {
         /// </summary>
         public void Destroy()
         {
-            if (root != null) {
-                DisposeJsonRecursively(root);
+            if (_Data != null) {
+                DisposeJsonRecursively(_Data);
             }
-            root = null;
+            _Data = null;
 
             // Checking if destroy callback is supplied.
             if (null != destroy_user_delegate_)
@@ -339,7 +339,7 @@ namespace Starcounter {
                 destroy_user_delegate_ = null;
             }
 
-            changeLog = null;
+            _ChangeLog = null;
             Session.current = null;
         }
 
