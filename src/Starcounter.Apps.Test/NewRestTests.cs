@@ -32,6 +32,7 @@ namespace Starcounter.Internal.Test
             AppRestServer appServer = new AppRestServer(fileServer);
 
             UserHandlerCodegen.Setup(null, null, appServer.HandleRequest);
+            Node.InjectHostedImpl(null, UserHandlerCodegen.DoLocalNodeRest, null);
         }
     }
 
@@ -276,7 +277,7 @@ namespace Starcounter.Internal.Test
         {
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.InternalSetLocalNodeForUnitTests();
+            localNode.LocalNode = true;
 
             Handle.GET("/response1", () =>
             {
@@ -381,7 +382,7 @@ namespace Starcounter.Internal.Test
         {
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.InternalSetLocalNodeForUnitTests();
+            localNode.LocalNode = true;
 
             TestInfo testInfos1  = new TestInfo("GET /@w", "/a", "/{?}");
             TestInfo testInfos2  = new TestInfo("GET /",  "/", "/");
