@@ -12,8 +12,9 @@ namespace QueryProcessingTest {
         
         public static void BenchQueryCache() {
             HelpMethods.LogEvent("Start benchmark of query cache");
+            GC.WaitForFullGCComplete(1000);
             int nrIterations = 1000000;
-#if false
+#if true
             int nrIterationsNoDispose = 10000;
 #endif
             //int sleepTimeout = 100;
@@ -32,6 +33,7 @@ namespace QueryProcessingTest {
                 while (nrFinishedWorkers != schedulers)
                     Thread.Sleep(100);
                 timer.Stop();
+                GC.WaitForFullGCComplete(1000);
                 HelpMethods.LogEvent("Warm up of " + schedulers + " schedulers took " + timer.ElapsedMilliseconds + " ms.");
                 BenchmarkAction(schedulers, nrIterations, () => QueryEnumerator(nrIterations), "Obtaining enumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => DbSQL(nrIterations), "Calling Db.SQL on ");
@@ -43,13 +45,13 @@ namespace QueryProcessingTest {
                 BenchmarkAction(schedulers, nrIterations, () => GetCachedEnumerator(nrIterations), "Getting cached enumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => RestExecutionEnumerator(nrIterations, 10), "Rest of GetExecutionEnumerator on ");
                 BenchmarkAction(schedulers, nrIterations, () => GetEnumeratorAndMove(nrIterations), "Obtaining enumerator and move next on ");
-#if false
+#if true
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumerator(nrIterationsNoDispose), "Calling GetEnumerator on ");
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorNoDispose(nrIterationsNoDispose), "Calling GetEnumerator with no dispose on ");
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => QueryEnumerator(nrIterationsNoDispose), "Obtaining enumerator on ");
                 BenchmarkAction(schedulers, nrIterationsNoDispose, () => QueryEnumeratorNoDispose(nrIterationsNoDispose), "Obtaining enumerator with no dispose on ");
-                BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorAndMove(nrIterationsNoDispose), "Obtaining enumerator and move next on ");
-                BenchmarkAction(schedulers, nrIterationsNoDispose, () => GetEnumeratorAndMoveNoDispose(nrIterationsNoDispose), 
+                BenchmarkAction(schedulers, nrIterationsNoDispose / schedulers, () => GetEnumeratorAndMove(nrIterationsNoDispose / schedulers), "Obtaining enumerator and move next on ");
+                BenchmarkAction(schedulers, nrIterationsNoDispose / schedulers, () => GetEnumeratorAndMoveNoDispose(nrIterationsNoDispose / schedulers), 
                     "Obtaining enumerator and move next with no dispose on ");
 #endif
                 HelpMethods.LogEvent("Finished benchmark of query cache");
@@ -72,6 +74,8 @@ namespace QueryProcessingTest {
                 " ms for " + nrIterations + " iterations on each scheduler, i.e., " +
                 (long)nrIterations * nrSchedulers * 1000 / timer.ElapsedMilliseconds +
                 " accesses per second.");
+            GC.WaitForFullGCComplete(1000);
+
         }
 
         public static void QueryEnumerator(int nrIterations) {

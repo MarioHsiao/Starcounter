@@ -104,6 +104,9 @@ namespace Starcounter
             }
         }
 
+        internal uint NrScheduledDisposes = 0;
+        internal object NrScheduledDisposesObj = new object();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Scheduler" /> class.
         /// </summary>
