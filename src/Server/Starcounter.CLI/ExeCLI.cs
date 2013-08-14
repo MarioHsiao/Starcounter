@@ -200,7 +200,12 @@ namespace Starcounter.CLI {
                     exe.Arguments.Add().dummy = arg;
                 }
             }
-            exe.WorkingDirectory = Environment.CurrentDirectory;
+            string defaultResourceDir;
+            if (!args.TryGetProperty(Option.ResourceDirectory, out defaultResourceDir)) {
+                defaultResourceDir = Environment.CurrentDirectory;
+            }
+            exe.WorkingDirectory = defaultResourceDir;
+            exe.WorkingDirectory = Path.GetFullPath(exe.WorkingDirectory);
 
             response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null);
             response.FailIfNotSuccess();
