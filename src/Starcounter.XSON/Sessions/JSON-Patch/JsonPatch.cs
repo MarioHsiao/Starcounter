@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Starcounter.Internal;
 using Starcounter.Templates;
 
+
 namespace Starcounter.Internal.JsonPatch {
     /// <summary>
     /// Struct AppAndTemplate
