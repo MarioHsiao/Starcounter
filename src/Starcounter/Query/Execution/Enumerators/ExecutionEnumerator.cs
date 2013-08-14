@@ -381,9 +381,7 @@ internal abstract class ExecutionEnumerator
     internal virtual void ReturnToCache()
     {
         // Returning this enumerator back to the cache.
-        //lock (enumCacheListFrom) {
             enumCacheListFrom.AddLast(enumListNode);
-        //}
     }
 
     /// <summary>
