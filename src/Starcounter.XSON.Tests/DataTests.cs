@@ -51,7 +51,7 @@ namespace Starcounter.Internal.XSON.Tests {
             TJson t = new TJson();
             var prop = t.Add<TString>("FirstName");
             prop.Bind = "FirstName";
-            prop.Bound = true;
+            prop.Bound = Bound.Yes;
             j.Template = t;
             j.Data = p;
 

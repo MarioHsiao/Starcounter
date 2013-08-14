@@ -23,7 +23,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <returns></returns>
         public TVal Get<TVal>(TValue<TVal> property) {
-            if (property.Bound)
+            if (property.Bound == Bound.Yes)
                 return GetBound(property);
 
 #if QUICKTUPLE
@@ -40,7 +40,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set<TVal>(TValue<TVal> property, TVal value) {
-            if (property.Bound) {
+            if (property.Bound == Bound.Yes) {
                 SetBound(property, value);
                 this.HasChanged(property);
                 return;
@@ -212,7 +212,7 @@ namespace Starcounter {
             if (value != null)
                 value.Parent = this;
 
-            if (property.Bound)
+            if (property.Bound == Bound.Yes)
                 SetBound(property, value.Data);
 #if QUICKTUPLE
             var vals = Values;
@@ -250,7 +250,7 @@ namespace Starcounter {
         /// <param name="property"></param>
         /// <param name="value"></param>
         public void Set(TObj property, IBindable value) {
-            if (property.Bound)
+            if (property.Bound == Bound.Yes)
                 SetBound(property, value);
 
 #if QUICKTUPLE
