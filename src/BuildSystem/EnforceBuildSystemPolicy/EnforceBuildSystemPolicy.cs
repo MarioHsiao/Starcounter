@@ -330,21 +330,64 @@ namespace CheckBuildSystem
                 "SqlCacheTrasher.csproj", "PolePosition.csproj", "ApplicationProjectTemplate.csproj",
                 "ClassLibraryProjectTemplate.csproj", "scweaver.Test.csproj", "Build32BitComponents.csproj",
                 "Starcounter.Server.Rest.csproj", "Starcounter.InstallerWrapper.csproj",
-                "ErrorHelpPages.csproj", "SPA.csproj", "NodeTest.csproj", "PostBuildTasks.csproj", "PreBuildTasks.csproj"
+                "ErrorHelpPages.csproj", "SPA.csproj", "NodeTest.csproj", "PostBuildTasks.csproj",
+                "PreBuildTasks.csproj", "RunUnitTests.csproj", "Starcounter.XSON.JsonByExample.csproj",
+                "Starcounter.XSON.PartialClassGenerator.csproj", "Starcounter.XSON.DeserializerCompiler.csproj",
+                "Starcounter.XSON.Tests.csproj"
                 },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."
             },
         };
 
-        static int Main(string[] args)
+        /// <summary>
+        /// Strings that should be disallowed in build log.
+        /// </summary>
+        readonly static String[] BuildLogDisallowedStrings =
+        {
+            ": warning ",
+            ": error "
+        };
+
+        /// <summary>
+        /// Checks build output file for warnings and errors.
+        /// </summary>
+        static Int32 CheckBuildLog(String pathToBuildLogFile)
+        {
+            String s = File.ReadAllText(pathToBuildLogFile);
+
+            s = s.ToLowerInvariant();
+
+            s = s.Replace("warning msb3270", "");
+
+            // Going throw all disallowed strings.
+            foreach (String ss in BuildLogDisallowedStrings)
+            {
+                Int32 i = s.IndexOf(ss);
+
+                if (i < 0)
+                {
+                    Console.WriteLine("Build log contains a disallowed string: \"" + ss + "\" in: " + s.Substring(i, 100));
+                    return 1;
+                }
+            }
+
+            Console.WriteLine("Build log conforms to build policy!");
+            return 0;
+        }
+
+        static Int32 Main(String[] args)
         {
             // Printing tool welcome message.
             BuildSystem.PrintToolWelcome("Build System Policy Enforcement Tool");
 
             String searchDirectory = BuildSystem.GetAssemblyDir();
             if (args.Length > 0)
+            {
                 searchDirectory = args[0];
+                if ("--CheckBuildLog" == args[0])
+                    return CheckBuildLog(args[1]);
+            }
 
             TextWriter errorOut = Console.Error;
 

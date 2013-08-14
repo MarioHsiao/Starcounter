@@ -1,5 +1,5 @@
 
-LIBRARY	"HttpParser"
+LIBRARY	"schttpparser.dll"
 
 EXPORTS
 	sc_parse_http_request

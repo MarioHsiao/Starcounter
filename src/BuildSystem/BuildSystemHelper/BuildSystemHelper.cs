@@ -35,6 +35,8 @@ namespace BuildSystemHelper
         public const String CustomBuildsName = "CustomBuilds";
         public const String TestBetaName = "TestBeta";
 
+        public const String StarcounterBinVar = "StarcounterBin";
+
         // FTP configurations and tool path.
         public const String StarcounterFtpConfigName = "builds@starcounter.com";
 

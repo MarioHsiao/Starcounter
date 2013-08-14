@@ -8,6 +8,7 @@ namespace Sc.Tools.Logging {
     internal interface ILogReader {
 
         void Open(string directoryPath, int bufferSize);
+		void Open(string directoryPath, int bufferSize, int startFileNumber, long startFilePosition);
         void Close();
         LogEntry Next();
     }
@@ -90,18 +91,25 @@ namespace Sc.Tools.Logging {
         
         byte[] local = new byte[1024];
 
+		long initialFilePosition;
+
         public void Open(string directoryPath, int bufferSize) {
-            var directory = new DirectoryInfo(directoryPath);
-            files = directory.GetFiles(FILE_NAME_FILTER);
-            Array.Sort<FileInfo>(files, new Comparison<FileInfo>(CompareLogFileInfosDesc));
-            nextFile = 0;
-
-            f = null;
-            filePos = 0;
-
-            buffer = new byte[bufferSize];
-            bufferPos = -1;
+			Open(directoryPath, bufferSize, 0, -1);
         }
+
+		public void Open(string directoryPath, int bufferSize, int startFileNumber, long startFilePosition) {
+			var directory = new DirectoryInfo(directoryPath);
+			files = directory.GetFiles(FILE_NAME_FILTER);
+			Array.Sort<FileInfo>(files, new Comparison<FileInfo>(CompareLogFileInfosDesc));
+			nextFile = startFileNumber;
+			initialFilePosition = startFilePosition;
+
+			f = null;
+			filePos = 0;
+
+			buffer = new byte[bufferSize];
+			bufferPos = -1;
+		}
 
         public void Close() {
             if (f != null) {
@@ -219,7 +227,12 @@ namespace Sc.Tools.Logging {
                     FileAccess.Read,
                     FileShare.ReadWrite
                     );
-                filePos = f.Length;
+				if (initialFilePosition == -1) {
+					filePos = f.Length;
+				} else {
+					filePos = initialFilePosition;
+					initialFilePosition = -1;
+				}
             }
 
             var oldFilePos = filePos;
@@ -254,9 +267,17 @@ namespace Sc.Tools.Logging {
         ILogReader inner;
 
         public void Open(string directoryPath, ReadDirection direction, int bufferSize) {
-            inner = new LogReaderReverse();
-            inner.Open(directoryPath, bufferSize);
+			Open(directoryPath, direction, bufferSize, 0, -1);
         }
+
+		public void Open(string directoryPath, 
+						 ReadDirection direction, 
+						 int bufferSize, 
+						 int startFileNumber, 
+						 long startFilePosition) {
+			inner = new LogReaderReverse();
+			inner.Open(directoryPath, bufferSize, startFileNumber, startFilePosition);
+		}
 
         public void Close() {
             inner.Close();

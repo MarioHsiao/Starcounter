@@ -294,18 +294,35 @@ namespace Starcounter.Tests {
             Assert.AreEqual(scale, unsafeScale);
         }
 
-		/// <summary>
+        /// <summary>
         /// 
         /// </summary>
         [Test]
+        [Category("LongRunning")]
         public static void BenchmarkDecimalConversion() {
-			decimal value;
+            _TestDecimalConversion(10000000);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Test]
+        public static void TestDecimalConversion() {
+            _TestDecimalConversion(10);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cnt"></param>
+        public static void _TestDecimalConversion( int cnt ) {
+            decimal value;
 			Int64 encodedValue;
 			DateTime start;
 			DateTime stop;
 			int loop;
 
-			loop = 10000000;
+			loop = cnt;
 			value = 20.50m;
 
 			start = DateTime.Now;

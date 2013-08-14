@@ -1,4 +1,4 @@
-LIBRARY "Starcounter.SqlParser"
+LIBRARY "Starcounter.SqlParser.dll"
 
 EXPORTS
 	InitParser
