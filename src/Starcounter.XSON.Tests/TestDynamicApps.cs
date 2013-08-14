@@ -14,8 +14,9 @@ using Starcounter.Internal;
 using Starcounter.Advanced.XSON;
 using System.IO;
 using Starcounter.Internal.XSON;
+using Starcounter.XSON.Tests;
 
-namespace Starcounter.XSON.Tests {
+namespace Starcounter.Internal.XSON.Tests {
 
     /// <summary>
     /// Class AppTests
