@@ -105,7 +105,7 @@ namespace RunUnitTests
                     nunitProcess.Close();
                 }
 
-                String[] nativeTestsExes = Directory.GetFiles(outputFolder, "*_unittest.exe");
+                /*String[] nativeTestsExes = Directory.GetFiles(outputFolder, "*_unittest.exe");
 
                 foreach (String testAssemblyPath in nativeTestsExes)
                 {
@@ -138,7 +138,7 @@ namespace RunUnitTests
                     }
 
                     testProcess.Close();
-                }
+                }*/
 
                 Console.WriteLine("--- All unit tests succeeded!");
 
