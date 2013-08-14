@@ -67,20 +67,18 @@ public sealed class SqlEnumCache
 
                 // Checking if there are any enumerators in the list.
                 if (enumList.Count == 0) {
-                        // Always using first cached enumerator for cloning (because of dynamic ranges).
-                        execEnum = globalQueryCache.GetEnumClone(uniqueQueryId);
+                    // Always using first cached enumerator for cloning (because of dynamic ranges).
+                    execEnum = globalQueryCache.GetEnumClone(uniqueQueryId);
 
-                        // Increasing the number of enumerators.
-                        totalCachedEnum++;
+                    // Increasing the number of enumerators.
+                    totalCachedEnum++;
 
-                        // Giving the cache where all subsequent enumerators should be returned.
-                        execEnum.AttachToCache(enumList);
+                    // Giving the cache where all subsequent enumerators should be returned.
+                    execEnum.AttachToCache(enumList);
                 } else {
-                    //lock (enumList) {
-                        // Cutting last enumerator.
-                        execEnum = enumList.Last.Value;
-                        enumList.RemoveLast();
-                    //}
+                    // Cutting last enumerator.
+                    execEnum = enumList.Last.Value;
+                    enumList.RemoveLast();
                 }
             } else {
                 // Fetching existing enumerator from the global cache.

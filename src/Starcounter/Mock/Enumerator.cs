@@ -138,8 +138,7 @@ namespace Starcounter
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose(Boolean fromFinalize)
-        {
+        public void Dispose(Boolean fromFinalize) {
             // Checking if enumerator was already disposed or not yet created.
             if (_handle == 0 || _verify == 0)
                 return;
@@ -148,14 +147,10 @@ namespace Starcounter
             _current = null;
 
             UInt32 err = 999;
-            //if (fromFinalize)
-                //err = FreeIteratorFinalize();
-            //else
-                err = sccoredb.SCIteratorFree(_handle, _verify);
+            err = sccoredb.SCIteratorFree(_handle, _verify);
 
             // Marking this enumerator as disposed.
-            if (err == 0)
-            {
+            if (err == 0) {
                 MarkAsDisposed();
                 return;
             }
@@ -168,28 +163,6 @@ namespace Starcounter
 
             // Otherwise returning error.
             throw ErrorCode.ToException(err);
-        }
-
-        /// <summary>
-        /// Frees kernel iterator, while assuming of being in GC thread.
-        /// </summary>
-        /// <returns>Error code returned by the kernel</returns>
-        private UInt32 FreeIteratorFinalize() {
-            Debug.Assert(SchedulerOwner != null);
-            // Should create new working thread on the scheduler where this 
-            // enumerator was created (_schedId) and call specific version
-            // of free iterator in the kernel.
-            uint err = 999;
-            DbSession dbs = new DbSession();
-            bool finished = false;
-            // Assuming no concurrent threads since the same scheduler runs one thread at a time
-            dbs.RunAsync(() => {
-                err = sccoredb.SCIteratorFree(_handle, _verify);
-                finished = true;
-            },
-                SchedulerOwner.Id);
-            while (!finished) { }
-            return err;
         }
 
         /// <summary>
@@ -250,10 +223,12 @@ namespace Starcounter
                 goto err;
             Debug.Assert(_handle != 0);
 
+#if false
             if (newIterator) {
                 Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
                 SchedulerOwner.NrOpenIterators++;
             }
+#endif
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
