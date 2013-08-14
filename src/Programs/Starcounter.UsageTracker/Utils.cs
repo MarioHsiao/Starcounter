@@ -27,7 +27,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
         }
 
         /// <summary>
-        /// Parse out the protcol version number from the header
+        /// Parse out the protocol version number from the header
         /// </summary>
         /// <param name="request"></param>
         /// <returns>Protocol number</returns>
@@ -35,7 +35,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
             // Accept: application/starcounter.tracker.usage-v2+json\r\n
 
-            string headers = request.GetHeadersStringUtf8_Slow();
+            string headers = request.Headers;
 
             try {
 

@@ -636,8 +636,6 @@ namespace Starcounter.Internal
             out ulong viter
             );
 
-        public const uint SCCOREDB_WAIT_RETRY_ON_LOG_WRITE_FAILURE = 1;
-
         /// <summary>
         /// Sccoredb_complete_commits the specified tran_locked_on_thread.
         /// </summary>
@@ -647,9 +645,7 @@ namespace Starcounter.Internal
         /// <returns>System.UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_complete_commit(
-            int tran_locked_on_thread,
-            int detach_and_free,
-            uint flags
+            int tran_locked_on_thread, int detach_and_free
             );
 
         /// <summary>
@@ -1209,29 +1205,6 @@ namespace Starcounter.Internal
             UInt32* resultsNum,
             UInt32* flags);
 #endif
-
-        //
-        // The iterator is freed if no errors (and only if no errors).
-        //
-        // If no error and *precreate_key == NULL then no key was generated because the
-        // iterator was positioned after the end of the range. The iterator will still
-        // have been freed.
-        //
-        /// <summary>
-        /// Sc_get_recreate_key_and_free_iterators the specified h.
-        /// </summary>
-        /// <param name="h">The h.</param>
-        /// <param name="v">The v.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="precreate_key">The precreate_key.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sc_get_recreate_key_and_free_iterator(
-            UInt64 h,
-            UInt64 v,
-            UInt32 flags,
-            Byte** precreate_key
-            );
 
         /// <summary>
         /// Sc_get_index_position_keys the specified index_addr.

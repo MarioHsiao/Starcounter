@@ -79,6 +79,6 @@
   <MaxTestTimeSeconds>1000</MaxTestTimeSeconds>
 
   <!-- Gateway-only HTTP requests per second. -->
-  <ReportStatisticsName>Workers4Conns1000GwHttpRequestsPerSec</ReportStatisticsName>
+  <ReportStatisticsName>gateway_simple_raw_eps_2workers_1000conns</ReportStatisticsName>
 
 </NetworkGateway>

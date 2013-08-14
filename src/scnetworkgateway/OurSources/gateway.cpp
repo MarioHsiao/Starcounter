@@ -861,25 +861,15 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(sizeof(ScSessionStructPlus) == 64);
 
-    int64_t accept_8bytes = *(int64_t*)"Accept: ";
-    int64_t accept_enc_8bytes = *(int64_t*)"Accept-Encoding: ";
-    int64_t cookie_8bytes = *(int64_t*)"Cookie: ";
-    int64_t set_cookie_8bytes = *(int64_t*)"Set-Cookie: ";
-    int64_t content_len_8bytes = *(int64_t*)"Content-Length: ";
-    int64_t upgrade_8bytes = *(int64_t*)"Upgrade:";
-    int64_t websocket_8bytes = *(int64_t*)"Sec-WebSocket: ";
-    int64_t referer_8bytes = *(int64_t*)"Referer: ";
-    int64_t xreferer_8bytes = *(int64_t*)"X-Referer: ";
-
-    GW_ASSERT(ACCEPT_HEADER_VALUE_8BYTES == accept_8bytes);
-    GW_ASSERT(ACCEPT_ENCODING_HEADER_VALUE_8BYTES == accept_enc_8bytes);
-    GW_ASSERT(COOKIE_HEADER_VALUE_8BYTES == cookie_8bytes);
-    GW_ASSERT(SET_COOKIE_HEADER_VALUE_8BYTES == set_cookie_8bytes);
-    GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == content_len_8bytes);
-    GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == upgrade_8bytes);
-    GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == websocket_8bytes);
-    GW_ASSERT(REFERER_HEADER_VALUE_8BYTES == referer_8bytes);
-    GW_ASSERT(XREFERER_HEADER_VALUE_8BYTES == xreferer_8bytes);
+    GW_ASSERT(ACCEPT_HEADER_VALUE_8BYTES == *(int64_t*)"Accept: ");
+    GW_ASSERT(ACCEPT_ENCODING_HEADER_VALUE_8BYTES == *(int64_t*)"Accept-Encoding: ");
+    GW_ASSERT(COOKIE_HEADER_VALUE_8BYTES == *(int64_t*)"Cookie: ");
+    GW_ASSERT(SET_COOKIE_HEADER_VALUE_8BYTES == *(int64_t*)"Set-Cookie: ");
+    GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == *(int64_t*)"Content-Length: ");
+    GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == *(int64_t*)"Upgrade:");
+    GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == *(int64_t*)"Sec-WebSocket: ");
+    GW_ASSERT(REFERER_HEADER_VALUE_8BYTES == *(int64_t*)"Referer: ");
+    GW_ASSERT(XREFERER_HEADER_VALUE_8BYTES == *(int64_t*)"X-Referer: ");
 
     return 0;
 
@@ -3021,7 +3011,8 @@ uint32_t Gateway::ShutdownTest(GatewayWorker* gw, bool success)
         GW_COUT << "Average number of ops per second: " << ops_per_second <<
             ". Took " << test_finish_time - test_begin_time_ << " ms." << GW_ENDL;
 
-        GW_COUT << "##teamcity[buildStatisticValue key='" << setting_stats_name_ << "' value='" << ops_per_second << "']" << GW_ENDL;
+        // Reporting statistics to build output and build statistics file.
+        ReportStatistics(setting_stats_name_.c_str(), ops_per_second);
 
         if (is_on_build_server)
             ShutdownGateway(gw, 0);

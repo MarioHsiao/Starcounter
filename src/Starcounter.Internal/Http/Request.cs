@@ -3,6 +3,7 @@ using HttpStructs;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -121,7 +122,6 @@ namespace Starcounter.Advanced {
                 return l.GetEnumerator();
             }
         }
-
 
         /// <summary>
         /// Indicates if this Request is internally constructed from Apps.
@@ -540,10 +540,29 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                if (null == bodyString_)
-                    bodyString_ = GetBodyStringUtf8_Slow();
+                if (is_internal_request_)
+                {
+                    if (null == bodyString_)
+                    {
+                        if (null != bodyBytes_)
+                        {
+                            bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
+                            return bodyString_;
+                        }
+                    }
+                    else
+                    {
+                        return bodyString_;
+                    }
+                }
 
-                return bodyString_;
+                unsafe
+                {
+                    if (null == http_request_struct_)
+                        throw new ArgumentException("HTTP request not initialized.");
+
+                    return http_request_struct_->GetBodyStringUtf8_Slow();
+                }
             }
 
             set
@@ -584,10 +603,24 @@ namespace Starcounter.Advanced {
         {
             get
             {
-                if (null == headersString_)
-                    throw new ArgumentException("Headers field is not set.");
+                if (null != headersString_)
+                    return headersString_;
 
-                return headersString_;
+                switch (protocol_type_)
+                {
+                    case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
+                    {
+                        unsafe
+                        {
+                            if (null == http_request_struct_)
+                                throw new ArgumentException("HTTP request not initialized.");
+
+                            return http_request_struct_->GetHeadersStringUtf8_Slow();
+                        }
+                    }
+                }
+
+                throw new NotSupportedException("Network protocol does not support this method call.");
             }
 
             set
@@ -700,7 +733,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Resets all custom fields.
         /// </summary>
-        public void ResetAllCustomFields()
+        internal void ResetAllCustomFields()
         {
             customFields_ = false;
 
@@ -793,7 +826,7 @@ namespace Starcounter.Advanced {
         /// Gets the content as byte array.
         /// </summary>
         /// <returns></returns>
-        public Byte[] GetBodyByteArray_Slow()
+        Byte[] GetBodyByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
@@ -810,7 +843,7 @@ namespace Starcounter.Advanced {
         /// Gets the request as byte array.
         /// </summary>
         /// <returns>Request bytes.</returns>
-        public Byte[] GetRequestByteArray_Slow()
+        Byte[] GetRequestByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
@@ -865,23 +898,9 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets body as UTF8 string.
-        /// </summary>
-        public String GetBodyStringUtf8_Slow()
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
-
-                return http_request_struct_->GetBodyStringUtf8_Slow();
-            }
-        }
-
-        /// <summary>
         /// Gets body bytes.
         /// </summary>
-        public Byte[] GetBodyBytes_Slow()
+        Byte[] GetBodyBytes_Slow()
         {
             unsafe
             {
@@ -941,7 +960,7 @@ namespace Starcounter.Advanced {
         /// Gets request as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetRequestStringUtf8_Slow() 
+        String GetRequestStringUtf8_Slow() 
         {
             unsafe
             {
@@ -1032,29 +1051,6 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
-        /// Gets headers as UTF8 string.
-        /// </summary>
-        /// <returns>UTF8 string.</returns>
-        public String GetHeadersStringUtf8_Slow()
-        {
-            switch (protocol_type_)
-            {
-                case MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1:
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
-
-                        return http_request_struct_->GetHeadersStringUtf8_Slow();
-                    }
-                }
-            }
-
-            throw new NotSupportedException("Network protocol does not support this method call.");
-        }
-
-        /// <summary>
         /// Gets the raw cookies.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
@@ -1084,7 +1080,7 @@ namespace Starcounter.Advanced {
         /// Gets cookies as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetCookiesStringUtf8_Slow()
+        String GetCookiesStringUtf8_Slow()
         {
             switch (protocol_type_)
             {
@@ -1224,6 +1220,15 @@ namespace Starcounter.Advanced {
         /// </summary>
         public const UInt32 INVALID_VIEW_MODEL_INDEX = UInt32.MaxValue;
 
+#if DEBUG
+
+        /// <summary>
+        /// Used for forcing no session.
+        /// </summary>
+        Boolean forceNoSession = false;
+
+#endif
+
         /// <summary>
         /// Checks if HTTP request already has session.
         /// </summary>
@@ -1231,6 +1236,12 @@ namespace Starcounter.Advanced {
         {
             get
             {
+#if DEBUG
+                // First checking if no session is enforced.
+                if (forceNoSession)
+                    return false;
+#endif
+
                 unsafe
                 {
                     if (session_ != null)
@@ -1248,42 +1259,65 @@ namespace Starcounter.Advanced {
         {
             unsafe 
             {
-
                 // Obtaining corresponding Apps session.
-                IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(
-                    session_->scheduler_id_,
-                    session_->linear_index_,
-                    session_->random_salt_);
+                IAppsSession apps_session =
+                    GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref *session_);
 
                 // Destroying the session if Apps session was destroyed.
-                if (apps_session == null)
+                if (apps_session == null) {
+
+#if DEBUG
+                    // Checking if we have a session predefined.
+                    if (IsSessionPredefined()) {
+                        forceNoSession = true;
+                    } else {
+                        session_->Destroy();
+                    }
+
+#else
                     session_->Destroy();
+#endif
+
+                }
 
                 return apps_session;
             }
         }
 
         /// <summary>
-        /// Generates session number and writes it to response.
+        /// Generates new session.
         /// </summary>
-        public UInt32 GenerateNewSession(IAppsSession apps_session)
+        internal UInt32 GenerateNewSession(IAppsSession apps_session)
         {
             unsafe
             {
                 // Simply generating new session.
                 return GlobalSessions.AllGlobalSessions.CreateNewSession(
-                    session_->scheduler_id_,
-                    ref session_->linear_index_,
-                    ref session_->random_salt_,
-                    ref session_->reserved_,
+                    ref *session_,
                     apps_session);
             }
         }
 
+#if DEBUG
+        /// <summary>
+        /// Generates forced session.
+        /// </summary>
+        internal UInt32 GenerateForcedSession(IAppsSession apps_session)
+        {
+            unsafe
+            {
+                // Simply generating new session.
+                return GlobalSessions.AllGlobalSessions.CreateForcedSession(
+                    ref *session_,
+                    apps_session);
+            }
+        }
+#endif
+
         /// <summary>
         /// Update session details.
         /// </summary>
-        public void UpdateSessionDetails()
+        internal void UpdateSessionDetails()
         {
             // Don't do anything on internal requests.
             if (is_internal_request_)
@@ -1372,6 +1406,16 @@ namespace Starcounter.Advanced {
                 unsafe { return session_->random_salt_; }
             }
         }
+
+#if DEBUG
+        /// <summary>
+        /// Returns true if its a predefined session.
+        /// </summary>
+        /// <returns></returns>
+        internal Boolean IsSessionPredefined() {
+            unsafe { return 1 == session_->random_salt_; }
+        }
+#endif
 
         /// <summary>
         /// Gets the session struct.
@@ -1512,7 +1556,7 @@ namespace Starcounter.Advanced {
         /// Gets the content as byte array.
         /// </summary>
         /// <returns>Content bytes.</returns>
-        public Byte[] GetBodyByteArray_Slow()
+        internal Byte[] GetBodyByteArray_Slow()
         {
             // Checking if there is a content.
             if (content_len_bytes_ <= 0)
@@ -1530,7 +1574,7 @@ namespace Starcounter.Advanced {
         /// Gets the request as byte array.
         /// </summary>
         /// <returns>Request bytes.</returns>
-        public Byte[] GetRequestByteArray_Slow()
+        internal Byte[] GetRequestByteArray_Slow()
         {
             // Checking if there is a request.
             if (request_len_bytes_ <= 0)
@@ -1548,7 +1592,7 @@ namespace Starcounter.Advanced {
         /// Gets the request as UTF8 string.
         /// </summary>
         /// <returns>Request string.</returns>
-        public String GetRequestStringUtf8_Slow()
+        internal String GetRequestStringUtf8_Slow()
         {
             return new String((SByte*)(socket_data_ + request_offset_), 0, (Int32)request_len_bytes_, Encoding.UTF8);
         }
@@ -1557,7 +1601,7 @@ namespace Starcounter.Advanced {
         /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetBodyStringUtf8_Slow() {
+        internal String GetBodyStringUtf8_Slow() {
             // Checking if there is a body.
             if (content_len_bytes_ <= 0)
                 return null;
@@ -1606,7 +1650,7 @@ namespace Starcounter.Advanced {
         /// Gets headers as ASCII string.
         /// </summary>
         /// <returns>ASCII string.</returns>
-        public String GetHeadersStringUtf8_Slow()
+        internal String GetHeadersStringUtf8_Slow()
         {
             // Checking if there are cookies.
             if (headers_len_bytes_ <= 0)
@@ -1619,7 +1663,7 @@ namespace Starcounter.Advanced {
         /// Gets the cookies as byte array.
         /// </summary>
         /// <returns>Cookies bytes.</returns>
-        public Byte[] GetCookiesByteArray_Slow()
+        internal Byte[] GetCookiesByteArray_Slow()
         {
             // Checking if there are cookies.
             if (cookies_len_bytes_ <= 0)
@@ -1637,7 +1681,7 @@ namespace Starcounter.Advanced {
         /// Gets cookies as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        public String GetCookiesStringUtf8_Slow()
+        internal String GetCookiesStringUtf8_Slow()
         {
             // Checking if there are cookies.
             if (cookies_len_bytes_ <= 0)
