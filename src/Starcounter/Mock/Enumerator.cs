@@ -223,12 +223,10 @@ namespace Starcounter
                 goto err;
             Debug.Assert(_handle != 0);
 
-#if false
             if (newIterator) {
                 Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
                 SchedulerOwner.NrOpenIterators++;
             }
-#endif
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
