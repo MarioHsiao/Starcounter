@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter.Templates {
 
