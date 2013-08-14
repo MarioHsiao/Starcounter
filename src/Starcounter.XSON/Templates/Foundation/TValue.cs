@@ -51,7 +51,7 @@ namespace Starcounter {
     /// Class Property
     /// </summary>
     public abstract class TValue : Template {
-        private bool bound;
+        private Bound bound = Bound.No;
         private string bind;
 
         /// <summary>
@@ -70,7 +70,13 @@ namespace Starcounter {
             get { return bind; }
             set {
                 bind = value;
-                bound = !string.IsNullOrEmpty(bind);
+                var b = !string.IsNullOrEmpty(bind);
+                if (b) {
+                    bound = Bound.Yes;
+                }
+                else {
+                    bound = Bound.No;
+                }
             }
         }
 
@@ -78,7 +84,7 @@ namespace Starcounter {
         /// Gets a value indicating whether this template is bound.
         /// </summary>
         /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
-        public bool Bound { get { return bound; } set { bound = value; } }
+        public Bound Bound { get { return bound; } set { bound = value; } }
 
         /// <summary>
         /// 

@@ -21,7 +21,7 @@ namespace Starcounter.Templates {
 
             value = child as TValue;
             if (value != null) {
-                if (!value.Bound) {
+                if (value.Bound == Bound.No) {
                     propertyName = value.PropertyName;
                     if (!string.IsNullOrEmpty(propertyName)
                         && !(propertyName[0] == '_')) {
@@ -29,7 +29,7 @@ namespace Starcounter.Templates {
                     }
                 }
                 else if (value.Bind == null) {
-                    value.Bound = false;
+                    value.Bound = Bound.No;
                 }
             }
         }

@@ -100,7 +100,7 @@ namespace Starcounter {
 
             this._data = data;
 
-            if (Template.Bound) {
+            if (Template.Bound == Bound.Yes) {
                 ((Obj)this.Parent).SetBound(Template, data);
             }
 
