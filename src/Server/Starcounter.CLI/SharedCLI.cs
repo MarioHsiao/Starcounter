@@ -59,6 +59,11 @@ namespace Starcounter.CLI {
             /// </summary>
             public const string Db = "database";
             /// <summary>
+            /// Gets the option name of the parameter that specifies where
+            /// to look for static resources by default.
+            /// </summary>
+            public const string ResourceDirectory = "resourcedir";
+            /// <summary>
             /// Gets the option name of the paremeter indicating boot
             /// sequence steps to be logged.
             /// </summary>
@@ -162,6 +167,10 @@ namespace Starcounter.CLI {
             definition.DefineProperty(
                 Option.ServerHost,
                 "Specifies identify of the server host."
+                );
+            definition.DefineProperty(
+                Option.ResourceDirectory,
+                "Specifies the default directory for static resources."
                 );
             definition.DefineFlag(
                 Option.LogSteps,
