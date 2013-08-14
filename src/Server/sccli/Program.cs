@@ -191,8 +191,9 @@ namespace star {
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoDb), "Tells the host to load and run the executable");
             Console.WriteLine(formatting, "", "without loading any database into the process.");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoAutoCreateDb), "Prevents automatic creation of database.");
-            Console.WriteLine(formatting, string.Format("--{0}", StarOption.WaitForEntrypoint), "Runs the entrypoint fully before returning.");
+            Console.WriteLine(formatting, string.Format("--{0}", StarOption.ResourceDirectory), "Sets the default directory for static resources.");
             if (extended) {
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.WaitForEntrypoint), "Runs the entrypoint fully before returning.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Verbose), "Instructs star.exe to show verbose output.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.Syntax), "Shows the parsing of the command-line, then exits.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoColor), "Instructs star.exe to turn off colorizing output.");
