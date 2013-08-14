@@ -148,9 +148,9 @@ namespace Starcounter
             _current = null;
 
             UInt32 err = 999;
-            if (fromFinalize)
-                err = FreeIteratorFinalize();
-            else
+            //if (fromFinalize)
+                //err = FreeIteratorFinalize();
+            //else
                 err = sccoredb.SCIteratorFree(_handle, _verify);
 
             // Marking this enumerator as disposed.
