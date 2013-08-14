@@ -52,7 +52,15 @@ namespace Starcounter {
         /// <returns></returns>
         public new T Add() {
             TObjArr template = (TObjArr)Template;
-            var app = (T)template.App.CreateInstance(this);
+//            Template typed = template.App;
+            T app;
+//            if (typed != null) {
+//                app = (T)typed.CreateInstance(this);
+//            }
+//            else {
+                app = new T();
+//                app.Parent = this;
+//            }
             Add(app);
             return app;
         }
