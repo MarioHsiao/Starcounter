@@ -202,6 +202,22 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// The property name including parent path
+        /// </summary>
+        public string PropertyNameWithPath {
+            get {
+                if (Parent != null) {
+                    return Parent.PropertyNameWithPath + "." + PropertyName;
+                } else {
+                    if (PropertyName != null) {
+                        return "(?)." + PropertyName;
+                    }
+                    return this.InstanceType.Name;
+                }
+            }
+        }
+
+        /// <summary>
         /// Contains the default value for the property represented by this
         /// Template for each new App object.
         /// </summary>
