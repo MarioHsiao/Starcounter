@@ -80,7 +80,7 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             targets.Add("Bind", Bind);
             targets.Add("get_ThisHandle", GetThisHandle);
             targets.Add("get_Identity", GetThisIdentity);
-            //targets.Add("get_Retriever", GetThisRetriever);
+            targets.Add("get_Retriever", GetBindableRetriever);
             targets.Add("GetBoolean", GetBoolean);
             targets.Add("GetByte", GetByte);
             targets.Add("GetBinary", GetBinary);
@@ -303,8 +303,6 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             }
         }
 
-//        void 
-
         void GetThisIdentity(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             // Signature: ulong IBindable.get_Identity()
             impl.Attributes |= MethodAttributes.SpecialName;
@@ -322,6 +320,24 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
                 w.EmitInstructionField(OpCodeNumber.Ldfld, thisIdentityField);
                 w.EmitInstruction(OpCodeNumber.Ret);
+            }
+        }
+
+        void GetBindableRetriever(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            // Signature: IBindableRetriever IBindable.get_Retriever()
+            impl.Attributes |= MethodAttributes.SpecialName;
+            var returnType = module.FindType(typeof(IBindableRetriever), BindingOptions.Default);
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = returnType
+            };
+
+            var propertyName = bindableNETType.FullName + "." + "Retriever";
+            var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
+            getter.Method = impl;
+
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                EmitNotImplemented(attached);
             }
         }
 
