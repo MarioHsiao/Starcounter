@@ -105,7 +105,7 @@ namespace RunUnitTests
                     nunitProcess.Close();
                 }
 
-                String[] nativeTestsExes = Directory.GetFiles(outputFolder, "*_unitests.exe");
+                String[] nativeTestsExes = Directory.GetFiles(outputFolder, "*_unittest.exe");
 
                 foreach (String testAssemblyPath in nativeTestsExes)
                 {
