@@ -40,9 +40,21 @@ namespace PostBuildTasks
         {
             "*.json",
             "*.tests.dll",
-            "*.tests.exe"
-        };
+            "*.tests.exe",
 
+            "behemoth_unittest.*",
+            "commit_perftest.*",
+            "commit_unittest.*",
+            "fletcher32_test.*",
+            "log_reader_test.*",
+            "log_writer_test.*",
+            "max_io_bandwidth_test.*",
+            "memhelp4_perftest.*",
+            "perfmon.*",
+            "testapp1.*",
+            "TurboTextTest.*"
+        }; 
+   
         /// <summary>
         /// Clean output directory.
         /// </summary>
