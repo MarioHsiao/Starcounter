@@ -132,7 +132,7 @@ namespace Starcounter.Internal.XSON {
             if (template.Parent is TObj)
                 className = ((TObj)template.Parent).ClassName;
             else if (template.Parent is TObjArr) {
-                className = ((TObjArr)template.Parent).App.ClassName;
+                className = ((TObjArr)template.Parent).ElementType.ClassName;
             }
 
             if (className == null)

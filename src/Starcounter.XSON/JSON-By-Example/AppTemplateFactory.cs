@@ -664,7 +664,7 @@ namespace Starcounter.Internal.JsonTemplate
             newTemplate.Parent = (TContainer)array;
             //			newTemplate.TemplateName = "__ArrayType__"; // All children needs an id
             var arr = ((TObjArr)array);
-            arr.App = newTemplate;
+            arr.ElementType = newTemplate;
             newTemplate.Parent = arr;
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;
