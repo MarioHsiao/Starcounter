@@ -76,7 +76,9 @@ namespace Starcounter {
                 app.Template = (TObj)typed;
             }
             else {
-                app.Template = new TJson();
+                app.CreateDynamicTemplate();
+//                app.Template = new TJson();
+//                CreateGe
             }
             Add(app);
             return app;
