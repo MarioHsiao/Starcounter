@@ -54,5 +54,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             get { return _Inherits; }
         }
 
+
+
     }
 }

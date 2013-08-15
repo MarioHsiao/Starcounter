@@ -79,6 +79,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ThreadPage.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="databound.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -111,6 +114,10 @@
     <None Include="Compiler\incorrect.json.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ThreadPage.json.cs">
+      <DependentUpon>ThreadPage.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="JsonSerializeTest.cs" />
     <Compile Include="NewtonsoftSerializer.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
@@ -127,6 +134,7 @@
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Compile Include="TestInheritance.cs" />
     <Compile Include="TestTemplates.cs" />
     <None Include="TestMessage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

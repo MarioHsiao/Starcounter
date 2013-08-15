@@ -79,10 +79,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <exception cref="System.Exception"></exception>
         public override string ToString() {
             if (ClassName != null) {
-                var str = "NCLASS " + ClassName;
-                if (Inherits != null) {
+                var str = "CLASS " + ClassName;
+                //if (Inherits != null) {
                     str += ":" + Inherits;
-                }
+                //}
                 return str;
             }
             throw new Exception();

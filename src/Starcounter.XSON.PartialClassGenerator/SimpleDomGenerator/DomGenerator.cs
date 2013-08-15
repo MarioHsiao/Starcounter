@@ -159,14 +159,20 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 Parent = acn,
                 NValueClass = acn,
                 Template = at,
-                _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TJson",
                 AutoBindProperties = metadata.AutoBindToDataObject
+            };
+
+            var mcn = new NObjMetadata(this) {
+                Parent = acn,
+                NTemplateClass = tcn,
             };
 
             if (metadata == CodeBehindMetadata.Empty) {
                 // No codebehind. Need to set a few extra properties depending on metadata from json
                 acn.IsPartial = false;
                 acn._Inherits = DefaultObjTemplate.InstanceType.Name;
+                tcn._Inherits = DefaultObjTemplate.GetType().Name; // "TPuppet,TJson",
+                mcn._Inherits = "ObjMetadata";
 
                 // A specific IBindable type have been specified in the json.
                 // We add it as a generic value on the Json-class this class inherits from.
@@ -178,11 +184,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, at.CompilerOrigin);
             }
 
-            var mcn = new NObjMetadata(this) {
-                Parent = acn,
-                NTemplateClass = tcn,
-                _Inherits = "ObjMetadata"
-            };
+ 
 
             tcn.NMetadataClass = mcn;
 
@@ -224,7 +226,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 ConnectCodeBehindClasses(root, metadata);
                 GenerateInputBindings((NTAppClass)acn.NTemplateClass, metadata);
             }
-            CheckMissingBindingInformation(tcn);
+//            CheckMissingBindingInformation(tcn); // TODO! Reintroduce as warnings
 
             return root;
         }
