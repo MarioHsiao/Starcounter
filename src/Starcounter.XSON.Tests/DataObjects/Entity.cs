@@ -38,10 +38,11 @@ namespace Starcounter.Internal.XSON.Tests {
             }
         }
 
-//        IBindableRetriever IBindable.Retriever {
-//            get {
-//                return Database.The;
-//            }
-//        }
+        /// <inheritdoc />
+        IBindableRetriever IBindable.Retriever {
+            get {
+                return Database.The;
+            }
+        }
     }
 }
