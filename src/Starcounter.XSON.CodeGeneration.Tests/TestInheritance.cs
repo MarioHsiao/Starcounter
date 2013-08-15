@@ -11,7 +11,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestClassNames() {
             var code = PartialClassGenerator.GenerateTypedJsonCode(
                 "ThreadPage.json",
-                "ThreadPage.json.cs", true );
+                "ThreadPage.json.cs", false );
             Console.WriteLine( code );
         }
     }
