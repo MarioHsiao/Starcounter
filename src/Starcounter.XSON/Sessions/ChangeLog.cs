@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using System.Text;
+using Starcounter.Internal.JsonPatch;
 
 namespace Starcounter {
     /// <summary>
@@ -16,7 +18,7 @@ namespace Starcounter {
     /// </summary>
     public class ChangeLog : IEnumerable<Change> {
         private List<Change> _Changes;
-        
+
 //        [ThreadStatic]
         private static ChangeLog log;
 
@@ -97,6 +99,17 @@ namespace Starcounter {
         /// </summary>
         /// <value></value>
         public Int32 Count { get { return _Changes.Count; } }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string ToJsonPatch() {
+            var buffer = new List<byte>();
+            HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
+            return Encoding.UTF8.GetString(buffer.ToArray());
+        }
     }
 
     /// <summary>
@@ -185,5 +198,6 @@ namespace Starcounter {
         internal static Change Update(Obj obj, TValue property) {
             return new Change(Change.REPLACE, obj, property, -1);
         }
+
     }
 }

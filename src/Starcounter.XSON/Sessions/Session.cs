@@ -31,6 +31,15 @@ namespace Starcounter {
         ChangeLog _ChangeLog;
 
         /// <summary>
+        /// 
+        /// </summary>
+        public ChangeLog ChangeLog {
+            get {
+                return _ChangeLog;
+            }
+        }
+
+        /// <summary>
         /// Cached pages dictionary.
         /// </summary>
         Dictionary<String, Obj> JsonNodeCacheDict;
