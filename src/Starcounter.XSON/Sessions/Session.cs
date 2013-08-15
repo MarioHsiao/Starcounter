@@ -169,17 +169,17 @@ namespace Starcounter {
         /// Setting data object.
         /// </summary>
         /// <param name="data"></param>
-        private void SetData(Obj data) {
+        private void SetData(Obj json) {
 
             // If we are replacing the JSON tree, we need to dispose previous one.
             if (_Data != null) {
                 DisposeJsonRecursively(current._Data);
             }
-            _Data = data;
-
+            _Data = json;
+            json._Session = this;
             // We don't want any changes logged during this request since
             // we will have to send the whole object anyway in the response.
-            ChangeLog.CurrentOnThread = null;
+            this._ChangeLog = null;
         }
 
         /// <summary>

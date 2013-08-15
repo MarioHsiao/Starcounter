@@ -14,8 +14,9 @@ using System.IO;
 //using Starcounter.Internal.JsonTemplate;
 using Starcounter.Advanced;
 using Starcounter.XSON.Tests;
+using Starcounter.Internal.XSON;
 
-namespace Starcounter.Internal.JsonPatch.Test
+namespace Starcounter.Internal.XSON.Tests
 {
     /// <summary>
     /// Class JsonPatchTest
