@@ -13,7 +13,7 @@ using Starcounter.Internal;
 using Starcounter.Templates;
 
 
-namespace Starcounter.Internal.JsonPatch {
+namespace Starcounter.Internal.XSON {
     /// <summary>
     /// Struct AppAndTemplate
     /// </summary>
