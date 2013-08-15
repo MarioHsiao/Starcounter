@@ -93,10 +93,10 @@ namespace Starcounter
         /// <summary>
         /// Keeps track of number of open kernel iterators
         /// </summary>
-        internal uint NrOpenIterators = 0;
+        //internal uint NrOpenIterators = 0;
 
-        internal uint NrScheduledDisposes = 0;
-        internal object NrScheduledDisposesObj = new object();
+        //internal uint NrScheduledDisposes = 0;
+        //internal object NrScheduledDisposesObj = new object();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Scheduler" /> class.
