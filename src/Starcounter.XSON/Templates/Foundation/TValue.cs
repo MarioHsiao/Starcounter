@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.Advanced.XSON;
 using Starcounter.Advanced;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
     /// <summary>
@@ -50,8 +51,8 @@ namespace Starcounter {
     /// Class Property
     /// </summary>
     public abstract class TValue : Template {
-        private bool bound;
-        private string bind;
+        private Bound _Bound = Bound.No;
+        private string _Bind;
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -66,10 +67,16 @@ namespace Starcounter {
         /// </summary>
         /// <value>The name of the property to bind.</value>
         public string Bind {
-            get { return bind; }
+            get { return _Bind; }
             set {
-                bind = value;
-                bound = !string.IsNullOrEmpty(bind);
+                _Bind = value;
+                var b = !string.IsNullOrEmpty(_Bind);
+                if (b) {
+                    _Bound = Bound.Yes;
+                }
+                else {
+                    _Bound = Bound.No;
+                }
             }
         }
 
@@ -77,7 +84,7 @@ namespace Starcounter {
         /// Gets a value indicating whether this template is bound.
         /// </summary>
         /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
-        public bool Bound { get { return bound; } set { bound = value; } }
+        public Bound Bound { get { return _Bound; } set { _Bound = value; } }
 
         /// <summary>
         /// 

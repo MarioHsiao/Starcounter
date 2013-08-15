@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter.Templates {
 
@@ -48,7 +49,7 @@ namespace Starcounter.Templates {
         /// in this object array.
         /// </summary>
         /// <value>The app.</value>
-        public override TObj App {
+        public override TObj ElementType {
             get {
                 if (_Single.Length == 0)
                     return null;
@@ -97,7 +98,7 @@ namespace Starcounter.Templates {
         /// in this array.
         /// </summary>
         /// <value>The obj template adhering to each element in this array</value>
-        public abstract TObj App { get; set; }
+        public abstract TObj ElementType { get; set; }
 
         /// <summary>
         /// 
@@ -105,7 +106,7 @@ namespace Starcounter.Templates {
         public string InstanceDataTypeName {
             get { return instanceDataTypeName; }
             set {
-                TObj app = App;
+                TObj app = ElementType;
                 if (app != null)
                     app.InstanceDataTypeName = value;
                 instanceDataTypeName = value;

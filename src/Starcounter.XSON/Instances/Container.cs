@@ -33,7 +33,17 @@ namespace Starcounter {
                 //    throw new Exception("Template is already set for App. Cannot change template once it is set");
                 //}
                 _Template = (TContainer)value;
-                _Template.Sealed = true;
+
+                if (_Template is TObj && ((TObj)_Template).IsDynamic) {
+                    TObj t = (TObj)_Template;
+                    if (t.SingleInstance != null && t.SingleInstance != this) {
+                        throw new Exception(String.Format("You cannot assign a Template ({0}) for a dynamic Json object (i.e. an Expando like object) to a new Json object ({0})",value,this));
+                    }
+                    ((TObj)_Template).SingleInstance = (Obj)this;
+                }
+                else {
+                    _Template.Sealed = true;
+                }
 #if QUICKTUPLE
                 _InitializeValues();
 #endif

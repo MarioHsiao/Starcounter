@@ -415,14 +415,22 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 if (template is TObj) {
                     appTemplate = (TObj)template;
                 } else if (template is TObjArr) {
-                    appTemplate = ((TObjArr)template).App;
+                    appTemplate = ((TObjArr)template).ElementType;
                 } else {
                     // TODO:
                     // Change to starcounter errorcode.
+                    if (template == null) {
+                        throw new Exception(
+                            String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
+                                jsonMapName,
+                                mapParts[i]
+                            ));
+                    }
                     throw new Exception(
-                        String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found or has the wrong type.",
+                        String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} has the unsupported type {2}.",
                             jsonMapName,
-                            mapParts[i]
+                            mapParts[i],
+                            template.GetType().Name
                         ));
                 }
             }
@@ -657,19 +665,19 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 Template = alt
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
-            var vlist = new NArrXXXClass(this, "Arr", ValueClasses[alt.App], null, alt);
+            var vlist = new NArrXXXClass(this, "Arr", ValueClasses[alt.ElementType], null, alt);
             amn.Type = vlist;
 
             tmn.Type = new NArrXXXClass(this, "TArr",
-                                            ValueClasses[alt.App],
-                                            TemplateClasses[alt.App], alt);
+                                            ValueClasses[alt.ElementType],
+                                            TemplateClasses[alt.ElementType], alt);
             cstmn.Type = new NArrXXXClass(this, "TArr",
-                                            ValueClasses[alt.App],
-                                            TemplateClasses[alt.App], alt);
+                                            ValueClasses[alt.ElementType],
+                                            TemplateClasses[alt.ElementType], alt);
 
             mmn.Type = new NArrXXXClass(this, "ArrMetadata",
-                                            ValueClasses[alt.App],
-                                            TemplateClasses[alt.App], alt);
+                                            ValueClasses[alt.ElementType],
+                                            TemplateClasses[alt.ElementType], alt);
 
             //ntempl.Template = alt;
             //            NTemplateClass.Classes[alt] = tlist;
@@ -776,7 +784,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
 
                     template = np.Template;
                     if (template is TObjArr) {
-                        template = ((TObjArr)template).App;
+                        template = ((TObjArr)template).ElementType;
                     }
                     propertyAppClass = (NTAppClass)FindTemplateClass(template);
                 }

@@ -34,7 +34,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;GW_URI_MATCHING_CODEGEN</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -46,7 +46,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE;GW_URI_MATCHING_CODEGEN</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DebugType>pdbonly</DebugType>
@@ -75,11 +75,7 @@
   <ItemGroup>
     <Compile Include="BuiltInRestHandlers\PuppetRestHandler.cs" />
     <Compile Include="AppRestServer.cs" />
-    <Compile Include="PATCH\HttpPatchBuilder.cs" />
     <Compile Include="BuiltInRestHandlers\SqlRestHandler.cs" />
-    <Compile Include="PATCH\JsonPatch.cs" />
-    <Compile Include="PATCH\JsonPointer.cs" />
-    <Compile Include="X.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BuiltInRestHandlers\PuppetToViewConverter.cs" />
   </ItemGroup>
@@ -96,9 +92,9 @@
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
-      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
-      <Name>Starcounter.Rest</Name>
+    <ProjectReference Include="..\Starcounter.Node\Starcounter.Node.csproj">
+      <Project>{b640d3ff-ed2b-46c1-b49d-584efadfcfad}</Project>
+      <Name>Starcounter.Node</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
@@ -111,6 +107,10 @@
     <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
       <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
       <Name>Starcounter.Hypermedia</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Rest\Starcounter.Rest.csproj">
+      <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
+      <Name>Starcounter.Rest</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

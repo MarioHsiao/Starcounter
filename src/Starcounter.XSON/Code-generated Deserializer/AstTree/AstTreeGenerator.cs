@@ -66,7 +66,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 if (child is TObj) {
                     tChildObj = (TObj)child;
                 } else if (child is TObjArr) {
-                    tChildObj = ((TObjArr)child).App;
+                    tChildObj = ((TObjArr)child).ElementType;
                 }
 
                 if (tChildObj != null) {

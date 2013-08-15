@@ -1,92 +1,9 @@
-// ***********************************************************************
-// <copyright file="JsonPatch.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
+﻿
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
-using Newtonsoft.Json;
-using Starcounter.Internal;
 using Starcounter.Templates;
-
+using System;
 namespace Starcounter.Internal.JsonPatch {
-    /// <summary>
-    /// Struct AppAndTemplate
-    /// </summary>
-    internal struct AppAndTemplate {
-        /// <summary>
-        /// The app
-        /// </summary>
-        public readonly Obj App;
-        /// <summary>
-        /// The template
-        /// </summary>
-        public readonly Template Template;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AppAndTemplate" /> struct.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="template">The template.</param>
-        public AppAndTemplate(Obj app, Template template) {
-            App = app;
-            Template = template;
-        }
-    }
-
-    internal enum JsonPatchMember {
-        Invalid,
-        Op,
-        Path,
-        Value
-    }
-
-    /// <summary>
-    /// Class for evaluating, handling and creating json-patch to and from typed json objects 
-    /// and logged changes done in a typed json object during a request.
-    /// 
-    /// The json-patch is implemented according to http://tools.ietf.org/html/draft-ietf-appsawg-json-patch-10
-    /// </summary>
-    public class JsonPatch {
-        public const Int32 UNDEFINED = 0;
-        public const Int32 REMOVE = 1;
-        public const Int32 REPLACE = 2;
-        public const Int32 ADD = 3;
-
-        private static string[] _patchTypeToString;
-        private static byte[] _addPatchArr;
-        private static byte[] _removePatchArr;
-        private static byte[] _replacePatchArr;
-
-        /// <summary>
-        /// Initializes static members of the <see cref="JsonPatch" /> class.
-        /// </summary>
-        static JsonPatch() {
-            _patchTypeToString = new String[4];
-            _patchTypeToString[UNDEFINED] = "undefined";
-            _patchTypeToString[REMOVE] = "remove";
-            _patchTypeToString[REPLACE] = "replace";
-            _patchTypeToString[ADD] = "add";
-
-            _addPatchArr = Encoding.UTF8.GetBytes(_patchTypeToString[ADD]);
-            _removePatchArr = Encoding.UTF8.GetBytes(_patchTypeToString[REMOVE]);
-            _replacePatchArr = Encoding.UTF8.GetBytes(_patchTypeToString[REPLACE]);
-        }
-
-        /// <summary>
-        /// Patches the type to string.
-        /// </summary>
-        /// <param name="patchType">Type of the patch.</param>
-        /// <returns>String.</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">patchType</exception>
-        private static String PatchTypeToString(Int32 patchType) {
-            if ((patchType < 0) || (patchType >= _patchTypeToString.Length))
-                throw new ArgumentOutOfRangeException("patchType");
-            return _patchTypeToString[patchType];
-        }
+    partial class JsonPatch {
 
         /// <summary>
         /// Evaluates the patches.
@@ -143,7 +60,8 @@ namespace Starcounter.Internal.JsonPatch {
                         HandleParsedPatch(rootApp, patchType, pointer, value);
                     }
                     bracketCount++;
-                } else if (current == '}') {
+                }
+                else if (current == '}') {
                     bracketCount--;
                 }
                 offset++;
@@ -195,7 +113,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <returns></returns>
         private static int GetPatchMember(byte[] contentArr, int offset, out JsonPatchMember member) {
             member = JsonPatchMember.Invalid;
-            switch (contentArr[offset]){
+            switch (contentArr[offset]) {
                 case (byte)'o':
                     offset++;
                     if (contentArr[offset] == 'p') {
@@ -205,10 +123,10 @@ namespace Starcounter.Internal.JsonPatch {
                     break;
                 case (byte)'p':
                     if (contentArr[offset + 1] == 'a'
-                        &&  contentArr[offset + 2] == 't'
-                        &&  contentArr[offset + 3] == 'h') {
-                            offset += 4;
-                            member = JsonPatchMember.Path;
+                        && contentArr[offset + 2] == 't'
+                        && contentArr[offset + 3] == 'h') {
+                        offset += 4;
+                        member = JsonPatchMember.Path;
                     }
                     break;
                 case (byte)'v':
@@ -216,13 +134,13 @@ namespace Starcounter.Internal.JsonPatch {
                         && contentArr[offset + 2] == 'l'
                         && contentArr[offset + 3] == 'u'
                         && contentArr[offset + 3] == 'u') {
-                            offset += 5;
-                            member = JsonPatchMember.Value;
+                        offset += 5;
+                        member = JsonPatchMember.Value;
                     }
                     break;
             }
 
-            if (member == JsonPatchMember.Invalid){
+            if (member == JsonPatchMember.Invalid) {
                 throw new Exception("Invalid jsonpatch");
             }
             return offset;
@@ -254,11 +172,12 @@ namespace Starcounter.Internal.JsonPatch {
                         break;
                     offset++;
                 }
-                    
-            } else {
+
+            }
+            else {
                 while (offset < contentArr.Length) {
-                    if (contentArr[offset] == ' ' 
-                        || contentArr[offset] == '}' 
+                    if (contentArr[offset] == ' '
+                        || contentArr[offset] == '}'
                         || contentArr[offset] == ',')
                         break;
                     offset++;
@@ -295,11 +214,13 @@ namespace Starcounter.Internal.JsonPatch {
                         length = offset - start;
                         offset++;
                         break;
-                    } else {
+                    }
+                    else {
                         offset++;
                         start = offset;
                     }
-                } else if (current == ',') {
+                }
+                else if (current == ',') {
                     length = offset - start;
                     offset++;
                     break;
@@ -335,7 +256,8 @@ namespace Starcounter.Internal.JsonPatch {
             if (IsPatchVerb(_replacePatchArr, contentArr, offset, contentArr.Length)) {
                 patchType = REPLACE;
                 offset += _replacePatchArr.Length;
-            } else {
+            }
+            else {
                 throw new NotSupportedException();
             }
 
@@ -359,7 +281,8 @@ namespace Starcounter.Internal.JsonPatch {
                     return false;
                 if (buffer[offset] == verbName[i]) {
                     offset++;
-                } else {
+                }
+                else {
                     return false;
                 }
             }
@@ -419,7 +342,8 @@ namespace Starcounter.Internal.JsonPatch {
 
                     Arr list = mainApp.Get((TObjArr)current);
                     current = list[index];
-                } else {
+                }
+                else {
                     if (currentIsTApp) {
                         mainApp = (Obj)mainApp.Get((TObj)current);
                         currentIsTApp = false;
@@ -441,11 +365,14 @@ namespace Starcounter.Internal.JsonPatch {
 
                 if (current is Obj) {
                     mainApp = current as Obj;
-                } else if (current is TObj) {
+                }
+                else if (current is TObj) {
                     currentIsTApp = true;
-                } else if (current is TObjArr) {
+                }
+                else if (current is TObjArr) {
                     nextTokenShouldBeIndex = true;
-                } else {
+                }
+                else {
                     // Current token points to a value or an action.
                     // No more tokens should exist. If it does we need to 
                     // return an error.
@@ -458,94 +385,6 @@ namespace Starcounter.Internal.JsonPatch {
             // We should return the Metadata instance for the specific 
             // template instead of instancing or own structure here.
             return new AppAndTemplate(mainApp, current as Template);
-        }
-
-        // TODO:
-        // Change this to return a bytearray since that is the way we are going to send it
-        // in the response, or make it so it creates a series of json patches in a submitted
-        // buffer instead of allocating a new one here.
-        /// <summary>
-        /// Builds the json patch.
-        /// </summary>
-        /// <param name="patchType">Type of the patch.</param>
-        /// <param name="nearestApp">The nearest app.</param>
-        /// <param name="from">From.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="index">The index.</param>
-        /// <returns>String.</returns>
-        public static String BuildJsonPatch(Int32 patchType, Obj nearestApp, Template from, Object value, Int32 index) {
-            List<String> pathList = new List<String>();
-            StringBuilder sb = new StringBuilder(40);
-
-            sb.Append("{\"op\":\"");
-            sb.Append(PatchTypeToString(patchType));
-            sb.Append("\",\"path\":\"");
-            IndexPathToString(sb, from, nearestApp);
-
-            if (index != -1) {
-                sb.Append('/');
-                sb.Append(index);
-            }
-            sb.Append('"');
-
-            if (patchType != REMOVE) {
-                sb.Append(",\"value\":");
-                if (value is Obj) {
-                    var oo = (Obj)value;
-                    sb.Append(oo.ToJson());
-                } else {
-                    sb.Append(JsonConvert.SerializeObject(value));
-                }
-            }
-            sb.Append('}');
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Indexes the path to string.
-        /// </summary>
-        /// <param name="sb">The sb.</param>
-        /// <param name="from">From.</param>
-        /// <param name="nearestApp">The nearest app.</param>
-        private static void IndexPathToString(StringBuilder sb, Template from, Obj nearestApp) {
-            Obj app;
-            Container parent;
-            Boolean nextIndexIsPositionInList;
-            Int32[] path;
-            Arr list;
-            TObjArr listProp;
-            Template template;
-
-            // Find the root app.
-            parent = nearestApp;
-            while (parent.Parent != null)
-                parent = parent.Parent;
-            app = (Obj)parent;
-
-            nextIndexIsPositionInList = false;
-            listProp = null;
-            path = nearestApp.IndexPathFor(from);
-            for (Int32 i = 0; i < path.Length; i++) {
-                if (nextIndexIsPositionInList) {
-                    nextIndexIsPositionInList = false;
-                    list = (Arr)app.Get(listProp);
-                    app = list[path[i]];
-                    sb.Append('/');
-                    sb.Append(path[i]);
-                } else {
-                    template = app.Template.Properties[path[i]];
-                    sb.Append('/');
-                    sb.Append(template.TemplateName);
-
-                    if (template is TObjArr) {
-                        // next index in the path is the index in the list.
-                        listProp = (TObjArr)template;
-                        nextIndexIsPositionInList = true;
-                    } else if (template is TObj) {
-                        app = app.Get((TObj)template);
-                    }
-                }
-            }
         }
     }
 }
