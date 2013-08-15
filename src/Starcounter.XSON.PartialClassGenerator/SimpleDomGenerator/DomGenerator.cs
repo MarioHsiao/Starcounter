@@ -224,7 +224,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 ConnectCodeBehindClasses(root, metadata);
                 GenerateInputBindings((NTAppClass)acn.NTemplateClass, metadata);
             }
-            CheckMissingBindingInformation(tcn);
+           // CheckMissingBindingInformation(tcn);
 
             return root;
         }
