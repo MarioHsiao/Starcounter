@@ -55,6 +55,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         FieldDefDeclaration thisIdentityField;
         FieldDefDeclaration thisBindingField;
         DbStateMethodProvider.ViewAccessors viewAccessLayer;
+        static FieldInfo retreiverInstanceFieldInfo;
+        IField retreiverInstanceField;
 
         static ImplementsIObjectProxy() {
             methodAttributes =
@@ -63,6 +65,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 MethodAttributes.Final |
                 MethodAttributes.HideBySig |
                 MethodAttributes.NewSlot;
+            retreiverInstanceFieldInfo = typeof(DatabaseObjectRetriever).GetField(
+                "Instance", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
         }
 
         internal ImplementsIObjectProxy(ModuleDeclaration module, InstructionWriter writer, DbStateMethodProvider.ViewAccessors viewGetMethods) {
@@ -75,7 +79,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             bindableNETType = typeof(IBindable);
             bindableTypeSignature = module.FindType(bindableNETType, BindingOptions.Default);
             viewAccessLayer = viewGetMethods;
-            
+            retreiverInstanceField = module.FindField(retreiverInstanceFieldInfo, BindingOptions.DontThrowException);
+
             targets = new Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>>();
             targets.Add("Bind", Bind);
             targets.Add("get_ThisHandle", GetThisHandle);
@@ -337,7 +342,10 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             getter.Method = impl;
 
             using (var attached = new AttachedInstructionWriter(writer, impl)) {
-                EmitNotImplemented(attached);
+                var w = attached.Writer;
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstructionField(OpCodeNumber.Ldsfld, retreiverInstanceField);
+                w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
 
