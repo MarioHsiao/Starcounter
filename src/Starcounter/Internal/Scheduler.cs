@@ -90,7 +90,6 @@ namespace Starcounter
             get { return _id; }
         }
 
-        uint _NrOpenIterators = 0;
         /// <summary>
         /// Keeps track of number of open kernel iterators
         /// </summary>
