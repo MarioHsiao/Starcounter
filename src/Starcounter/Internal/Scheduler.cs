@@ -94,15 +94,7 @@ namespace Starcounter
         /// <summary>
         /// Keeps track of number of open kernel iterators
         /// </summary>
-        internal uint NrOpenIterators {
-            get { return _NrOpenIterators; }
-            set {
-                if (value < NROPENITERATORSPERSCHEDULER)
-                    _NrOpenIterators = value;
-                else
-                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
-            }
-        }
+        internal uint NrOpenIterators = 0;
 
         internal uint NrScheduledDisposes = 0;
         internal object NrScheduledDisposesObj = new object();
