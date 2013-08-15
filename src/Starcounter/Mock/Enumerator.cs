@@ -458,10 +458,10 @@ namespace Starcounter
             throw ErrorCode.ToException(err);
         }
 
-        /// <summary>
-        /// Frees kernel iterator, while assuming of being in GC thread.
-        /// </summary>
-        /// <returns>Error code returned by the kernel</returns>
+        ///// <summary>
+        ///// Frees kernel iterator, while assuming of being in GC thread.
+        ///// </summary>
+        ///// <returns>Error code returned by the kernel</returns>
         //private UInt32 FreeIteratorFinalize() {
         //    Debug.Assert(SchedulerOwner != null);
         //    // Should create new working thread on the scheduler where this 
