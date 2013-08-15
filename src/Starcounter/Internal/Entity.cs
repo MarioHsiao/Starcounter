@@ -169,10 +169,11 @@ namespace Starcounter.Internal {
             get { return __sc__this_id__; }
         }
 
-//        IBindableRetriever Advanced.IBindable.Retriever {
-//            get {
-//                return  DatabaseObjectRetriever.Instance;
-//            }
-//        }
+        /// <inheritdoc />
+        IBindableRetriever Advanced.IBindable.Retriever {
+            get {
+                return DatabaseObjectRetriever.Instance;
+            }
+        }
     }
 }
