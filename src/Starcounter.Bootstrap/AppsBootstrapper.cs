@@ -3,7 +3,6 @@ using HttpStructs;
 using Modules;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
-using Starcounter.Internal.XSON;
 using Starcounter.Logging;
 using System;
 using System.Collections.Generic;

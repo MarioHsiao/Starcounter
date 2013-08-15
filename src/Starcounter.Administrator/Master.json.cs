@@ -7,7 +7,7 @@ using Starcounter.Administrator.API;
 using Starcounter.Administrator.API.Handlers;
 using Starcounter.Advanced;
 using Starcounter.Internal;
-using Starcounter.Internal.XSON;
+using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.REST;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;

@@ -11,7 +11,7 @@ using Starcounter.Internal.REST;
 using Starcounter.Advanced;
 using System.Net;
 using Codeplex.Data;
-using Starcounter.Internal.XSON;
+using Starcounter.Internal.JsonPatch;
 using System.Collections.Generic;
 
 namespace Starcounter.Internal.Web {

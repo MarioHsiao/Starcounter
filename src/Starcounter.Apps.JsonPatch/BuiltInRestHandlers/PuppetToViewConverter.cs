@@ -1,7 +1,8 @@
 
 
+using Starcounter.Internal.JsonPatch;
 using System;
-namespace Starcounter.Internal.XSON {
+namespace Starcounter.Internal {
 
     /// <summary>
     /// 

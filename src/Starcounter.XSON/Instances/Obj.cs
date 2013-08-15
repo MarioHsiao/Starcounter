@@ -10,7 +10,6 @@ using System;
 using Starcounter.Internal;
 using Starcounter.Templates.Interfaces;
 using System.Runtime.CompilerServices;
-using System.Collections.Generic;
 
 
 
@@ -83,17 +82,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns all properties that are objects rather than
-        /// value types (i.e. Json Objects and Arrays)
-        /// </summary>
-        public override IEnumerator<Container> Elements {
-            get {
-                return null; 
-            }
-        }
-
-
-        /// <summary>
         /// Transaction applied to this node.
         /// </summary>
         private ITransaction _transaction;
@@ -115,6 +103,7 @@ namespace Starcounter {
             : base() {
             _cacheIndexInArr = -1;
             _transaction = null;
+			LogChanges = false;
         }
 
         /// <summary>
@@ -318,6 +307,12 @@ namespace Starcounter {
                 return _Metadata;
             }
         }
+
+		/// <summary>
+		/// If set true and a ChangeLog is set on the current thread, all 
+		/// changes done to this Obj will be logged.
+		/// </summary>
+		public bool LogChanges { get; set; }
 
         public virtual void ProcessInput<V>(TValue<V> template, V value) {
         }

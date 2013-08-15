@@ -8,7 +8,6 @@ using System;
 
 using Starcounter.Templates;
 using Starcounter.Advanced;
-using System.Collections.Generic;
 namespace Starcounter {
 
     /// <summary>
@@ -16,35 +15,6 @@ namespace Starcounter {
     /// </summary>
     public abstract class Container : StarcounterBase
     {
-
-        /// <summary>
-        /// Session is set recursivly on all children for fast access
-        /// </summary>
-        internal Session _Session;
-
-
-        /// <summary>
-        /// Session is set recursivly on all children for fast access
-        /// </summary>
-        /// <param name="s">The session to set</param>
-        internal void _SetSession(Session s) {
-            this._Session = s;
-            foreach (var e in Elements) {
-                // For speed, we set Session recursivly to provide
-                // fast access.
-                e._SetSession(s);
-            }
-        }
-
-
-
-        /// <summary>
-        /// Returns all child properties or elements that are
-        /// objects (i.e. Json objects or Json Arrays).
-        /// </summary>
-        public abstract IEnumerable<Container> Elements {
-            get;
-        }
 
 
         /// <summary>

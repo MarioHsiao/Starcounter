@@ -19,15 +19,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns all child elements in this array
-        /// </summary>
-        public override System.Collections.Generic.IEnumerator<Container> Elements {
-            get {
-                return null;
-            }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="res"></param>
