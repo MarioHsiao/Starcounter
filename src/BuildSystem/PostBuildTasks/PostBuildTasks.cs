@@ -42,6 +42,7 @@ namespace PostBuildTasks
             "*.tests.dll",
             "*.tests.exe",
 
+            // Blue test projects.
             "behemoth_unittest.*",
             "commit_perftest.*",
             "commit_unittest.*",
@@ -51,7 +52,9 @@ namespace PostBuildTasks
             "max_io_bandwidth_test.*",
             "memhelp4_perftest.*",
             "perfmon.*",
+            "sccorelog_test.*",
             "testapp1.*",
+            "tpca_client.*",
             "TurboTextTest.*"
         }; 
    
