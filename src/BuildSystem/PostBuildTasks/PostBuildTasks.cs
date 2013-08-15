@@ -41,6 +41,7 @@ namespace PostBuildTasks
             "*.json",
             "*.tests.dll",
             "*.tests.exe",
+            "*.tests.pdb",
 
             // Blue test projects.
             "behemoth_unittest.*",
