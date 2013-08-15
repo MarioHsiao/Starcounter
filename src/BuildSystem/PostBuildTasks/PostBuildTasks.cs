@@ -54,6 +54,7 @@ namespace PostBuildTasks
             "memhelp4_perftest.*",
             "perfmon.*",
             "sccorelog_test.*",
+            "stream_buffer_test.*",
             "testapp1.*",
             "tpca_client.*",
             "TurboTextTest.*"
