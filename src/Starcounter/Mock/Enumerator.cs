@@ -42,7 +42,7 @@ namespace Starcounter
         /// <summary>
         /// Reference to the scheduler instance, where the enumerator is created
         /// </summary>
-        internal readonly Scheduler SchedulerOwner;
+        //internal readonly Scheduler SchedulerOwner;
 
         private FilterCallback _filterCallback = null;
 
@@ -62,7 +62,7 @@ namespace Starcounter
             : base()
         {
             _filterCallback = filterCallback;
-            SchedulerOwner = Scheduler.GetInstance();
+            //SchedulerOwner = Scheduler.GetInstance();
         }
 
         // Enumerator already exists, we need to update the contents.
@@ -81,7 +81,7 @@ namespace Starcounter
             {
                 _handle = handle;
                 _verify = verify;
-                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+                //Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
             }
         }
         /// <summary>
@@ -223,13 +223,13 @@ namespace Starcounter
                 goto err;
             Debug.Assert(_handle != 0);
 
-            if (newIterator) {
-                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
-                if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
-                    SchedulerOwner.NrOpenIterators++;
-                else
-                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
-            }
+            //if (newIterator) {
+            //    Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+            //    if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
+            //        SchedulerOwner.NrOpenIterators++;
+            //    else
+            //        ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
+            //}
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
@@ -345,7 +345,7 @@ namespace Starcounter
         /// <summary>
         /// Reference to the scheduler instance, where the enumerator is created
         /// </summary>
-        internal readonly Scheduler SchedulerOwner;
+        //internal readonly Scheduler SchedulerOwner;
 
         private FilterCallback _filterCallback = null;
 
@@ -364,7 +364,7 @@ namespace Starcounter
         public FilterEnumerator(FilterCallback filterCallback)
             : base() {
             _filterCallback = filterCallback;
-            SchedulerOwner = Scheduler.GetInstance();
+            //SchedulerOwner = Scheduler.GetInstance();
         }
 
         // Enumerator already exists, we need to update the contents.
@@ -380,7 +380,7 @@ namespace Starcounter
             else {
                 _handle = handle;
                 _verify = verify;
-                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+                //Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
             }
         }
         /// <summary>
@@ -437,9 +437,9 @@ namespace Starcounter
             // Removing reference to current object.
             _current = null;
             UInt32 err = 999;
-            if (fromFinalize)
-                err = FreeIteratorFinalize();
-            else
+            //if (fromFinalize)
+            //    err = FreeIteratorFinalize();
+            //else
                 err = sccoredb.SCIteratorFree(_handle, _verify);
 
             // Marking this enumerator as disposed.
@@ -462,23 +462,23 @@ namespace Starcounter
         /// Frees kernel iterator, while assuming of being in GC thread.
         /// </summary>
         /// <returns>Error code returned by the kernel</returns>
-        private UInt32 FreeIteratorFinalize() {
-            Debug.Assert(SchedulerOwner != null);
-            // Should create new working thread on the scheduler where this 
-            // enumerator was created (_schedId) and call specific version
-            // of free iterator in the kernel.
-            uint err = 999;
-            DbSession dbs = new DbSession();
-            bool finished = false;
-            // Assuming no concurrent threads since the same scheduler runs one thread at a time
-            dbs.RunAsync(() => {
-                err = sccoredb.SCIteratorFree(_handle, _verify);
-                finished = true;
-            },
-                SchedulerOwner.Id);
-            while (!finished) { }
-            return err;
-        }
+        //private UInt32 FreeIteratorFinalize() {
+        //    Debug.Assert(SchedulerOwner != null);
+        //    // Should create new working thread on the scheduler where this 
+        //    // enumerator was created (_schedId) and call specific version
+        //    // of free iterator in the kernel.
+        //    uint err = 999;
+        //    DbSession dbs = new DbSession();
+        //    bool finished = false;
+        //    // Assuming no concurrent threads since the same scheduler runs one thread at a time
+        //    dbs.RunAsync(() => {
+        //        err = sccoredb.SCIteratorFree(_handle, _verify);
+        //        finished = true;
+        //    },
+        //        SchedulerOwner.Id);
+        //    while (!finished) { }
+        //    return err;
+        //}
 
         /// <summary>
         /// Fetches iterator local time.
@@ -520,13 +520,13 @@ namespace Starcounter
                 goto err;
             Debug.Assert(_handle != 0);
 
-            if (newIterator) {
-                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
-                if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
-                    SchedulerOwner.NrOpenIterators++;
-                else
-                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
-            }
+            //if (newIterator) {
+            //    Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+            //    if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
+            //        SchedulerOwner.NrOpenIterators++;
+            //    else
+            //        ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
+            //}
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
