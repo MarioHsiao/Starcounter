@@ -454,7 +454,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                         sb.Clear();
                         sb.Append("        ");
                         sb.Append(mn.MemberName);
-                        sb.Append(".App = ");
+                        sb.Append(".ElementType = ");
                         sb.Append(mn.FunctionGeneric.FullClassName);
                         sb.Append(".DefaultTemplate;");
                         a.Prefix.Add(sb.ToString());
