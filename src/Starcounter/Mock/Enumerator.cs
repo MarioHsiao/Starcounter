@@ -225,7 +225,10 @@ namespace Starcounter
 
             if (newIterator) {
                 Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
-                SchedulerOwner.NrOpenIterators++;
+                if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
+                    SchedulerOwner.NrOpenIterators++;
+                else
+                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
             }
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
@@ -519,7 +522,10 @@ namespace Starcounter
 
             if (newIterator) {
                 Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
-                SchedulerOwner.NrOpenIterators++;
+                if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
+                    SchedulerOwner.NrOpenIterators++;
+                else
+                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
             }
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
