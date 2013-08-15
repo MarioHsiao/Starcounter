@@ -237,7 +237,7 @@ namespace Starcounter.Templates {
         public T Add<T>(string name, TObj type) where T : TObjArr, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
-                t = new T() { TemplateName = name, App = type };
+                t = new T() { TemplateName = name, ElementType = type };
                 Properties.Add(t);
             } else {
                 Properties.Expose(t);
@@ -330,7 +330,7 @@ namespace Starcounter.Templates {
         public T Add<T>(string name, TObj type, string bind) where T : TObjArr, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
-                t = new T() { TemplateName = name, App = type, Bind = bind, Bound = Bound.Yes };
+                t = new T() { TemplateName = name, ElementType = type, Bind = bind, Bound = Bound.Yes };
                 Properties.Add(t);
             } else {
                 Properties.Expose(t);

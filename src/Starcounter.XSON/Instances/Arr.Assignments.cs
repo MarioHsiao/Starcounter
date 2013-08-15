@@ -48,7 +48,7 @@ namespace Starcounter {
             if (notEnumeratedResult != null) {
                 foreach (var entity in notEnumeratedResult) {
                     if (entity is IBindable) {
-                        newApp = (Obj)template.App.CreateInstance(this);
+                        newApp = (Obj)template.ElementType.CreateInstance(this);
                         newApp.Data = (IBindable)entity;
                         Add(newApp);
                     } else if (entity is Obj) {

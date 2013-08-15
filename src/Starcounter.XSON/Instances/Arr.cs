@@ -155,7 +155,7 @@ namespace Starcounter {
         /// <returns></returns>
         public Obj Add() {
 #if QUICKTUPLE
-            Obj x = (Obj)((TObjArr)this.Template).App.CreateInstance(this);
+            Obj x = (Obj)((TObjArr)this.Template).ElementType.CreateInstance(this);
 
             //            var x = new App() { Template = ((TArr)this.Template).App };
             Add(x);
@@ -171,7 +171,6 @@ namespace Starcounter {
         /// <param name="item"></param>
         public virtual void Add(Obj item) {
             Int32 index;
-
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);

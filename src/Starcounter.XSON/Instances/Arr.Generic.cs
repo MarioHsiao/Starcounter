@@ -51,18 +51,36 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public new T Add() {
+            /*
             TObjArr template = (TObjArr)Template;
-//            Template typed = template.App;
+            Template typed = template.ElementType;
             T app;
-//            if (typed != null) {
-//                app = (T)typed.CreateInstance(this);
-//            }
-//            else {
-                app = new T();
+            if (typed != null) {
+                app = (T)typed.CreateInstance(this);
+            }
+            else {
+                throw new NotImplementedException();
+//                app = new T();
 //                app.Parent = this;
-//            }
+            }
             Add(app);
             return app;
+             */
+
+            TObjArr template = (TObjArr)Template;
+            T app = new T();
+            //app.Parent = this;
+
+            Template typed = template.ElementType;
+            if (typed != null) {
+                app.Template = (TObj)typed;
+            }
+            else {
+                app.Template = new TJson();
+            }
+            Add(app);
+            return app;
+
         }
 
         /// <summary>
@@ -78,7 +96,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         public override void Add(Obj item) {
-            var typedListTemplate = ((TObjArr)Template).App;
+            var typedListTemplate = ((TObjArr)Template).ElementType;
             if (typedListTemplate != null) {
                 //                var t = allowedTemplate.GetType();
                 if (item.Template != typedListTemplate) {
@@ -98,7 +116,7 @@ namespace Starcounter {
         /// <returns></returns>
         public T Add(IBindable data) {
             TObjArr template = (TObjArr)Template;
-            var app = (T)template.App.CreateInstance(this);
+            var app = (T)template.ElementType.CreateInstance(this);
             app.Data = data;
             Add(app);
             return app;
