@@ -94,7 +94,9 @@
     <Compile Include="Instances\Arr.cs" />
     <Compile Include="Instances\Arr.Generic.cs" />
     <Compile Include="ReflectionHelper.cs" />
+    <Compile Include="Sessions\JSON-Patch\HttpPatchBuilder.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.cs" />
+    <Compile Include="Sessions\JSON-Patch\JsonPatch.Incoming.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPointer.cs" />
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\TObj.Expando.cs" />
