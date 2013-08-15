@@ -419,10 +419,18 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 } else {
                     // TODO:
                     // Change to starcounter errorcode.
+                    if (template == null) {
+                        throw new Exception(
+                            String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
+                                jsonMapName,
+                                mapParts[i]
+                            ));
+                    }
                     throw new Exception(
-                        String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found or has the wrong type.",
+                        String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} has the unsupported type {2}.",
                             jsonMapName,
-                            mapParts[i]
+                            mapParts[i],
+                            template.GetType().Name
                         ));
                 }
             }
