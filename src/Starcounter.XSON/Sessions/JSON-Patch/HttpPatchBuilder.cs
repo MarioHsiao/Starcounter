@@ -10,9 +10,8 @@ using System.IO;
 using System.Text;
 using Starcounter.Internal;
 using Starcounter.Templates;
-using Starcounter.Internal.XSON;
 
-namespace Starcounter.Internal.XSON
+namespace Starcounter.Internal.JsonPatch
 {
     /// <summary>
     /// Class HttpPatchBuilder
@@ -141,7 +140,7 @@ namespace Starcounter.Internal.XSON
         /// <param name="changeLog">The change log.</param>
         /// <param name="buffer">The buffer.</param>
         /// <returns>Int32.</returns>
-        public static Int32 CreateContentFromChangeLog(ChangeLog changeLog, List<Byte> buffer)
+        private static Int32 CreateContentFromChangeLog(ChangeLog changeLog, List<Byte> buffer)
         {
             // TODO: 
             // Change so that we can send in a buffer into the function that created 

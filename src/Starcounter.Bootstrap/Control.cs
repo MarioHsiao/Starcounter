@@ -20,7 +20,7 @@ using StarcounterInternal.Hosting;
 using HttpStructs;
 using System.Text.RegularExpressions;
 using System.IO;
-using Starcounter.Internal.XSON;
+using Starcounter.Internal.JsonPatch;
 using Starcounter.Bootstrap.Management;
 
 namespace StarcounterInternal.Bootstrap

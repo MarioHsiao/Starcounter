@@ -2,7 +2,7 @@
 
 using Starcounter.Templates;
 using System;
-namespace Starcounter.Internal.XSON {
+namespace Starcounter.Internal.JsonPatch {
     partial class JsonPatch {
 
         /// <summary>

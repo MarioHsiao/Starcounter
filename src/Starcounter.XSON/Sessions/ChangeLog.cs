@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using Starcounter.Templates;
 using Starcounter.Advanced;
-using Starcounter.Internal.XSON;
-using System.Text;
 
 namespace Starcounter {
     /// <summary>
@@ -42,8 +40,10 @@ namespace Starcounter {
         /// <param name="obj">The Obj.</param>
         /// <param name="property">The property.</param>
         public static void UpdateValue(Obj obj, TValue property) {
-            if (obj.Session != null) {
-                obj.Session.AddChange( Change.Update(obj,property) );
+			if (obj.LogChanges && log != null) {
+                //if (!log.changes.Exists((match) => { return match.IsChangeOf(obj, property); })) {
+                    log._Changes.Add(Change.Update(obj, property));
+                //}
             }
         }
 
@@ -54,8 +54,8 @@ namespace Starcounter {
         /// <param name="list">The property of the list that the item was added to.</param>
         /// <param name="index">The index in the list where the item was added.</param>
         public static void AddItemInList(Obj obj, TObjArr list, Int32 index) {
-			if (obj.Session != null )
-                obj.AddChange(Change.Add(obj, list, index));
+			if (obj.LogChanges && log != null)
+                log._Changes.Add(Change.Add(obj, list, index));
         }
 
         /// <summary>
@@ -65,8 +65,8 @@ namespace Starcounter {
         /// <param name="list">The property of the list the item was removed from.</param>
         /// <param name="index">The index in the list of the removed item.</param>
         public static void RemoveItemInList(Obj obj, TObjArr list, Int32 index) {
-			if (obj.Session != null)
-                obj.AddChange(Change.Remove(obj, list, index));
+			if (obj.LogChanges && log != null)
+                log._Changes.Add(Change.Remove(obj, list, index));
         }
 
         /// <summary>
@@ -97,17 +97,6 @@ namespace Starcounter {
         /// </summary>
         /// <value></value>
         public Int32 Count { get { return _Changes.Count; } }
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public string ToJsonPatch() {
-            var buffer = new List<byte>();
-            HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
-            return Encoding.UTF8.GetString(buffer.ToArray());
-        }
     }
 
     /// <summary>
@@ -196,6 +185,5 @@ namespace Starcounter {
         internal static Change Update(Obj obj, TValue property) {
             return new Change(Change.REPLACE, obj, property, -1);
         }
-
     }
 }
