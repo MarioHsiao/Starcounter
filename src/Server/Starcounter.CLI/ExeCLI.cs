@@ -2,7 +2,6 @@
 using Starcounter.Advanced;
 using Starcounter.CommandLine;
 using Starcounter.Internal;
-using Starcounter.Rest.ExtensionMethods;
 using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.Representations.JSON;
 using System;
@@ -10,6 +9,7 @@ using System.IO;
 using System.Net.Sockets;
 
 namespace Starcounter.CLI {
+    using Starcounter.Rest.ExtensionMethods;
     using EngineReference = EngineCollection.EnginesObj;
     using ExecutableReference = Engine.ExecutablesObj.ExecutingObj;
     using Option = Starcounter.CLI.SharedCLI.Option;

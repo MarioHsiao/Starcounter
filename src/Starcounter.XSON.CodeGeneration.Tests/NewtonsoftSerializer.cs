@@ -48,7 +48,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
                     } else {
                         object papa = val;
                         TValue valueProperty = tProp as TValue;
-                        if (valueProperty != null && valueProperty.Bound)
+                        if (valueProperty != null && ( valueProperty.Bound == Bound.Yes ) )
                             papa = valueProperty.GetBoundValueAsObject(obj);
 
                         sb.Append(JsonConvert.SerializeObject(papa));

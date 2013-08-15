@@ -13,8 +13,10 @@ using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Advanced.XSON;
 using System.IO;
+using Starcounter.Internal.XSON;
+using Starcounter.XSON.Tests;
 
-namespace Starcounter.XSON.Tests {
+namespace Starcounter.Internal.XSON.Tests {
 
     /// <summary>
     /// Class AppTests
@@ -30,15 +32,15 @@ namespace Starcounter.XSON.Tests {
             DataBindingFactory.ThrowExceptionOnBindindRecreation = true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        [Test]
-        public static void UseJsonWithNoTemplate() {
-            var json = new Json();
-            AssertCorrectErrorCodeIsThrown(() => { json.Data = new SubClass1(); }, Error.SCERRTEMPLATENOTSPECIFIED);
-            AssertCorrectErrorCodeIsThrown(() => { var str = json.ToJson(); }, Error.SCERRTEMPLATENOTSPECIFIED);
-        }
+//        /// <summary>
+//        /// 
+//        /// </summary>
+//        [Test]
+//        public static void UseJsonWithNoTemplate() {
+//            var json = new Json();
+//            AssertCorrectErrorCodeIsThrown(() => { json.Data = new SubClass1(); }, Error.SCERRTEMPLATENOTSPECIFIED);
+//            AssertCorrectErrorCodeIsThrown(() => { var str = json.ToJson(); }, Error.SCERRTEMPLATENOTSPECIFIED);
+//        }
 
         private static void AssertCorrectErrorCodeIsThrown(Action action, uint expectedErrorCode) {
             uint ec;

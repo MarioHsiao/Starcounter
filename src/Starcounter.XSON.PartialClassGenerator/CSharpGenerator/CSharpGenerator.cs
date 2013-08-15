@@ -433,7 +433,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                     sb.Append('"');
                     
                     TValue tv = mn.Template as TValue;
-                    if (tv != null && tv.Bound && tv.PropertyName != tv.Bind) {
+                    if (tv != null && ( tv.Bound == Bound.Yes ) && tv.PropertyName != tv.Bind) {
                         if (tv.Bind == null) {
                             sb.Append(", bind:null");
                         } else {
@@ -454,7 +454,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
                         sb.Clear();
                         sb.Append("        ");
                         sb.Append(mn.MemberName);
-                        sb.Append(".App = ");
+                        sb.Append(".ElementType = ");
                         sb.Append(mn.FunctionGeneric.FullClassName);
                         sb.Append(".DefaultTemplate;");
                         a.Prefix.Add(sb.ToString());

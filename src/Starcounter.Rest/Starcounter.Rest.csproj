@@ -84,8 +84,6 @@
     <Reference Include="System.Net.Http.WebRequest" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PLEASE_MOVE\NodeExtensions.cs" />
-    <Compile Include="PLEASE_MOVE\ResponseExtensions.cs" />
     <Compile Include="AstTree\AstTreeGenerator.VerificationBytes.cs" />
     <Compile Include="AstTree\Nodes\AstAtEndVerifier.cs" />
     <Compile Include="AstTree\Nodes\AstError.cs" />
@@ -122,7 +120,6 @@
     <Compile Include="RequestProcessorBuilder.cs" />
     <Compile Include="ParseTree\ParseNode.cs" />
     <Compile Include="RequestProcessorMetaData.cs" />
-    <Compile Include="PLEASE_MOVE\Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

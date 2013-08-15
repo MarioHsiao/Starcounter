@@ -54,7 +54,7 @@ namespace StarcounterInternal.Bootstrap
             }
             catch (Exception ex)
             {
-                if (!ExceptionManager.HandleUnhandledException(ex)) throw;
+                if (!StarcounterInternal.Hosting.ExceptionManager.HandleUnhandledException(ex)) throw;
             }
         }
 

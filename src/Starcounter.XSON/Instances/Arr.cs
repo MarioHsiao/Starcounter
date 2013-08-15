@@ -14,133 +14,15 @@ using System.Collections;
 
 namespace Starcounter {
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class Arr<T> : Arr where T : Obj, new() {
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="res"></param>
-        /// <returns></returns>
-        public static implicit operator Arr<T>(Rows res) {
-            return new Arr<T>(res);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="result"></param>
-        protected Arr(IEnumerable result) : base(result) {
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="templ"></param>
-        public Arr(Obj parent, TObjArr templ)
-            : base(parent, templ) {
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public new T Current {
-            get {
-                return (T)base.Current;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public new T Add() {
-            TObjArr template = (TObjArr)Template;
-            var app = (T)template.App.CreateInstance(this);
-            Add(app);
-            return app;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        public void Add(T item) {
-            base.Add(item);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        public override void Add(Obj item) {
-            var typedListTemplate = ((TObjArr)Template).App;
-            if (typedListTemplate != null) {
-//                var t = allowedTemplate.GetType();
-                if (item.Template != typedListTemplate)
-                   throw new Exception("Cannot add item. Invalid type for this array.");
-            }
-            base.Add(item);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public T Add(IBindable data) {
-            TObjArr template = (TObjArr)Template;
-            var app = (T)template.App.CreateInstance(this);
-            app.Data = data;
-            Add(app);
-            return app;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public new T this[int index] {
-            get {
-#if QUICKTUPLE
-                return (T)QuickAndDirtyArray[index];
-#else
-            throw new NotImplementedException();
-#endif
-            }
-            set {
-                throw new NotImplementedException();
-            }
-        }
-
-    }
 
     /// <summary>
     /// 
     /// </summary>
-    public class Arr : Container, IList<Obj>
+    public partial class Arr : Container, IList<Obj>
 #if IAPP
 //, IAppArray
 #endif
  {
-        /// <summary>
-        /// 
-        /// </summary>
-        internal IEnumerable notEnumeratedResult = null;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="res"></param>
-        /// <returns></returns>
-        public static implicit operator Arr(Rows res) {
-            return new Arr(res);
-        }
 
 #if QUICKTUPLE
         /// <summary>
@@ -159,40 +41,7 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="result"></param>
-        protected Arr(IEnumerable result) {
-            notEnumeratedResult = result;
-        }
 
-        /// <summary>
-        /// Initializes this Arr and sets the template and parent if not already done.
-        /// If the notEnumeratedResult is not null the list is filled from the sqlresult.
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="template"></param>
-        /// <remarks>
-        /// This method can be called several times, the initialization only occurs once.
-        /// </remarks>
-        internal void InitializeAfterImplicitConversion(Obj parent, TObjArr template) {
-            Obj newApp;
-
-            if (Template == null) {
-                Template = template;
-                Parent = parent;
-            }
-
-            if (notEnumeratedResult != null) {
-                foreach (var entity in notEnumeratedResult) {
-                    newApp = (Obj)template.App.CreateInstance(this);
-                    newApp.Data = (IBindable)entity;
-                    Add(newApp);
-                }
-                notEnumeratedResult = null;
-            }
-        }
 
         /// <summary>
         /// 
@@ -306,7 +155,7 @@ namespace Starcounter {
         /// <returns></returns>
         public Obj Add() {
 #if QUICKTUPLE
-            Obj x = (Obj)((TObjArr)this.Template).App.CreateInstance(this);
+            Obj x = (Obj)((TObjArr)this.Template).ElementType.CreateInstance(this);
 
             //            var x = new App() { Template = ((TArr)this.Template).App };
             Add(x);
@@ -322,7 +171,6 @@ namespace Starcounter {
         /// <param name="item"></param>
         public virtual void Add(Obj item) {
             Int32 index;
-
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);
