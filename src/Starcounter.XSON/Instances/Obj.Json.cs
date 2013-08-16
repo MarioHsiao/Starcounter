@@ -47,7 +47,7 @@ namespace Starcounter {
             return Template.Serializer.ToJsonUtf8(this, out buffer);
         }
 
-        private void CreateDynamicTemplate() {
+        internal void CreateDynamicTemplate() {
             var t = new TObj();
             t.IsDynamic = true;
             Template = t; // IMPORTANT! It is important that the dynamic flag is set _before_ it is assigned to the Template property.

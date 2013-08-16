@@ -224,7 +224,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 ConnectCodeBehindClasses(root, metadata);
                 GenerateInputBindings((NTAppClass)acn.NTemplateClass, metadata);
             }
-            CheckMissingBindingInformation(tcn);
+           // CheckMissingBindingInformation(tcn);
 
             return root;
         }
@@ -313,8 +313,17 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                 nAppClass.IsPartial = true;
                 nAppClass._Inherits = null;
 
-                if (mapInfo.AutoBindToDataObject) {
-                    var ntAppClass = TemplateClasses[appTemplate] as NTAppClass;
+				var ntAppClass = TemplateClasses[appTemplate] as NTAppClass;
+				var mdAppClass = MetaClasses[appTemplate] as NObjMetadata;
+
+				// if there is codebehind and the class is not inherited from Json we need 
+				// to change the inheritance on the template and metadata classes as well.
+				if (!string.IsNullOrEmpty(mapInfo.BaseClassName) && !mapInfo.BaseClassName.Equals("Json")) {
+					ntAppClass._Inherits = "T" + mapInfo.BaseClassName;
+					mdAppClass._Inherits = mapInfo.BaseClassName + "Metadata";
+				}
+
+                if (mapInfo.AutoBindToDataObject) {    
                     ntAppClass.AutoBindProperties = true;
                 }
 

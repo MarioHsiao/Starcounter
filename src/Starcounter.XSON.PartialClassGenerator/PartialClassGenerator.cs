@@ -13,7 +13,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="jsonFilePath"></param>
         /// <param name="codeBehindFilePath"></param>
         /// <returns></returns>
-        public static string GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath) {
+        public static string GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath, bool debug = false ) {
             TObj t;
             CodeBehindMetadata metadata;
             ITemplateCodeGenerator codegen;
@@ -34,7 +34,9 @@ namespace Starcounter.Internal.XSON {
 
             codegenmodule = new CodeGenerationModule();
             codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", t, metadata);
-
+            
+            if (debug)
+                return codegen.DumpAstTree();
             return codegen.GenerateCode();
         }
 

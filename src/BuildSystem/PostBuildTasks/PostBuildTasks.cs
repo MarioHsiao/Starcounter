@@ -40,9 +40,26 @@ namespace PostBuildTasks
         {
             "*.json",
             "*.tests.dll",
-            "*.tests.exe"
-        };
+            "*.tests.exe",
+            "*.tests.pdb",
 
+            // Blue test projects.
+            "behemoth_unittest.*",
+            "commit_perftest.*",
+            "commit_unittest.*",
+            "fletcher32_test.*",
+            "log_reader_test.*",
+            "log_writer_test.*",
+            "max_io_bandwidth_test.*",
+            "memhelp4_perftest.*",
+            "perfmon.*",
+            "sccorelog_test.*",
+            "stream_buffer_test.*",
+            "testapp1.*",
+            "tpca_client.*",
+            "TurboTextTest.*"
+        }; 
+   
         /// <summary>
         /// Clean output directory.
         /// </summary>

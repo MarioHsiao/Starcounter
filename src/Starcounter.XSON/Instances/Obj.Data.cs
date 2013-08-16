@@ -93,11 +93,6 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
         protected virtual void InternalSetData(IBindable data) {
-            if (Transaction == null) {
-                if (StarcounterBase._DB != null) // TODO! Change to data.Retriever.GetCurrentTransaction();
-                    Transaction = StarcounterBase._DB.GetCurrentTransaction();
-            }
-
             this._data = data;
 
             if (Template.Bound == Bound.Yes) {
