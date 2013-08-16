@@ -160,9 +160,8 @@ namespace Starcounter {
         {
             // Starting using current transaction if any.
             if (Transaction != null)
-                StarcounterBase._DB.SetCurrentTransaction(_transaction);
+                StarcounterBase._DB.SetCurrentTransaction(Transaction);
         }
-
 
         /// <summary>
         /// Gets nearest transaction.

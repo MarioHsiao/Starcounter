@@ -13,7 +13,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestSimpleJsonPatch() {
 
-            
+
 
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -36,10 +36,37 @@ namespace Starcounter.Internal.XSON.Tests {
             j.FirstName = "Charlie";
             j.Friends.Add().FirstName = "Henrik";
 
-            foreach (var c in ChangeLog.CurrentOnThread) {
-                Console.WriteLine(String.Format("Change:{0} on {1}",c.ChangeType,c.Template.PropertyNameWithPath));
-            }
+            var cl = ChangeLog.CurrentOnThread;
 
+            string facit = @"[{""op"":""replace"",""path"":""/FirstName"",""value"":""Charlie""},
+{""op"":""replace"",""path"":""/LastName"",""value"":""Wester""},
+{""op"":""replace"",""path"":""/Friends/0/LastName"",""value"":""Hammarström""},
+{""op"":""replace"",""path"":""/FirstName"",""value"":""Charlie""},
+{""op"":""add"",""path"":""/Friends/1"",""value"":{""FirstName"":""Henrik""}}]";
+            Assert.AreEqual(facit, cl.ToJsonPatch());
+
+        }
+
+
+
+        [Test]
+        public static void TestArrayPatches() {
+            dynamic j = new Json();
+            dynamic nicke = new Json();
+
+
+            Session.Data = j;
+            //Session.Data.LogChanges = true;
+            var cl = ChangeLog.CurrentOnThread = new ChangeLog();
+
+            j.FirstName = "Jack";
+            nicke.FirstName = "Nicke";
+            ((Json)j).LogChanges = true;
+            j.Friends = new List<Obj>() { nicke };
+
+            Console.WriteLine("Changes:");
+            Console.WriteLine("========");
+            Console.WriteLine(cl.ToJsonPatch());
 
         }
 
