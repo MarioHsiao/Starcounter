@@ -5,14 +5,13 @@ using Starcounter.Internal.XSON;
 namespace Starcounter.Templates {
     partial class TObj {
 		private bool bindChildren;
-		internal DataValueBinding<IBindable> dataBinding;
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="data"></param>
 		/// <returns></returns>
-        internal bool UseBinding(IBindable data) {
+        internal override bool UseBinding(IBindable data) {
 			if (data == null)
 				return false;
             return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());

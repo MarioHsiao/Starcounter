@@ -18,7 +18,7 @@ namespace Starcounter {
     public partial class Obj {
 
         public object Get(TValue property) {
-            if (property.Bound == Bound.Yes)
+			if (property.UseBinding(Data))
                 return GetBound(property);
             return Values[property.TemplateIndex];
         }

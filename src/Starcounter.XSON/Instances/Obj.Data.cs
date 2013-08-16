@@ -8,6 +8,7 @@ using System;
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using System.Collections;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
     partial class Obj {
@@ -51,7 +52,7 @@ namespace Starcounter {
             IBindable data = this.Data;
             if (data == null)
                 return default(TVal);
-            return template.dataBinding.Get(data);
+            return ((DataValueBinding<TVal>)template.dataBinding).Get(data);
         }
 
 		/// <summary>
@@ -67,16 +68,24 @@ namespace Starcounter {
             IBindable data = this.Data;
             if (data == null)
                 return;
-            template.dataBinding.Set(data, value);
+            ((DataValueBinding<TVal>)template.dataBinding).Set(data, value);
         }
 
-        //internal object GetBound(TValue template) {
-        //    return template.GetBoundValueAsObject(this);
-        //}
+		internal object GetBound(TValue template) {
+			IBindable data = this.Data;
+			if (data == null)
+				return null;
+			
+			return template.GetBoundValueAsObject(this);
+		}
 
-        //internal void SetBound(TValue template, object value) {
-        //    template.SetBoundValueAsObject(this, value);
-        //}
+		internal void SetBound(TValue template, object value) {
+			IBindable data = this.Data;
+			if (data == null)
+				return;
+
+			template.SetBoundValueAsObject(this, value);
+		}
 
 		/// <summary>
 		/// Gets the bound value from the dataobject.
@@ -92,7 +101,7 @@ namespace Starcounter {
             if (data == null)
                 return default(Rows<object>);
 
-            return template.dataBinding.Get(data);
+            return ((DataValueBinding<IEnumerable>)template.dataBinding).Get(data);
         }
 
 		/// <summary>
@@ -108,7 +117,7 @@ namespace Starcounter {
             IBindable data = this.Data;
             if (data == null)
                 return null;
-            return template.dataBinding.Get(data);
+            return ((DataValueBinding<IBindable>)template.dataBinding).Get(data);
         }
 
 		/// <summary>
@@ -124,7 +133,7 @@ namespace Starcounter {
             IBindable data = this.Data;
             if (data == null)
                 return;
-            template.dataBinding.Set(data, value);
+			((DataValueBinding<IBindable>)template.dataBinding).Set(data, value);
         }
 
         /// <summary>
@@ -139,7 +148,7 @@ namespace Starcounter {
 			if (Template.Bound != Bound.No) {
 				var parent = ((Obj)this.Parent);
 				if (parent != null && Template.UseBinding(parent.Data)) {
-					Template.dataBinding.Set(parent.Data, data);
+					((DataValueBinding<IBindable>)Template.dataBinding).Set(parent.Data, data);
 				}
 			}
 

@@ -21,13 +21,11 @@ namespace Starcounter {
         public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
 
-        
-        internal bool UseBinding(IBindable data) {
+        internal override bool UseBinding(IBindable data) {
 			if (data == null)
 				return false;
             return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType());
         }
-
 
         /// <summary>
         /// Adds an inputhandler to this property.
@@ -68,9 +66,9 @@ namespace Starcounter {
             get { return true; }
         }
 
-
-        internal DataValueBinding GetBindingNonGeneric(IBindable data) {
-            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
+		internal virtual bool UseBinding(IBindable data) {
+			if (data == null) return false;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
         }
 
         /// <summary>
