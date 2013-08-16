@@ -142,7 +142,7 @@ namespace Starcounter {
                             errCode = _Request.GenerateNewSession(_Current);
                         }
 #else
-                    errCode = request.GenerateNewSession(current);
+                    errCode = _Request.GenerateNewSession(_Current);
 #endif
                     }
 
