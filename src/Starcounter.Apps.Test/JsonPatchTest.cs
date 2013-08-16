@@ -259,50 +259,50 @@ namespace Starcounter.Internal.JsonPatch.Test
         /// <summary>
         /// Tests the create HTTP response with patches.
         /// </summary>
-        [Test]
+//        [Test]
         public static void TestCreateHttpResponseWithPatches()
         {
-            TJson appt;
-            Byte[] response = null;
-            DateTime start = DateTime.MinValue;
-            DateTime stop = DateTime.MinValue;
+			//TJson appt;
+			//Byte[] response = null;
+			//DateTime start = DateTime.MinValue;
+			//DateTime stop = DateTime.MinValue;
 
-            Int32 repeat = 1;
+			//Int32 repeat = 1;
 
-            ChangeLog log = new ChangeLog();
-            ChangeLog.CurrentOnThread = log;
+			//ChangeLog log = new ChangeLog();
+			//ChangeLog.CurrentOnThread = log;
 
-            AppAndTemplate aat = CreateSampleApp();
+			//AppAndTemplate aat = CreateSampleApp();
 
-            appt = (TJson)aat.Template;
+			//appt = (TJson)aat.Template;
 
-            TString lastName = (TString)appt.Properties[1];
-            TObjArr items = (TObjArr)appt.Properties[2];
+			//TString lastName = (TString)appt.Properties[1];
+			//TObjArr items = (TObjArr)appt.Properties[2];
 
-            dynamic app = aat.App;
-            app.LastName = "Ewing";
-            app.Items.RemoveAt(0);
-            dynamic newitem = app.Items.Add();
-            newitem.Description = "Aight!";
-            app.LastName = "Poe";
+			//dynamic app = aat.App;
+			//app.LastName = "Ewing";
+			//app.Items.RemoveAt(0);
+			//dynamic newitem = app.Items.Add();
+			//newitem.Description = "Aight!";
+			//app.LastName = "Poe";
 
-            start = DateTime.Now;
-            for (Int32 i = 0; i < repeat; i++) {
-                ChangeLog.UpdateValue(app, lastName);
-                //                ChangeLog.RemoveItemInList(app, items, 0);
-                ChangeLog.AddItemInList(app, items, app.Items.Count - 1);
+			//start = DateTime.Now;
+			//for (Int32 i = 0; i < repeat; i++) {
+			//	ChangeLog.UpdateValue(app, lastName);
+			//	//                ChangeLog.RemoveItemInList(app, items, 0);
+			//	ChangeLog.AddItemInList(app, items, app.Items.Count - 1);
 
-                //ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
-                ChangeLog.UpdateValue(app, lastName);
+			//	//ChangeLog.UpdateValue(app, aat.Template.Children[2].Children[0].Children[0]);
+			//	ChangeLog.UpdateValue(app, lastName);
 
-                response = HttpPatchBuilder.CreateHttpPatchResponse(log);
-                log.Clear();
-            }
-            stop = DateTime.Now;
-            ChangeLog.CurrentOnThread = null;
+			//	response = HttpPatchBuilder.CreateHttpPatchResponse(log);
+			//	log.Clear();
+			//}
+			//stop = DateTime.Now;
+			//ChangeLog.CurrentOnThread = null;
 
-            Console.WriteLine("Created {0} responses in {1} ms", repeat, (stop - start).TotalMilliseconds);
-            Console.WriteLine(Encoding.UTF8.GetString(response));
+			//Console.WriteLine("Created {0} responses in {1} ms", repeat, (stop - start).TotalMilliseconds);
+			//Console.WriteLine(Encoding.UTF8.GetString(response));
         }
 
         /// <summary>
