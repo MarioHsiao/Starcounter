@@ -27,12 +27,19 @@ namespace Starcounter {
             return new Arr(res);
         }
 
+        public override void HasAddedElement(TObjArr property, int elementIndex) {
+        }
+
+        public override void HasRemovedElement(TObjArr property, int elementIndex) {
+        }
+
+
 
         /// <summary>
         /// Initializes this Arr and sets the template and parent if not already done.
         /// If the notEnumeratedResult is not null the list is filled from the sqlresult.
         /// </summary>
-        /// <param name="parent"></param>
+        /// <paramCheckpointChangeLogparent"></param>
         /// <param name="template"></param>
         /// <remarks>
         /// This method can be called several times, the initialization only occurs once.
@@ -61,6 +68,9 @@ namespace Starcounter {
                 }
                 notEnumeratedResult = null;
             }
+
+            parent._CallHasChanged(template);
+
         }
     }
 }

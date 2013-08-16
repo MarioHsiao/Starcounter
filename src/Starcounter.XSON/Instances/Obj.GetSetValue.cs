@@ -11,10 +11,17 @@ using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using System.Collections.Generic;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Starcounter {
 
     public partial class Obj {
+
+        public object Get(TValue property) {
+            if (property.Bound == Bound.Yes)
+                return GetBound(property);
+            return Values[property.TemplateIndex];
+        }
 
         /// <summary>
         /// 
@@ -42,7 +49,7 @@ namespace Starcounter {
         public void Set<TVal>(TValue<TVal> property, TVal value) {
             if (property.UseBinding(Data)) {
                 SetBound(property, value);
-                this.HasChanged(property);
+                this._CallHasChanged(property);
                 return;
             }
 
@@ -51,6 +58,23 @@ namespace Starcounter {
 #else
                     throw new NotImplementedException();
 #endif
+            this._CallHasChanged(property);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        internal void _CallHasChanged(TValue property) {
+            if (Session != null) {
+                if (!_BrandNew) {
+                    if (property.PropertyName.Equals("Friends") ) {
+                        Debugger.Launch();
+                    }
+                    _DirtyProperties[property.TemplateIndex] = true;
+                    this.Dirtyfy();
+                }
+            }
             this.HasChanged(property);
         }
 
@@ -229,7 +253,7 @@ namespace Starcounter {
 #else
             throw new NotImplementedException();
 #endif
-            this.HasChanged(property);
+            this._CallHasChanged(property);
         }
 
         /// <summary>
@@ -262,7 +286,7 @@ namespace Starcounter {
 #else
             throw new NotImplementedException();
 #endif
-            this.HasChanged(property);
+            this._CallHasChanged(property);
         }
 
         /// <summary>
@@ -290,7 +314,8 @@ namespace Starcounter {
             var vals = Values;
             Arr oldValue = vals[i]; //this.Get(property);
             if (oldValue != null) {
-                oldValue.Clear();
+                oldValue.InternalClear();
+//                oldValue.Clear();
                 oldValue.SetParent(null); 
             }
 
