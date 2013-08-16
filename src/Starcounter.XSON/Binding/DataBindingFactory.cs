@@ -9,6 +9,7 @@ using Starcounter.Internal;
 using Starcounter.Logging;
 using Starcounter.Templates;
 using Starcounter.Internal.XSON;
+using System.Collections.Generic;
 
 namespace Starcounter.Internal.XSON {
     /// <summary>
@@ -21,15 +22,8 @@ namespace Starcounter.Internal.XSON {
         private static string warning = "The existing databinding for '{0}' was created for another type of dataobject. Binding needs to be recreated.";
         private static string propNotFound = "Property '{2}' was not found in type '{3}' (or baseclass). Json property: '{0}.{1}'.";
 
-		/// <summary>
-		/// Verifies and caches an binding on the template.
-		/// </summary>
-        /// <param name="template">The template.</param>
-        /// <param name="dataType">The type of the dataobject.</param>
-		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
-        internal static bool VerifyOrCreateBinding(TObjArr template, Type dataType) {
+		internal static bool VerifyOrCreateBinding(TValue template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
-			DataValueBinding<IEnumerable> binding;
 			string bindingName;
 
 			if (template.Bound == Bound.No)
@@ -40,8 +34,60 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-			binding = template.dataBinding;
-            if (VerifyBinding(binding, dataType, template))
+			if (VerifyBinding(template.dataBinding, dataType, template))
+				return true;
+
+			if (template.Bound == Bound.Yes) {
+				throwExceptionOnBindingFailure = true;
+				bindingName = template.Bind;
+			} else {
+				throwExceptionOnBindingFailure = false;
+				bindingName = template.PropertyName;
+			}
+
+			var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
+			if (pInfo != null) {
+				var @switch = new Dictionary<Type, Func<DataValueBinding>> {
+ 					 { typeof(byte), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(UInt16), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(Int16), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(UInt32), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(Int32), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(UInt64), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(Int64), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(float), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(double), () => { return new DataValueBinding<TDouble>(template, pInfo); }},
+ 					 { typeof(decimal), () => { return new DataValueBinding<TDecimal>(template, pInfo); }},
+ 					 { typeof(bool), () => { return new DataValueBinding<TBool>(template, pInfo); }},
+ 					 { typeof(string), () => { return new DataValueBinding<TString>(template, pInfo); }}
+ 					 };
+				template.dataBinding = @switch[template.InstanceType]();
+				return true;
+			} else {
+				template.dataBinding = null;
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Verifies and caches an binding on the template.
+		/// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="dataType">The type of the dataobject.</param>
+		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
+        internal static bool VerifyOrCreateBinding(TObjArr template, Type dataType) {
+			bool throwExceptionOnBindingFailure;
+			string bindingName;
+
+			if (template.Bound == Bound.No)
+				return false;
+
+			if (template.invalidateBinding) {
+				template.dataBinding = null;
+				template.invalidateBinding = false;
+			}
+
+            if (VerifyBinding(template.dataBinding, dataType, template))
                 return true;
 
 			if (template.Bound == Bound.Yes) {
@@ -54,11 +100,9 @@ namespace Starcounter.Internal.XSON {
 
             var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
 			if (pInfo != null) {
-				binding = new DataValueBinding<IEnumerable>(template, pInfo);
-				template.dataBinding = binding;
+				template.dataBinding = new DataValueBinding<IEnumerable>(template, pInfo);
 				return true;
 			} else {
-				binding = null;
 				template.dataBinding = null;
 				return false;
 			}
@@ -72,7 +116,6 @@ namespace Starcounter.Internal.XSON {
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
         internal static bool VerifyOrCreateBinding(TObj template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
-			DataValueBinding<IBindable> binding;
 			string bindingName;
 
 			if (template.Bound == Bound.No)
@@ -83,8 +126,7 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-			binding = template.dataBinding;
-            if (VerifyBinding(binding, dataType, template))
+            if (VerifyBinding(template.dataBinding, dataType, template))
                 return true;
 
 			if (template.Bound == Bound.Yes) {
@@ -97,11 +139,9 @@ namespace Starcounter.Internal.XSON {
 
             var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
 			if (pInfo != null) {
-				binding = new DataValueBinding<IBindable>(template, pInfo);
-				template.dataBinding = binding;
+				template.dataBinding = new DataValueBinding<IBindable>(template, pInfo);
 				return true;
 			} else {
-				binding = null;
 				template.dataBinding = null;
 				return false;
 			}
@@ -116,7 +156,6 @@ namespace Starcounter.Internal.XSON {
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
         internal static bool VerifyOrCreateBinding<TVal>(TValue<TVal> template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
-			DataValueBinding<TVal> binding;
 			string bindingName;
 
 			if (template.Bound == Bound.No)
@@ -127,8 +166,7 @@ namespace Starcounter.Internal.XSON {
 				template.invalidateBinding = false;
 			}
 
-			binding = template.dataBinding;
-            if (VerifyBinding(binding, dataType, template))
+			if (VerifyBinding(template.dataBinding, dataType, template))
                 return true;
 
 			if (template.Bound == Bound.Yes) {
@@ -141,11 +179,9 @@ namespace Starcounter.Internal.XSON {
 
             var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
 			if (pInfo != null) {
-				binding = new DataValueBinding<TVal>(template, pInfo);
-				template.dataBinding = binding;
+				template.dataBinding = new DataValueBinding<TVal>(template, pInfo);
 				return true;
 			} else {
-				binding = null;
 				template.dataBinding = null;
 				return false;
 			}
