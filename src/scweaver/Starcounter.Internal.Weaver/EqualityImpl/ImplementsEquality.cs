@@ -17,7 +17,9 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
         InstructionWriter writer;
         private ITypeSignature bindableType;
         private IMethod bindableGetIdentityMethod;
+        private IMethod bindableGetRetriverMethod;
         private IMethod objectReferenceEqualsMethod;
+        private IMethod objectEqualsMethod;
         private IMethod ulongGetHashCode;
 
         public ImplementsEquality(ModuleDeclaration module, InstructionWriter writer) {
@@ -25,9 +27,11 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
             this.writer = writer;
             bindableType = module.FindType(typeof(IBindable), BindingOptions.Default);
             bindableGetIdentityMethod = module.FindMethod(typeof(IBindable).GetMethod("get_Identity"), BindingOptions.Default);
+            bindableGetRetriverMethod = module.FindMethod(typeof(IBindable).GetMethod("get_Retriever"), BindingOptions.Default);
             objectReferenceEqualsMethod = module.FindMethod(
                 typeof(object).GetMethod("ReferenceEquals", BindingFlags.Public | BindingFlags.Static),
                 BindingOptions.Default);
+            objectEqualsMethod = module.FindMethod(typeof(object).GetMethod("Equals", BindingFlags.Public | BindingFlags.Instance), BindingOptions.Default);
             ulongGetHashCode = module.FindMethod(typeof(ulong).GetMethod("GetHashCode"), BindingOptions.Default);
         }
 
@@ -75,45 +79,77 @@ namespace Starcounter.Internal.Weaver.EqualityImpl {
             using (var attached = new AttachedInstructionWriter(writer, equals)) {
                 var w = attached.Writer;
                 var mainSequence = w.CurrentInstructionSequence;
-                var isBindableBranch = w.MethodBody.CreateInstructionSequence();
-                var notReferenceEqBranch = w.MethodBody.CreateInstructionSequence();
+                var checkRefEqualityBranch = w.MethodBody.CreateInstructionSequence();
+                var compareIdentityBranch = w.MethodBody.CreateInstructionSequence();
+                var returnFalseBranch = w.MethodBody.CreateInstructionSequence();
+
                 equals.MethodBody.RootInstructionBlock.AddInstructionSequence(
-                    isBindableBranch, NodePosition.After, mainSequence);
+                    checkRefEqualityBranch, NodePosition.After, mainSequence);
                 equals.MethodBody.RootInstructionBlock.AddInstructionSequence(
-                    notReferenceEqBranch, NodePosition.After, isBindableBranch);
+                    compareIdentityBranch, NodePosition.After, checkRefEqualityBranch);
+                equals.MethodBody.RootInstructionBlock.AddInstructionSequence(
+                    returnFalseBranch, NodePosition.After, compareIdentityBranch);
+
                 var bindable = equals.MethodBody.RootInstructionBlock.DefineLocalVariable(bindableSignature, "bindable");
+                var self = equals.MethodBody.RootInstructionBlock.DefineLocalVariable(bindableSignature, "self");
                 equals.MethodBody.InitLocalVariables = true;
 
                 // The C# version of the code we emit:
                 //
-                //IBindable bindable = obj as IBindable;
-                //if (bindable == null) {
+                //public override bool Equals(object obj)
+                //{
+                //    IBindable bindable = obj as IBindable;
+                //    if (bindable != null)
+                //    {
+                //        if (object.ReferenceEquals(this, obj))
+                //        {
+                //            return true;
+                //        }
+                //        if (bindable.Identity == this.__sc__this_id__)
+                //        {
+                //            IBindable self = this;
+                //            return bindable.Retriever.Equals(self.Retriever);
+                //        }
+                //    }
                 //    return false;
                 //}
-                //return (object.ReferenceEquals(this, obj) || (bindable.Identity == this.__sc__this_id__));
 
                 w.EmitInstructionParameter(OpCodeNumber.Ldarg, objParameter);
                 w.EmitInstructionType(OpCodeNumber.Isinst, bindableSignature);
                 w.EmitInstructionLocalVariable(OpCodeNumber.Stloc, bindable);
                 w.EmitInstructionLocalVariable(OpCodeNumber.Ldloc, bindable);
-                w.EmitBranchingInstruction(OpCodeNumber.Brtrue_S, isBindableBranch);
+                w.EmitBranchingInstruction(OpCodeNumber.Brtrue_S, checkRefEqualityBranch);
                 w.EmitInstruction(OpCodeNumber.Ldc_I4_0);
                 w.EmitInstruction(OpCodeNumber.Ret);
                 w.DetachInstructionSequence();
-                w.AttachInstructionSequence(isBindableBranch);
+                
+                w.AttachInstructionSequence(checkRefEqualityBranch);
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
                 w.EmitInstructionParameter(OpCodeNumber.Ldarg, objParameter);
                 w.EmitInstructionMethod(OpCodeNumber.Call, objectReferenceEqualsMethod);
-                w.EmitBranchingInstruction(OpCodeNumber.Brfalse_S, notReferenceEqBranch);
+                w.EmitBranchingInstruction(OpCodeNumber.Brfalse_S, compareIdentityBranch);
                 w.EmitInstruction(OpCodeNumber.Ldc_I4_1);
                 w.EmitInstruction(OpCodeNumber.Ret);
                 w.DetachInstructionSequence();
-                w.AttachInstructionSequence(notReferenceEqBranch);
+
+                w.AttachInstructionSequence(compareIdentityBranch);
                 w.EmitInstructionLocalVariable(OpCodeNumber.Ldloc, bindable);
                 w.EmitInstructionMethod(OpCodeNumber.Callvirt, bindableGetIdentityMethod);
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
                 w.EmitInstructionField(OpCodeNumber.Ldfld, identityField);
-                w.EmitInstruction(OpCodeNumber.Ceq);
+                w.EmitBranchingInstruction(OpCodeNumber.Bne_Un_S, returnFalseBranch);
+                w.EmitInstruction(OpCodeNumber.Ldarg_0);
+                w.EmitInstructionLocalVariable(OpCodeNumber.Stloc, self);
+                w.EmitInstructionLocalVariable(OpCodeNumber.Ldloc, bindable);
+                w.EmitInstructionMethod(OpCodeNumber.Callvirt, bindableGetRetriverMethod);
+                w.EmitInstructionLocalVariable(OpCodeNumber.Ldloc, self);
+                w.EmitInstructionMethod(OpCodeNumber.Callvirt, bindableGetRetriverMethod);
+                w.EmitInstructionMethod(OpCodeNumber.Callvirt, objectEqualsMethod);
+                w.EmitInstruction(OpCodeNumber.Ret);
+                w.DetachInstructionSequence();
+
+                w.AttachInstructionSequence(returnFalseBranch);
+                w.EmitInstruction(OpCodeNumber.Ldc_I4_0);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
         }
