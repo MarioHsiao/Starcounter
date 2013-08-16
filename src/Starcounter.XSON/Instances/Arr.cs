@@ -11,6 +11,7 @@ using Starcounter;
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using System.Collections;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
 
@@ -29,6 +30,7 @@ namespace Starcounter {
         /// Temporary. Should be replaced by TupleProxy functionality
         /// </summary>
         internal List<Obj> QuickAndDirtyArray = new List<Obj>();
+        internal List<Change> Changes = null;
 #endif
         // private TObjArr _property;
 
@@ -40,8 +42,6 @@ namespace Starcounter {
                 throw new NotImplementedException();
             }
         }
-
-
 
         /// <summary>
         /// 
@@ -82,7 +82,7 @@ namespace Starcounter {
 #endif
 //            template = (TObjArr)this.Template;
 //            ChangeLog.AddItemInList((Puppet)this.Parent, template, index);
-            Parent.HasAddedElement((TObjArr)this.Template, index);
+            _CallHasAddedElement(index,item);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
@@ -90,6 +90,41 @@ namespace Starcounter {
             }
 
         }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        private void _CallHasAddedElement(int index, Obj item) {
+            var tarr = (TObjArr)this.Template;
+            if (Session != null) {
+                if (Changes == null) {
+                    Changes = new List<Change>();
+                }
+                Changes.Add(Change.Add((Obj)this.Parent, tarr, index));
+                //Dirtyfy();
+            }
+            Parent.HasAddedElement(tarr, index);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        private void _CallHasRemovedElement(int index) {
+            var tarr = (TObjArr)this.Template;
+            if (Session != null) {
+                if (Changes == null) {
+                    Changes = new List<Change>();
+                }
+                Changes.Remove(Change.Add((Obj)this.Parent, tarr, index));
+                Dirtyfy();
+            }
+            Parent.HasRemovedElement(tarr, index);
+        }
+
 
         /// <summary>
         /// 
@@ -100,8 +135,8 @@ namespace Starcounter {
 
 #if QUICKTUPLE
             QuickAndDirtyArray.RemoveAt(index);
-            this.HasRemovedElement((TObjArr)this.Template, index);
-
+            var tarr = (TObjArr)this.Template;
+            _CallHasRemovedElement(index);
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
                 otherItem._cacheIndexInArr = i;
@@ -179,27 +214,34 @@ namespace Starcounter {
 #else
          throw new NotImplementedException();
 #endif
-            Parent.HasAddedElement((TObjArr)this.Template, QuickAndDirtyArray.Count - 1);
+            _CallHasAddedElement(QuickAndDirtyArray.Count - 1,item);
+//            Parent.HasAddedElement((TObjArr)this.Template, QuickAndDirtyArray.Count - 1);
         }
 
         /// <summary>
         /// 
         /// </summary>
         public void Clear() {
-            int indexesToRemove;
-            var app = this.Parent;
-            TObjArr property = (TObjArr)this.Template;
 
 #if QUICKTUPLE
 
-            indexesToRemove = QuickAndDirtyArray.Count;
-            for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                app.HasAddedElement(property, i ); // TODO! Is this really correct!?
-            }
-            QuickAndDirtyArray.Clear();
+            this.InternalClear();
+            Obj parent = (Obj)this.Parent;
+            parent._CallHasChanged(this.Template);
 #else
          throw new NotImplementedException();
 #endif
+        }
+
+        internal void InternalClear() {
+            int indexesToRemove;
+            var app = this.Parent;
+            TObjArr property = (TObjArr)this.Template;
+            indexesToRemove = QuickAndDirtyArray.Count;
+            for (int i = (indexesToRemove - 1); i >= 0; i--) {
+                app.HasRemovedElement(property, i);
+            }
+            QuickAndDirtyArray.Clear();
         }
 
         /// <summary>

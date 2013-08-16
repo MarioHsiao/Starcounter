@@ -91,11 +91,6 @@ namespace Starcounter {
         /// </summary>
         internal int _cacheIndexInArr;
 
-//        /// <summary>
-//        /// Injection point for generating typed json from different kinds of input.
-//        /// </summary>
-//        internal static ITypedJsonFactory Factory;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
         /// </summary>
@@ -259,25 +254,10 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="property">The property that has changed in this Obj</param>
         protected virtual void HasChanged(TValue property) {
-            ChangeLog.UpdateValue(this, property);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="property"></param>
-        /// <param name="elementIndex"></param>
-        public override void HasAddedElement(TObjArr property, int elementIndex) {
-            ChangeLog.AddItemInList(this, property, elementIndex);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="property"></param>
-        /// <param name="elementIndex"></param>
-        public override void HasRemovedElement(TObjArr property, int elementIndex) {
-            ChangeLog.RemoveItemInList(this, property, elementIndex);
+            //throw new Exception();
+            //var s = Session;
+            //if (s!=null)
+            //    Session.UpdateValue(this, property);
         }
 
         /// <summary>
@@ -315,6 +295,107 @@ namespace Starcounter {
 		public bool LogChanges { get; set; }
 
         public virtual void ProcessInput<V>(TValue<V> template, V value) {
+        }
+
+        /// <summary>
+        /// Logs all property changes made to this object or its bound data object
+        /// </summary>
+        /// <param name="session">The session (for faster access)</param>
+        internal override void LogValueChangesWithDatabase(Session session) {
+            if (_Dirty) {
+                for (int t = 0; t < _Values.Length; t++) {
+                    if (_DirtyProperties[t]) {
+                        var s = Session;
+                        if (s != null) {
+                            Session.UpdateValue(this, (TValue)Template.Properties[t]);
+                        }
+                        _DirtyProperties[t] = false;
+                    }
+                    else {
+                        var p = Template.Properties[t];
+                        if (p is TContainer) {
+                            var c = ((Container)_Values[t]);
+                            if (c != null) {
+                                c.LogValueChangesWithDatabase(session);
+                            }
+                        } else {
+                            if (((TValue)p).Bound != Bound.No ) {
+                                if (!this.GetBound((TValue)p).Equals(this._BoundDirtyCheck[t])) {
+                                  Session.UpdateValue(this, (TValue)Template.Properties[t]);
+                                }
+                            }
+                        }
+                    }
+                }
+                _Dirty = false;
+            } else if ( Template.HasAtLeastOneBoundProperty ) {
+                    for (int t = 0; t < _Values.Length; t++) {
+                        var p = Template.Properties[t];
+                        if (p is TContainer) {
+                            ((Container)_Values[t]).LogValueChangesWithDatabase(session);
+                        } else {
+                            if (((TValue)p).Bound != Bound.No ) {
+                                if (true) { // TODO! Check if database object has changed
+                                  Session.UpdateValue(this, (TValue)Template.Properties[t]);
+                                }
+                            }
+                        }
+                    }
+            } else {
+                foreach (var e in _Values) {
+                    if (e is Container) {
+                        ((Container)e).LogValueChangesWithDatabase(session);
+                    }
+                }
+            }
+        }
+
+        public override void HasAddedElement(TObjArr property, int elementIndex) {
+        }
+
+        public override void HasRemovedElement(TObjArr property, int elementIndex) {
+        }
+
+        internal override void LogValueChangesWithoutDatabase(Session session) {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal override void CheckpointChangeLog() {
+            _BrandNew = false;
+            if (_Dirty) {
+                for (int t = 0; t < _Values.Length; t++) {
+                    if (_DirtyProperties[t]) {
+                        _DirtyProperties[t] = false;
+                    }
+                    var p = Template.Properties[t];
+                    if (p is TContainer) {
+                        ((Container)_Values[t]).CheckpointChangeLog();
+                    }
+                }
+                _Dirty = false;
+            }
+            else {
+                for (int t = 0; t < _Values.Length; t++) {
+                    var p = Template.Properties[t];
+                    if (p is TContainer) {
+                        ((Container)_Values[t]).CheckpointChangeLog();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prop"></param>
+        /// <returns></returns>
+        public bool IsDirty(Template prop) {
+#if DEBUG
+            this.Template.VerifyProperty(prop);
+#endif
+            return (_DirtyProperties[prop.TemplateIndex]);
         }
     }
 }

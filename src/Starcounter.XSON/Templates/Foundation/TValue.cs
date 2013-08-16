@@ -20,13 +20,14 @@ namespace Starcounter {
     public abstract class TValue<T> : TValue {
         public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
-        internal DataValueBinding<T> dataBinding;
+
         
         internal bool UseBinding(IBindable data) {
 			if (data == null)
 				return false;
             return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType());
         }
+
 
         /// <summary>
         /// Adds an inputhandler to this property.
@@ -57,12 +58,19 @@ namespace Starcounter {
         private string _Bind;
 		internal bool invalidateBinding;
 
+        internal DataValueBinding dataBinding;
+
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
         /// </summary>
         /// <value><c>true</c> if this instance has instance value on client; otherwise, <c>false</c>.</value>
         public override bool HasInstanceValueOnClient {
             get { return true; }
+        }
+
+
+        internal DataValueBinding GetBindingNonGeneric(IBindable data) {
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
         }
 
         /// <summary>

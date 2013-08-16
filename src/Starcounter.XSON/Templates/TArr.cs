@@ -90,7 +90,7 @@ namespace Starcounter.Templates {
 //        , ITObjArr
 #endif
     {
-        internal DataValueBinding<IEnumerable> dataBinding;
+       // internal DataValueBinding<IEnumerable> dataBinding;
         private string instanceDataTypeName;
     
         /// <summary>
