@@ -1,5 +1,6 @@
 
 
+using Starcounter.Advanced;
 using Starcounter.Internal.JsonPatch;
 using System;
 namespace Starcounter.Internal {
@@ -41,7 +42,10 @@ namespace Starcounter.Internal {
 
                 case MimeType.Application_JsonPatch__Json: {
                         resultingMimeType = mimeType;
-                        return HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread);
+                        //return HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread);
+                        return new Response() {
+                            Body = Session.Current.CreateJsonPatch(true)
+                        };
                 }
             }
            
