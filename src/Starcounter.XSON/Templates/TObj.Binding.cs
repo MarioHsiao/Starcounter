@@ -5,6 +5,7 @@ using Starcounter.Internal.XSON;
 namespace Starcounter.Templates {
     partial class TObj {
 		private bool bindChildren;
+        public bool HasAtLeastOneBoundProperty = true; // TODO!
 
 		/// <summary>
 		/// 
