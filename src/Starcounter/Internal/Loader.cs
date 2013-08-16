@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Starcounter.Internal
 {
@@ -145,7 +146,6 @@ namespace Starcounter.Internal
             }
 
             var databaseAttributes = databaseClass.Attributes;
-
             for (int i = 0; i < databaseAttributes.Count; i++) {
                 var databaseAttribute = databaseAttributes[i];
 
@@ -207,7 +207,7 @@ namespace Starcounter.Internal
                     case DatabaseAttributeKind.PersistentField:
                         if (!isSynonym) {
                             columnDefs.Add(new ColumnDef(
-                                databaseAttribute.Name,
+                                RemoveBackingField(databaseAttribute.Name),
                                 type,
                                 isNullable,
                                 subClass
@@ -251,7 +251,7 @@ namespace Starcounter.Internal
                             string columnName = null;
                             var backingField = databaseAttribute.BackingField;
                             if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField) {
-                                columnName = backingField.Name;
+                                columnName = RemoveBackingField(backingField.Name);
                             }
                             propertyDef.ColumnName = columnName;
                             AddProperty(propertyDef, propertyDefs);
@@ -259,6 +259,14 @@ namespace Starcounter.Internal
                         break;
                 }
             }
+        }
+
+        internal static String RemoveBackingField(String backingFieldName) {
+            if (backingFieldName[0] != '<')
+                return backingFieldName;
+            int nameLength = backingFieldName.IndexOf('>') - 1;
+            Debug.Assert(nameLength > 0);
+            return backingFieldName.Substring(1, nameLength);
         }
 
         /// <summary>
