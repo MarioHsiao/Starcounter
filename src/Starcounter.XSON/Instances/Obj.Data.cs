@@ -10,9 +10,7 @@ using Starcounter.Advanced;
 using System.Collections;
 
 namespace Starcounter {
-
     partial class Obj {
-
         /// <summary>
         /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
         /// underlying bound object. This is common in database applications where Json messages
@@ -20,8 +18,6 @@ namespace Starcounter {
         /// reflect a person database object (Entity).
         /// </summary>
         private IBindable _data;
-
-
 
         /// <summary>
         /// Gets or sets the bound (underlying) data object (often a database Entity object). This enables
@@ -41,18 +37,37 @@ namespace Starcounter {
             }
         }
 
+		/// <summary>
+		/// Gets the bound value from the dataobject.
+		/// </summary>
+		/// <remarks>
+		/// This method assumes that the cached binding on the template 
+		/// is correct and will not verify it.
+		/// </remarks>
+		/// <typeparam name="TVal"></typeparam>
+		/// <param name="template"></param>
+		/// <returns></returns>
         internal TVal GetBound<TVal>(TValue<TVal> template) {
             IBindable data = this.Data;
             if (data == null)
                 return default(TVal);
-            return template.GetBinding(data).Get(data);
+            return template.dataBinding.Get(data);
         }
 
+		/// <summary>
+		/// Sets the value to the dataobject.
+		/// </summary>
+		/// <remarks>
+		/// This method assumes that the cached binding on the template 
+		/// is correct and will not verify it.
+		/// </remarks>
+		/// <param name="template"></param>
+		/// <param name="value"></param>
         internal void SetBound<TVal>(TValue<TVal> template, TVal value) {
             IBindable data = this.Data;
             if (data == null)
                 return;
-            template.GetBinding(data).Set(data, value);
+            template.dataBinding.Set(data, value);
         }
 
         //internal object GetBound(TValue template) {
@@ -63,28 +78,54 @@ namespace Starcounter {
         //    template.SetBoundValueAsObject(this, value);
         //}
 
+		/// <summary>
+		/// Gets the bound value from the dataobject.
+		/// </summary>
+		/// <remarks>
+		/// This method assumes that the cached binding on the template 
+		/// is correct and will not verify it.
+		/// </remarks>
+		/// <param name="template"></param>
+		/// <returns></returns>
         internal IEnumerable GetBound(TObjArr template) {
             IBindable data = this.Data;
             if (data == null)
                 return default(Rows<object>);
 
-            return template.GetBinding(data).Get(data);
+            return template.dataBinding.Get(data);
         }
 
+		/// <summary>
+		/// Gets the bound value from the dataobject.
+		/// </summary>
+		/// <remarks>
+		/// This method assumes that the cached binding on the template 
+		/// is correct and will not verify it.
+		/// </remarks>
+		/// <param name="template"></param>
+		/// <returns></returns>
         internal IBindable GetBound(TObj template) {
             IBindable data = this.Data;
             if (data == null)
                 return null;
-            return template.GetBinding(data).Get(data);
+            return template.dataBinding.Get(data);
         }
 
+		/// <summary>
+		/// Sets the value to the dataobject.
+		/// </summary>
+		/// <remarks>
+		/// This method assumes that the cached binding on the template 
+		/// is correct and will not verify it.
+		/// </remarks>
+		/// <param name="template"></param>
+		/// <param name="value"></param>
         internal void SetBound(TObj template, IBindable value) {
             IBindable data = this.Data;
             if (data == null)
                 return;
-            template.GetBinding(data).Set(data, value);
+            template.dataBinding.Set(data, value);
         }
-
 
         /// <summary>
         /// Sets the underlying data object and refreshes all bound values.
@@ -95,14 +136,14 @@ namespace Starcounter {
         protected virtual void InternalSetData(IBindable data) {
             this._data = data;
 
-            if (Template.Bound == Bound.Yes) {
-                ((Obj)this.Parent).SetBound(Template, data);
+			var parent = ((Obj)this.Parent);
+            if (parent != null && Template.UseBinding(parent.Data)) {
+				Template.dataBinding.Set(parent.Data, data);
             }
 
             RefreshAllBoundValues();
             OnData();
         }
-
 
         /// <summary>
         /// Refreshes all bound values of this Obj. Retrieves data from the Data
@@ -124,7 +165,5 @@ namespace Starcounter {
         /// </summary>
         protected virtual void OnData() {
         }
-
-
     }
 }
