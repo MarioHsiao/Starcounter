@@ -48,8 +48,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine(result);
             Console.WriteLine("");
 
-            string facit = @"[{""op"":""replace"",""path"":""/FirstName"",""value"":""Charlie""},
-{""op"":""replace"",""path"":""/LastName"",""value"":""Wester""}]";
+            string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},\n{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
             Assert.AreEqual(facit, result);
 
         }
