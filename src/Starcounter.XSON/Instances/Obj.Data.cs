@@ -136,10 +136,12 @@ namespace Starcounter {
         protected virtual void InternalSetData(IBindable data) {
             this._data = data;
 
-			var parent = ((Obj)this.Parent);
-            if (parent != null && Template.UseBinding(parent.Data)) {
-				Template.dataBinding.Set(parent.Data, data);
-            }
+			if (Template.Bound != Bound.No) {
+				var parent = ((Obj)this.Parent);
+				if (parent != null && Template.UseBinding(parent.Data)) {
+					Template.dataBinding.Set(parent.Data, data);
+				}
+			}
 
             RefreshAllBoundValues();
             OnData();
