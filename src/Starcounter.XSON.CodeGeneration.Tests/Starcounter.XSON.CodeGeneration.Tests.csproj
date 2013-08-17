@@ -125,7 +125,7 @@
     <None Include="simple.facit.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Compiler\TestCodeCompile.cs" />
+    <Compile Include="Compiler\CodeBehindAnalyserTests.cs" />
     <None Include="TestMessage.g.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -135,7 +135,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="TestInheritance.cs" />
-    <Compile Include="TestTemplates.cs" />
+    <Compile Include="GeneratePartialClassTests.cs" />
     <None Include="TestMessage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

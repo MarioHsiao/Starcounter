@@ -4,7 +4,7 @@ using NUnit.Framework;
 using Starcounter.Internal.XSON;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
-    public class TestCodeCompile {
+    public class CodeBehindAnalyserTests {
 
         [Test]
         public static void CodeBehindAnalyzeTest() {

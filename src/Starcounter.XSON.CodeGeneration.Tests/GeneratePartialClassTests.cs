@@ -17,12 +17,12 @@ using Starcounter.XSON.CodeGeneration;
 using Modules;
 using Starcounter.Internal.XSON;
 
-namespace Starcounter.XSON.CodeGeneration.Tests {
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     /// <summary>
     /// Class TestTemplates
     /// </summary>
     [TestFixture]
-    public class TestTemplates {
+    public class GeneratePartialClassTests {
         [TestFixtureSetUp]
         public static void InitializeTest() {
         }
