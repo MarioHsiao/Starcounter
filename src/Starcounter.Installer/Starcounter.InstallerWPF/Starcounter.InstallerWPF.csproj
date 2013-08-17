@@ -516,7 +516,7 @@
   <ItemGroup>
     <Resource Include="DemoSequence\images\starcounter_26x26.png" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="$(GenerateUniqueBuild) == ''">
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
@@ -534,10 +534,21 @@
       <Name>Starcounter.InstallerEngine</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup Condition="$(GenerateUniqueBuild) == 'True'">
+    <Reference Include="$(OutputPath)\Starcounter.Internal.dll" />
+    <Reference Include="$(OutputPath)\Starcounter.Tracking.dll" />
+    <Reference Include="$(OutputPath)\Starcounter.Controls.WpfMessageBox.dll" />
+    <Reference Include="$(OutputPath)\Starcounter.InstallerEngine.dll" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="sc.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VersionInfo.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
