@@ -19,6 +19,12 @@ namespace Starcounter.Templates.Interfaces {
         /// 
         /// </summary>
         /// <returns></returns>
+        object GenerateAST();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         string DumpAstTree();
     }
 }

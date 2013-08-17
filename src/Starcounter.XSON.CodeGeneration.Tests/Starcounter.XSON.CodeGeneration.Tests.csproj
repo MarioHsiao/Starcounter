@@ -123,6 +123,9 @@
     </None>
     <Compile Include="JsonSerializeTest.cs" />
     <Compile Include="NewtonsoftSerializer.cs" />
+    <None Include="PMail\ContactApp.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="PMail\PMailTests.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

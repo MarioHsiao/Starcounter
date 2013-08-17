@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using Starcounter;
+using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Templates;
 using System;
 using System.IO;
@@ -12,20 +13,19 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         internal static TJson ReadTemplate(string path) {
             var str = File.ReadAllText(path);
-            return TJson.CreateFromJson(str);
+            var tj = TJson.CreateFromJson(str);
+            tj.ClassName = Path.GetFileNameWithoutExtension(path);
+            return tj;
         }
 
         [Test]
         public static void GenerateCsDOM() {
             var tj = ReadTemplate("PMail\\ContactApp.json");
-            Assert.NotNull(tj);
+            var cb = File.ReadAllText("PMail\\ContactApp.json.cs");
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
+            NRoot dom = (NRoot)codegen.GenerateAST();
 
-//            Assert.AreEqual( "ContactApp", tj.ClassName );
-//                        var className = Path.GetFileNameWithoutExtension(jsonFilePath);
-
-
-         //   PartialClassGenerator.GenerateTypedJsonCode(
-//            Starcounter.Internal.XSON.PartialClassGenerator.
+            Console.WriteLine(codegen.DumpAstTree());
         }
 
     }
