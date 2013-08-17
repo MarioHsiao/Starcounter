@@ -2,7 +2,7 @@
 
 using NUnit.Framework;
 using System;
-namespace Starcounter.Internal.XSON.Tests {
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
     [TestFixture]
     public static class TestInheritance {
