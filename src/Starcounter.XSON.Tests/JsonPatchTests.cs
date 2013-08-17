@@ -214,10 +214,10 @@ Assert.AreEqual(facit, result );
             TJson t = new TJson();
             var prop = t.Add<TString>("FirstName");
             prop.Bind = "FirstName";
-            prop.Bound = Bound.Yes;
             j.Template = t;
             j.Data = p;
-            j.FirstName = "Douglas";
+
+            p.FirstName = "Douglas";
 
             var after = ((Json)j).ToJson();
             var result = Session.Current.CreateJsonPatch(true);

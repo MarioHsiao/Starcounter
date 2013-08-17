@@ -81,6 +81,26 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Generates a JSON-Patch array for all changes made to the session data
+        /// </summary>
+        /// <param name="flushLog">If true, the change log will be reset</param>
+        /// <returns>The JSON-Patch string (see RFC6902)</returns>
+        public byte[] CreateJsonPatchBytes(bool flushLog ) {
+
+            this.GenerateChangeLog();
+
+            var buffer = new List<byte>();
+            HttpPatchBuilder.CreateContentFromChangeLog(this, buffer);
+
+            if (flushLog) {
+                this._Changes = new List<Change>();
+            }
+
+            return buffer.ToArray();
+        }
+
+
+        /// <summary>
         /// Logs all changes since the last JSON-Patch update. This method generates the log
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
