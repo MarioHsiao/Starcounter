@@ -70,7 +70,7 @@ namespace Starcounter {
             }
         }
 
-        ~SqlEnumerator() {
+        //~SqlEnumerator() {
             //DbSession dbs = new DbSession();
             //while (SchedulerOwner.NrScheduledDisposes > 20)
             //    System.Threading.Thread.Sleep(10);
@@ -81,7 +81,7 @@ namespace Starcounter {
             //    lock (SchedulerOwner.NrScheduledDisposesObj)
             //        SchedulerOwner.NrScheduledDisposes--;
             //}, SchedulerOwner.Id);
-        }
+        //}
 
         /// <summary>
         /// The SQL query this SQL enumerator executes.
