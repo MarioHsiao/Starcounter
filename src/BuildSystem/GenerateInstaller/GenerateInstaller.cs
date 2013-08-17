@@ -104,36 +104,19 @@ namespace GenerateInstaller
             File.Move(archivePath, tempArchivePath);
             File.WriteAllText(archivePath, "This is an empty file...");
 
-            // Now compiling the Installer WPF project.
-            ProcessStartInfo msbuildInfo = new ProcessStartInfo();
-            msbuildInfo.FileName = BuildSystem.MsBuildExePath;
-            String installerMsbuildArgs = "\"" + Path.Combine(installerWpfFolder, "Starcounter.InstallerWPF.csproj") + "\"" +
-                " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=" + platform;
-
-            msbuildInfo.Arguments = installerMsbuildArgs;
-            msbuildInfo.UseShellExecute = false;
-
-            Process msbuildProcess = Process.Start(msbuildInfo);
-            msbuildProcess.WaitForExit();
-            if (msbuildProcess.ExitCode != 0)
-            {
-                throw new Exception("Building empty installer WPF project failed with error code: " + msbuildProcess.ExitCode);
-            }
-            msbuildProcess.Close();
+            // Building the Installer WPF project.
+            BuildMsbuildProject(
+                Path.Combine(installerWpfFolder, "Starcounter.InstallerWPF.csproj"),
+                configuration,
+                platform);
 
             Console.WriteLine("Building unique Starcounter.Tracking DLL...");
 
-            // Compiling second time with archive.
-            msbuildInfo.Arguments = "\"" + @"Level1\src\Starcounter.Tracking\Starcounter.Tracking.csproj" + "\"" +
-                " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=" + platform;
-
-            msbuildProcess = Process.Start(msbuildInfo);
-            msbuildProcess.WaitForExit();
-            if (msbuildProcess.ExitCode != 0)
-            {
-                throw new Exception("Building Starcounter.Tracking project failed with error code: " + msbuildProcess.ExitCode);
-            }
-            msbuildProcess.Close();
+            // Building tracking project.
+            BuildMsbuildProject(
+                @"Level1\src\Starcounter.Tracking\Starcounter.Tracking.csproj",
+                configuration,
+                platform);
 
             // Signing the main Starcounter setup.
             String signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, CompanyName, ProductName, pathToCertificateFile);
@@ -178,15 +161,11 @@ namespace GenerateInstaller
 
             Console.WriteLine("Building complete managed setup EXE...");
 
-            // Building second time with archive.
-            msbuildInfo.Arguments = installerMsbuildArgs;
-            msbuildProcess = Process.Start(msbuildInfo);
-            msbuildProcess.WaitForExit();
-            if (msbuildProcess.ExitCode != 0)
-            {
-                throw new Exception("Building complete installer WPF project has failed with error code: " + msbuildProcess.ExitCode);
-            }
-            msbuildProcess.Close();
+            // Building the Installer WPF project.
+            BuildMsbuildProject(
+                Path.Combine(installerWpfFolder, "Starcounter.InstallerWPF.csproj"),
+                configuration,
+                platform);
 
             // Signing the main Starcounter setup.
             signingError = BuildSystem.SignFiles(new String[] { staticSetupFilePath }, CompanyName, ProductName, pathToCertificateFile);
@@ -201,17 +180,12 @@ namespace GenerateInstaller
 
             File.Copy(staticSetupFilePath, Path.Combine(installerWrapperDir, "resources", staticSetupFileName), true);
 
-            // Compiling second time with archive.
-            msbuildInfo.Arguments = "\"" + @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.vcxproj" +
-                "\"" + " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=Win32 /p:VisualStudioVersion=11.0";
-
-            msbuildProcess = Process.Start(msbuildInfo);
-            msbuildProcess.WaitForExit();
-            if (msbuildProcess.ExitCode != 0)
-            {
-                throw new Exception("Building installer wrapper project failed with error code: " + msbuildProcess.ExitCode);
-            }
-            msbuildProcess.Close();
+            // Building the Installer WPF project.
+            BuildMsbuildProject(
+                @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.vcxproj",
+                configuration,
+                "Win32",
+                "/p:VisualStudioVersion=11.0");
 
             String specificSetupFileName = "Starcounter-" + version + "-Setup.exe";
             String specificDestSetupFilePath = Path.Combine(destinationDir, specificSetupFileName);
@@ -228,6 +202,32 @@ namespace GenerateInstaller
             // Checking if there are any errors during signing process.
             if (signingError != null)
                 throw new Exception("Failed to sign native installer setup...");
+        }
+
+        /// <summary>
+        /// Builds given MSbuild project.
+        /// </summary>
+        /// <param name="pathToProject"></param>
+        /// <param name="configuration"></param>
+        /// <param name="platform"></param>
+        /// <param name="arguments"></param>
+        static void BuildMsbuildProject(String pathToProject, String configuration, String platform, String extraArguments = "")
+        {
+            ProcessStartInfo msbuildInfo = new ProcessStartInfo();
+            msbuildInfo.FileName = BuildSystem.MsBuildExePath;
+            String installerMsbuildArgs = "\"" + pathToProject + "\"" +
+                " /maxcpucount /NodeReuse:false /target:Build /property:Configuration=" + configuration + ";Platform=\"" + platform + "\" " + extraArguments;
+
+            msbuildInfo.Arguments = installerMsbuildArgs;
+            msbuildInfo.UseShellExecute = false;
+
+            Process msbuildProcess = Process.Start(msbuildInfo);
+            msbuildProcess.WaitForExit();
+            if (msbuildProcess.ExitCode != 0)
+            {
+                throw new Exception("Building " + pathToProject + " project failed with error code: " + msbuildProcess.ExitCode);
+            }
+            msbuildProcess.Close();
         }
 
         // Accepts builds pool FTP mapped directory as a path
@@ -302,11 +302,11 @@ namespace GenerateInstaller
                 }
 
                 // Getting the path to current build consolidated folder.
-                String outputFolder = Path.Combine(checkoutDir, "Level1\\Bin\\" + configuration);
+                String outputDir = Path.Combine(checkoutDir, "Level1\\Bin\\" + configuration);
 
-                if (!Directory.Exists(outputFolder))
+                if (!Directory.Exists(outputDir))
                 {
-                    throw new Exception("Consolidated directory is empty or does not exist: " + outputFolder);
+                    throw new Exception("Consolidated directory is empty or does not exist: " + outputDir);
                 }
 
                 Console.WriteLine("Replacing version information in configuration and source files...");
@@ -325,10 +325,17 @@ namespace GenerateInstaller
 
                 // Updating the version information.
                 File.WriteAllText(Path.Combine(installerWpfFolder, BuildSystem.VersionXMLFileName), versionFileContents);
+                File.WriteAllText(Path.Combine(outputDir, BuildSystem.VersionXMLFileName), versionFileContents);
 
                 // Replacing version information.
                 String currentVersionFilePath = Path.Combine(checkoutDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs");
                 ReplaceStringInFile(currentVersionFilePath, @"String Version = ""[0-9\.]+"";", "String Version = \"" + version + "\";");
+
+                // Now compiling the Starcounter internal.
+                BuildMsbuildProject(
+                    Path.Combine(checkoutDir, @"Level1\src\Starcounter.Internal\Starcounter.Internal.csproj"),
+                    configuration,
+                    "AnyCPU");
 
                 // Copying necessary embedded files.
                 String installerWrapperDir = Path.Combine(checkoutDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper");
@@ -344,7 +351,7 @@ namespace GenerateInstaller
                 ReplaceStringInFile(Path.Combine(installerWpfFolder, "App.xaml.cs"), @"String ScVersion = ""[0-9\.]+"";", "String ScVersion = \"" + version + "\";");
 
                 // Collecting the list of executables and libraries in order to sign them.
-                String[] allFilesToSign = Directory.GetFiles(outputFolder, "*.exe");
+                String[] allFilesToSign = Directory.GetFiles(outputDir, "*.exe");
                 String signingError = "error";
 
                 // Trying to sign several times.
@@ -359,11 +366,11 @@ namespace GenerateInstaller
                 Console.WriteLine("Creating installer Archive.zip...");
 
                 // Removing Starcounter-Setup.
-                BuildSystem.DirectoryContainsFilesRegex(outputFolder, new String[] { @"Starcounter.+Setup\.exe", @"Starcounter.+Setup\.pdb", @"Starcounter.+Setup\.ilk" }, true);
+                BuildSystem.DirectoryContainsFilesRegex(outputDir, new String[] { @"Starcounter.+Setup\.exe", @"Starcounter.+Setup\.pdb", @"Starcounter.+Setup\.ilk" }, true);
 
                 // Packing output directory into archive.
                 File.Delete(installerWpfFolder + "\\Resources\\Archive.zip");
-                ZipFile.CreateFromDirectory(outputFolder, installerWpfFolder + "\\Resources\\Archive.zip", CompressionLevel.Optimal, false);
+                ZipFile.CreateFromDirectory(outputDir, installerWpfFolder + "\\Resources\\Archive.zip", CompressionLevel.Optimal, false);
 
                 // Removing old standalone package.
                 String tempBuildDir = Path.Combine(checkoutDir, "TempBuild");
@@ -375,7 +382,7 @@ namespace GenerateInstaller
                 Console.WriteLine("Copying sources and binaries to destination package...");
 
                 BuildSystem.CopyFilesRecursively(
-                    new DirectoryInfo(outputFolder),
+                    new DirectoryInfo(outputDir),
                     new DirectoryInfo(tempBuildDir + @"\Level1\Bin\" + configuration));
 
                 BuildSystem.CopyFilesRecursively(
@@ -409,8 +416,9 @@ namespace GenerateInstaller
 
                 File.Copy(Path.Combine(installerWpfFolder, BuildSystem.VersionXMLFileName), Path.Combine(tempBuildDir, BuildSystem.VersionXMLFileName), true);
 
-                // Generating unique build now.
                 Directory.SetCurrentDirectory(tempBuildDir);
+
+                // Generating unique build now.
                 GenerateUniqueBuild(
                     "000000000000000000000000"/*DownloadID.GenerateNewUniqueDownloadKey()*/,
                     checkoutDir,
@@ -445,7 +453,7 @@ namespace GenerateInstaller
 
                     // Calling external tool to upload build package to public server.
                     ProcessStartInfo uploadProcessInfo = new ProcessStartInfo();
-                    uploadProcessInfo.FileName = BuildSystem.MsBuildExePath;
+                    uploadProcessInfo.FileName = outputDir + "\\NodeUploadTool.exe";
                     uploadProcessInfo.Arguments = "UploadUri=\"tracker.starcounter.com:8585/upload\" PathToFile=\"" + pathToAllInOneArchive + "\"";
                     uploadProcessInfo.UseShellExecute = false;
 
