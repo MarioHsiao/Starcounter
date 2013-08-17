@@ -504,8 +504,8 @@ namespace Starcounter.Advanced
                     bytes = _Hypermedia.AsMimeType(mimetype,out mimetype);
                     contentType_ = MimeTypeHelper.MimeTypeAsString(mimetype);
                 }
-                catch (ArgumentException exc) {
-                    throw new ArgumentException(
+                catch (UnsupportedMimeTypeException exc) {
+                    throw new Exception(
                         String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", http_request_["Accept"], exc.ToString()));
                 }
 
