@@ -3,6 +3,7 @@
 using Starcounter.Advanced;
 using Starcounter.Internal.JsonPatch;
 using System;
+using System.Text;
 namespace Starcounter.Internal {
 
     /// <summary>
@@ -28,7 +29,14 @@ namespace Starcounter.Internal {
                             r = r.Parent;
                         Json root = (Json)r;
                         resultingMimeType = MimeType.Application_Json;
-                        return root.ToJsonUtf8();
+                        var ret = root.ToJsonUtf8();
+                        var s = root.Session;
+                        if (s != null) {
+                            // Make sure that we regard all changes as being sent to the client.
+                            // Calculate patches from here ons
+                            s.CheckpointChangeLog();
+                        }
+                        return ret;
                     }
 
                 case MimeType.Text_Html: {
@@ -37,19 +45,18 @@ namespace Starcounter.Internal {
                     if (s[0] != '/') // TODO! Needs optimization
                         s = "/" + obj.Html;
                     resultingMimeType = mimeType;
-                    return X.GET(s).BodyBytes;
+                    return Encoding.UTF8.GetBytes(X.GET(s));
                 }
 
                 case MimeType.Application_JsonPatch__Json: {
                         resultingMimeType = mimeType;
                         //return HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread);
-                        return new Response() {
-                            Body = Session.Current.CreateJsonPatch(true)
-                        };
+                        var ret = Session.Current.CreateJsonPatchBytes(true);
+                        return ret;
                 }
             }
            
-            throw new ArgumentException(
+            throw new UnsupportedMimeTypeException(
                 String.Format("Unsupported mime type {0}.",mimeType.ToString()));
         }
     }

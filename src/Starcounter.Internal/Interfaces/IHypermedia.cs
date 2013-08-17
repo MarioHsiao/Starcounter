@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Advanced;
 using System;
 namespace Starcounter {
 
@@ -70,7 +71,7 @@ namespace Starcounter {
                 case MimeType.Other:
                     break;
             }
-            throw new Exception(String.Format("Cannot convert mime type constant {0} to text", mimeType));
+            throw new UnsupportedMimeTypeException(String.Format("Cannot convert mime type constant {0} to text", mimeType));
         }
     }
 }
