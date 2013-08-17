@@ -79,6 +79,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="PMail\ContactApp.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ThreadPage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -120,6 +123,7 @@
     </None>
     <Compile Include="JsonSerializeTest.cs" />
     <Compile Include="NewtonsoftSerializer.cs" />
+    <Compile Include="PMail\PMailTests.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="simple.facit.cs">
@@ -187,6 +191,7 @@
       <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
