@@ -99,8 +99,9 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateCsFromTestMessage() {
             String className = "TestMessage";
-
-            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, className + ".json.cs");
+            string codeBehindFilePath = className + ".json.cs";
+            string codeBehind = File.ReadAllText(codeBehindFilePath);
+            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath );
 
             TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
@@ -120,7 +121,10 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void GenerateCsWithCodeBehind()
         {
             String className = "MySampleApp";
-            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, className + ".json.cs");
+            string codeBehindFilePath = className + ".json.cs";
+            string codeBehind = File.ReadAllText(codeBehindFilePath);
+
+            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath);
 
             TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
