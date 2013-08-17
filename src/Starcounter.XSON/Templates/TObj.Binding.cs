@@ -1,15 +1,22 @@
-﻿
-using Starcounter.Advanced;
+﻿using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON;
+
 namespace Starcounter.Templates {
     partial class TObj {
+		private bool bindChildren;
+        public bool HasAtLeastOneBoundProperty = true; // TODO!
 
-
-        internal DataValueBinding<IBindable> GetBinding(IBindable data) {
-            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+        internal override bool UseBinding(IBindable data) {
+			if (data == null)
+				return false;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
         }
-
 
         /// <summary>
         /// 
@@ -34,7 +41,6 @@ namespace Starcounter.Templates {
             }
         }
 
-
         /// <summary>
         /// If set to true all children will be automatically bound to the dataobject, 
         /// otherwise the children needs to set binding themselves.
@@ -56,6 +62,5 @@ namespace Starcounter.Templates {
                 }
             }
         }
-
     }
 }

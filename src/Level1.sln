@@ -318,7 +318,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Tracking", "Sta
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.UsageTracker", "Programs\Starcounter.UsageTracker\Starcounter.UsageTracker.csproj", "{773CF89D-D530-4350-8C83-C7C01BB61D47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPA", "Samples\SPA\SPA.csproj", "{699183D9-6ACF-44C9-B922-CE7FE487206D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PMail", "Samples\SPA\PMail.csproj", "{699183D9-6ACF-44C9-B922-CE7FE487206D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "thread", "thread", "{87545FE9-1480-4CD3-958E-C96552000C97}"
 	ProjectSection(SolutionItems) = preProject

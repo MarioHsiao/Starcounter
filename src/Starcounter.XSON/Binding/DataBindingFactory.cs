@@ -9,6 +9,7 @@ using Starcounter.Internal;
 using Starcounter.Logging;
 using Starcounter.Templates;
 using Starcounter.Internal.XSON;
+using System.Collections.Generic;
 
 namespace Starcounter.Internal.XSON {
     /// <summary>
@@ -21,62 +22,169 @@ namespace Starcounter.Internal.XSON {
         private static string warning = "The existing databinding for '{0}' was created for another type of dataobject. Binding needs to be recreated.";
         private static string propNotFound = "Property '{2}' was not found in type '{3}' (or baseclass). Json property: '{0}.{1}'.";
 
-        /// <summary>
-        /// Verifies that the current cached binding can be used with the current dataobject. 
-        /// If the dataobject is of another type than the cached binding specifies it will be recreated
-        /// </summary>
+		internal static bool VerifyOrCreateBinding(TValue template, Type dataType) {
+			bool throwExceptionOnBindingFailure;
+			string bindingName;
+
+			if (template.Bound == Bound.No)
+				return false;
+
+			if (template.invalidateBinding) {
+				template.dataBinding = null;
+				template.invalidateBinding = false;
+			}
+
+			if (VerifyBinding(template.dataBinding, dataType, template))
+				return true;
+
+			if (template.Bound == Bound.Yes) {
+				throwExceptionOnBindingFailure = true;
+				bindingName = template.Bind;
+			} else {
+				throwExceptionOnBindingFailure = false;
+				bindingName = template.PropertyName;
+			}
+
+			var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
+			if (pInfo != null) {
+				var @switch = new Dictionary<Type, Func<DataValueBinding>> {
+ 					 { typeof(byte), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(UInt16), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(Int16), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(UInt32), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(Int32), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(UInt64), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(Int64), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(float), () => { return new DataValueBinding<TLong>(template, pInfo); }},
+ 					 { typeof(double), () => { return new DataValueBinding<TDouble>(template, pInfo); }},
+ 					 { typeof(decimal), () => { return new DataValueBinding<TDecimal>(template, pInfo); }},
+ 					 { typeof(bool), () => { return new DataValueBinding<TBool>(template, pInfo); }},
+ 					 { typeof(string), () => { return new DataValueBinding<TString>(template, pInfo); }}
+ 					 };
+				template.dataBinding = @switch[template.InstanceType]();
+				return true;
+			} else {
+				template.dataBinding = null;
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Verifies and caches an binding on the template.
+		/// </summary>
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
-        /// <param name="bindingName">The name of the property in the dataobject to create (if needed) the binding for.</param>
-        /// <returns>An cached or created instance of <see cref="DataValueBinding{IEnumerable}"/></returns>
-        internal static DataValueBinding<IEnumerable> VerifyOrCreateBinding(TObjArr template, Type dataType, string bindingName) {
-            var binding = template.dataBinding;
-            if (VerifyBinding(binding, dataType, template))
-                return binding;
+		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
+        internal static bool VerifyOrCreateBinding(TObjArr template, Type dataType) {
+			bool throwExceptionOnBindingFailure;
+			string bindingName;
 
-            var pInfo = GetPropertyForBinding(dataType, bindingName, template);
-            binding = new DataValueBinding<IEnumerable>(template, pInfo);
-            template.dataBinding = binding;
-            return binding;
+			if (template.Bound == Bound.No)
+				return false;
+
+			if (template.invalidateBinding) {
+				template.dataBinding = null;
+				template.invalidateBinding = false;
+			}
+
+            if (VerifyBinding(template.dataBinding, dataType, template))
+                return true;
+
+			if (template.Bound == Bound.Yes) {
+				throwExceptionOnBindingFailure = true;
+				bindingName = template.Bind;
+			} else {
+				throwExceptionOnBindingFailure = false;
+				bindingName = template.PropertyName;
+			}
+
+            var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
+			if (pInfo != null) {
+				template.dataBinding = new DataValueBinding<IEnumerable>(template, pInfo);
+				return true;
+			} else {
+				template.dataBinding = null;
+				return false;
+			}
         }
 
-        /// <summary>
-        /// Verifies that the current cached binding can be used with the current dataobject. 
-        /// If the dataobject is of another type than the cached binding specifies it will be recreated
-        /// </summary>
+		/// <summary>
+		/// Verifies and caches an binding on the template.
+		/// </summary>
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
-        /// <param name="bindingName">The name of the property in the dataobject to create (if needed) the binding for.</param>
-        /// <returns>An cached or created instance of <see cref="DataValueBinding{IBindable}"/></returns>
-        internal static DataValueBinding<IBindable> VerifyOrCreateBinding(TObj template, Type dataType, string bindingName) {
-            var binding = template.dataBinding;
-            if (VerifyBinding(binding, dataType, template))
-                return binding;
+		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
+        internal static bool VerifyOrCreateBinding(TObj template, Type dataType) {
+			bool throwExceptionOnBindingFailure;
+			string bindingName;
 
-            var pInfo = GetPropertyForBinding(dataType, bindingName, template);
-            binding = new DataValueBinding<IBindable>(template, pInfo);
-            template.dataBinding = binding;
-            return binding;
+			if (template.Bound == Bound.No)
+				return false;
+
+			if (template.invalidateBinding) {
+				template.dataBinding = null;
+				template.invalidateBinding = false;
+			}
+
+            if (VerifyBinding(template.dataBinding, dataType, template))
+                return true;
+
+			if (template.Bound == Bound.Yes) {
+				throwExceptionOnBindingFailure = true;
+				bindingName = template.Bind;
+			} else {
+				throwExceptionOnBindingFailure = false;
+				bindingName = template.PropertyName;
+			}
+
+            var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
+			if (pInfo != null) {
+				template.dataBinding = new DataValueBinding<IBindable>(template, pInfo);
+				return true;
+			} else {
+				template.dataBinding = null;
+				return false;
+			}
         }
 
-        /// <summary>
-        /// Verifies that the current cached binding can be used with the current dataobject. 
-        /// If the dataobject is of another type than the cached binding specifies it will be recreated
-        /// </summary>
+		/// <summary>
+		/// Verifies and caches an binding on the template.
+		/// </summary>
         /// <typeparam name="TVal">The primitive instance type of the template.</typeparam>
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
-        /// <param name="bindingName">The name of the property in the dataobject to create (if needed) the binding for.</param>
-        /// <returns>An cached or created instance of <see cref="DataValueBinding{TVal}"/></returns></returns>
-        internal static DataValueBinding<TVal> VerifyOrCreateBinding<TVal>(TValue<TVal> template, Type dataType, string bindingName) {
-            var binding = template.dataBinding;
-            if (VerifyBinding(binding, dataType, template))
-                return binding;
+		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
+        internal static bool VerifyOrCreateBinding<TVal>(TValue<TVal> template, Type dataType) {
+			bool throwExceptionOnBindingFailure;
+			string bindingName;
 
-            var pInfo = GetPropertyForBinding(dataType, bindingName, template);
-            binding = new DataValueBinding<TVal>(template, pInfo);
-            template.dataBinding = binding;
-            return binding;
+			if (template.Bound == Bound.No)
+				return false;
+
+			if (template.invalidateBinding) {
+				template.dataBinding = null;
+				template.invalidateBinding = false;
+			}
+
+			if (VerifyBinding(template.dataBinding, dataType, template))
+                return true;
+
+			if (template.Bound == Bound.Yes) {
+				throwExceptionOnBindingFailure = true;
+				bindingName = template.Bind;
+			} else {
+				throwExceptionOnBindingFailure = false;
+				bindingName = template.PropertyName;
+			}
+
+            var pInfo = GetPropertyForBinding(dataType, bindingName, template, throwExceptionOnBindingFailure);
+			if (pInfo != null) {
+				template.dataBinding = new DataValueBinding<TVal>(template, pInfo);
+				return true;
+			} else {
+				template.dataBinding = null;
+				return false;
+			}
         }
 
         /// <summary>
@@ -86,10 +194,11 @@ namespace Starcounter.Internal.XSON {
         /// <param name="dataType"></param>
         /// <param name="bindingName"></param>
         /// <param name="template"></param>
+		/// <param name="throwException"></param>
         /// <returns></returns>
-        private static MemberInfo GetPropertyForBinding(Type dataType, string bindingName, Template template) {
+        private static MemberInfo GetPropertyForBinding(Type dataType, string bindingName, Template template, bool throwException) {
             var pInfo = ReflectionHelper.FindPropertyOrField(dataType, bindingName);
-            if (pInfo == null) {
+            if (pInfo == null && throwException) {
                 throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
                                             string.Format(propNotFound,
                                                           GetParentClassName(template),
@@ -108,7 +217,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="dataType"></param>
         /// <param name="template"></param>
         /// <returns>True if the binding can be used, false if not or binding is null</returns>
-        private static bool VerifyBinding(DataValueBinding binding, Type dataType, Template template) {
+        private static bool VerifyBinding(DataValueBinding binding, Type dataType, TValue template) {
             if (binding != null) {
                 if (dataType.Equals(binding.DataType) || dataType.IsSubclassOf(binding.DataType)) {
                     return true;

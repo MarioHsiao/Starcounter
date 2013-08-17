@@ -122,6 +122,7 @@
     <Compile Include="ScUri.cs" />
     <Compile Include="StarcounterBase.cs" />
     <Compile Include="TestLogger.cs" />
+    <Compile Include="UnsupportedMimeTypeException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

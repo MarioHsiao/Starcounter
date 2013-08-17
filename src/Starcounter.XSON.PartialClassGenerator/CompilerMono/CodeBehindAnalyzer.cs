@@ -23,16 +23,16 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// <param name="className">Name of the class.</param>
         /// <param name="codeBehindFilename">The codebehind filename.</param>
         /// <returns>CodeBehindMetadata.</returns>
-        internal static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
+        internal static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote ) {
             CodeBehindMetadata metadata;
             CSharpToken token;
             MonoCSharpEnumerator mce;
 
-            if ((codeBehindFilename == null) || (!File.Exists(codeBehindFilename))) {
+            if ((codebehind == null) || codebehind.Equals("") ) {
                 return CodeBehindMetadata.Empty;
             }
 
-            mce = new MonoCSharpEnumerator(codeBehindFilename);
+            mce = new MonoCSharpEnumerator(codebehind, filePathNote );
             metadata = new CodeBehindMetadata();
             while (mce.MoveNext()) {
                 token = mce.Token;

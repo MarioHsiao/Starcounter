@@ -111,10 +111,10 @@ namespace Starcounter.Internal.JsonPatch {
             sb.Append("\",\"path\":\"");
             IndexPathToString(sb, from, nearestApp);
 
-            if (index != -1) {
-                sb.Append('/');
-                sb.Append(index);
-            }
+//            if (index != -1) {
+//                sb.Append('/');
+//                sb.Append(index);
+//            }
             sb.Append('"');
 
             if (patchType != REMOVE) {

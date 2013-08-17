@@ -51,29 +51,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <TypedJSON Include="MailPage.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-    <Compile Include="Email.cs" />
-    <Compile Include="MailPage.json.cs">
-      <DependentUpon>MailPage.json</DependentUpon>
-    </Compile>
     <Compile Include="Master.json.cs">
       <DependentUpon>Master.json</DependentUpon>
     </Compile>
-    <Compile Include="Page1.json.cs">
-      <DependentUpon>Page1.json</DependentUpon>
-    </Compile>
-    <Compile Include="Page2.json.cs">
-      <DependentUpon>Page2.json</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="main.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj">
@@ -104,20 +85,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <TypedJSON Include="Page1.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-    <TypedJSON Include="Page2.json">
-      <Generator>MSBuild:Compile</Generator>
-    </TypedJSON>
-  </ItemGroup>
-  <ItemGroup>
     <TypedJSON Include="Master.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
     <None Include="run_SPA.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="css\" />
+    <Folder Include="html\" />
+    <Folder Include="vendor\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
