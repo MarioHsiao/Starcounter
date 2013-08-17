@@ -12,18 +12,23 @@ namespace Starcounter.Internal.XSON {
         public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath ) {
             string jsonContent = File.ReadAllText(jsonFilePath);
             string codeBehind;
+
+
             if (File.Exists(codeBehindFilePath)) {
                 codeBehind = File.ReadAllText(codeBehindFilePath);
             }
             else {
                 codeBehind = null;
             }
-            var className = Path.GetFileNameWithoutExtension(jsonFilePath);
-            return GenerateTypedJsonCode(className, jsonContent, codeBehind, jsonFilePath, codeBehindFilePath);
+
+            var t = TObj.CreateFromMarkup<Json, TJson>("json", jsonContent, jsonFilePath);
+            t.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
+
+            return GenerateTypedJsonCode( t, codeBehind, codeBehindFilePath);
         }
 
-        public static ITemplateCodeGenerator GenerateTypedJsonCode(string className, string jsonContent, string codebehind, string jsonFilePathNote, string codeBehindFilePathNote ) {
-            TObj t;
+        public static ITemplateCodeGenerator GenerateTypedJsonCode( TJson template, string codebehind, string codeBehindFilePathNote ) {
+
             CodeBehindMetadata metadata;
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;
@@ -31,17 +36,16 @@ namespace Starcounter.Internal.XSON {
            
 
             //            var className = Paths.StripFileNameWithoutExtention(jsonFilename);
-            metadata = (CodeBehindMetadata)MonoCSharpCompiler.AnalyzeCodeBehind(className, codebehind, codeBehindFilePathNote );
+            metadata = (CodeBehindMetadata)MonoCSharpCompiler.AnalyzeCodeBehind(template.ClassName, codebehind, codeBehindFilePathNote );
 
             //            t = CreateJsonTemplate(className, jsonContent);
-            t = TObj.CreateFromMarkup<Json,TJson>("json",jsonContent,jsonFilePathNote);
-            t.ClassName = className;
+//            className = t.ClassName;
 
-            if (String.IsNullOrEmpty(t.Namespace))
-                t.Namespace = metadata.RootNamespace;
+            if (String.IsNullOrEmpty(template.Namespace))
+                template.Namespace = metadata.RootNamespace;
 
             codegenmodule = new CodeGenerationModule();
-            codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", t, metadata);
+            codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", template, metadata);
 
             return codegen;
 //            if (debug)

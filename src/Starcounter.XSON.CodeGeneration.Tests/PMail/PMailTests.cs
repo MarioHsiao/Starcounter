@@ -5,7 +5,7 @@ using System;
 using System.IO;
 
 
-namespace Starcounter.XSON.PartialClassGeneration.Tests {
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
     [TestFixture]
     static class PMailTests {
@@ -20,6 +20,11 @@ namespace Starcounter.XSON.PartialClassGeneration.Tests {
             var tj = ReadTemplate("PMail\\ContactApp.json");
             Assert.NotNull(tj);
 
+//            Assert.AreEqual( "ContactApp", tj.ClassName );
+//                        var className = Path.GetFileNameWithoutExtension(jsonFilePath);
+
+
+         //   PartialClassGenerator.GenerateTypedJsonCode(
 //            Starcounter.Internal.XSON.PartialClassGenerator.
         }
 
