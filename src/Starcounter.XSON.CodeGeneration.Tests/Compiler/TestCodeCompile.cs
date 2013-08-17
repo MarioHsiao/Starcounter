@@ -3,7 +3,7 @@ using Starcounter.XSON.Metadata;
 using NUnit.Framework;
 using Starcounter.Internal.XSON;
 
-namespace Starcounter.XSON.CodeGeneration.Tests {
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     public class TestCodeCompile {
 
         [Test]
