@@ -190,8 +190,10 @@ namespace Starcounter
                 }
 
                 // Checking if port is specified within URI.
-                if (colonPos > 0)
+                if (colonPos > 0) {
                     port = UInt16.Parse(endpoint.Substring(colonPos + 1));
+                    endpointWithoutPort = endpoint.Substring(0, colonPos);
+                }
 
                 node = new Node(endpointWithoutPort, port);
 
