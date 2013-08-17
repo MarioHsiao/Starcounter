@@ -17,12 +17,12 @@ using Starcounter.XSON.CodeGeneration;
 using Modules;
 using Starcounter.Internal.XSON;
 
-namespace Starcounter.XSON.CodeGeneration.Tests {
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     /// <summary>
     /// Class TestTemplates
     /// </summary>
     [TestFixture]
-    public class TestTemplates {
+    public class GeneratePartialClassTests {
         [TestFixtureSetUp]
         public static void InitializeTest() {
         }
@@ -99,8 +99,9 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         [Test]
         public static void GenerateCsFromTestMessage() {
             String className = "TestMessage";
-
-            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, className + ".json.cs");
+            string codeBehindFilePath = className + ".json.cs";
+            string codeBehind = File.ReadAllText(codeBehindFilePath);
+            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath );
 
             TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
@@ -120,7 +121,10 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
         public static void GenerateCsWithCodeBehind()
         {
             String className = "MySampleApp";
-            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, className + ".json.cs");
+            string codeBehindFilePath = className + ".json.cs";
+            string codeBehind = File.ReadAllText(codeBehindFilePath);
+
+            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath);
 
             TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);

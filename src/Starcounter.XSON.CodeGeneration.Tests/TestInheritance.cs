@@ -2,7 +2,7 @@
 
 using NUnit.Framework;
 using System;
-namespace Starcounter.Internal.XSON.Tests {
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
     [TestFixture]
     public static class TestInheritance {
@@ -11,7 +11,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestClassNames() {
             var code = PartialClassGenerator.GenerateTypedJsonCode(
                 "ThreadPage.json",
-                "ThreadPage.json.cs", false );
+                "ThreadPage.json.cs" ).GenerateCode();
             Console.WriteLine( code );
         }
     }

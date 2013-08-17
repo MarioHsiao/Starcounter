@@ -7,37 +7,50 @@ using System;
 using System.IO;
 namespace Starcounter.Internal.XSON {
     public class PartialClassGenerator {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="jsonFilePath"></param>
-        /// <param name="codeBehindFilePath"></param>
-        /// <returns></returns>
-        public static string GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath, bool debug = false ) {
-            TObj t;
+
+
+        public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath ) {
+            string jsonContent = File.ReadAllText(jsonFilePath);
+            string codeBehind;
+
+
+            if (File.Exists(codeBehindFilePath)) {
+                codeBehind = File.ReadAllText(codeBehindFilePath);
+            }
+            else {
+                codeBehind = null;
+            }
+
+            var t = TObj.CreateFromMarkup<Json, TJson>("json", jsonContent, jsonFilePath);
+            t.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
+
+            return GenerateTypedJsonCode( t, codeBehind, codeBehindFilePath);
+        }
+
+        public static ITemplateCodeGenerator GenerateTypedJsonCode( TJson template, string codebehind, string codeBehindFilePathNote ) {
+
             CodeBehindMetadata metadata;
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;
 
-            string jsonContent = File.ReadAllText(jsonFilePath);
+           
 
             //            var className = Paths.StripFileNameWithoutExtention(jsonFilename);
-            var className = Path.GetFileNameWithoutExtension(jsonFilePath);
-            metadata = (CodeBehindMetadata)MonoCSharpCompiler.AnalyzeCodeBehind(className, codeBehindFilePath);
+            metadata = (CodeBehindMetadata)MonoCSharpCompiler.AnalyzeCodeBehind(template.ClassName, codebehind, codeBehindFilePathNote );
 
             //            t = CreateJsonTemplate(className, jsonContent);
-            t = TObj.CreateFromJson(jsonContent);
-            t.ClassName = className;
+//            className = t.ClassName;
 
-            if (String.IsNullOrEmpty(t.Namespace))
-                t.Namespace = metadata.RootNamespace;
+            if (String.IsNullOrEmpty(template.Namespace))
+                template.Namespace = metadata.RootNamespace;
 
             codegenmodule = new CodeGenerationModule();
-            codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", t, metadata);
-            
-            if (debug)
-                return codegen.DumpAstTree();
-            return codegen.GenerateCode();
+            codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", template, metadata);
+
+            return codegen;
+//            if (debug)
+//                return codegen.DumpAstTree();
+//            return codegen.GenerateCode();
         }
 
 
@@ -47,8 +60,8 @@ namespace Starcounter.Internal.XSON {
         /// <param name="className"></param>
         /// <param name="codeBehindFilePath"></param>
         /// <returns></returns>
-        public static CodeBehindMetadata CreateCodeBehindMetadata(string className, string codeBehindFilePath) {
-            return MonoCSharpCompiler.AnalyzeCodeBehind(className, codeBehindFilePath);
+        public static CodeBehindMetadata CreateCodeBehindMetadata(string className, string code, string codeBehindFilePath) {
+            return MonoCSharpCompiler.AnalyzeCodeBehind(className, code, codeBehindFilePath);
         }
     }
 }

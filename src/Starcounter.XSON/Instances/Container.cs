@@ -8,6 +8,7 @@ using System;
 
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using System.Text;
 namespace Starcounter {
 
     /// <summary>
@@ -15,6 +16,44 @@ namespace Starcounter {
     /// </summary>
     public abstract class Container : StarcounterBase
     {
+        /// <summary>
+        /// Json objects can be stored on the server between requests as session data.
+        /// </summary>
+        internal Session _Session;
+         
+        /// <summary>
+        /// Tells if any property value has changed on this container (if it is an object) or
+        /// any of its children or grandchildren (recursivly). If this flag is true, there can be
+        /// no changes to the JSON tree (but there can be changes to bound data objects).
+        /// </summary>
+        internal bool _Dirty = false;
+
+        /// <summary>
+        /// Used by change log
+        /// </summary>
+        internal bool _BrandNew = true;
+
+        /// <summary>
+        /// Json objects can be stored on the server between requests as session data.
+        /// </summary>
+        public Session Session {
+            get {
+                if (_Session == null && Parent != null ) {
+                    return Parent.Session;
+                }
+                return _Session;
+            }
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        internal void Dirtyfy() {
+            _Dirty = true;
+            if (Parent != null)
+                Parent.Dirtyfy();
+        }
+
 
 
         /// <summary>
@@ -57,13 +96,59 @@ namespace Starcounter {
             }
         }
 
-
         /// <summary>
         /// Inits this instance.
         /// </summary>
         protected virtual void Init() {
         }
 
+        /// <summary>
+        /// Used to generate change logs for all pending property changes in this object and
+        /// and its children and grandchidren (recursivly) excluding changes to bound data
+        /// objects. This method is much faster than the corresponding method checking
+        /// th database.
+        /// </summary>
+        /// <param name="session">The session (for faster access)</param>
+        internal abstract void LogValueChangesWithoutDatabase(Starcounter.Session session);
+
+        /// <summary>
+        /// Used to generate change logs for all pending property changes in this object and
+        /// and its children and grandchidren (recursivly) including changes to bound data
+        /// objects.
+        /// </summary>
+        /// <param name="session">The session (for faster access)</param>
+        internal abstract void LogValueChangesWithDatabase(Session session);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="indentation"></param>
+        internal abstract void WriteToDebugString(StringBuilder sb, int indentation);
+
+        /// <summary>
+        /// Called by WriteDebugToString implementations
+        /// </summary>
+        /// <param name="sb">The string used to write text to</param>
+        internal void _WriteDebugProperty(StringBuilder sb) {
+            var name = this.Template.PropertyName;
+            if (name != null) {
+                sb.Append('"');
+                sb.Append(name);
+                sb.Append("\":");
+            }
+            if (_BrandNew) {
+                sb.Append("(n)");
+            }
+            if (_Dirty) {
+                sb.Append("(d)");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal abstract void CheckpointChangeLog();
 
 #if QUICKTUPLE
         /// <summary>

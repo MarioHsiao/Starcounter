@@ -207,9 +207,10 @@ namespace Starcounter
         /// </summary>
         /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        public static Response GET(String uri)
+        public static dynamic GET(String uri)
         {
-            return GET(uri, null, null);
+            var r = GET(uri, null, null);
+            return r.Content;
         }
 
         /// <summary>

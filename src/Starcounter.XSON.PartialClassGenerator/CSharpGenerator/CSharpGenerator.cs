@@ -43,6 +43,15 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// </summary>
         public DomGenerator Generator;
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public object GenerateAST() {
+            return Root;
+        }
+
         /// <summary>
         /// 
         /// </summary>

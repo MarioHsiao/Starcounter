@@ -15,8 +15,8 @@ namespace Starcounter.Internal.XSON {
         /// <param name="className"></param>
         /// <param name="codeBehindFile"></param>
         /// <returns></returns>
-        public static CodeBehindMetadata AnalyzeCodeBehind(string className, string codeBehindFile) {
-            return CodeBehindAnalyzer.Analyze(className, codeBehindFile);
+        public static CodeBehindMetadata AnalyzeCodeBehind(string className, string code, string filePathNote ) {
+            return CodeBehindAnalyzer.Analyze(className, code, filePathNote );
         }
     }
 }

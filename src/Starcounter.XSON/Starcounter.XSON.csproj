@@ -91,13 +91,18 @@
     <Compile Include="Code-generated Deserializer\ParseTree\TemplateMetadata.cs" />
     <Compile Include="Code-generated Deserializer\SerializerCompiler.cs" />
     <Compile Include="Instances\Arr.Assignments.cs" />
+    <Compile Include="Instances\Arr.ChangeLog.cs" />
     <Compile Include="Instances\Arr.cs" />
+    <Compile Include="Instances\Arr.Debug.cs" />
     <Compile Include="Instances\Arr.Generic.cs" />
+    <Compile Include="Instances\Obj.Debug.cs" />
     <Compile Include="ReflectionHelper.cs" />
+    <Compile Include="Sessions\JSON-Patch\Change.cs" />
     <Compile Include="Sessions\JSON-Patch\HttpPatchBuilder.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.Incoming.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPointer.cs" />
+    <Compile Include="Sessions\Session.ChangeLog.cs" />
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\TObj.Expando.cs" />
     <Compile Include="Templates\TDynamicObj.cs" />
@@ -106,7 +111,6 @@
     <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="JSON-By-Example\Module2.cs" />
-    <Compile Include="Sessions\ChangeLog.cs" />
     <Compile Include="Instances\Container.cs" />
     <Compile Include="Binding\DataBindingFactory.cs" />
     <Compile Include="DynamicJson.cs" />

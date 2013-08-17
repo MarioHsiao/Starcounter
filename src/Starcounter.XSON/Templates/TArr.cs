@@ -90,7 +90,7 @@ namespace Starcounter.Templates {
 //        , ITObjArr
 #endif
     {
-        internal DataValueBinding<IEnumerable> dataBinding;
+       // internal DataValueBinding<IEnumerable> dataBinding;
         private string instanceDataTypeName;
     
         /// <summary>
@@ -128,8 +128,10 @@ namespace Starcounter.Templates {
             }
         }
 
-        internal DataValueBinding<IEnumerable> GetBinding(IBindable data) {
-            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
+        internal override bool UseBinding(IBindable data) {
+			if (data == null)
+				return false;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
         }
 
         internal override object GetBoundValueAsObject(Obj obj) {
