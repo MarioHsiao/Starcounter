@@ -7,22 +7,23 @@ using System;
 using System.IO;
 namespace Starcounter.Internal.XSON {
     public class PartialClassGenerator {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="jsonFilePath"></param>
-        /// <param name="codeBehindFilePath"></param>
-        /// <returns></returns>
-        public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath, bool debug = false ) {
+
+
+        public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath ) {
+            string jsonContent = File.ReadAllText(jsonFilePath);
+            var className = Path.GetFileNameWithoutExtension(jsonFilePath);
+            return GenerateTypedJsonCode(className, jsonContent, codeBehindFilePath);
+        }
+
+        public static ITemplateCodeGenerator GenerateTypedJsonCode(string className, string jsonContent, string codeBehindFilePath ) {
             TObj t;
             CodeBehindMetadata metadata;
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;
 
-            string jsonContent = File.ReadAllText(jsonFilePath);
+           
 
             //            var className = Paths.StripFileNameWithoutExtention(jsonFilename);
-            var className = Path.GetFileNameWithoutExtension(jsonFilePath);
             metadata = (CodeBehindMetadata)MonoCSharpCompiler.AnalyzeCodeBehind(className, codeBehindFilePath);
 
             //            t = CreateJsonTemplate(className, jsonContent);
