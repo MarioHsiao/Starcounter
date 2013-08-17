@@ -412,7 +412,7 @@ namespace GenerateInstaller
                 // Generating unique build now.
                 Directory.SetCurrentDirectory(tempBuildDir);
                 GenerateUniqueBuild(
-                    DownloadID.GenerateNewUniqueDownloadKey(),
+                    "000000000000000000000000"/*DownloadID.GenerateNewUniqueDownloadKey()*/,
                     checkoutDir,
                     @"\\scbuildserver\FTP\SCDev\BuildSystem\starcounter-2014.cer");
 
