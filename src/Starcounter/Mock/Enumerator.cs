@@ -222,13 +222,13 @@ namespace Starcounter
                 goto err;
             Debug.Assert(_handle != 0);
 
-            //if (newIterator) {
-            //    Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
-            //    if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
-            //        SchedulerOwner.NrOpenIterators++;
-            //    else
-            //        ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
-            //}
+            if (newIterator) {
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+                if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
+                    SchedulerOwner.NrOpenIterators++;
+                else
+                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
+            }
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
@@ -493,13 +493,13 @@ namespace Starcounter
                 goto err;
             Debug.Assert(_handle != 0);
 
-            //if (newIterator) {
-            //    Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
-            //    if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
-            //        SchedulerOwner.NrOpenIterators++;
-            //    else
-            //        ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
-            //}
+            if (newIterator) {
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+                if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
+                    SchedulerOwner.NrOpenIterators++;
+                else
+                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
+            }
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
