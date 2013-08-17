@@ -11,7 +11,13 @@ namespace Starcounter.Internal.XSON {
 
         public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath ) {
             string jsonContent = File.ReadAllText(jsonFilePath);
-            string codeBehind = File.ReadAllText(codeBehindFilePath);
+            string codeBehind;
+            if (File.Exists(codeBehindFilePath)) {
+                codeBehind = File.ReadAllText(codeBehindFilePath);
+            }
+            else {
+                codeBehind = null;
+            }
             var className = Path.GetFileNameWithoutExtension(jsonFilePath);
             return GenerateTypedJsonCode(className, jsonContent, codeBehind, jsonFilePath, codeBehindFilePath);
         }
