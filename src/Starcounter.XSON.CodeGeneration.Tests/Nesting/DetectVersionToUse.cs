@@ -19,23 +19,28 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         }
 
         [Test]
-        public static void GenerateCsDOM1() {
+        public static void PartialWithoutMapPlusNestedWithMap() {
             _GenerateCsDOM("v1", "NRoot"); // Generation 1
         }
 
         [Test]
-        public static void GenerateCsDOM2() {
+        public static void SinglePartialWithoutMap() {
             _GenerateCsDOM("v2", "NRoot"); // Generation 2
         }
 
         [Test]
-        public static void GenerateCsDOM3() {
+        public static void MappedRootAndChild() {
             _GenerateCsDOM("v3", "AstRoot"); // Generation 1
         }
 
         [Test]
-        public static void GenerateCsDOM4() {
-            _GenerateCsDOM("v4","AstRoot"); // Generation 1
+        public static void SingleMapForChild() {
+            _GenerateCsDOM("v4", "AstRoot"); // Generation 1
+        }
+
+        [Test]
+        public static void SingleMapForRoot() {
+            _GenerateCsDOM("v5", "AstRoot"); // Generation 1
         }
 
         private static void _GenerateCsDOM(string version,string root) {
