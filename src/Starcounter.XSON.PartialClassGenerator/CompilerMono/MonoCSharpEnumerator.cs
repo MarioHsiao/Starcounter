@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Mono.CSharp;
+using Starcounter.XSON.Metadata;
 
 namespace Starcounter.XSON.Compiler.Mono {
     internal class MonoCSharpEnumerator {
@@ -52,7 +53,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             return (CSharpToken)tokenizer.peek_token();
         }
 
-        internal string LastFoundJsonAttribute { get; set; }
+        internal CodeBehindClassInfo LastFoundJsonAttribute { get; set; }
 
         internal string CurrentNamespace {
             get {

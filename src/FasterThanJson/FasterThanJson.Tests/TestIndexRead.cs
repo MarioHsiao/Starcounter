@@ -120,6 +120,7 @@ namespace FasterThanJson.Tests {
         }
 
         [Test]
+        [Category("LongRunning")]
         public static unsafe void RandomIndexAccessTest() {
             int nrIterations = 10000;
             Random writeRnd = new Random(1);

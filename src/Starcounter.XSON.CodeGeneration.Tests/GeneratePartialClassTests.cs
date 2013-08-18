@@ -106,7 +106,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
-            actual.Namespace = metadata.RootNamespace;
+            actual.Namespace = metadata.RootClassInfo.Namespace;
             actual.ClassName = className;
 
             Assert.IsNotNullOrEmpty(actual.Namespace);
@@ -129,7 +129,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
 
-            actual.Namespace = metadata.RootNamespace;
+            actual.Namespace = metadata.RootClassInfo.Namespace;
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
             Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();

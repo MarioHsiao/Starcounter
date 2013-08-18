@@ -1,0 +1,8 @@
+﻿
+partial class ParentChild : Json {
+}
+
+[ParentChild.json.Focused]
+partial class ContactPage : Json {
+}
+

@@ -79,7 +79,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PMail\ContactApp.json">
+    <None Include="Nesting\ParentChild.json.cs.v2">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Nesting\ParentChild.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Nesting\ParentChild.json.cs.v3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Nesting\ParentChild.json.cs.v4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="ThreadPage.json">
@@ -123,10 +132,10 @@
     </None>
     <Compile Include="JsonSerializeTest.cs" />
     <Compile Include="NewtonsoftSerializer.cs" />
-    <None Include="PMail\ContactApp.json.cs">
+    <None Include="Nesting\ParentChild.json.cs.v1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="PMail\PMailTests.cs" />
+    <Compile Include="Nesting\DetectVersionToUse.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="simple.facit.cs">

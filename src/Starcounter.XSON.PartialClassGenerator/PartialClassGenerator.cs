@@ -1,7 +1,9 @@
 ﻿
 using Starcounter.Internal.Application.CodeGeneration;
+using Starcounter.Internal.MsBuild.Codegen;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
 using System;
 using System.IO;
@@ -36,15 +38,22 @@ namespace Starcounter.Internal.XSON {
            
 
             //            var className = Paths.StripFileNameWithoutExtention(jsonFilename);
-            metadata = (CodeBehindMetadata)MonoCSharpCompiler.AnalyzeCodeBehind(template.ClassName, codebehind, codeBehindFilePathNote );
+            metadata = CodeBehindAnalyzer.Analyze(template.ClassName, codebehind, codeBehindFilePathNote); 
+                //(CodeBehindMetadata)MonoCSharpCompiler.AnalyzeCodeBehind(template.ClassName, codebehind, codeBehindFilePathNote );
+                //metadata = CodeBehindAnalyser.
 
             //            t = CreateJsonTemplate(className, jsonContent);
 //            className = t.ClassName;
 
             if (String.IsNullOrEmpty(template.Namespace))
-                template.Namespace = metadata.RootNamespace;
+                template.Namespace = metadata.RootClassInfo.Namespace;
 
-            codegenmodule = new Gen1CodeGenerationModule();
+            if (metadata.RootClassInfo.RawJsonMapAttribute != null ||
+                  (!metadata.RootClassInfo.IsDeclaredInCodeBehind && metadata.JsonPropertyMapList.Count > 1 ) )
+               codegenmodule = new Gen2CodeGenerationModule(); // Before gen2, we did not support json attributes on the root class
+            else
+               codegenmodule = new Gen1CodeGenerationModule();
+
             codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", template, metadata);
 
             return codegen;
@@ -61,7 +70,8 @@ namespace Starcounter.Internal.XSON {
         /// <param name="codeBehindFilePath"></param>
         /// <returns></returns>
         public static CodeBehindMetadata CreateCodeBehindMetadata(string className, string code, string codeBehindFilePath) {
-            return MonoCSharpCompiler.AnalyzeCodeBehind(className, code, codeBehindFilePath);
+//            return MonoCSharpCompiler.AnalyzeCodeBehind(className, code, codeBehindFilePath);
+            return CodeBehindAnalyzer.Analyze(className, code, codeBehindFilePath);
         }
     }
 }

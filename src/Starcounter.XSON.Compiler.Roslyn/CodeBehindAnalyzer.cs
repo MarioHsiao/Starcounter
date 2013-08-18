@@ -26,7 +26,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         internal static CodeBehindMetadata Analyze(string className, string codeBehindFilename) {
             bool autoBindToDataObject = false;
             ClassDeclarationSyntax classDecl;
-            List<JsonMapInfo> mapList = new List<JsonMapInfo>();
+            List<CodeBehindClassInfo> mapList = new List<CodeBehindClassInfo>();
             List<InputBindingInfo> inputList = new List<InputBindingInfo>();
             string ns = null;
             string genericArg = null;
@@ -53,13 +53,13 @@ namespace Starcounter.XSON.Compiler.Roslyn {
                 FillListWithHandleInputInfo(root, inputList);
             }
 
-            return new CodeBehindMetadata() {
-                RootNamespace = ns,
-                GenericArgument = genericArg,
-                AutoBindToDataObject = autoBindToDataObject,
-                JsonPropertyMapList = mapList,
-                InputBindingList = inputList
-            };
+            var meta = new CodeBehindMetadata();
+            meta.JsonPropertyMapList = mapList;
+            meta.RootClassInfo.Namespace = ns;
+            meta.RootClassInfo.GenericArgument = genericArg;
+            meta.RootClassInfo.AutoBindToDataObject = autoBindToDataObject;
+            meta.RootClassInfo.InputBindingList = inputList;
+            return meta;
         }
 
         private static bool IsTypedJsonClass(ClassDeclarationSyntax classDecl) {
@@ -234,7 +234,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         /// <param name="node">The node.</param>
         /// <param name="jsonInstanceName"></param>
         /// <param name="list">The list.</param>
-        private static void FillListWithJsonMapInfo(String className, SyntaxNode node, string jsonInstanceName, List<JsonMapInfo> list) {
+        private static void FillListWithJsonMapInfo(String className, SyntaxNode node, string jsonInstanceName, List<CodeBehindClassInfo> list) {
             AttributeSyntax attribute;
 
             if (node.Kind == SyntaxKind.Attribute) {
@@ -256,7 +256,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
         /// <param name="attributeNode"></param>
         /// <param name="jsonInstanceName"></param>
         /// <returns></returns>
-        private static JsonMapInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode, string jsonInstanceName) {
+        private static CodeBehindClassInfo GetJsonMapInfoFrom(AttributeSyntax attributeNode, string jsonInstanceName) {
             bool autoBindToDataObject;
             ClassDeclarationSyntax classDecl;
             ClassDeclarationSyntax parentClassDecl;
@@ -276,14 +276,13 @@ namespace Starcounter.XSON.Compiler.Roslyn {
                 parentClassDecl = FindClass(parentClassDecl.Parent);
             }
 
-            return new JsonMapInfo() {
-                Namespace = FindNamespaceForClassDeclaration(classDecl),
-                ClassName = classDecl.Identifier.ValueText,
-                GenericArgument = genericArg,
-                AutoBindToDataObject = autoBindToDataObject,
-                ParentClasses = parentClassNames,
-                JsonMapName = attributeNode.Name.ToString()
-            };
+            var jmi = CodeBehindClassInfo.EvaluateAttributeString(attributeNode.Name.ToString());
+            jmi.Namespace = FindNamespaceForClassDeclaration(classDecl);
+            jmi.ClassName = classDecl.Identifier.ValueText;
+            jmi.GenericArgument = genericArg;
+            jmi.AutoBindToDataObject = autoBindToDataObject;
+            jmi.ParentClasses = parentClassNames;
+            return jmi;
         }
 
         /// <summary>
