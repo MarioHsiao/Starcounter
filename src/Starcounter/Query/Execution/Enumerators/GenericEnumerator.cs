@@ -71,16 +71,16 @@ namespace Starcounter {
         }
 
         ~SqlEnumerator() {
-            //DbSession dbs = new DbSession();
-            //while (SchedulerOwner.NrScheduledDisposes > 20)
-            //    System.Threading.Thread.Sleep(10);
-            //lock (SchedulerOwner.NrScheduledDisposesObj)
-            //    SchedulerOwner.NrScheduledDisposes++;
-            //dbs.RunAsync(() => {
-            //    Dispose(true);
-            //    lock (SchedulerOwner.NrScheduledDisposesObj)
-            //        SchedulerOwner.NrScheduledDisposes--;
-            //}, SchedulerOwner.Id);
+            DbSession dbs = new DbSession();
+            while (SchedulerOwner.NrScheduledDisposes > 20)
+                System.Threading.Thread.Sleep(10);
+            lock (SchedulerOwner.NrScheduledDisposesObj)
+                SchedulerOwner.NrScheduledDisposes++;
+            dbs.RunAsync(() => {
+                Dispose(true);
+                lock (SchedulerOwner.NrScheduledDisposesObj)
+                    SchedulerOwner.NrScheduledDisposes--;
+            }, SchedulerOwner.Id);
         }
 
         /// <summary>
