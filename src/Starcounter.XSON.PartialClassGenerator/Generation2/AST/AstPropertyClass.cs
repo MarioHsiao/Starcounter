@@ -18,7 +18,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public AstPropertyClass(DomGenerator gen)
+        public AstPropertyClass(Gen2DomGenerator gen)
             : base(gen) {
         }
 

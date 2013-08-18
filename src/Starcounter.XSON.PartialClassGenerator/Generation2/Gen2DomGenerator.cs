@@ -23,8 +23,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// to allow the generated code structure match the code behind structure. In this way,
     /// there is no need for the programmer to have deep nesting of class declarations in
     /// JSON trees.</remarks>
-    public class DomGenerator {
-        internal DomGenerator(CodeGenerationModule mod, TObj template, Type defaultNewObjTemplateType) {
+    public class Gen2DomGenerator {
+        internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TObj template, Type defaultNewObjTemplateType) {
             DefaultObjTemplate = (TObj)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
             InitTemplateClasses();
             InitMetadataClasses();

@@ -14,7 +14,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// Class CSharpGenerator
     /// </summary>
-    public class CSharpGenerator : ITemplateCodeGenerator 
+    public class Gen2CSharpGenerator : ITemplateCodeGenerator 
     {
 
 //        static CSharpGenerator() {
@@ -42,7 +42,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// we can obtain the wanted default obj template, i.e.
         /// which template to use as the default template for new objects.
         /// </summary>
-        public DomGenerator Generator;
+        public Gen2DomGenerator Generator;
 
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="generator"></param>
         /// <param name="root"></param>
-        public CSharpGenerator(DomGenerator generator, AstRoot root ) {
+        public Gen2CSharpGenerator(Gen2DomGenerator generator, AstRoot root ) {
             Generator = generator;
             Root = root;
             Indentation = 4;

@@ -27,7 +27,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="appType"></param>
         /// <param name="templateType"></param>
         /// <param name="template"></param>
-        public AstArrXXXClass(DomGenerator gen, string typename, AstClass appType, AstClass templateType, Template template ) 
+        public AstArrXXXClass(Gen2DomGenerator gen, string typename, AstClass appType, AstClass templateType, Template template ) 
         :base( gen)
         {
             //this.NTemplateClass.Template = template;            

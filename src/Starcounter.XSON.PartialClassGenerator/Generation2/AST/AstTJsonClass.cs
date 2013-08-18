@@ -21,7 +21,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// Initializes a new instance of the <see cref="AstTAppClass" /> class.
         /// </summary>
-        public AstTAppClass( DomGenerator gen ) : base( gen )
+        public AstTAppClass( Gen2DomGenerator gen ) : base( gen )
         {
             Constructor = new AstConstructor( gen ) { Parent = this };
         }
