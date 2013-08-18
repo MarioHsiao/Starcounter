@@ -19,7 +19,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public AstMetadataClass(DomGenerator gen)
+        public AstMetadataClass(Gen2DomGenerator gen)
             : base(gen) {
         }
 

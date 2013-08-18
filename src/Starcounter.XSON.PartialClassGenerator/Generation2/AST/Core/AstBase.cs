@@ -24,7 +24,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// 
         /// </summary>
-        public DomGenerator Generator;
+        public Gen2DomGenerator Generator;
 
         /// <summary>
         /// Each node can have a name for easier debugging
@@ -37,7 +37,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public AstBase(DomGenerator gen) {
+        public AstBase(Gen2DomGenerator gen) {
             if (gen == null)
                 throw new Exception("The generator must be given");
             Generator = gen;

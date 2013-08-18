@@ -19,7 +19,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public AstPrimitiveType(DomGenerator gen)
+        public AstPrimitiveType(Gen2DomGenerator gen)
             : base(gen) {
         }
 

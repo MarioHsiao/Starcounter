@@ -65,7 +65,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// Initializes a new instance of the <see cref="AstInputBinding" /> class.
         /// </summary>
-        public AstInputBinding( DomGenerator gen ) : base(gen) {
+        public AstInputBinding( Gen2DomGenerator gen ) : base(gen) {
 
         }
 

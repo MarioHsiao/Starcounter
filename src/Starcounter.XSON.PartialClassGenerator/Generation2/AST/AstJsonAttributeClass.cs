@@ -15,7 +15,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public AstJsonAttributeClass(DomGenerator gen)
+        public AstJsonAttributeClass(Gen2DomGenerator gen)
             : base(gen) {
         }
 
