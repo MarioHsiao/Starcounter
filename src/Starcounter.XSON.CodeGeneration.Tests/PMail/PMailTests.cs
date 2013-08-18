@@ -23,9 +23,20 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var tj = ReadTemplate("PMail\\ContactApp.json");
             var cb = File.ReadAllText("PMail\\ContactApp.json.cs");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
-            NRoot dom = (NRoot)codegen.GenerateAST();
+            var dom = codegen.GenerateAST();
 
-            Console.WriteLine(codegen.DumpAstTree());
+            //            var str = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => node.ToString() ); 
+            var str = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => {
+                var ret = node.GetType().Name;
+                ret += " : " + ((NBase)node).Name;
+                //var s = node.ToString();
+                //if (s.Length > 40 ) {
+                //    s = s.Substring(0,37)+"...";
+                //}
+                //ret += "::" + s;
+                return ret;
+            }); 
+            Console.WriteLine(str);
         }
 
     }
