@@ -48,7 +48,7 @@ namespace Starcounter.Internal.Application.CodeGeneration  {
         /// 
         /// </summary>
         /// <returns></returns>
-        public object GenerateAST() {
+        public IReadOnlyTree GenerateAST() {
             return Root;
         }
 

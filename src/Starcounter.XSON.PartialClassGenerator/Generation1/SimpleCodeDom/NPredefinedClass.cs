@@ -13,6 +13,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public class NPredefinedType : NClass {
 
+        public override string Name {
+            get { return _FixedClassName; }
+        }
+
         /// <summary>
         /// 
         /// </summary>

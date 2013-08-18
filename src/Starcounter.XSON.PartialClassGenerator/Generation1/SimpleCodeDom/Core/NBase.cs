@@ -19,12 +19,19 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// complete C# syntax tree would consist of a more complex tree. This makes creating,
     /// manipulating easier and also anables simplicity in source code text generation.
     /// </summary>
-    public class NBase {
+    public abstract class NBase : IReadOnlyTree {
 
         /// <summary>
         /// 
         /// </summary>
         public DomGenerator Generator;
+
+        /// <summary>
+        /// Each node can have a name for easier debugging
+        /// </summary>
+        public abstract string Name {
+            get;
+        }
 
         /// <summary>
         /// 
@@ -130,5 +137,24 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <value>The indentation.</value>
         public int Indentation { get; set; }
+
+
+        /// <summary>
+        /// An AST node is a tree node
+        /// </summary>
+        IReadOnlyList<IReadOnlyTree> IReadOnlyTree.Children {
+            get {
+                return (IReadOnlyList<IReadOnlyTree>)Children;
+            }
+        }
+
+        /// <summary>
+        /// An AST node is a tree node
+        /// </summary>
+        IReadOnlyTree IReadOnlyTree.Parent {
+            get {
+                return Parent;
+            }
+        }
     }
 }

@@ -23,6 +23,10 @@ namespace Starcounter.Internal.Application.CodeGeneration
             : base(gen) {
         }
 
+        public override string Name {
+            get { return ClassName; }
+        }
+
         /// <summary>
         /// Gets the inherits.
         /// </summary>

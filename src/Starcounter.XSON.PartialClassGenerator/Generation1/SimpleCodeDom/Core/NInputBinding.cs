@@ -16,6 +16,11 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// if the first one didn't handle it.
     /// </summary>
     public class NInputBinding : NBase {
+
+        public override string Name {
+            get { return BindsToProperty.Name; }
+        }
+
         /// <summary>
         /// The property this binding binds to
         /// </summary>
