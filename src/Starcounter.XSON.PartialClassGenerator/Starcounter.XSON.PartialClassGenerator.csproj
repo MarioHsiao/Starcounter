@@ -82,7 +82,7 @@
     <Compile Include="Generation2\AST\AstRoot.cs" />
     <Compile Include="CompilerMono\MonoCSharpCompiler.cs" />
     <Compile Include="CompilerMono\MonoCSharpEnumerator.cs" />
-    <Compile Include="Generation1\CSharpGenerator.cs" />
+    <Compile Include="Generation1\Gen1CSharpGenerator.cs" />
     <Compile Include="PartialClassGenerator.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -105,8 +105,8 @@
     <Compile Include="Generation1\SimpleCodeDom\NPrimitiveType.cs" />
     <Compile Include="Generation1\SimpleCodeDom\NPropertyClass.cs" />
     <Compile Include="Generation1\SimpleCodeDom\NRoot.cs" />
-    <Compile Include="Generation1\CodeGenerationModule.cs" />
-    <Compile Include="Generation1\DomGenerator.cs" />
+    <Compile Include="Generation1\Gen1CodeGenerationModule.cs" />
+    <Compile Include="Generation1\Gen1DomGenerator.cs" />
     <Compile Include="TypedJsonFactory.cs" />
   </ItemGroup>
   <ItemGroup>
