@@ -1,11 +1,4 @@
 ﻿{
-  Contacts: [{ Name:"" }],
-
-  Focused: {
-      Name: "",
-
-      PhoneNumbers: [{
-         Number$: "",
-      }],
-   }
+  Child1: { Test1:"" },
+  Child2: { Test2:"" }
 }
