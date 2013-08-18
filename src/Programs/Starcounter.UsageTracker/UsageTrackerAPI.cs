@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Applications.UsageTrackerApp.API;
+using StarcounterApplicationWebSocket.VersionHandler;
 
 namespace Starcounter.Applications.UsageTrackerApp {
     internal static class UsageTrackerAPI {
@@ -22,6 +23,10 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
 			// Error reporting
 			ErrorReportHandler.Setup_PUT(port);
+
+            // Version handling (Uploads and Downloads)
+            VersionHandlerApp.BootStrap(port);
+
         }
 
     }
