@@ -14,6 +14,11 @@ namespace Starcounter.Internal.Application.CodeGeneration
     /// </summary>
     public class NConstructor : NBase
     {
+
+        public override string Name {
+            get { return ""; }
+        }
+
         /// <summary>
         /// 
         /// </summary>

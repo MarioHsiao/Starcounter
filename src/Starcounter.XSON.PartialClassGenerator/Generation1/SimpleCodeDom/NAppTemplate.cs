@@ -26,6 +26,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         }
 
         /// <summary>
+        /// Used to debug nodes
+        /// </summary>
+        public override string Name {
+            get { return ClassName; }
+        }
+
+        /// <summary>
         /// Gets the name of the class.
         /// </summary>
         /// <value>The name of the class.</value>

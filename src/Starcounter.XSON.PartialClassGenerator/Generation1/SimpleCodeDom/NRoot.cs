@@ -8,10 +8,13 @@ using Starcounter.Templates;
 namespace Starcounter.Internal.Application.CodeGeneration {
 
     /// <summary>
-    /// The source code root keeps track of the namespace and the single root
-    /// generated App class
+    /// The single AST root
     /// </summary>
     public class NRoot : NBase {
+
+        public override string Name {
+            get { return ""; }
+        }
 
         /// <summary>
         /// 

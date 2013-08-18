@@ -23,6 +23,9 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             : base(gen) {
         }
 
+        public override string Name {
+            get { return Template.PropertyName; }
+        }
 
         /// <summary>
         /// The template

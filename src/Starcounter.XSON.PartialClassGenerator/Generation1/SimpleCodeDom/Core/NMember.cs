@@ -18,6 +18,10 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// </summary>
     public class NProperty : NBase {
 
+        public override string Name {
+            get { return Template.PropertyName; }
+        }
+
         /// <summary>
         /// 
         /// </summary>
