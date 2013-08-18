@@ -71,9 +71,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     return this.Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Json"
                 } else if (Template.Parent is TObjArr) {
                     var alt = (TObjArr)Template.Parent;
-                    return AppifyName(alt.PropertyName); // +"App";
+                    return JsonifyName(alt.PropertyName); // +"App";
                 } else
-                    return AppifyName(Template.PropertyName); // +"App";
+                    return JsonifyName(Template.PropertyName); // +"App";
             }
         }
 
@@ -96,15 +96,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
-        /// 
+        /// Anonymous classes (classes for inner JSON objects) should have a nice
+        /// name. We choose to use the name of the property it was created from with
+        /// an added JSON ending. We cannot simply use the same name as the property
+        /// as CSharp does not allow us to have the same name for an inner class as
+        /// for a property name.
         /// </summary>
         /// <param name="name">The name to amend</param>
-        /// <returns>A name that ends with the text "App"</returns>
-        private static string AppifyName(string name) {
+        /// <returns>A name that ends with the text "Json"</returns>
+        private static string JsonifyName(string name) {
             //            if (name.EndsWith("s")) {
             //                name = name.Substring(0, name.Length - 1);
             //            }
-            return name + "Obj";
+            return name + "Json";
         }
 
         /// <summary>
