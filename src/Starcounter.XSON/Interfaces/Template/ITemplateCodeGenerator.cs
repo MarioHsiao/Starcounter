@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal;
 namespace Starcounter.Templates.Interfaces {
     /// <summary>
     /// Interface ITemplateCodeGenerator
@@ -19,7 +20,7 @@ namespace Starcounter.Templates.Interfaces {
         /// 
         /// </summary>
         /// <returns></returns>
-        object GenerateAST();
+        IReadOnlyTree GenerateAST();
 
         /// <summary>
         /// 
