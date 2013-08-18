@@ -58,6 +58,28 @@
     <Compile Include="CodeBehindMetaData\JsonMapInfo.cs" />
     <Compile Include="CompilerMono\CodeBehindAnalyzer.cs" />
     <Compile Include="CompilerMono\CSharpToken.cs" />
+    <Compile Include="Generation2\CodeGenerationModule.cs" />
+    <Compile Include="Generation2\CSharpGenerator.cs" />
+    <Compile Include="Generation2\DomGenerator.cs" />
+    <Compile Include="Generation2\AST\Core\NBase.cs" />
+    <Compile Include="Generation2\AST\Core\NClass.cs" />
+    <Compile Include="Generation2\AST\Core\NConstructor.cs" />
+    <Compile Include="Generation2\AST\Core\NInputBinding.cs" />
+    <Compile Include="Generation2\AST\Core\NMember.cs" />
+    <Compile Include="Generation2\AST\Core\NMetadataClass.cs" />
+    <Compile Include="Generation2\AST\Core\NTemplateClass.cs" />
+    <Compile Include="Generation2\AST\Core\NValueClass.cs" />
+    <Compile Include="Generation2\AST\NApp.cs" />
+    <Compile Include="Generation2\AST\NAppMetadata.cs" />
+    <Compile Include="Generation2\AST\NAppTemplate.cs" />
+    <Compile Include="Generation2\AST\NEventClass.cs" />
+    <Compile Include="Generation2\AST\NJsonAttributeClass.cs" />
+    <Compile Include="Generation2\AST\NListing.cs" />
+    <Compile Include="Generation2\AST\NOtherClass.cs" />
+    <Compile Include="Generation2\AST\NPredefinedClass.cs" />
+    <Compile Include="Generation2\AST\NPrimitiveType.cs" />
+    <Compile Include="Generation2\AST\NPropertyClass.cs" />
+    <Compile Include="Generation2\AST\NRoot.cs" />
     <Compile Include="CompilerMono\MonoCSharpCompiler.cs" />
     <Compile Include="CompilerMono\MonoCSharpEnumerator.cs" />
     <Compile Include="Generation1\CSharpGenerator.cs" />
@@ -104,9 +126,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Generation2\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
