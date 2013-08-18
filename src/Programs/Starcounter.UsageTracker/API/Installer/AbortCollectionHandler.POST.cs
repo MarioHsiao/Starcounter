@@ -43,7 +43,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
                             InstallerAbort item = new InstallerAbort(installation);
 
                             // Header
-                            item.Date = DateTime.Parse(data.date);
+                            item.Date = DateTime.UtcNow;
                             item.IP = clientIP.ToString();
                             item.Mac = data.mac;
                             if (protocolVersion > 1) {
