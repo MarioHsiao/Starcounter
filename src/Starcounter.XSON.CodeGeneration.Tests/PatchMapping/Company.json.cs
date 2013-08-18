@@ -1,9 +1,9 @@
 ﻿
-[json]
-partial class CompanyJson : Json {
+[Company.json]
+partial class Company : Json {
 }
 
-[json.Contact]
+[Company.json.Contact]
 partial class ContactJson : Json {
 }
 
