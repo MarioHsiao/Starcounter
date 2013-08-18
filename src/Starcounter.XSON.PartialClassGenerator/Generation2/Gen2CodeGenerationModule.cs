@@ -26,8 +26,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns></returns>
         public ITemplateCodeGenerator CreateGenerator(Type defaultChildObjTemplateType, string dotNetLanguage, object objTemplate, object metadata) {
             var templ = (TObj)objTemplate;
-            var gen = new Gen2DomGenerator(this, templ, defaultChildObjTemplateType );
-            return new Gen2CSharpGenerator( gen, gen.GenerateDomTree( templ, (CodeBehindMetadata)metadata));
+            var gen = new Gen2DomGenerator(this, templ, defaultChildObjTemplateType, (CodeBehindMetadata)metadata );
+            return new Gen2CSharpGenerator( gen, gen.GenerateDomTree( templ ));
         }
 
     }

@@ -583,7 +583,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="fileName">The name of the original json file</param>
         /// <param name="h">The h.</param>
         static internal void WriteHeader( string fileName, StringBuilder h ) {
-            h.Append("// This is a system generated file. It reflects the Starcounter App Template defined in the file \"");
+            h.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
             h.Append(fileName);
             h.Append('"');
             h.Append('\n');
