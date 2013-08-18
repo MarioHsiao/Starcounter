@@ -15,7 +15,7 @@ namespace Starcounter.XSON.Compiler.Mono {
     /// <summary>
     /// Class CodeBehindAnalyzer
     /// </summary>
-    internal static class CodeBehindAnalyzer {
+    public static class CodeBehindAnalyzer {
         /// <summary>
         /// Parses the specified c# file using Roslyn and builds a metadata
         /// structure used to generate code for json Apps.
@@ -23,7 +23,7 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// <param name="className">Name of the class.</param>
         /// <param name="codeBehindFilename">The codebehind filename.</param>
         /// <returns>CodeBehindMetadata.</returns>
-        internal static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote ) {
+        public static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote ) {
             CodeBehindMetadata metadata;
             CSharpToken token;
             MonoCSharpEnumerator mce;
@@ -70,17 +70,28 @@ namespace Starcounter.XSON.Compiler.Mono {
                 }
 
             }
+            if (metadata.RootClassInfo == null) {
+                metadata.JsonPropertyMapList.Add( new CodeBehindClassInfo(null) {
+                    IsRootClass = true
+                });
+#if DEBUG
+                if (metadata.RootClassInfo == null) {
+                    throw new Exception("Expected root class information in partial class code-gen");
+                }
+#endif
+            }
             return metadata;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="attribute"></param>
-        /// <returns></returns>
-        private static bool IsJsonMapAttribute(string attribute) {
-            return ((attribute != null) && (attribute.Contains("json.")));
-        }
+//        /// <summary>
+//        /// 
+//        /// </summary>
+//        /// <param name="attribute"></param>
+//        /// <returns></returns>
+//        private static bool IsJsonMapAttribute(string attribute ) {
+//            var i = InterpretedJsonMapAttribute.EvaluateAttributeString(attribute);
+//            return (i != null);
+//        }
 
         /// <summary>
         /// 
@@ -187,7 +198,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                                 DeclaringClassNamespace = mce.CurrentNamespace,
                                 FullInputTypeName = inputTypeName
                             };
-                            metadata.InputBindingList.Add(info);
+                            metadata.RootClassInfo.InputBindingList.Add(info);
                             break;
                         } else if (mce.Token == CSharpToken.IDENTIFIER) {
                             if (prevToken == CSharpToken.IDENTIFIER) {
@@ -218,8 +229,11 @@ namespace Starcounter.XSON.Compiler.Mono {
 
             while (mce.MoveNext()) {
                 if (mce.Token == CSharpToken.CLOSE_BRACKET) {
-                    if (IsJsonMapAttribute(attribute))
-                        mce.LastFoundJsonAttribute = attribute;
+                    var jmi = CodeBehindClassInfo.EvaluateAttributeString(attribute);
+                    if (jmi != null) {
+                        jmi.IsDeclaredInCodeBehind = true;
+                        mce.LastFoundJsonAttribute = jmi;
+                    }
                     break;
                 } else if (mce.Token == CSharpToken.IDENTIFIER) {
                     attribute += mce.Value;
@@ -259,7 +273,7 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// <param name="mce"></param>
         /// <param name="metadata"></param>
         private static void AnalyzeClassNode(string className, MonoCSharpEnumerator mce, CodeBehindMetadata metadata) {
-            string attribute;
+            CodeBehindClassInfo attribute;
             string foundClassName;
             string genericArg;
             string baseClass;
@@ -275,23 +289,40 @@ namespace Starcounter.XSON.Compiler.Mono {
 
             if (IsTypedJsonClass(mce, out baseClass, out genericArg)) {
                 if (className.Equals(foundClassName)) {
-                    metadata.RootNamespace = mce.CurrentNamespace;
-                    metadata.GenericArgument = genericArg;
-                    metadata.BaseClassName = baseClass;
-                    metadata.AutoBindToDataObject = (genericArg != null);
-                } else {
-                    if (IsJsonMapAttribute(attribute)) {
-                        var info = new JsonMapInfo() {
-                            AutoBindToDataObject = (genericArg != null),
-                            ClassName = foundClassName,
-                            BaseClassName = baseClass,
-                            GenericArgument = genericArg,
-                            JsonMapName = attribute,
-                            Namespace = mce.CurrentNamespace,
-                            ParentClasses = mce.ClassList
-                        };
+#if DEBUG
+                    if (metadata.RootClassInfo != null)
+                        throw new Exception("Did not expect root class information to be set in partial class codegen");
+#endif
+                    if (attribute == null) {
+                        attribute = new CodeBehindClassInfo(null);
+                        attribute.IsRootClass = true;
+                        attribute.IsDeclaredInCodeBehind = true;
+                    }
+                    attribute.Namespace = mce.CurrentNamespace;
+                    attribute.GenericArgument = genericArg;
+                    attribute.BaseClassName = baseClass;
+                    attribute.AutoBindToDataObject = (genericArg != null);
+                    metadata.JsonPropertyMapList.Add(attribute);
+#if DEBUG
+                    if (metadata.RootClassInfo == null)
+                        throw new Exception("Did expect root class information to be set in partial class codegen");
+#endif
+                }
+                else {
+                    var info = attribute; // JsonMapInfo.EvaluateAttributeString(attribute);
+                    if (info != null) {
+                        info.AutoBindToDataObject = (genericArg != null);
+                        info.ClassName = foundClassName;
+                        info.BaseClassName = baseClass;
+                        info.GenericArgument = genericArg;
+         //               info.JsonMapName = attribute.Raw;
+                        info.Namespace = mce.CurrentNamespace;
+                        info.ParentClasses = mce.ClassList;
                         metadata.JsonPropertyMapList.Add(info);
                     }
+                }
+                if (attribute != null && attribute.IsRootClass) {
+                    metadata.JsonPropertyMapList.Add( attribute );
                 }
                 mce.PushClass(foundClassName);
                 SkipToOpenBrace(mce);
@@ -299,5 +330,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                 SkipBlock(mce); // Not a typed json class. We skip the whole class.
             }
         }
+
     }
+
 }

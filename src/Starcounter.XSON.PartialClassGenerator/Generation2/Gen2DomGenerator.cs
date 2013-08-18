@@ -161,7 +161,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 NValueClass = acn,
                 Template = at,
                 _Inherits = DefaultObjTemplate.GetType().Name, // "TPuppet,TJson",
-                AutoBindProperties = metadata.AutoBindToDataObject
+                AutoBindProperties = metadata.RootClassInfo.AutoBindToDataObject
             };
 
             if (metadata == CodeBehindMetadata.Empty) {
@@ -202,9 +202,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (metadata != CodeBehindMetadata.Empty) {
                 // if there is codebehind and the class is not inherited from Json we need 
                 // to change the inheritance on the template and metadata classes as well.
-                if (!string.IsNullOrEmpty(metadata.BaseClassName) && !metadata.BaseClassName.Equals("Json")) {
-                    tcn._Inherits = "T" + metadata.BaseClassName;
-                    mcn._Inherits = metadata.BaseClassName + "Metadata";
+                var tmp = metadata.RootClassInfo.BaseClassName;
+                if (!string.IsNullOrEmpty(tmp) && !tmp.Equals("Json")) {
+                    tcn._Inherits = "T" + metadata.RootClassInfo.BaseClassName;
+                    mcn._Inherits = tmp + "Metadata";
                 }
 
                 var json = new AstJsonAttributeClass(this) {
@@ -283,7 +284,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             TObj appTemplate;
             TObj rootTemplate;
             TObj[] classesInOrder;
-            JsonMapInfo mapInfo;
+            CodeBehindClassInfo mapInfo;
             AstAppClass nAppClass;
 
             classesInOrder = new TObj[metadata.JsonPropertyMapList.Count];
@@ -292,43 +293,45 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
                 mapInfo = metadata.JsonPropertyMapList[i];
 
-                appTemplate = FindTAppFor(mapInfo.JsonMapName, rootTemplate);
+                if (mapInfo.RawJsonMapAttribute != null) {
+                    appTemplate = FindTAppFor(mapInfo, rootTemplate);
 
-                if (appTemplate.InstanceDataTypeName != null) {
-                    ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
+                    if (appTemplate.InstanceDataTypeName != null) {
+                        ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
+                    }
+
+                    // TODO:
+                    // If we have an empty object declaration in the jsonfile and
+                    // set an codebehind class on that property the TApp here 
+                    // will be a generic empty one, which (I guess?) cannot be updated
+                    // here.
+                    // Do we need to create a new TApp and replace the existing one
+                    // for all NClasses?
+
+                    appTemplate.ClassName = mapInfo.ClassName;
+                    if (!String.IsNullOrEmpty(mapInfo.Namespace))
+                        appTemplate.Namespace = mapInfo.Namespace;
+
+                    nAppClass = ValueClasses[appTemplate] as AstAppClass;
+                    nAppClass.IsPartial = true;
+                    nAppClass._Inherits = null;
+
+                    var ntAppClass = TemplateClasses[appTemplate] as AstTAppClass;
+                    var mdAppClass = MetaClasses[appTemplate] as AstObjMetadata;
+
+                    // if there is codebehind and the class is not inherited from Json we need 
+                    // to change the inheritance on the template and metadata classes as well.
+                    if (!string.IsNullOrEmpty(mapInfo.BaseClassName) && !mapInfo.BaseClassName.Equals("Json")) {
+                        ntAppClass._Inherits = "T" + mapInfo.BaseClassName;
+                        mdAppClass._Inherits = mapInfo.BaseClassName + "Metadata";
+                    }
+
+                    if (mapInfo.AutoBindToDataObject) {
+                        ntAppClass.AutoBindProperties = true;
+                    }
+
+                    classesInOrder[i] = appTemplate;
                 }
-
-                // TODO:
-                // If we have an empty object declaration in the jsonfile and
-                // set an codebehind class on that property the TApp here 
-                // will be a generic empty one, which (I guess?) cannot be updated
-                // here.
-                // Do we need to create a new TApp and replace the existing one
-                // for all NClasses?
-
-                appTemplate.ClassName = mapInfo.ClassName;
-                if (!String.IsNullOrEmpty(mapInfo.Namespace))
-                    appTemplate.Namespace = mapInfo.Namespace;
-
-                nAppClass = ValueClasses[appTemplate] as AstAppClass;
-                nAppClass.IsPartial = true;
-                nAppClass._Inherits = null;
-
-				var ntAppClass = TemplateClasses[appTemplate] as AstTAppClass;
-				var mdAppClass = MetaClasses[appTemplate] as AstObjMetadata;
-
-				// if there is codebehind and the class is not inherited from Json we need 
-				// to change the inheritance on the template and metadata classes as well.
-				if (!string.IsNullOrEmpty(mapInfo.BaseClassName) && !mapInfo.BaseClassName.Equals("Json")) {
-					ntAppClass._Inherits = "T" + mapInfo.BaseClassName;
-					mdAppClass._Inherits = mapInfo.BaseClassName + "Metadata";
-				}
-
-                if (mapInfo.AutoBindToDataObject) {    
-                    ntAppClass.AutoBindProperties = true;
-                }
-
-                classesInOrder[i] = appTemplate;
             }
 
             ReorderCodebehindClasses(classesInOrder, metadata.JsonPropertyMapList, root);
@@ -341,7 +344,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="mapInfos">The map infos.</param>
         /// <param name="root">The root.</param>
         private void ReorderCodebehindClasses(TObj[] classesInOrder,
-                                              List<JsonMapInfo> mapInfos,
+                                              List<CodeBehindClassInfo> mapInfos,
                                               AstRoot root) {
             List<String> parentClasses;
             AstBase parent;
@@ -350,25 +353,30 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             AstOtherClass notExistingClass;
 
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
-                theClass = ValueClasses[classesInOrder[i]];
-                parentClasses = mapInfos[i].ParentClasses;
-                if (parentClasses.Count > 0) {
-                    parent = root;
-                    for (Int32 pi = parentClasses.Count - 1; pi >= 0; pi--) {
-                        parentClass = FindClass(parentClasses[pi], parent);
-                        if (parentClass != null) {
-                            parent = parentClass;
-                        } else {
-                            notExistingClass = new AstOtherClass(this);
-                            notExistingClass._ClassName = parentClasses[pi];
-                            notExistingClass.IsPartial = true;
-                            notExistingClass.Parent = parent;
-                            parent = notExistingClass;
+                var cls = classesInOrder[i];
+                if (cls != null) {
+                    theClass = ValueClasses[cls];
+                    parentClasses = mapInfos[i].ParentClasses;
+                    if (parentClasses.Count > 0) {
+                        parent = root;
+                        for (Int32 pi = parentClasses.Count - 1; pi >= 0; pi--) {
+                            parentClass = FindClass(parentClasses[pi], parent);
+                            if (parentClass != null) {
+                                parent = parentClass;
+                            }
+                            else {
+                                notExistingClass = new AstOtherClass(this);
+                                notExistingClass._ClassName = parentClasses[pi];
+                                notExistingClass.IsPartial = true;
+                                notExistingClass.Parent = parent;
+                                parent = notExistingClass;
+                            }
                         }
+                        theClass.Parent = parent;
                     }
-                    theClass.Parent = parent;
-                } else {
-                    theClass.Parent = root;
+                    else {
+                        theClass.Parent = root;
+                    }
                 }
             }
         }
@@ -397,48 +405,46 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="rootTemplate">The root template.</param>
         /// <returns>TApp.</returns>
         /// <exception cref="System.Exception">Invalid property to bind codebehind.</exception>
-        private TObj FindTAppFor(String jsonMapName, TObj rootTemplate) {
+        private TObj FindTAppFor(CodeBehindClassInfo ci, TObj rootTemplate) {
             TObj appTemplate;
             String[] mapParts;
             Template template;
 
+#if DEBUG
+      if (ci.ClassPath.Contains(".json."))
+          throw new Exception("The class path should be free from .json. text");
+#endif
             appTemplate = rootTemplate;
 
-            if (jsonMapName.StartsWith("json.")) {
-                jsonMapName = jsonMapName.Substring(5);
-            }
-            else {
-                int index = jsonMapName.IndexOf(".json.");
-	    		    if (index != -1) {
-				    // Remove the json part before searching for the template.
-				    jsonMapName = jsonMapName.Substring(index + 6);
-			    }
-            }
 
-
-            mapParts = jsonMapName.Split('.');
+            mapParts = ci.ClassPath.Split('.');
 
             // We skip the two first parts since the first one will always be "json" 
             // and the second the rootTemplate.
-            for (Int32 i = 0; i < mapParts.Length; i++) {
+            for (Int32 i = 1; i < mapParts.Length; i++) {
+                // We start with i=1. This means that we assume that the first part
+                // of the class path is the root class no matter what name is used.
+                // This makes it easier when user is refactoring his or her code.
                 template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
                 if (template is TObj) {
                     appTemplate = (TObj)template;
-                } else if (template is TObjArr) {
+                }
+                else if (template is TObjArr) {
                     appTemplate = ((TObjArr)template).ElementType;
-                } else {
+                }
+                else {
                     // TODO:
                     // Change to starcounter errorcode.
                     if (template == null) {
                         throw new Exception(
                             String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
-                                jsonMapName,
+                                ci.RawJsonMapAttribute,
                                 mapParts[i]
                             ));
                     }
                     throw new Exception(
                         String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} has the unsupported type {2}.",
-                            jsonMapName,
+                            ci.RawJsonMapAttribute,
                             mapParts[i],
                             template.GetType().Name
                         ));
@@ -773,7 +779,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             String propertyName;
             String[] parts;
 
-            foreach (InputBindingInfo info in metadata.InputBindingList) {
+            foreach (InputBindingInfo info in metadata.RootClassInfo.InputBindingList) {
                 // Find the property the binding is for. 
                 // Might not be the same class as the one specified in the info object
                 // since the Handle-implementation can be declared in a parent class.

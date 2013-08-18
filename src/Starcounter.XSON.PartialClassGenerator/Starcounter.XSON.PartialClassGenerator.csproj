@@ -80,7 +80,6 @@
     <Compile Include="Generation2\AST\AstPrimitiveType.cs" />
     <Compile Include="Generation2\AST\AstPropertyClass.cs" />
     <Compile Include="Generation2\AST\AstRoot.cs" />
-    <Compile Include="CompilerMono\MonoCSharpCompiler.cs" />
     <Compile Include="CompilerMono\MonoCSharpEnumerator.cs" />
     <Compile Include="Generation1\Gen1CSharpGenerator.cs" />
     <Compile Include="PartialClassGenerator.cs" />
