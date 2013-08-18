@@ -94,6 +94,12 @@
     <None Include="Nesting\ParentChild.json.cs.v4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="PatchMapping\Company.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PatchMapping\Company.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ThreadPage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -140,6 +146,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Nesting\DetectVersionToUse.cs" />
+    <Compile Include="PatchMapping\TestPatchMapping.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="simple.facit.cs">

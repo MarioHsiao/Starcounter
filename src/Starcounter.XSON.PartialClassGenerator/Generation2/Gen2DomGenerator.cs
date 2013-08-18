@@ -144,9 +144,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal TTrigger TPAction = new TTrigger();
 
         /// <summary>
-        /// This is the main calling point to generate a dom tree for a application template.
+        /// This is the main calling point to generate a dom tree for a JSON template (TJson).
         /// </summary>
-        /// <param name="at">The App template (i.e. json tree prototype) to generate code for</param>
+        /// <param name="at">The TJson template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
         public AstRoot GenerateDomTree(TObj at, CodeBehindMetadata metadata) {

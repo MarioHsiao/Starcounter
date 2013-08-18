@@ -35,7 +35,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual(typeof(AstRoot), dom.GetType() );
             var rootClass = (AstBase)dom.Children[0];
             var nestedClass = (AstBase)dom.Children[0].Children[3];
-            Assert.AreEqual("FocusedJson",nestedClass.Name);
+            Assert.AreEqual("Child2Json",nestedClass.Name);
             Console.WriteLine(dump);
         }
 

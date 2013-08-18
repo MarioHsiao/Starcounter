@@ -94,7 +94,7 @@ namespace Starcounter.XSON.Metadata {
                         str = str.Substring(index + 6);
                     }
                     else {
-                        if (str.EndsWith(".json"))
+                        if (str == "json" || str.EndsWith(".json"))
                             return "*"; // This is a root class
                     }
                 }
