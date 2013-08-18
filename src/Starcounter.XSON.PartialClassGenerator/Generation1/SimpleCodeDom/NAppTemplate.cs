@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// Initializes a new instance of the <see cref="NTAppClass" /> class.
         /// </summary>
-        public NTAppClass( DomGenerator gen ) : base( gen )
+        public NTAppClass( Gen1DomGenerator gen ) : base( gen )
         {
             Constructor = new NConstructor( gen ) { Parent = this };
         }

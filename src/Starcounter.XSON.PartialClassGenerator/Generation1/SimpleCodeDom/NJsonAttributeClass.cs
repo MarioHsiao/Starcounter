@@ -14,7 +14,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NJsonAttributeClass(DomGenerator gen)
+        public NJsonAttributeClass(Gen1DomGenerator gen)
             : base(gen) {
         }
 

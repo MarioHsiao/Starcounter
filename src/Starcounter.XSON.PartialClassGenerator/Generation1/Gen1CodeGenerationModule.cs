@@ -13,7 +13,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
     /// Class CodeGenerationModule
     /// </summary>
-    public class CodeGenerationModule : ITemplateCodeGeneratorModule {
+    public class Gen1CodeGenerationModule : ITemplateCodeGeneratorModule {
 
         /// <summary>
         /// 
@@ -25,8 +25,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <returns></returns>
         public ITemplateCodeGenerator CreateGenerator(Type defaultChildObjTemplateType, string dotNetLanguage, object objTemplate, object metadata) {
             var templ = (TObj)objTemplate;
-            var gen = new DomGenerator(this, templ, defaultChildObjTemplateType );
-            return new CSharpGenerator( gen, gen.GenerateDomTree( templ, (CodeBehindMetadata)metadata));
+            var gen = new Gen1DomGenerator(this, templ, defaultChildObjTemplateType );
+            return new Gen1CSharpGenerator( gen, gen.GenerateDomTree( templ, (CodeBehindMetadata)metadata));
         }
 
     }

@@ -57,7 +57,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void GenerateCs() {
             TJson actual = CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.IsInstanceOf(typeof(TJson), actual);
-            CodeGenerationModule codegenmodule = new CodeGenerationModule();
+            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
             var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.GenerateCode());
         }
@@ -73,7 +73,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var facit = file.ReadToEnd();
             file.Close();
             Assert.IsInstanceOf(typeof(TJson), actual);
-            var codegenmodule = new CodeGenerationModule();
+            var codegenmodule = new Gen1CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
@@ -89,7 +89,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             actual.ClassName = "PlayerApp";
 
             Assert.IsInstanceOf(typeof(TJson), actual);
-            var codegenmodule = new CodeGenerationModule();
+            var codegenmodule = new Gen1CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
             Console.WriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
@@ -111,7 +111,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
-            CodeGenerationModule codegenmodule = new CodeGenerationModule();
+            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
 
             Console.WriteLine(codegen.GenerateCode());
@@ -132,7 +132,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             actual.Namespace = metadata.RootNamespace;
             Assert.IsNotNullOrEmpty(actual.Namespace);
 
-            CodeGenerationModule codegenmodule = new CodeGenerationModule();
+            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
             Console.WriteLine(codegen.GenerateCode());
         }

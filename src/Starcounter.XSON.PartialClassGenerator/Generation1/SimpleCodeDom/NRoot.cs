@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NRoot(DomGenerator gen)
+        public NRoot(Gen1DomGenerator gen)
             : base(gen) {
         }
 

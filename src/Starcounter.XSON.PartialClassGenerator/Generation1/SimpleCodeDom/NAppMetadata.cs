@@ -17,7 +17,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NObjMetadata(DomGenerator gen)
+        public NObjMetadata(Gen1DomGenerator gen)
             : base(gen) {
         }
 
