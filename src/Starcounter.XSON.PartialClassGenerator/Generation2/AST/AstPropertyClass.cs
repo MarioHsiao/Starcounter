@@ -12,13 +12,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// The source code representation of the TApp class.
     /// </summary>
-    public class NPropertyClass : NTemplateClass {
+    public class AstPropertyClass : AstTemplateClass {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NPropertyClass(DomGenerator gen)
+        public AstPropertyClass(DomGenerator gen)
             : base(gen) {
         }
 

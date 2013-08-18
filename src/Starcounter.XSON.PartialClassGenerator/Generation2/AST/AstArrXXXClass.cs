@@ -17,7 +17,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// T1 is the link to the App class and T2 is the link to the TApp class being used in the list.
     /// This means that there is one instance of this class for each T1,T2 combination used.
     /// </summary>
-    public class NArrXXXClass : NValueClass {
+    public class AstArrXXXClass : AstValueClass {
 
         /// <summary>
         /// 
@@ -27,7 +27,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="appType"></param>
         /// <param name="templateType"></param>
         /// <param name="template"></param>
-        public NArrXXXClass(DomGenerator gen, string typename, NClass appType, NClass templateType, Template template ) 
+        public AstArrXXXClass(DomGenerator gen, string typename, AstClass appType, AstClass templateType, Template template ) 
         :base( gen)
         {
             //this.NTemplateClass.Template = template;            
@@ -39,12 +39,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The type of the App
         /// </summary>
-        public NClass NApp;
+        public AstClass NApp;
 
         /// <summary>
         /// The typeof the TApp
         /// </summary>
-        public NClass NTApp;
+        public AstClass NTApp;
 
      //   public NPredefinedClass NFixedSet;
 

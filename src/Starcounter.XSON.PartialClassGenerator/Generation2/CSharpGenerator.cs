@@ -30,7 +30,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The root
         /// </summary>
-        public NRoot Root;
+        public AstRoot Root;
         /// <summary>
         /// Gets or sets the indentation.
         /// </summary>
@@ -58,7 +58,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="generator"></param>
         /// <param name="root"></param>
-        public CSharpGenerator(DomGenerator generator, NRoot root ) {
+        public CSharpGenerator(DomGenerator generator, AstRoot root ) {
             Generator = generator;
             Root = root;
             Indentation = 4;
@@ -80,7 +80,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="sb">The sb.</param>
         /// <param name="node">The node.</param>
         /// <param name="indent">The indent.</param>
-        private void DumpTree( StringBuilder sb, NBase node, int indent ) {
+        private void DumpTree( StringBuilder sb, AstBase node, int indent ) {
             sb.Append(' ', indent);
             sb.AppendLine(node.ToString());
             foreach (var kid in node.Children) {
@@ -100,7 +100,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             ProcessAllNodes();
 
             WriteHeader(Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
-            foreach (NAppClass napp in Root.Children)
+            foreach (AstAppClass napp in Root.Children)
             {
                 WriteNode(napp);
             }
@@ -115,8 +115,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <exception cref="System.Exception">Unable to generate code. Invalid node found. Expected App but found: </exception>
         private void ProcessAllNodes() {
-            NAppClass napp;
-            NAppClass previousAppClass;
+            AstAppClass napp;
+            AstAppClass previousAppClass;
             String previousNs;
             String currentNs;
 
@@ -124,7 +124,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             previousNs = "";
             for (Int32 i = 0; i < Root.Children.Count; i++)
             {
-                napp = Root.Children[i] as NAppClass;
+                napp = Root.Children[i] as AstAppClass;
                 if (napp == null)
                 {
                     throw new Exception("Unable to generate code. Invalid node found. Expected Puppet but found: " + Root.Children[i]);
@@ -160,11 +160,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Create prefix and suffix strings for a node and its children
         /// </summary>
         /// <param name="node">The syntax tree node. Use root to generate the complete source code.</param>
-        private void ProcessNode(NBase node) {
+        private void ProcessNode(AstBase node) {
             var sb = new StringBuilder();
-            if (node is NClass) {
-                if (node is NObjMetadata) {
-                    var n = node as NObjMetadata;
+            if (node is AstClass) {
+                if (node is AstObjMetadata) {
+                    var n = node as AstObjMetadata;
                     sb.Append("public class ");
                     sb.Append(n.ClassName);
                     if (n.Inherits != null) {
@@ -173,12 +173,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
                     sb.Append(" {");
                     node.Prefix.Add(sb.ToString());
-                    if (node is NObjMetadata) {
-                        WriteObjMetadataClassPrefix(node as NObjMetadata);
+                    if (node is AstObjMetadata) {
+                        WriteObjMetadataClassPrefix(node as AstObjMetadata);
                     }
                 }
                 else {
-                    var n = node as NClass;
+                    var n = node as AstClass;
                     sb.Append("public ");
                     if (n.IsStatic) {
                         sb.Append("static ");
@@ -194,23 +194,23 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
                     sb.Append(" {");
                     node.Prefix.Add(sb.ToString());
-                    if (node is NAppClass) {
-                        WriteAppClassPrefix(node as NAppClass);
+                    if (node is AstAppClass) {
+                        WriteAppClassPrefix(node as AstAppClass);
                     }
-                    else if (node is NTAppClass) {
-                        WriteTAppConstructor((node as NTAppClass).Constructor);
-                        WriteTAppCreateInstance(node as NTAppClass);
+                    else if (node is AstTAppClass) {
+                        WriteTAppConstructor((node as AstTAppClass).Constructor);
+                        WriteTAppCreateInstance(node as AstTAppClass);
                     }
                 }
                 node.Suffix.Add("}");
             }
-            else if (node is NProperty) {
-                if (node.Parent is NAppClass)
-                    WriteAppMemberPrefix(node as NProperty);
-                else if (node.Parent is NTAppClass)
-                    WriteTAppMemberPrefix(node as NProperty);
-                else if (node.Parent is NObjMetadata)
-                    WriteObjMetadataMemberPrefix(node as NProperty);
+            else if (node is AstProperty) {
+                if (node.Parent is AstAppClass)
+                    WriteAppMemberPrefix(node as AstProperty);
+                else if (node.Parent is AstTAppClass)
+                    WriteTAppMemberPrefix(node as AstProperty);
+                else if (node.Parent is AstObjMetadata)
+                    WriteObjMetadataMemberPrefix(node as AstProperty);
             } 
 
             foreach (var kid in node.Children) {
@@ -222,7 +222,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the node.
         /// </summary>
         /// <param name="node">The node.</param>
-        private void WriteNode( NBase node ) {
+        private void WriteNode( AstBase node ) {
             foreach (var x in node.Prefix) {
                 Output.Append(' ', node.Indentation);
                 Output.Append(x);
@@ -243,7 +243,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the app member prefix.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteAppMemberPrefix(NProperty m) {
+        private void WriteAppMemberPrefix(AstProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
             sb.Append(m.Type.FullClassName);
@@ -265,9 +265,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append("(Template.");
             sb.Append(m.MemberName);
             sb.Append("); } set { Set");
-            if (m.Type is NArrXXXClass) {
+            if (m.Type is AstArrXXXClass) {
                 sb.Append('<');
-                sb.Append(((NArrXXXClass)m.Type).NApp.FullClassName);
+                sb.Append(((AstArrXXXClass)m.Type).NApp.FullClassName);
                 sb.Append('>');
             }
             sb.Append("(Template.");
@@ -280,7 +280,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the app class prefix.
         /// </summary>
         /// <param name="a">A.</param>
-        private void WriteAppClassPrefix(NAppClass a) {
+        private void WriteAppClassPrefix(AstAppClass a) {
             a.Prefix.Add(
                 "    public static " +
                 a.NTemplateClass.ClassName +
@@ -319,7 +319,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
-        private NClass GetParentPropertyType(Template a) {
+        private AstClass GetParentPropertyType(Template a) {
             var x = Generator.FindValueClass((Template)a.Parent);
             return x;
         }
@@ -328,7 +328,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the app template member prefix.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteTAppMemberPrefix(NProperty m) {
+        private void WriteTAppMemberPrefix(AstProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
             sb.Append(m.Type.FullClassName);
@@ -344,7 +344,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the app metadata member prefix.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteObjMetadataMemberPrefix(NProperty m) {
+        private void WriteObjMetadataMemberPrefix(AstProperty m) {
 
             //var objClassName = DefaultObjTemplate.InstanceType.TemplateName;
 
@@ -381,7 +381,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes override method for creating default appinstance from template.
         /// </summary>
         /// <param name="node"></param>
-        private void WriteTAppCreateInstance(NTAppClass node) {
+        private void WriteTAppCreateInstance(AstTAppClass node) {
             StringBuilder sb = new StringBuilder();
             sb.Append("    public override object CreateInstance(Container parent) { return new ");
             sb.Append(node.NValueClass.ClassName);
@@ -401,8 +401,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the class declaration and constructor for an TApp class
         /// </summary>
         /// <param name="cst">The CST.</param>
-        private void WriteTAppConstructor(NConstructor cst) {
-            NTAppClass a = (NTAppClass)cst.Parent;
+        private void WriteTAppConstructor(AstConstructor cst) {
+            AstTAppClass a = (AstTAppClass)cst.Parent;
             
             var sb = new StringBuilder();
             sb.Append("    public ");
@@ -427,11 +427,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             a.Prefix.Add(sb.ToString());
 
             a.Prefix.Add("        Properties.ClearExposed();");
-            foreach (NBase kid in cst.Children)
+            foreach (AstBase kid in cst.Children)
             {
-                if (kid is NProperty)
+                if (kid is AstProperty)
                 {
-                    var mn = kid as NProperty;
+                    var mn = kid as AstProperty;
                     sb = new StringBuilder();
                     sb.Append("        ");
                     sb.Append(mn.MemberName);
@@ -470,9 +470,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         a.Prefix.Add(sb.ToString());
                     }
                 }
-                else if (kid is NInputBinding)
+                else if (kid is AstInputBinding)
                 {
-                    a.Prefix.Add(GetAddInputHandlerCode((NInputBinding)kid));
+                    a.Prefix.Add(GetAddInputHandlerCode((AstInputBinding)kid));
                 }
             }
             a.Prefix.Add(
@@ -484,7 +484,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="ib">The ib.</param>
         /// <returns>String.</returns>
-        private String GetAddInputHandlerCode(NInputBinding ib)
+        private String GetAddInputHandlerCode(AstInputBinding ib)
         {
             bool hasValue = ib.HasValue;
             StringBuilder sb = new StringBuilder();
@@ -545,7 +545,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Writes the class declaration and constructor for an TApp class
         /// </summary>
         /// <param name="a">The class declaration syntax node</param>
-        private void WriteObjMetadataClassPrefix(NMetadataClass a) {
+        private void WriteObjMetadataClassPrefix(AstMetadataClass a) {
             var sb = new StringBuilder();
             sb.Append("    public ");
             sb.Append(a.ClassName);

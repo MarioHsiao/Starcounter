@@ -13,7 +13,7 @@ namespace Starcounter.Internal.MsBuild.Codegen
     /// <summary>
     /// Represents a constructor
     /// </summary>
-    public class NConstructor : NBase
+    public class AstConstructor : AstBase
     {
 
         public override string Name {
@@ -24,7 +24,7 @@ namespace Starcounter.Internal.MsBuild.Codegen
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NConstructor(DomGenerator gen)
+        public AstConstructor(DomGenerator gen)
             : base(gen) {
         }
 

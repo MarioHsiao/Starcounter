@@ -10,12 +10,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// See TemplateAttribute
     /// </summary>
-    public class NJsonAttributeClass : NOtherClass {
+    public class AstJsonAttributeClass : AstOtherClass {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NJsonAttributeClass(DomGenerator gen)
+        public AstJsonAttributeClass(DomGenerator gen)
             : base(gen) {
         }
 

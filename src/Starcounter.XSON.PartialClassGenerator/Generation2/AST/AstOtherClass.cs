@@ -1,52 +1,42 @@
 ﻿// ***********************************************************************
-// <copyright file="NObjMetadata.cs" company="Starcounter AB">
+// <copyright file="NOtherClass.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Templates;
-using System.Collections.Generic;
 namespace Starcounter.Internal.MsBuild.Codegen {
 
 
     /// <summary>
-    /// Each App can have a metadata class. See ObjMetadata.
+    /// Used for classes where a simple class name and inherits name
+    /// is sufficient for code generation
     /// </summary>
-    public class NObjMetadata : NMetadataClass {
+    public class AstOtherClass : AstClass {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NObjMetadata(DomGenerator gen)
+        public AstOtherClass(DomGenerator gen)
             : base(gen) {
         }
 
         /// <summary>
-        /// The template
+        /// The _ class name
         /// </summary>
-        public TObj Template;
-
+        public string _ClassName;
         /// <summary>
-        /// The instances
+        /// The _ inherits
         /// </summary>
-        public static Dictionary<TObj, NClass> Instances = new Dictionary<TObj, NClass>();
+        public string _Inherits;
 
         /// <summary>
         /// Gets the name of the class.
         /// </summary>
         /// <value>The name of the class.</value>
         public override string ClassName {
-            get {
-                return NTemplateClass.NValueClass.ClassName + "Metadata";
-            }
+            get { return _ClassName; }
         }
-
-        /// <summary>
-        /// The _ inherits
-        /// </summary>
-        public string _Inherits;
-
         /// <summary>
         /// Gets the inherits.
         /// </summary>
@@ -54,8 +44,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public override string Inherits {
             get { return _Inherits; }
         }
-
-
-
     }
+
 }

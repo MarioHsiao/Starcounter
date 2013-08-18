@@ -17,7 +17,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// Represents a property, a field or a function
     /// </summary>
-    public class NProperty : NBase {
+    public class AstProperty : AstBase {
 
         public override string Name {
             get { return Template.PropertyName; }
@@ -27,7 +27,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NProperty(DomGenerator gen)
+        public AstProperty(DomGenerator gen)
             : base(gen) {
         }
 
@@ -35,7 +35,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Gets or sets the type.
         /// </summary>
         /// <value>The type.</value>
-        public NClass Type { get; set; }
+        public AstClass Type { get; set; }
         /// <summary>
         /// Gets the name of the member.
         /// </summary>
@@ -50,12 +50,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Gets the function generic.
         /// </summary>
         /// <value>The function generic.</value>
-        public NClass FunctionGeneric {
+        public AstClass FunctionGeneric {
             get {
-                if (Type is NArrXXXClass) {
-                    return (Type as NArrXXXClass).NApp;
+                if (Type is AstArrXXXClass) {
+                    return (Type as AstArrXXXClass).NApp;
                 }
-                else if (Type is NAppClass) {
+                else if (Type is AstAppClass) {
                     return Type;
                 }
                 return null;

@@ -13,17 +13,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// The source code representation of the TApp class.
     /// </summary>
-    public class NTAppClass : NTemplateClass {
+    public class AstTAppClass : AstTemplateClass {
        // public NAppClass AppClassNode;
 
 //        public static Dictionary<TApp, NClass> Instances = new Dictionary<TApp, NClass>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NTAppClass" /> class.
+        /// Initializes a new instance of the <see cref="AstTAppClass" /> class.
         /// </summary>
-        public NTAppClass( DomGenerator gen ) : base( gen )
+        public AstTAppClass( DomGenerator gen ) : base( gen )
         {
-            Constructor = new NConstructor( gen ) { Parent = this };
+            Constructor = new AstConstructor( gen ) { Parent = this };
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The constructor
         /// </summary>
-        public NConstructor Constructor;
+        public AstConstructor Constructor;
 
         /// <summary>
         /// If set to true all properties in this appclass will be automatically 

@@ -14,13 +14,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// 
     /// </summary>
-    public abstract class NTemplateClass : NClass {
+    public abstract class AstTemplateClass : AstClass {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NTemplateClass(DomGenerator gen)
+        public AstTemplateClass(DomGenerator gen)
             : base(gen) {
         }
 
@@ -36,13 +36,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The _ N value class
         /// </summary>
-        private NValueClass _NValueClass;
+        private AstValueClass _NValueClass;
 
         /// <summary>
         /// Gets or sets the N value class.
         /// </summary>
         /// <value>The N value class.</value>
-        public NValueClass NValueClass {
+        public AstValueClass NValueClass {
             get {
                 if (_NValueClass != null)
                     return _NValueClass;
@@ -54,13 +54,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// 
         /// </summary>
-        public NProperty NValueProperty;
+        public AstProperty NValueProperty;
 
         /// <summary>
         /// Gets or sets the N metadata class.
         /// </summary>
         /// <value>The N metadata class.</value>
-        public NMetadataClass NMetadataClass { get; set; }
+        public AstMetadataClass NMetadataClass { get; set; }
         /// <summary>
         /// Gets the name of the class.
         /// </summary>
