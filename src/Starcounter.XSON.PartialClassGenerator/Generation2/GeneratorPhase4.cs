@@ -6,6 +6,11 @@ using System;
 using System.Collections.Generic;
 namespace Starcounter.Internal.MsBuild.Codegen {
 
+
+    /// <summary>
+    /// Hooks up the code-behind bind classes and reorders the generated partials
+    /// accordingly.
+    /// </summary>
     internal class GeneratorPhase4 {
 
         internal Gen2DomGenerator Generator;

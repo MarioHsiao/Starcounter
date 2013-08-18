@@ -7,6 +7,9 @@ using System;
 namespace Starcounter.Internal.MsBuild.Codegen {
 
 
+    /// <summary>
+    /// Creates a code dom from a JSON template (TJson).
+    /// </summary>
     internal class GeneratorPhase1 {
 
         internal Gen2DomGenerator Generator;
