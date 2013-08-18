@@ -65,7 +65,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// Initializes a new instance of the <see cref="NInputBinding" /> class.
         /// </summary>
-        public NInputBinding( DomGenerator gen ) : base(gen) {
+        public NInputBinding( Gen1DomGenerator gen ) : base(gen) {
 
         }
 

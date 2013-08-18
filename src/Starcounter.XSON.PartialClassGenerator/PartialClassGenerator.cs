@@ -44,7 +44,7 @@ namespace Starcounter.Internal.XSON {
             if (String.IsNullOrEmpty(template.Namespace))
                 template.Namespace = metadata.RootNamespace;
 
-            codegenmodule = new CodeGenerationModule();
+            codegenmodule = new Gen1CodeGenerationModule();
             codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", template, metadata);
 
             return codegen;

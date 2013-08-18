@@ -22,7 +22,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NClass(DomGenerator gen)
+        public NClass(Gen1DomGenerator gen)
             : base(gen) {
         }
 

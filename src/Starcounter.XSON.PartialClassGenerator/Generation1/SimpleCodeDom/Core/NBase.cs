@@ -24,7 +24,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <summary>
         /// 
         /// </summary>
-        public DomGenerator Generator;
+        public Gen1DomGenerator Generator;
 
         /// <summary>
         /// Each node can have a name for easier debugging
@@ -37,7 +37,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NBase(DomGenerator gen) {
+        public NBase(Gen1DomGenerator gen) {
             if (gen == null)
                 throw new Exception("The generator must be given");
             Generator = gen;

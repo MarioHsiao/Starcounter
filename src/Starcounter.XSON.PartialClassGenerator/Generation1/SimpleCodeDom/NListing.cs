@@ -26,7 +26,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="appType"></param>
         /// <param name="templateType"></param>
         /// <param name="template"></param>
-        public NArrXXXClass(DomGenerator gen, string typename, NClass appType, NClass templateType, Template template ) 
+        public NArrXXXClass(Gen1DomGenerator gen, string typename, NClass appType, NClass templateType, Template template ) 
         :base( gen)
         {
             //this.NTemplateClass.Template = template;            

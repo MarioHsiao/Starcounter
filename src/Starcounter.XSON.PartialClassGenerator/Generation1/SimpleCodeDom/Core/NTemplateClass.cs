@@ -19,7 +19,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NTemplateClass(DomGenerator gen)
+        public NTemplateClass(Gen1DomGenerator gen)
             : base(gen) {
         }
 

@@ -21,7 +21,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NPredefinedType(DomGenerator gen) : base(gen) {
+        public NPredefinedType(Gen1DomGenerator gen) : base(gen) {
         }
 
         /// <summary>
