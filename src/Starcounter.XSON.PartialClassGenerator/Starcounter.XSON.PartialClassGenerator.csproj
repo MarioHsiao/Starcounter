@@ -60,7 +60,7 @@
     <Compile Include="CompilerMono\CSharpToken.cs" />
     <Compile Include="CompilerMono\MonoCSharpCompiler.cs" />
     <Compile Include="CompilerMono\MonoCSharpEnumerator.cs" />
-    <Compile Include="Generation1\CSharpGenerator\CSharpGenerator.cs" />
+    <Compile Include="Generation1\CSharpGenerator.cs" />
     <Compile Include="PartialClassGenerator.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -103,6 +103,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Generation2\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
