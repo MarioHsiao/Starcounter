@@ -9,10 +9,14 @@ using System.Collections.Generic;
 namespace Starcounter.Internal.MsBuild.Codegen {
 
     
+    /// <summary>
+    /// Moves the nested classes below the properties for easier reading of of generator code
+    /// (although the generated code should not be used by the developer).
+    /// Creates the mapping attributes to be used by the user code-behind source code.
+    /// </summary>
     internal class GeneratorPhase2 {
 
         internal Gen2DomGenerator Generator;
-
 
         internal void RunPhase2( AstAppClass acn, AstTAppClass tcn, AstObjMetadata mcn ) {
             MoveNestedClassToBottom(Generator.Root);
