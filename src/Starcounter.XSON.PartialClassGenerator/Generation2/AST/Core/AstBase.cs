@@ -19,7 +19,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// complete C# syntax tree would consist of a more complex tree. This makes creating,
     /// manipulating easier and also anables simplicity in source code text generation.
     /// </summary>
-    public abstract class NBase : IReadOnlyTree {
+    public abstract class AstBase : IReadOnlyTree {
 
         /// <summary>
         /// 
@@ -37,7 +37,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NBase(DomGenerator gen) {
+        public AstBase(DomGenerator gen) {
             if (gen == null)
                 throw new Exception("The generator must be given");
             Generator = gen;
@@ -45,12 +45,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         /// <summary>
         /// </summary>
-        private NBase _SourceParent;
+        private AstBase _SourceParent;
 
         /// <summary>
         /// 
         /// </summary>
-        public NBase SourceParent {
+        public AstBase SourceParent {
             get {
                 return _SourceParent;
             }
@@ -65,7 +65,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// See Parent
         /// </summary>
-        private NBase _Parent;
+        private AstBase _Parent;
 
         /// <summary>
         /// Each node has a parent. The DOM tree allows you to move a node to a new parent, thus
@@ -74,7 +74,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <value>The parent.</value>
         /// <exception cref="System.Exception"></exception>
-        public NBase Parent {
+        public AstBase Parent {
             get {
                 return _Parent;
             }
@@ -123,7 +123,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// node classes. For instance, a property member node may point to its type in addition to its
         /// declaring class (its Parent).
         /// </summary>
-        public List<NBase> Children = new List<NBase>();
+        public List<AstBase> Children = new List<AstBase>();
 
         /// <summary>
         /// Each node will carry source code in the form of text lines as either

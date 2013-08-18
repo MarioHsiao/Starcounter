@@ -12,14 +12,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// Class NPrimitiveType
     /// </summary>
-    public class NPrimitiveType : NValueClass
+    public class AstPrimitiveType : AstValueClass
     {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NPrimitiveType(DomGenerator gen)
+        public AstPrimitiveType(DomGenerator gen)
             : base(gen) {
         }
 

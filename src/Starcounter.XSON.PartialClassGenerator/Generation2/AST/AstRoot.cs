@@ -11,7 +11,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// The single AST root
     /// </summary>
-    public class NRoot : NBase {
+    public class AstRoot : AstBase {
 
         public override string Name {
             get { return ""; }
@@ -21,14 +21,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NRoot(DomGenerator gen)
+        public AstRoot(DomGenerator gen)
             : base(gen) {
         }
 
         /// <summary>
         /// The app class class node
         /// </summary>
-        public NAppClass AppClassClassNode;
+        public AstAppClass AppClassClassNode;
 
       //  public TObj DefaultObjTemplate;
     }

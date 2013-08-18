@@ -13,13 +13,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// Class NMetadataClass
     /// </summary>
-    public class NMetadataClass : NClass {
+    public class AstMetadataClass : AstClass {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NMetadataClass(DomGenerator gen)
+        public AstMetadataClass(DomGenerator gen)
             : base(gen) {
         }
 
@@ -66,6 +66,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The N template class
         /// </summary>
-        public NTemplateClass NTemplateClass;
+        public AstTemplateClass NTemplateClass;
     }
 }

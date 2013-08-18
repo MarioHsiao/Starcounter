@@ -12,7 +12,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// Represents a App class definition in template tree.
     /// </summary>
-    public class NAppClass : NValueClass {
+    public class AstAppClass : AstValueClass {
         //        public NAppClass AppClassClass;
         //        public NClass TemplateClass;
         //        public NClass MetaDataClass;
@@ -21,7 +21,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NAppClass(DomGenerator gen)
+        public AstAppClass(DomGenerator gen)
             : base(gen) {
         }
 

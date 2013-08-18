@@ -12,13 +12,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// 
     /// </summary>
-    public abstract class NValueClass : NClass {
+    public abstract class AstValueClass : AstClass {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NValueClass(DomGenerator gen)
+        public AstValueClass(DomGenerator gen)
             : base(gen) {
         }
 
@@ -26,7 +26,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Gets or sets the N template class.
         /// </summary>
         /// <value>The N template class.</value>
-        public NTemplateClass NTemplateClass { get; set; }
+        public AstTemplateClass NTemplateClass { get; set; }
 
 
 

@@ -12,7 +12,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// Represents a class or type that is provided by a library
     /// (such as String, bool).
     /// </summary>
-    public class NPredefinedType : NClass {
+    public class AstPredefinedType : AstClass {
 
         public override string Name {
             get { return _FixedClassName; }
@@ -22,7 +22,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NPredefinedType(DomGenerator gen) : base(gen) {
+        public AstPredefinedType(DomGenerator gen) : base(gen) {
         }
 
         /// <summary>

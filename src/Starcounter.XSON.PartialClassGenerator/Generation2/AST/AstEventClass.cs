@@ -13,13 +13,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// defined by the user in the code behind to catch events. An example of
     /// an event class in the InputEvent class.
     /// </summary>
-    public class NEventClass : NClass {
+    public class AstEventClass : AstClass {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NEventClass(DomGenerator gen)
+        public AstEventClass(DomGenerator gen)
             : base(gen) {
         }
 
@@ -27,7 +27,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Gets or sets the N member.
         /// </summary>
         /// <value>The N member.</value>
-        public NProperty NMember { get; set; }
+        public AstProperty NMember { get; set; }
         //public NClass NApp { get; set; }
         //public NClass NTemplate { get; set; }
         /// <summary>
@@ -48,16 +48,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Gets the N template.
         /// </summary>
         /// <value>The N template.</value>
-        public NTemplateClass NTemplate {
-            get { return  ((NValueClass)NMember.Type).NTemplateClass; }
+        public AstTemplateClass NTemplate {
+            get { return  ((AstValueClass)NMember.Type).NTemplateClass; }
         }
 
         /// <summary>
         /// Gets the N app.
         /// </summary>
         /// <value>The N app.</value>
-        public NAppClass NApp {
-            get { return (NAppClass)NMember.Parent; }
+        public AstAppClass NApp {
+            get { return (AstAppClass)NMember.Parent; }
         }
 
 

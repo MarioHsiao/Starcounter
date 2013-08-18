@@ -15,7 +15,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// or a parent app or in several places where each handler is called
     /// if the first one didn't handle it.
     /// </summary>
-    public class NInputBinding : NBase {
+    public class AstInputBinding : AstBase {
 
         public override string Name {
             get { return BindsToProperty.Name; }
@@ -25,20 +25,20 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// The property this binding binds to
         /// </summary>
         /// <value>The binds to property.</value>
-        public NProperty BindsToProperty { get; set; }
+        public AstProperty BindsToProperty { get; set; }
 
         /// <summary>
         /// The app where the property is declared.
         /// </summary>
         /// <value>The property app class.</value>
-        public NAppClass PropertyAppClass { get; set; }
+        public AstAppClass PropertyAppClass { get; set; }
 
         /// <summary>
         /// The App that declares the Handle-method. Might not be the same
         /// app as the property is declared in.
         /// </summary>
         /// <value>The declaring app class.</value>
-        public NAppClass DeclaringAppClass { get; set; }
+        public AstAppClass DeclaringAppClass { get; set; }
 
         /// <summary>
         /// Count on how many parent calls are needed to go from the property
@@ -63,9 +63,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NInputBinding" /> class.
+        /// Initializes a new instance of the <see cref="AstInputBinding" /> class.
         /// </summary>
-        public NInputBinding( DomGenerator gen ) : base(gen) {
+        public AstInputBinding( DomGenerator gen ) : base(gen) {
 
         }
 

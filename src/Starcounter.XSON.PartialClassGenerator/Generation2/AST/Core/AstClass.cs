@@ -16,13 +16,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
     /// 
     /// </summary>
-    public abstract class NClass : NBase {
+    public abstract class AstClass : AstBase {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="gen"></param>
-        public NClass(DomGenerator gen)
+        public AstClass(DomGenerator gen)
             : base(gen) {
         }
 
@@ -44,7 +44,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Gets or sets the generic.
         /// </summary>
         /// <value>The generic.</value>
-        public NClass Generic { get; set; }
+        public AstClass Generic { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is partial.
@@ -67,11 +67,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (Generic != null) {
                     str += "<" + Generic.FullClassName + ">";
                 }
-                if (Parent == null || !(Parent is NClass)) {
+                if (Parent == null || !(Parent is AstClass)) {
                     return str;
                 }
                 else {
-                    return (Parent as NClass).FullClassName + "." + str;
+                    return (Parent as AstClass).FullClassName + "." + str;
                 }
             }
         }
