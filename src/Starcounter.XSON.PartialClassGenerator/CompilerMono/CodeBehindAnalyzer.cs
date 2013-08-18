@@ -298,6 +298,10 @@ namespace Starcounter.XSON.Compiler.Mono {
                         attribute.IsRootClass = true;
                         attribute.IsDeclaredInCodeBehind = true;
                     }
+                    else if (!attribute.IsRootClass) {
+                        throw new Exception(String.Format("The class {0} has the attribute {1} although it has the same name as the .json file name.",
+                            foundClassName, attribute.RawJsonMapAttribute));
+                    }
                     attribute.Namespace = mce.CurrentNamespace;
                     attribute.GenericArgument = genericArg;
                     attribute.BaseClassName = baseClass;
@@ -307,6 +311,9 @@ namespace Starcounter.XSON.Compiler.Mono {
                     if (metadata.RootClassInfo == null)
                         throw new Exception("Did expect root class information to be set in partial class codegen");
 #endif
+                    if (attribute.ClassName == null)
+                        attribute.ClassName = className;
+                    metadata.JsonPropertyMapList.Add(attribute);
                 }
                 else {
                     var info = attribute; // JsonMapInfo.EvaluateAttributeString(attribute);
@@ -315,14 +322,11 @@ namespace Starcounter.XSON.Compiler.Mono {
                         info.ClassName = foundClassName;
                         info.BaseClassName = baseClass;
                         info.GenericArgument = genericArg;
-         //               info.JsonMapName = attribute.Raw;
+                        //               info.JsonMapName = attribute.Raw;
                         info.Namespace = mce.CurrentNamespace;
                         info.ParentClasses = mce.ClassList;
                         metadata.JsonPropertyMapList.Add(info);
                     }
-                }
-                if (attribute != null && attribute.IsRootClass) {
-                    metadata.JsonPropertyMapList.Add( attribute );
                 }
                 mce.PushClass(foundClassName);
                 SkipToOpenBrace(mce);
