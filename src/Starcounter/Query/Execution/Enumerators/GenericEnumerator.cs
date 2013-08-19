@@ -52,22 +52,18 @@ namespace Starcounter {
                 throw new ObjectDisposedException("Enumerator");
         }
 
-        public void Dispose() {
-            Dispose(false);
-            GC.SuppressFinalize(this);
-        }
-
         /// <summary>
         /// Releases unmanaged resources and return enumerator to cache.
         /// </summary>
-        public void Dispose(bool fromFinalize) {
+        public void Dispose() {
             if (subEnumerator != null) {
-                subEnumerator.Dispose(fromFinalize);
+                subEnumerator.Dispose();
                 subEnumerator = null;
 #if false
                 node.MarkAsDead();
 #endif
             }
+            GC.SuppressFinalize(this);
         }
 
         ~SqlEnumerator() {
@@ -77,7 +73,7 @@ namespace Starcounter {
             lock (SchedulerOwner.NrScheduledDisposesObj)
                 SchedulerOwner.NrScheduledDisposes++;
             dbs.RunAsync(() => {
-                Dispose(true);
+                Dispose();
                 lock (SchedulerOwner.NrScheduledDisposesObj)
                     SchedulerOwner.NrScheduledDisposes--;
             }, SchedulerOwner.Id);

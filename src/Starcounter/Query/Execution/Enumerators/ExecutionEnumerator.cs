@@ -358,7 +358,7 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Enumerator reset functionality.
     /// </summary>
-    public abstract void Reset(Row obj, bool fromFinalize);
+    public abstract void Reset(Row obj);
 
     /// <summary>
     /// Resets the enumerator.
@@ -368,11 +368,7 @@ internal abstract class ExecutionEnumerator
         //variableArray.TransactionId = Transaction.Current.TransactionId;
 
         // Calling underlying enumerator reset.
-        Reset(null, false);
-    }
-
-    public virtual void Reset(bool fromFinalize) {
-        Reset(null, fromFinalize);
+        Reset(null);
     }
 
     /// <summary>
@@ -387,14 +383,10 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Disposes the enumerator and returns it to the cache.
     /// </summary>
-    public void Dispose(bool fromFinalize)
+    public void Dispose()
     {
-        Reset(null, fromFinalize);
+        Reset(null);
         ReturnToCache();
-    }
-
-    public void Dispose() {
-        Dispose(false);
     }
 
     /// <summary>

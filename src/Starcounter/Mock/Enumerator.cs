@@ -131,14 +131,10 @@ namespace Starcounter
         }
 
 
-        public void Dispose() {
-            Dispose(false);
-        }
-
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose(Boolean fromFinalize) {
+        public void Dispose() {
             // Checking if enumerator was already disposed or not yet created.
             if (_handle == 0 || _verify == 0)
                 return;
@@ -421,14 +417,10 @@ namespace Starcounter
             }
         }
 
-        public void Dispose() {
-            Dispose(false);
-        }
-
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose(Boolean fromFinalize) {
+        public void Dispose() {
             // Checking if enumerator was already disposed or not yet created.
             if (_handle == 0 || _verify == 0)
                 return;

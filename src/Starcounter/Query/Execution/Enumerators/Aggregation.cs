@@ -225,7 +225,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(Row obj, Boolean fromFinalize)
+    public override void Reset(Row obj)
     {
         //if (enumerator != null)
         //{
@@ -238,7 +238,7 @@ internal class Aggregation : ExecutionEnumerator, IExecutionEnumerator
         counter = 0;
 
         contextObject = obj;
-        enumerator.Reset(contextObject, fromFinalize);
+        enumerator.Reset(contextObject);
         firstCallOfMoveNext = true;
     }
 
