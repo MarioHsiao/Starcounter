@@ -33,6 +33,24 @@ namespace Starcounter.XSON.Metadata
         /// </summary>
         public CodeBehindMetadata() { }
 
+
+
+        /// <summary>
+        /// The classpath looks like this example "*.SomeChild.SomeGrandChild.SomeProp"
+        /// wherein the asterix denotes the root class of the JSON object.
+        /// </summary>
+        /// <param name="fullClassPath"></param>
+        /// <returns></returns>
+        public CodeBehindClassInfo FindClassInfo(string fullClassPath) {
+            //throw new Exception(fullClassPath);
+            foreach (var ci in JsonPropertyMapList) {
+                if (ci.ClassPath == fullClassPath)
+                    return ci;
+            }
+            return null;
+        }
+
+
 //        /// <summary>
 //        /// The root namespace of the main app.
 //        /// </summary>
