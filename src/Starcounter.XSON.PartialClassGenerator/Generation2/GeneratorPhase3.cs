@@ -48,9 +48,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     var mn = kid as AstProperty;
                     if (mn.Type is AstArrXXXClass ||
                        (mn.Type is AstAppClass && mn.Type.Children.Count > 0)) {
-                        AstClass type;
+                        AstAppClass type;
                         if (mn.Type is AstArrXXXClass)
-                            type = (mn.Type as AstArrXXXClass).NApp;
+                            type = (AstAppClass)((mn.Type as AstArrXXXClass).NApp);
                         else
                             type = mn.Type as AstAppClass;
                         var x = new AstOtherClass(Generator) {
@@ -59,6 +59,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                             _ClassName = mn.MemberName
                         };
                         GeneratePrimitiveValueEvents(x, type, eventName);
+                        GenerateInputAttributes(type);
                     }
                     else {
                         if (mn.Type is AstPrimitiveType) {
