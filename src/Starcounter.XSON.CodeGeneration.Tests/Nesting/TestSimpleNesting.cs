@@ -6,7 +6,6 @@ using Starcounter.Templates;
 using System;
 using System.IO;
 
-
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
     [TestFixture]
@@ -19,6 +18,12 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             return tj;
         }
 
+        /// <summary>
+        /// When a JSON object is declared as a property in another JSON object, the generated partial class
+        /// is declared as an inner class unless the developer has not declared a JSON-mapping attribute
+        /// using the [myfile.json.myproj] attribute. This test asserts that this is indeed the case.
+        /// See also FlattenedClassForNestedJson().
+        /// </summary>
         [Test]
         public static void UntouchedNesting() {
             var tj = ReadTemplate("Nesting\\ParentChild.json");
@@ -38,7 +43,6 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual("Child2Json",nestedClass.Name);
             Console.WriteLine(dump);
         }
-
 
         [Test]
         public static void FlattenedClassForNestedJson() {
@@ -61,7 +65,5 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             //Console.WriteLine(dump);
             Console.WriteLine(codegen.GenerateCode());
         }
-
-
     }
 }
