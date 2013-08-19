@@ -180,9 +180,9 @@ internal class Sort : ExecutionEnumerator, IExecutionEnumerator
     /// Resets the enumerator with a context object.
     /// </summary>
     /// <param name="obj">Context object from another enumerator.</param>
-    public override void Reset(Row obj, Boolean fromFinalize)
+    public override void Reset(Row obj)
     {
-        subEnumerator.Reset(obj, fromFinalize);
+        subEnumerator.Reset(obj);
         counter = 0;
 
         if (enumerator != null)
