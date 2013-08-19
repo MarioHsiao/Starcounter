@@ -11,142 +11,26 @@ using Starcounter;
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using System.Collections;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class Arr<T> : Arr where T : Obj, new() {
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="res"></param>
-        /// <returns></returns>
-        public static implicit operator Arr<T>(Rows res) {
-            return new Arr<T>(res);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="result"></param>
-        protected Arr(IEnumerable result) : base(result) {
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="templ"></param>
-        public Arr(Obj parent, TObjArr templ)
-            : base(parent, templ) {
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public new T Current {
-            get {
-                return (T)base.Current;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public new T Add() {
-            TObjArr template = (TObjArr)Template;
-            var app = (T)template.App.CreateInstance(this);
-            Add(app);
-            return app;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        public void Add(T item) {
-            base.Add(item);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        public override void Add(Obj item) {
-            var typedListTemplate = ((TObjArr)Template).App;
-            if (typedListTemplate != null) {
-//                var t = allowedTemplate.GetType();
-                if (item.Template != typedListTemplate)
-                   throw new Exception("Cannot add item. Invalid type for this array.");
-            }
-            base.Add(item);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public T Add(IBindable data) {
-            TObjArr template = (TObjArr)Template;
-            var app = (T)template.App.CreateInstance(this);
-            app.Data = data;
-            Add(app);
-            return app;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public new T this[int index] {
-            get {
-#if QUICKTUPLE
-                return (T)QuickAndDirtyArray[index];
-#else
-            throw new NotImplementedException();
-#endif
-            }
-            set {
-                throw new NotImplementedException();
-            }
-        }
-
-    }
 
     /// <summary>
     /// 
     /// </summary>
-    public class Arr : Container, IList<Obj>
+    public partial class Arr : Container, IList<Obj>
 #if IAPP
 //, IAppArray
 #endif
  {
-        /// <summary>
-        /// 
-        /// </summary>
-        internal IEnumerable notEnumeratedResult = null;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="res"></param>
-        /// <returns></returns>
-        public static implicit operator Arr(Rows res) {
-            return new Arr(res);
-        }
 
 #if QUICKTUPLE
         /// <summary>
         /// Temporary. Should be replaced by TupleProxy functionality
         /// </summary>
         internal List<Obj> QuickAndDirtyArray = new List<Obj>();
+        internal List<Change> Changes = null;
 #endif
         // private TObjArr _property;
 
@@ -156,41 +40,6 @@ namespace Starcounter {
         public Obj Current {
             get {
                 throw new NotImplementedException();
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="result"></param>
-        protected Arr(IEnumerable result) {
-            notEnumeratedResult = result;
-        }
-
-        /// <summary>
-        /// Initializes this Arr and sets the template and parent if not already done.
-        /// If the notEnumeratedResult is not null the list is filled from the sqlresult.
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="template"></param>
-        /// <remarks>
-        /// This method can be called several times, the initialization only occurs once.
-        /// </remarks>
-        internal void InitializeAfterImplicitConversion(Obj parent, TObjArr template) {
-            Obj newApp;
-
-            if (Template == null) {
-                Template = template;
-                Parent = parent;
-            }
-
-            if (notEnumeratedResult != null) {
-                foreach (var entity in notEnumeratedResult) {
-                    newApp = (Obj)template.App.CreateInstance(this);
-                    newApp.Data = (IBindable)entity;
-                    Add(newApp);
-                }
-                notEnumeratedResult = null;
             }
         }
 
@@ -233,7 +82,7 @@ namespace Starcounter {
 #endif
 //            template = (TObjArr)this.Template;
 //            ChangeLog.AddItemInList((Puppet)this.Parent, template, index);
-            Parent.HasAddedElement((TObjArr)this.Template, index);
+            _CallHasAddedElement(index,item);
 
             for (Int32 i = index + 1; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
@@ -241,6 +90,41 @@ namespace Starcounter {
             }
 
         }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        private void _CallHasAddedElement(int index, Obj item) {
+            var tarr = (TObjArr)this.Template;
+            if (Session != null) {
+                if (Changes == null) {
+                    Changes = new List<Change>();
+                }
+                Changes.Add(Change.Add((Obj)this.Parent, tarr, index));
+                //Dirtyfy();
+            }
+            Parent.HasAddedElement(tarr, index);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="item"></param>
+        private void _CallHasRemovedElement(int index) {
+            var tarr = (TObjArr)this.Template;
+            if (Session != null) {
+                if (Changes == null) {
+                    Changes = new List<Change>();
+                }
+                Changes.Remove(Change.Add((Obj)this.Parent, tarr, index));
+                Dirtyfy();
+            }
+            Parent.HasRemovedElement(tarr, index);
+        }
+
 
         /// <summary>
         /// 
@@ -251,8 +135,8 @@ namespace Starcounter {
 
 #if QUICKTUPLE
             QuickAndDirtyArray.RemoveAt(index);
-            this.HasRemovedElement((TObjArr)this.Template, index);
-
+            var tarr = (TObjArr)this.Template;
+            _CallHasRemovedElement(index);
             for (Int32 i = index; i < QuickAndDirtyArray.Count; i++) {
                 otherItem = QuickAndDirtyArray[i];
                 otherItem._cacheIndexInArr = i;
@@ -306,7 +190,7 @@ namespace Starcounter {
         /// <returns></returns>
         public Obj Add() {
 #if QUICKTUPLE
-            Obj x = (Obj)((TObjArr)this.Template).App.CreateInstance(this);
+            Obj x = (Obj)((TObjArr)this.Template).ElementType.CreateInstance(this);
 
             //            var x = new App() { Template = ((TArr)this.Template).App };
             Add(x);
@@ -322,7 +206,6 @@ namespace Starcounter {
         /// <param name="item"></param>
         public virtual void Add(Obj item) {
             Int32 index;
-
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
             QuickAndDirtyArray.Add(item);
@@ -331,27 +214,34 @@ namespace Starcounter {
 #else
          throw new NotImplementedException();
 #endif
-            Parent.HasAddedElement((TObjArr)this.Template, QuickAndDirtyArray.Count - 1);
+            _CallHasAddedElement(QuickAndDirtyArray.Count - 1,item);
+//            Parent.HasAddedElement((TObjArr)this.Template, QuickAndDirtyArray.Count - 1);
         }
 
         /// <summary>
         /// 
         /// </summary>
         public void Clear() {
-            int indexesToRemove;
-            var app = this.Parent;
-            TObjArr property = (TObjArr)this.Template;
 
 #if QUICKTUPLE
 
-            indexesToRemove = QuickAndDirtyArray.Count;
-            for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                app.HasAddedElement(property, i ); // TODO! Is this really correct!?
-            }
-            QuickAndDirtyArray.Clear();
+            this.InternalClear();
+            Obj parent = (Obj)this.Parent;
+            parent._CallHasChanged(this.Template);
 #else
          throw new NotImplementedException();
 #endif
+        }
+
+        internal void InternalClear() {
+            int indexesToRemove;
+            var app = this.Parent;
+            TObjArr property = (TObjArr)this.Template;
+            indexesToRemove = QuickAndDirtyArray.Count;
+            for (int i = (indexesToRemove - 1); i >= 0; i--) {
+                app.HasRemovedElement(property, i);
+            }
+            QuickAndDirtyArray.Clear();
         }
 
         /// <summary>

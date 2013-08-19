@@ -14,6 +14,7 @@ namespace BuildSystemHelper
     {
         // Important paths constants.
         public const String MappedBuildServerFTP = "Z:"; // Resembles a mapped drive to \\scbuildserver\ftp.
+        public const String BuildServerFTP = @"\\scbuildserver\ftp";
 
         public static readonly String BuildSystemDir = Environment.GetEnvironmentVariable(BuildSystem.BuildSystemDirEnvVar);
         public static readonly String LocalBuildsFolder = BuildSystemDir + "\\StarcounterBuilds";
@@ -65,11 +66,6 @@ namespace BuildSystemHelper
         public const String BuildSystemDirEnvVar = "SC_BUILD_SYSTEM_DIR";
 
         /// <summary>
-        /// Name of the environment variable to skip the local FTP.
-        /// </summary>
-        public const String BuildSystemSkipLocalFtp = "SC_BUILD_SKIP_LOCAL_FTP";
-
-        /// <summary>
         /// Build number env var.
         /// </summary>
         public const String BuildNumberEnvVar = "BUILD_NUMBER";
@@ -97,7 +93,7 @@ namespace BuildSystemHelper
         /// <summary>
         /// Flag to upload to external FTP.
         /// </summary>
-        public const String UploadToUsFtp = "SC_UPLOAD_TO_US_FTP";
+        public const String UploadToPublicServer = "SC_UPLOAD_TO_US_FTP";
 
         /// <summary>
         /// Flag to pack and upload artifacts to external FTP.
@@ -696,7 +692,7 @@ namespace BuildSystemHelper
 
             // Calling sign utility...
             ProcessStartInfo signToolInfo = new ProcessStartInfo();
-            signToolInfo.FileName = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\SignTool.exe";
+            signToolInfo.FileName = @"c:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\SignTool.exe";
             signToolInfo.RedirectStandardError = true;
             signToolInfo.UseShellExecute = false;
 

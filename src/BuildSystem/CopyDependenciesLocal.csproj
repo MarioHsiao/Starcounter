@@ -20,6 +20,7 @@
   <PropertyGroup>
     <LocalBlueSolution>..\..\..\Level0\msbuild\Blue.sln</LocalBlueSolution>
     <LocalKillAllScript>..\BuildSystem\Scripts\kill_all.bat</LocalKillAllScript>
+    <NodeUploadTool>..\BuildSystem\Tools\NodeUploadTool.exe</NodeUploadTool>
     <LocalGatewayXML>..\scnetworkgateway\scripts\scnetworkgateway.xml</LocalGatewayXML>
     <ScerrresDll>
         ..\Starcounter.ErrorCodes\scerrres\x64\$(Configuration)\scerrres.dll;
@@ -57,6 +58,7 @@
     <!-- Local files. -->
     <Copy Condition="Exists('$(LocalBlueSolution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalBlueBinFiles)" DestinationFiles="@(LocalBlueBinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalKillAllScript)" DestinationFolder="$(OutputPath)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(NodeUploadTool)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalTestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(LocalGatewayXML)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalGatewayTestFiles)" DestinationFolder="$(OutputPath)" />

@@ -1,13 +1,10 @@
-﻿
-using Starcounter;
+﻿using Starcounter;
 
-partial class Master : Json {
-	[Master.json.Emails]
-	partial class EmailsObj : Json<Email> {
+namespace PMail {
 
-        void Handle(Input.Emails.Title input)
-        {
-            this.Transaction.Commit();
+    partial class Master : Json {
+
+        static void Main() {
         }
-	}
+    }
 }

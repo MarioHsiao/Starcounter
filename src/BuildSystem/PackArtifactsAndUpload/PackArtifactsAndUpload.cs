@@ -20,7 +20,7 @@ namespace PackArtifactsAndUpload
 
                 // Checking if its a nightly or a special build.
                 if ((Environment.GetEnvironmentVariable(BuildSystem.PackAndUploadArtifacts) != "True") ||
-                    (Environment.GetEnvironmentVariable(BuildSystem.UploadToUsFtp) != "True") ||
+                    (Environment.GetEnvironmentVariable(BuildSystem.UploadToPublicServer) != "True") ||
                     (!BuildSystem.IsNightlyBuild()))
                 {
                     Console.WriteLine("Skipping generation of packed artifacts...");

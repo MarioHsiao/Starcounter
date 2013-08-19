@@ -18,7 +18,7 @@ namespace Starcounter.Templates {
     /// instance Obj or Arr objects pertaining to them. This means that new templates need to be created to
     /// use alternate schemas.
     /// </remarks>
-    public abstract class TContainer : TValue
+    public abstract partial class TContainer : TValue
     {
         /// <summary>
         /// <see cref="Sealed"/>
@@ -47,12 +47,16 @@ namespace Starcounter.Templates {
             }
         }
 
+
+
         /// <summary>
         /// Represents the contained properties (TObj) or the single contained type for typed arrays (TArr).
         /// </summary>
         /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }
 
+
      }
+
 
 }

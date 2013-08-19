@@ -55,6 +55,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
         FieldDefDeclaration thisIdentityField;
         FieldDefDeclaration thisBindingField;
         DbStateMethodProvider.ViewAccessors viewAccessLayer;
+        static FieldInfo retreiverInstanceFieldInfo;
+        IField retreiverInstanceField;
 
         static ImplementsIObjectProxy() {
             methodAttributes =
@@ -63,6 +65,8 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 MethodAttributes.Final |
                 MethodAttributes.HideBySig |
                 MethodAttributes.NewSlot;
+            retreiverInstanceFieldInfo = typeof(DatabaseObjectRetriever).GetField(
+                "Instance", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
         }
 
         internal ImplementsIObjectProxy(ModuleDeclaration module, InstructionWriter writer, DbStateMethodProvider.ViewAccessors viewGetMethods) {
@@ -75,12 +79,13 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             bindableNETType = typeof(IBindable);
             bindableTypeSignature = module.FindType(bindableNETType, BindingOptions.Default);
             viewAccessLayer = viewGetMethods;
-            
+            retreiverInstanceField = module.FindField(retreiverInstanceFieldInfo, BindingOptions.DontThrowException);
+
             targets = new Dictionary<string, Action<TypeDefDeclaration, MethodInfo, IMethod, MethodDefDeclaration>>();
             targets.Add("Bind", Bind);
             targets.Add("get_ThisHandle", GetThisHandle);
             targets.Add("get_Identity", GetThisIdentity);
-            //targets.Add("get_Retriever", GetThisRetriever);
+            targets.Add("get_Retriever", GetBindableRetriever);
             targets.Add("GetBoolean", GetBoolean);
             targets.Add("GetByte", GetByte);
             targets.Add("GetBinary", GetBinary);
@@ -303,8 +308,6 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
             }
         }
 
-//        void 
-
         void GetThisIdentity(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
             // Signature: ulong IBindable.get_Identity()
             impl.Attributes |= MethodAttributes.SpecialName;
@@ -321,6 +324,27 @@ namespace Starcounter.Internal.Weaver.IObjectViewImpl {
                 impl.MethodBody.MaxStack = 8;
                 w.EmitInstruction(OpCodeNumber.Ldarg_0);
                 w.EmitInstructionField(OpCodeNumber.Ldfld, thisIdentityField);
+                w.EmitInstruction(OpCodeNumber.Ret);
+            }
+        }
+
+        void GetBindableRetriever(TypeDefDeclaration typeDef, MethodInfo netMethod, IMethod methodRef, MethodDefDeclaration impl) {
+            // Signature: IBindableRetriever IBindable.get_Retriever()
+            impl.Attributes |= MethodAttributes.SpecialName;
+            var returnType = module.FindType(typeof(IBindableRetriever), BindingOptions.Default);
+            impl.ReturnParameter = new ParameterDeclaration {
+                Attributes = ParameterAttributes.Retval,
+                ParameterType = returnType
+            };
+
+            var propertyName = bindableNETType.FullName + "." + "Retriever";
+            var getter = typeDef.Properties.GetOneByName(propertyName).Members.GetBySemantic(MethodSemantics.Getter);
+            getter.Method = impl;
+
+            using (var attached = new AttachedInstructionWriter(writer, impl)) {
+                var w = attached.Writer;
+                impl.MethodBody.MaxStack = 8;
+                w.EmitInstructionField(OpCodeNumber.Ldsfld, retreiverInstanceField);
                 w.EmitInstruction(OpCodeNumber.Ret);
             }
         }

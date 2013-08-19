@@ -1,0 +1,6 @@
+﻿
+
+[Someshit.json]
+partial class Parent : Json {
+}
+

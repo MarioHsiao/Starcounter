@@ -17,18 +17,16 @@ namespace Starcounter {
     /// <summary>
     /// Class Session
     /// </summary>
-    public class Session : IAppsSession {
+    public partial class Session : IAppsSession {
         [ThreadStatic]
-        static Session current;
+        static Session _Current;
 
         [ThreadStatic]
-        static Request request;
+        static Request _Request;
 
-        internal Obj root;
+        internal Obj _Data;
 
         bool isInUse;
-
-        ChangeLog changeLog;
 
         /// <summary>
         /// Cached pages dictionary.
@@ -49,8 +47,8 @@ namespace Starcounter {
             Debug.Assert(null != obj);
 
             // Checking if its a root.
-            if (root == obj)
-                return root;
+            if (_Data == obj)
+                return _Data;
 
             // Checking if node has no parent, indicating that it was removed from tree.
             if (null != obj.Parent)
@@ -83,15 +81,15 @@ namespace Starcounter {
         /// Returns the current active session.
         /// </summary>
         /// <value></value>
-        public static Session Current { get { return current; } }
+        public static Session Current { get { return _Current; } }
 
         /// <summary>
         /// Returns the original request for session.
         /// </summary>
         /// <value></value>
         internal static Request InitialRequest {
-            get { return request; }
-            set { request = value; }
+            get { return _Request; }
+            set { _Request = value; }
         }
 
         /// <summary>
@@ -100,24 +98,16 @@ namespace Starcounter {
         public ScSessionClass InternalSession { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Session" /> class.
-        /// </summary>
-        internal Session() {
-            changeLog = new ChangeLog();
-        }
-
-        /// <summary>
         /// Creates new empty session.
         /// </summary>
         /// <returns></returns>
         internal static Session CreateNewEmptySession()
         {
-            Debug.Assert(current == null);
+            Debug.Assert(_Current == null);
 
-            current = new Session();
-            ChangeLog.CurrentOnThread = current.changeLog;
+            _Current = new Session();
 
-            return current;
+            return _Current;
         }
 
         /// <summary>
@@ -125,38 +115,46 @@ namespace Starcounter {
         /// </summary>
         public static Obj Data {
             get {
-                Session s = current;
-                if (s != null && s.root != null) {
-                    return s.root;
+                Session s = _Current;
+                if (s == null) {
+                    s = CreateNewEmptySession();
+                }
+                if (s != null && s._Data != null) {
+                    return s._Data;
                 }
                 return null;
             }
             set {
-                if (current == null) {
+                if (_Current == null) {
 
                     // Creating new empty session.
-                    current = new Session();
+                    _Current = new Session();
 
-                    UInt32 errCode;
+                    UInt32 errCode = 0;
 
+                    if (_Request != null) {
 #if DEBUG
-                    // Checking if we have a predefined session.
-                    if (request.IsSessionPredefined()) {
-                        errCode = request.GenerateForcedSession(current);
-                    } else {
-                        errCode = request.GenerateNewSession(current);
-                    }
+                        // Checking if we have a predefined session.
+                        if (_Request.IsSessionPredefined()) {
+                            errCode = _Request.GenerateForcedSession(_Current);
+                        }
+                        else {
+                            errCode = _Request.GenerateNewSession(_Current);
+                        }
 #else
-                    errCode = request.GenerateNewSession(current);
+                    errCode = _Request.GenerateNewSession(_Current);
 #endif
+                    }
 
                     if (errCode != 0)
                         throw ErrorCode.ToException(errCode);
                 }
-                current.SetData(value);
+                _Current.SetData(value);
 
                 // Creating new implicit read-write transaction.
-                value.Transaction = StarcounterBase._DB.NewCurrent();
+                if (StarcounterBase._DB != null) {
+                    value.Transaction = StarcounterBase._DB.NewCurrent();
+                }
             }
         }
 
@@ -167,14 +165,14 @@ namespace Starcounter {
         private void SetData(Obj data) {
 
             // If we are replacing the JSON tree, we need to dispose previous one.
-            if (root != null) {
-                DisposeJsonRecursively(current.root);
+            if (_Data != null) {
+                DisposeJsonRecursively(_Current._Data);
             }
-            root = data;
+            _Data = data;
 
-            // We don't want any changes logged during this request since
-            // we will have to send the whole object anyway in the response.
-            ChangeLog.CurrentOnThread = null;
+            if (data != null) {
+                data._Session = this;
+            }
         }
 
         /// <summary>
@@ -191,7 +189,7 @@ namespace Starcounter {
         /// <returns></returns>
         internal string GetDataLocation()
         {
-            if (root == null)
+            if (_Data == null)
                 return null;
 
             return ScSessionClass.DataLocationUriPrefix + SessionIdString;
@@ -228,16 +226,13 @@ namespace Starcounter {
         /// <param name="session"></param>
         internal static void Start(Session session)
         {
-            Debug.Assert(current == null);
+            Debug.Assert(_Current == null);
 
             // Session still can be null, e.g. did not pass the verification.
             if (session == null)
                 return;
 
-            Session.current = session;
-            ChangeLog.CurrentOnThread = session.changeLog;
-
-            Debug.Assert(null != ChangeLog.CurrentOnThread);
+            Session._Current = session;
         }
 
         /// <summary>
@@ -245,9 +240,8 @@ namespace Starcounter {
         /// </summary>
         internal static void End()
         {
-            current.changeLog.Clear();
-            Session.current = null;
-            ChangeLog.CurrentOnThread = null;
+            _Current.Clear();
+            Session._Current = null;
 
             // Resetting current transaction if any exists.
             if (StarcounterBase._DB.GetCurrentTransaction() != null)
@@ -322,10 +316,10 @@ namespace Starcounter {
         /// </summary>
         public void Destroy()
         {
-            if (root != null) {
-                DisposeJsonRecursively(root);
+            if (_Data != null) {
+                DisposeJsonRecursively(_Data);
             }
-            root = null;
+            _Data = null;
 
             // Checking if destroy callback is supplied.
             if (null != destroy_user_delegate_)
@@ -334,8 +328,8 @@ namespace Starcounter {
                 destroy_user_delegate_ = null;
             }
 
-            changeLog = null;
-            Session.current = null;
+//            _ChangeLog = null;
+            Session._Current = null;
         }
 
         /// <summary>

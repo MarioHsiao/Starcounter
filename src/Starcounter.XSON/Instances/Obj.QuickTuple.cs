@@ -23,10 +23,44 @@ namespace Starcounter {
         protected override void _InitializeValues() {
                 var prop = Template.Properties;
                 var vc = prop.Count;
+                _Dirty = false;
                 _Values = new object[vc];
+                _BoundDirtyCheck = new object[vc];
+                _DirtyProperties = new bool[vc];
                 for (int t = 0; t < vc; t++) {
                     _Values[t] = ((Template)prop[t]).CreateInstance(this);
                 }
+        }
+
+        /// <summary>
+        /// Use this property to access the values internally
+        /// </summary>
+        protected dynamic[] Values {
+            get {
+                if (_Values.Length < this.Template.Properties.Count) {
+                    // We allow adding new properties to dynamic templates
+                    // even after instsances have been created.
+                    // For this reason, we need to allow the expansion of the 
+                    // values.
+                    var old = _Values;
+                    var oldD = _DirtyProperties;
+                    var oldB = _BoundDirtyCheck;
+                    var prop = Template.Properties;
+                    var vc = prop.Count;
+                    _Values = new object[vc];
+                    _DirtyProperties = new bool[vc];
+                    _BoundDirtyCheck = new object[vc];
+                    old.CopyTo(_Values, 0);
+                    oldD.CopyTo(_DirtyProperties, 0);
+                    oldB.CopyTo(_BoundDirtyCheck, 0);
+                    for (int t = old.Length; t < _Values.Length; t++) {
+                        _Values[t] = ((Template)prop[t]).CreateInstance(this);
+                        _DirtyProperties[t] = false; // Reduntant
+                        _BoundDirtyCheck[t] = _Values[t];
+                    }
+                }
+                return _Values;
+            }
         }
 
         /// <summary>
@@ -35,7 +69,18 @@ namespace Starcounter {
         /// of the Template of the property.
         /// </summary>
         internal dynamic[] _Values;
-#endif
 
+        /// <summary>
+        /// The naive implementation keeps track of the changed values
+        /// generate the JSON-Patch document
+        /// </summary>
+        internal bool[] _DirtyProperties;
+
+        /// <summary>
+        /// The naive implementation keeps track of the changed database objects to
+        /// generate the JSON-Patch document
+        /// </summary>
+        internal dynamic[] _BoundDirtyCheck;
+#endif
     }
 }

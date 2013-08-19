@@ -40,9 +40,26 @@ namespace PostBuildTasks
         {
             "*.json",
             "*.tests.dll",
-            "*.tests.exe"
-        };
+            "*.tests.exe",
+            "*.tests.pdb",
 
+            // Blue test projects.
+            "behemoth_unittest.*",
+            "commit_perftest.*",
+            "commit_unittest.*",
+            "fletcher32_test.*",
+            "log_reader_test.*",
+            "log_writer_test.*",
+            "max_io_bandwidth_test.*",
+            "memhelp4_perftest.*",
+            "perfmon.*",
+            "sccorelog_test.*",
+            "stream_buffer_test.*",
+            "testapp1.*",
+            "tpca_client.*",
+            "TurboTextTest.*"
+        }; 
+   
         /// <summary>
         /// Clean output directory.
         /// </summary>
@@ -149,19 +166,23 @@ namespace PostBuildTasks
                 }
 
                 // Getting sources directory.
-                String sourcesDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
-                if (sourcesDir == null)
+                String checkoutDir = Environment.GetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar);
+                if (checkoutDir == null)
                 {
                     throw new Exception("Environment variable " + BuildSystem.CheckOutDirEnvVar + " does not exist.");
                 }
 
                 // Getting the path to current build consolidated folder.
-                String outputFolder = Path.Combine(sourcesDir, "Level1\\Bin\\" + configuration);
+                String outputFolder = Path.Combine(checkoutDir, "Level1\\Bin\\" + configuration);
 
                 // Killing interrupting processes.
                 Console.WriteLine("Killing disturbing processes...");
                 BuildSystem.KillAll();
                 Thread.Sleep(10000);
+
+                // Saving server log.
+                if (File.Exists(outputFolder + @"\.db.output\starcounter.0000000000.log"))
+                    File.Copy(outputFolder + @"\.db.output\starcounter.0000000000.log", checkoutDir + @"\scserver.log", true);
 
                 // Checking if output should be cleaned.
                 CleanOutputDirectory(outputFolder);

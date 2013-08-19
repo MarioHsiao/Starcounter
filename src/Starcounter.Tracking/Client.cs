@@ -542,11 +542,10 @@ namespace Starcounter.Tracking {
 
         }
 
-
         private void AddHeader(dynamic json) {
 
             json.date = DateTime.UtcNow.ToString("s") + "Z"; // "2012-04-23T18:25:43.511Z"
-            json.downloadId = CurrentVersion.IDFullBase32;
+            json.downloadId = Environment.UniqueDownloadKey;
             json.mac = Environment.GetTruncatedMacAddress();
             json.installationNo = Environment.GetInstallationNo();
             json.version = CurrentVersion.Version;

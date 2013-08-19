@@ -75,13 +75,18 @@ namespace Starcounter.Internal.Tests
 
             X.GetNodeFromUri("somehost:1234/someuri/", out node, out relativeUri);
             Assert.IsTrue("/someuri/" == relativeUri);
-            Assert.IsTrue("somehost:1234" == node.HostName);
+            Assert.IsTrue("somehost" == node.HostName);
             Assert.IsTrue(1234 == node.PortNumber);
 
             X.GetNodeFromUri("www.starcounter.com:8081", out node, out relativeUri);
             Assert.IsTrue("/" == relativeUri);
-            Assert.IsTrue("www.starcounter.com:8081" == node.HostName);
+            Assert.IsTrue("www.starcounter.com" == node.HostName);
             Assert.IsTrue(8081 == node.PortNumber);
+
+            X.GetNodeFromUri("http://192.168.8.183:8585/upload", out node, out relativeUri);
+            Assert.IsTrue("/upload" == relativeUri);
+            Assert.IsTrue("192.168.8.183" == node.HostName);
+            Assert.IsTrue(8585 == node.PortNumber);
         }
     }
 }

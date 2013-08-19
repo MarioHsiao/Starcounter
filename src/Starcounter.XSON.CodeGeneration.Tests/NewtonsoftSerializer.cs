@@ -8,7 +8,7 @@ using Starcounter.Internal;
 using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
 
-namespace Starcounter.XSON.CodeGeneration.Tests {
+namespace Starcounter.Internal.XSON {
     public class NewtonsoftSerializer : TypedJsonSerializer {
         public override string ToJson(Obj obj) {
             bool needsComma;
@@ -48,7 +48,7 @@ namespace Starcounter.XSON.CodeGeneration.Tests {
                     } else {
                         object papa = val;
                         TValue valueProperty = tProp as TValue;
-                        if (valueProperty != null && valueProperty.Bound)
+                        if (valueProperty != null && ( valueProperty.Bound == Bound.Yes ) )
                             papa = valueProperty.GetBoundValueAsObject(obj);
 
                         sb.Append(JsonConvert.SerializeObject(papa));

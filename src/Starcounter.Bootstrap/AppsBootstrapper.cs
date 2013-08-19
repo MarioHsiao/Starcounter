@@ -3,6 +3,7 @@ using HttpStructs;
 using Modules;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
+using Starcounter.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,6 +28,9 @@ namespace Starcounter.Internal {
 
         // NOTE: Timer should be static, otherwise its garbage collected.
         private static Timer sessionCleanupTimer;
+
+        // Node error log source.
+        static LogSource NodeErrorLogSource = new LogSource("Node");
 
         // private static StaticWebServer fileServer;
 
@@ -55,14 +59,17 @@ namespace Starcounter.Internal {
             // Dependency injection for converting puppets to html
             Obj._PuppetToViewConverter = new PuppetToViewConverter();
 
-            // Setting the response handler.
-            Node.SetHandleResponse(AppServer_.OnResponse);
-
             // Giving REST needed delegates.
             UserHandlerCodegen.Setup(
                 GatewayHandlers.RegisterUriHandler,
                 OnHttpMessageRoot,
                 AppServer_.HandleRequest);
+
+            // Injecting required hosted Node functionality.
+            Node.InjectHostedImpl(
+                AppServer_.OnResponse,
+                UserHandlerCodegen.DoLocalNodeRest,
+                NodeErrorLogSource.LogException);
 
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(numSchedulers);
