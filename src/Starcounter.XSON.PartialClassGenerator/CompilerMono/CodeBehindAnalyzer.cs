@@ -98,10 +98,10 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// </summary>
         /// <param name="mce"></param>
         private static void SkipToOpenBrace(MonoCSharpEnumerator mce) {
-            while (mce.MoveNext()) {
-                if (mce.Token == CSharpToken.OPEN_BRACE)
-                    break;
-            }
+			do {
+				if (mce.Token == CSharpToken.OPEN_BRACE)
+					break;
+			} while (mce.MoveNext());
         }
 
         /// <summary>
@@ -137,40 +137,39 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// <returns></returns>
         private static bool IsTypedJsonClass(MonoCSharpEnumerator mce, out string baseClass, out string genericArgument) {
             bool isTypedJsonClass;
-            string baseClassName;
+            string baseClassNameStr = "";
+			string genericArgStr = "";
 
             genericArgument = null;
             baseClass = null;
             isTypedJsonClass = false;
             if (mce.Peek() == CSharpToken.COLON) { // The class have a inheritance list.
                 mce.MoveNext(); // COLON
+
+				// Since we allow inheritance we have no idea if the class we found is a valid
+				// typed json class or not. So we have to assume that the first one is the basetype
+				// and not an interface or something.
                 while (mce.MoveNext()) {
-                    if (mce.Token == CSharpToken.OPEN_BRACE)
-                        break;
-
-                    if (mce.Token == CSharpToken.IDENTIFIER) {
-                        baseClassName = mce.Value;
-
-                        // Since we allow inheritance we have no idea if the class we found is a valid
-                        // typed json class or not. So we have to assume that the first one is the basetype
-                        // and not an interface or something.
-                        baseClass = baseClassName;
-
-//                        if (baseClassName.Equals("Json")) {
-                            // A valid baseclass. This class is a typed json class.
-                            // Now we check if a generic argument exists.
-                            isTypedJsonClass = true;
-                            if (mce.Peek() == CSharpToken.OP_GENERICS_LT) {
-                                mce.MoveNext(); // OP_GENERICS_LT
-                                mce.MoveNext(); // IDENTIFIER
-
-                                if (mce.Peek() != CSharpToken.OP_GENERICS_GT)
-                                    throw new NotSupportedException("Baseclass for typed json with more than one generic argument is not currently supported.");
-                                genericArgument = mce.Value;
-                            }
-                            break;
-//                        }
-                    }
+					if (mce.Token == CSharpToken.OPEN_BRACE || mce.Token == CSharpToken.COMMA) {
+						baseClass = baseClassNameStr;
+						isTypedJsonClass = true;
+						break;
+					} else if (mce.Token == CSharpToken.IDENTIFIER) {
+                        baseClassNameStr += mce.Value;
+					} else if (mce.Token == CSharpToken.DOT) {
+						baseClassNameStr += ".";
+					} else if (mce.Token == CSharpToken.OP_GENERICS_LT) {
+						while (mce.MoveNext()) {
+							if (mce.Token == CSharpToken.OP_GENERICS_GT) {
+								genericArgument = genericArgStr;
+								break;
+							} else if (mce.Token == CSharpToken.IDENTIFIER) {
+								genericArgStr += mce.Value;
+							} else if (mce.Token == CSharpToken.DOT) {
+								genericArgStr += ".";
+							}
+						}
+					}
                 }
             }
             return isTypedJsonClass;
@@ -306,14 +305,14 @@ namespace Starcounter.XSON.Compiler.Mono {
                     attribute.GenericArgument = genericArg;
                     attribute.BaseClassName = baseClass;
                     attribute.AutoBindToDataObject = (genericArg != null);
-                    metadata.JsonPropertyMapList.Add(attribute);
+					metadata.JsonPropertyMapList.Add(attribute);
+
 #if DEBUG
                     if (metadata.RootClassInfo == null)
                         throw new Exception("Did expect root class information to be set in partial class codegen");
 #endif
                     if (attribute.ClassName == null)
                         attribute.ClassName = className;
-                    metadata.JsonPropertyMapList.Add(attribute);
                 }
                 else {
                     var info = attribute; // JsonMapInfo.EvaluateAttributeString(attribute);
