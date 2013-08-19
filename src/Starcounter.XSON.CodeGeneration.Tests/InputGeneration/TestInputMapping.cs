@@ -10,7 +10,7 @@ using System.IO;
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
     [TestFixture]
-    static class TestPatchMapping {
+    static class TestInputMapping {
 
         internal static TJson ReadTemplate(string path) {
             var str = File.ReadAllText(path);
@@ -21,8 +21,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void TestInputGeneration() {
-            var tj = ReadTemplate("PatchMapping\\Company.json");
-            var cb = File.ReadAllText("PatchMapping\\Company.json.cs" );
+            var tj = ReadTemplate("InputGeneration\\Company.json");
+            var cb = File.ReadAllText("InputGeneration\\Company.json.cs");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
