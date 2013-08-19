@@ -58,7 +58,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var otherClass = (AstBase)dom.Children[0].Children[3];
             var noLongerNestedClass = (AstBase)dom.Children[1];
             Assert.AreEqual("ContactPage", noLongerNestedClass.Name); // Name gotten from code-behind in ParentChild.json.v3.cs
-            Console.WriteLine(dump);
+            //Console.WriteLine(dump);
+            Console.WriteLine(codegen.GenerateCode());
         }
 
 
