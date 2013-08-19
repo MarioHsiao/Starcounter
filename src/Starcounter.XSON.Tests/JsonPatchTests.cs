@@ -118,18 +118,31 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine("=========");
             Console.WriteLine(((Json)j).DebugString);
 
-            Session.Current.CheckpointChangeLog();
+            Session.Current.CheckpointChangeLog();            
             Console.WriteLine("Flushed");
             Console.WriteLine("=========");
             Console.WriteLine(((Json)j).DebugString);
 
+            var str = Session.Current.CreateJsonPatch(true);
+            Assert.AreEqual("[]", str);
 
             j.Friends[1].FirstName = "Henke";
             j.Age = 43;
+            dynamic kalle = new Json();
+            kalle.FirstName = "Kalle";
+            j.Friends.Add(kalle);
 
             Console.WriteLine("Changed");
             Console.WriteLine("=========");
             Console.WriteLine(((Json)j).DebugString);
+
+            str = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("JSON-Patch");
+            Console.WriteLine("==========");
+            Console.WriteLine(str);
+
+            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
         }
 
 
