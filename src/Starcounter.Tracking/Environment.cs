@@ -16,6 +16,24 @@ namespace Starcounter.Tracking {
         private static string osInfo = null;
         private static UInt64 mem = 0;
 
+        ////////////////////////////////////////////////
+        // NOTE: Do not modify, even whitespace!!!
+        // Used for direct replacement by installer.
+        
+        //////////////////// BEGIN DO NOT MODIFY /////////////////////////
+
+        /// <summary>
+        /// Unique download key.
+        /// </summary>
+        public const String UniqueDownloadKey = "000000000000000000000000";
+
+        /// <summary>
+        /// Required registration date.
+        /// </summary>
+        public static readonly DateTime RequiredRegistrationDate = DateTime.Parse("1900-01-01");
+
+        //////////////////// END DO NOT MODIFY /////////////////////////
+
         /// <summary>
         /// The starcounter tracker server IP address
         /// </summary>

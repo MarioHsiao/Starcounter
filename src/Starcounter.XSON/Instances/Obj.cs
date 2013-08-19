@@ -82,14 +82,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
-        /// underlying bound object. This is common in database applications where Json messages
-        /// or view models (Puppets) are often associated with database objects. I.e. a person form might
-        /// reflect a person database object (Entity).
-        /// </summary>
-        private IBindable _data;
-
-        /// <summary>
         /// Transaction applied to this node.
         /// </summary>
         private ITransaction _transaction;
@@ -98,11 +90,6 @@ namespace Starcounter {
         /// Cache element index if the parent of this Obj is an array (Arr).
         /// </summary>
         internal int _cacheIndexInArr;
-
-//        /// <summary>
-//        /// Injection point for generating typed json from different kinds of input.
-//        /// </summary>
-//        internal static ITypedJsonFactory Factory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
@@ -159,21 +146,6 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// Gets or sets the bound (underlying) data object (often a database Entity object). This enables
-        /// the Obj to reflect the values of the bound object. The values are matched by property names by default.
-        /// When you declare an Obj using generics, be sure to specify the type of the bound object in the class declaration.
-        /// </summary>
-        /// <value>The bound data object (often a database Entity)</value>
-        public IBindable Data {
-            get {
-                return (IBindable)_data;
-            }
-            set {
-                if (Template == null) throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
-                InternalSetData(value);
-            }
-        }
 
         /// <summary>
         /// Start usage of given session.
@@ -183,27 +155,7 @@ namespace Starcounter {
         {
             // Starting using current transaction if any.
             if (Transaction != null)
-                StarcounterBase._DB.SetCurrentTransaction(_transaction);
-        }
-
-        /// <summary>
-        /// Sets the underlying data object and refreshes all bound values.
-        /// This function does not check for a valid transaction as the 
-        /// public Data-property does.
-        /// </summary>
-        /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(IBindable data) {
-            if (Transaction == null) {
-                Transaction = StarcounterBase._DB.GetCurrentTransaction();
-            }
-
-            this._data = data;
-            if (Template.Bound) {
-                ((Obj)this.Parent).SetBound(Template, data);
-            }
-
-            RefreshAllBoundValues();
-            OnData();
+                StarcounterBase._DB.SetCurrentTransaction(Transaction);
         }
 
         /// <summary>
@@ -237,27 +189,6 @@ namespace Starcounter {
         /// </summary>
         internal ITransaction TransactionOnThisNode {
             get { return _transaction; }
-        }
-
-        /// <summary>
-        /// Refreshes all bound values of this Obj. Retrieves data from the Data
-        /// property.
-        /// </summary>
-        private void RefreshAllBoundValues() {
-/*            TValue child;
-            for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
-                child = Template.Properties[i] as TValue;
-                if (child != null && child.Bound) {
-                    Refresh(child);
-                }
-            }
- */
-        }
-
-        /// <summary>
-        /// Called after the Data property is set.
-        /// </summary>
-        protected virtual void OnData() {
         }
 
         /// <summary>
@@ -323,25 +254,10 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="property">The property that has changed in this Obj</param>
         protected virtual void HasChanged(TValue property) {
-            ChangeLog.UpdateValue(this, property);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="property"></param>
-        /// <param name="elementIndex"></param>
-        public override void HasAddedElement(TObjArr property, int elementIndex) {
-            ChangeLog.AddItemInList(this, property, elementIndex);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="property"></param>
-        /// <param name="elementIndex"></param>
-        public override void HasRemovedElement(TObjArr property, int elementIndex) {
-            ChangeLog.RemoveItemInList(this, property, elementIndex);
+            //throw new Exception();
+            //var s = Session;
+            //if (s!=null)
+            //    Session.UpdateValue(this, property);
         }
 
         /// <summary>
@@ -379,6 +295,107 @@ namespace Starcounter {
 		public bool LogChanges { get; set; }
 
         public virtual void ProcessInput<V>(TValue<V> template, V value) {
+        }
+
+        /// <summary>
+        /// Logs all property changes made to this object or its bound data object
+        /// </summary>
+        /// <param name="session">The session (for faster access)</param>
+        internal override void LogValueChangesWithDatabase(Session session) {
+            if (_Dirty) {
+                for (int t = 0; t < _Values.Length; t++) {
+                    if (_DirtyProperties[t]) {
+                        var s = Session;
+                        if (s != null) {
+                            Session.UpdateValue(this, (TValue)Template.Properties[t]);
+                        }
+                        _DirtyProperties[t] = false;
+                    }
+                    else {
+                        var p = Template.Properties[t];
+                        if (p is TContainer) {
+                            var c = ((Container)_Values[t]);
+                            if (c != null) {
+                                c.LogValueChangesWithDatabase(session);
+                            }
+                        } else {
+                            if (((TValue)p).Bound != Bound.No ) {
+                                if (!this.GetBound((TValue)p).Equals(this._BoundDirtyCheck[t])) {
+                                  Session.UpdateValue(this, (TValue)Template.Properties[t]);
+                                }
+                            }
+                        }
+                    }
+                }
+                _Dirty = false;
+            } else if ( Template.HasAtLeastOneBoundProperty ) {
+                    for (int t = 0; t < _Values.Length; t++) {
+                        var p = Template.Properties[t];
+                        if (p is TContainer) {
+                            ((Container)_Values[t]).LogValueChangesWithDatabase(session);
+                        } else {
+                            if (((TValue)p).Bound != Bound.No ) {
+                                if (true) { // TODO! Check if database object has changed
+                                  Session.UpdateValue(this, (TValue)Template.Properties[t]);
+                                }
+                            }
+                        }
+                    }
+            } else {
+                foreach (var e in _Values) {
+                    if (e is Container) {
+                        ((Container)e).LogValueChangesWithDatabase(session);
+                    }
+                }
+            }
+        }
+
+        public override void HasAddedElement(TObjArr property, int elementIndex) {
+        }
+
+        public override void HasRemovedElement(TObjArr property, int elementIndex) {
+        }
+
+        internal override void LogValueChangesWithoutDatabase(Session session) {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal override void CheckpointChangeLog() {
+            _BrandNew = false;
+            if (_Dirty) {
+                for (int t = 0; t < _Values.Length; t++) {
+                    if (_DirtyProperties[t]) {
+                        _DirtyProperties[t] = false;
+                    }
+                    var p = Template.Properties[t];
+                    if (p is TContainer) {
+                        ((Container)_Values[t]).CheckpointChangeLog();
+                    }
+                }
+                _Dirty = false;
+            }
+            else {
+                for (int t = 0; t < _Values.Length; t++) {
+                    var p = Template.Properties[t];
+                    if (p is TContainer) {
+                        ((Container)_Values[t]).CheckpointChangeLog();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prop"></param>
+        /// <returns></returns>
+        public bool IsDirty(Template prop) {
+#if DEBUG
+            this.Template.VerifyProperty(prop);
+#endif
+            return (_DirtyProperties[prop.TemplateIndex]);
         }
     }
 }

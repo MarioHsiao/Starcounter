@@ -157,7 +157,7 @@ namespace Starcounter.Internal.JsonTemplate
                 valueTemplate = _template as TValue;
                 if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 valueTemplate.Bind = v;
-                valueTemplate.Bound = true;
+                valueTemplate.Bound = Bound.Yes;
             }
             else if (upperName == "TYPE")
             {
@@ -664,7 +664,7 @@ namespace Starcounter.Internal.JsonTemplate
             newTemplate.Parent = (TContainer)array;
             //			newTemplate.TemplateName = "__ArrayType__"; // All children needs an id
             var arr = ((TObjArr)array);
-            arr.App = newTemplate;
+            arr.ElementType = newTemplate;
             newTemplate.Parent = arr;
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;

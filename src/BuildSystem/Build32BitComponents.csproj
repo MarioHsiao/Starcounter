@@ -39,7 +39,7 @@
           $(OutputPath)\Starcounter.Apps.JsonPatch.dll;
           $(OutputPath)\Starcounter.Internal.dll;
           $(OutputPath)\Starcounter.HyperMedia.dll;
-          $(OutputPath)\Starcounter.REST.dll;
+          $(OutputPath)\Starcounter.Node.dll;
           $(OutputPath)\Starcounter.XSON.dll" />
     </ItemGroup>
 

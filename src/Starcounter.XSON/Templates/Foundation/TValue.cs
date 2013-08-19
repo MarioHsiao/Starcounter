@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.Advanced.XSON;
 using Starcounter.Advanced;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
     /// <summary>
@@ -19,10 +20,11 @@ namespace Starcounter {
     public abstract class TValue<T> : TValue {
         public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
-        internal DataValueBinding<T> dataBinding;
-        
-        internal DataValueBinding<T> GetBinding(IBindable data) {
-            return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType(), Bind);
+
+        internal override bool UseBinding(IBindable data) {
+			if (data == null)
+				return false;
+            return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType());
         }
 
         /// <summary>
@@ -44,14 +46,17 @@ namespace Starcounter {
         internal override void SetBoundValueAsObject(Obj obj, object value) {
             obj.SetBound<T>(this, (T)value);
         }
-    }
+	}
 
     /// <summary>
     /// Class Property
     /// </summary>
     public abstract class TValue : Template {
-        private bool bound;
-        private string bind;
+        private Bound _Bound = Bound.No;
+        private string _Bind;
+		internal bool invalidateBinding;
+
+        internal DataValueBinding dataBinding;
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -61,15 +66,27 @@ namespace Starcounter {
             get { return true; }
         }
 
+		internal virtual bool UseBinding(IBindable data) {
+			if (data == null) return false;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
+        }
+
         /// <summary>
         /// Gets or sets the name of the property this template is bound to.
         /// </summary>
         /// <value>The name of the property to bind.</value>
         public string Bind {
-            get { return bind; }
+            get { return _Bind; }
             set {
-                bind = value;
-                bound = !string.IsNullOrEmpty(bind);
+                _Bind = value;
+                var b = !string.IsNullOrEmpty(_Bind);
+                if (b) {
+                    _Bound = Bound.Yes;
+                }
+                else {
+                    _Bound = Bound.No;
+                }
+				invalidateBinding = true;
             }
         }
 
@@ -77,7 +94,7 @@ namespace Starcounter {
         /// Gets a value indicating whether this template is bound.
         /// </summary>
         /// <value><c>true</c> if bound; otherwise, <c>false</c>.</value>
-        public bool Bound { get { return bound; } set { bound = value; } }
+        public Bound Bound { get { return _Bound; } set { _Bound = value; } }
 
         /// <summary>
         /// 

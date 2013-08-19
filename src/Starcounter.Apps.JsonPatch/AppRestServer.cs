@@ -48,26 +48,29 @@ namespace Starcounter.Internal.Web {
         /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
         /// <returns>The same object as provide in the response parameter</returns>
         public Response OnResponse(Request request, Response response) {
-
-            // NOTE: Checking if its internal request then just returning response without modification.
-            if (request.IsInternal) {
-                return response;
-            }
-
             try {
+
+                // Checking if we need to resolve static resource.
                 if (response == null) {
                     response = new Response() { Uncompressed = ResolveAndPrepareFile(request.Uri, request) };
-                } else {
-                    if (response.Hypermedia is Json) {
-                        Container r = (Container)response.Hypermedia;
-                        while (r.Parent != null) {
-                            r = r.Parent;
-                        }
-                        response.Hypermedia = (Json)r;
-                    }
-                    response.Request = request;
-                    response.ConstructFromFields();
+                    return response;
                 }
+
+                // NOTE: Checking if its internal request then just returning response without modification.
+                if (request.IsInternal) {
+                    return response;
+                }
+
+                if (response.Hypermedia is Json) {
+                    Container r = (Container)response.Hypermedia;
+                    while (r.Parent != null) {
+                        r = r.Parent;
+                    }
+                    response.Hypermedia = (Json)r;
+                }
+                response.Request = request;
+                response.ConstructFromFields();
+
                 return response;
             }
             catch (Exception ex) {

@@ -202,6 +202,26 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// The property name including parent path
+        /// </summary>
+        public string DebugPropertyNameWithPath {
+            get {
+                if (Parent != null) {
+                    return Parent.DebugPropertyNameWithPath + "." + PropertyName;
+                } else {
+                    String str;
+                    if (PropertyName != null) {
+                        str = "(" + PropertyName + ").";
+                    }
+                    else {
+                        str = "";
+                    }
+                    return str + this.GetType().Name+"#"+this.GetHashCode();
+                }
+            }
+        }
+
+        /// <summary>
         /// Contains the default value for the property represented by this
         /// Template for each new App object.
         /// </summary>
@@ -254,6 +274,20 @@ namespace Starcounter.Templates {
             toTemplate.Enabled = Enabled;
             toTemplate.Visible = Visible;
         }
+
+        
+#if DEBUG
+        internal void VerifyProperty(Template prop) {
+            if (this != prop.Parent) {
+                throw new Exception(String.Format(
+                    "The property {0} is declared in {1} but an attempt was made to use it in {2}",
+                    prop.DebugPropertyNameWithPath,
+                    prop.Parent.DebugPropertyNameWithPath,
+                    this.DebugPropertyNameWithPath));
+            }
+
+        }
+#endif
     }
 
     /// <summary>

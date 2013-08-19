@@ -9,7 +9,7 @@ using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
 using Modules;
 
-namespace Starcounter.XSON.CodeGeneration.Tests {
+namespace Starcounter.Internal.XSON.Serializer.Tests {
     /// <summary>
     /// 
     /// </summary>
