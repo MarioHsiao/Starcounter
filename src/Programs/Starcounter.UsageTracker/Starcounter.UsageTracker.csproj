@@ -78,11 +78,9 @@
     <Compile Include="API\Starcounter\GeneralCollectionHandler.POST.cs" />
     <Compile Include="API\Starcounter\InstallerCollectionHandler.cs" />
     <Compile Include="API\Starcounter\UsageCollectionHandler.POST.cs" />
-    <Compile Include="API\Versions\Channel.GET.cs" />
     <Compile Include="API\Versions\Download.GET.cs" />
     <Compile Include="API\Versions\Upload.POST.cs" />
     <Compile Include="API\Versions\Utils.GET.cs" />
-    <Compile Include="API\Versions\Version.GET.cs" />
     <Compile Include="Model\InstallerStart.cs" />
     <Compile Include="Model\InstallerExecuting.cs" />
     <Compile Include="Model\InstallerFinish.cs" />
@@ -100,6 +98,8 @@
     <Compile Include="Utils.cs" />
     <Compile Include="VersionHandler\BuildWorker.cs" />
     <Compile Include="VersionHandler\DownloadID.cs" />
+    <Compile Include="VersionHandler\LogWriter.cs" />
+    <Compile Include="VersionHandler\Model\Somebody.cs" />
     <Compile Include="VersionHandler\Model\VersionBuild.cs" />
     <Compile Include="VersionHandler\Model\VersionHandlerSettings.cs" />
     <Compile Include="VersionHandler\Model\VersionSource.cs" />

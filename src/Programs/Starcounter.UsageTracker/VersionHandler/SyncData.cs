@@ -1,4 +1,5 @@
 ﻿using Starcounter;
+using StarcounterApplicationWebSocket.VersionHandler;
 using StarcounterApplicationWebSocket.VersionHandler.Model;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,8 @@ using System.Threading.Tasks;
 namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
     /// <summary>
     /// Sync data between filsystem and database
+    /// This is used as a recovery option if files
+    /// where moved/deleted and added manually
     /// </summary>
     internal class SyncData {
 
@@ -46,7 +49,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// </summary>
         private static void CheckVersionPackageVsDatabase() {
 
-            VersionHandlerSettings settings = VersionHandlerSettings.GetSettings();
+            VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
             if (!Directory.Exists(settings.UploadFolder)) {
                 return;
@@ -61,11 +64,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     try {
                         bool result = PackageHandler.AddFileEntryToDatabase(file, out message);
                         if (result == false) {
-                            Console.WriteLine("NOTICE: Can not add version package {0}. {1}", file, message);
+                            LogWriter.WriteLine(string.Format("NOTICE: Can not add version package {0}. {1}", file, message));
                         }
                     }
                     catch (Exception e) {
-                        Console.WriteLine("ERROR: Could not handle version package file {0}. {1}", file, e.Message);
+                        LogWriter.WriteLine(string.Format("ERROR: Could not handle version package file {0}. {1}", file, e.Message));
                     }
                 }
 
@@ -83,11 +86,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                     if (!string.IsNullOrEmpty(source.PackageFile) && !File.Exists(source.PackageFile)) {
                         source.PackageFile = string.Empty;
-                        Console.WriteLine("NOTICE: Removing missing package file {0} from database", source.Version);
+                        LogWriter.WriteLine(string.Format("NOTICE: Removing missing package file {0} from database", source.Version));
                     }
 
                     if (string.IsNullOrEmpty(source.PackageFile) && string.IsNullOrEmpty(source.SourceFolder)) {
-                        Console.WriteLine("NOTICE: Removing source item {0} from database (package and sourcefolder is missing)", source.Version);
+                        LogWriter.WriteLine(string.Format("NOTICE: Removing source item {0} from database (package and sourcefolder is missing)", source.Version));
                         source.Delete();
                     }
 
@@ -99,7 +102,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         private static void CheckSourcesVsDatabase() {
 
-            VersionHandlerSettings settings = VersionHandlerSettings.GetSettings();
+            VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
             if (!Directory.Exists(settings.SourceFolder)) {
                 return;
@@ -120,7 +123,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                     VersionSource source = Db.SlowSQL("SELECT o FROM VersionSource o WHERE Version=?", versionFolder.Name).First;
                     if (source == null) {
-                        Console.WriteLine("NOTICE: Adding missing version Source {0} to database", versionFolder.Name);
+                        LogWriter.WriteLine(string.Format("NOTICE: Adding missing version Source {0} to database", versionFolder.Name));
 
                         Db.Transaction(() => {
                             DirectoryInfo channelFolder = new DirectoryInfo(channel);
@@ -146,12 +149,12 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                     if (!string.IsNullOrEmpty(source.SourceFolder) && !Directory.Exists(source.SourceFolder)) {
                         source.SourceFolder = string.Empty;
-                        Console.WriteLine("NOTICE: Removing missing source version {0} from database", source.Version);
+                        LogWriter.WriteLine(string.Format("NOTICE: Removing missing source version {0} from database", source.Version));
                     }
 
 
                     if (string.IsNullOrEmpty(source.PackageFile) && string.IsNullOrEmpty(source.SourceFolder)) {
-                        Console.WriteLine("NOTICE: Removing source item {0} from database (sourcefolder and package is missing)", source.Version);
+                        LogWriter.WriteLine(string.Format("NOTICE: Removing source item {0} from database (sourcefolder and package is missing)", source.Version));
                         source.Delete();
                     }
 
@@ -165,7 +168,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         private static void CheckBuildsVsDatabase() {
 
-            VersionHandlerSettings settings = VersionHandlerSettings.GetSettings();
+            VersionHandlerSettings settings = VersionHandlerApp.Settings;
             bool bRemoveBuildFolder = false;
             if (!Directory.Exists(settings.VersionFolder)) {
                 return;
@@ -211,11 +214,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                                 // Cleanup
                                 if (Directory.Exists(buildFolder)) {
                                     Directory.Delete(buildFolder, true);
-                                    Console.WriteLine("NOTICE: build Folder {0} was removed, File was downloaded or the file is missing in the database.", buildFolder);
+                                    LogWriter.WriteLine(string.Format("NOTICE: build Folder {0} was removed, File was downloaded or the file is missing in the database.", buildFolder));
                                 }
                             }
                             catch (Exception e) {
-                                Console.WriteLine("ERROR: Could not cleanup build folder {0}. {1}", buildFolder, e.Message);
+                                LogWriter.WriteLine(string.Format("ERROR: Could not cleanup build folder {0}. {1}", buildFolder, e.Message));
                             }
                         }
                     }
@@ -246,7 +249,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         if (!build.HasBeenDownloaded) {
                             string file = build.File;
                             build.Delete();
-                            Console.WriteLine("NOTICE: Missing build {0} has been removed from the database.", file);
+                            LogWriter.WriteLine(string.Format("NOTICE: Missing build {0} has been removed from the database.", file));
                         }
                     }
 
@@ -258,6 +261,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
         }
 
+        /// <summary>
+        /// Reset builds that faild so it will try to build again
+        /// </summary>
         private static void UnmarkFailedBuilds() {
 
             var result = Db.SlowSQL("SELECT o FROM VersionSource o WHERE o.BuildError=?", true);
