@@ -11,6 +11,7 @@ namespace Starcounter {
         internal override void CheckpointChangeLog() {
             _Dirty = false;
             _BrandNew = false;
+            Changes.Clear();
             foreach (var e in QuickAndDirtyArray) {
                 e.CheckpointChangeLog();
             }
