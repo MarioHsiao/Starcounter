@@ -338,6 +338,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             var classInfo = templateClass.ClassInfo;
 
+            if (classInfo == null) {
+                return;
+            }
+
             foreach (InputBindingInfo info in classInfo.InputBindingList) {
                 // Find the property the binding is for. 
                 // Might not be the same class as the one specified in the info object
