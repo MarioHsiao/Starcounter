@@ -14,29 +14,28 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 File.ReadAllText(path),path );
         }
 
-//        [Test]
+        [Test]
         public static void CodeBehindAnalyzeTest() {
             CodeBehindMetadata monoMetadata;
-            CodeBehindMetadata roslynMetadata; 
+//            CodeBehindMetadata roslynMetadata; 
 
-//            var mono = new Starcounter.Internal.XSON.MonoCSharpCompiler();
-            var roslyn = new Starcounter.XSON.Compiler.Roslyn.RoslynCSharpCompiler();
+//            var roslyn = new Starcounter.XSON.Compiler.Roslyn.RoslynCSharpCompiler();
 
             monoMetadata = MonoAnalyze("Simple", @"Compiler\simple.json.cs");
-            roslynMetadata = roslyn.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
-            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+//            roslynMetadata = roslyn.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
+//            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
-            monoMetadata = MonoAnalyze("Complex", @"Compiler\complex.json.cs");
-            roslynMetadata = roslyn.AnalyzeCodeBehind("Complex", @"Compiler\complex.json.cs");
-            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+			//monoMetadata = MonoAnalyze("Complex", @"Compiler\complex.json.cs");
+			//roslynMetadata = roslyn.AnalyzeCodeBehind("Complex", @"Compiler\complex.json.cs");
+			//AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
-            monoMetadata = MonoAnalyze("MySampleApp", @"MySampleApp.json.cs");
-            roslynMetadata = roslyn.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
-            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+			//monoMetadata = MonoAnalyze("MySampleApp", @"MySampleApp.json.cs");
+			//roslynMetadata = roslyn.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
+			//AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
-            monoMetadata = MonoAnalyze("Incorrect", @"Compiler\Incorrect.json.cs");
-            roslynMetadata = roslyn.AnalyzeCodeBehind("Incorrect", @"Compiler\Incorrect.json.cs");            
-            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+			//monoMetadata = MonoAnalyze("Incorrect", @"Compiler\Incorrect.json.cs");
+			//roslynMetadata = roslyn.AnalyzeCodeBehind("Incorrect", @"Compiler\Incorrect.json.cs");            
+			//AssertMetadataAreEqual(roslynMetadata, monoMetadata);
         }
 
         private static void AssertMetadataAreEqual(CodeBehindMetadata roslyn, CodeBehindMetadata mono) {
