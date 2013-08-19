@@ -30,6 +30,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="root">The root.</param>
         /// <param name="metadata">The metadata.</param>
         private void ConnectCodeBehindClasses(AstRoot root, CodeBehindMetadata metadata) {
+			int dotIndex;
+			string templateClassName;
+			string metadataClassName;
             TObj appTemplate;
             TObj rootTemplate;
             TObj[] classesInOrder;
@@ -71,8 +74,22 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     // if there is codebehind and the class is not inherited from Json we need 
                     // to change the inheritance on the template and metadata classes as well.
                     if (!string.IsNullOrEmpty(mapInfo.BaseClassName) && !mapInfo.BaseClassName.Equals("Json")) {
-                        ntAppClass._Inherits = "T" + mapInfo.BaseClassName;
-                        mdAppClass._Inherits = mapInfo.BaseClassName + "Metadata";
+
+						dotIndex = mapInfo.BaseClassName.LastIndexOf('.');
+						templateClassName = mapInfo.BaseClassName + ".";
+						metadataClassName = mapInfo.BaseClassName + ".";
+
+						if (dotIndex == -1) {
+							templateClassName += "T" + mapInfo.BaseClassName;
+							metadataClassName += mapInfo.BaseClassName + "Metadata";
+						} else {
+							dotIndex++;
+							templateClassName += "T" + mapInfo.BaseClassName.Substring(dotIndex);
+							metadataClassName += mapInfo.BaseClassName.Substring(dotIndex) + "Metadata";
+						}
+
+						ntAppClass._Inherits = templateClassName;
+						mdAppClass._Inherits = metadataClassName;
                     }
 
                     if (mapInfo.AutoBindToDataObject) {
