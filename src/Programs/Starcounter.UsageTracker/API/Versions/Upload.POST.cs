@@ -38,8 +38,6 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                 }
                 catch (Exception e) {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = "Could not handle package. " + e.ToString() };
-
-
                 }
 
             });
@@ -55,7 +53,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
         /// <returns></returns>
         private static void SaveBodyToDisk(Request request, out string file) {
 
-            VersionHandlerSettings settings = VersionHandlerSettings.GetSettings();
+            VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
             // Assure upload folder
             if (!Directory.Exists(settings.UploadFolder)) {

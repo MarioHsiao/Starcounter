@@ -1,4 +1,5 @@
 ﻿using Starcounter;
+using StarcounterApplicationWebSocket.VersionHandler;
 using StarcounterApplicationWebSocket.VersionHandler.Model;
 using System;
 using System.Diagnostics;
@@ -56,7 +57,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// </summary>
         private void WorkerThread(object state) {
 
-            Console.WriteLine("NOTICE: Build worker started");
+            LogWriter.WriteLine("NOTICE: Build worker started");
 
             this.IsRunning = true;
 
@@ -70,13 +71,21 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     break;
                 }
 
-                dbSession.RunSync(() => {
-                    this.BuildMissingBuilds();
-                });
+                try {
+
+                    dbSession.RunSync(() => {
+                        this.BuildMissingBuilds();
+                    });
+                }
+                catch (Exception e) {
+
+                    LogWriter.WriteLine(string.Format("ERROR: {0}", e.ToString()));
+
+                }
             }
 
             this.IsRunning = false;
-            Console.WriteLine("NOTICE: Build worker ended");
+            LogWriter.WriteLine("NOTICE: Build worker ended");
 
         }
 
@@ -85,11 +94,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// </summary>
         private void BuildMissingBuilds() {
 
-            Console.WriteLine("NOTICE: Checking for versions to build");
+            LogWriter.WriteLine("NOTICE: Checking for versions to build");
 
             var sources = Db.SlowSQL("SELECT o FROM VersionSource o WHERE o.BuildError=?", false);
 
-            VersionHandlerSettings settings = VersionHandlerSettings.GetSettings();
+            VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
             // Check needed builds for each versions source
             foreach (VersionSource source in sources) {
@@ -102,7 +111,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                 // Validate the source folder
                 if (!Directory.Exists(source.SourceFolder)) {
-                    Console.WriteLine("ERROR: Source folder {0} is missing. Please restart to trigger the cleanup process", source.SourceFolder);
+
+                    LogWriter.WriteLine(string.Format("ERROR: Source folder {0} is missing. Please restart to trigger the cleanup process", source.SourceFolder));
+
                     continue;
                 }
 
@@ -131,7 +142,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     }
 
                     if (Directory.Exists(destinationFolder)) {
-                        Console.WriteLine("ERROR: Can not generate a unique destination folder.");
+                        LogWriter.WriteLine("ERROR: Can not generate a unique destination folder.");
                         break;
                     }
 
@@ -141,7 +152,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     // Get serial id
                     string serialId = GetUniqueSerialId();
                     if (serialId == null) {
-                        Console.WriteLine("ERROR: Could not generate a unique serial id");
+                        LogWriter.WriteLine("ERROR: Could not generate a unique serial id");
                         Db.Transaction(() => {
                             source.BuildError = true;
                         });
@@ -164,7 +175,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                             }
                         }
                         catch (Exception e) {
-                            Console.WriteLine("ERROR: Could not cleanup destination folder {0}. {1}", destinationFolder, e.Message);
+                            LogWriter.WriteLine(string.Format("ERROR: Could not cleanup destination folder {0}. {1}", destinationFolder, e.Message));
                         }
 
                     }
@@ -224,7 +235,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 Directory.CreateDirectory(destinationFolder);
             }
 
-            Console.WriteLine("NOTICE: Building {0} to {1}", sourceFolder, destinationFolder);
+            LogWriter.WriteLine(string.Format("NOTICE: Building {0} to {1}", sourceFolder, destinationFolder));
 
             string builderTool = Path.Combine(sourceFolder, "GenerateInstaller.exe");
 
@@ -244,17 +255,17 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             try {
                 using (Process exeProcess = Process.Start(startInfo)) {
 
-                    Console.WriteLine(exeProcess.StandardOutput.ReadToEnd());
+                    LogWriter.WriteLine(exeProcess.StandardOutput.ReadToEnd());
 
                     exeProcess.WaitForExit();
                     if (exeProcess.ExitCode != 0) {
-                        Console.WriteLine("ERROR: Building tool exited with error code {0}", exeProcess.ExitCode);
+                        LogWriter.WriteLine(string.Format("ERROR: Building tool exited with error code {0}", exeProcess.ExitCode));
                         return false;
                     }
 
                     string[] files = Directory.GetFiles(destinationFolder);
                     if (files == null || files.Length == 0) {
-                        Console.WriteLine("ERROR: Building tool did not generate an output file in destination folder {0}", destinationFolder);
+                        LogWriter.WriteLine(string.Format("ERROR: Building tool did not generate an output file in destination folder {0}", destinationFolder));
                         return false;
                     }
                     file = files[0];
@@ -262,7 +273,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 }
             }
             catch (Exception e) {
-                Console.WriteLine("ERROR: Can not start the building tool {0}. {1}", builderTool, e.Message);
+                LogWriter.WriteLine(string.Format("ERROR: Can not start the building tool {0}. {1}", builderTool, e.Message));
                 return false;
             }
         }

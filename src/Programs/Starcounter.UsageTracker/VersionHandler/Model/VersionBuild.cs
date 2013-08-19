@@ -71,6 +71,12 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         }
 
         /// <summary>
+        /// Unique generated key
+        /// </summary>
+        public string DownloadKey;
+
+
+        /// <summary>
         /// Get the latest (Higest version number) of a version in a specific channel
         /// </summary>
         /// <param name="channel"></param>

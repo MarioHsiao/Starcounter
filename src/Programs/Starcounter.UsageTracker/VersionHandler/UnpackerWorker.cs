@@ -61,7 +61,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// <param name="state"></param>
         private void WorkerThread(object state) {
 
-            Console.WriteLine("NOTICE: Unpacker worker started.");
+            LogWriter.WriteLine("NOTICE: Unpacker worker started.");
 
             this.IsRunning = true;
 
@@ -75,14 +75,19 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     break;
                 }
 
-                dbSession.RunSync(() => {
-                    this.UnpackUnpackedPackages();
-                });
+                try {
+                    dbSession.RunSync(() => {
+                        this.UnpackUnpackedPackages();
+                    });
+                }
+                catch (Exception e) {
+                    LogWriter.WriteLine(string.Format("ERROR: {0}", e.ToString()));
+                }
 
             }
 
             this.IsRunning = false;
-            Console.WriteLine("NOTICE: Unpacker worker ended.");
+            LogWriter.WriteLine("NOTICE: Unpacker worker ended.");
 
         }
 
@@ -92,7 +97,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         private void UnpackUnpackedPackages() {
 
             bool bUnpacked = false;
-            Console.WriteLine("NOTICE: Checking for new packages to unpack.");
+            LogWriter.WriteLine("NOTICE: Checking for new packages to unpack.");
 
             var verions = Db.SlowSQL("SELECT o FROM VersionSource o"); // TODO: Only select items where 'PackageFile' is not empty
 
@@ -104,19 +109,19 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                 // Validate the existans of the package file
                 if (!File.Exists(item.PackageFile)) {
-                    Console.WriteLine("ERROR: Package file {0} is missing. Please restart to trigger the cleanup process", item.PackageFile);
+                    LogWriter.WriteLine(string.Format("ERROR: Package file {0} is missing. Please restart to trigger the cleanup process", item.PackageFile));
                     continue;
                 }
 
                 // Add channel to destination path
-                string destination = Path.Combine(VersionHandlerSettings.GetSettings().SourceFolder, item.Channel);
+                string destination = Path.Combine(VersionHandlerApp.Settings.SourceFolder, item.Channel);
 
                 // Add version to destination path
                 destination = Path.Combine(destination, item.Version);
 
                 // Validate destination folder (it should not exist)
                 if (Directory.Exists(destination)) {
-                    Console.WriteLine("ERROR: Package file {0} destination folder {1} already exists. Please restart to trigger the cleanup process", item.PackageFile, destination);
+                    LogWriter.WriteLine(string.Format("ERROR: Package file {0} destination folder {1} already exists. Please restart to trigger the cleanup process", item.PackageFile, destination));
                     continue;
                 }
 
@@ -130,7 +135,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         File.Delete(item.PackageFile);
                     }
                     catch (Exception e) {
-                        Console.WriteLine("ERROR: Failed to delete the uploaded package file {0}, {1}", item.PackageFile, e.Message);
+                        LogWriter.WriteLine(string.Format("ERROR: Failed to delete the uploaded package file {0}, {1}", item.PackageFile, e.Message));
                     }
 
                     Db.Transaction(() => {
@@ -140,7 +145,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     });
 
                     bUnpacked = true;
-                 
+
                 }
                 else {
                     // Error

@@ -1,4 +1,5 @@
 ﻿using Starcounter;
+using StarcounterApplicationWebSocket.VersionHandler;
 using StarcounterApplicationWebSocket.VersionHandler.Model;
 using System;
 using System.IO;
@@ -19,11 +20,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             // Unpack package
             try {
                 ZipFile.ExtractToDirectory(file, destination);
-                Console.WriteLine("NOTICE: Successfully unpacked {0} to {1}", file, destination);
+                LogWriter.WriteLine(string.Format("NOTICE: Successfully unpacked {0} to {1}", file, destination));
                 return true;
             }
             catch (Exception e) {
-                Console.WriteLine("ERROR: Unpacking {0} failed, destination folder {1}. {2} ", file, destination, e.Message);
+                LogWriter.WriteLine(string.Format("ERROR: Unpacking {0} failed, destination folder {1}. {2} ", file, destination, e.Message));
                 try {
                     // Cleanup destination folder
                     if (Directory.Exists(destination)) {
@@ -32,7 +33,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     return false;
                 }
                 catch (Exception ee) {
-                    Console.WriteLine("ERROR: Cleanup of destination folder {0} failed. {1} ", destination, ee.Message);
+                    LogWriter.WriteLine(string.Format("ERROR: Cleanup of destination folder {0} failed. {1} ", destination, ee.Message));
                     return false;
                 }
             }
@@ -128,10 +129,10 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     if (File.Exists(file)) {
                         try {
                             File.Delete(file);
-                            Console.WriteLine("NOTICE: Invalid uploaded package {0} was deleted.", file);
+                            LogWriter.WriteLine(string.Format("NOTICE: Invalid uploaded package {0} was deleted.", file));
                         }
                         catch (Exception e) {
-                            Console.WriteLine("ERROR: Faild to delete invalid package {0}. {1}", file, e.Message);
+                            LogWriter.WriteLine(string.Format("ERROR: Faild to delete invalid package {0}. {1}", file, e.Message));
                         }
                     }
                     return false;
@@ -146,10 +147,10 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     if (File.Exists(file)) {
                         try {
                             File.Delete(file);
-                            Console.WriteLine("NOTICE: Already unpacked package {0} deleted.", file);
+                            LogWriter.WriteLine(string.Format("NOTICE: Already unpacked package {0} deleted.", file));
                         }
                         catch (Exception e) {
-                            Console.WriteLine("ERROR: Faild to delete invalid package {0}. {1}.", file, e.Message);
+                            LogWriter.WriteLine(string.Format("ERROR: Faild to delete invalid package {0}. {1}.", file, e.Message));
                         }
                     }
 
@@ -164,17 +165,17 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     versionSource.Channel = channel;
                 });
 
-                Console.WriteLine("NOTICE: Uploaded file {0} was added to database.", file);
+                LogWriter.WriteLine(string.Format("NOTICE: Uploaded file {0} was added to database.", file));
 
                 return true;
             }
             catch (Exception e) {
 
-                Console.WriteLine("ERROR: Unpacking {0}. {1}", file, e.Message);
+                LogWriter.WriteLine(string.Format("ERROR: Unpacking {0}. {1}", file, e.Message));
 
                 if (File.Exists(file)) {
                     File.Delete(file);
-                    Console.WriteLine("NOTICE: Uploaded file {0} was delete.", file);
+                    LogWriter.WriteLine(string.Format("NOTICE: Uploaded file {0} was delete.", file));
                 }
                 throw e;
             }

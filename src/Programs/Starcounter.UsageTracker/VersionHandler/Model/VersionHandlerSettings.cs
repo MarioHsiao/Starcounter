@@ -25,6 +25,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         public string VersionFolder;
 
         /// <summary>
+        /// Log file
+        /// </summary>
+        public string LogFile;
+
+        /// <summary>
         /// Full path to the Certification File
         /// </summary>
         public string CertificationFile;
@@ -48,6 +53,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                     settings.UploadFolder = @"c:\versions\uploads";
                     settings.SourceFolder = @"c:\versions\source";
                     settings.VersionFolder = @"c:\versions\builds";
+                    settings.LogFile = @"c:\versions\versionhandler.log";
                     settings.CertificationFile = @"c:\program files\starcounter\starcounter-2014.cer";
                     settings.MaximumBuilds = 3;
                 });
