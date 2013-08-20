@@ -67,6 +67,12 @@ namespace Starcounter {
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
         public string CreateJsonPatch( bool flushLog ) {
 
+            if (_Data._BrandNew) {
+                _Data._BrandNew = false;
+                // Just return the whole thing as a change to the root
+                return "[{\"op\":\"add\",\"path\":\"/\",\"value\":"+_Data.ToJson()+"}]";
+            }
+
             this.GenerateChangeLog();
 
             var buffer = new List<byte>();

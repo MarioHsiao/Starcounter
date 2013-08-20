@@ -18,7 +18,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <returns></returns>
-        public byte[] ToJsonUtf8() {
+        public override byte[] ToJsonUtf8() {
             if (Template == null) {
                 //                throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
                 return Encoding.UTF8.GetBytes("{}");
@@ -35,7 +35,7 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="buf"></param>
         /// <returns></returns>
-        public int ToJsonUtf8(out byte[] buffer) {
+        public override int ToJsonUtf8(out byte[] buffer) {
             if (Template == null) {
              //   throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
                 CreateDynamicTemplate();
@@ -57,7 +57,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <returns></returns>
-        public string ToJson() {
+        public override string ToJson() {
             if (Template == null) {
              //   throw ErrorCode.ToException(Error.SCERRTEMPLATENOTSPECIFIED);
                 return "{}";

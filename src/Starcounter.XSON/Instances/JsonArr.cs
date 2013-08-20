@@ -102,7 +102,7 @@ namespace Starcounter {
                 if (Changes == null) {
                     Changes = new List<Change>();
                 }
-                Changes.Add(Change.Add((Obj)this.Parent, tarr, index));
+                Changes.Add(Change.Update((Obj)this.Parent, tarr, index));
                 //Dirtyfy();
             }
             Parent.HasAddedElement(tarr, index);
@@ -305,6 +305,34 @@ namespace Starcounter {
 #endif
             throw new NotImplementedException();
         }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override string ToJson() {
+            return "[TODO]";
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public override int ToJsonUtf8(out byte[] buffer) {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override byte[] ToJsonUtf8() {
+            throw new NotImplementedException();
+        }
+
     }
 }
 

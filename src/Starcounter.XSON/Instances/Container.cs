@@ -172,6 +172,8 @@ namespace Starcounter {
         public virtual void HasRemovedElement(TObjArr property, int elementIndex) {
         }
 
+        public virtual void HasReplacedElement(TObjArr property, int elementIndex) {
+        }
 
         /// <summary>
         /// The _parent
@@ -293,5 +295,29 @@ namespace Starcounter {
             path[pos] = Template.TemplateIndex;
             Parent.FillIndexPath(path, pos - 1);
         }
+        /// 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public abstract byte[] ToJsonUtf8();
+
+        /// <summary>
+        /// Serializes this object and sets the out parameter to the buffer containing 
+        /// the UTF8 encoded characters. Returns the size used in the buffer.
+        /// </summary>
+        /// <remarks>
+        /// The actual returned buffer might be larger than the amount used.
+        /// </remarks>
+        /// <param name="buf"></param>
+        /// <returns></returns>
+        public abstract int ToJsonUtf8(out byte[] buffer);
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public abstract string ToJson();
     }
 }

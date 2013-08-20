@@ -7,7 +7,7 @@ namespace Starcounter.Internal.XSON.Tests {
     public class BindingTests {
 
 
-        //[Test]
+        //[Test] // Awaiting Christians push of autobinding as default
         public static void TestDefaultAutoBinding() {
             Person p = new Person();
             p.FirstName = "Albert";
