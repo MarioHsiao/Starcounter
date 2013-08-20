@@ -301,6 +301,7 @@ namespace Starcounter {
             path[pos] = Template.TemplateIndex;
             Parent.FillIndexPath(path, pos - 1);
         }
+
         /// 
         /// <summary>
         /// 

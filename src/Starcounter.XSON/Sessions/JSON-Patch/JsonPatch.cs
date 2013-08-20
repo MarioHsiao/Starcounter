@@ -120,13 +120,10 @@ namespace Starcounter.Internal.JsonPatch {
 
             if (patchType != REMOVE) {
                 sb.Append(",\"value\":");
-                if (value is Obj) {
-                    var oo = (Container)value;
-                    sb.Append(oo.ToJson());
-                } else if (value is Arr) {
-                    var oo = (((Arr)value)[index]);
-                    sb.Append(oo.ToJson());
-                } else {
+				if (value is Container) {
+					var oo = (Container)value;
+					sb.Append(oo.ToJson());
+				} else {
                     sb.Append(JsonConvert.SerializeObject(value));
                 }
             }
