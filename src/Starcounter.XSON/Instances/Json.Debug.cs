@@ -21,14 +21,13 @@ namespace Starcounter {
         }
 
         internal override void WriteToDebugString(StringBuilder sb, int i) {
+
+            _WriteDebugProperty(sb);
+
             if (Template == null) {
                 sb.Append("{}");
                 return;
             }
-
-            _WriteDebugProperty(sb);
-
-
             sb.AppendLine("{");
 
 
@@ -48,6 +47,18 @@ namespace Starcounter {
                     sb.Append('"');
                     sb.Append(prop.PropertyName);
                     sb.Append("\":");
+                    if (prop is TValue && ((TValue)prop).Bind != null) {
+                        var tv = (TValue)prop;
+                        if (this.Get(tv) != _BoundDirtyCheck[t]) {
+                            var dbgVal = _BoundDirtyCheck[t];
+                            if (dbgVal == null)
+                                dbgVal = "notsent";
+                            sb.Append("(db d=" + dbgVal + ")");
+                        }
+                        else {
+                            sb.Append("(db)");
+                        }
+                    }
                     if (_DirtyProperties[t]) {
                         if (prop is TContainer) {
                             // The "d" is already anotated for Containers.
