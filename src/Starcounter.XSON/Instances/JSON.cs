@@ -98,7 +98,7 @@ namespace Starcounter {
             : base() {
             _cacheIndexInArr = -1;
             _transaction = null;
-			LogChanges = false;
+			//LogChanges = false;
         }
 
         /// <summary>
@@ -288,11 +288,11 @@ namespace Starcounter {
             }
         }
 
-		/// <summary>
-		/// If set true and a ChangeLog is set on the current thread, all 
-		/// changes done to this Obj will be logged.
-		/// </summary>
-		public bool LogChanges { get; set; }
+//		/// <summary>
+//		/// If set true and a ChangeLog is set on the current thread, all 
+//		/// changes done to this Obj will be logged.
+//		/// </summary>
+//		public bool LogChanges { get; set; }
 
         public virtual void ProcessInput<V>(TValue<V> template, V value) {
         }
