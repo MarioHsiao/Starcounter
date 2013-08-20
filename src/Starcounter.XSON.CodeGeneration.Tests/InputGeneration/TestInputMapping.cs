@@ -41,5 +41,21 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Console.WriteLine(codegen.GenerateCode());
         }
 
+
+
+        [Test]
+        public static void TestInputGeneration2() {
+            var tj = ReadTemplate("InputGeneration\\MailApp.json");
+            var cb = File.ReadAllText("InputGeneration\\MailApp.json.cs");
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
+            var dom = codegen.GenerateAST();
+
+            var dump = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => {
+                var str = node.GetType().Name;
+                str += " : " + node.ToString();
+                return str;
+            });
+            Console.WriteLine(codegen.GenerateCode());
+        }
     }
 }

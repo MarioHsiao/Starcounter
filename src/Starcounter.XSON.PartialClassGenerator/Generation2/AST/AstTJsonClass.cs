@@ -56,7 +56,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <value>The inherits.</value>
         public override string Inherits {
-            get { return _Inherits; }
+//            get { return _Inherits; }
+            get { return "TJson"; }
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
 ﻿{
    CompanyName:"",
-   Contact: { FirstName:"" }
+   Contact: { FirstName:"", LastName:"" }
 }
