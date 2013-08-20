@@ -16,14 +16,23 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal Gen2DomGenerator Generator;
 
         internal void RunPhase3(AstAppClass acn) {
-            GenerateInputAttributes(acn);
+            GenerateInputAttributes(Generator.Root);
+        }
+
+        private void GenerateInputAttributes(AstBase node) {
+            if (node is AstAppClass) {
+                GenerateInputAttributesForASingleClass((AstAppClass)node);
+            }
+            foreach (var kid in node.Children) {
+                GenerateInputAttributes(kid);
+            }
         }
 
         /// <summary>
         /// Creates the Input attributes to be used by the code-behind source code
         /// </summary>
         /// <param name="acn">The Json class</param>
-        private void GenerateInputAttributes(AstAppClass acn) {
+        private void GenerateInputAttributesForASingleClass(AstAppClass acn) {
             var input = new AstOtherClass(Generator) {
                 Parent = acn,
                 _ClassName = "Input",
@@ -59,7 +68,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                             _ClassName = mn.MemberName
                         };
                         GeneratePrimitiveValueEvents(x, type, eventName);
-                        GenerateInputAttributes(type);
                     }
                     else {
                         if (mn.Type is AstPrimitiveType) {

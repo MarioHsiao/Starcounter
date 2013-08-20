@@ -13,7 +13,10 @@ partial class Company : Json {
 [Company.json.Contact]
 partial class ContactJson : Json {
 
-    void Handle( Input.FirstName input ) {
+    void Handle(Input.FirstName input) {
+    }
+
+    void Handle(Input.LastName input) {
     }
 
 }
