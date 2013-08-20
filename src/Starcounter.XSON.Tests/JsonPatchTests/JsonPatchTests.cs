@@ -95,7 +95,7 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
-        public static void TestDirtyFlags() {
+        public static void TestDirtyFlagsWithoutBinding() {
 
             TObj.UseCodegeneratedSerializer = false;
 
@@ -144,6 +144,69 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
         }
+
+
+      //  [Test]
+        public static void TestDirtyFlagsWithBinding() {
+
+            TObj.UseCodegeneratedSerializer = false;
+
+            Person nickeDb = new Person();
+            Person jockeDb = new Person();
+            Person henrikDb = new Person();
+
+
+            dynamic jockeJson = new Json();
+            jockeJson.Data = jockeDb;
+            dynamic nickeJson = new Json();
+            nickeJson.Data = nickeDb;
+
+            nickeDb.FirstName = "Nicke";
+
+            dynamic henrikJson = new Json();
+            henrikJson.Data = henrikDb;
+            henrikJson.FirstName = "Henrik";
+
+            jockeJson.FirstName = "Joachim";
+            jockeJson.Age = 42;
+            jockeJson.Length = 184.7;
+            jockeJson.Friends = new List<Obj>() { nickeJson };
+
+            Session.Data = jockeJson;
+
+            jockeJson.Friends.Add(henrikJson);
+
+            Console.WriteLine("New stuff");
+            Console.WriteLine("=========");
+            Console.WriteLine(((Json)jockeJson).DebugString);
+
+            Session.Current.CheckpointChangeLog();
+            Console.WriteLine("Flushed");
+            Console.WriteLine("=========");
+            Console.WriteLine(((Json)jockeJson).DebugString);
+
+            var str = Session.Current.CreateJsonPatch(true);
+            Assert.AreEqual("[]", str);
+
+            jockeJson.Friends[1].FirstName = "Henke";
+            jockeJson.Age = 43;
+            dynamic kalle = new Json();
+            kalle.FirstName = "Kalle";
+            jockeJson.Friends.Add(kalle);
+
+            Console.WriteLine("Changed");
+            Console.WriteLine("=========");
+            Console.WriteLine(((Json)jockeJson).DebugString);
+
+            str = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("JSON-Patch");
+            Console.WriteLine("==========");
+            Console.WriteLine(str);
+
+            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]", str);
+        }
+
 
 
      //   [Test]
@@ -222,17 +285,23 @@ Assert.AreEqual(facit, result );
             dynamic j = new Json();
 
             Session.Data = j;
-            var before = ((Json)j).ToJson();
+            var before = ((Json)j).DebugString;
+
+            Assert.AreEqual("{}", ((Json)j).ToJson()); // The data is not bound so the JSON should still be an empty object
 
             TJson t = new TJson();
-            var prop = t.Add<TString>("FirstName");
+            var prop = t.Add<TString>("FirstName"); // TODO! By default, properties are automatically bound my matching property names
             prop.Bind = "FirstName";
             j.Template = t;
             j.Data = p;
 
+            Assert.AreEqual("{\"FirstName\":\"Joachim\"}", ((Json)j).ToJson());
+
             p.FirstName = "Douglas";
 
-            var after = ((Json)j).ToJson();
+            var after = ((Json)j).DebugString;
+            Assert.AreEqual("{\"FirstName\":\"Douglas\"}", ((Json)j).ToJson());
+
             var result = Session.Current.CreateJsonPatch(true);
 
             Console.WriteLine("Before");

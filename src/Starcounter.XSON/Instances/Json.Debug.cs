@@ -21,13 +21,21 @@ namespace Starcounter {
         }
 
         internal override void WriteToDebugString(StringBuilder sb, int i) {
+            if (Template == null) {
+                sb.Append("{}");
+                return;
+            }
+
             _WriteDebugProperty(sb);
+
 
             sb.AppendLine("{");
 
+
             i += 3;
             int t = 0;
-            foreach (var v in _Values) {
+            var vals = Values;
+            foreach (var v in vals) {
                 if (t > 0) {
                     sb.AppendLine(",");
                 }
@@ -50,10 +58,10 @@ namespace Starcounter {
                             }
                         }
                         else {
-                            sb.Append("(d)");
+                            sb.Append("(d\"" + v + "\")");
                         }
                     }
-                    sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject(v));
+                    sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject(this.Get((TValue)prop)));
                 }
                 t++;
             }

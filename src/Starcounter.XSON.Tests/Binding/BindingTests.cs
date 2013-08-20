@@ -6,6 +6,18 @@ namespace Starcounter.Internal.XSON.Tests {
 
     public class BindingTests {
 
+
+        //[Test]
+        public static void TestDefaultAutoBinding() {
+            Person p = new Person();
+            p.FirstName = "Albert";
+            dynamic j = new Json();
+            j.Data = p;
+            j.FirstName = "Abbe";
+            Assert.AreEqual("Abbe", j.FirstName);
+            Assert.AreEqual("Abbe", p.FirstName);
+        }
+
         [Test]
         public static void TestSimpleBinding() {
             var p = new Person();
@@ -20,12 +32,15 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Template = t;
             j.Data = p;
 
-            Assert.AreEqual("Joachim", p.FirstName);
-            Assert.AreEqual("Joachim", j.FirstName);
+            Json temp = (Json)j;
+
+            Assert.AreEqual("Joachim", p.FirstName); // Get firstname using data object
+            Assert.AreEqual("Joachim", temp.Get(prop)); // Get firstname using JSON data binding using API
+            Assert.AreEqual("Joachim", j.FirstName); // Get firstname using JSON data binding using dynamic code-gen
 
             j.FirstName = "Douglas";
-            Assert.AreEqual("Douglas", j.FirstName);
             Assert.AreEqual("Douglas", p.FirstName);
+            Assert.AreEqual("Douglas", j.FirstName);
         }
 
 		[Test]
