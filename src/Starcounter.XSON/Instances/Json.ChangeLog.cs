@@ -86,7 +86,7 @@ namespace Starcounter {
                             }
                         }
                         else {
-                            if (((TValue)p).Bound != Bound.No) {
+                            if (((TValue)p).UseBinding(Data)) {
                                 var val = this.GetBound((TValue)p);
                                 if (!val.Equals(this._BoundDirtyCheck[t])) {
                                     _BoundDirtyCheck[t] = val;
@@ -105,7 +105,7 @@ namespace Starcounter {
                         ((Container)_Values[t]).LogValueChangesWithDatabase(session);
                     }
                     else {
-                        if (((TValue)p).Bound != Bound.No) {
+                        if (((TValue)p).UseBinding(Data)) {
                             var val = this.GetBound((TValue)p);
                             if (!val.Equals(this._BoundDirtyCheck[t])) {
                                 _BoundDirtyCheck[t] = val;

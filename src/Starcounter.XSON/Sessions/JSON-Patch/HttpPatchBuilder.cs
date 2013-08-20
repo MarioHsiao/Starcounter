@@ -203,7 +203,7 @@ namespace Starcounter.Internal.JsonPatch
                 ret = change.Obj.Get((TString)property);
             } else if (property is TObjArr) {
                 var arr = (Arr)change.Obj.Get((TObjArr)property);
-                if (change.ChangeType == Change.ADD) {
+				if (change.Index != -1) {
                     ret = arr[change.Index];
                 }
                 else {
