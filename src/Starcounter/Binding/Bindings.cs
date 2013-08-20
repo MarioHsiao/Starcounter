@@ -72,8 +72,8 @@ namespace Starcounter.Binding
 #if DEBUG
                     TypeDef alreadyTypeDef;
                     typeDefsByName.TryGetValue(typeDef.Name, out alreadyTypeDef);
-                    Debug.Assert(alreadyTypeDef != null);
-                    Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
+                    if (alreadyTypeDef != null)
+                        Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
 #endif
                     typeDefsByName[typeDef.Name] = typeDef;
                 }
