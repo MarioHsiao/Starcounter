@@ -11,7 +11,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
 
         [Test]
-        public static void TestArrayPatches() {
+        public static void TestPatchForBrandNewRoot() {
             dynamic j = new Json();
             dynamic nicke = new Json();
 
@@ -30,6 +30,12 @@ namespace Starcounter.Internal.XSON.Tests {
             // Session.Current.LogChanges = true;
 
             j.Friends = new List<Obj>() { nicke };
+
+            Console.WriteLine("Dirty status");
+            Console.WriteLine("============");
+            Console.WriteLine(j.DebugString);
+
+
             var patch = Session.Current.CreateJsonPatch(true);
 
             Console.WriteLine("Changes:");
@@ -37,7 +43,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Console.WriteLine(patch);
 
             Assert.AreEqual(
-                "[{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Nicke\"}}]", patch);
+                "[{\"op\":\"add\",\"path\":\"/\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
 
 
 
@@ -46,6 +52,63 @@ namespace Starcounter.Internal.XSON.Tests {
 
 
 
+ //       [Test]
+        public static void TestCreateNewArray() {
+            dynamic j = new Json();
+            dynamic nicke = new Json();
 
+            Session.Data = j;
+
+            j.FirstName = "Jack";
+            nicke.FirstName = "Nicke";
+
+            Session.Current.CreateJsonPatch(true); // Flushing
+
+            j.Friends = new List<Obj>() { nicke };
+
+            Console.WriteLine("Dirty status");
+            Console.WriteLine("============");
+            Console.WriteLine(j.DebugString);
+
+            var patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("Changes:");
+            Console.WriteLine("========");
+            Console.WriteLine(patch);
+
+            Assert.AreEqual(
+               "[{\"op\":\"replace\",\"path\":\"/Friends\",\"value\":[{\"FirstName\":\"Nicke\"}]}]", patch);
+        }
+
+
+
+ //       [Test]
+        public static void TestPatchForChangingAnElement() {
+            dynamic j = new Json();
+            dynamic nicke = new Json();
+
+            Session.Data = j;
+            j.FirstName = "Jack";
+            nicke.FirstName = "Nicke";
+            j.Friends = new List<Obj>() { nicke };
+
+            Console.WriteLine("Dirty status");
+            Console.WriteLine("============");
+            Console.WriteLine(j.DebugString);
+
+            Session.Current.CreateJsonPatch(true);
+            dynamic henrik = new Json();
+            henrik.FirstName = "Henrik";
+            j.Friends[0] = henrik;
+
+            var patch = Session.Current.CreateJsonPatch(true);
+
+            Console.WriteLine("Changes:");
+            Console.WriteLine("========");
+            Console.WriteLine(patch);
+
+            Assert.AreEqual(
+                "[{\"op\":\"replace\",\"path\":\"/Friends/0\",\"value\":{\"FirstName\":\"Henrik\"}}]", patch);
+        }
     }
 }

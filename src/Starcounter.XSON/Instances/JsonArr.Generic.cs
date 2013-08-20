@@ -1,9 +1,11 @@
 ﻿
 
 using Starcounter.Advanced;
+using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 namespace Starcounter {
     /// <summary>
     /// 
@@ -138,9 +140,34 @@ namespace Starcounter {
 #endif
             }
             set {
-                throw new NotImplementedException();
+                QuickAndDirtyArray[index] = value;
+                var s = Session;
+                if (Session != null) {
+                    if (Changes == null) {
+                        Changes = new List<Change>();
+                    }
+                    this._CallHasChanged((TObjArr)this.Template, index);
+//                    this._
+//                    Changes.Add(Change.Add((Obj)this.Parent, (TObjArr)this.Template, index));
+                }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="property"></param>
+        internal void _CallHasChanged(TObjArr property, int index) {
+            if (Session != null) {
+                if (!_BrandNew) {
+                    this.QuickAndDirtyArray[property.TemplateIndex]._Dirty = true;
+                    this.Dirtyfy();
+                }
+            }
+            this.Parent.HasReplacedElement(property,index);
+        }
+
+
 
     }
 
