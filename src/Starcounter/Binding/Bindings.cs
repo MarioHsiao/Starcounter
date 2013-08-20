@@ -72,14 +72,20 @@ namespace Starcounter.Binding
 #if DEBUG
                     TypeDef alreadyTypeDef;
                     typeDefsByName.TryGetValue(typeDef.Name, out alreadyTypeDef);
-                    if (alreadyTypeDef != null)
-                        Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
+                    Debug.Assert(alreadyTypeDef != null);
+                    Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
 #endif
                     typeDefsByName[typeDef.Name] = typeDef;
                 }
                 // Add lower case name if the name is not already in lower case.
-                if (typeDef.Name != typeDef.LowerName)
-                    typeDefsByName.Add(typeDef.LowerName, typeDef);
+                if (typeDef.Name != typeDef.LowerName) {
+                    TypeDef alreadyTypeDef;
+                    typeDefsByName.TryGetValue(typeDef.LowerName, out alreadyTypeDef);
+                    if (alreadyTypeDef != null) // The short lower name is the actual lower name
+                        typeDefsByName[typeDef.LowerName] = typeDef;
+                    else
+                        typeDefsByName.Add(typeDef.LowerName, typeDef);
+                }
                 // Add short name, i.e., without namespaces, if the original name is not the short name.
                 // Short name don't need to be unique, since the same class name can be given in different namespaces.
                 // It is important to check if the existing short name is actual name of a class with no namespaces.
