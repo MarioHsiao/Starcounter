@@ -90,6 +90,7 @@
     <Compile Include="Code-generated Deserializer\ParseTree\ParseTreeGenerator.cs" />
     <Compile Include="Code-generated Deserializer\ParseTree\TemplateMetadata.cs" />
     <Compile Include="Code-generated Deserializer\SerializerCompiler.cs" />
+    <Compile Include="Instances\Json.ChangeLog.cs" />
     <Compile Include="Instances\JsonArr.Assignments.cs" />
     <Compile Include="Instances\JsonArr.ChangeLog.cs" />
     <Compile Include="Instances\JsonArr.cs" />

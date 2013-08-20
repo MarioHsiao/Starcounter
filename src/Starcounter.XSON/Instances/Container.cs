@@ -131,11 +131,17 @@ namespace Starcounter {
         /// </summary>
         /// <param name="sb">The string used to write text to</param>
         internal void _WriteDebugProperty(StringBuilder sb) {
-            var name = this.Template.PropertyName;
-            if (name != null) {
-                sb.Append('"');
-                sb.Append(name);
-                sb.Append("\":");
+            var t = this.Template;
+            if (t != null) {
+                var name = this.Template.PropertyName;
+                if (name != null) {
+                    sb.Append('"');
+                    sb.Append(name);
+                    sb.Append("\":");
+                }
+            }
+            if (this is Obj && ((Obj)this).Data != null) {
+                sb.Append("(db)");
             }
             if (_BrandNew) {
                 sb.Append("(n)");

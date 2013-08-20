@@ -68,8 +68,10 @@ namespace Starcounter {
         public string CreateJsonPatch( bool flushLog ) {
 
             if (_Data._BrandNew) {
-                _Data._BrandNew = false;
                 // Just return the whole thing as a change to the root
+                //GenerateChangeLog(); // Needed to update bound dirty check values.
+                this.CheckpointChangeLog();
+                _Data._BrandNew = false;
                 return "[{\"op\":\"add\",\"path\":\"/\",\"value\":"+_Data.ToJson()+"}]";
             }
 

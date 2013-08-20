@@ -4,7 +4,7 @@ using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
 
-namespace Starcounter.Internal.XSON.Tests {
+namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
     [TestFixture]
     static class ArrayPatchTests {
