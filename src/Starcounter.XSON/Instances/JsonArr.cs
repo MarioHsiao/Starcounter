@@ -350,6 +350,7 @@ namespace Starcounter {
 						goto restart;
 				}
 				Buffer.BlockCopy(itemJson, 0, buf, offset, itemSize);
+				itemJson = null;
 				offset += itemSize;
 				lastArrayPos++;
 				if ((i + 1) < Count)
