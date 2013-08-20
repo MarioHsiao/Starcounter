@@ -22,6 +22,7 @@ namespace Starcounter.Internal {
             switch (mimeType) {
 
                 case MimeType.Application_Json:
+                case MimeType.Text_Plain:
                 case MimeType.Unspecified: {
                         resultingMimeType = MimeType.Application_Json;
 
