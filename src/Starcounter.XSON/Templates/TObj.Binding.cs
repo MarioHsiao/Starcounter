@@ -62,5 +62,23 @@ namespace Starcounter.Templates {
                 }
             }
         }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		internal override object GetBoundValueAsObject(Obj obj) {
+			return obj.GetBound(this);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <param name="value"></param>
+		internal override void SetBoundValueAsObject(Obj obj, object value) {
+			obj.SetBound(this, (IBindable)value);
+		}
     }
 }
