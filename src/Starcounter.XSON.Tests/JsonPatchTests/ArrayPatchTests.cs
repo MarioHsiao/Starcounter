@@ -52,7 +52,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
 
 
- //       [Test]
+        [Test]
         public static void TestCreateNewArray() {
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -77,13 +77,14 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine(patch);
 
             Assert.AreEqual(
-               "[{\"op\":\"replace\",\"path\":\"/Friends\",\"value\":[{\"FirstName\":\"Nicke\"}]}]", patch);
+               "[{\"op\":\"replace\",\"path\":\"/Friends\",\"value\":[{\"FirstName\":\"Nicke\"}}]", patch);
         }
 
 
 
- //       [Test]
-        public static void TestPatchForChangingAnElement() {
+ //     [Test]       
+		public static void TestPatchForChangingAnElement() {
+
             dynamic j = new Json();
             dynamic nicke = new Json();
 
