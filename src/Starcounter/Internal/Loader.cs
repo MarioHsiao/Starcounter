@@ -227,18 +227,6 @@ namespace Starcounter.Internal
                             AddProperty(propertyDef, propertyDefs);
                         }
                         break;
-                    case DatabaseAttributeKind.PersistentProperty:
-                        if (databaseAttribute.IsPublicRead) {
-                            var propertyDef = new PropertyDef(
-                                databaseAttribute.Name,
-                                type,
-                                isNullable,
-                                targetTypeName
-                                );
-                            propertyDef.ColumnName = databaseAttribute.PersistentProperty.AttributeFieldIndex;
-                            AddProperty(propertyDef, propertyDefs);
-                        }
-                        break;
                     case DatabaseAttributeKind.NotPersistentProperty:
                         if (databaseAttribute.IsPublicRead) {
                             var propertyDef = new PropertyDef(
