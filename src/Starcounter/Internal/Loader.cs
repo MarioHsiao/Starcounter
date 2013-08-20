@@ -207,7 +207,7 @@ namespace Starcounter.Internal
                     case DatabaseAttributeKind.PersistentField:
                         if (!isSynonym) {
                             columnDefs.Add(new ColumnDef(
-                                RemoveBackingField(databaseAttribute.Name),
+                                databaseAttribute.Name,
                                 type,
                                 isNullable,
                                 subClass
@@ -239,7 +239,7 @@ namespace Starcounter.Internal
                             string columnName = null;
                             var backingField = databaseAttribute.BackingField;
                             if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField) {
-                                columnName = RemoveBackingField(backingField.Name);
+                                columnName = backingField.Name;
                             }
                             propertyDef.ColumnName = columnName;
                             AddProperty(propertyDef, propertyDefs);
@@ -247,14 +247,6 @@ namespace Starcounter.Internal
                         break;
                 }
             }
-        }
-
-        internal static String RemoveBackingField(String backingFieldName) {
-            if (backingFieldName[0] != '<')
-                return backingFieldName;
-            int nameLength = backingFieldName.IndexOf('>') - 1;
-            Debug.Assert(nameLength > 0);
-            return backingFieldName.Substring(1, nameLength);
         }
 
         /// <summary>
