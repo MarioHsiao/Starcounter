@@ -28,6 +28,9 @@ namespace Starcounter.Templates {
 
             value = child as TValue;
             if (value != null) {
+				if (value is TTrigger)
+					return;
+
                 if (value.Bound == Bound.No) {
                     propertyName = value.PropertyName;
                     if (!string.IsNullOrEmpty(propertyName)
