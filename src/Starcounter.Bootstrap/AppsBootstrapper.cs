@@ -57,7 +57,7 @@ namespace Starcounter.Internal {
             StarcounterBase._DB = new DbImpl();
 
             // Dependency injection for converting puppets to html
-            Obj._PuppetToViewConverter = new PuppetToViewConverter();
+            Obj._PuppetToViewConverter = new JsonMimeConverter();
 
             // Giving REST needed delegates.
             UserHandlerCodegen.Setup(

@@ -55,7 +55,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                     settings.VersionFolder = @"c:\versions\builds";
                     settings.LogFile = @"c:\versions\versionhandler.log";
                     settings.CertificationFile = @"c:\program files\starcounter\starcounter-2014.cer";
-                    settings.MaximumBuilds = 3;
+                    settings.MaximumBuilds = 10;
                 });
             }
             return settings;

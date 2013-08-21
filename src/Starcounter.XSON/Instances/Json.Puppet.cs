@@ -107,12 +107,12 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        private byte[] _htmlContent;
+        internal byte[] _htmlContent;
 
         /// <summary>
         /// 
         /// </summary>
-        private string _htmlFile;
+        internal string _htmlFile;
 
         /// <summary>
         /// 

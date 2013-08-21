@@ -75,10 +75,9 @@ namespace Starcounter.ErrorReporting {
 		/// </summary>
 		/// <param name="logEntries"></param>
 		internal void SendErrorReport(List<LogEntry> logEntries) {
-			int installationNo = Starcounter.Tracking.Environment.GetInstallationNo();
 
 			var report = new Report();
-			report.InstallationNo = installationNo;
+            report.InstallationNo = Starcounter.Tracking.Environment.GetInstallationNo();
 			foreach (LogEntry entry in logEntries) {
 				var item = report.LoggedItems.Add();
 				item.Date = entry.DateTime.ToString("u");
