@@ -2095,7 +2095,7 @@ adminModule.controller('LogCtrl', ['$scope', '$http', function ($scope, $http) {
     // Retrive log information
     $scope.getLog = function () {
 
-        $http.get('/api/admin/log').then(function (response) {
+    	$http.get('/api/admin/log', { params: $scope.filterModel }).then(function (response) {
             // success handler
             $scope.log = response.data;
 
