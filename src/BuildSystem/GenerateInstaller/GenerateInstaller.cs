@@ -82,13 +82,13 @@ namespace GenerateInstaller
             String licenseFilePath = Path.Combine(installerWpfFolder, "Resources\\LicenseAgreement.html");
 
             // Replacing license file with a new unique version.
-            ReplaceStringInFile(licenseFilePath, @"package identified by the key (.*)\r\n\(\<strong\>",
-                "package identified by the key " + uniqueDownloadKey + "\r\n(<strong>");
+            ReplaceStringInFile(licenseFilePath, "package identified by the key \"(.*)\"",
+                "package identified by the key \"" + uniqueDownloadKey + "\"");
 
             // Creating required registration date.
             String currentDatePlus60Days = DateTime.Now.AddDays(60).ToString("MMMM dd, yyyy").ToUpper();
-            ReplaceStringInFile(licenseFilePath, @" no later than \r\n(.*) \(\<strong\>",
-                " no later than \r\n" + currentDatePlus60Days + " (<strong>");
+            ReplaceStringInFile(licenseFilePath, " no later than \"(.*)\"",
+                " no later than \"" + currentDatePlus60Days + "\"");
 
             // Restoring fake archive file if needed.
             String archivePath = Path.Combine(installerWpfFolder, "Resources\\Archive.zip");
