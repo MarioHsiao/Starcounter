@@ -143,7 +143,7 @@ namespace Starcounter.Tracking {
         /// Save the installation sequence number to starcounter application
         /// </summary>
         /// <param name="no">Installation Sequence number</param>
-        public static void SaveInstallationNo(int no) {
+        public static void SaveInstallationNo(Int64 no) {
 
             //Properties.Settings.Default.installationNo = no;
             //Properties.Settings.Default.Save();
