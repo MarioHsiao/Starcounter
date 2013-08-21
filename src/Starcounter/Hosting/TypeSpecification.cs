@@ -65,6 +65,14 @@ namespace Starcounter.Hosting {
         /// <param name="fieldName">The field name to convert.</param>
         /// <returns>A column handle name for the given field.</returns>
         public static string FieldNameToColumnHandleName(string fieldName) {
+            // The below code is based on the fact that the auto-implemented
+            // properties in C# is backed by a field added by the compiler,
+            // named <name>k_BackingField. We just match for an opening bracket
+            // and consider that the pattern we are looking for. If found, we
+            // replace it, to name the column handle after regular naming.
+            if (fieldName[0] == '<') {
+                fieldName = fieldName.Substring(1, fieldName.IndexOf('>') - 1);
+            }
             return string.Concat("columnHandle_", fieldName);
         }
 
