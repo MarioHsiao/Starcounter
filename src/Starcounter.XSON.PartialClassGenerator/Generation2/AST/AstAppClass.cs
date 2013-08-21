@@ -48,12 +48,29 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public string _Inherits;
 
         /// <summary>
+        /// In the below example, this property will contain "T,T2"
+        /// <example>
+        /// class MyStuff<T,T2> : Json<T> { ... }"/>
+        /// </example>
+        /// In the below example, this property will contain null
+        /// <example>
+        /// class MyStuff : Json<object> { ... }"/>
+        /// </example>
+        /// </summary>
+        public string Generics;
+
+        /// <summary>
         /// Can be used to set a specific base class for the generated App class.
         /// </summary>
         /// <value>The inherits.</value>
         public override string Inherits {
             get { return _Inherits; }
         }
+
+        /// <summary>
+        /// The complete namespace path of this class
+        /// </summary>
+        public string Namespace;
 
         /// <summary>
         /// The class name is linked to the name of the ClassName in the
