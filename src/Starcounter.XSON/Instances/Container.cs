@@ -131,11 +131,17 @@ namespace Starcounter {
         /// </summary>
         /// <param name="sb">The string used to write text to</param>
         internal void _WriteDebugProperty(StringBuilder sb) {
-            var name = this.Template.PropertyName;
-            if (name != null) {
-                sb.Append('"');
-                sb.Append(name);
-                sb.Append("\":");
+            var t = this.Template;
+            if (t != null) {
+                var name = this.Template.PropertyName;
+                if (name != null) {
+                    sb.Append('"');
+                    sb.Append(name);
+                    sb.Append("\":");
+                }
+            }
+            if (this is Obj && ((Obj)this).Data != null) {
+                sb.Append("(db)");
             }
             if (_BrandNew) {
                 sb.Append("(n)");
@@ -172,6 +178,8 @@ namespace Starcounter {
         public virtual void HasRemovedElement(TObjArr property, int elementIndex) {
         }
 
+        public virtual void HasReplacedElement(TObjArr property, int elementIndex) {
+        }
 
         /// <summary>
         /// The _parent
@@ -293,5 +301,30 @@ namespace Starcounter {
             path[pos] = Template.TemplateIndex;
             Parent.FillIndexPath(path, pos - 1);
         }
+
+        /// 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public abstract byte[] ToJsonUtf8();
+
+        /// <summary>
+        /// Serializes this object and sets the out parameter to the buffer containing 
+        /// the UTF8 encoded characters. Returns the size used in the buffer.
+        /// </summary>
+        /// <remarks>
+        /// The actual returned buffer might be larger than the amount used.
+        /// </remarks>
+        /// <param name="buf"></param>
+        /// <returns></returns>
+        public abstract int ToJsonUtf8(out byte[] buffer);
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public abstract string ToJson();
     }
 }

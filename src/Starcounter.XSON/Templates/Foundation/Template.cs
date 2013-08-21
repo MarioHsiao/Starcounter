@@ -21,6 +21,14 @@ namespace Starcounter.Templates {
     public abstract class Template 
     {
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString() {
+            return DebugPropertyNameWithPath;
+        }
+
+        /// <summary>
         /// Gets the type of the json.
         /// </summary>
         /// <value>The type of the json.</value>

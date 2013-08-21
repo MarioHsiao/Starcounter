@@ -58,6 +58,10 @@ namespace Starcounter {
 
         internal DataValueBinding dataBinding;
 
+//        protected TValue() {
+//            IsEnumerable = true;
+//        }
+
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
         /// </summary>
@@ -89,6 +93,17 @@ namespace Starcounter {
 				invalidateBinding = true;
             }
         }
+
+//        /// <summary>
+//        /// System defined properties such as Html and HtmlContent are
+//        /// not visible when you query the Object tempate for properties.
+//        /// This is important such that these properies stay out of harms
+//        /// way for messages where they are not used. See also IsHiddenIfNull.
+//        /// System defined properties such as Html and HtmlContent are
+//        /// not materialized when serializing JSON unless they are set to a
+//        /// value other than null.
+//        /// </summary>
+//        public bool IsEnumerable { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether this template is bound.

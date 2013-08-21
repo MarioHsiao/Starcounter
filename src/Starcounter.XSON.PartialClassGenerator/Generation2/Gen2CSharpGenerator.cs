@@ -283,6 +283,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void WriteAppClassPrefix(AstAppClass a) {
             a.Prefix.Add(
                 "    public static " +
+                a.ClassName + " GET(string uri) { return (" + a.ClassName + ")X.GET(uri); }");
+            a.Prefix.Add(
+                "    public static " +
                 a.NTemplateClass.ClassName +
                 " DefaultTemplate = new " +
                 a.NTemplateClass.ClassName +

@@ -1,157 +1,309 @@
 ﻿// ***********************************************************************
-// <copyright file="Mesasge.cs" company="Starcounter AB">
+// <copyright file="Obj.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
 
 using Starcounter.Advanced;
-using System;
-using System.ComponentModel;
 using Starcounter.Templates;
-using System.Diagnostics;
-using System.Text;
+using System;
+using Starcounter.Internal;
+using Starcounter.Templates.Interfaces;
+using System.Runtime.CompilerServices;
+
 
 
 namespace Starcounter {
-
     /// <summary>
-    /// A message is a data object that can contain properties. The property can be a simple
-    /// value, a nested message or an array of messages.
+    /// Base class for simple data objects that are mapped to schemas (called Templates). These
+    /// objects can contain named properties with simple datatypes found in common programming languages,
+    /// including string, integer, boolean, decimal, floating point, null and array. The objects mimics
+    /// the kind of objects inducable from Json trees, albeit with a richer set of numeric representations.
     /// 
-    /// Messages are used to retrieve data from incomming communication calls or to return
-    /// content to callers.
+    /// An Obj object is a basic data object inspired by Json.  
+    /// Obj objects can form trees using arrays and basic
+    /// value types as well as nested objects.
     /// 
-    /// The REST handling mechanism of Starcounter uses Messages to conveniently allow the
-    /// programmer to retreive parameters and data as well as returning data.
+    /// While Json is a text based notation format, Obj is a materialized
+    /// tree of objects than can be serialized and deserialized from Json.
+    /// 
+    /// The difference from the Json induced object tree in Javascript is
+    /// foremost that Obj supports multiple numeric types, time and higher precision numerics.
     ///
-    /// A message can be automatically populated by a bound data object (typically a
-    /// database Entity).
+    /// Obj is the base class for Starcounter Puppets and Starcounter Messages.
+    /// 
+    /// Each object points to a Template that describes its schema (properties). 
+    /// 
+    /// The datatypes are a merge of what is available in most common high abstraction application languages such as Javascript,
+    /// C#, Ruby and Java. This means that it is in part a superset and in part a subset.
+    /// 
+    ///
+    /// The types supported are:
+    ///
+    /// Object			    (can contain properties of any supported type)
+    /// List			    (typed array/list/vector of any supported type),
+    /// null            
+    /// Time 			    (datetime)
+    /// Boolean
+    /// String 			    (variable length Unicode string),
+    /// Integer 		    (variable length up to 64 bit, signed)
+    /// Unsigned Integer	(variable length up to 64 bit, unsigned)
+    /// Decimal			    (base-10 floating point up to 64 bit),
+    /// Float			    (base-2 floating point up to 64 bit)
+    /// 
+    /// 
+    /// The object trees are designed to be serializable and deserializable to and from JSON and XML although there
+    /// is presently no XML implementation.
+    /// 
+    /// When you write applications in Starcounter, you normally do not use Obj objects directly. Instead you would
+    /// use the specialisations Puppet for session-bound object trees or Message for REST style data transfer objects
+    /// that are sent as requests or responses to and from a Starcounter REST endpoint (handler).
     /// </summary>
     /// <remarks>
-    /// A message can be serialized to a Json text as part
-    /// of a response to a request or deserialized from a Json text as a part of data
-    /// in a request.
+    /// Obj is the base class for popular Starcounter concepts such as Puppets (live mirrored view models) and
+    /// Messages (json data objects used in REST style code).
+    ///
+    /// The current implementation has a few shortcommings. Currently Obj only supports arrays of objects.
+    /// Also, all objects in the array must use the same template. Support for arrays of value types (primitives) will
+    /// be supported in the future. Mixed type arrays are currently not planned.
+    /// 
+    /// In the release version of Starcounter, Obj objects trees will be optimized for storage in "blobs" rather than on
+    /// the garbage collected heap. This is such that stateful sessions can employ them without causing unnecessary system
+    /// stress.
     /// </remarks>
-    public class Json : Obj {
+    public partial class Obj : Container, IHypermedia {
+
         /// <summary>
-        /// As messages are not kept at the server, it does not make sense to interact with
-        /// them using "user input".
+        /// Static constructor to automatically initialize XSON.
         /// </summary>
-        /// <typeparam name="V">The type of the input value</typeparam>
-        /// <param name="template">The property having changed</param>
-        /// <param name="value">The new value of the property</param>
-        public override void ProcessInput<V>(TValue<V> template, V value) {
-            Input<V> input = null;
+        static Obj() {
+            HelperFunctions.LoadNonGACDependencies();
+        //    XSON.CodeGeneration.Initializer.InitializeXSON();
+        }
 
-            if (template.CustomInputEventCreator != null)
-                input = template.CustomInputEventCreator.Invoke(this, template, value);
+        /// <summary>
+        /// Transaction applied to this node.
+        /// </summary>
+        private ITransaction _transaction;
 
-            if (input != null) {
-                foreach (var h in template.CustomInputHandlers) {
-                    h.Invoke(this, input);
+        /// <summary>
+        /// Cache element index if the parent of this Obj is an array (Arr).
+        /// </summary>
+        internal int _cacheIndexInArr;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Obj" /> class.
+        /// </summary>
+        public Obj()
+            : base() {
+            _cacheIndexInArr = -1;
+            _transaction = null;
+			//LogChanges = false;
+        }
+
+        /// <summary>
+        /// Returns True if current Obj is within the given tree.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public Boolean HasThisRoot(Obj treeRoot) {
+            Container r = this;
+            while (r.Parent != null)
+                r = r.Parent;
+            Obj root = (Obj)r;
+
+            if (treeRoot == root)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// In order to support Json pointers (TODO REF), this method is called
+        /// recursively to fill in a list of relative pointers from the root to
+        /// a given node in the Json like tree (the Obj/Arr tree).
+        /// </summary>
+        /// <param name="path">The patharray to fill</param>
+        /// <param name="pos">The position to fill</param>
+        internal override void FillIndexPath(int[] path, int pos) {
+            if (Parent != null) {
+                if (Parent is Arr) {
+                    if (_cacheIndexInArr == -1) {
+                        _cacheIndexInArr = ((Arr)Parent).IndexOf(this);
+                    }
+                    path[pos] = _cacheIndexInArr;
                 }
-                if (!input.Cancelled) {
-                    Debug.WriteLine("Setting value after custom handler: " + input.Value);
-                    this.Set<V>((TValue<V>)template, input.Value);
-                } else {
-                    Debug.WriteLine("Handler cancelled: " + value);
+                else {
+					// We use the cacheIndexInArr to keep track of obj that is set
+					// in the parent as an untyped object since the template here is not
+					// the template in the parent (which we want).
+					if (_cacheIndexInArr != -1)
+						path[pos] = _cacheIndexInArr;
+					else 
+						path[pos] = Template.TemplateIndex;
                 }
-            } else {
-                Debug.WriteLine("Setting value after no handler: " + value);
-                this.Set<V>((TValue<V>)template, value);
+                Parent.FillIndexPath(path, pos - 1);
             }
         }
 
+
         /// <summary>
-        /// Gets the value.
+        /// Start usage of given session.
         /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns>Action.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Json Get(TJson property) {
-            return Get<Json>(property);
+        /// <param name="jsonNode"></param>
+        internal void ResumeTransaction()
+        {
+            // Starting using current transaction if any.
+            if (Transaction != null)
+                StarcounterBase._DB.SetCurrentTransaction(Transaction);
         }
 
         /// <summary>
-        /// Sets the value.
+        /// Gets nearest transaction.
         /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="value">The value.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Set(TJson property, Json value) {
-            Set((TObj)property, value);
-        }
-
-		/// <summary>
-		/// 
-		/// </summary>
-		internal bool HasHtmlContent {
-			get {
-				return (_htmlFile != null || _htmlContent != null);
-			}
-		}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string Html {
+        public ITransaction Transaction {
             get {
-                return _htmlFile;
+
+                // Returning first available transaction climbing up the tree starting from this node.
+
+                if (_transaction != null)
+                    return _transaction;
+
+                Obj parentWithTrans = GetNearestObjParentWithTransaction();
+                if (parentWithTrans != null)
+                    return parentWithTrans.Transaction;
+
+                return null;
             }
             set {
-                _htmlContent = null;
-                _htmlFile = value;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private byte[] _htmlContent;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private string _htmlFile;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string HtmlContent {
-            get {
-                return Encoding.UTF8.GetString(_HtmlContent);
-            }
-            set {
-                _htmlContent = Encoding.UTF8.GetBytes(value);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal byte[] _HtmlContent {
-            get {
-                if (_htmlContent == null) {
-                    MimeType mt;
-                    _htmlContent = this.AsMimeType(MimeType.Text_Html, out mt);
+                if (_transaction != null) {
+                    throw new Exception("An transaction is already set for this object. Changing transaction_ is not allowed.");
                 }
-                return _htmlContent;
-            }
-            set {
-                _htmlContent = value;
+                _transaction = value;
             }
         }
+
+        /// <summary>
+        /// Returns the transaction that is set on this app. Does NOT
+        /// look in parents.
+        /// </summary>
+        internal ITransaction TransactionOnThisNode {
+            get { return _transaction; }
+        }
+
+        /// <summary>
+        /// Returns the nearest parent that is not an Arr (list).
+        /// </summary>
+        /// <returns>An Obj or null if this is the root Obj.</returns>
+        Obj GetNearestObjParent() {
+            Container parent = Parent;
+            while ((parent != null) && (!(parent is Obj))) {
+                parent = parent.Parent;
+            }
+            return (Obj)parent;
+        }
+
+        /// <summary>
+        /// Returns the nearest parent that has a transaction.
+        /// </summary>
+        /// <returns>An Obj or null if this is the root Obj.</returns>
+        Obj GetNearestObjParentWithTransaction()
+        {
+            Container parent = Parent;
+            while (parent != null)
+            {
+                Obj objParent = parent as Obj;
+
+                if ((null != objParent) && (null != objParent.Transaction))
+                    return objParent;
+
+                parent = parent.Parent;
+            }
+
+            return (Obj)parent;
+        }
+
+        /// <summary>
+        /// Refreshes the specified property of this Obj.
+        /// </summary>
+        /// <param name="property">The property</param>
+        public void Refresh(Template property) {
+            if (property is TObjArr) {
+                TObjArr apa = (TObjArr)property;
+                this.Set(apa, this.GetBound(apa));
+            }
+            else if (property is TObj) {
+                var at = (TObj)property;
+                IBindable v = this.GetBound(at);
+                this.Set(at, v);
+            }
+            else {
+                TValue p = property as TValue;
+                if (p != null) {
+                    HasChanged(p);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Is overridden by Puppet to log changes.
+        /// </summary>
+        /// <remarks>
+        /// The puppet needs to log all changes as they will need to be sent to the client (the client keeps a mirrored view model).
+        /// See MVC/MVVM (TODO! REF!). See Puppets (TODO REF)
+        /// </remarks>
+        /// <param name="property">The property that has changed in this Obj</param>
+        protected virtual void HasChanged(TValue property) {
+            //throw new Exception();
+            //var s = Session;
+            //if (s!=null)
+            //    Session.UpdateValue(this, property);
+        }
+
+        /// <summary>
+        /// The template defining the schema (properties) of this Obj.
+        /// </summary>
+        /// <value>The template</value>
+        public new TObj Template {
+            get { return (TObj)base.Template; }
+            set { base.Template = value; }
+        }
+
+        /// <summary>
+        /// Implementation field used to cache the Metadata property.
+        /// </summary>
+        private ObjMetadata _Metadata = null;
+
+        /// <summary>
+        /// Here you can set properties for each property in this Obj (such as Editable, Visible and Enabled).
+        /// The changes only affect this instance.
+        /// If you which to change properties for the template, use the Template property instead.
+        /// </summary>
+        /// <value>The metadata.</value>
+        /// <remarks>It is much less expensive to set this kind of metadata for the
+        /// entire template (for example to mark a property for all Obj instances as Editable).</remarks>
+        public ObjMetadata Metadata {
+            get {
+                return _Metadata;
+            }
+        }
+
+//		/// <summary>
+//		/// If set true and a ChangeLog is set on the current thread, all 
+//		/// changes done to this Obj will be logged.
+//		/// </summary>
+//		public bool LogChanges { get; set; }
+
+        public virtual void ProcessInput<V>(TValue<V> template, V value) {
+        }
+
+
+        public override void HasAddedElement(TObjArr property, int elementIndex) {
+        }
+
+        public override void HasRemovedElement(TObjArr property, int elementIndex) {
+        }
+
 
     }
-
-    ///// <summary>
-    ///// <see cref="Json"/>
-    ///// </summary>
-    public class Json<T> : Json {
-        public new T Data {
-            get { return (T)base.Data; }
-            set { base.Data = (IBindable)value; }
-        }
-    }
-
 }

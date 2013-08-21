@@ -54,14 +54,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bindables.cs" />
-    <Compile Include="BindingTests.cs" />
+    <Compile Include="Binding\BindingTests.cs" />
     <Compile Include="DataObjects\Agent.cs" />
     <Compile Include="DataObjects\Company.cs" />
     <Compile Include="DataObjects\Database.cs" />
     <Compile Include="DataObjects\Entity.cs" />
     <Compile Include="DataObjects\Person.cs" />
     <Compile Include="ExpandoTests.cs" />
-    <Compile Include="JsonPatchTests.cs" />
+    <Compile Include="JsonPatchTests\ArrayPatchTests.cs" />
+    <Compile Include="JsonPatchTests\JsonPatchTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestDynamicApps.cs" />
   </ItemGroup>
