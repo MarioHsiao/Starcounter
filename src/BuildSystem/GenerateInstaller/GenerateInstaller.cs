@@ -99,20 +99,22 @@ namespace GenerateInstaller
             if (File.Exists(tempArchivePath))
                 File.Delete(tempArchivePath);
 
-            File.Move(archivePath, tempArchivePath);
-            File.WriteAllText(archivePath, "This is an empty file...");
-
-            // Building the Installer WPF project.
-            BuildMsbuildProject(
-                Path.Combine(installerWpfFolder, "Starcounter.InstallerWPF.csproj"),
-                configuration,
-                platform);
-
             Console.WriteLine("Building unique Starcounter.Tracking DLL...");
 
             // Building tracking project.
             BuildMsbuildProject(
                 @"Level1\src\Starcounter.Tracking\Starcounter.Tracking.csproj",
+                configuration,
+                platform);
+
+            File.Move(archivePath, tempArchivePath);
+            File.WriteAllText(archivePath, "This is an empty file...");
+
+            Console.WriteLine("Building empty Starcounter.InstallerWPF...");
+
+            // Building the Installer WPF project.
+            BuildMsbuildProject(
+                Path.Combine(installerWpfFolder, "Starcounter.InstallerWPF.csproj"),
                 configuration,
                 platform);
 
@@ -138,6 +140,13 @@ namespace GenerateInstaller
                         e.Delete();
 
                     archive.CreateEntryFromFile(staticSetupFilePath, staticSetupFileName);
+
+                    // Replacing Starcounter.Tracking.dll.
+                    e = archive.GetEntry("scadmin\\Starcounter.Tracking.dll");
+                    if (null != e)
+                        e.Delete();
+
+                    archive.CreateEntryFromFile(Path.Combine(level1OutputDir, "Starcounter.Tracking.dll"), "scadmin\\Starcounter.Tracking.dll");
 
                     // Replacing Starcounter.Tracking.dll.
                     e = archive.GetEntry("Starcounter.Tracking.dll");
