@@ -79,6 +79,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="InputGeneration\MailApp.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Nesting\ParentChild.json.cs.v5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Nesting\ParentChild.json.cs.v2">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Nesting\ParentChild.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Nesting\ParentChild.json.cs.v3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Nesting\ParentChild.json.cs.v4">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="InputGeneration\Company.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="InputGeneration\Company.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ThreadPage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -118,14 +142,23 @@
       <DependentUpon>ThreadPage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="InputGeneration\MailApp.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="JsonSerializeTest.cs" />
+    <Compile Include="Nesting\TestSimpleNesting.cs" />
     <Compile Include="NewtonsoftSerializer.cs" />
+    <None Include="Nesting\ParentChild.json.cs.v1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Compile Include="Nesting\DetectVersionToUse.cs" />
+    <Compile Include="InputGeneration\TestInputMapping.cs" />
     <Compile Include="PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="simple.facit.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Compiler\TestCodeCompile.cs" />
+    <Compile Include="Compiler\CodeBehindAnalyserTests.cs" />
     <None Include="TestMessage.g.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -135,7 +168,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="TestInheritance.cs" />
-    <Compile Include="TestTemplates.cs" />
+    <Compile Include="GeneratePartialClassTests.cs" />
     <None Include="TestMessage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -187,6 +220,7 @@
       <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

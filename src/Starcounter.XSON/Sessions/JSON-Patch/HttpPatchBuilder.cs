@@ -10,6 +10,7 @@ using System.IO;
 using System.Text;
 using Starcounter.Internal;
 using Starcounter.Templates;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter.Internal.JsonPatch
 {
@@ -69,7 +70,7 @@ namespace Starcounter.Internal.JsonPatch
         /// </summary>
         /// <param name="changeLog">A log of the current changes</param>
         /// <returns>The httpresponse as a bytearray</returns>
-        internal static byte[] CreateHttpPatchResponse(ChangeLog changeLog) {
+        internal static byte[] CreateHttpPatchResponse(Session changeLog) {
             List<Byte> content = new List<Byte>(100);
             CreateContentFromChangeLog(changeLog, content);
             //return CreateResponse(OK200_WITH_JSON_PATCH, content.ToArray());
@@ -140,7 +141,7 @@ namespace Starcounter.Internal.JsonPatch
         /// <param name="changeLog">The change log.</param>
         /// <param name="buffer">The buffer.</param>
         /// <returns>Int32.</returns>
-        public static Int32 CreateContentFromChangeLog(ChangeLog changeLog, List<Byte> buffer)
+        public static Int32 CreateContentFromChangeLog(Session changeLog, List<Byte> buffer)
         {
             // TODO: 
             // Change so that we can send in a buffer into the function that created 
@@ -151,16 +152,16 @@ namespace Starcounter.Internal.JsonPatch
             Template template;
             Object obj;
 
-            if (changeLog.Count == 0)
-            {
-                return 0;
-            }
+           // if (changeLog.Count == 0)
+           // {
+           //     return 0;
+           // }
 
             startIndex = buffer.Count;
             buffer.Add((byte)'[');
             foreach (Change change in changeLog)
             {
-                template = change.Template;
+                template = change.Property;
 
                 if (change.ChangeType != Change.REMOVE) {
                     obj = GetValueFromChange(change);
@@ -168,7 +169,7 @@ namespace Starcounter.Internal.JsonPatch
                     obj = null;
                 }
 
-                patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.Obj, change.Template, obj, change.Index);
+                patch = JsonPatch.BuildJsonPatch(change.ChangeType, change.Obj, change.Property, obj, change.Index);
                 Byte[] patchArr = Encoding.UTF8.GetBytes(patch);
                 buffer.AddRange(patchArr);
 
@@ -176,9 +177,11 @@ namespace Starcounter.Internal.JsonPatch
                 buffer.Add((byte)'\n');
             }
 
-            // Remove the ',' char.
-            buffer.RemoveAt(buffer.Count - 1);
-            buffer.RemoveAt(buffer.Count - 1);
+            // Remove the ',' and new-line chars.
+            if (changeLog.Count > 0) {
+                buffer.RemoveAt(buffer.Count - 1);
+                buffer.RemoveAt(buffer.Count - 1);
+            }
             buffer.Add((byte)']');
             
             return buffer.Count - startIndex;
@@ -191,26 +194,37 @@ namespace Starcounter.Internal.JsonPatch
         /// <returns></returns>
         private static object GetValueFromChange(Change change) {
             object ret = null;
-            Template template = change.Template;
+            Template property = change.Property;
 
             // TODO:
             // Need a faster way than checking type and casting to get the value.
                 
-            if (template is TString) {
-                ret = change.Obj.Get((TString)template);
-            } else if (template is TObjArr) {
-                Arr appList = (Arr)change.Obj.Get((TObjArr)template);
-                ret = appList[change.Index];
-            } else if (template is TLong) {
-                ret = change.Obj.Get((TLong)template);
-            } else if (template is TBool) {
-                ret = change.Obj.Get((TBool)template);
-            } else if (template is TDouble) {
-                ret = change.Obj.Get((TDouble)template);
-            } else if (template is TDecimal) {
-                ret = change.Obj.Get((TDecimal)template);
-            } else if (template is TObj) {
-                ret = change.Obj.Get((TObj)template);
+            if (property is TString) {
+                ret = change.Obj.Get((TString)property);
+            } else if (property is TObjArr) {
+                var arr = (Arr)change.Obj.Get((TObjArr)property);
+				if (change.Index != -1) {
+                    ret = arr[change.Index];
+                }
+                else {
+#if DEBUG
+                    if (change.ChangeType == Change.REMOVE) {
+                        throw new Exception("Cannot get value from remove");
+                    }
+#endif
+                    ret = arr;
+                }
+                
+            } else if (property is TLong) {
+                ret = change.Obj.Get((TLong)property);
+            } else if (property is TBool) {
+                ret = change.Obj.Get((TBool)property);
+            } else if (property is TDouble) {
+                ret = change.Obj.Get((TDouble)property);
+            } else if (property is TDecimal) {
+                ret = change.Obj.Get((TDecimal)property);
+            } else if (property is TObj) {
+                ret = change.Obj.Get((TObj)property);
             }
             return ret;
         }

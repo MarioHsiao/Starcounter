@@ -77,7 +77,7 @@ namespace BuildsFillupDaemon
                 Environment.SetEnvironmentVariable(BuildSystem.CheckOutDirEnvVar, sourcesDir);
 
                 // Indicating that we need to upload to US FTP.
-                Environment.SetEnvironmentVariable(BuildSystem.UploadToUsFtp, "True");
+                Environment.SetEnvironmentVariable(BuildSystem.UploadToPublicServer, "True");
 
                 // Setting this since all pre-compiled files are already copied.
                 Environment.SetEnvironmentVariable("DONT_COPY_EXTERNAL_FILES", "True");

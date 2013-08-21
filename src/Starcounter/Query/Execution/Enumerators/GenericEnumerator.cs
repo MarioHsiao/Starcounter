@@ -13,6 +13,7 @@ namespace Starcounter {
 
 
         internal IExecutionEnumerator subEnumerator;
+        internal readonly Scheduler SchedulerOwner;
 #if false
         private XNode node;
 #endif
@@ -22,6 +23,7 @@ namespace Starcounter {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect subEnumerator.");
 
             this.subEnumerator = subEnumerator;
+            SchedulerOwner = Scheduler.GetInstance();
 
 #if false // Removed temporary
             node = new XNode(this, subEnumerator);
@@ -51,7 +53,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Releases unmanaged resources.
+        /// Releases unmanaged resources and return enumerator to cache.
         /// </summary>
         public void Dispose() {
             if (subEnumerator != null) {
@@ -61,6 +63,20 @@ namespace Starcounter {
                 node.MarkAsDead();
 #endif
             }
+            GC.SuppressFinalize(this);
+        }
+
+        ~SqlEnumerator() {
+            DbSession dbs = new DbSession();
+            while (SchedulerOwner.NrScheduledDisposes > 20)
+                System.Threading.Thread.Sleep(10);
+            lock (SchedulerOwner.NrScheduledDisposesObj)
+                SchedulerOwner.NrScheduledDisposes++;
+            dbs.RunAsync(() => {
+                Dispose();
+                lock (SchedulerOwner.NrScheduledDisposesObj)
+                    SchedulerOwner.NrScheduledDisposes--;
+            }, SchedulerOwner.Id);
         }
 
         /// <summary>

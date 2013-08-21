@@ -20,6 +20,8 @@ namespace Starcounter
     /// </summary>
     public sealed class Scheduler
     {
+        public const uint NROPENITERATORSPERSCHEDULER = 100;
+
         // Contains all virtual processor instances
         // (up to number of logical cores on a machine).
         /// <summary>
@@ -87,6 +89,14 @@ namespace Starcounter
         {
             get { return _id; }
         }
+
+        /// <summary>
+        /// Keeps track of number of open kernel iterators
+        /// </summary>
+        internal uint NrOpenIterators = 0;
+
+        internal uint NrScheduledDisposes = 0;
+        internal object NrScheduledDisposesObj = new object();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Scheduler" /> class.

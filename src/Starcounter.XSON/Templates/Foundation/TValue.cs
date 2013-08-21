@@ -20,10 +20,11 @@ namespace Starcounter {
     public abstract class TValue<T> : TValue {
         public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
         public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
-        internal DataValueBinding<T> dataBinding;
-        
-        internal DataValueBinding<T> GetBinding(IBindable data) {
-            return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType(), Bind);
+
+        internal override bool UseBinding(IBindable data) {
+			if (data == null)
+				return false;
+            return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType());
         }
 
         /// <summary>
@@ -45,7 +46,7 @@ namespace Starcounter {
         internal override void SetBoundValueAsObject(Obj obj, object value) {
             obj.SetBound<T>(this, (T)value);
         }
-    }
+	}
 
     /// <summary>
     /// Class Property
@@ -53,6 +54,13 @@ namespace Starcounter {
     public abstract class TValue : Template {
         private Bound _Bound = Bound.No;
         private string _Bind;
+		internal bool invalidateBinding;
+
+        internal DataValueBinding dataBinding;
+
+//        protected TValue() {
+//            IsEnumerable = true;
+//        }
 
         /// <summary>
         /// Gets a value indicating whether this instance has instance value on client.
@@ -60,6 +68,11 @@ namespace Starcounter {
         /// <value><c>true</c> if this instance has instance value on client; otherwise, <c>false</c>.</value>
         public override bool HasInstanceValueOnClient {
             get { return true; }
+        }
+
+		internal virtual bool UseBinding(IBindable data) {
+			if (data == null) return false;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
         }
 
         /// <summary>
@@ -77,8 +90,20 @@ namespace Starcounter {
                 else {
                     _Bound = Bound.No;
                 }
+				invalidateBinding = true;
             }
         }
+
+//        /// <summary>
+//        /// System defined properties such as Html and HtmlContent are
+//        /// not visible when you query the Object tempate for properties.
+//        /// This is important such that these properies stay out of harms
+//        /// way for messages where they are not used. See also IsHiddenIfNull.
+//        /// System defined properties such as Html and HtmlContent are
+//        /// not materialized when serializing JSON unless they are set to a
+//        /// value other than null.
+//        /// </summary>
+//        public bool IsEnumerable { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether this template is bound.

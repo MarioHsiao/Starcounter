@@ -34,14 +34,14 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
 
                         Db.Transaction(() => {
 
-                            string downloadId = data.downloadId;
+                            string serial = data.downloadId;
                             int previousInstallationNo = int.Parse(data.installationNo.ToString());
 
-                            Installation installation = new Installation(downloadId, previousInstallationNo);
+                            Installation installation = new Installation(serial, previousInstallationNo);
                             InstallerStart item = new InstallerStart(installation);
 
                             // Header
-                            item.Date = DateTime.Parse(data.date);
+                            item.Date = DateTime.UtcNow;
                             item.IP = clientIP.ToString();
                             item.Mac = data.mac;
                             if (protocolVersion > 1) {
