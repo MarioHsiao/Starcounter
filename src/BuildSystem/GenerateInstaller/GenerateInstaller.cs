@@ -17,9 +17,6 @@ namespace GenerateInstaller
 {
     class GenerateInstaller
     {
-        const String LicenseDownloadIDPattern = "@UniqueDownloadKey";
-        const String LicenseDatePattern = "@RequiredRegistrationDate";
-
         const String CompanyName = "Starcounter AB";
         const String ProductName = "Starcounter Components";
         public static readonly String CertificateFilePath = BuildSystem.LocalToolsFolder + "\\starcounter-2014.cer";
@@ -83,14 +80,15 @@ namespace GenerateInstaller
 
             // Saving the new license information.
             String licenseFilePath = Path.Combine(installerWpfFolder, "Resources\\LicenseAgreement.html");
-            String licensePatternContents = File.ReadAllText(licenseFilePath);
 
             // Replacing license file with a new unique version.
-            String modifiedLicense = licensePatternContents.Replace(LicenseDownloadIDPattern, uniqueDownloadKey);
+            ReplaceStringInFile(licenseFilePath, @"package identified by the key (.*)\r\n\(\<strong\>",
+                "package identified by the key " + uniqueDownloadKey + "\r\n(<strong>");
 
             // Creating required registration date.
             String currentDatePlus60Days = DateTime.Now.AddDays(60).ToString("MMMM dd, yyyy").ToUpper();
-            File.WriteAllText(licenseFilePath, modifiedLicense.Replace(LicenseDatePattern, currentDatePlus60Days));
+            ReplaceStringInFile(licenseFilePath, @" no later than \r\n(.*) \(\<strong\>",
+                " no later than \r\n" + currentDatePlus60Days + " (<strong>");
 
             // Restoring fake archive file if needed.
             String archivePath = Path.Combine(installerWpfFolder, "Resources\\Archive.zip");
