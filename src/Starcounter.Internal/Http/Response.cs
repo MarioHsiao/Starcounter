@@ -367,7 +367,9 @@ namespace Starcounter.Advanced
                 return Encoding.UTF8.GetString(bodyBytes_);
             if (_Hypermedia != null)
                 return _Hypermedia.ToString();
-            return "";
+
+            bodyString_ = GetBodyStringUtf8_Slow();
+            return bodyString_;
         }
 
 
@@ -384,7 +386,9 @@ namespace Starcounter.Advanced
                 MimeType discard;
                 return _Hypermedia.AsMimeType(MimeType.Unspecified, out discard);
             }
-            return new byte[0];
+
+            bodyBytes_ = GetBodyBytes_Slow();
+            return bodyBytes_;
         }
 
         /// <summary>
