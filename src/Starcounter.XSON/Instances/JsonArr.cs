@@ -356,7 +356,7 @@ namespace Starcounter {
 				if ((i + 1) < Count)
 					buf[offset++] = (byte)',';
 			}
-			buf[offset] = (byte)']';
+			buf[offset++] = (byte)']';
 
 			buffer = buf;
 			return offset;
