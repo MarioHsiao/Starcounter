@@ -22,13 +22,13 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// Previous Installation number
         /// -1 if there was no previous detected installation
         /// </summary>
-        public int PreviousInstallationNo;
+        public Int64 PreviousInstallationNo;
 
         /// <summary>
         /// Installation Number
         /// One number per installation start
         /// </summary>
-        public int InstallationNo;
+        public Int64 InstallationNo;
 
         /// <summary>
         /// Date when the installation was detected
@@ -111,7 +111,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
 
             this.Serial = serial;
             this.Date = DateTime.UtcNow;
-            this.InstallationNo = StarcounterCollectionHandler.GetNextSequenceNo("Installation");
+            this.InstallationNo = DateTime.UtcNow.Ticks;
             this.PreviousInstallationNo = -1;
         }
 
@@ -120,15 +120,15 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// </summary>
         /// <param name="serial"></param>
         /// <param name="previousInstallationNo"></param>
-        public Installation(string serial, int previousInstallationNo) {
+        public Installation(string serial, Int64 previousInstallationNo) {
 
             this.Serial = serial;
             this.Date = DateTime.UtcNow;
-            this.InstallationNo = StarcounterCollectionHandler.GetNextSequenceNo("Installation");
+            this.InstallationNo = DateTime.UtcNow.Ticks;
             this.PreviousInstallationNo = previousInstallationNo;
         }
 
     }
 
-  
+
 }

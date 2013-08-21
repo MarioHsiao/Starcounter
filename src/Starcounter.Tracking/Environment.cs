@@ -179,18 +179,18 @@ namespace Starcounter.Tracking {
         /// <summary>
         /// Get the starcounter application installation sequence number
         /// </summary>
-        public static int GetInstallationNo() {
+        public static Int64 GetInstallationNo() {
             //return Properties.Settings.Default.installationNo;
             try {
                 string folder = GetTrackingConfigurationFolder();
                 string fileName = System.IO.Path.Combine(folder, "installationNo.txt");
 
                 using (StreamReader sr = File.OpenText(fileName)) {
-                    int installationNo = 0;
+                    Int64 installationNo = 0;
 
                     string line = string.Empty;
                     while ((line = sr.ReadLine()) != null) {
-                        if (int.TryParse(line, out installationNo)) {
+                        if (Int64.TryParse(line, out installationNo)) {
                             return installationNo;
                         }
                     }
