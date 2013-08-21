@@ -152,23 +152,27 @@ namespace Starcounter {
 				}
 			}
 
-            RefreshAllBoundValues();
+			InitBoundArrays();
             OnData();
         }
 
         /// <summary>
-        /// Refreshes all bound values of this Obj. Retrieves data from the Data
-        /// property.
+        /// Initializes bound arrays when a new dataobject is set.
         /// </summary>
-        private void RefreshAllBoundValues() {
-            /*            TValue child;
-                        for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
-                            child = Template.Properties[i] as TValue;
-                            if (child != null && child.Bound) {
-                                Refresh(child);
-                            }
-                        }
-             */
+        private void InitBoundArrays() {
+            TObjArr child;
+            for (Int32 i = 0; i < this.Template.Properties.Count; i++) {
+                child = Template.Properties[i] as TObjArr;
+                if (child != null && child.Bound != Bound.No) {
+					if (_data != null) {
+						child.UseBinding(_data);
+						Refresh(child);
+					} else {
+						var arr = Get(child);
+						arr.Clear();
+					}
+                }
+            }
         }
 
         /// <summary>
