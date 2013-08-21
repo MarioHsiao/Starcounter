@@ -363,11 +363,8 @@ namespace Starcounter.Advanced
         private string GetContentString() {
             if (bodyString_ != null)
                 return bodyString_;
-            if (bodyBytes_ != null)
-                return Encoding.UTF8.GetString(bodyBytes_);
-            if (_Hypermedia != null)
-                return _Hypermedia.ToString();
-            return "";
+            var bytes = this.GetContentBytes();
+            return Encoding.UTF8.GetString(bytes);
         }
 
 
@@ -384,7 +381,20 @@ namespace Starcounter.Advanced
                 MimeType discard;
                 return _Hypermedia.AsMimeType(MimeType.Unspecified, out discard);
             }
+            if (Uncompressed != null) {
+                return ExtractBodyFromUncompressedHttpResponse();
+            }
             return new byte[0];
+        }
+
+        /// <summary>
+        /// Should be made faster using pointers copying direcly to the output buffer
+        /// </summary>
+        /// <returns></returns>
+        private byte[] ExtractBodyFromUncompressedHttpResponse() {
+            var bytes = new byte[this.UncompressedBodyLength_];
+            Uncompressed.CopyTo(bytes, this.UncompressedBodyOffset_);
+            return bytes;
         }
 
         /// <summary>
