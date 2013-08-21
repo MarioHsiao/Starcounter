@@ -342,14 +342,60 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetContent<T>() {
+            if (typeof(T) == typeof(String)) {
+                return (T)(object)GetContentString();
+            }
+            if (typeof(T) == typeof(byte[])) {
+                return (T)(object)GetContentBytes();
+            } 
+            return (T)Content;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private string GetContentString() {
+            if (bodyString_ != null)
+                return bodyString_;
+            if (bodyBytes_ != null)
+                return Encoding.UTF8.GetString(bodyBytes_);
+            if (_Hypermedia != null)
+                return _Hypermedia.ToString();
+            return "";
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private byte[] GetContentBytes() {
+            if (bodyBytes_ != null)
+                return bodyBytes_;
+            if (bodyString_ != null)
+                return Encoding.UTF8.GetBytes(bodyString_);
+            if (_Hypermedia != null) {
+                MimeType discard;
+                return _Hypermedia.AsMimeType(MimeType.Unspecified, out discard);
+            }
+            return new byte[0];
+        }
+
+        /// <summary>
         /// Body string.
         /// </summary>
         public Object Content
         {
             get
             {
-                if (null != Hypermedia)
-                    return Hypermedia;
+                if (null != _Hypermedia)
+                    return _Hypermedia;
 
                 if (null != bodyBytes_)
                     return bodyBytes_;

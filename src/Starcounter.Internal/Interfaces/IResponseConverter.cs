@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Advanced;
 namespace Starcounter.Internal {
 
     /// <summary>
@@ -12,6 +13,6 @@ namespace Starcounter.Internal {
         /// <param name="before"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        byte[] Convert( object before, MimeType type, out MimeType resultingMimetype );
+        byte[] Convert( Request request, object before, MimeType type, out MimeType resultingMimetype );
     }
 }

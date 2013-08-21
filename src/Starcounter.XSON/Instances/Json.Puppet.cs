@@ -85,7 +85,7 @@ namespace Starcounter {
 		/// <summary>
 		/// 
 		/// </summary>
-		internal bool HasHtmlContent {
+		internal bool OldHasHtmlContent {
 			get {
 				return (_htmlFile != null || _htmlContent != null);
 			}
@@ -94,7 +94,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public string Html {
+        public string OldHtml {
             get {
                 return _htmlFile;
             }
@@ -117,7 +117,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public string HtmlContent {
+        public string OldHtmlContent {
             get {
                 return Encoding.UTF8.GetString(_HtmlContent);
             }
