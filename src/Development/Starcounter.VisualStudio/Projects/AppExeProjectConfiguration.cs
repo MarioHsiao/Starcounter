@@ -165,9 +165,24 @@ namespace Starcounter.VisualStudio.Projects {
             this.WriteDebugLaunchStatus("Verifying database engine");
 
             // GET or START the engine
+            var startEngine = false;
             var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
             statusCode = response.FailIfNotSuccessOr(404);
-            if (statusCode == 404) {
+            
+            engine = new Engine();
+            if (statusCode != 404) {
+                // Success means we have a representation of the engine.
+                // We should check that the code host is running. If not,
+                // we better make it happen.
+                engine.PopulateFromJson(response.Body);
+                if (engine.CodeHostProcess.PID == 0) {
+                    startEngine = true;
+                }
+            }
+            else {
+                // Either the database does not exist or neither of the
+                // engine processes are started.
+                startEngine = true;
                 errorDetail = new ErrorDetail();
                 errorDetail.PopulateFromJson(response.Body);
                 if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
@@ -179,7 +194,9 @@ namespace Starcounter.VisualStudio.Projects {
                     WriteDebugLaunchStatus("Creating database");
                     CreateDatabase(node, uris, databaseName);
                 }
+            }
 
+            if (startEngine) {
                 this.WriteDebugLaunchStatus("Starting engine");
                 engineRef = new EngineReference();
                 engineRef.Name = databaseName;
@@ -191,9 +208,9 @@ namespace Starcounter.VisualStudio.Projects {
 
                 response = node.GET(admin.FormatUri(uris.Engine, databaseName), null, null);
                 response.FailIfNotSuccess();
+                engine.PopulateFromJson(response.Body);
             }
-            engine = new Engine();
-            engine.PopulateFromJson(response.Body);
+
             var engineETag = response["ETag"];
 
             // The engine is now started. Check if the executable we
