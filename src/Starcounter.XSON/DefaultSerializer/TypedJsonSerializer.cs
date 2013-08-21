@@ -175,7 +175,7 @@ restart:
                     }
 
 					var jsonObj = obj as Json;
-					if (jsonObj != null && jsonObj.HasHtmlContent) {
+					if (jsonObj != null && jsonObj.OldHasHtmlContent) {
 						// Property name.
 						if (!nameWritten) {
 							valueSize = JsonHelper.WriteString((IntPtr)(pfrag + 1), buf.Length - offset, "Html");

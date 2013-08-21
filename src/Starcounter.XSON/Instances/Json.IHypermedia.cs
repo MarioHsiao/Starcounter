@@ -1,4 +1,4 @@
-
+ 
 
 using Starcounter.Advanced;
 using Starcounter.Internal;
@@ -13,14 +13,36 @@ namespace Starcounter {
         /// be retrieved. This cannot be done by the Obj itself as it does not know about the static web server
         /// or how to call any user handlers.
         /// </summary>
-        public static IResponseConverter _PuppetToViewConverter = null;
+        public static IResponseConverter _JsonMimeConverter = null;
 
         /// <summary>
-        /// An Obj can be represented as a JSON object.
+        /// Override this method to provide a custom conversion when a request
+        /// is made to some other mime type than "application/json".
         /// </summary>
         /// <param name="mimeType"></param>
         /// <returns></returns>
-        public byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType) {
+        public virtual string AsMimeType(MimeType mimeType) {
+            return this.ToJson();
+        }
+
+        /// <summary>
+        /// Override this method to provide a custom conversion when a request
+        /// is made to some other mime type than "application/json".
+        /// </summary>
+        /// <param name="mimeType"></param>
+        /// <returns></returns>
+        public virtual string AsMimeType(string mimeType) {
+            return this.ToJson();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mimeType"></param>
+        /// <param name="resultingMimeType"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public virtual byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType, Request request = null ) {
             // A json object as a response could be the following:
             // 1) A new object not attached to a Session, in which case we just serialize it and
             //    send the response as normal json.
@@ -29,7 +51,7 @@ namespace Starcounter {
             // 3) Updates to a session-bound object, in which case we respond with a batch of json-patches.
 
             // We always start from the root object, even if the object returned from the handler is further down in the tree.
-            return _PuppetToViewConverter.Convert(this, mimeType, out resultingMimeType);
+            return _JsonMimeConverter.Convert(request,this, mimeType, out resultingMimeType);
 
             //throw new ArgumentException("Unknown mime type!");
 
@@ -59,7 +81,14 @@ namespace Starcounter {
             */
         }
 
-        public byte[] AsMimeType(string mimeType, out MimeType resultingMimeType) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mimeType"></param>
+        /// <param name="resultingMimeType"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public virtual byte[] AsMimeType(string mimeType, out MimeType resultingMimeType, Request request = null ) {
             throw new NotImplementedException();
         }
 
