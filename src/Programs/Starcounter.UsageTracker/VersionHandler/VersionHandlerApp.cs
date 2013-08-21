@@ -39,7 +39,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
 
             Upload.BootStrap(8585); // TODO: Hardcoded portnumber for incoming requests.  use TrackingEnvironment.StarcounterTrackerPort
 
-            Utils.BootStrap(uPort);
+            Utils.BootStrap(8282);
 
 
             // Kickstart unpacker worker
