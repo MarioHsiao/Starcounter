@@ -35,7 +35,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Installer {
                         Db.Transaction(() => {
 
                             string serial = data.downloadId;
-                            Int64 previousInstallationNo = Int64.Parse(data.installationNo.ToString());
+                            Int64 previousInstallationNo = (Int64)data.installationNo;
 
                             Installation installation = new Installation(serial, previousInstallationNo);
                             InstallerStart item = new InstallerStart(installation);
