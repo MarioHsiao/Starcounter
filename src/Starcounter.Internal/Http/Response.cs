@@ -384,7 +384,9 @@ namespace Starcounter.Advanced
             if (Uncompressed != null) {
                 return ExtractBodyFromUncompressedHttpResponse();
             }
-            return new byte[0];
+
+            bodyBytes_ = GetBodyBytes_Slow();
+            return bodyBytes_;
         }
 
         /// <summary>
@@ -393,7 +395,7 @@ namespace Starcounter.Advanced
         /// <returns></returns>
         private byte[] ExtractBodyFromUncompressedHttpResponse() {
             var bytes = new byte[this.UncompressedBodyLength_];
-            Uncompressed.CopyTo(bytes, this.UncompressedBodyOffset_);
+            Array.Copy(Uncompressed, UncompressedBodyOffset_, bytes, 0, UncompressedBodyLength_);
             return bytes;
         }
 
@@ -977,6 +979,9 @@ namespace Starcounter.Advanced
                     // Throwing the concrete error code exception.
                     throw ErrorCode.ToException(err_code);
                 }
+
+                UncompressedBodyLength_ = http_response_struct_->content_len_bytes_;
+                UncompressedBodyOffset_ = (int)http_response_struct_->content_offset_;
 
                 // NOTE: No internal sessions support.
                 session_ = null;
