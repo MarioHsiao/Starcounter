@@ -411,10 +411,11 @@ namespace GenerateInstaller
                 File.Copy(checkoutDir + @"\Level1\src\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets",
                     tempBuildDir + @"\Level1\src\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets", true);
 
-                if (File.Exists(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe"))
-                    File.Delete(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe");
+                if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe"))
+                    File.Delete(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe");
 
-                File.Copy(Path.Combine(installerWpfFolder, BuildSystem.VersionXMLFileName), Path.Combine(tempBuildDir, BuildSystem.VersionXMLFileName), true);
+                File.Copy(Path.Combine(installerWpfFolder, BuildSystem.VersionXMLFileName),
+                    Path.Combine(tempBuildDir, BuildSystem.VersionXMLFileName), true);
 
                 Directory.SetCurrentDirectory(tempBuildDir);
 
@@ -424,31 +425,34 @@ namespace GenerateInstaller
                     checkoutDir,
                     @"\\scbuildserver\FTP\SCDev\BuildSystem\starcounter-2014.cer");
 
+                Console.WriteLine("Cleaning temporary build directories...");
+
+                BuildSystem.DeleteSubDirectories(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper",
+                    new String[] { "obj", "release", "debug" });
+
+                if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.sdf"))
+                    File.Delete(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.sdf");
+
+                if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe"))
+                    File.Delete(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe");
+
+                BuildSystem.DeleteSubDirectories(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF",
+                    new String[] { "obj", "release", "debug" });
+
+                BuildSystem.DeleteSubDirectories(tempBuildDir + @"\Level1\src\Starcounter.Tracking",
+                    new String[] { "obj", "release", "debug" });
+
+                Console.WriteLine("Creating all-in-one build package...");
+
+                String pathToAllInOneArchive = tempBuildDir + "\\..\\" + channel + "-" + version + ".zip";
+                if (File.Exists(pathToAllInOneArchive))
+                    File.Delete(pathToAllInOneArchive);
+
+                ZipFile.CreateFromDirectory(tempBuildDir, pathToAllInOneArchive, CompressionLevel.Optimal, false);
+
                 // Uploading all-in-one package to public server.
                 if ("True" == Environment.GetEnvironmentVariable(BuildSystem.UploadToPublicServer))
                 {
-                    Console.WriteLine("Cleaning temporary build directories...");
-
-                    if (Directory.Exists(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\obj"))
-                        Directory.Delete(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\obj", true);
-
-                    if (File.Exists(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.sdf"))
-                        File.Delete(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.sdf");
-
-                    if (Directory.Exists(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\obj"))
-                        Directory.Delete(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\obj", true);
-
-                    if (Directory.Exists(checkoutDir + @"\Level1\src\Starcounter.Tracking\obj"))
-                        Directory.Delete(checkoutDir + @"\Level1\src\Starcounter.Tracking\obj", true);
-
-                    Console.WriteLine("Creating all-in-one build package...");
-
-                    String pathToAllInOneArchive = tempBuildDir + "\\..\\" + channel + "-" + version + ".zip";
-                    if (File.Exists(pathToAllInOneArchive))
-                        File.Delete(pathToAllInOneArchive);
-
-                    ZipFile.CreateFromDirectory(tempBuildDir, pathToAllInOneArchive, CompressionLevel.Optimal, false);
-
                     Console.WriteLine("Uploading all-in-one build package to public server...");
 
                     // Calling external tool to upload build package to public server.

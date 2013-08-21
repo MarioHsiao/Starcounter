@@ -507,7 +507,7 @@ namespace Starcounter.Tracking {
                         dynamic incomingJson = DynamicJson.Parse(responseContent);
                         if (incomingJson.IsDefined("installation")) {
                             if (incomingJson.installation.IsDefined("installationNo")) {
-                                Environment.SaveInstallationNo(int.Parse(incomingJson.installation.installationNo.ToString()));
+                                Environment.SaveInstallationNo((Int64)incomingJson.installation.installationNo);
                             }
 
                         }
