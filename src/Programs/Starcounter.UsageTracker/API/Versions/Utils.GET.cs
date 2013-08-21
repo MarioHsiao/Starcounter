@@ -11,43 +11,43 @@ namespace StarcounterApplicationWebSocket.API.Versions {
     internal class Utils {
         public static void BootStrap(ushort port) {
 
-            Handle.GET(port, "/reset", (Request request) => {
+            //Handle.GET(port, "/reset", (Request request) => {
 
-                Db.Transaction(() => {
+            //    Db.Transaction(() => {
 
-                    LogWriter.WriteLine(string.Format("Reseting database."));
+            //        LogWriter.WriteLine(string.Format("Reseting database."));
 
-                    var result = Db.SlowSQL("SELECT o FROM VersionSource o");
+            //        var result = Db.SlowSQL("SELECT o FROM VersionSource o");
 
-                    foreach (VersionSource item in result) {
-                        item.Delete();
-                    }
+            //        foreach (VersionSource item in result) {
+            //            item.Delete();
+            //        }
 
-                    result = Db.SlowSQL("SELECT o FROM VersionBuild o");
-                    foreach (VersionBuild item in result) {
-                        item.Delete();
-                    }
+            //        result = Db.SlowSQL("SELECT o FROM VersionBuild o");
+            //        foreach (VersionBuild item in result) {
+            //            item.Delete();
+            //        }
 
-                    result = Db.SlowSQL("SELECT o FROM Somebody o");
-                    foreach (Somebody item in result) {
-                        item.Delete();
-                    }
+            //        result = Db.SlowSQL("SELECT o FROM Somebody o");
+            //        foreach (Somebody item in result) {
+            //            item.Delete();
+            //        }
 
-                    // Reset settings
-                    VersionHandlerSettings settings = VersionHandlerApp.Settings;
-                    settings.Delete();
-                    VersionHandlerApp.Settings = VersionHandlerSettings.GetSettings();
-                    LogWriter.Init(VersionHandlerApp.Settings.LogFile);
+            //        // Reset settings
+            //        VersionHandlerSettings settings = VersionHandlerApp.Settings;
+            //        settings.Delete();
+            //        VersionHandlerApp.Settings = VersionHandlerSettings.GetSettings();
+            //        LogWriter.Init(VersionHandlerApp.Settings.LogFile);
 
-                });
+            //    });
 
-                if (AssureEmails() == false) {
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = "Could not generate unique id, email import aborted" };
-                }
+            //    if (AssureEmails() == false) {
+            //        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = "Could not generate unique id, email import aborted" };
+            //    }
 
-                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
+            //    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
 
-            });
+            //});
 
 
             Handle.GET(port, "/refresh", (Request request) => {
