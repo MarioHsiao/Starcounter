@@ -2,7 +2,7 @@
 using Starcounter;
 
 namespace MySampleNamespace {
-    public partial class Simple : Json {
+    public partial class Simple<T,T2> : Json<T> {
         public string Name { get; set; }
 
 		[Apapa.json.Items]
