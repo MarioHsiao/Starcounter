@@ -34,7 +34,7 @@ namespace Starcounter.Templates {
                 if (value.Bound == Bound.No) {
                     propertyName = value.PropertyName;
                     if (!string.IsNullOrEmpty(propertyName)
-                        && !(propertyName[0] == '_')) {
+                        && !(propertyName[0] == '_') && !(propertyName.Equals("Html") )) { // TODO! Ugly hack. Fix.
                         value.Bind = propertyName;
                     }
                 }
