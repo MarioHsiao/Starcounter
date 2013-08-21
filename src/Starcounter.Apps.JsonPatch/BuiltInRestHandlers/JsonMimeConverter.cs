@@ -3,13 +3,14 @@
 using Starcounter.Advanced;
 using Starcounter.Internal.JsonPatch;
 using System;
+using System.Diagnostics;
 using System.Text;
 namespace Starcounter.Internal {
 
     /// <summary>
     /// 
     /// </summary>
-    public class PuppetToViewConverter : IResponseConverter {
+    public class JsonMimeConverter : IResponseConverter {
 
         /// <summary>
         /// 
@@ -19,6 +20,7 @@ namespace Starcounter.Internal {
         /// <returns></returns>
         public byte[] Convert(object before, MimeType mimeType, out MimeType resultingMimeType ) {
 
+//            Debugger.Launch();
             switch (mimeType) {
 
                 case MimeType.Application_Json:
@@ -43,8 +45,8 @@ namespace Starcounter.Internal {
                 case MimeType.Text_Html: {
                     var obj = (Json)before;
                     resultingMimeType = mimeType;
-                    if (obj.HtmlContent != null) {
-                        return Encoding.UTF8.GetBytes(obj.HtmlContent);
+                    if (obj._htmlContent != null) {
+                        return obj._htmlContent;
                     }
                     string s = obj.Html;
                     if (s == null) {
