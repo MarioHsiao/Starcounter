@@ -17,27 +17,16 @@ namespace Starcounter {
     /// <summary>
     /// Class Session
     /// </summary>
-    public class Session : IAppsSession {
+    public partial class Session : IAppsSession {
         [ThreadStatic]
-        static Session current;
+        static Session _Current;
 
         [ThreadStatic]
-        static Request request;
+        static Request _Request;
 
         internal Obj _Data;
 
         bool isInUse;
-
-        ChangeLog _ChangeLog;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public ChangeLog ChangeLog {
-            get {
-                return _ChangeLog;
-            }
-        }
 
         /// <summary>
         /// Cached pages dictionary.
@@ -92,15 +81,15 @@ namespace Starcounter {
         /// Returns the current active session.
         /// </summary>
         /// <value></value>
-        public static Session Current { get { return current; } }
+        public static Session Current { get { return _Current; } }
 
         /// <summary>
         /// Returns the original request for session.
         /// </summary>
         /// <value></value>
         internal static Request InitialRequest {
-            get { return request; }
-            set { request = value; }
+            get { return _Request; }
+            set { _Request = value; }
         }
 
         /// <summary>
@@ -109,24 +98,16 @@ namespace Starcounter {
         public ScSessionClass InternalSession { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Session" /> class.
-        /// </summary>
-        internal Session() {
-            _ChangeLog = new ChangeLog();
-        }
-
-        /// <summary>
         /// Creates new empty session.
         /// </summary>
         /// <returns></returns>
         internal static Session CreateNewEmptySession()
         {
-            Debug.Assert(current == null);
+            Debug.Assert(_Current == null);
 
-            current = new Session();
-            ChangeLog.CurrentOnThread = current._ChangeLog;
+            _Current = new Session();
 
-            return current;
+            return _Current;
         }
 
         /// <summary>
@@ -134,38 +115,41 @@ namespace Starcounter {
         /// </summary>
         public static Obj Data {
             get {
-                Session s = current;
+                Session s = _Current;
+                if (s == null) {
+                    s = CreateNewEmptySession();
+                }
                 if (s != null && s._Data != null) {
                     return s._Data;
                 }
                 return null;
             }
             set {
-                if (current == null) {
+                if (_Current == null) {
 
                     // Creating new empty session.
-                    current = new Session();
+                    _Current = new Session();
 
                     UInt32 errCode = 0;
 
-                    if (request != null) {
+                    if (_Request != null) {
 #if DEBUG
                         // Checking if we have a predefined session.
-                        if (request.IsSessionPredefined()) {
-                            errCode = request.GenerateForcedSession(current);
+                        if (_Request.IsSessionPredefined()) {
+                            errCode = _Request.GenerateForcedSession(_Current);
                         }
                         else {
-                            errCode = request.GenerateNewSession(current);
+                            errCode = _Request.GenerateNewSession(_Current);
                         }
 #else
-                    errCode = request.GenerateNewSession(current);
+                    errCode = _Request.GenerateNewSession(_Current);
 #endif
                     }
 
                     if (errCode != 0)
                         throw ErrorCode.ToException(errCode);
                 }
-                current.SetData(value);
+                _Current.SetData(value);
 
                 // Creating new implicit read-write transaction.
                 if (StarcounterBase._DB != null) {
@@ -182,13 +166,13 @@ namespace Starcounter {
 
             // If we are replacing the JSON tree, we need to dispose previous one.
             if (_Data != null) {
-                DisposeJsonRecursively(current._Data);
+                DisposeJsonRecursively(_Current._Data);
             }
             _Data = data;
 
-            // We don't want any changes logged during this request since
-            // we will have to send the whole object anyway in the response.
-            ChangeLog.CurrentOnThread = null;
+            if (data != null) {
+                data._Session = this;
+            }
         }
 
         /// <summary>
@@ -242,16 +226,13 @@ namespace Starcounter {
         /// <param name="session"></param>
         internal static void Start(Session session)
         {
-            Debug.Assert(current == null);
+            Debug.Assert(_Current == null);
 
             // Session still can be null, e.g. did not pass the verification.
             if (session == null)
                 return;
 
-            Session.current = session;
-            ChangeLog.CurrentOnThread = session._ChangeLog;
-
-            Debug.Assert(null != ChangeLog.CurrentOnThread);
+            Session._Current = session;
         }
 
         /// <summary>
@@ -259,9 +240,8 @@ namespace Starcounter {
         /// </summary>
         internal static void End()
         {
-            current._ChangeLog.Clear();
-            Session.current = null;
-            ChangeLog.CurrentOnThread = null;
+            _Current.Clear();
+            Session._Current = null;
 
             // Resetting current transaction if any exists.
             if (StarcounterBase._DB.GetCurrentTransaction() != null)
@@ -348,8 +328,8 @@ namespace Starcounter {
                 destroy_user_delegate_ = null;
             }
 
-            _ChangeLog = null;
-            Session.current = null;
+//            _ChangeLog = null;
+            Session._Current = null;
         }
 
         /// <summary>

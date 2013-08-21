@@ -95,7 +95,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         iterHelper = IteratorHelper.GetIndex(indexHandle); // Caching index handle.
 
         // Creating empty enumerator at caching time (without any managed post privateFilter).
-        enumerator = new FilterEnumerator(0, 0);
+        enumerator = new FilterEnumerator();
 
         // Checking if private filter has already been created for us.
         if (privateFilter == null)

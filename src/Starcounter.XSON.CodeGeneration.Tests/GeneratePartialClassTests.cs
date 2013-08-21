@@ -1,0 +1,150 @@
+﻿// ***********************************************************************
+// <copyright file="TestTemplates.cs" company="Starcounter AB">
+//     Copyright (c) Starcounter AB.  All rights reserved.
+// </copyright>
+// ***********************************************************************
+
+using Starcounter;
+using System;
+using NUnit.Framework;
+using Starcounter.Templates;
+using Starcounter.Internal.Application.CodeGeneration;
+using Starcounter.Templates.Interfaces;
+using System.IO;
+using Starcounter.XSON.Metadata;
+using Starcounter.Internal;
+using Starcounter.XSON.CodeGeneration;
+using Modules;
+using Starcounter.Internal.XSON;
+
+namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
+    /// <summary>
+    /// Class TestTemplates
+    /// </summary>
+    [TestFixture]
+    public class GeneratePartialClassTests {
+        [TestFixtureSetUp]
+        public static void InitializeTest() {
+        }
+
+
+        /// <summary>
+        /// Creates a template from a JSON-by-example file
+        /// </summary>
+        /// <param name="filePath">The file to load</param>
+        /// <returns>The newly created template</returns>
+        private static TJson CreateJsonTemplateFromFile(string filePath) {
+            string json = File.ReadAllText(filePath);
+            string className = Path.GetFileNameWithoutExtension(filePath);
+            var tobj = TObj.CreateFromMarkup<Json,TJson>("json", json, className);
+            tobj.ClassName = className;
+            return tobj;
+        }
+
+        /// <summary>
+        /// Creates the cs from js file.
+        /// </summary>
+        [Test]
+        public static void CreateCsFromJsFile() {
+            TJson templ = CreateJsonTemplateFromFile("MySampleApp.json");
+            Assert.NotNull(templ);
+        }
+
+        /// <summary>
+        /// Generates the cs.
+        /// </summary>
+        [Test]
+        public static void GenerateCs() {
+            TJson actual = CreateJsonTemplateFromFile("MySampleApp.json");
+            Assert.IsInstanceOf(typeof(TJson), actual);
+            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
+            var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
+            Console.WriteLine(codegen.GenerateCode());
+        }
+
+        /// <summary>
+        /// </summary>
+        [Test]
+        public static void GenerateCsFromSimpleJs() {
+            TJson actual = CreateJsonTemplateFromFile("simple.json");
+            actual.ClassName = "PlayerApp";
+
+            var file = new System.IO.StreamReader("simple.facit.cs");
+            var facit = file.ReadToEnd();
+            file.Close();
+            Assert.IsInstanceOf(typeof(TJson), actual);
+            var codegenmodule = new Gen1CodeGenerationModule();
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
+            Console.WriteLine(codegen.DumpAstTree());
+            var code = codegen.GenerateCode();
+            Console.WriteLine(code);
+            // Assert.AreEqual(facit, code);
+        }
+
+        /// <summary>
+        /// </summary>
+        [Test]
+        public static void GenerateCsFromSuperSimpleJs() {
+            TJson actual = CreateJsonTemplateFromFile("supersimple.json");
+            actual.ClassName = "PlayerApp";
+
+            Assert.IsInstanceOf(typeof(TJson), actual);
+            var codegenmodule = new Gen1CodeGenerationModule();
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
+            Console.WriteLine(codegen.DumpAstTree());
+            var code = codegen.GenerateCode();
+            Console.WriteLine(code);
+        }
+
+        [Test]
+        public static void GenerateCsFromTestMessage() {
+            String className = "TestMessage";
+            string codeBehindFilePath = className + ".json.cs";
+            string codeBehind = File.ReadAllText(codeBehindFilePath);
+            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath );
+
+            TJson actual = CreateJsonTemplateFromFile(className + ".json");
+            Assert.IsInstanceOf(typeof(TJson), actual);
+
+            actual.Namespace = metadata.RootClassInfo.Namespace;
+            actual.ClassName = className;
+
+            Assert.IsNotNullOrEmpty(actual.Namespace);
+
+            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
+
+            Console.WriteLine(codegen.GenerateCode());
+        }
+
+        [Test]
+        public static void GenerateCsWithCodeBehind()
+        {
+            String className = "MySampleApp";
+            string codeBehindFilePath = className + ".json.cs";
+            string codeBehind = File.ReadAllText(codeBehindFilePath);
+
+            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath);
+
+            TJson actual = CreateJsonTemplateFromFile(className + ".json");
+            Assert.IsInstanceOf(typeof(TJson), actual);
+
+            actual.Namespace = metadata.RootClassInfo.Namespace;
+            Assert.IsNotNullOrEmpty(actual.Namespace);
+
+            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
+            Console.WriteLine(codegen.GenerateCode());
+        }
+
+        [Test]
+        public static void TestMissingTypeInformationForDataBinding() {
+            Assert.Catch(() => { PartialClassGenerator.GenerateTypedJsonCode("databound.json", "databound.json.cs"); });
+        }
+    }
+}
+
+
+
+
+   

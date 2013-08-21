@@ -178,7 +178,7 @@ const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 128;
 const int32_t MAX_FETCHED_OVLS = 1000;
 
 // Maximum size of HTTP content.
-const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 32;
+const int32_t MAX_HTTP_CONTENT_SIZE = 1024 * 1024 * 256;
 
 // Size of circular log buffer.
 const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;

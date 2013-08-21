@@ -1,7 +1,9 @@
 
 
+using Starcounter.Advanced;
 using Starcounter.Internal.JsonPatch;
 using System;
+using System.Text;
 namespace Starcounter.Internal {
 
     /// <summary>
@@ -20,32 +22,54 @@ namespace Starcounter.Internal {
             switch (mimeType) {
 
                 case MimeType.Application_Json:
+                case MimeType.Text_Plain:
                 case MimeType.Unspecified: {
+                        resultingMimeType = MimeType.Application_Json;
 
                         Container r = (Container)before;
                         while (r.Parent != null)
                             r = r.Parent;
                         Json root = (Json)r;
-                        resultingMimeType = MimeType.Application_Json;
-                        return root.ToJsonUtf8();
+                        var ret = root.ToJsonUtf8();
+                        var s = root.Session;
+                        if (s != null) {
+                            // Make sure that we regard all changes as being sent to the client.
+                            // Calculate patches from here ons
+                            s.CheckpointChangeLog();
+                        }
+                        return ret;
                     }
 
                 case MimeType.Text_Html: {
                     var obj = (Json)before;
-                    string s = obj.Html; ;
+                    resultingMimeType = mimeType;
+                    if (obj.HtmlContent != null) {
+                        return Encoding.UTF8.GetBytes(obj.HtmlContent);
+                    }
+                    string s = obj.Html;
+                    if (s == null) {
+                        MimeType discard;
+                        return this.Convert(before, MimeType.Application_Json, out discard);
+                    }
                     if (s[0] != '/') // TODO! Needs optimization
                         s = "/" + obj.Html;
-                    resultingMimeType = mimeType;
-                    return X.GET(s).BodyBytes;
+                    return Encoding.UTF8.GetBytes(X.GET(s));
                 }
 
                 case MimeType.Application_JsonPatch__Json: {
+                        Session s = Session.Current;
+                        if (s == null) {
+                            throw new UnsupportedMimeTypeException(
+                                String.Format("Cannot supply mime-type {0} for the JSON resource. There is no session, so no JSON-Patch message can be generated.", mimeType.ToString()));
+                        }
                         resultingMimeType = mimeType;
-                        return HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread);
+                        //return HttpPatchBuilder.CreateHttpPatchResponse(ChangeLog.CurrentOnThread);
+                        var ret = s.CreateJsonPatchBytes(true);
+                        return ret;
                 }
             }
            
-            throw new ArgumentException(
+            throw new UnsupportedMimeTypeException(
                 String.Format("Unsupported mime type {0}.",mimeType.ToString()));
         }
     }

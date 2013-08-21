@@ -1,0 +1,8 @@
+﻿
+partial class ParentChild : Json {
+}
+
+[ParentChild.json.Child2]
+partial class ContactPage : Json {
+}
+

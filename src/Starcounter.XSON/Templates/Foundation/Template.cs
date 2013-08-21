@@ -21,6 +21,14 @@ namespace Starcounter.Templates {
     public abstract class Template 
     {
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString() {
+            return DebugPropertyNameWithPath;
+        }
+
+        /// <summary>
         /// Gets the type of the json.
         /// </summary>
         /// <value>The type of the json.</value>
@@ -204,15 +212,19 @@ namespace Starcounter.Templates {
         /// <summary>
         /// The property name including parent path
         /// </summary>
-        public string PropertyNameWithPath {
+        public string DebugPropertyNameWithPath {
             get {
                 if (Parent != null) {
-                    return Parent.PropertyNameWithPath + "." + PropertyName;
+                    return Parent.DebugPropertyNameWithPath + "." + PropertyName;
                 } else {
+                    String str;
                     if (PropertyName != null) {
-                        return "(?)." + PropertyName;
+                        str = "(" + PropertyName + ").";
                     }
-                    return this.InstanceType.Name;
+                    else {
+                        str = "";
+                    }
+                    return str + this.GetType().Name+"#"+this.GetHashCode();
                 }
             }
         }
@@ -270,6 +282,20 @@ namespace Starcounter.Templates {
             toTemplate.Enabled = Enabled;
             toTemplate.Visible = Visible;
         }
+
+        
+#if DEBUG
+        internal void VerifyProperty(Template prop) {
+            if (this != prop.Parent) {
+                throw new Exception(String.Format(
+                    "The property {0} is declared in {1} but an attempt was made to use it in {2}",
+                    prop.DebugPropertyNameWithPath,
+                    prop.Parent.DebugPropertyNameWithPath,
+                    this.DebugPropertyNameWithPath));
+            }
+
+        }
+#endif
     }
 
     /// <summary>

@@ -61,50 +61,44 @@ public sealed class SqlEnumCache
             enumArray = newEnumArray;
             enumListListNode = null;
         }
-        if (enumListListNode != null)
-        {
-            // Getting enumerator list inside the node.
-            LinkedList<IExecutionEnumerator> enumList = enumListListNode.Value;
+            if (enumListListNode != null) {
+                // Getting enumerator list inside the node.
+                LinkedList<IExecutionEnumerator> enumList = enumListListNode.Value;
 
-            // Checking if there are any enumerators in the list.
-            if (enumList.Count == 0)
-            {
-                // Always using first cached enumerator for cloning (because of dynamic ranges).
+                // Checking if there are any enumerators in the list.
+                if (enumList.Count == 0) {
+                    // Always using first cached enumerator for cloning (because of dynamic ranges).
+                    execEnum = globalQueryCache.GetEnumClone(uniqueQueryId);
+
+                    // Increasing the number of enumerators.
+                    totalCachedEnum++;
+
+                    // Giving the cache where all subsequent enumerators should be returned.
+                    execEnum.AttachToCache(enumList);
+                } else {
+                    // Cutting last enumerator.
+                    execEnum = enumList.Last.Value;
+                    enumList.RemoveLast();
+                }
+            } else {
+                // Fetching existing enumerator from the global cache.
                 execEnum = globalQueryCache.GetEnumClone(uniqueQueryId);
 
-                // Increasing the number of enumerators.
+                // Increasing the number of enumerators
                 totalCachedEnum++;
 
+                // Creating new list for enumerators of the same query.
+                LinkedList<IExecutionEnumerator> newEnumList = new LinkedList<IExecutionEnumerator>();
+
+                // Creating node with enumerator list identified by query and adding it to cache dictionary.
+                enumListListNode = new LinkedListNode<LinkedList<IExecutionEnumerator>>(newEnumList);
+
+                // Adding new enumerator to the array.
+                enumArray[uniqueQueryId] = enumListListNode;
+
                 // Giving the cache where all subsequent enumerators should be returned.
-                execEnum.AttachToCache(enumList);
+                execEnum.AttachToCache(newEnumList);
             }
-            else
-            {
-                // Cutting last enumerator.
-                execEnum = enumList.Last.Value;
-                enumList.RemoveLast();
-            }
-        }
-        else
-        {
-            // Fetching existing enumerator from the global cache.
-            execEnum = globalQueryCache.GetEnumClone(uniqueQueryId);
-
-            // Increasing the number of enumerators
-            totalCachedEnum++;
-
-            // Creating new list for enumerators of the same query.
-            LinkedList<IExecutionEnumerator> newEnumList = new LinkedList<IExecutionEnumerator>();
-
-            // Creating node with enumerator list identified by query and adding it to cache dictionary.
-            enumListListNode = new LinkedListNode<LinkedList<IExecutionEnumerator>>(newEnumList);
-
-            // Adding new enumerator to the array.
-            enumArray[uniqueQueryId] = enumListListNode;
-
-            // Giving the cache where all subsequent enumerators should be returned.
-            execEnum.AttachToCache(newEnumList);
-        }
 
         // Adding to the sorting list.
         lastUsedEnumIndex = uniqueQueryId;

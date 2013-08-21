@@ -14,9 +14,9 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
     public class Installation {
 
         /// <summary>
-        /// Download ID (Unique id that identifies a specific build)
+        /// Serial ID (Unique id that identifies a specific build)
         /// </summary>
-        public string DownloadID;
+        public string Serial;
 
         /// <summary>
         /// Previous Installation number
@@ -106,10 +106,10 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="downloadId"></param>
-        public Installation(string downloadId) {
+        /// <param name="serial"></param>
+        public Installation(string serial) {
 
-            this.DownloadID = downloadId;
+            this.Serial = serial;
             this.Date = DateTime.UtcNow;
             this.InstallationNo = StarcounterCollectionHandler.GetNextSequenceNo("Installation");
             this.PreviousInstallationNo = -1;
@@ -118,11 +118,11 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="downloadId"></param>
+        /// <param name="serial"></param>
         /// <param name="previousInstallationNo"></param>
-        public Installation(string downloadId, int previousInstallationNo) {
+        public Installation(string serial, int previousInstallationNo) {
 
-            this.DownloadID = downloadId;
+            this.Serial = serial;
             this.Date = DateTime.UtcNow;
             this.InstallationNo = StarcounterCollectionHandler.GetNextSequenceNo("Installation");
             this.PreviousInstallationNo = previousInstallationNo;

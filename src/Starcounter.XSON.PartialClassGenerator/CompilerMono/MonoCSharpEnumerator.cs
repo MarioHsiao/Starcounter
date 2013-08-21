@@ -3,18 +3,21 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Mono.CSharp;
+using Starcounter.XSON.Metadata;
 
 namespace Starcounter.XSON.Compiler.Mono {
     internal class MonoCSharpEnumerator {
-        private string filePath;
+        private string filePathNote;
+        private string Code;
         private Tokenizer tokenizer;
         private CSharpToken currentToken;
         private Stack<string> nsStack;
         private Stack<string> classStack;
         private Stack<CSharpToken> tokenStack;
 
-        internal MonoCSharpEnumerator(string filePath) {
-            this.filePath = filePath;
+        internal MonoCSharpEnumerator(string codebehind, string filePathNote) {
+            this.filePathNote = filePathNote;
+            this.Code = codebehind;
             currentToken = CSharpToken.UNDEFINED;
             nsStack = new Stack<string>();
             classStack = new Stack<string>();
@@ -50,7 +53,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             return (CSharpToken)tokenizer.peek_token();
         }
 
-        internal string LastFoundJsonAttribute { get; set; }
+        internal CodeBehindClassInfo LastFoundJsonAttribute { get; set; }
 
         internal string CurrentNamespace {
             get {
@@ -114,7 +117,7 @@ namespace Starcounter.XSON.Compiler.Mono {
 
         private void CreateMonoTokenizer() {
             List<SourceFile> sfList = new List<SourceFile>();
-            sfList.Add(new SourceFile(Path.GetFileNameWithoutExtension(filePath), filePath, 0));
+            sfList.Add(new SourceFile(Path.GetFileNameWithoutExtension(filePathNote), filePathNote, 0));
             Location.Initialize(sfList);
 
             CompilerSettings settings = new CompilerSettings();
@@ -122,8 +125,8 @@ namespace Starcounter.XSON.Compiler.Mono {
             ModuleContainer module = new ModuleContainer(ctx);
             CompilationSourceFile file = new CompilationSourceFile(module, null);
 
-            string code = File.ReadAllText(filePath);
-            MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(code));
+//            string code = File.ReadAllText(filePath);
+            MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(Code));
             SeekableStreamReader seekable = new SeekableStreamReader(stream, Encoding.UTF8, null);
             tokenizer = new Tokenizer(seekable, file, new ParserSession());
             tokenizer.PropertyParsing = false;

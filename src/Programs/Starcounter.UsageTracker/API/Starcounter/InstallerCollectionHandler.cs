@@ -8,15 +8,15 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
             UsageCollectionHandler.Setup_POST(port);
         }
 
-        public static Installation AssureInstallation(int installationNo, string downloadId) {
+        public static Installation AssureInstallation(int installationNo, string serial) {
 
 
             //Installation installation = Db.SlowSQL("SELECT o FROM Installation o WHERE o.IP=? AND o.Mac = ? AND o.DownloadID = ?", ip, mac, downloadId).First;
-            Installation installation = Db.SlowSQL("SELECT o FROM Installation o WHERE o.InstallationNo=? AND o.DownloadID=?", installationNo, downloadId).First;
+            Installation installation = Db.SlowSQL("SELECT o FROM Installation o WHERE o.InstallationNo=? AND o.Serial=?", installationNo, serial).First;
             if (installation == null) {
                 // Create installation
                 Db.Transaction(() => {
-                    installation = new Installation( downloadId, installationNo);
+                    installation = new Installation(serial, installationNo);
                 });
 
             }

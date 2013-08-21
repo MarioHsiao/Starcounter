@@ -11,6 +11,8 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal;
+using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace Starcounter
 {
@@ -30,11 +32,17 @@ namespace Starcounter
         public UInt64 CursorHandle { get { return _handle; } }
 
         private UInt64 _verify = 0; // Also used to check if enumerator has been disposed or not.
+
         /// <summary>
         /// Gets the cursor verify.
         /// </summary>
         /// <value>The cursor verify.</value>
         public UInt64 CursorVerify { get { return _verify; } }
+
+        /// <summary>
+        /// Reference to the scheduler instance, where the enumerator is created
+        /// </summary>
+        internal readonly Scheduler SchedulerOwner;
 
         private FilterCallback _filterCallback = null;
 
@@ -43,19 +51,18 @@ namespace Starcounter
         /// </summary>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
-        public Enumerator(UInt64 handle, UInt64 verify) : this(handle, verify, null) { }
+        public Enumerator() : this(null) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="Enumerator{T}" /> class.
         /// </summary>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
         /// <param name="filterCallback">The filter callback.</param>
-        public Enumerator(UInt64 handle, UInt64 verify, FilterCallback filterCallback)
+        public Enumerator(FilterCallback filterCallback)
             : base()
         {
-            _handle = handle;
-            _verify = verify;
             _filterCallback = filterCallback;
+            SchedulerOwner = Scheduler.GetInstance();
         }
 
         // Enumerator already exists, we need to update the contents.
@@ -74,6 +81,7 @@ namespace Starcounter
             {
                 _handle = handle;
                 _verify = verify;
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
             }
         }
         /// <summary>
@@ -122,30 +130,31 @@ namespace Starcounter
             }
         }
 
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose()
-        {
+        public void Dispose() {
             // Checking if enumerator was already disposed or not yet created.
             if (_handle == 0 || _verify == 0)
                 return;
 
             // Removing reference to current object.
             _current = null;
+
             UInt32 err = sccoredb.SCIteratorFree(_handle, _verify);
 
             // Marking this enumerator as disposed.
-            if (err == 0)
-            {
-                _handle = 0;
-                _verify = 0;
+            if (err == 0) {
+                MarkAsDisposed();
                 return;
             }
 
+#if false // Should not be reachable
             // Checking for specific behavior.
             if ((err == Error.SCERRITERATORNOTOWNED) && (_verify == 0))
                 return;
+#endif
 
             // Otherwise returning error.
             throw ErrorCode.ToException(err);
@@ -198,6 +207,7 @@ namespace Starcounter
 
         next:
             //Application.Profiler.Start("SCIteratorNext", 2);
+            Boolean newIterator = _handle == 0;
             unsafe
             {
                 ir = sccoredb.SCIteratorNext(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
@@ -206,6 +216,15 @@ namespace Starcounter
 
             if (ir != 0)
                 goto err;
+            Debug.Assert(_handle != 0);
+
+            if (newIterator) {
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+                if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
+                    SchedulerOwner.NrOpenIterators++;
+                else
+                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
+            }
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
@@ -258,6 +277,7 @@ namespace Starcounter
         /// <summary>
         /// Assumes that enumerator was already disposed and marks it like this.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void MarkAsDisposed()
         {
             _handle = 0;
@@ -272,6 +292,7 @@ namespace Starcounter
             throw new NotSupportedException();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Boolean IsDisposed()
         {
             return (_verify == 0);
@@ -316,6 +337,11 @@ namespace Starcounter
         /// <value>The cursor verify.</value>
         public UInt64 CursorVerify { get { return _verify; } }
 
+        /// <summary>
+        /// Reference to the scheduler instance, where the enumerator is created
+        /// </summary>
+        internal readonly Scheduler SchedulerOwner;
+
         private FilterCallback _filterCallback = null;
 
         /// <summary>
@@ -323,18 +349,17 @@ namespace Starcounter
         /// </summary>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
-        public FilterEnumerator(UInt64 handle, UInt64 verify) : this(handle, verify, null) { }
+        public FilterEnumerator() : this(null) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="Enumerator{T}" /> class.
         /// </summary>
         /// <param name="handle">The handle.</param>
         /// <param name="verify">The verify.</param>
         /// <param name="filterCallback">The filter callback.</param>
-        public FilterEnumerator(UInt64 handle, UInt64 verify, FilterCallback filterCallback)
+        public FilterEnumerator(FilterCallback filterCallback)
             : base() {
-            _handle = handle;
-            _verify = verify;
             _filterCallback = filterCallback;
+            SchedulerOwner = Scheduler.GetInstance();
         }
 
         // Enumerator already exists, we need to update the contents.
@@ -350,6 +375,7 @@ namespace Starcounter
             else {
                 _handle = handle;
                 _verify = verify;
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
             }
         }
         /// <summary>
@@ -401,18 +427,19 @@ namespace Starcounter
 
             // Removing reference to current object.
             _current = null;
-            UInt32 err = sccoredb.filter_iterator_free(_handle, _verify);
+            UInt32 err = sccoredb.SCIteratorFree(_handle, _verify);
 
             // Marking this enumerator as disposed.
             if (err == 0) {
-                _handle = 0;
-                _verify = 0;
+                MarkAsDisposed();
                 return;
             }
 
+#if false // Should not be reachable
             // Checking for specific behavior.
             if ((err == Error.SCERRITERATORNOTOWNED) && (_verify == 0))
                 return;
+#endif
 
             // Otherwise returning error.
             throw ErrorCode.ToException(err);
@@ -448,6 +475,7 @@ namespace Starcounter
 
         next:
             //Application.Profiler.Start("filter_iterator_next", 2);
+            Boolean newIterator = _handle == 0;
             unsafe {
                 ir = sccoredb.filter_iterator_next(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
             }
@@ -455,6 +483,15 @@ namespace Starcounter
 
             if (ir != 0)
                 goto err;
+            Debug.Assert(_handle != 0);
+
+            if (newIterator) {
+                Debug.Assert(SchedulerOwner == Scheduler.GetInstance());
+                if (SchedulerOwner.NrOpenIterators < Scheduler.NROPENITERATORSPERSCHEDULER)
+                    SchedulerOwner.NrOpenIterators++;
+                else
+                    ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
+            }
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;

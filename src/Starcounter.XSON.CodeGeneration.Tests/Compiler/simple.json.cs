@@ -2,7 +2,11 @@
 using Starcounter;
 
 namespace MySampleNamespace {
-    partial class Simple : Json {
+    public partial class Simple : Json {
         public string Name { get; set; }
+
+		[Apapa.json.Items]
+		public partial class InheritedChild : MyOtherNs.MySubNS.SubClass<MyNS.Order> {
+		}
     }
 }

@@ -1,15 +1,22 @@
-﻿
-using Starcounter.Advanced;
+﻿using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON;
+
 namespace Starcounter.Templates {
     partial class TObj {
+		private bool bindChildren;
+        public bool HasAtLeastOneBoundProperty = true; // TODO!
 
-
-        internal DataValueBinding<IBindable> GetBinding(IBindable data) {
-            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType(), Bind);
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+        internal override bool UseBinding(IBindable data) {
+			if (data == null)
+				return false;
+            return DataBindingFactory.VerifyOrCreateBinding(this, data.GetType());
         }
-
 
         /// <summary>
         /// 
@@ -21,6 +28,9 @@ namespace Starcounter.Templates {
 
             value = child as TValue;
             if (value != null) {
+				if (value is TTrigger)
+					return;
+
                 if (value.Bound == Bound.No) {
                     propertyName = value.PropertyName;
                     if (!string.IsNullOrEmpty(propertyName)
@@ -33,7 +43,6 @@ namespace Starcounter.Templates {
                 }
             }
         }
-
 
         /// <summary>
         /// If set to true all children will be automatically bound to the dataobject, 
@@ -57,5 +66,22 @@ namespace Starcounter.Templates {
             }
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		internal override object GetBoundValueAsObject(Obj obj) {
+			return obj.GetBound(this);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <param name="value"></param>
+		internal override void SetBoundValueAsObject(Obj obj, object value) {
+			obj.SetBound(this, (IBindable)value);
+		}
     }
 }

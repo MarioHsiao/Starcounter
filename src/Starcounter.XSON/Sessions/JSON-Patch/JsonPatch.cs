@@ -111,18 +111,19 @@ namespace Starcounter.Internal.JsonPatch {
             sb.Append("\",\"path\":\"");
             IndexPathToString(sb, from, nearestApp);
 
-            if (index != -1) {
-                sb.Append('/');
-                sb.Append(index);
-            }
+          if (index != -1) {
+              sb.Append('/');
+              sb.Append(index);
+          }
+
             sb.Append('"');
 
             if (patchType != REMOVE) {
                 sb.Append(",\"value\":");
-                if (value is Obj) {
-                    var oo = (Obj)value;
-                    sb.Append(oo.ToJson());
-                } else {
+				if (value is Container) {
+					var oo = (Container)value;
+					sb.Append(oo.ToJson());
+				} else {
                     sb.Append(JsonConvert.SerializeObject(value));
                 }
             }

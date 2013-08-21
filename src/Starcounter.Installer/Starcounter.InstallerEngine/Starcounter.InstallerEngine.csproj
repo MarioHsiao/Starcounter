@@ -100,9 +100,6 @@
     <Compile Include="Win32Kernel.cs" />
     <Compile Include="Win32Security.cs" />
     <Compile Include="Win32Service.cs" />
-    <EmbeddedResource Include="VersionInfo.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
     <Compile Include="Components\ComponentBase.cs" />
     <Compile Include="Components\InstallationBase.cs" />
     <Compile Include="Components\PersonalServer.cs" />

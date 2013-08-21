@@ -88,6 +88,7 @@
     <Compile Include="Http\HttpResponseBuilder.cs" />
     <Compile Include="Http\ResponseExtensions.cs" />
     <Compile Include="Interfaces\ILogSource.cs" />
+    <Compile Include="Interfaces\IReadOnlyITree.cs" />
     <Compile Include="Interfaces\XSON\IBindableRetriever.cs" />
     <Compile Include="Sessions\InternalSessions.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
@@ -122,6 +123,8 @@
     <Compile Include="ScUri.cs" />
     <Compile Include="StarcounterBase.cs" />
     <Compile Include="TestLogger.cs" />
+    <Compile Include="TreeHelper.cs" />
+    <Compile Include="UnsupportedMimeTypeException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

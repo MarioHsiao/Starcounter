@@ -363,8 +363,7 @@ internal abstract class ExecutionEnumerator
     /// <summary>
     /// Resets the enumerator.
     /// </summary>
-    public void Reset()
-    {
+    public virtual void Reset() {
         // Resetting the transaction identifier.
         //variableArray.TransactionId = Transaction.Current.TransactionId;
 
@@ -378,7 +377,7 @@ internal abstract class ExecutionEnumerator
     internal virtual void ReturnToCache()
     {
         // Returning this enumerator back to the cache.
-        enumCacheListFrom.AddLast(enumListNode);
+            enumCacheListFrom.AddLast(enumListNode);
     }
 
     /// <summary>
