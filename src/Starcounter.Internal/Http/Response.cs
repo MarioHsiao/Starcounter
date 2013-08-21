@@ -384,7 +384,9 @@ namespace Starcounter.Advanced
             if (Uncompressed != null) {
                 return ExtractBodyFromUncompressedHttpResponse();
             }
-            return new byte[0];
+
+            bodyBytes_ = GetBodyBytes_Slow();
+            return bodyBytes_;
         }
 
         /// <summary>
