@@ -152,10 +152,10 @@ namespace Starcounter.Internal.JsonPatch
             Template template;
             Object obj;
 
-            if (changeLog.Count == 0)
-            {
-                return 0;
-            }
+           // if (changeLog.Count == 0)
+           // {
+           //     return 0;
+           // }
 
             startIndex = buffer.Count;
             buffer.Add((byte)'[');
@@ -177,9 +177,11 @@ namespace Starcounter.Internal.JsonPatch
                 buffer.Add((byte)'\n');
             }
 
-            // Remove the ',' char.
-            buffer.RemoveAt(buffer.Count - 1);
-            buffer.RemoveAt(buffer.Count - 1);
+            // Remove the ',' and new-line chars.
+            if (changeLog.Count > 0) {
+                buffer.RemoveAt(buffer.Count - 1);
+                buffer.RemoveAt(buffer.Count - 1);
+            }
             buffer.Add((byte)']');
             
             return buffer.Count - startIndex;
@@ -201,7 +203,7 @@ namespace Starcounter.Internal.JsonPatch
                 ret = change.Obj.Get((TString)property);
             } else if (property is TObjArr) {
                 var arr = (Arr)change.Obj.Get((TObjArr)property);
-                if (change.ChangeType == Change.ADD) {
+				if (change.Index != -1) {
                     ret = arr[change.Index];
                 }
                 else {

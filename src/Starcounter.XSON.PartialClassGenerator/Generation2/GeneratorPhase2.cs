@@ -40,8 +40,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                 var json = new AstJsonAttributeClass(Generator) {
                     Parent = acn,
-                    IsStatic = true,
-                    _Inherits = null,
+                    _Inherits = "TemplateAttribute",
                     _ClassName = "json"
                 };
                 GenerateJsonAttributes(acn, json);

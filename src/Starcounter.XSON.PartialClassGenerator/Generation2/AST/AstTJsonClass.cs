@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter.Templates;
+using Starcounter.XSON.Metadata;
 using System;
 using System.Collections.Generic;
 namespace Starcounter.Internal.MsBuild.Codegen {
@@ -15,7 +16,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// </summary>
     public class AstTAppClass : AstTemplateClass {
        // public NAppClass AppClassNode;
-
+        public CodeBehindClassInfo ClassInfo;
 //        public static Dictionary<TApp, NClass> Instances = new Dictionary<TApp, NClass>();
 
         /// <summary>
@@ -55,7 +56,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <value>The inherits.</value>
         public override string Inherits {
-            get { return _Inherits; }
+//            get { return _Inherits; }
+            get { return "TJson"; }
         }
 
         /// <summary>

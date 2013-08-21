@@ -173,18 +173,21 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
         }
 
         [Test]
+        [Category("LongRunning")]
         public static void BenchmarkDefaultSerializer() {
             BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, true, false);
             BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, true, false);
         }
 
         [Test]
+        [Category("LongRunning")]
         public static void BenchmarkCodegenSerializer() {
             BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, false, true);
             BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, false, true);
         }
 
         [Test]
+        [Category("LongRunning")]
         public static void BenchmarkAllSerializers() {
             BenchmarkSerializers(File.ReadAllText("jsstyle.json"), true, true, true);
             BenchmarkSerializers(File.ReadAllText("supersimple.json"), true, true, true);
