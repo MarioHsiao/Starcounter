@@ -15,7 +15,7 @@ namespace Starcounter.XSON.Compiler.Mono {
     /// <summary>
     /// Class CodeBehindAnalyzer
     /// </summary>
-    public static class CodeBehindAnalyzer {
+    public static class CodeBehindParser {
         /// <summary>
         /// Parses the specified c# file using Roslyn and builds a metadata
         /// structure used to generate code for json Apps.
@@ -129,51 +129,92 @@ namespace Starcounter.XSON.Compiler.Mono {
 
         /// <summary>
         /// Assumes that the current position of the enumerator is positioned at the class identifer.
-        /// Searches the inheritance list (if any) for a valid baseclass for typed json. If a baseclass
+        /// If a baseclass
         /// is found, the generic argument will be retrieved as well if it exists.
         /// /// </summary>
         /// <param name="mce"></param>
         /// <param name="baseClass"></param>
         /// <param name="genericArgument"></param>
         /// <returns></returns>
-        private static bool IsTypedJsonClass(MonoCSharpEnumerator mce, out string baseClass, out string genericArgument) {
-            bool isTypedJsonClass;
+        private static void ProcessClassDeclaration(MonoCSharpEnumerator mce, out string baseClass, out string genericArgument, out string baseClassGenericArgument) {
+            // bool isTypedJsonClass;
             string baseClassNameStr = "";
-			string genericArgStr = "";
+            string genericArgStr = "";
+            string baseClassGenericArgStr = "";
 
             genericArgument = null;
             baseClass = null;
-            isTypedJsonClass = false;
-            if (mce.Peek() == CSharpToken.COLON) { // The class have a inheritance list.
-                mce.MoveNext(); // COLON
+            baseClassGenericArgument = null;
+            //    isTypedJsonClass = false;
 
-				// Since we allow inheritance we have no idea if the class we found is a valid
-				// typed json class or not. So we have to assume that the first one is the basetype
-				// and not an interface or something.
-                while (mce.MoveNext()) {
-					if (mce.Token == CSharpToken.OPEN_BRACE || mce.Token == CSharpToken.COMMA) {
-						baseClass = baseClassNameStr;
-						isTypedJsonClass = true;
-						break;
-					} else if (mce.Token == CSharpToken.IDENTIFIER) {
-                        baseClassNameStr += mce.Value;
-					} else if (mce.Token == CSharpToken.DOT) {
-						baseClassNameStr += ".";
-					} else if (mce.Token == CSharpToken.OP_GENERICS_LT) {
-						while (mce.MoveNext()) {
-							if (mce.Token == CSharpToken.OP_GENERICS_GT) {
-								genericArgument = genericArgStr;
-								break;
-							} else if (mce.Token == CSharpToken.IDENTIFIER) {
-								genericArgStr += mce.Value;
-							} else if (mce.Token == CSharpToken.DOT) {
-								genericArgStr += ".";
-							}
-						}
-					}
+            // Since we allow inheritance we have no idea if the class we found is a valid
+            // typed json class or not. So we have to assume that the first one is the basetype
+            // and not an interface or something.
+            while (mce.MoveNext()) {
+                if (mce.Token == CSharpToken.OPEN_BRACE || mce.Token == CSharpToken.COMMA) {
+                    baseClass = baseClassNameStr;
+                    //		isTypedJsonClass = true;
+                    break;
                 }
+                else if (mce.Token == CSharpToken.IDENTIFIER) {
+                    baseClassNameStr += mce.Value;
+                }
+                else if (mce.Token == CSharpToken.DOT) {
+                    baseClassNameStr += ".";
+                }
+                else if (mce.Token == CSharpToken.OP_GENERICS_LT) {
+                    while (mce.MoveNext()) {
+                        if (mce.Token == CSharpToken.OP_GENERICS_GT) {
+                            genericArgument = genericArgStr;
+                            break;
+                        }
+                        else if (mce.Token == CSharpToken.IDENTIFIER) {
+                            genericArgStr += mce.Value;
+                        }
+                        else if (mce.Token == CSharpToken.DOT) {
+                            genericArgStr += ".";
+                        }
+                        else if (mce.Token == CSharpToken.COMMA) {
+                            genericArgStr += ",";
+                        }
+                    }
+                }
+                else if (mce.Token == CSharpToken.COLON) {
+                    while (mce.MoveNext()) {
+                        if (mce.Token == CSharpToken.OPEN_BRACE || mce.Token == CSharpToken.COMMA) {
+                            baseClass = baseClassNameStr;
+                            //       isTypedJsonClass = true;
+                            break;
+                        }
+                        else if (mce.Token == CSharpToken.IDENTIFIER) {
+                            baseClassNameStr += mce.Value;
+                        }
+                        else if (mce.Token == CSharpToken.DOT) {
+                            baseClassNameStr += ".";
+                        }
+                        else if (mce.Token == CSharpToken.OP_GENERICS_LT) {
+                            while (mce.MoveNext()) {
+                                if (mce.Token == CSharpToken.OP_GENERICS_GT) {
+                                    baseClassGenericArgument = baseClassGenericArgStr;
+                                    break;
+                                }
+                                else if (mce.Token == CSharpToken.IDENTIFIER) {
+                                    baseClassGenericArgStr += mce.Value;
+                                }
+                                else if (mce.Token == CSharpToken.DOT) {
+                                    baseClassGenericArgStr += ".";
+                                }
+                                else if (mce.Token == CSharpToken.COMMA) {
+                                    baseClassGenericArgStr += ",";
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+
             }
-            return isTypedJsonClass;
+            return;
         }
 
         /// <summary>
@@ -277,6 +318,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             CodeBehindClassInfo classInfo;
             string foundClassName;
             string genericArg;
+            string baseClassGenericArg;
             string baseClass;
             
             // First get the name of the class.
@@ -288,7 +330,7 @@ namespace Starcounter.XSON.Compiler.Mono {
             classInfo = mce.LastFoundJsonAttribute;
             mce.LastFoundJsonAttribute = null;
 
-            if (IsTypedJsonClass(mce, out baseClass, out genericArg)) {
+            ProcessClassDeclaration(mce, out baseClass, out genericArg, out baseClassGenericArg );
                 if (className.Equals(foundClassName)) {
 #if DEBUG
                     if (metadata.RootClassInfo != null)
@@ -304,7 +346,8 @@ namespace Starcounter.XSON.Compiler.Mono {
                             foundClassName, classInfo.RawJsonMapAttribute));
                     }
                     classInfo.Namespace = mce.CurrentNamespace;
-                    classInfo.GenericArgument = genericArg;
+                    classInfo.GenericArg = genericArg;
+                    classInfo.BaseClassGenericArg = baseClassGenericArg;
                     classInfo.BaseClassName = baseClass;
                     classInfo.AutoBindToDataObject = (genericArg != null);
 					metadata.JsonPropertyMapList.Add(classInfo);
@@ -322,7 +365,8 @@ namespace Starcounter.XSON.Compiler.Mono {
                         info.AutoBindToDataObject = (genericArg != null);
                         info.ClassName = foundClassName;
                         info.BaseClassName = baseClass;
-                        info.GenericArgument = genericArg;
+                        info.GenericArg = genericArg;
+                        info.BaseClassGenericArg = baseClassGenericArg;
                         //               info.JsonMapName = attribute.Raw;
                         info.Namespace = mce.CurrentNamespace;
                         info.ParentClasses = mce.ClassList;
@@ -331,9 +375,9 @@ namespace Starcounter.XSON.Compiler.Mono {
                 }
                 mce.PushClass(foundClassName);
                 SkipToOpenBrace(mce);
-            } else {
-                SkipBlock(mce); // Not a typed json class. We skip the whole class.
-            }
+//            } else {
+ //               SkipBlock(mce); // Not a typed json class. We skip the whole class.
+ //           }
             return classInfo;
         }
 

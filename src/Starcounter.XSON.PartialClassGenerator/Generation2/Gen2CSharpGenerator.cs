@@ -304,13 +304,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 a.NTemplateClass.ClassName +
                 " Template { get { return (" +
                 a.NTemplateClass.ClassName +
-                ")base.Template; } set { base.Template = value; } }");
+                ")(this as Json).Template; } set { (this as Json).Template = value; } }");
             a.Prefix.Add(
                 "    public new " +
                 a.NTemplateClass.NMetadataClass.ClassName +
                 " Metadata { get { return (" +
                 a.NTemplateClass.NMetadataClass.ClassName +
-                ")base.Metadata; } }");
+                ")(this as Json).Metadata; } }");
             if (a.Template.Parent != null) {
                 string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassName;
                 a.Prefix.Add(
@@ -318,7 +318,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     parentClass +
                     " Parent { get { return (" +
                     parentClass +
-                    ")base.Parent; } set { base.Parent = value; } }");
+                    ")(this as Json).Parent; } set { (this as Json).Parent = value; } }");
             }
         }
 
