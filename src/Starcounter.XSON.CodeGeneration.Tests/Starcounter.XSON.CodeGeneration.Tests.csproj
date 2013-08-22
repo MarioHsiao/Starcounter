@@ -158,7 +158,7 @@
     <None Include="simple.facit.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="Compiler\CodeBehindAnalyserTests.cs" />
+    <Compile Include="Compiler\CodeBehindParserTests.cs" />
     <None Include="TestMessage.g.cs">
       <DependentUpon>TestMessage.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

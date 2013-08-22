@@ -48,7 +48,11 @@ namespace Starcounter.XSON.Metadata {
         /// <summary>
         /// Contains the generic argument (if any) for the class.
         /// </summary>
-        public string GenericArgument;
+        public string GenericArg;
+        /// <summary>
+        /// Contains the generic argument (if any) for the inherited class.
+        /// </summary>
+        public string BaseClassGenericArg;
 
         /// <summary>
         /// Boolean telling if this app inherits from a generic App and the properties

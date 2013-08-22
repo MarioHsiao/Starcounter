@@ -55,8 +55,8 @@
   <ItemGroup>
     <Compile Include="CodeBehindMetaData\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindMetaData\InputBindingInfo.cs" />
-    <Compile Include="CodeBehindMetaData\JsonMapInfo.cs" />
-    <Compile Include="CompilerMono\CodeBehindAnalyzer.cs" />
+    <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
+    <Compile Include="CompilerMono\CodeBehindParser.cs" />
     <Compile Include="CompilerMono\CSharpToken.cs" />
     <Compile Include="Generation2\Gen2CodeGenerationModule.cs" />
     <Compile Include="Generation2\Gen2CSharpGenerator.cs" />
