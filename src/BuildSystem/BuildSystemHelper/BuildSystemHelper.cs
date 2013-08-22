@@ -367,6 +367,22 @@ namespace BuildSystemHelper
             KillDisturbingProcesses(new String[] { thisAssemblyName });
         }
 
+        // Replaces string in file.
+        public static void ReplaceStringInFile(String filePath, String origStringRegex, String replaceString)
+        {
+            String fileContents = File.ReadAllText(filePath);
+
+            Match match = Regex.Match(fileContents, origStringRegex, RegexOptions.IgnoreCase);
+
+            // Trying to find this exact string in file.
+            if (!match.Success)
+                throw new Exception("Can't find matching string " + origStringRegex + " in file " + filePath);
+
+            fileContents = fileContents.Replace(match.Value, replaceString);
+
+            File.WriteAllText(filePath, fileContents);
+        }
+
         /// <summary>
         /// Helping function to copy folders recursively.
         /// </summary>
