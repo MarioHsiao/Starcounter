@@ -21,7 +21,10 @@ namespace PostBuildTasks
             ".srv",
             "s",
             "NetworkIoTest",
-            "Programs"
+            "Programs",
+            "Compiler",
+            "InputGeneration",
+            "Nesting"
         };
 
         /// <summary>
@@ -58,13 +61,34 @@ namespace PostBuildTasks
             "testapp1.*",
             "tpca_client.*",
             "TurboTextTest.*"
-        }; 
+        };
+
+        /// <summary>
+        /// Detects undesired file duplicates, like *.dll, *.exe.
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <param name="filePattern"></param>
+        static void DetectFileDuplicates(String dir, String filePattern)
+        {
+            DirectoryInfo di = new DirectoryInfo(dir);
+            FileInfo[] allFiles = di.GetFiles(filePattern, SearchOption.AllDirectories);
+            List<String> allFileStrings = new List<String>();
+            foreach (FileInfo fi in allFiles)
+                allFileStrings.Add(fi.Name.ToLowerInvariant());
+
+            allFileStrings.Sort();
+            for (Int32 i = 0; i < allFileStrings.Count - 1; i++)
+            {
+                if (allFileStrings[i] == allFileStrings[i + 1])
+                    throw new Exception("Undesired file duplicate detected: " + allFileStrings[i]);
+            }
+        }
    
         /// <summary>
         /// Clean output directory.
         /// </summary>
         /// <param name="outputFolder"></param>
-        static void CleanOutputDirectory(String outputFolder)
+        static void CleanOutputDirectory(String outputDir)
         {
             // Checking if environment variable is set.
             if ("True" != Environment.GetEnvironmentVariable("SC_CLEAN_OUTPUT"))
@@ -75,7 +99,7 @@ namespace PostBuildTasks
             // Removing selected directories from output.
             foreach (String delDir in OutputDirsToDelete)
             {
-                String delDirPath = Path.Combine(outputFolder, delDir);
+                String delDirPath = Path.Combine(outputDir, delDir);
 
                 if (Directory.Exists(delDirPath))
                 {
@@ -88,7 +112,7 @@ namespace PostBuildTasks
             // Removing selected files from output.
             foreach (String filesPattern in OutputFilesToDelete)
             {
-                String delFilePath = Path.Combine(outputFolder, filesPattern);
+                String delFilePath = Path.Combine(outputDir, filesPattern);
 
                 if (File.Exists(delFilePath))
                 {
@@ -101,7 +125,7 @@ namespace PostBuildTasks
             // Removing selected file patterns from output.
             foreach (String filesPattern in OutputFilePatternsToDelete)
             {
-                String[] filesToDelete = Directory.GetFiles(outputFolder, filesPattern);
+                String[] filesToDelete = Directory.GetFiles(outputDir, filesPattern);
                 foreach (String filePath in filesToDelete)
                 {
                     File.Delete(filePath);
@@ -109,6 +133,12 @@ namespace PostBuildTasks
                     Console.WriteLine("  Deleted file: " + filePath);
                 }
             }
+
+            // Checking that there is only one copy of each DLL and EXE in output directory.
+            Directory.Move(outputDir + "\\" + BuildSystem.ThirtyTwoBitsComponentsDir, outputDir + "\\..\\" + BuildSystem.ThirtyTwoBitsComponentsDir);
+            DetectFileDuplicates(outputDir, "*.dll");
+            DetectFileDuplicates(outputDir, "*.exe");
+            Directory.Move(outputDir + "\\..\\" + BuildSystem.ThirtyTwoBitsComponentsDir, outputDir + "\\" + BuildSystem.ThirtyTwoBitsComponentsDir);
         }
 
         /// <summary>

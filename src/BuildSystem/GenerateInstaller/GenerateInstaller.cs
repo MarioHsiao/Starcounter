@@ -142,13 +142,6 @@ namespace GenerateInstaller
                     archive.CreateEntryFromFile(staticSetupFilePath, staticSetupFileName);
 
                     // Replacing Starcounter.Tracking.dll.
-                    e = archive.GetEntry("scadmin\\Starcounter.Tracking.dll");
-                    if (null != e)
-                        e.Delete();
-
-                    archive.CreateEntryFromFile(Path.Combine(level1OutputDir, "Starcounter.Tracking.dll"), "scadmin\\Starcounter.Tracking.dll");
-
-                    // Replacing Starcounter.Tracking.dll.
                     e = archive.GetEntry("Starcounter.Tracking.dll");
                     if (null != e)
                         e.Delete();
