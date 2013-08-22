@@ -53,7 +53,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <value>The inherits.</value>
         public override string Inherits {
 //            get { return _Inherits; }
-                        get { return "ObjMetadata"; }
+                        get { return "st::ObjMetadata"; }
 
         }
 

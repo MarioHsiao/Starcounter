@@ -124,8 +124,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         }
                     }
                     else {
+
+                        
                         // Orphaned by design as primitive types dont get custom template classes
-                        var type = new AstPropertyClass(Generator) { Template = kid /*, Parent = appClassParent */ };
+//                        var type = new AstPropertyClass(Generator) {
+//                            Template = kid,
+//                            // Parent = appClassParent,
+//                            Namespace = "orphaned"
+//                        };
+
+                        var type = Generator.TemplateClassesByType[kid.GetType()];
+
+
+
                         Generator.TemplateClasses[kid] = type;
 
                         GenerateProperty(kid, appClassParent, templParent, metaParent);
@@ -204,7 +215,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 AstAppClass racn;
                 acn = racn = new AstAppClass(Generator) {
                     Parent = appClassParent,
-                    _Inherits = Generator.DefaultObjTemplate.InstanceType.Name // "Puppet", "Json"
+                    _Inherits = "global::" + Generator.DefaultObjTemplate.InstanceType.FullName // "Puppet", "Json"
                 };
 
                 tcn = new AstTAppClass(Generator) {
@@ -286,19 +297,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 Template = alt
             };
             GenerateKids(appClassParent, templParent, metaParent, alt);
-            var vlist = new AstArrXXXClass(Generator, "Arr", Generator.ValueClasses[alt.ElementType], null, alt);
+            var vlist = new AstArrXXXClass(Generator, "Arr", Generator.ValueClasses[alt.ElementType], null, alt, "s::");
             amn.Type = vlist;
 
             tmn.Type = new AstArrXXXClass(Generator, "TArr",
                                             Generator.ValueClasses[alt.ElementType],
-                                            Generator.TemplateClasses[alt.ElementType], alt);
+                                            Generator.TemplateClasses[alt.ElementType], alt, "st::");
             cstmn.Type = new AstArrXXXClass(Generator, "TArr",
                                             Generator.ValueClasses[alt.ElementType],
-                                            Generator.TemplateClasses[alt.ElementType], alt);
+                                            Generator.TemplateClasses[alt.ElementType], alt, "st::");
 
             mmn.Type = new AstArrXXXClass(Generator, "ArrMetadata",
                                             Generator.ValueClasses[alt.ElementType],
-                                            Generator.TemplateClasses[alt.ElementType], alt);
+                                            Generator.TemplateClasses[alt.ElementType], alt, "st::");
 
             //ntempl.Template = alt;
             //            NTemplateClass.Classes[alt] = tlist;

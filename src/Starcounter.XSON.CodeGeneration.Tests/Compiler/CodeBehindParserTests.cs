@@ -74,7 +74,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 Assert.AreEqual(roslynMap.ClassName, monoMap.ClassName);
                 Assert.AreEqual(roslynMap.GenericArg, monoMap.GenericArg);
                 Assert.AreEqual(roslynMap.BaseClassGenericArg, monoMap.BaseClassGenericArg);
-                Assert.AreEqual(roslynMap.RawJsonMapAttribute, monoMap.RawJsonMapAttribute);
+                Assert.AreEqual(roslynMap.RawDebugJsonMapAttribute, monoMap.RawDebugJsonMapAttribute);
                 Assert.AreEqual(roslynMap.Namespace, monoMap.Namespace);
 
                 Assert.AreEqual(roslynMap.ParentClasses.Count, monoMap.ParentClasses.Count);

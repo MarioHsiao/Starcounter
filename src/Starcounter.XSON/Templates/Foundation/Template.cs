@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -18,7 +19,7 @@ namespace Starcounter.Templates {
     /// A template describes an App or a property of an App. A tree of
     /// templates defines the schema of an App.
     /// </summary>
-    public abstract class Template 
+    public abstract class Template : IReadOnlyTree
     {
         /// <summary>
         /// 
@@ -296,6 +297,26 @@ namespace Starcounter.Templates {
 
         }
 #endif
+
+        IReadOnlyTree IReadOnlyTree.Parent {
+            get { return _Parent; }
+        }
+
+        static readonly IReadOnlyList<IReadOnlyTree> EmptyList = new List<IReadOnlyTree>();
+
+        IReadOnlyList<IReadOnlyTree> IReadOnlyTree.Children {
+            get {
+                return _Children;
+            }
+        }
+
+        protected virtual IReadOnlyList<IReadOnlyTree> _Children {
+            get {
+                return EmptyList;
+            }
+        }
+
+
     }
 
     /// <summary>
