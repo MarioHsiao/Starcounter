@@ -20,6 +20,7 @@ namespace BuildSystemHelper
         public static readonly String LocalBuildsFolder = BuildSystemDir + "\\StarcounterBuilds";
         public static readonly String LocalToolsFolder = BuildSystemDir + "\\ConfigsAndTools";
         public static readonly String FtpClientExePath = LocalToolsFolder + "\\WinScp.exe";
+        public static readonly String ThirtyTwoBitsComponentsDir = "32BitComponents";
 
         public static readonly String PublicLogDir = MappedBuildServerFTP + "\\SCDev\\BuildSystem\\Logs\\";
         public static readonly String BuildAgentLogDir = PublicLogDir + "\\" + System.Environment.MachineName;
