@@ -6,7 +6,6 @@ using Starcounter.Templates;
 using System;
 using System.IO;
 
-
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
     [TestFixture]
@@ -19,6 +18,12 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             return tj;
         }
 
+        /// <summary>
+        /// When a JSON object is declared as a property in another JSON object, the generated partial class
+        /// is declared as an inner class unless the developer has not declared a JSON-mapping attribute
+        /// using the [myfile.json.myproj] attribute. This test asserts that this is indeed the case.
+        /// See also FlattenedClassForNestedJson().
+        /// </summary>
         [Test]
         public static void UntouchedNesting() {
             var tj = ReadTemplate("Nesting\\ParentChild.json");
@@ -32,13 +37,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 return str;
             });
 
+            //Console.WriteLine(dump);
+            Console.WriteLine(codegen.GenerateCode());
+
             Assert.AreEqual(typeof(AstRoot), dom.GetType() );
+            Assert.AreEqual(typeof(AstAppClass), dom.Children[0].GetType());
+            Assert.AreEqual("Parent", ((AstAppClass)dom.Children[0]).ClassName);
+
+
             var rootClass = (AstBase)dom.Children[0];
             var nestedClass = (AstBase)dom.Children[0].Children[3];
             Assert.AreEqual("Child2Json",nestedClass.Name);
-            Console.WriteLine(dump);
         }
-
 
         [Test]
         public static void FlattenedClassForNestedJson() {
@@ -53,14 +63,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 return str;
             });
 
+            Console.WriteLine(dump);
+
             Assert.AreEqual(typeof(AstRoot), dom.GetType());
             var rootClass = (AstBase)dom.Children[0];
-            var otherClass = (AstBase)dom.Children[0].Children[3];
+            //var otherClass = (AstBase)dom.Children[0].Children[3];
             var noLongerNestedClass = (AstBase)dom.Children[1];
+            Console.WriteLine(codegen.GenerateCode());
+
+            Assert.AreEqual("HiThere", ((AstBase)dom.Children[0]).Name); // Name gotten from code-behind in ParentChild.json.v3.cs
+
             Assert.AreEqual("ContactPage", noLongerNestedClass.Name); // Name gotten from code-behind in ParentChild.json.v3.cs
-            Console.WriteLine(dump);
+            //Console.WriteLine(dump);
         }
-
-
     }
 }

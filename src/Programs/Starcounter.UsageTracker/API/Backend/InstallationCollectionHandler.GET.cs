@@ -23,7 +23,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Backend {
                                 date = item.Date,
                                 installationNo = item.InstallationNo,
                                 previousInstallationNo = item.PreviousInstallationNo,
-                                downloadId = item.DownloadID
+                                serial = item.Serial
                             };
                         }
 

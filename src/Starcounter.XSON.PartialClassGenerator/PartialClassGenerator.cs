@@ -38,7 +38,7 @@ namespace Starcounter.Internal.XSON {
            
 
             //            var className = Paths.StripFileNameWithoutExtention(jsonFilename);
-            metadata = CodeBehindAnalyzer.Analyze(template.ClassName, codebehind, codeBehindFilePathNote); 
+            metadata = CodeBehindParser.Analyze(template.ClassName, codebehind, codeBehindFilePathNote); 
                 //(CodeBehindMetadata)MonoCSharpCompiler.AnalyzeCodeBehind(template.ClassName, codebehind, codeBehindFilePathNote );
                 //metadata = CodeBehindAnalyser.
 
@@ -48,7 +48,7 @@ namespace Starcounter.Internal.XSON {
             if (String.IsNullOrEmpty(template.Namespace))
                 template.Namespace = metadata.RootClassInfo.Namespace;
 
-            if (metadata.RootClassInfo.RawJsonMapAttribute != null ||
+            if (metadata.RootClassInfo.IsMapped ||
                   (!metadata.RootClassInfo.IsDeclaredInCodeBehind && metadata.JsonPropertyMapList.Count > 1 ) )
                codegenmodule = new Gen2CodeGenerationModule(); // Before gen2, we did not support json attributes on the root class
             else
@@ -71,7 +71,7 @@ namespace Starcounter.Internal.XSON {
         /// <returns></returns>
         public static CodeBehindMetadata CreateCodeBehindMetadata(string className, string code, string codeBehindFilePath) {
 //            return MonoCSharpCompiler.AnalyzeCodeBehind(className, code, codeBehindFilePath);
-            return CodeBehindAnalyzer.Analyze(className, code, codeBehindFilePath);
+            return CodeBehindParser.Analyze(className, code, codeBehindFilePath);
         }
     }
 }

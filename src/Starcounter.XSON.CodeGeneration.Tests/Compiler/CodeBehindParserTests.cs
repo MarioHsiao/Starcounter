@@ -6,42 +6,53 @@ using System.IO;
 using Starcounter.XSON.Compiler.Mono;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
-    public class CodeBehindAnalyserTests {
+    public class CodeBehindParserTests {
 
 
         private static CodeBehindMetadata MonoAnalyze(string className, string path) {
-            return CodeBehindAnalyzer.Analyze(className,
+            return CodeBehindParser.Analyze(className,
                 File.ReadAllText(path),path );
         }
 
-//        [Test]
+        [Test]
+        public static void AnalyzeSimpleCase() {
+            CodeBehindMetadata monoMetadata;
+            monoMetadata = MonoAnalyze("Simple", @"Compiler\simple.json.cs");
+            Assert.AreEqual("Simple", monoMetadata.JsonPropertyMapList[0].ClassName);
+            Assert.AreEqual("T,T2", monoMetadata.JsonPropertyMapList[0].GenericArg);
+            Assert.AreEqual("Json", monoMetadata.JsonPropertyMapList[0].BaseClassName);
+            Assert.AreEqual("T", monoMetadata.JsonPropertyMapList[0].BaseClassGenericArg);
+            Assert.AreEqual("MySampleNamespace", monoMetadata.JsonPropertyMapList[0].Namespace);
+        }
+
+        [Test]
         public static void CodeBehindAnalyzeTest() {
             CodeBehindMetadata monoMetadata;
-            CodeBehindMetadata roslynMetadata; 
+//            CodeBehindMetadata roslynMetadata; 
 
-//            var mono = new Starcounter.Internal.XSON.MonoCSharpCompiler();
-            var roslyn = new Starcounter.XSON.Compiler.Roslyn.RoslynCSharpCompiler();
+//            var roslyn = new Starcounter.XSON.Compiler.Roslyn.RoslynCSharpCompiler();
 
             monoMetadata = MonoAnalyze("Simple", @"Compiler\simple.json.cs");
-            roslynMetadata = roslyn.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
-            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+//            roslynMetadata = roslyn.AnalyzeCodeBehind("Simple", @"Compiler\simple.json.cs");
+//            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
-            monoMetadata = MonoAnalyze("Complex", @"Compiler\complex.json.cs");
-            roslynMetadata = roslyn.AnalyzeCodeBehind("Complex", @"Compiler\complex.json.cs");
-            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+			//monoMetadata = MonoAnalyze("Complex", @"Compiler\complex.json.cs");
+			//roslynMetadata = roslyn.AnalyzeCodeBehind("Complex", @"Compiler\complex.json.cs");
+			//AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
-            monoMetadata = MonoAnalyze("MySampleApp", @"MySampleApp.json.cs");
-            roslynMetadata = roslyn.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
-            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+			//monoMetadata = MonoAnalyze("MySampleApp", @"MySampleApp.json.cs");
+			//roslynMetadata = roslyn.AnalyzeCodeBehind("MySampleApp", @"MySampleApp.json.cs");
+			//AssertMetadataAreEqual(roslynMetadata, monoMetadata);
 
-            monoMetadata = MonoAnalyze("Incorrect", @"Compiler\Incorrect.json.cs");
-            roslynMetadata = roslyn.AnalyzeCodeBehind("Incorrect", @"Compiler\Incorrect.json.cs");            
-            AssertMetadataAreEqual(roslynMetadata, monoMetadata);
+			//monoMetadata = MonoAnalyze("Incorrect", @"Compiler\Incorrect.json.cs");
+			//roslynMetadata = roslyn.AnalyzeCodeBehind("Incorrect", @"Compiler\Incorrect.json.cs");            
+			//AssertMetadataAreEqual(roslynMetadata, monoMetadata);
         }
 
         private static void AssertMetadataAreEqual(CodeBehindMetadata roslyn, CodeBehindMetadata mono) {
             Assert.AreEqual(roslyn.RootClassInfo.AutoBindToDataObject, mono.RootClassInfo.AutoBindToDataObject);
-            Assert.AreEqual(roslyn.RootClassInfo.GenericArgument, mono.RootClassInfo.GenericArgument);
+            Assert.AreEqual(roslyn.RootClassInfo.GenericArg, mono.RootClassInfo.GenericArg);
+            Assert.AreEqual(roslyn.RootClassInfo.BaseClassGenericArg, mono.RootClassInfo.BaseClassGenericArg);
             Assert.AreEqual(roslyn.RootClassInfo.Namespace, mono.RootClassInfo.Namespace);
 
             Assert.AreEqual(roslyn.RootClassInfo.InputBindingList.Count, mono.RootClassInfo.InputBindingList.Count);
@@ -61,8 +72,9 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
                 Assert.AreEqual(roslynMap.AutoBindToDataObject, monoMap.AutoBindToDataObject);
                 Assert.AreEqual(roslynMap.ClassName, monoMap.ClassName);
-                Assert.AreEqual(roslynMap.GenericArgument, monoMap.GenericArgument);
-                Assert.AreEqual(roslynMap.RawJsonMapAttribute, monoMap.RawJsonMapAttribute);
+                Assert.AreEqual(roslynMap.GenericArg, monoMap.GenericArg);
+                Assert.AreEqual(roslynMap.BaseClassGenericArg, monoMap.BaseClassGenericArg);
+                Assert.AreEqual(roslynMap.RawDebugJsonMapAttribute, monoMap.RawDebugJsonMapAttribute);
                 Assert.AreEqual(roslynMap.Namespace, monoMap.Namespace);
 
                 Assert.AreEqual(roslynMap.ParentClasses.Count, monoMap.ParentClasses.Count);

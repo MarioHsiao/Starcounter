@@ -1533,15 +1533,15 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
                 $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
             };
             this.socket.onerror = function (evt) {
-                console.log("Console websockets onerror:" + evt);
+            	console.log("Console websockets onerror:" + evt);
+            	$scope.isWebsocketSupport = false;
+            	$scope.$apply();
             };
         }
         catch (exception) {
             console.log("Console websockets exception:" + exception);
             $scope.isWebsocketSupport = false;
         }
-
-
     }
 
     // Standard
@@ -2095,7 +2095,7 @@ adminModule.controller('LogCtrl', ['$scope', '$http', function ($scope, $http) {
     // Retrive log information
     $scope.getLog = function () {
 
-        $http.get('/api/admin/log').then(function (response) {
+    	$http.get('/api/admin/log', { params: $scope.filterModel }).then(function (response) {
             // success handler
             $scope.log = response.data;
 

@@ -33,10 +33,10 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
 
                         Db.Transaction(() => {
 
-                            string downloadId = data.downloadId;
-                            int installationNo = int.Parse(data.installationNo.ToString());
+                            string serial = data.downloadId;
+                            Int64 installationNo = (Int64)data.installationNo;
 
-                            Installation installation = StarcounterCollectionHandler.AssureInstallation(installationNo, downloadId);
+                            Installation installation = StarcounterCollectionHandler.AssureInstallation(installationNo, serial);
                             StarcounterUsage item = new StarcounterUsage(installation);
 
                             // Header

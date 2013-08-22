@@ -65,7 +65,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             get {
                 var str = ClassName;
                 if (Generic != null) {
-                    str += "<" + Generic.FullClassName + ">";
+                    str += "<" + Generic.GlobalClassSpecifier + ">";
+                }
+                if (Generics != null) {
+                    if (Generics != null)
+                        str += "<" + Generics + ">";
                 }
                 if (Parent == null || !(Parent is AstClass)) {
                     return str;
@@ -76,6 +80,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
+        public string NamespaceAlias = "global::";
+
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
@@ -84,6 +90,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public override string ToString() {
             if (ClassName != null) {
                 var str = "CLASS " + ClassName;
+                if (Generics != null)
+                    str += "<" + Generics + ">";
                 //if (Inherits != null) {
                     str += ":" + Inherits;
                 //}
@@ -93,7 +101,62 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
 
+        /// <summary>
+        /// In the below example, this property will contain "T,T2"
+        /// <example>
+        /// class MyStuff<T,T2> : Json<T> { ... }"/>
+        /// </example>
+        /// In the below example, this property will contain null
+        /// <example>
+        /// class MyStuff : Json<object> { ... }"/>
+        /// </example>
+        /// </summary>
+        public string Generics;
+
+        /// <summary>
+        /// class.subclass
+        /// </summary>
+        public string ClassSpecifierWithoutNamespace {
+            get {
+                var str = FullClassName;
+                return str;
+            }
+        }
 
 
+        /// <summary>
+        /// class.subclass
+        /// </summary>
+        public string ClassDeclaration {
+            get {
+                var str = ClassName;
+                if (Generics != null)
+                    str += "<" + Generics + ">";
+                return str;
+            }
+        }
+
+        private string _Namespace;
+
+        public virtual string Namespace {
+            set {
+                _Namespace = value;
+            }
+            get {
+                return _Namespace;
+            }
+        }
+
+        /// <summary>
+        /// global::mynamespace.subnamespace.class.subclass
+        /// </summary>
+        public virtual string GlobalClassSpecifier {
+            get {
+                var str = NamespaceAlias;
+                if (Namespace != null)
+                    str += Namespace + ".";
+                return str + ClassSpecifierWithoutNamespace;
+            }
+        }
     }
 }

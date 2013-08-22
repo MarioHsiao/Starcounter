@@ -341,6 +341,22 @@ namespace BuildSystemHelper
         }
 
         /// <summary>
+        /// Deletes sub directories from given common dir.
+        /// </summary>
+        /// <param name="commonDir"></param>
+        /// <param name="subDirs"></param>
+        public static void DeleteSubDirectories(String commonDir, String[] subDirs)
+        {
+            foreach (String sd in subDirs)
+            {
+                String d = Path.Combine(commonDir, sd);
+
+                if (Directory.Exists(d))
+                    Directory.Delete(d, true);
+            }
+        }
+
+        /// <summary>
         /// Kills same processes if any are running.
         /// </summary>
         public static void KillSameProcesses()

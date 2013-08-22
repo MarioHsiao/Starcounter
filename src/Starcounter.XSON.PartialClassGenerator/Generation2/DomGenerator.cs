@@ -36,12 +36,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// 
         /// </summary>
         public Dictionary<Template, AstValueClass> ValueClasses = new Dictionary<Template, AstValueClass>();
+
         /// <summary>
-        /// 
         /// </summary>
         public Dictionary<Template, AstTemplateClass> TemplateClasses = new Dictionary<Template, AstTemplateClass>();
+
         /// <summary>
-        /// 
+        /// </summary>
+        public Dictionary<Type, AstTemplateClass> TemplateClassesByType= new Dictionary<Type, AstTemplateClass>();
+
+        /// <summary>
         /// </summary>
         public Dictionary<Template, AstMetadataClass> MetaClasses = new Dictionary<Template, AstMetadataClass>();
 
@@ -49,39 +53,122 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Initializes static members of the <see cref="AstTemplateClass" /> class.
         /// </summary>
         void InitTemplateClasses() {
-            TemplateClasses[TPString] = new AstPropertyClass(this) { Template = TPString };
-            TemplateClasses[TPLong] = new AstPropertyClass(this) { Template = TPLong };
-            TemplateClasses[TPDecimal] = new AstPropertyClass(this) { Template = TPDecimal };
-            TemplateClasses[TPDouble] = new AstPropertyClass(this) { Template = TPDouble };
-            TemplateClasses[TPBool] = new AstPropertyClass(this) { Template = TPBool };
-            TemplateClasses[TPAction] = new AstPropertyClass(this) { Template = TPAction };
-            TemplateClasses[DefaultObjTemplate] = new AstTAppClass(this) { Template = DefaultObjTemplate };
+            AstPropertyClass apc;
+
+            apc = new AstPropertyClass(this) {
+                Template = TPString,
+                NamespaceAlias = "st::"
+            };
+            TemplateClassesByType[typeof(TString)] = apc;
+            TemplateClasses[TPString] = apc;
+
+            apc = new AstPropertyClass(this) {
+                Template = TPLong,
+                NamespaceAlias = "st::"
+            };
+            TemplateClasses[TPLong] = apc;
+            TemplateClassesByType[typeof(TLong)] = apc;
+
+            apc = new AstPropertyClass(this) {
+                Template = TPDecimal,
+                NamespaceAlias = "st::"
+            };
+            TemplateClasses[TPDecimal] = apc;
+            TemplateClassesByType[typeof(TDecimal)] = apc;
+
+            apc = new AstPropertyClass(this) {
+                Template = TPDouble,
+                NamespaceAlias = "st::"
+            };
+            TemplateClasses[TPDouble] = apc;
+            TemplateClassesByType[typeof(TDouble)] = apc;
+
+            apc = new AstPropertyClass(this) {
+                Template = TPBool,
+                NamespaceAlias = "st::"
+            };
+            TemplateClasses[TPBool] = apc;
+            TemplateClassesByType[typeof(TBool)] = apc;
+
+            apc = new AstPropertyClass(this) {
+                Template = TPAction,
+                NamespaceAlias = "st::"
+            };
+            TemplateClasses[TPAction] = apc;
+            TemplateClassesByType[typeof(TTrigger)] = apc;
+
+            TemplateClasses[DefaultObjTemplate] = new AstTAppClass(this) {
+                Template = DefaultObjTemplate,
+                NamespaceAlias = "st::"
+            };
         }
 
         /// <summary>
         /// Initializes static members of the <see cref="AstMetadataClass" /> class.
         /// </summary>
         void InitMetadataClasses() {
-            MetaClasses[TPString] = new AstMetadataClass(this) { NTemplateClass = TemplateClasses[TPString] };
-            MetaClasses[TPLong] = new AstMetadataClass(this) { NTemplateClass = TemplateClasses[TPLong] };
-            MetaClasses[TPDecimal] = new AstMetadataClass(this) { NTemplateClass = TemplateClasses[TPDecimal] };
-            MetaClasses[TPDouble] = new AstMetadataClass(this) { NTemplateClass = TemplateClasses[TPDouble] };
-            MetaClasses[TPBool] = new AstMetadataClass(this) { NTemplateClass = TemplateClasses[TPBool] };
-            MetaClasses[TPAction] = new AstMetadataClass(this) { NTemplateClass = TemplateClasses[TPAction] };
-            MetaClasses[DefaultObjTemplate] = new AstMetadataClass(this) { NTemplateClass = TemplateClasses[DefaultObjTemplate] };
+            MetaClasses[TPString] = new AstMetadataClass(this) { 
+                NTemplateClass = TemplateClasses[TPString],
+                NamespaceAlias = "st::"
+            };
+            MetaClasses[TPLong] = new AstMetadataClass(this) { 
+                NTemplateClass = TemplateClasses[TPLong],
+                NamespaceAlias = "st::"
+            };
+            MetaClasses[TPDecimal] = new AstMetadataClass(this) {
+                NTemplateClass = TemplateClasses[TPDecimal],
+                NamespaceAlias = "st::"
+            };
+            MetaClasses[TPDouble] = new AstMetadataClass(this) {
+                NTemplateClass = TemplateClasses[TPDouble],
+                NamespaceAlias = "st::"
+            };
+            MetaClasses[TPBool] = new AstMetadataClass(this) {
+                NTemplateClass = TemplateClasses[TPBool],
+                NamespaceAlias = "st::"
+            };
+            MetaClasses[TPAction] = new AstMetadataClass(this) {
+                NTemplateClass = TemplateClasses[TPAction],
+                NamespaceAlias = "st::"
+            };
+            MetaClasses[DefaultObjTemplate] = new AstMetadataClass(this) {
+                NTemplateClass = TemplateClasses[DefaultObjTemplate],
+                NamespaceAlias = "st::"
+            };
         }
 
         /// <summary>
         /// Initializes static members of the <see cref="AstValueClass" /> class.
         /// </summary>
         void InitValueClasses() {
-            ValueClasses[TPString] = new AstPrimitiveType(this) { NTemplateClass = TemplateClasses[TPString] };
-            ValueClasses[TPLong] = new AstPrimitiveType(this) { NTemplateClass = TemplateClasses[TPLong] };
-            ValueClasses[TPDecimal] = new AstPrimitiveType(this) { NTemplateClass = TemplateClasses[TPDecimal] };
-            ValueClasses[TPDouble] = new AstPrimitiveType(this) { NTemplateClass = TemplateClasses[TPDouble] };
-            ValueClasses[TPBool] = new AstPrimitiveType(this) { NTemplateClass = TemplateClasses[TPBool] };
-            ValueClasses[TPAction] = new AstPrimitiveType(this) { NTemplateClass = TemplateClasses[TPAction] };
-            ValueClasses[DefaultObjTemplate] = new AstAppClass(this) { NTemplateClass = TemplateClasses[DefaultObjTemplate] };
+            ValueClasses[TPString] = new AstPrimitiveType(this) {
+                NTemplateClass = TemplateClasses[TPString],
+                NamespaceAlias = "st::"
+            };
+            ValueClasses[TPLong] = new AstPrimitiveType(this) {
+                NTemplateClass = TemplateClasses[TPLong],
+                NamespaceAlias = "st::"
+            };
+            ValueClasses[TPDecimal] = new AstPrimitiveType(this) {
+                NTemplateClass = TemplateClasses[TPDecimal],
+                NamespaceAlias = "st::"
+            };
+            ValueClasses[TPDouble] = new AstPrimitiveType(this) {
+                NTemplateClass = TemplateClasses[TPDouble],
+                NamespaceAlias = "st::"
+            };
+            ValueClasses[TPBool] = new AstPrimitiveType(this) {
+                NTemplateClass = TemplateClasses[TPBool],
+                NamespaceAlias = "st::"
+            };
+            ValueClasses[TPAction] = new AstPrimitiveType(this) {
+                NTemplateClass = TemplateClasses[TPAction],
+                NamespaceAlias = "st::"
+            };
+            ValueClasses[DefaultObjTemplate] = new AstAppClass(this) {
+                NTemplateClass = TemplateClasses[DefaultObjTemplate],
+                NamespaceAlias = "s::"
+            };
         }
 
         /// <summary>
@@ -156,6 +243,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             var p2 = new GeneratorPhase2() { Generator = this };
             var p3 = new GeneratorPhase3() { Generator = this };
             var p4 = new GeneratorPhase4() { Generator = this };
+            var p5 = new GeneratorPhase5() { Generator = this };
 
             AstAppClass acn;
             AstTAppClass tcn;
@@ -165,6 +253,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             p2.RunPhase2(acn,tcn,mcn);
             p3.RunPhase3(acn);
             p4.RunPhase4(acn);
+            p5.RunPhase5(acn,tcn,mcn);
 
             return this.Root;
             // TODOJOCKE                ConnectCodeBehindClasses(root, metadata);

@@ -21,8 +21,9 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="type">A common mime type. If the desired mime type is not available,
         ///  the method AsMimeType( string mimeType ) should be used.</param>
+        /// <param name="request">Optional parameter to allow more complex content negotiation</param>
         /// <returns></returns>
-        byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType);
+        byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType, Request request = null );
 
         /// <summary>
         /// Returns a binary representation of the resource using the specified MIME type.
@@ -32,8 +33,9 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="type">The mime type. If the desired mime type is available in the
         /// MimeType enumeration, the method AsMimeType( MimeType mimeType ) should be used instead.</param>
+        /// <param name="request">Optional parameter to allow more complex content negotiation</param>
         /// <returns></returns>
-        byte[] AsMimeType(string mimeType, out MimeType resultingMimeType );
+        byte[] AsMimeType(string mimeType, out MimeType resultingMimeType, Request request = null );
     }
 
     /// <summary>

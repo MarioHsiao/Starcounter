@@ -841,11 +841,35 @@ namespace Starcounter
             core_task_info_.Reset(requestBytes, origReq, userDelegate, userObject);
 
             // Checking if its the first time, then creating new connection.
-            if (!core_task_info_.IsConnectionEstablished())
-                core_task_info_.AttachConnection(null);
+            if (!core_task_info_.IsConnectionEstablished()) {
+                try {
+                    core_task_info_.AttachConnection(null);
+                }
+                catch (SocketException err) {
+                    if (err.Message.Contains("No such host is known") && UserSuspectedOfForgettingLeadingSlash(this.hostName_) ) {
+                        var msg = String.Format("Did you mean to access a local resource (\"{0}\")? Then you need a leading forward slash (i.e. \"{1}\"). If you are trying to access a foreign resource, the TCP/IP cannot connect to a host named {0} (socketexception:{2}).",
+                            this.hostName_, "/" + this.hostName_, err.Message );
+                        throw new Exception(msg,err);
+                    }
+                    else {
+                        var msg = String.Format("Cannot connect to {0} (socketexception:{1})", 
+                            this.hostName_, err.Message );
+                        throw new Exception(msg,err);
+                    }
+                }
+            }
 
             // Doing synchronous request and returning response.
             return core_task_info_.PerformSyncRequest();
+        }
+
+        /// <summary>
+        /// Add some more sophisticaion here
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        private bool UserSuspectedOfForgettingLeadingSlash(string p) {
+            return true;
         }
     }
 }
