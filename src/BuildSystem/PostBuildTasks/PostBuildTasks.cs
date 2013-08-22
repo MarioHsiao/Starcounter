@@ -205,7 +205,7 @@ namespace PostBuildTasks
                 }
 
                 // Getting the path to current build consolidated folder.
-                String outputFolder = Path.Combine(checkoutDir, "Level1\\Bin\\" + configuration);
+                String outputDir = Path.Combine(checkoutDir, "Level1\\Bin\\" + configuration);
 
                 // Killing interrupting processes.
                 Console.WriteLine("Killing disturbing processes...");
@@ -213,11 +213,11 @@ namespace PostBuildTasks
                 Thread.Sleep(10000);
 
                 // Saving server log.
-                if (File.Exists(outputFolder + @"\.db.output\starcounter.0000000000.log"))
-                    File.Copy(outputFolder + @"\.db.output\starcounter.0000000000.log", checkoutDir + @"\scserver.log", true);
+                if (File.Exists(outputDir + @"\.db.output\starcounter.0000000000.log"))
+                    File.Copy(outputDir + @"\.db.output\starcounter.0000000000.log", checkoutDir + @"\scserver.log", true);
 
                 // Checking if output should be cleaned.
-                CleanOutputDirectory(outputFolder);
+                CleanOutputDirectory(outputDir);
 
                 // Copying build statistics file into public statistics.
                 WriteStatisticsFromBuildToPublic(BuildSystem.BuildStatisticsFilePath, PublicStatisticsFilePath);
