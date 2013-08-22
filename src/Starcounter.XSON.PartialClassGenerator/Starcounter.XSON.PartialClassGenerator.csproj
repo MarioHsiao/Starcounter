@@ -58,6 +58,7 @@
     <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
     <Compile Include="CompilerMono\CodeBehindParser.cs" />
     <Compile Include="CompilerMono\CSharpToken.cs" />
+    <Compile Include="Generation2\GeneratorPhase5.cs" />
     <Compile Include="Generation2\Gen2CodeGenerationModule.cs" />
     <Compile Include="Generation2\Gen2CSharpGenerator.cs" />
     <Compile Include="Generation2\DomGenerator.cs" />

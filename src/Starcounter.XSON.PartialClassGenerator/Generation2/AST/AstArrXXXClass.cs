@@ -27,13 +27,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="appType"></param>
         /// <param name="templateType"></param>
         /// <param name="template"></param>
-        public AstArrXXXClass(Gen2DomGenerator gen, string typename, AstClass appType, AstClass templateType, Template template ) 
+        public AstArrXXXClass(Gen2DomGenerator gen, string typename, AstClass appType, AstClass templateType, Template template, string namespaceAlias ) 
         :base( gen)
         {
             //this.NTemplateClass.Template = template;            
             TypeName = typename;
             NApp = appType;
             NTApp = templateType;
+            NamespaceAlias = namespaceAlias;
         }
 
         /// <summary>
@@ -71,10 +72,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var sb = new StringBuilder();
                 sb.Append(TypeName);
                 sb.Append('<');
-                sb.Append(NApp.FullClassName);
+                sb.Append(NApp.GlobalClassSpecifier);
                 if (NTApp != null) {
                     sb.Append(", ");
-                    sb.Append(NTApp.FullClassName);
+                    sb.Append(NTApp.GlobalClassSpecifier);
                 }
                 sb.Append('>');
                 return sb.ToString();

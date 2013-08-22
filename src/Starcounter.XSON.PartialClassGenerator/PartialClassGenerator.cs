@@ -48,7 +48,7 @@ namespace Starcounter.Internal.XSON {
             if (String.IsNullOrEmpty(template.Namespace))
                 template.Namespace = metadata.RootClassInfo.Namespace;
 
-            if (metadata.RootClassInfo.RawJsonMapAttribute != null ||
+            if (metadata.RootClassInfo.IsMapped ||
                   (!metadata.RootClassInfo.IsDeclaredInCodeBehind && metadata.JsonPropertyMapList.Count > 1 ) )
                codegenmodule = new Gen2CodeGenerationModule(); // Before gen2, we did not support json attributes on the root class
             else

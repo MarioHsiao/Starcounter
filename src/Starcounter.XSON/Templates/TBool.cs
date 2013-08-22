@@ -4,7 +4,9 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 
 namespace Starcounter.Templates {
 
@@ -59,5 +61,6 @@ namespace Starcounter.Templates {
         public override Type InstanceType {
             get { return typeof(bool); }
         }
+
     }
 }

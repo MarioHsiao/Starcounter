@@ -372,5 +372,11 @@ namespace Starcounter.Templates {
             throw new NotImplementedException();
         }
 
+        protected override IReadOnlyList<IReadOnlyTree> _Children {
+            get {
+                return this.Properties;
+            }
+        }
+
     }
 }
