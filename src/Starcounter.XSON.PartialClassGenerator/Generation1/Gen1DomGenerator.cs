@@ -299,7 +299,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
                 mapInfo = metadata.JsonPropertyMapList[i];
 
-                if (mapInfo.RawJsonMapAttribute != null) {
+                if (mapInfo.IsMapped) {
                     appTemplate = FindTAppFor(mapInfo, rootTemplate);
 
                     if (appTemplate.InstanceDataTypeName != null) {
@@ -444,13 +444,13 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     if (template == null) {
                         throw new Exception(
                             String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
-                                ci.RawJsonMapAttribute,
+                                ci.RawDebugJsonMapAttribute,
                                 mapParts[i]
                             ));
                     }
                     throw new Exception(
                         String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} has the unsupported type {2}.",
-                            ci.RawJsonMapAttribute,
+                            ci.RawDebugJsonMapAttribute,
                             mapParts[i],
                             template.GetType().Name
                         ));

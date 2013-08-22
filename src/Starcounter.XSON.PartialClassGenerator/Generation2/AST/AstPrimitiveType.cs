@@ -57,7 +57,28 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 {
                     return "bool";
                 }
+                else if (type == typeof(string)) {
+                    return "string";
+                }
                 return type.Name;
+            }
+        }
+
+        public override string Namespace {
+            get {
+                var type = NTemplateClass.Template.InstanceType;
+                if (type.IsPrimitive)
+                    return null;
+                return type.Namespace;
+            }
+            set {
+                throw new Exception();
+            }
+        }
+
+        public override string GlobalClassSpecifier {
+            get {
+                return ClassName;
             }
         }
     }

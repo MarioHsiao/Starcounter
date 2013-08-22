@@ -342,14 +342,72 @@ namespace Starcounter.Advanced
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetContent<T>() {
+            if (typeof(T) == typeof(String)) {
+                return (T)(object)GetContentString();
+            }
+            if (typeof(T) == typeof(byte[])) {
+                return (T)(object)GetContentBytes();
+            } 
+            return (T)Content;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private string GetContentString() {
+            if (bodyString_ != null)
+                return bodyString_;
+            var bytes = this.GetContentBytes();
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private byte[] GetContentBytes() {
+            if (bodyBytes_ != null)
+                return bodyBytes_;
+            if (bodyString_ != null)
+                return Encoding.UTF8.GetBytes(bodyString_);
+            if (_Hypermedia != null) {
+                MimeType discard;
+                return _Hypermedia.AsMimeType(MimeType.Unspecified, out discard);
+            }
+            if (Uncompressed != null) {
+                return ExtractBodyFromUncompressedHttpResponse();
+            }
+
+            bodyBytes_ = GetBodyBytes_Slow();
+            return bodyBytes_;
+        }
+
+        /// <summary>
+        /// Should be made faster using pointers copying direcly to the output buffer
+        /// </summary>
+        /// <returns></returns>
+        private byte[] ExtractBodyFromUncompressedHttpResponse() {
+            var bytes = new byte[this.UncompressedBodyLength_];
+            Array.Copy(Uncompressed, UncompressedBodyOffset_, bytes, 0, UncompressedBodyLength_);
+            return bytes;
+        }
+
+        /// <summary>
         /// Body string.
         /// </summary>
         public Object Content
         {
             get
             {
-                if (null != Hypermedia)
-                    return Hypermedia;
+                if (null != _Hypermedia)
+                    return _Hypermedia;
 
                 if (null != bodyBytes_)
                     return bodyBytes_;
@@ -921,6 +979,9 @@ namespace Starcounter.Advanced
                     // Throwing the concrete error code exception.
                     throw ErrorCode.ToException(err_code);
                 }
+
+                UncompressedBodyLength_ = http_response_struct_->content_len_bytes_;
+                UncompressedBodyOffset_ = (int)http_response_struct_->content_offset_;
 
                 // NOTE: No internal sessions support.
                 session_ = null;

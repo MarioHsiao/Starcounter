@@ -207,11 +207,24 @@ namespace Starcounter
         /// </summary>
         /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        public static dynamic GET(String uri)
+        public static object GET(String uri)
         {
-            var r = GET(uri, null, null);
+            Response r;
+            GET(uri, null, null, out r);
             return r.Content;
         }
+
+        /// <summary>
+        /// Performs asynchronous HTTP GET.
+        /// </summary>
+        /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
+        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
+        public static T GET<T>(String uri) {
+            Response r;
+            GET(uri, null, null, out r);
+            return r.GetContent<T>();
+        }
+
 
         /// <summary>
         /// Checks for local cache.
@@ -254,20 +267,18 @@ namespace Starcounter
         /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
         /// <param name="req">Original HTTP request.</param>
         /// <param name="userObject">User object to be passed on response.</param>
-        public static Response GET(String uri, String customHeaders, Request req)
+        public static void GET(String uri, String customHeaders, Request req, out Response response )
         {
-            Response resp;
-            
             // Checking if we can reuse the cache.
-            if (IsInSccode && CheckLocalCache(uri, req, null, null, out resp))
-                return resp;
+            if (IsInSccode && CheckLocalCache(uri, req, null, null, out response ))
+                return;
 
             Node node;
             String relativeUri;
 
             GetNodeFromUri(uri, out node, out relativeUri);
 
-            return node.GET(relativeUri, customHeaders, req);
+            response = node.GET(relativeUri, customHeaders, req);
         }
 
         /// <summary>

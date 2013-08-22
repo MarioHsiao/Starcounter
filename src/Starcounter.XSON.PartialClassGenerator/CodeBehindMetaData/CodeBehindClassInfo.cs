@@ -17,7 +17,16 @@ namespace Starcounter.XSON.Metadata {
         /// Initializes a new instance of the <see cref="CodeBehindClassInfo" /> class.
         /// </summary>
         public CodeBehindClassInfo( string raw ) {
-            RawJsonMapAttribute = raw;
+            RawDebugJsonMapAttribute = raw;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsMapped {
+            get {
+                return (RawDebugJsonMapAttribute != null);
+            }
         }
 
         /// <summary>
@@ -28,7 +37,7 @@ namespace Starcounter.XSON.Metadata {
         /// <summary>
         /// The original untouched attribute string (excluding enclosing brackets)
         /// </summary>
-        public string RawJsonMapAttribute;
+        public string RawDebugJsonMapAttribute;
 
         /// <summary>
         /// The namespace of the class from the codebehind file.
@@ -48,7 +57,11 @@ namespace Starcounter.XSON.Metadata {
         /// <summary>
         /// Contains the generic argument (if any) for the class.
         /// </summary>
-        public string GenericArgument;
+        public string GenericArg;
+        /// <summary>
+        /// Contains the generic argument (if any) for the inherited class.
+        /// </summary>
+        public string BaseClassGenericArg;
 
         /// <summary>
         /// Boolean telling if this app inherits from a generic App and the properties
@@ -75,6 +88,7 @@ namespace Starcounter.XSON.Metadata {
         public List<InputBindingInfo> InputBindingList = new List<InputBindingInfo>();
 
 
+
         /// <summary>
         /// The classname including any path specified by the user in the .cs file.
         /// The root class name is denoted with an asterix (*) as it should always
@@ -82,25 +96,17 @@ namespace Starcounter.XSON.Metadata {
         /// </summary>
         public string ClassPath {
             get {
-                var str = RawJsonMapAttribute;
-
-                if (str.StartsWith("json.")) {
-                    str = str.Substring(5);
-                }
-                else {
-                    int index = str.IndexOf(".json.");
-                    if (index != -1) {
-                        // Remove the json part before searching for the template.
-                        str = str.Substring(index + 6);
-                    }
-                    else {
-                        if (str == "json" || str.EndsWith(".json"))
-                            return "*"; // This is a root class
-                    }
-                }
-                return "*." + str;
+                return _ClassPath;
+            }
+            internal set {
+                _ClassPath = value;
             }
         }
+
+
+        private string _ClassPath;
+
+
 
         /// <summary>
         /// Create a new instance of JsonMapInfo
@@ -111,14 +117,30 @@ namespace Starcounter.XSON.Metadata {
 
             if (attribute == null)
                 return null;
+
             var strings = attribute.Split('.');
+
+            // First attempt the old syntax "[MyClass.json.Somestuff]
             for (int t = 0; t < strings.Length; t++) {
                 if (strings[t].Equals("json")) {
                     var i = new CodeBehindClassInfo(attribute);
                     i.IsRootClass = (t == strings.Length - 1);
+                    i.ClassPath = CreateClassPathFromOldSyntax(attribute);
                     return i;
                 }
             }
+
+            // Then try the new syntax "[MyFile_json.Somestuff]
+            for (int t = 0; t < strings.Length; t++) {
+                if (strings[t].EndsWith("_json")) {
+                    var i = new CodeBehindClassInfo(attribute);
+                    i.IsRootClass = (t == strings.Length - 1);
+                    i.ClassPath = CreateClassPathFromNewSyntax(strings);
+                    return i;
+                }
+            }
+
+
 #if DEBUG
             if (attribute.Contains("json.")) {
                 throw new Exception("Internal error when detecting .json attribute in code-behind");
@@ -127,6 +149,49 @@ namespace Starcounter.XSON.Metadata {
             return null;
         }
 
+
+
+
+
+        private static string CreateClassPathFromOldSyntax(string raw) {
+
+            if (raw.StartsWith("json.")) {
+                raw = raw.Substring(5);
+            }
+            else {
+                int index = raw.IndexOf(".json.");
+                if (index != -1) {
+                    // Remove the json part before searching for the template.
+                    raw = raw.Substring(index + 6);
+                }
+                else {
+                    if (raw == "json" || raw.EndsWith(".json")) {
+                        return "*"; // This is a root class
+                    }
+                }
+            }
+            return "*." + raw;
+        }
+
+
+
+        private static string CreateClassPathFromNewSyntax(string[] raw) {
+
+            string output = "*";
+            bool inFileClassQualifier = true;
+
+            for (int t=0;t<raw.Length;t++) {
+                if (inFileClassQualifier) {
+                    if (raw[t].EndsWith("_json")) {
+                        inFileClassQualifier = false;
+                    }
+                }
+                else {
+                    output += "." + raw[t]; 
+                }
+            }
+            return output;
+        }
   
 
     }

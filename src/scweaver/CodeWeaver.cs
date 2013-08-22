@@ -562,7 +562,11 @@ namespace Weaver {
             uint errorCode;
 
             message = e.Message;
-            messageIdAndText = string.Format("{0} - {1}", message.MessageId, message.MessageText);
+            if (message.MessageId.Equals(message.MessageText)) {
+                messageIdAndText = message.MessageText;
+            } else {
+                messageIdAndText = string.Format("{0} - {1}", message.MessageId, message.MessageText);
+            }
 
             switch (message.Severity) {
                 case SeverityType.Debug:

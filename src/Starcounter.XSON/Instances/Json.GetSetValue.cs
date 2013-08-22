@@ -68,9 +68,6 @@ namespace Starcounter {
         internal void _CallHasChanged(TValue property) {
             if (Session != null) {
                 if (!_BrandNew) {
-                    if (property.PropertyName.Equals("Friends") ) {
-                        Debugger.Launch();
-                    }
                     _DirtyProperties[property.TemplateIndex] = true;
                     this.Dirtyfy();
                 }

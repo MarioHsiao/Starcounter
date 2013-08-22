@@ -14,6 +14,8 @@ namespace QueryProcessingTest {
         public String NickName { get { return nickName; } set { nickName = value; } }
         public String AnotherNickName { get { return nickName; } set { nickName = value; } }
 
+        public String PatronymicName { get; set; }
+
         public String Name {
             get { return FirstName + " " + LastName; }
             // set

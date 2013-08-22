@@ -93,5 +93,15 @@ namespace Starcounter.Internal.XSON {
             return new Change(Change.REPLACE, obj, property, -1);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="property"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        internal static Change Update(Obj obj, TValue property, int index) {
+            return new Change(Change.REPLACE, obj, property, index);
+        }
     }
 }

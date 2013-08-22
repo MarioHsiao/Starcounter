@@ -17,9 +17,6 @@ namespace GenerateInstaller
 {
     class GenerateInstaller
     {
-        const String LicenseDownloadIDPattern = "@UniqueDownloadKey";
-        const String LicenseDatePattern = "@RequiredRegistrationDate";
-
         const String CompanyName = "Starcounter AB";
         const String ProductName = "Starcounter Components";
         public static readonly String CertificateFilePath = BuildSystem.LocalToolsFolder + "\\starcounter-2014.cer";
@@ -83,14 +80,15 @@ namespace GenerateInstaller
 
             // Saving the new license information.
             String licenseFilePath = Path.Combine(installerWpfFolder, "Resources\\LicenseAgreement.html");
-            String licensePatternContents = File.ReadAllText(licenseFilePath);
 
             // Replacing license file with a new unique version.
-            String modifiedLicense = licensePatternContents.Replace(LicenseDownloadIDPattern, uniqueDownloadKey);
+            ReplaceStringInFile(licenseFilePath, "package identified by the key \"(.*)\"",
+                "package identified by the key \"" + uniqueDownloadKey + "\"");
 
             // Creating required registration date.
             String currentDatePlus60Days = DateTime.Now.AddDays(60).ToString("MMMM dd, yyyy").ToUpper();
-            File.WriteAllText(licenseFilePath, modifiedLicense.Replace(LicenseDatePattern, currentDatePlus60Days));
+            ReplaceStringInFile(licenseFilePath, " no later than \"(.*)\"",
+                " no later than \"" + currentDatePlus60Days + "\"");
 
             // Restoring fake archive file if needed.
             String archivePath = Path.Combine(installerWpfFolder, "Resources\\Archive.zip");
@@ -101,20 +99,22 @@ namespace GenerateInstaller
             if (File.Exists(tempArchivePath))
                 File.Delete(tempArchivePath);
 
-            File.Move(archivePath, tempArchivePath);
-            File.WriteAllText(archivePath, "This is an empty file...");
-
-            // Building the Installer WPF project.
-            BuildMsbuildProject(
-                Path.Combine(installerWpfFolder, "Starcounter.InstallerWPF.csproj"),
-                configuration,
-                platform);
-
             Console.WriteLine("Building unique Starcounter.Tracking DLL...");
 
             // Building tracking project.
             BuildMsbuildProject(
                 @"Level1\src\Starcounter.Tracking\Starcounter.Tracking.csproj",
+                configuration,
+                platform);
+
+            File.Move(archivePath, tempArchivePath);
+            File.WriteAllText(archivePath, "This is an empty file...");
+
+            Console.WriteLine("Building empty Starcounter.InstallerWPF...");
+
+            // Building the Installer WPF project.
+            BuildMsbuildProject(
+                Path.Combine(installerWpfFolder, "Starcounter.InstallerWPF.csproj"),
                 configuration,
                 platform);
 
@@ -140,6 +140,13 @@ namespace GenerateInstaller
                         e.Delete();
 
                     archive.CreateEntryFromFile(staticSetupFilePath, staticSetupFileName);
+
+                    // Replacing Starcounter.Tracking.dll.
+                    e = archive.GetEntry("scadmin\\Starcounter.Tracking.dll");
+                    if (null != e)
+                        e.Delete();
+
+                    archive.CreateEntryFromFile(Path.Combine(level1OutputDir, "Starcounter.Tracking.dll"), "scadmin\\Starcounter.Tracking.dll");
 
                     // Replacing Starcounter.Tracking.dll.
                     e = archive.GetEntry("Starcounter.Tracking.dll");
@@ -411,10 +418,11 @@ namespace GenerateInstaller
                 File.Copy(checkoutDir + @"\Level1\src\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets",
                     tempBuildDir + @"\Level1\src\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets", true);
 
-                if (File.Exists(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe"))
-                    File.Delete(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe");
+                if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe"))
+                    File.Delete(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe");
 
-                File.Copy(Path.Combine(installerWpfFolder, BuildSystem.VersionXMLFileName), Path.Combine(tempBuildDir, BuildSystem.VersionXMLFileName), true);
+                File.Copy(Path.Combine(installerWpfFolder, BuildSystem.VersionXMLFileName),
+                    Path.Combine(tempBuildDir, BuildSystem.VersionXMLFileName), true);
 
                 Directory.SetCurrentDirectory(tempBuildDir);
 
@@ -424,31 +432,34 @@ namespace GenerateInstaller
                     checkoutDir,
                     @"\\scbuildserver\FTP\SCDev\BuildSystem\starcounter-2014.cer");
 
+                Console.WriteLine("Cleaning temporary build directories...");
+
+                BuildSystem.DeleteSubDirectories(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper",
+                    new String[] { "obj", "release", "debug" });
+
+                if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.sdf"))
+                    File.Delete(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.sdf");
+
+                if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe"))
+                    File.Delete(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\Starcounter-Setup.exe");
+
+                BuildSystem.DeleteSubDirectories(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF",
+                    new String[] { "obj", "release", "debug" });
+
+                BuildSystem.DeleteSubDirectories(tempBuildDir + @"\Level1\src\Starcounter.Tracking",
+                    new String[] { "obj", "release", "debug" });
+
+                Console.WriteLine("Creating all-in-one build package...");
+
+                String pathToAllInOneArchive = tempBuildDir + "\\..\\" + channel + "-" + version + ".zip";
+                if (File.Exists(pathToAllInOneArchive))
+                    File.Delete(pathToAllInOneArchive);
+
+                ZipFile.CreateFromDirectory(tempBuildDir, pathToAllInOneArchive, CompressionLevel.Optimal, false);
+
                 // Uploading all-in-one package to public server.
                 if ("True" == Environment.GetEnvironmentVariable(BuildSystem.UploadToPublicServer))
                 {
-                    Console.WriteLine("Cleaning temporary build directories...");
-
-                    if (Directory.Exists(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\obj"))
-                        Directory.Delete(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\resources\obj", true);
-
-                    if (File.Exists(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.sdf"))
-                        File.Delete(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper\Starcounter.InstallerNativeWrapper.sdf");
-
-                    if (Directory.Exists(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\obj"))
-                        Directory.Delete(checkoutDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\obj", true);
-
-                    if (Directory.Exists(checkoutDir + @"\Level1\src\Starcounter.Tracking\obj"))
-                        Directory.Delete(checkoutDir + @"\Level1\src\Starcounter.Tracking\obj", true);
-
-                    Console.WriteLine("Creating all-in-one build package...");
-
-                    String pathToAllInOneArchive = tempBuildDir + "\\..\\" + channel + "-" + version + ".zip";
-                    if (File.Exists(pathToAllInOneArchive))
-                        File.Delete(pathToAllInOneArchive);
-
-                    ZipFile.CreateFromDirectory(tempBuildDir, pathToAllInOneArchive, CompressionLevel.Optimal, false);
-
                     Console.WriteLine("Uploading all-in-one build package to public server...");
 
                     // Calling external tool to upload build package to public server.

@@ -21,13 +21,20 @@ namespace Starcounter {
         }
 
         internal override void WriteToDebugString(StringBuilder sb, int i) {
+
             _WriteDebugProperty(sb);
 
+            if (Template == null) {
+                sb.Append("{}");
+                return;
+            }
             sb.AppendLine("{");
+
 
             i += 3;
             int t = 0;
-            foreach (var v in _Values) {
+            var vals = Values;
+            foreach (var v in vals) {
                 if (t > 0) {
                     sb.AppendLine(",");
                 }
@@ -40,6 +47,18 @@ namespace Starcounter {
                     sb.Append('"');
                     sb.Append(prop.PropertyName);
                     sb.Append("\":");
+                    if (prop is TValue && ((TValue)prop).Bind != null) {
+                        var tv = (TValue)prop;
+                        if (this.Get(tv) != _BoundDirtyCheck[t]) {
+                            var dbgVal = _BoundDirtyCheck[t];
+                            if (dbgVal == null)
+                                dbgVal = "notsent";
+                            sb.Append("(db d=" + dbgVal + ")");
+                        }
+                        else {
+                            sb.Append("(db)");
+                        }
+                    }
                     if (_DirtyProperties[t]) {
                         if (prop is TContainer) {
                             // The "d" is already anotated for Containers.
@@ -50,10 +69,10 @@ namespace Starcounter {
                             }
                         }
                         else {
-                            sb.Append("(d)");
+                            sb.Append("(d\"" + v + "\")");
                         }
                     }
-                    sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject(v));
+                    sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject(this.Get((TValue)prop)));
                 }
                 t++;
             }

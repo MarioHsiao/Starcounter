@@ -1,6 +1,7 @@
 ﻿using Starcounter.Applications.UsageTrackerApp.API.Versions;
 using Starcounter.Applications.UsageTrackerApp.VersionHandler;
 using StarcounterApplicationWebSocket.API.Versions;
+using StarcounterApplicationWebSocket.VersionHandler.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +13,19 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
 
         internal static UnpackerWorker UnpackWorker;
         internal static BuildWorker BuildkWorker;
+        internal static VersionHandlerSettings Settings;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="uPort">Incoming POST port</param>
         internal static void BootStrap(ushort uPort) {
+
+            // Get Settings
+            VersionHandlerApp.Settings = VersionHandlerSettings.GetSettings();
+
+            // Set log filename to logwriter
+            LogWriter.Init(VersionHandlerApp.Settings.LogFile);
 
             SyncData.Start();
 
@@ -27,14 +35,11 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             VersionHandlerApp.BuildkWorker = new BuildWorker();
             VersionHandlerApp.BuildkWorker.Start();
 
-            StarcounterApplicationWebSocket.API.Versions.Version.BootStrap(uPort);
-            Channel.BootStrap(uPort);
-
-            Download.BootStrap(uPort);
+            Download.BootStrap(80);
 
             Upload.BootStrap(8585); // TODO: Hardcoded portnumber for incoming requests.  use TrackingEnvironment.StarcounterTrackerPort
 
-            Utils.BootStrap(uPort);
+            Utils.BootStrap(8282);
 
 
             // Kickstart unpacker worker

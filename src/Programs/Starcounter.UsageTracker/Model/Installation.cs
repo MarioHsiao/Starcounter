@@ -14,21 +14,21 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
     public class Installation {
 
         /// <summary>
-        /// Download ID (Unique id that identifies a specific build)
+        /// Serial ID (Unique id that identifies a specific build)
         /// </summary>
-        public string DownloadID;
+        public string Serial;
 
         /// <summary>
         /// Previous Installation number
         /// -1 if there was no previous detected installation
         /// </summary>
-        public int PreviousInstallationNo;
+        public Int64 PreviousInstallationNo;
 
         /// <summary>
         /// Installation Number
         /// One number per installation start
         /// </summary>
-        public int InstallationNo;
+        public Int64 InstallationNo;
 
         /// <summary>
         /// Date when the installation was detected
@@ -106,29 +106,35 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="downloadId"></param>
-        public Installation(string downloadId) {
+        /// <param name="serial"></param>
+        public Installation(string serial) {
 
-            this.DownloadID = downloadId;
+            this.Serial = serial;
+
+            DateTime d = new DateTime(2000, 1, 1);
+
             this.Date = DateTime.UtcNow;
-            this.InstallationNo = StarcounterCollectionHandler.GetNextSequenceNo("Installation");
+            this.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
             this.PreviousInstallationNo = -1;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="downloadId"></param>
+        /// <param name="serial"></param>
         /// <param name="previousInstallationNo"></param>
-        public Installation(string downloadId, int previousInstallationNo) {
+        public Installation(string serial, Int64 previousInstallationNo) {
 
-            this.DownloadID = downloadId;
+            this.Serial = serial;
             this.Date = DateTime.UtcNow;
-            this.InstallationNo = StarcounterCollectionHandler.GetNextSequenceNo("Installation");
+
+            DateTime d = new DateTime(2000, 1, 1);
+
+            this.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
             this.PreviousInstallationNo = previousInstallationNo;
         }
 
     }
 
-  
+
 }

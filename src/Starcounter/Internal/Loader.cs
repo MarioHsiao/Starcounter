@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Starcounter.Internal
 {
@@ -145,7 +146,6 @@ namespace Starcounter.Internal
             }
 
             var databaseAttributes = databaseClass.Attributes;
-
             for (int i = 0; i < databaseAttributes.Count; i++) {
                 var databaseAttribute = databaseAttributes[i];
 
@@ -224,18 +224,6 @@ namespace Starcounter.Internal
                                  targetTypeName
                                  );
                             propertyDef.ColumnName = targetAttribute.Name;
-                            AddProperty(propertyDef, propertyDefs);
-                        }
-                        break;
-                    case DatabaseAttributeKind.PersistentProperty:
-                        if (databaseAttribute.IsPublicRead) {
-                            var propertyDef = new PropertyDef(
-                                databaseAttribute.Name,
-                                type,
-                                isNullable,
-                                targetTypeName
-                                );
-                            propertyDef.ColumnName = databaseAttribute.PersistentProperty.AttributeFieldIndex;
                             AddProperty(propertyDef, propertyDefs);
                         }
                         break;

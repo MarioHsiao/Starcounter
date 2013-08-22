@@ -45,7 +45,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The _ inherits
         /// </summary>
-        public string _Inherits;
+        public string _Inherits {
+            set {
+                __inh = value;
+            }
+            get {
+                return __inh;
+            }
+        }
+
+        private string __inh;
+
 
         /// <summary>
         /// Can be used to set a specific base class for the generated App class.
@@ -54,6 +64,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public override string Inherits {
             get { return _Inherits; }
         }
+
 
         /// <summary>
         /// The class name is linked to the name of the ClassName in the
@@ -123,5 +134,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return (Template.Properties.Count > 0);
             }
         }
+
+
     }
 }
