@@ -56,7 +56,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
             var meta = new CodeBehindMetadata();
             meta.JsonPropertyMapList = mapList;
             meta.RootClassInfo.Namespace = ns;
-            meta.RootClassInfo.GenericArgument = genericArg;
+            meta.RootClassInfo.GenericArg = genericArg;
             meta.RootClassInfo.AutoBindToDataObject = autoBindToDataObject;
             meta.RootClassInfo.InputBindingList = inputList;
             return meta;
@@ -279,7 +279,7 @@ namespace Starcounter.XSON.Compiler.Roslyn {
             var jmi = CodeBehindClassInfo.EvaluateAttributeString(attributeNode.Name.ToString());
             jmi.Namespace = FindNamespaceForClassDeclaration(classDecl);
             jmi.ClassName = classDecl.Identifier.ValueText;
-            jmi.GenericArgument = genericArg;
+            jmi.GenericArg = genericArg;
             jmi.AutoBindToDataObject = autoBindToDataObject;
             jmi.ParentClasses = parentClassNames;
             return jmi;
