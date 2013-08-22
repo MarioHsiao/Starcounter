@@ -135,10 +135,12 @@ namespace PostBuildTasks
             }
 
             // Checking that there is only one copy of each DLL and EXE in output directory.
+            Directory.Move(outputDir + "\\" + BuildSystem.PublicAssembliesDir, outputDir + "\\..\\" + BuildSystem.PublicAssembliesDir);
             Directory.Move(outputDir + "\\" + BuildSystem.ThirtyTwoBitsComponentsDir, outputDir + "\\..\\" + BuildSystem.ThirtyTwoBitsComponentsDir);
             DetectFileDuplicates(outputDir, "*.dll");
             DetectFileDuplicates(outputDir, "*.exe");
             Directory.Move(outputDir + "\\..\\" + BuildSystem.ThirtyTwoBitsComponentsDir, outputDir + "\\" + BuildSystem.ThirtyTwoBitsComponentsDir);
+            Directory.Move(outputDir + "\\..\\" + BuildSystem.PublicAssembliesDir, outputDir + "\\" + BuildSystem.PublicAssembliesDir);
         }
 
         /// <summary>
