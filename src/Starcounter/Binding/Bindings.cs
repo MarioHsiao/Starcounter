@@ -80,8 +80,7 @@ namespace Starcounter.Binding
                 // Add lower case name if the name is not already in lower case.
                 if (typeDef.Name != typeDef.LowerName) {
                     TypeDef alreadyTypeDef;
-                    typeDefsByName.TryGetValue(typeDef.LowerName, out alreadyTypeDef);
-                    if (alreadyTypeDef != null) // The short lower name is the actual lower name
+                    if (typeDefsByName.TryGetValue(typeDef.LowerName, out alreadyTypeDef)) // The stored short name is the actual lower name of this only type
                         typeDefsByName[typeDef.LowerName] = typeDef;
                     else
                         typeDefsByName.Add(typeDef.LowerName, typeDef);
