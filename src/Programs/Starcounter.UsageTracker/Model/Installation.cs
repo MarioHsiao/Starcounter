@@ -110,8 +110,11 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
         public Installation(string serial) {
 
             this.Serial = serial;
+
+            DateTime d = new DateTime(2000, 1, 1);
+
             this.Date = DateTime.UtcNow;
-            this.InstallationNo = DateTime.UtcNow.Ticks;
+            this.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
             this.PreviousInstallationNo = -1;
         }
 
@@ -124,7 +127,10 @@ namespace Starcounter.Applications.UsageTrackerApp.Model {
 
             this.Serial = serial;
             this.Date = DateTime.UtcNow;
-            this.InstallationNo = DateTime.UtcNow.Ticks;
+
+            DateTime d = new DateTime(2000, 1, 1);
+
+            this.InstallationNo = DateTime.UtcNow.Ticks - d.Ticks;
             this.PreviousInstallationNo = previousInstallationNo;
         }
 
