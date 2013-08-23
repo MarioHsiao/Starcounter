@@ -4,6 +4,7 @@ using Modules;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Logging;
+using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -57,7 +58,7 @@ namespace Starcounter.Internal {
             StarcounterBase._DB = new DbImpl();
 
             // Dependency injection for converting puppets to html
-            Obj._JsonMimeConverter = new JsonMimeConverter();
+            Template._JsonMimeConverter = new JsonMimeConverter();
 
             // Giving REST needed delegates.
             UserHandlerCodegen.Setup(

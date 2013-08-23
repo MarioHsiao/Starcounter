@@ -10,7 +10,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// </summary>
         /// <param name="rootApp">the root app for this request.</param>
         /// <param name="body">The body of the request.</param>
-        public static void EvaluatePatches(Obj rootApp, byte[] body) {
+        public static void EvaluatePatches(Json<object> rootApp, byte[] body) {
             byte[] contentArr;
             byte current;
             int bracketCount;
@@ -299,7 +299,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="pointer">A jsonpointer that points to the value to be patched</param>
         /// <param name="value">The value.</param>
         /// <exception cref="System.Exception">TODO:</exception>
-        private static void HandleParsedPatch(Obj rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
+        private static void HandleParsedPatch(Json<object> rootApp, Int32 patchType, JsonPointer pointer, Byte[] value) {
             AppAndTemplate aat = JsonPatch.Evaluate(rootApp, pointer);
 
             // Resuming transaction if it exists up the tree.
@@ -314,7 +314,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="mainApp">The main app.</param>
         /// <param name="jsonPtr">The json PTR.</param>
         /// <returns>AppAndTemplate.</returns>
-        internal static AppAndTemplate Evaluate(Obj mainApp, String jsonPtr) {
+        internal static AppAndTemplate Evaluate(Json<object> mainApp, String jsonPtr) {
             return Evaluate(mainApp, new JsonPointer(jsonPtr));
         }
 
@@ -325,7 +325,7 @@ namespace Starcounter.Internal.JsonPatch {
         /// <param name="ptr">The PTR.</param>
         /// <returns>AppAndTemplate.</returns>
         /// <exception cref="System.Exception"></exception>
-        internal static AppAndTemplate Evaluate(Obj mainApp, JsonPointer ptr) {
+        internal static AppAndTemplate Evaluate(Json<object> mainApp, JsonPointer ptr) {
             Boolean currentIsTApp;
             Boolean nextTokenShouldBeIndex;
             Int32 index;
@@ -345,7 +345,7 @@ namespace Starcounter.Internal.JsonPatch {
                 }
                 else {
                     if (currentIsTApp) {
-                        mainApp = (Obj)mainApp.Get((TObj)current);
+                        mainApp = (Json<object>)mainApp.Get((Schema<Json<object>>)current);
                         currentIsTApp = false;
                     }
 
@@ -363,10 +363,10 @@ namespace Starcounter.Internal.JsonPatch {
                     current = t;
                 }
 
-                if (current is Obj) {
-                    mainApp = current as Obj;
+                if (current is Json<object>) {
+                    mainApp = current as Json<object>;
                 }
-                else if (current is TObj) {
+                else if (current is Schema<Json<object>>) {
                     currentIsTApp = true;
                 }
                 else if (current is TObjArr) {

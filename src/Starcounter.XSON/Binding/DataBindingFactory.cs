@@ -114,7 +114,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
-        internal static bool VerifyOrCreateBinding(TObj template, Type dataType) {
+        internal static bool VerifyOrCreateBinding(Schema<Json<object>> template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
 
@@ -154,7 +154,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="template">The template.</param>
         /// <param name="dataType">The type of the dataobject.</param>
 		/// <returns>True if a binding could be created and cached on the template, false otherwise.</returns>
-        internal static bool VerifyOrCreateBinding<TVal>(TValue<TVal> template, Type dataType) {
+        internal static bool VerifyOrCreateBinding<TVal>(Property<TVal> template, Type dataType) {
 			bool throwExceptionOnBindingFailure;
 			string bindingName;
 
@@ -238,8 +238,8 @@ namespace Starcounter.Internal.XSON {
         /// <returns></returns>
         internal static string GetParentClassName(Template template) {
             string className = null;
-            if (template.Parent is TObj)
-                className = ((TObj)template.Parent).ClassName;
+            if (template.Parent is Schema<Json<object>>)
+                className = ((Schema<Json<object>>)template.Parent).ClassName;
             else if (template.Parent is TObjArr) {
                 className = ((TObjArr)template.Parent).ElementType.ClassName;
             }

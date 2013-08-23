@@ -2,7 +2,7 @@
 
 using System;
 namespace Starcounter.Templates {
-    partial class TObj {
+    partial class Schema<JsonType> {
 
 
 
@@ -24,7 +24,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// For dynamic Json objects, templates pertain to only a single object.
         /// </summary>
-        internal Obj SingleInstance = null;
+        internal Json<object> SingleInstance = null;
 
         /// <summary>
         /// Called when the user attempted to set a value on a dynamic obj without the object having

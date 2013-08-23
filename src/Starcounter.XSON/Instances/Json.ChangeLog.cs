@@ -2,7 +2,7 @@
 using Starcounter.Templates;
 using System;
 namespace Starcounter {
-    partial class Obj {
+    partial class Json<DataType> {
 
         /// <summary>
         /// 
@@ -86,7 +86,7 @@ namespace Starcounter {
                             }
                         }
                         else {
-                            if (((TValue)p).UseBinding(Data)) {
+                            if (((TValue)p).UseBinding(DataAsBindable)) {
                                 var val = this.GetBound((TValue)p);
                                 if (!val.Equals(this._BoundDirtyCheck[t])) {
                                     _BoundDirtyCheck[t] = val;
@@ -105,7 +105,7 @@ namespace Starcounter {
                         ((Container)_Values[t]).LogValueChangesWithDatabase(session);
                     }
                     else {
-                        if (((TValue)p).UseBinding(Data)) {
+                        if (((TValue)p).UseBinding(DataAsBindable)) {
                             var val = this.GetBound((TValue)p);
                             if (!val.Equals(this._BoundDirtyCheck[t])) {
                                 _BoundDirtyCheck[t] = val;

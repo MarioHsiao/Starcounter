@@ -20,7 +20,7 @@ namespace Starcounter {
     /// <summary>
     /// 
     /// </summary>
-    public partial class Arr : Container, IList<Obj>
+    public partial class Arr : Container, IList<Json<object>>
 #if IAPP
 //, IAppArray
 #endif
@@ -30,7 +30,7 @@ namespace Starcounter {
         /// <summary>
         /// Temporary. Should be replaced by TupleProxy functionality
         /// </summary>
-        internal List<Obj> QuickAndDirtyArray = new List<Obj>();
+        internal List<Json<object>> QuickAndDirtyArray = new List<Json<object>>();
         internal List<Change> Changes = null;
 #endif
         // private TObjArr _property;
@@ -38,7 +38,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public Obj Current {
+        public Json<object> Current {
             get {
                 throw new NotImplementedException();
             }
@@ -49,7 +49,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Arr(Obj parent, TObjArr templ) {
+        public Arr(Json<object> parent, TObjArr templ) {
             this.Template = templ;
             Parent = parent;
         }
@@ -59,7 +59,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public int IndexOf(Obj item) {
+        public int IndexOf(Json<object> item) {
 #if QUICKTUPLE
             return QuickAndDirtyArray.IndexOf(item);
 #else
@@ -72,8 +72,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         /// <param name="item"></param>
-        public void Insert(int index, Obj item) {
-            Obj otherItem;
+        public void Insert(int index, Json<object> item) {
+            Json<object> otherItem;
 //            TObjArr template;
 
 #if QUICKTUPLE
@@ -97,13 +97,13 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         /// <param name="item"></param>
-        private void _CallHasAddedElement(int index, Obj item) {
+        private void _CallHasAddedElement(int index, Json<object> item) {
             var tarr = (TObjArr)this.Template;
             if (Session != null) {
                 if (Changes == null) {
                     Changes = new List<Change>();
                 }
-                Changes.Add(Change.Update((Obj)this.Parent, tarr, index));
+                Changes.Add(Change.Update((Json<object>)this.Parent, tarr, index));
                 //Dirtyfy();
             }
             Parent.HasAddedElement(tarr, index);
@@ -120,7 +120,7 @@ namespace Starcounter {
                 if (Changes == null) {
                     Changes = new List<Change>();
                 }
-                Changes.Remove(Change.Add((Obj)this.Parent, tarr, index));
+                Changes.Remove(Change.Add((Json<object>)this.Parent, tarr, index));
                 Dirtyfy();
             }
             Parent.HasRemovedElement(tarr, index);
@@ -132,7 +132,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         public void RemoveAt(int index) {
-            Obj otherItem;
+            Json<object> otherItem;
 
 #if QUICKTUPLE
             QuickAndDirtyArray.RemoveAt(index);
@@ -152,7 +152,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Remove(Obj item) {
+        public bool Remove(Json<object> item) {
             Boolean b;
             Int32 index;
 
@@ -172,7 +172,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public Obj this[int index] {
+        public Json<object> this[int index] {
             get {
 #if QUICKTUPLE
                 return QuickAndDirtyArray[index];
@@ -189,9 +189,9 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <returns></returns>
-        public Obj Add() {
+        public Json<object> Add() {
 #if QUICKTUPLE
-            Obj x = (Obj)((TObjArr)this.Template).ElementType.CreateInstance(this);
+            Json<object> x = (Json<object>)((TObjArr)this.Template).ElementType.CreateInstance(this);
 
             //            var x = new App() { Template = ((TArr)this.Template).App };
             Add(x);
@@ -205,7 +205,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="item"></param>
-        public virtual void Add(Obj item) {
+        public virtual void Add(Json<object> item) {
             Int32 index;
 #if QUICKTUPLE
             index = QuickAndDirtyArray.Count;
@@ -227,7 +227,7 @@ namespace Starcounter {
 #if QUICKTUPLE
 
             this.InternalClear();
-            Obj parent = (Obj)this.Parent;
+            Json<object> parent = (Json<object>)this.Parent;
             parent._CallHasChanged(this.Template);
 #else
          throw new NotImplementedException();
@@ -250,7 +250,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Contains(Obj item) {
+        public bool Contains(Json<object> item) {
 #if QUICKTUPLE
             return QuickAndDirtyArray.Contains(item);
 #else
@@ -263,7 +263,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="array"></param>
         /// <param name="arrayIndex"></param>
-        public void CopyTo(Obj[] array, int arrayIndex) {
+        public void CopyTo(Json<object>[] array, int arrayIndex) {
             throw new NotImplementedException();
         }
 
@@ -293,7 +293,7 @@ namespace Starcounter {
             }
         }
 
-        IEnumerator<Obj> IEnumerable<Obj>.GetEnumerator() {
+        IEnumerator<Json<object>> IEnumerable<Json<object>>.GetEnumerator() {
 #if QUICKTUPLE
             return QuickAndDirtyArray.GetEnumerator();
 #endif

@@ -11,12 +11,13 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class ActionMetadata : ValueMetadata {
+    public class ActionMetadata<JsonType> : ValueMetadata<JsonType,TTrigger>
+            where JsonType : Json<object> {
         /// <summary>
         /// Initializes a new instance of the <see cref="ActionMetadata" /> class.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="prop">The prop.</param>
-        public ActionMetadata(Obj app, Template prop) : base(app, prop) { }
+        public ActionMetadata(JsonType app, TTrigger prop) : base(app, prop) { }
     }
 }

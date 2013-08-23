@@ -13,14 +13,17 @@ namespace Starcounter.Templates {
     /// </summary>
     /// <typeparam name="AppType"></typeparam>
     /// <typeparam name="TemplateType"></typeparam>
-    public class ArrMetadata<AppType,TemplateType> : ValueMetadata {
+    public class ArrMetadata<AppType,JsonType> : ValueMetadata<JsonType,ArrSchema<AppType>>
+                where AppType : Json<object>, new()
+                where JsonType : Json<object>
+    {
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="app"></param>
         /// <param name="prop"></param>
-        public ArrMetadata(Obj app, Template prop) : base(app, prop) { }
+        public ArrMetadata(JsonType app, ArrSchema<AppType> prop) : base(app, prop) { }
 
     }
 }

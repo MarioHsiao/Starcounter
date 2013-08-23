@@ -31,14 +31,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// The app where the property is declared.
         /// </summary>
         /// <value>The property app class.</value>
-        public AstAppClass PropertyAppClass { get; set; }
+        public AstJsonClass PropertyAppClass { get; set; }
 
         /// <summary>
         /// The App that declares the Handle-method. Might not be the same
         /// app as the property is declared in.
         /// </summary>
         /// <value>The declaring app class.</value>
-        public AstAppClass DeclaringAppClass { get; set; }
+        public AstJsonClass DeclaringAppClass { get; set; }
 
         /// <summary>
         /// Count on how many parent calls are needed to go from the property

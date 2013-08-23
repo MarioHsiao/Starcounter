@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Dynamic;using System.Linq.Expressions;using System.Reflection;using System.Linq;#if CLIENTusing Starcounter.Client.Template;namespace Starcounter.Client {#elseusing Starcounter.Templates;using System.Diagnostics;
 using System.Collections;
-using Starcounter.Internal.XSON;namespace Starcounter {#endif    public partial class Obj : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
+using Starcounter.Internal.XSON;namespace Starcounter {#endif
+    public partial class Json<DataType> : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
         /// <summary>
         /// Provides late bound (dynamic) access to Json properties defined
         /// in the Template of the Json object. Also supports data binding 
         /// using the Json.Data property.
-        /// </summary>        private class DynamicPropertyMetaObject : DynamicMetaObject {            internal DynamicPropertyMetaObject(                System.Linq.Expressions.Expression parameter,                Obj value)                : base(parameter, BindingRestrictions.Empty, value) {            }            /// <summary>
+        /// </summary>        private class DynamicPropertyMetaObject : DynamicMetaObject {            internal DynamicPropertyMetaObject(                System.Linq.Expressions.Expression parameter,                Json<object> value)                : base(parameter, BindingRestrictions.Empty, value) {            }            /// <summary>
             /// Getter implementation. See DynamicPropertyMetaObject.
             /// </summary>
             /// <param name="binder"></param>
@@ -18,7 +19,9 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif    public parti
                 //    return base.BindGetMember(binder);
                 //}
 
-                MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name);                if (pi != null)                    return base.BindGetMember(binder);                var app = (Obj)Value;                TValue templ = (TValue)(app.Template.Properties[binder.Name]);
+                MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name);                if (pi != null)                    return base.BindGetMember(binder);
+
+                var app = (Json<object>)Value;                TValue templ = (TValue)(app.Template.Properties[binder.Name]);
 
                 if (templ == null) {
                     if (app.Data != null) {
@@ -63,7 +66,9 @@ using Starcounter.Internal.XSON;namespace Starcounter {#endif    public parti
 
 //                if (binder.Name == "Data") {
 //                    return base.BindSetMember(binder, value);
-//                }                var app = (Obj)Value;                var ot = app.Template;
+//                }
+
+                var app = (Json<object>)Value;                var ot = app.Template;
                 if (ot == null) {
                     app.CreateDynamicTemplate();
                     ot = app.Template; 

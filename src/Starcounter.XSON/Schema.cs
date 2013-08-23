@@ -14,20 +14,41 @@ using Modules;
 using Starcounter.Internal.XSON.DeserializerCompiler;
 using Starcounter.Internal.XSON;
 using System.Collections;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public partial class TObj : TContainer {
+    public partial class Schema<JsonType> : TContainer 
+        where JsonType : Json<object>, new()
+    {
 
+        public override Type MetadataType {
+            get { return typeof(ObjMetadata<Schema<Json<object>>, JsonType>); }
+        }
         /// <summary>
         /// Static constructor to automatically initialize XSON.
         /// </summary>
-        static TObj() {
+        static Schema() {
             HelperFunctions.LoadNonGACDependencies();
 //            XSON.CodeGeneration.Initializer.InitializeXSON();
             Starcounter_XSON_JsonByExample.Initialize();
+        }
+        /// <summary>
+        /// Allows implicit casting from Schema&ltJson&ltMyClass&gt&gt to Schema&ltJson&ltobject&gt&gt
+        /// </summary>
+        /// <remarks>
+        /// This method does nothing but is needed for C# to compile.
+        /// The method does nothing but return the same object as it is supplied
+        /// with. The C# compiler fails to recognize the "class" constrain in the
+        /// where statement of the Json&ltDataType&gt class declaration means that all instances of
+        /// this class are also already Schema&ltJson&ltobject&gt&gt instances.
+        /// </remarks>
+        /// <param name="self">The object to cast</param>
+        /// <returns>The same object (self) is returned without further action</returns>
+        public static implicit operator Schema<Json<object>>(Schema<JsonType> self) {
+            return self as Schema<Json<object>>;
         }
 
         /// <summary>
@@ -47,11 +68,11 @@ namespace Starcounter.Templates {
         /// <param name="origin"></param>
         /// <returns></returns>
         public static TypeTObj CreateFromMarkup<TypeObj,TypeTObj>(string format, string markup, string origin )
-                    where TypeObj : Obj, new()
-                    where TypeTObj : TObj, new() {
+            where TypeObj : Json<object>, new()
+                    where TypeTObj : Schema<TypeObj>, new() {
             IXsonTemplateMarkupReader reader;
             try {
-                reader = TObj.MarkupReaders[format];
+                reader = Schema<Json<object>>.MarkupReaders[format];
             }
             catch {
                 throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
@@ -66,8 +87,8 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static TJson CreateFromJson(string json) {
-            return CreateFromMarkup<Json,TJson>("json", json, null);
+        public static Schema<Json<object>> CreateFromJson(string json) {
+            return CreateFromMarkup<Json<object>, Json<object>.JsonByExample.Schema<Json<object>>>("json", json, null);
         }
 
         internal static TypedJsonSerializer FallbackSerializer = DefaultSerializer.Instance;
@@ -132,31 +153,6 @@ namespace Starcounter.Templates {
         /// </summary>
         internal static bool DontCreateSerializerInBackground { get; set; }
 
-        /// <summary>
-        /// The _ class name
-        /// </summary>
-        internal string _ClassName;
-
-        /// <summary>
-        /// Gets or sets the name of the class.
-        /// </summary>
-        /// <value>The name of the class.</value>
-        public string ClassName {
-            get {
-                return _ClassName;
-            }
-            set {
-                _ClassName = value;
-            }
-        }
-
-
-
-        /// <summary>
-        /// Gets or sets the namespace.
-        /// </summary>
-        /// <value></value>
-        public string Namespace { get; set; }
 
         /// <summary>
         /// 
@@ -172,7 +168,7 @@ namespace Starcounter.Templates {
         /// <summary>
         /// Initializes a new instance of the <see cref="TObj" /> class.
         /// </summary>
-        public TObj() {
+        public Schema() {
             _PropertyTemplates = new PropertyList(this);
         }
 
@@ -188,7 +184,7 @@ namespace Starcounter.Templates {
         public override Type InstanceType {
             get {
                 if (_AppType == null) {
-                    return typeof(Obj);
+                    return typeof(Json<object>);
                 }
                 return _AppType;
             }
@@ -226,13 +222,26 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
+        /// Creates a new property (template) with the specified name and type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name">The name of the new property</param>
+        /// <returns>The new property template</returns>
+        public TValue AddExperimental<T>(string name) {
+            return this.Add(typeof(T), name);
+        }
+
+
+
+
+        /// <summary>
         /// Creates a new typed array property (template) with the specified name and type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name">The name of the new property</param>
         /// <param name="type">The type of each element in the array</param>
         /// <returns>The new property template</returns>
-        public T Add<T>(string name, TObj type) where T : TObjArr, new() {
+        public T Add<T>(string name, Schema<Json<object>> type) where T : TObjArr, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
                 t = new T() { TemplateName = name, ElementType = type };
@@ -244,40 +253,46 @@ namespace Starcounter.Templates {
             return t;
         }
 
+
+        
+
+
+        private static readonly Dictionary<Type, Func<Schema<Json<object>>,string,TValue>> @switch = new Dictionary<Type, Func<Schema<Json<object>>,string,TValue>> {
+                    { typeof(byte), (Schema<Json<object>> t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(UInt16), (Schema<Json<object>> t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(Int16), (Schema<Json<object>> t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(UInt32), (Schema<Json<object>> t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(Int32), (Schema<Json<object>> t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(UInt64), (Schema<Json<object>> t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(Int64), (Schema<Json<object>> t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(float), (Schema<Json<object>> t, string name) => { return t.Add<TLong>(name); }},
+                    { typeof(double), (TJson t, string name) => { return t.Add<TDouble>(name); }},
+                    { typeof(decimal), (TJson t, string name) => { return t.Add<TDecimal>(name); }},
+                    { typeof(bool), (TJson t, string name) => { return t.Add<TBool>(name); }},
+                    { typeof(string), (TJson t, string name) => { return t.Add<TString>(name); }}
+            };
+
         /// <summary>
         /// Creates a new property (template) with the specified name and type.
         /// </summary>
         /// <param name="name">The name of the new property</param>
         /// <param name="type">The type of the new property</param>
         /// <returns>The new property template</returns>
-        public Template Add(Type type, string name) {
+        public TValue Add(Type type, string name) {
 
-            var @switch = new Dictionary<Type, Func<Template>> {
-                    { typeof(byte), () => { return this.Add<TLong>(name); }},
-                    { typeof(UInt16), () => { return this.Add<TLong>(name); }},
-                    { typeof(Int16), () => { return this.Add<TLong>(name); }},
-                    { typeof(UInt32), () => { return this.Add<TLong>(name); }},
-                    { typeof(Int32), () => { return this.Add<TLong>(name); }},
-                    { typeof(UInt64), () => { return this.Add<TLong>(name); }},
-                    { typeof(Int64), () => { return this.Add<TLong>(name); }},
-                    { typeof(float), () => { return this.Add<TLong>(name); }},
-                    { typeof(double), () => { return this.Add<TDouble>(name); }},
-                    { typeof(decimal), () => { return this.Add<TDecimal>(name); }},
-                    { typeof(bool), () => { return this.Add<TBool>(name); }},
-                    { typeof(string), () => { return this.Add<TString>(name); }}
-            };
-            Func<Template> t;
+
+            Func<TJson, string, TValue> t;
             if (@switch.TryGetValue(type,out t)) {
-                return t.Invoke();
+                return t.Invoke(this,name);
             }
-            if (typeof(IEnumerable<Obj>).IsAssignableFrom(type)) {
-                return this.Add<TArr<Obj,TObj>>(name);
+            if (typeof(IEnumerable<Json<object>>).IsAssignableFrom(type)) {
+                return this.Add<ArrSchema<Json<object>>>(name);
             }
 //            if (typeof(IEnumerator<Obj>).IsAssignableFrom(type)) {
 //                return this.Add<TArr<Obj, TDynamicObj>>(name);
 //            }
-            if (typeof(Obj).IsAssignableFrom(type)) {
-                return this.Add<TObj>(name);
+            if (typeof(Json<object>).IsAssignableFrom(type)) {
+                return this.Add<TJson>(name);
             }
             throw new Exception(String.Format("Cannot add the {0} property to the template as the type {1} is not supported for Json properties", name, type.Name));
         }
@@ -325,7 +340,7 @@ namespace Starcounter.Templates {
         /// <param name="type"></param>
         /// <param name="bind">The name of the property in the dataobject to bind to.</param>
         /// <returns>A new instance of the specified template</returns>
-        public T Add<T>(string name, TObj type, string bind) where T : TObjArr, new() {
+        public T Add<T>(string name, TJson type, string bind) where T : TObjArr, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
                 t = new T() { TemplateName = name, ElementType = type, Bind = bind, Bound = Bound.Yes };
@@ -368,7 +383,7 @@ namespace Starcounter.Templates {
         /// <param name="obj">The parent obj.</param>
         /// <param name="value">The input value.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override void ProcessInput(Obj obj, byte[] value) {
+        public override void ProcessInput(Json<object> obj, byte[] value) {
             throw new NotImplementedException();
         }
 

@@ -21,6 +21,38 @@ namespace Starcounter.XSON.Metadata {
         }
 
         /// <summary>
+        /// </summary>
+        public bool DerivesDirectlyFromJson {
+            get {
+//                bool gen;
+                bool cls;
+/*                switch (BaseClassGenericArg) {
+                    case "Object":
+                    case "system.Object":
+                    case "System.Object":
+                    case "object":
+                        gen = true;
+                        break;
+                    default:
+                        gen = false;
+                        break;
+                }
+ */
+                switch (BaseClassName) {
+                    case "Json":
+                    case "Starcounter.Json":
+                        cls = true;
+                        break;
+                    default:
+                        cls = false;
+                        break;
+                }
+                //                return cls && gen;
+                return cls;
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         public bool IsMapped {
@@ -48,6 +80,23 @@ namespace Starcounter.XSON.Metadata {
         /// The name of the class in the codebehind file.
         /// </summary>
         public string ClassName;
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string GlobalClassSpecifier {
+            get {
+                var str = "global::";
+                if (Namespace != null)
+                    str += Namespace + ".";
+                str += ClassName;
+                if (GenericArg != null) {
+                    str += "<" + GenericArg + ">";
+                }
+                return str;
+            }
+        }
 
         /// <summary>
         /// The name of the baseclass (if any) specified for the class.

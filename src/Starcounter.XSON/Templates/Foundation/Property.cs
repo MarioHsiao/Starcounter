@@ -14,13 +14,20 @@ using Starcounter.Internal.XSON;
 using Starcounter.Internal;
 
 namespace Starcounter {
+
+    public abstract class PrimitiveProperty<T> : Property<T> {
+        public override bool IsPrimitive {
+            get { return true; }
+        }
+    }
+
     /// <summary>
     /// 
     /// </summary>
     /// <typeparam name="T">The primitive system type of this property.</typeparam>
-    public abstract class TValue<T> : TValue {
-        public Func<Obj, TValue<T>, T, Input<T>> CustomInputEventCreator = null;
-        public List<Action<Obj,Input<T>>> CustomInputHandlers = new List<Action<Obj,Input<T>>>();
+    public abstract class Property<T> : TValue {
+        public Func<Json<object>, Property<T>, T, Input<T>> CustomInputEventCreator = null;
+        public List<Action<Json<object>, Input<T>>> CustomInputHandlers = new List<Action<Json<object>, Input<T>>>();
 
         internal override bool UseBinding(IBindable data) {
 			if (data == null)
@@ -28,23 +35,24 @@ namespace Starcounter {
             return DataBindingFactory.VerifyOrCreateBinding<T>(this, data.GetType());
         }
 
+
         /// <summary>
         /// Adds an inputhandler to this property.
         /// </summary>
         /// <param name="createInputEvent"></param>
         /// <param name="handler"></param>
         public void AddHandler(
-            Func<Obj, TValue<T>, T, Input<T>> createInputEvent = null,
-            Action<Obj, Input<T>> handler = null) {
+            Func<Json<object>, Property<T>, T, Input<T>> createInputEvent = null,
+            Action<Json<object>, Input<T>> handler = null) {
             this.CustomInputEventCreator = createInputEvent;
             this.CustomInputHandlers.Add(handler);
         }
 
-        internal override object GetBoundValueAsObject(Obj obj) {
+        internal override object GetBoundValueAsObject(Json<object> obj) {
             return obj.GetBound<T>(this);
         }
 
-        internal override void SetBoundValueAsObject(Obj obj, object value) {
+        internal override void SetBoundValueAsObject(Json<object> obj, object value) {
             obj.SetBound<T>(this, (T)value);
         }
 	}
@@ -53,6 +61,9 @@ namespace Starcounter {
     /// Class Property
     /// </summary>
     public abstract class TValue : Template {
+
+
+
         private Bound _Bound = Bound.No;
         private string _Bind;
 		internal bool invalidateBinding;
@@ -121,7 +132,7 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="obj"></param>
         /// <param name="rawValue"></param>
-        public abstract void ProcessInput(Obj obj, Byte[] rawValue);
+        public abstract void ProcessInput(Json<object> obj, Byte[] rawValue);
 
         /// <summary>
         /// 
@@ -137,7 +148,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        internal virtual object GetBoundValueAsObject(Obj obj) {
+        internal virtual object GetBoundValueAsObject(Json<object> obj) {
             throw new NotSupportedException();
         }
 
@@ -146,7 +157,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="value"></param>
-        internal virtual void SetBoundValueAsObject(Obj obj, object value) {
+        internal virtual void SetBoundValueAsObject(Json<object> obj, object value) {
             throw new NotSupportedException();
         }
 

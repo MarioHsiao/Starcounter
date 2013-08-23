@@ -11,7 +11,7 @@ namespace Starcounter {
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Arr<T> : Arr where T : Obj, new() {
+    public class Arr<T> : Arr where T : Json<object>, new() {
 
         /// <summary>
         /// 
@@ -35,7 +35,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
-        public Arr(Obj parent, TObjArr templ)
+        public Arr(Json<object> parent, TObjArr templ)
             : base(parent, templ) {
         }
 
@@ -75,11 +75,11 @@ namespace Starcounter {
 
             Template typed = template.ElementType;
             if (typed != null) {
-                app.Template = (TObj)typed;
+                app.Template = (Schema<Json<object>>)typed;
             }
             else {
                 app.CreateDynamicTemplate();
-//                app.Template = new TJson();
+//                app.Template = new Schema<Json<object>>();
 //                CreateGe
             }
             Add(app);
@@ -99,7 +99,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="item"></param>
-        public override void Add(Obj item) {
+        public override void Add(Json<object> item) {
             var typedListTemplate = ((TObjArr)Template).ElementType;
             if (typedListTemplate != null) {
                 //                var t = allowedTemplate.GetType();

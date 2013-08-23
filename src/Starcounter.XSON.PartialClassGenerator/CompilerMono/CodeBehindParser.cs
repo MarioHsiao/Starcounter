@@ -198,6 +198,9 @@ namespace Starcounter.XSON.Compiler.Mono {
                                     baseClassGenericArgument = baseClassGenericArgStr;
                                     break;
                                 }
+                                else if (mce.Token == CSharpToken.OBJECT) {
+                                    baseClassGenericArgStr += "object";
+                                }
                                 else if (mce.Token == CSharpToken.IDENTIFIER) {
                                     baseClassGenericArgStr += mce.Value;
                                 }

@@ -5,6 +5,8 @@ namespace Starcounter.Server.Rest.Representations.JSON {
     /// <summary>
     /// Defines the log entry resource.
     /// </summary>
-    partial class LogEntry : Json {
+    /// 
+    [LogEntry_json]
+    partial class LogEntry : Json<object> {
     }
 }

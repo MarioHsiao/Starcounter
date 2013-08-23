@@ -11,7 +11,7 @@ namespace Starcounter {
     /// <summary>
     /// Class App
     /// </summary>
-    public partial class Obj {
+    public partial class Json<DataType> {
 
 #if QUICKTUPLE
         /// <summary>

@@ -8,8 +8,12 @@ using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
 using Starcounter.XSON.Metadata;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+
 
 namespace Starcounter.Internal.MsBuild.Codegen {
+
+
 
     /// <summary>
     /// Simple code-dom generator for the Template class. In a Template tree structure,
@@ -23,213 +27,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// to allow the generated code structure match the code behind structure. In this way,
     /// there is no need for the programmer to have deep nesting of class declarations in
     /// JSON trees.</remarks>
-    public class Gen2DomGenerator {
-        internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TObj template, Type defaultNewObjTemplateType, CodeBehindMetadata metadata) {
-            DefaultObjTemplate = (TObj)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
-            InitTemplateClasses();
-            InitMetadataClasses();
-            InitValueClasses();
+    public partial class Gen2DomGenerator {
+        internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TJson template, Type defaultNewObjTemplateType, CodeBehindMetadata metadata) {
+            DefaultObjTemplate = (TJson)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
             CodeBehindMetadata = metadata;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public Dictionary<Template, AstValueClass> ValueClasses = new Dictionary<Template, AstValueClass>();
-
-        /// <summary>
-        /// </summary>
-        public Dictionary<Template, AstTemplateClass> TemplateClasses = new Dictionary<Template, AstTemplateClass>();
-
-        /// <summary>
-        /// </summary>
-        public Dictionary<Type, AstTemplateClass> TemplateClassesByType= new Dictionary<Type, AstTemplateClass>();
-
-        /// <summary>
-        /// </summary>
-        public Dictionary<Template, AstMetadataClass> MetaClasses = new Dictionary<Template, AstMetadataClass>();
-
-        /// <summary>
-        /// Initializes static members of the <see cref="AstTemplateClass" /> class.
-        /// </summary>
-        void InitTemplateClasses() {
-            AstPropertyClass apc;
-
-            apc = new AstPropertyClass(this) {
-                Template = TPString,
-                NamespaceAlias = "st::"
-            };
-            TemplateClassesByType[typeof(TString)] = apc;
-            TemplateClasses[TPString] = apc;
-
-            apc = new AstPropertyClass(this) {
-                Template = TPLong,
-                NamespaceAlias = "st::"
-            };
-            TemplateClasses[TPLong] = apc;
-            TemplateClassesByType[typeof(TLong)] = apc;
-
-            apc = new AstPropertyClass(this) {
-                Template = TPDecimal,
-                NamespaceAlias = "st::"
-            };
-            TemplateClasses[TPDecimal] = apc;
-            TemplateClassesByType[typeof(TDecimal)] = apc;
-
-            apc = new AstPropertyClass(this) {
-                Template = TPDouble,
-                NamespaceAlias = "st::"
-            };
-            TemplateClasses[TPDouble] = apc;
-            TemplateClassesByType[typeof(TDouble)] = apc;
-
-            apc = new AstPropertyClass(this) {
-                Template = TPBool,
-                NamespaceAlias = "st::"
-            };
-            TemplateClasses[TPBool] = apc;
-            TemplateClassesByType[typeof(TBool)] = apc;
-
-            apc = new AstPropertyClass(this) {
-                Template = TPAction,
-                NamespaceAlias = "st::"
-            };
-            TemplateClasses[TPAction] = apc;
-            TemplateClassesByType[typeof(TTrigger)] = apc;
-
-            TemplateClasses[DefaultObjTemplate] = new AstTAppClass(this) {
-                Template = DefaultObjTemplate,
-                NamespaceAlias = "st::"
+            AstObject = new AstOtherClass(this) {
+                _ClassName = "object",
+                NamespaceAlias = null
             };
         }
 
-        /// <summary>
-        /// Initializes static members of the <see cref="AstMetadataClass" /> class.
-        /// </summary>
-        void InitMetadataClasses() {
-            MetaClasses[TPString] = new AstMetadataClass(this) { 
-                NTemplateClass = TemplateClasses[TPString],
-                NamespaceAlias = "st::"
-            };
-            MetaClasses[TPLong] = new AstMetadataClass(this) { 
-                NTemplateClass = TemplateClasses[TPLong],
-                NamespaceAlias = "st::"
-            };
-            MetaClasses[TPDecimal] = new AstMetadataClass(this) {
-                NTemplateClass = TemplateClasses[TPDecimal],
-                NamespaceAlias = "st::"
-            };
-            MetaClasses[TPDouble] = new AstMetadataClass(this) {
-                NTemplateClass = TemplateClasses[TPDouble],
-                NamespaceAlias = "st::"
-            };
-            MetaClasses[TPBool] = new AstMetadataClass(this) {
-                NTemplateClass = TemplateClasses[TPBool],
-                NamespaceAlias = "st::"
-            };
-            MetaClasses[TPAction] = new AstMetadataClass(this) {
-                NTemplateClass = TemplateClasses[TPAction],
-                NamespaceAlias = "st::"
-            };
-            MetaClasses[DefaultObjTemplate] = new AstMetadataClass(this) {
-                NTemplateClass = TemplateClasses[DefaultObjTemplate],
-                NamespaceAlias = "st::"
-            };
-        }
+        private AstOtherClass AstObject;
 
-        /// <summary>
-        /// Initializes static members of the <see cref="AstValueClass" /> class.
-        /// </summary>
-        void InitValueClasses() {
-            ValueClasses[TPString] = new AstPrimitiveType(this) {
-                NTemplateClass = TemplateClasses[TPString],
-                NamespaceAlias = "st::"
-            };
-            ValueClasses[TPLong] = new AstPrimitiveType(this) {
-                NTemplateClass = TemplateClasses[TPLong],
-                NamespaceAlias = "st::"
-            };
-            ValueClasses[TPDecimal] = new AstPrimitiveType(this) {
-                NTemplateClass = TemplateClasses[TPDecimal],
-                NamespaceAlias = "st::"
-            };
-            ValueClasses[TPDouble] = new AstPrimitiveType(this) {
-                NTemplateClass = TemplateClasses[TPDouble],
-                NamespaceAlias = "st::"
-            };
-            ValueClasses[TPBool] = new AstPrimitiveType(this) {
-                NTemplateClass = TemplateClasses[TPBool],
-                NamespaceAlias = "st::"
-            };
-            ValueClasses[TPAction] = new AstPrimitiveType(this) {
-                NTemplateClass = TemplateClasses[TPAction],
-                NamespaceAlias = "st::"
-            };
-            ValueClasses[DefaultObjTemplate] = new AstAppClass(this) {
-                NTemplateClass = TemplateClasses[DefaultObjTemplate],
-                NamespaceAlias = "s::"
-            };
-        }
-
-        /// <summary>
-        /// Finds the specified template.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <returns>NValueClass.</returns>
-        public AstValueClass FindValueClass(Template template) {
-            template = GetPrototype(template);
-            return ValueClasses[template];
-        }
-
-        /// <summary>
-        /// Finds the specified template.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <returns>NMetadataClass.</returns>
-        public AstMetadataClass FindMetaClass(Template template) {
-            template = GetPrototype(template);
-            return MetaClasses[template];
-        }
-
-        /// <summary>
-        /// Gets the prototype.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <returns>Template.</returns>
-        public Template GetPrototype(Template template) {
-            if (template is TString) {
-                return TPString;
-            } else if (template is TLong) {
-                return TPLong;
-            } else if (template is TDouble) {
-                return TPDouble;
-            } else if (template is TDecimal) {
-                return TPDecimal;
-            } else if (template is TBool) {
-                return TPBool;
-            } else if (template is TTrigger) {
-                return TPAction;
-            }
-            return template;
-        }
-
-        /// <summary>
-        /// Finds the specified template.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <returns>NTemplateClass.</returns>
-        public AstTemplateClass FindTemplateClass(Template template) {
-            // template = GetPrototype(template);
-            return TemplateClasses[template];
-        }
-
-        internal TString TPString = new TString();
-        internal TLong TPLong = new TLong();
-        internal TDecimal TPDecimal = new TDecimal();
-        internal TObj DefaultObjTemplate = null;
-        internal TDouble TPDouble = new TDouble();
-        internal TBool TPBool = new TBool();
-        internal TTrigger TPAction = new TTrigger();
 
         /// <summary>
         /// This is the main calling point to generate a dom tree for a JSON template (TJson).
@@ -237,7 +46,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="at">The TJson template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
-        public AstRoot GenerateDomTree(TObj at) {
+        public AstRoot GenerateDomTree(TJson at) {
 
             var p1 = new GeneratorPhase1() { Generator = this };
             var p2 = new GeneratorPhase2() { Generator = this };
@@ -245,9 +54,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             var p4 = new GeneratorPhase4() { Generator = this };
             var p5 = new GeneratorPhase5() { Generator = this };
 
-            AstAppClass acn;
-            AstTAppClass tcn;
-            AstObjMetadata mcn;
+            AstJsonClass acn;
+            AstSchemaClass tcn;
+            AstMetadataClass mcn;
 
             this.Root = p1.RunPhase1(at, out acn, out tcn, out mcn );
             p2.RunPhase2(acn,tcn,mcn);
@@ -268,7 +77,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
 
 
-        private AstBase FindRootNAppClass(AstAppClass appClassParent) {
+        private AstBase FindRootNAppClass(AstJsonClass appClassParent) {
             AstBase next = appClassParent;
             while (!(next.Parent is AstRoot))
                 next = next.Parent;
@@ -290,14 +99,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal void FindHandleDeclaringClass(AstInputBinding binding, InputBindingInfo info) {
             Int32 parentCount = 0;
             TContainer candidate = binding.PropertyAppClass.Template;
-            TObj appTemplate;
-            AstAppClass declaringAppClass = null;
+            TJson appTemplate;
+            AstJsonClass declaringAppClass = null;
 
             while (candidate != null) {
-                appTemplate = candidate as TObj;
+                appTemplate = candidate as TJson;
                 if (appTemplate != null) {
                     if (info.DeclaringClassName.Equals(appTemplate.ClassName)) {
-                        declaringAppClass = (AstAppClass)FindValueClass(appTemplate);
+                        declaringAppClass = (AstJsonClass)ObtainValueClass(appTemplate);
                         break;
                     }
                 }
@@ -323,7 +132,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 Template current = DefaultObjTemplate;
                 while (current.Parent != null)
                     current = (Template)current.Parent;
-                return ((TObj)current).Namespace;
+                return ((TJson)current).Namespace;
             }
         }
 
@@ -344,5 +153,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         return Starcounter.Internal.JsonTemplate.Error.CompileError.Raise<Exception>(msg, tuple, co.FileName);
                     });
         }
+
+
+
     }
 }

@@ -20,7 +20,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="puppletTemplate"></param>
         /// <returns></returns>
-        internal static AstNamespace BuildAstTree(TObj objTemplate) {
+        internal static AstNamespace BuildAstTree(Schema<Json<object>> objTemplate) {
             return BuildAstTree(objTemplate, false);
         }
 
@@ -30,7 +30,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="objTemplate"></param>
         /// <param name="createChildSerializers"></param>
         /// <returns></returns>
-        internal static AstNamespace BuildAstTree(TObj objTemplate, bool createChildSerializers) {
+        internal static AstNamespace BuildAstTree(Schema<Json<object>> objTemplate, bool createChildSerializers) {
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
 
             string ns = objTemplate.Namespace;
@@ -56,15 +56,15 @@ namespace Starcounter.Internal.Application.CodeGeneration {
             return astNs;
         }
 
-        private static void CreateChildSerializers(TObj objTemplate, AstNode parent) {
+        private static void CreateChildSerializers(Schema<Json<object>> objTemplate, AstNode parent) {
             AstNode node;
-            TObj tChildObj;
+            Schema<Json<object>> tChildObj;
             string className;
 
             foreach (Template child in objTemplate.Properties) {
                 tChildObj = null;
-                if (child is TObj) {
-                    tChildObj = (TObj)child;
+                if (child is Schema<Json<object>>) {
+                    tChildObj = (Schema<Json<object>>)child;
                 } else if (child is TObjArr) {
                     tChildObj = ((TObjArr)child).ElementType;
                 }
@@ -154,7 +154,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
                     Parent = nextParent
                 };
 
-                if (template is TObj) {
+                if (template is Schema<Json<object>>) {
                     new AstJsonObjectValue(){
                         Template = template,
                         Parent = nextParent

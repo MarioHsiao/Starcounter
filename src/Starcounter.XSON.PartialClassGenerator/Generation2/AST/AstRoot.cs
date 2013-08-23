@@ -28,7 +28,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The app class class node
         /// </summary>
-        public AstAppClass AppClassClassNode;
+        public AstJsonClass AppClassClassNode;
 
       //  public TObj DefaultObjTemplate;
     }

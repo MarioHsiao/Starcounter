@@ -10,7 +10,7 @@ using System;
 using System.Text;
 namespace Starcounter {
 
-    public partial class Obj {
+    public partial class Json<DataType> {
 
         internal string DebugString {
             get {

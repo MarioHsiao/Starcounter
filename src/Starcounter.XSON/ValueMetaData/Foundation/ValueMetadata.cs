@@ -9,14 +9,18 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class ValueMetadata : ObjMetadataBase {
+    public class ValueMetadata<JsonType,TemplateType> : ObjMetadataBase<JsonType,TemplateType>
+            where JsonType : Json<object>
+        where TemplateType : Template
+    {
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValueMetadata" /> class.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public ValueMetadata(Obj app, Template template ) : base( app, template ) {
+        public ValueMetadata(JsonType app, TemplateType template)
+            : base(app, template) {
         }
 
         /// <summary>

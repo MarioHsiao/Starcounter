@@ -23,7 +23,7 @@ namespace Modules {
         }
 
         public static void Initialize() {
-            TObj.MarkupReaders.Add("json", new JsonByExampleTemplateReader());
+            Schema<Json<object>>.MarkupReaders.Add("json", new JsonByExampleTemplateReader());
         }
 
 
@@ -35,8 +35,8 @@ namespace Modules {
         /// <param name="restrictToDesigntimeVariable">if set to <c>true</c> [restrict to designtime variable].</param>
         /// <returns>an TObj instance</returns>
         public static TypeTObj CreateFromJs<TypeObj,TypeTObj>(string script2, bool restrictToDesigntimeVariable)
-            where TypeObj : Obj, new()
-            where TypeTObj : TObj, new()
+            where TypeObj : Json<object>, new()
+            where TypeTObj : Schema<TypeObj>, new()
         {
             return _CreateFromJs<TypeObj,TypeTObj>(script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
         }
@@ -45,8 +45,8 @@ namespace Modules {
         public static TypeTObj _CreateFromJs<TypeObj, TypeTObj>(string source,
                                            string sourceReference,
                                            bool ignoreNonDesignTimeAssigments)
-            where TypeObj : Obj, new()
-            where TypeTObj : TObj, new() {
+            where TypeObj : Json<object>, new()
+            where TypeTObj : Schema<TypeObj>, new() {
 
                 return JsonByExampleTemplateReader._CreateFromJs<TypeObj, TypeTObj>(source, sourceReference, ignoreNonDesignTimeAssigments); 
         }
@@ -58,16 +58,16 @@ namespace Modules {
         /// Reads the file and generates a typed json template.
         /// </summary>
         /// <param name="fileSpec">The file spec.</param>
-        /// <returns>a TJson instance</returns>
-        public static TJson ReadJsonTemplateFromFile(string fileSpec)
+        /// <returns>a Schema<Json<object>> instance</returns>
+        public static Schema<Json<object>> ReadJsonTemplateFromFile(string fileSpec)
         {
             string content = ReadUtf8File(fileSpec);
-            var t = _CreateFromJs<Json,TJson>(content, fileSpec, false);
+            var t = _CreateFromJs<Json<object>, Schema<Json<object>>>(content, fileSpec, false);
             if (t.ClassName == null)
             {
                 t.ClassName = Path.GetFileNameWithoutExtension(fileSpec);
             }
-            return (TJson)t;
+            return (Schema<Json<object>>)t;
         }
 
 

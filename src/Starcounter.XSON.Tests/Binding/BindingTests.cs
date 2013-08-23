@@ -2,6 +2,9 @@
 using System;
 using NUnit.Framework;
 using Starcounter.Templates;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+
+
 namespace Starcounter.Internal.XSON.Tests {
 
     public class BindingTests {
@@ -11,7 +14,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestDefaultAutoBinding() {
             Person p = new Person();
             p.FirstName = "Albert";
-            dynamic j = new Json();
+            dynamic j = new Json<object>();
             j.Data = p;
             j.FirstName = "Abbe";
             Assert.AreEqual("Abbe", j.FirstName);
@@ -24,15 +27,15 @@ namespace Starcounter.Internal.XSON.Tests {
             p.FirstName = "Joachim";
             p.LastName = "Wester";
 
-            dynamic j = new Json();
-            TJson t = new TJson();
+            dynamic j = new Json<object>();
+            var t = new TJson();
             var prop = t.Add<TString>("FirstName");
             prop.Bind = "FirstName";
             prop.Bound = Bound.Yes;
             j.Template = t;
             j.Data = p;
 
-            Json temp = (Json)j;
+            var temp = (Json<object>)j;
 
             Assert.AreEqual("Joachim", p.FirstName); // Get firstname using data object
             Assert.AreEqual("Joachim", temp.Get(prop)); // Get firstname using JSON data binding using API
@@ -49,8 +52,8 @@ namespace Starcounter.Internal.XSON.Tests {
 			p.FirstName = "Joachim";
 			p.LastName = "Wester";
 
-			dynamic j = new Json();
-			TJson t = new TJson();
+			dynamic j = new Json<object>();
+			var t = new TJson();
 			var prop = t.Add<TString>("FirstName");
 			prop.Bound = Bound.Auto;
 
