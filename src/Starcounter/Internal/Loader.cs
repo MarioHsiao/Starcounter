@@ -204,7 +204,7 @@ namespace Starcounter.Internal
                 }
 
                 switch (databaseAttribute.AttributeKind) {
-                    case DatabaseAttributeKind.PersistentField:
+                    case DatabaseAttributeKind.Field:
                         if (!isSynonym) {
                             columnDefs.Add(new ColumnDef(
                                 databaseAttribute.Name,
@@ -227,7 +227,7 @@ namespace Starcounter.Internal
                             AddProperty(propertyDef, propertyDefs);
                         }
                         break;
-                    case DatabaseAttributeKind.NotPersistentProperty:
+                    case DatabaseAttributeKind.Property:
                         if (databaseAttribute.IsPublicRead) {
                             var propertyDef = new PropertyDef(
                                 databaseAttribute.Name,
@@ -238,7 +238,7 @@ namespace Starcounter.Internal
 
                             string columnName = null;
                             var backingField = databaseAttribute.BackingField;
-                            if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.PersistentField) {
+                            if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.Field) {
                                 columnName = backingField.Name;
                             }
                             propertyDef.ColumnName = columnName;
