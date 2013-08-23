@@ -334,7 +334,7 @@ namespace Starcounter.Internal.Weaver {
         /// even before we check if a reference to Starcounter exist.
         /// </remarks>
         void InitializeModuleThatReferenceStarcounter() {
-            _notPersistentAttributeType = FindStarcounterType(typeof(NotPersistentAttribute));
+            _notPersistentAttributeType = FindStarcounterType(typeof(TransientAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
             _databaseAttributeType = FindStarcounterType(typeof(Starcounter.DatabaseAttribute));
         }
