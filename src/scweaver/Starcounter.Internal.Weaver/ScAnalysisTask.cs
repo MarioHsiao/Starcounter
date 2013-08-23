@@ -574,12 +574,12 @@ namespace Starcounter.Internal.Weaver {
             FieldDefDeclaration fieldDef;
             FieldDefDeclaration synonymFieldDef;
 
-            if (databaseAttribute.AttributeKind == DatabaseAttributeKind.PersistentField) {
+            if (databaseAttribute.AttributeKind == DatabaseAttributeKind.Field) {
                 if (databaseAttribute.SynonymousTo != null) {
                     synonymTo = databaseAttribute.SynonymousTo;
 
                     // The target attribute should be a persistent field.
-                    if (synonymTo.AttributeKind != DatabaseAttributeKind.PersistentField) {
+                    if (synonymTo.AttributeKind != DatabaseAttributeKind.Field) {
                         ScMessageSource.WriteError(
                             MessageLocation.Of(databaseAttribute),
                             Error.SCERRSYNTARGETNOTPERSISTENT,
@@ -1024,9 +1024,9 @@ namespace Starcounter.Internal.Weaver {
             databaseAttribute.IsInitOnly = (field.Attributes & FieldAttributes.InitOnly) != 0;
             
             if (field.CustomAttributes.Contains(this._transientAttributeType)) {
-                databaseAttribute.AttributeKind = DatabaseAttributeKind.NonPersistentField;
+                databaseAttribute.AttributeKind = DatabaseAttributeKind.TransientField;
             } else {
-                databaseAttribute.AttributeKind = DatabaseAttributeKind.PersistentField;
+                databaseAttribute.AttributeKind = DatabaseAttributeKind.Field;
             }
             if (!databaseAttribute.IsPersistent) {
                 // When the field is not persistent, we don't care about its type.
@@ -1113,15 +1113,27 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="property">Property to be inspected.</param>
         private void DiscoverDatabaseProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
             ValidateDiscoveredDatabaseProperty(databaseClass, property);
+            var transient = property.CustomAttributes.Contains(this._transientAttributeType);
+
+            if (transient) {
+                // The property is marked transient. Find the corresponding backing field
+                // in the same class. If not found, the attribute is not on an
+                // auto-implemented property (i.e. an error) and if we find it, we need
+                // to change the field to not-persistent.
+                var fieldName = string.Format("<{0}>k_BackingField", property.Name);
+                var backingField = databaseClass.Attributes[fieldName];
+                backingField.AttributeKind = DatabaseAttributeKind.TransientField;
+            }
 
             DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, property.Name);
             databaseClass.Attributes.Add(databaseAttribute);
             databaseAttribute.SetPropertyDefinition(property);
-            databaseAttribute.AttributeKind = DatabaseAttributeKind.NotPersistentProperty;
+            databaseAttribute.AttributeKind = transient ? DatabaseAttributeKind.TransientProperty : DatabaseAttributeKind.Property;
             databaseAttribute.BackingField = ScanPropertyGetter(databaseAttribute);
             SetDatabaseAttributeType(property, false, databaseAttribute);
             databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
         }
+
         /// <summary>
         /// Validates the declared <paramref name="property"/> in the specified
         /// <paramref name="databaseClass"/> to see if it violates any constraits.
@@ -1134,7 +1146,7 @@ namespace Starcounter.Internal.Weaver {
             var cursor = databaseClass;
             while (cursor != null) {
                 foreach (var item in cursor.Attributes) {
-                    if (item.AttributeKind == DatabaseAttributeKind.PersistentField && item.IsPublicRead) {
+                    if (item.AttributeKind == DatabaseAttributeKind.Field && item.IsPublicRead) {
                         if (item.Name.Equals(property.Name, StringComparison.InvariantCultureIgnoreCase)) {
                             var detail = string.Format("Property {0} in class {1}, field {2} in class {3}.",
                                 property.Name,
@@ -1607,7 +1619,7 @@ namespace Starcounter.Internal.Weaver {
                                 DatabaseAttribute databaseAttribute =
                                     _schema.FindDatabaseAttribute(field.Name, field.DeclaringType.GetReflectionName());
                                 if (databaseAttribute != null &&
-                                    databaseAttribute.AttributeKind == DatabaseAttributeKind.PersistentField) {
+                                    databaseAttribute.AttributeKind == DatabaseAttributeKind.Field) {
                                     ScAnalysisTrace.Instance.WriteLine(
                                         "This method loads the address of the field {{{0}}} of type {{{1}}}.", field,
                                         field.FieldType);
