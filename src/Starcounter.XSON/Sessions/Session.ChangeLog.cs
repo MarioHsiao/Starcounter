@@ -25,7 +25,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="obj">The Obj.</param>
         /// <param name="property">The property.</param>
-        internal void UpdateValue(Obj obj, TValue property) {
+        internal void UpdateValue(Json<object> obj, TValue property) {
                 _Changes.Add(Change.Update(obj, property));
         }
 

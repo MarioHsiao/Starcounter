@@ -7,6 +7,7 @@ using Modules;
 
 using Starcounter.Advanced.XSON;
 using Starcounter;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
 
 namespace Modules {
 
@@ -50,7 +51,7 @@ namespace Modules {
             html.Load(new StringReader(str));
             foreach (HtmlNode link in html.DocumentNode.SelectNodes("//script")) {
                 string js = link.InnerText;
-                template = (TJson)Starcounter_XSON_JsonByExample.CreateFromJs<Json, TJson>(js, true);
+                template = (TJson)Starcounter_XSON_JsonByExample.CreateFromJs<Json<object>, TJson>(js, true);
                 if (template != null)
                     return template;
             }

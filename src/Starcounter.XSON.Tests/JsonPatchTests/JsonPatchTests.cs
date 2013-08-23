@@ -4,6 +4,8 @@ using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+
 
 namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
@@ -14,8 +16,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
         [Test]
         public static void TestSimpleJsonPatch() {
 
-            dynamic j = new Json();
-            dynamic nicke = new Json();
+            dynamic j = new Json<object>();
+            dynamic nicke = new Json<object>();
             nicke.FirstName = "Nicke";
 
             j.FirstName = "Joachim";
@@ -26,7 +28,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             j.FirstName = "Douglas";
 
-            var before = ((Json)j).ToJson();
+            var before = ((Json<object>)j).ToJson();
 //            Session.Current.CheckpointChangeLog();
             Session.Current.CreateJsonPatch(true);
 
@@ -34,7 +36,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             j.LastName = "Wester";
             j.FirstName = "Charlie";
 
-            var after = ((Json)j).ToJson();
+            var after = ((Json<object>)j).ToJson();
             var result = Session.Current.CreateJsonPatch(true);
 
             Console.WriteLine("Before");
@@ -59,15 +61,15 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
         [Test]
         public static void TestJsonPatchSimpleArray() {
 
-            dynamic j = new Json();
-            dynamic nicke = new Json();
+            dynamic j = new Json<object>();
+            dynamic nicke = new Json<object>();
             nicke.FirstName = "Nicke";
 
             j.FirstName = "Joachim";
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json<object>>() { nicke };
 
             Session.Data = j;
-            var before = ((Json)j).ToJson();
+            var before = ((Json<object>)j).ToJson();
 //            Session.Current.CheckpointChangeLog();
             Session.Current.CreateJsonPatch(true);
 
@@ -76,7 +78,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             x.FirstName = "Henrik";
             x.LastName = "Boman";
 
-            var after = ((Json)j).ToJson();
+            var after = ((Json<object>)j).ToJson();
             var result = Session.Current.CreateJsonPatch(true);
 
             Console.WriteLine("Before");
@@ -100,18 +102,18 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
         [Test]
         public static void TestDirtyFlagsWithoutBinding() {
 
-            TObj.UseCodegeneratedSerializer = false;
+            TJson.UseCodegeneratedSerializer = false;
 
-            dynamic j = new Json();
-            dynamic nicke = new Json();
+            dynamic j = new Json<object>();
+            dynamic nicke = new Json<object>();
             nicke.FirstName = "Nicke";
-            dynamic henrik = new Json();
+            dynamic henrik = new Json<object>();
             henrik.FirstName = "Henrik";
 
             j.FirstName = "Joachim";
             j.Age = 42;
             j.Length = 184.7;
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json<object>>() { nicke };
 
             Session.Data = j;
 
@@ -119,27 +121,27 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             Console.WriteLine("New stuff");
             Console.WriteLine("=========");
-            Console.WriteLine(((Json)j).DebugString);
+            Console.WriteLine(((Json<object>)j).DebugString);
 
 //            Session.Current.CheckpointChangeLog();            
             Session.Current.CreateJsonPatch(true);
 
             Console.WriteLine("Flushed");
             Console.WriteLine("=========");
-            Console.WriteLine(((Json)j).DebugString);
+            Console.WriteLine(((Json<object>)j).DebugString);
 
             var str = Session.Current.CreateJsonPatch(true);
             Assert.AreEqual("[]", str);
 
             j.Friends[1].FirstName = "Henke";
             j.Age = 43;
-            dynamic kalle = new Json();
+            dynamic kalle = new Json<object>();
             kalle.FirstName = "Kalle";
             j.Friends.Add(kalle);
 
             Console.WriteLine("Changed");
             Console.WriteLine("=========");
-            Console.WriteLine(((Json)j).DebugString);
+            Console.WriteLine(((Json<object>)j).DebugString);
 
             str = Session.Current.CreateJsonPatch(true);
 
@@ -154,28 +156,28 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
       //  [Test]
         public static void TestDirtyFlagsWithBinding() {
 
-            TObj.UseCodegeneratedSerializer = false;
+            TJson.UseCodegeneratedSerializer = false;
 
             Person nickeDb = new Person();
             Person jockeDb = new Person();
             Person henrikDb = new Person();
 
 
-            dynamic jockeJson = new Json();
+            dynamic jockeJson = new Json<object>();
             jockeJson.Data = jockeDb;
-            dynamic nickeJson = new Json();
+            dynamic nickeJson = new Json<object>();
             nickeJson.Data = nickeDb;
 
             nickeDb.FirstName = "Nicke";
 
-            dynamic henrikJson = new Json();
+            dynamic henrikJson = new Json<object>();
             henrikJson.Data = henrikDb;
             henrikJson.FirstName = "Henrik";
 
             jockeJson.FirstName = "Joachim";
             jockeJson.Age = 42;
             jockeJson.Length = 184.7;
-            jockeJson.Friends = new List<Obj>() { nickeJson };
+            jockeJson.Friends = new List<Json<object>>() { nickeJson };
 
             Session.Data = jockeJson;
 
@@ -183,27 +185,27 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             Console.WriteLine("New stuff");
             Console.WriteLine("=========");
-            Console.WriteLine(((Json)jockeJson).DebugString);
+            Console.WriteLine(((Json<object>)jockeJson).DebugString);
 
             //Session.Current.CheckpointChangeLog();
             Session.Current.CreateJsonPatch(true);
 
             Console.WriteLine("Flushed");
             Console.WriteLine("=========");
-            Console.WriteLine(((Json)jockeJson).DebugString);
+            Console.WriteLine(((Json<object>)jockeJson).DebugString);
 
             var str = Session.Current.CreateJsonPatch(true);
             Assert.AreEqual("[]", str);
 
             jockeJson.Friends[1].FirstName = "Henke";
             jockeJson.Age = 43;
-            dynamic kalle = new Json();
+            dynamic kalle = new Json<object>();
             kalle.FirstName = "Kalle";
             jockeJson.Friends.Add(kalle);
 
             Console.WriteLine("Changed");
             Console.WriteLine("=========");
-            Console.WriteLine(((Json)jockeJson).DebugString);
+            Console.WriteLine(((Json<object>)jockeJson).DebugString);
 
             str = Session.Current.CreateJsonPatch(true);
 
@@ -219,21 +221,21 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
      //   [Test]
         public static void TestJsonPatchSimpleMix() {
 
-            TObj.UseCodegeneratedSerializer = false;
+            TJson.UseCodegeneratedSerializer = false;
 
-            dynamic j = new Json();
-            dynamic nicke = new Json();
+            dynamic j = new Json<object>();
+            dynamic nicke = new Json<object>();
             nicke.FirstName = "Nicke";
             nicke.Age = 43;
 
             j.FirstName = "Joachim";
             j.Age = 43;
             j.Length = 184.7;
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json<object>>() { nicke };
 
             Session.Data = j;
 
-            var before = ((Json)j).DebugString;
+            var before = ((Json<object>)j).DebugString;
 //            Session.Current.CheckpointChangeLog();
             Session.Current.CreateJsonPatch(true);
 
@@ -252,7 +254,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             j.FirstName = "Charlie";
             j.Friends.Add().FirstName = "Henrik";
 
-            var after = ((Json)j).DebugString;
+            var after = ((Json<object>)j).DebugString;
             var result = Session.Current.CreateJsonPatch(true);
 
             Console.WriteLine("Before");
@@ -291,16 +293,16 @@ Assert.AreEqual(facit, result );
             p.FirstName = "Joachim";
             p.LastName = "Wester";
 
-            dynamic j = new Json();
-            Json json = (Json)j;
+            dynamic j = new Json<object>();
+            var json = (Json<object>)j;
 
             Session.Data = j;
-            var start = ((Json)j).DebugString;
+            var start = ((Json<object>)j).DebugString;
 
             Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
             Assert.IsTrue(json._BrandNew);
 
-            TJson t = new TJson();
+            var t = new TJson();
             var fname = t.Add<TString>("FirstName"); // TODO! By default, properties are automatically bound my matching property names
             fname.Bind = "FirstName";
             var lname = t.Add<TString>("LastName"); // TODO! By default, properties are automatically bound my matching property names
@@ -309,14 +311,14 @@ Assert.AreEqual(facit, result );
             j.Data = p;
 
             Assert.IsTrue(json._BrandNew);
-            Assert.AreEqual("{\"FirstName\":\"Joachim\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
+            Assert.AreEqual("{\"FirstName\":\"Joachim\",\"LastName\":\"Wester\"}", ((Json<object>)j).ToJson());
 
             Session.Current.CreateJsonPatch(true); // Flush
-            var before = ((Json)j).DebugString;
+            var before = ((Json<object>)j).DebugString;
 
             p.FirstName = "Douglas";
 
-            var after = ((Json)j).DebugString;
+            var after = ((Json<object>)j).DebugString;
 
             var patch = Session.Current.CreateJsonPatch(true);
 
@@ -337,15 +339,15 @@ Assert.AreEqual(facit, result );
             Console.WriteLine(patch);
             Console.WriteLine("");
 
-            Assert.AreEqual("{\"FirstName\":\"Douglas\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
+            Assert.AreEqual("{\"FirstName\":\"Douglas\",\"LastName\":\"Wester\"}", ((Json<object>)j).ToJson());
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Douglas\"}]",patch);
         }
 
 
         [Test]
         public static void TestArrayPatches() {
-            dynamic j = new Json();
-            dynamic nicke = new Json();
+            dynamic j = new Json<object>();
+            dynamic nicke = new Json<object>();
 
 
             Session.Data = j;
@@ -361,7 +363,7 @@ Assert.AreEqual(facit, result );
 
            // Session.Current.LogChanges = true;
 
-            j.Friends = new List<Obj>() { nicke };
+            j.Friends = new List<Json<object>>() { nicke };
 
             Console.WriteLine("Changes:");
             Console.WriteLine("========");

@@ -5,32 +5,35 @@
 // ***********************************************************************
 
 using Starcounter.Templates;
+using Starcounter.XSON.Metadata;
+using System;
 using System.Collections.Generic;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+
 
 namespace Starcounter.Internal.MsBuild.Codegen {
 
     /// <summary>
-    /// Represents a App class definition in template tree.
+    /// Represents a Json instance class (a class that is 
+    /// derived from Json&ltobject&gt or the Json&ltobject&gt
+    /// class.
     /// </summary>
-    public class AstAppClass : AstValueClass {
-        //        public NAppClass AppClassClass;
-        //        public NClass TemplateClass;
-        //        public NClass MetaDataClass;
+    public class AstJsonClass : AstInstanceClass {
 
         /// <summary>
-        /// 
+        /// The constructor
         /// </summary>
-        /// <param name="gen"></param>
-        public AstAppClass(Gen2DomGenerator gen)
-            : base(gen) {
+        /// <param name="generator">The code-dom generator instance</param>
+        public AstJsonClass(Gen2DomGenerator generator)
+            : base(generator) {
         }
 
         /// <summary>
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
-        public TObj Template {
-            get { return (TObj)(NTemplateClass.Template); }
+        public TContainer Template {
+            get { return (TContainer)(NTemplateClass.Template); }
         }
 
        // public new NAppClass Parent {
@@ -42,6 +45,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
        //     }
        // }
 
+        /*
         /// <summary>
         /// The _ inherits
         /// </summary>
@@ -55,15 +59,21 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         private string __inh;
+        */
+
+        //public AstClass InheritedClass;
 
 
-        /// <summary>
-        /// Can be used to set a specific base class for the generated App class.
-        /// </summary>
-        /// <value>The inherits.</value>
-        public override string Inherits {
-            get { return _Inherits; }
+        public override string Generics {
+            get {
+                throw new Exception();
+//                if (MatchedClass == null)
+//                    return null;
+//                return MatchedClass.GenericArg;
+            }
         }
+
+
 
 
         /// <summary>
@@ -74,19 +84,38 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// the text "App".
         /// </summary>
         /// <value>The name of the class.</value>
-        public override string ClassName {
+        public override string ClassStemIdentifier {
             get {
-                if (Template.ClassName != null)
+//                string ret;
+                if (MatchedClass != null) {
+#if DEBUG
+                    if (MatchedClass.ClassName.Contains("<"))
+                        throw new Exception();
+#endif
+                    return MatchedClass.ClassName;
+                }
+                if (Template.ClassName != null) {
+#if DEBUG
+                    if (Template.ClassName.Contains("<"))
+                        throw new Exception();
+#endif
                     return Template.ClassName;
-                else if (!IsCustomGeneratedClass) {
-                    return this.Generator.DefaultObjTemplate.InstanceType.Name; // "Puppet", "Json"
-                } else if (Template.Parent is TObjArr) {
-                    var alt = (TObjArr)Template.Parent;
-                    return JsonifyName(alt.PropertyName); // +"App";
-                } else
+                }
+//                else if (!IsCustomGeneratedClass) {
+//                    ret = HelperFunctions.GetClassStemIdentifier(this.Generator.DefaultObjTemplate.InstanceType);
+//#if DEBUG
+//                    if (ret.Contains("<"))
+//                        throw new Exception();
+//#endif
+//                    return ret;
+//                }
+                else if (Template is Schema<Json<object>> && Template.PropertyName != null && Template.PropertyName != "" ) {
                     return JsonifyName(Template.PropertyName); // +"App";
+                }
+                return HelperFunctions.GetClassStemIdentifier(this.Template.InstanceType);
             }
         }
+
 
         /// <summary>
         /// The class name is linked to the name of the ClassName in the
@@ -96,13 +125,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <value>The stem.</value>
         public string Stem {
             get {
-                if (Template.ClassName != null)
-                    return Template.ClassName;
-                else if (Template.Parent is TObjArr) {
-                    var alt = (TObjArr)Template.Parent;
-                    return alt.PropertyName;
-                } else
-                    return Template.PropertyName;
+                throw new Exception();
+//                if (Template.ClassName != null)
+//                    return Template.ClassName;
+//                else if (Template.Parent is TObjArr) {
+//                    var alt = (TObjArr)Template.Parent;
+//                    return alt.PropertyName;
+//                } else
+//                    return Template.PropertyName;
             }
         }
 
@@ -131,7 +161,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <value><c>true</c> if this instance is custom app template; otherwise, <c>false</c>.</value>
         public bool IsCustomGeneratedClass {
             get {
-                return (Template.Properties.Count > 0);
+                if (Template is Schema<Json<object>>) {
+                    return ((Schema<Json<object>>)Template).Properties.Count > 0;
+                }
+                return false;
             }
         }
 

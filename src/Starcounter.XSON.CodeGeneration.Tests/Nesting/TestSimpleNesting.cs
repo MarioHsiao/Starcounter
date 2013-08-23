@@ -1,10 +1,11 @@
 ﻿using NUnit.Framework;
 using Starcounter;
-using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.MsBuild.Codegen;
 using Starcounter.Templates;
 using System;
 using System.IO;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
@@ -31,18 +32,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
-            var dump = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => {
-                var str = node.GetType().Name;
-                str += " : " + node.ToString();
-                return str;
-            });
+            //var dump = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => {
+            //    var str = node.GetType().Name;
+            //    str += " : " + node.ToString();
+            //    return str;
+            //});
 
             //Console.WriteLine(dump);
             Console.WriteLine(codegen.GenerateCode());
 
             Assert.AreEqual(typeof(AstRoot), dom.GetType() );
-            Assert.AreEqual(typeof(AstAppClass), dom.Children[0].GetType());
-            Assert.AreEqual("Parent", ((AstAppClass)dom.Children[0]).ClassName);
+            Assert.AreEqual(typeof(AstJsonClass), dom.Children[0].GetType());
+            Assert.AreEqual("Parent", ((AstJsonClass)dom.Children[0]).ClassStemIdentifier);
 
 
             var rootClass = (AstBase)dom.Children[0];
@@ -57,13 +58,13 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
-            var dump = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => {
-                var str = node.GetType().Name;
-                str += " : " + node.ToString();
-                return str;
-            });
+           // var dump = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => {
+           //     var str = node.GetType().Name;
+           //     str += " : " + node.ToString();
+           //     return str;
+           // });
 
-            Console.WriteLine(dump);
+       //     Console.WriteLine(dump);
 
             Assert.AreEqual(typeof(AstRoot), dom.GetType());
             var rootClass = (AstBase)dom.Children[0];

@@ -23,7 +23,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// </summary>
         /// <param name="objTemplate"></param>
         /// <returns></returns>
-        internal static ParseNode BuildParseTree(TObj objTemplate) {
+        internal static ParseNode BuildParseTree(Schema<Json<object>> objTemplate) {
             return BuildParseTree(GetTemplateMetadata(objTemplate));
         }
 
@@ -32,7 +32,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// registered in the object template.
         /// </summary>
         /// <param name="objTemplate"></param>
-        private static List<TemplateMetadata> GetTemplateMetadata(TObj objTemplate) {
+        private static List<TemplateMetadata> GetTemplateMetadata(Schema<Json<object>> objTemplate) {
             List<TemplateMetadata> templates = new List<TemplateMetadata>();
             foreach (Template child in objTemplate.Properties.ExposedProperties) {
                 templates.Add(new TemplateMetadata(child));

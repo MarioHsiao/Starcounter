@@ -6,6 +6,8 @@
 
 using Starcounter.Templates;
 using System.Collections.Generic;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+
 
 namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
@@ -28,8 +30,8 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
-        public TObj Template {
-            get { return (TObj)(NTemplateClass.Template); }
+        public TJson Template {
+            get { return (TJson)(NTemplateClass.Template); }
         }
 
        // public new NAppClass Parent {

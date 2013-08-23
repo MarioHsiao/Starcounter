@@ -47,22 +47,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
-        /// Gets the function generic.
-        /// </summary>
-        /// <value>The function generic.</value>
-        public AstClass FunctionGeneric {
-            get {
-                if (Type is AstArrXXXClass) {
-                    return (Type as AstArrXXXClass).NApp;
-                }
-                else if (Type is AstAppClass) {
-                    return Type;
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the template.
         /// </summary>
         /// <value>The template.</value>
@@ -77,7 +61,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 //            if (FunctionGeneric != null) {
 //                str += "<" + FunctionGeneric.FullClassName + ">";
 //            }
-            return "NMEMBER " + Type.FullClassName + " " + str;
+            return "NMEMBER " + Type.ClassSpecifierWithoutOwners + " " + str;
         }
     }
 }

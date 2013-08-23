@@ -15,10 +15,10 @@ using System.Diagnostics;
 
 namespace Starcounter {
 
-    public partial class Obj {
+    public partial class Json<DataType> {
 
         public object Get(TValue property) {
-			if (property.UseBinding(Data))
+			if (property.UseBinding(DataAsBindable))
                 return GetBound(property);
             return Values[property.TemplateIndex];
         }
@@ -29,8 +29,8 @@ namespace Starcounter {
         /// <typeparam name="TVal"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public TVal Get<TVal>(TValue<TVal> property) {
-            if (property.UseBinding(Data))
+        public TVal Get<TVal>(Property<TVal> property) {
+            if (property.UseBinding(DataAsBindable))
                 return GetBound(property);
 
 #if QUICKTUPLE
@@ -46,8 +46,8 @@ namespace Starcounter {
         /// <typeparam name="TVal"></typeparam>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public void Set<TVal>(TValue<TVal> property, TVal value) {
-            if (property.UseBinding(Data)) {
+        public void Set<TVal>(Property<TVal> property, TVal value) {
+            if (property.UseBinding(DataAsBindable)) {
                 SetBound(property, value);
                 this._CallHasChanged(property);
                 return;
@@ -97,7 +97,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to retrieve the value for.</param>
         /// <returns>The value.</returns>
-        public decimal Get(TDecimal property) { return Get<decimal>(property); }
+        public decimal Get(Property<decimal> property) { return Get<decimal>(property); }
 
         /// <summary>
         /// Sets the value for the specified template. If the property
@@ -105,7 +105,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The template to set the value to.</param>
         /// <param name="value">The value to set.</param>
-        public void Set(TDecimal property, decimal value) { Set<decimal>(property, value); }
+        public void Set(Property<decimal> property, decimal value) { Set<decimal>(property, value); }
 
         /// <summary>
         /// Gets the value for the specified template. If the property
@@ -208,13 +208,13 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Obj Get(TObj property) {
+        public Json<object> Get(Schema<Json<object>> property) {
             //IBindable data = null;
             //if (property.Bound)
             //    data = GetBound(property);
 
 #if QUICKTUPLE
-            Obj v = Values[property.TemplateIndex];
+            Json<object> v = Values[property.TemplateIndex];
             //if (v.Data != data) {
             //    v.Data = data;
             //}
@@ -229,11 +229,11 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public void Set(TObj property, Obj value) {
+        public void Set(Schema<Json<object>> property, Json<object> value) {
 			if (value != null) {
 				value.Parent = this;
 
-				if (property.UseBinding(Data))
+				if (property.UseBinding(DataAsBindable))
 					SetBound(property, value.Data);
 
 				value._cacheIndexInArr = property.TemplateIndex;
@@ -241,7 +241,7 @@ namespace Starcounter {
 #if QUICKTUPLE
             var vals = Values;
             var i = property.TemplateIndex;
-            Obj oldValue = vals[i];
+            Json<object> oldValue = vals[i];
             if (oldValue != null) {
                 oldValue.SetParent(null);
 				oldValue._cacheIndexInArr = -1;
@@ -259,7 +259,7 @@ namespace Starcounter {
         /// <typeparam name="T"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public T Get<T>(TObj property) where T : Obj, new() {
+        public T Get<T>(Schema<Json<object>> property) where T : Json<object>, new() {
 #if QUICKTUPLE
             return (T)Get(property);
 #else
@@ -272,12 +272,12 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         /// <param name="value"></param>
-        public void Set(TObj property, IBindable value) {
-            if (property.UseBinding(Data))
+        public void Set(Schema<Json<object>> property, IBindable value) {
+            if (property.UseBinding(DataAsBindable))
                 SetBound(property, value);
 
 #if QUICKTUPLE
-            Obj app = (Obj)property.CreateInstance(this);
+            Json<object> app = (Json<object>)property.CreateInstance(this);
             app.Data = value;
             Values[property.TemplateIndex] = app;
 #else
@@ -344,7 +344,7 @@ namespace Starcounter {
         /// <typeparam name="T"></typeparam>
         /// <param name="property"></param>
         /// <param name="data"></param>
-        public void Set<T>(TObjArr property, Rows<object> data) where T : Obj, new() {
+        public void Set<T>(TObjArr property, Rows<object> data) where T : Json<object>, new() {
             Arr<T> newList;
             var vals = Values;
             Arr<T> current = vals[property.TemplateIndex];
@@ -363,7 +363,7 @@ namespace Starcounter {
         /// <typeparam name="T"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public Arr<T> Get<T>(TObjArr property) where T : Obj, new() {
+        public Arr<T> Get<T>(TObjArr property) where T : Json<object>, new() {
 #if QUICKTUPLE
             return (Arr<T>)(Values[property.TemplateIndex]);
 #else
@@ -377,7 +377,7 @@ namespace Starcounter {
         /// <typeparam name="T"></typeparam>
         /// <param name="templ"></param>
         /// <param name="data"></param>
-        public void Set<T>(TObjArr templ, Arr<T> data) where T : Obj, new() {
+        public void Set<T>(TObjArr templ, Arr<T> data) where T : Json<object>, new() {
             var vals = Values;
             Arr<T> current = vals[templ.TemplateIndex];
             if (current != null)

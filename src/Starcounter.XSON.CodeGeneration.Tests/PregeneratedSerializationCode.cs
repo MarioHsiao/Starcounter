@@ -24,7 +24,7 @@ namespace __starcountergenerated__ {
             PointerVerificationBytes = Marshal.AllocHGlobal(VerificationBytes.Length); // TODO. Free when program exists
             Marshal.Copy(VerificationBytes, 0, PointerVerificationBytes, VerificationBytes.Length);
         }
-        public override int PopulateFromJson(Obj realObj, IntPtr buffer, int bufferSize) {
+        public override int PopulateFromJson(Json<object> realObj, IntPtr buffer, int bufferSize) {
             int valueSize;
             dynamic obj = realObj;
             unsafe {

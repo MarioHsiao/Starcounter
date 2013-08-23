@@ -8,6 +8,8 @@ using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
 using System;
 using Starcounter.XSON.Metadata;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+
 
 namespace Starcounter.Internal.Application.CodeGeneration {
     /// <summary>
@@ -24,7 +26,7 @@ namespace Starcounter.Internal.Application.CodeGeneration {
         /// <param name="metadata"></param>
         /// <returns></returns>
         public ITemplateCodeGenerator CreateGenerator(Type defaultChildObjTemplateType, string dotNetLanguage, object objTemplate, object metadata) {
-            var templ = (TObj)objTemplate;
+            var templ = (TJson)objTemplate;
             var gen = new Gen1DomGenerator(this, templ, defaultChildObjTemplateType );
             return new Gen1CSharpGenerator( gen, gen.GenerateDomTree( templ, (CodeBehindMetadata)metadata));
         }

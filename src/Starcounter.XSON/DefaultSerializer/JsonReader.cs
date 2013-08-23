@@ -96,7 +96,7 @@ namespace Starcounter.Advanced.XSON {
             return value;
         }
 
-        internal void PopulateObject(Obj obj) {
+        internal void PopulateObject(Json<object> obj) {
             int valueSize;
             
             valueSize = obj.PopulateFromJson((IntPtr)pBuffer, bufferSize - offset);

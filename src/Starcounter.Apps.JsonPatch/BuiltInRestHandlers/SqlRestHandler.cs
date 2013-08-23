@@ -110,7 +110,7 @@ namespace Starcounter.Internal {
 
                 Debug.Assert(null != session);
 
-                Obj json = Session.Data;
+                Json<object> json = Session.Data;
                 if (json == null) {
                     return HttpStatusCode.NotFound;
                 }
@@ -125,7 +125,7 @@ namespace Starcounter.Internal {
 
                 Debug.Assert(null != session);
 
-                Obj root;
+                Json<object> root;
 
                 try {
                     root = Session.Data;

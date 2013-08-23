@@ -1,9 +1,11 @@
 ﻿
-[ParentChild_json]
-partial class HiThere<T,T2> : Json<T> {
-}
+namespace NestingTest {
 
-[ParentChild_json.Child2]
-partial class ContactPage<T,T2> : Json<T> {
-}
+   [ParentChild_json]
+   partial class HiThere<T,T2> : Json<T> {
+   }
 
+   [ParentChild_json.Child2]
+   partial class ContactPage<T,T2> : Json<T> {
+   }
+}

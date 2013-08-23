@@ -3,7 +3,7 @@ using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON;
 
 namespace Starcounter.Templates {
-    partial class TObj {
+    partial class Schema<JsonType> {
 		private bool bindChildren;
         public bool HasAtLeastOneBoundProperty = true; // TODO!
 
@@ -71,7 +71,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <returns></returns>
-		internal override object GetBoundValueAsObject(Obj obj) {
+        internal override object GetBoundValueAsObject(Json<object> obj) {
 			return obj.GetBound(this);
 		}
 
@@ -80,7 +80,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <param name="value"></param>
-		internal override void SetBoundValueAsObject(Obj obj, object value) {
+        internal override void SetBoundValueAsObject(Json<object> obj, object value) {
 			obj.SetBound(this, (IBindable)value);
 		}
     }

@@ -1,19 +1,14 @@
- 
 
+
+using Modules;
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
 using System.Text;
 namespace Starcounter {
-    public partial class Obj {
+    public partial class Json<DataType> {
 
-        /// <summary>
-        /// In Starcounter, the user (i.e. programmer) can respond with an Obj on an Accept: text/html request.
-        /// In this case, the HTML pertaining to the view of the view model described by the Obj should
-        /// be retrieved. This cannot be done by the Obj itself as it does not know about the static web server
-        /// or how to call any user handlers.
-        /// </summary>
-        public static IResponseConverter _JsonMimeConverter = null;
+
 
         /// <summary>
         /// Override this method to provide a custom conversion when a request
@@ -51,7 +46,7 @@ namespace Starcounter {
             // 3) Updates to a session-bound object, in which case we respond with a batch of json-patches.
 
             // We always start from the root object, even if the object returned from the handler is further down in the tree.
-            return _JsonMimeConverter.Convert(request,this, mimeType, out resultingMimeType);
+            return Starcounter_XSON.Injections._JsonMimeConverter.Convert(request,this, mimeType, out resultingMimeType);
 
             //throw new ArgumentException("Unknown mime type!");
 
@@ -92,15 +87,15 @@ namespace Starcounter {
             throw new NotImplementedException();
         }
 
-        public static implicit operator Response(Obj x) {
+        public static implicit operator Response(Json<DataType> x) {
             var response = new Response() {
                 Hypermedia = x
             };
             return response;
         }
 
-        public static implicit operator Obj(Response r) {            
-            return r.Hypermedia as Obj;
+        public static implicit operator Json<DataType>(Response r) {            
+            return r.Hypermedia as Json<DataType>;
         }
     }
 }

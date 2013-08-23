@@ -12,12 +12,16 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class TLong : TValue<long>
+    public class TLong : PrimitiveProperty<long>
     {
 
         private long _DefaultValue = 0;
 
-        public override void ProcessInput(Obj obj, byte[] rawValue)
+        public override Type MetadataType {
+            get { return typeof(LongMetadata<Json<object>>); }
+        }
+
+        public override void ProcessInput(Json<object> obj, byte[] rawValue)
         {
             long v = Utf8Helper.IntFastParseFromAscii(rawValue, 0, rawValue.Length);
             obj.ProcessInput<long>(this, v);

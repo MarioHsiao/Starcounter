@@ -7,25 +7,25 @@ using Starcounter.Templates;
 
 namespace Starcounter.Advanced.XSON {
     public abstract class TypedJsonSerializer {
-        public abstract string ToJson(Obj obj);
-        public abstract byte[] ToJsonUtf8(Obj obj);
-        public abstract int ToJsonUtf8(Obj obj, out byte[] buffer);
+        public abstract string ToJson(Json<object> obj);
+        public abstract byte[] ToJsonUtf8(Json<object> obj);
+        public abstract int ToJsonUtf8(Json<object> obj, out byte[] buffer);
 
-        public abstract int PopulateFromJson(Obj obj, string json);
-        public abstract int PopulateFromJson(Obj obj, byte[] src, int srcSize);
-        public abstract int PopulateFromJson(Obj obj, IntPtr src, int srcSize);
+        public abstract int PopulateFromJson(Json<object> obj, string json);
+        public abstract int PopulateFromJson(Json<object> obj, byte[] src, int srcSize);
+        public abstract int PopulateFromJson(Json<object> obj, IntPtr src, int srcSize);
     }
 
     public abstract class TypedJsonSerializerBase : TypedJsonSerializer {
         //public abstract int PopulateFromJson(Obj obj, IntPtr src, int srcSize);
-        
-        public override string ToJson(Obj obj) {
+
+        public override string ToJson(Json<object> obj) {
             byte[] buffer;
             int count = ToJsonUtf8(obj, out buffer);
             return Encoding.UTF8.GetString(buffer, 0, count);
         }
 
-        public override int ToJsonUtf8(Obj obj, out byte[] buffer) {
+        public override int ToJsonUtf8(Json<object> obj, out byte[] buffer) {
             bool nameWritten;
             bool recreateBuffer;
             byte[] buf;
@@ -35,9 +35,9 @@ namespace Starcounter.Advanced.XSON {
             int valueSize;
             int offset;
             List<Template> exposedProperties;
-            Obj childObj;
+            Json<object> childObj;
             Template tProperty;
-            TObj tObj;
+            Schema<Json<object>> tObj;
 
             // The following variables are offset for remembering last position when buffer needs to be increased:
             // templateNo: The position in the PropertyList that was about to be written.
@@ -88,9 +88,9 @@ restart:
                         }
 
                         // Property value.
-                        if (tProperty is TObj) {
+                        if (tProperty is Schema<Json<object>>) {
                             if (childObjArr == null) {
-                                childObj = obj.Get((TObj)tProperty);
+                                childObj = obj.Get((Schema<Json<object>>)tProperty);
                                 if (childObj != null) {
                                     valueSize = childObj.ToJsonUtf8(out childObjArr);
                                 } else {
@@ -174,43 +174,7 @@ restart:
                         nameWritten = false;
                     }
 
-					var jsonObj = obj as Json;
-					if (jsonObj != null && jsonObj.OldHasHtmlContent) {
-						// Property name.
-						if (!nameWritten) {
-							valueSize = JsonHelper.WriteString((IntPtr)(pfrag + 1), buf.Length - offset, "Html");
-							if (valueSize == -1 || (buf.Length < (offset + valueSize + 1))) {
-								nameWritten = false;
-								goto restart;
-							}
-
-							*pfrag = (byte)',';
-							nameWritten = true;
-							offset += valueSize + 1;
-							pfrag += valueSize + 1;
-
-							*pfrag++ = (byte)':';
-							offset++;
-						}
-
-						if (childObjArr == null) {
-							childObjArr = jsonObj._HtmlContent;
-						}
-						if (childObjArr != null) {
-							var contentStr = System.Text.Encoding.UTF8.GetString(childObjArr);
-							valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, contentStr);
-							if (valueSize == -1 || (buf.Length < (offset + valueSize + 1)))
-								goto restart;
-
-							childObjArr = null;
-							pfrag += valueSize;
-							offset += valueSize;
-						} else {
-							valueSize = JsonHelper.WriteNull((IntPtr)pfrag, buf.Length - offset);
-							if (valueSize == -1)
-								goto restart;
-						}
-					}
+//					var jsonObj = obj as Json<object>;
 
                     if (buf.Length < (offset + 1))
                         goto restart; // Bummer! we dont have any place left for the last char :(
@@ -222,7 +186,7 @@ restart:
             return offset;
         }
 
-        public override byte[] ToJsonUtf8(Obj obj) {
+        public override byte[] ToJsonUtf8(Json<object> obj) {
             byte[] buffer;
             byte[] sizedBuffer;
             int count = ToJsonUtf8(obj, out buffer);
@@ -231,12 +195,12 @@ restart:
             return sizedBuffer;
         }
 
-        public override int PopulateFromJson(Obj obj, string json) {
+        public override int PopulateFromJson(Json<object> obj, string json) {
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             return PopulateFromJson(obj, buffer, buffer.Length);
         }
 
-        public override int PopulateFromJson(Obj obj, byte[] src, int srcSize) {
+        public override int PopulateFromJson(Json<object> obj, byte[] src, int srcSize) {
             unsafe {
                 fixed (byte* p = src) {
                     return PopulateFromJson(obj, (IntPtr)p, srcSize);

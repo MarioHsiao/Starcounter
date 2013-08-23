@@ -9,14 +9,17 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class ObjMetadata : ObjMetadataBase {
+    public class ObjMetadata<SchemaType, JsonType> : ObjMetadataBase<JsonType, SchemaType> 
+        where SchemaType : Schema<Json<object>>
+        where JsonType : Json<object>
+    {
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjMetadata" /> class.
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public ObjMetadata(Obj app, Template template ) : base (app, template ) {}
+        public ObjMetadata(JsonType app, SchemaType template) : base(app, template) { }
 
         /// <summary>
         /// Sets all editable.

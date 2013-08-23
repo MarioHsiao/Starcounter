@@ -12,6 +12,44 @@ namespace Starcounter.Internal
 {
     public class HelperFunctions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static string GetClassStemIdentifier(Type t) {
+            return t.Name.Split('`')[0];
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static string GetClassDeclarationSyntax(Type t) {
+            string ret = GetClassStemIdentifier(t);
+            Type[] typeArguments = t.GetGenericArguments(); // GenericTypeArguments; // etGenericArguments();
+            if (t.IsGenericType) {
+                ret = ret + "<";
+                var i = 0;
+                foreach (Type tParam in typeArguments) {
+                    if (i > 0)
+                        ret = ret + ",";
+                    if (tParam.IsGenericParameter)
+                        ret += "(GP)";
+                    if (tParam.IsGenericType)
+                        ret += "(GT)";
+                    if (tParam.IsGenericTypeDefinition)
+                        ret += "(GD)";
+                    ret = ret + GetClassDeclarationSyntax(tParam);
+                    i++;
+                }
+                ret = ret + ">";
+            }
+            return ret;
+        }
+
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
         static extern IntPtr LoadLibrary(String filePath);
 
@@ -116,6 +154,23 @@ DLLS_LOADED:
 
                 dllsLoaded_ = true;
             }
+        }
+
+        public static string GetGlobalClassSpecifier(Type type, bool p) {
+            string ret = type.Namespace;
+            if (ret != null && !ret.Equals("")) {
+                ret += ".";
+            }
+            if (type.IsNested) {
+                Type pt = type.DeclaringType;
+                string owner = GetClassDeclarationSyntax(pt);
+                while ((pt = pt.DeclaringType) != null) {
+                    owner = GetClassDeclarationSyntax(pt) + "." + owner;
+                }
+                ret += owner + ".";
+            }
+            ret += GetClassDeclarationSyntax(type);
+            return ret;
         }
     }
 }

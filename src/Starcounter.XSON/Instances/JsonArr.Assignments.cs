@@ -44,8 +44,8 @@ namespace Starcounter {
         /// <remarks>
         /// This method can be called several times, the initialization only occurs once.
         /// </remarks>
-        internal void InitializeAfterImplicitConversion(Obj parent, TObjArr template) {
-            Obj newApp;
+        internal void InitializeAfterImplicitConversion(Json<object> parent, TObjArr template) {
+            Json<object> newApp;
 
             if (Template == null) {
                 Template = template;
@@ -55,11 +55,12 @@ namespace Starcounter {
             if (notEnumeratedResult != null) {
                 foreach (var entity in notEnumeratedResult) {
                     if (entity is IBindable) {
-                        newApp = (Obj)template.ElementType.CreateInstance(this);
+                        newApp = (Json<object>)template.ElementType.CreateInstance(this);
                         newApp.Data = (IBindable)entity;
                         Add(newApp);
-                    } else if (entity is Obj) {
-                        Add((Obj)entity);
+                    }
+                    else if (entity is Json<object>) {
+                        Add((Json<object>)entity);
                     }
                     else {
                         throw new Exception(String.Format(

@@ -6,24 +6,25 @@ using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using System;
 using System.Collections.Generic;
+using TJson = Starcounter.Templates.Schema<Starcounter.Json<object>>;
+
+
 namespace Starcounter.Internal.MsBuild.Codegen {
 
 
     /// <summary>
-    /// Moves the nested classes below the properties for easier reading of of generator code
-    /// (although the generated code should not be used by the developer).
     /// Creates the mapping attributes to be used by the user code-behind source code.
     /// </summary>
     internal class GeneratorPhase5 {
 
         internal Gen2DomGenerator Generator;
 
-        internal void RunPhase5(AstAppClass acn, AstTAppClass tcn, AstObjMetadata mcn) {
+        internal void RunPhase5(AstJsonClass acn, AstSchemaClass tcn, AstMetadataClass mcn) {
             CreateJsonAttribute(acn, tcn, mcn);
         }
 
 
-        internal void CreateJsonAttribute(AstAppClass acn, AstTAppClass tcn, AstObjMetadata mcn) {
+        internal void CreateJsonAttribute(AstJsonClass acn, AstSchemaClass tcn, AstMetadataClass mcn) {
 
             var root = Generator.Root;
             var metadata = Generator.CodeBehindMetadata;
@@ -32,17 +33,22 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 // if there is codebehind and the class is not inherited from Json we need 
                 // to change the inheritance on the template and metadata classes as well.
                 var tmp = metadata.RootClassInfo.BaseClassName;
-                if (!string.IsNullOrEmpty(tmp) && !tmp.Equals("Json")) {
-                    tcn._Inherits = "T" + metadata.RootClassInfo.BaseClassName;
-                    mcn._Inherits = tmp + "Metadata";
-                }
+              //  if (!string.IsNullOrEmpty(tmp) && !tmp.Equals("Json")) {
+              //      tcn._Inherits = "T" + metadata.RootClassInfo.BaseClassName;
+              //      mcn._Inherits = tmp + "Metadata";
+              //  }
+
+                var templateAttributeBaseClass = new AstOtherClass(Generator) {
+                    _ClassName = "TemplateAttribute",
+                    NamespaceAlias = "s::"
+                };
 
                 var json = new AstJsonAttributeClass(Generator) {
                     Parent = acn.Parent,
-                    _Inherits = "TemplateAttribute",
-                    _ClassName = acn.ClassName + "_json"
+                    InheritedClass = templateAttributeBaseClass,
+                    _ClassName = acn.ClassStemIdentifier + "_json"
                 };
-                GenerateJsonAttributes(json, acn.Template );
+                GenerateJsonAttributes(json, acn.Template,templateAttributeBaseClass );
             }
         }
 
@@ -55,7 +61,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="appClass">The node to generate attributes for</param>
         /// <param name="parent">The DOM node to generate attributes for</param>
-        public void GenerateJsonAttributes( AstBase parent, Template template ) {
+        public void GenerateJsonAttributes( AstBase parent, Template template, AstOtherClass templateAttributeBaseClass ) {
             foreach (var kid in (((IReadOnlyTree)template).Children)) {
                 var t = kid as Template;
                 if (kid is TJson) {
@@ -67,15 +73,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         stem = t.PropertyName;
                     }
                     var x = new AstJsonAttributeClass(Generator) {
-                        _Inherits = "TemplateAttribute",
+                        InheritedClass = templateAttributeBaseClass,
                         _ClassName = stem,
                         Parent = parent
 
                     };
-                    GenerateJsonAttributes( x, t );
+                    GenerateJsonAttributes( x, t, templateAttributeBaseClass );
                 }
                 else {
-                    GenerateJsonAttributes( parent, t );
+                    GenerateJsonAttributes( parent, t, templateAttributeBaseClass );
                 }
             }
         }

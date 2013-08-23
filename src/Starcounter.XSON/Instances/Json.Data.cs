@@ -11,14 +11,24 @@ using System.Collections;
 using Starcounter.Internal.XSON;
 
 namespace Starcounter {
-    partial class Obj {
+    partial class Json<DataType> {
         /// <summary>
         /// An Obj can be bound to a data object. This makes the Obj reflect the data in the
         /// underlying bound object. This is common in database applications where Json messages
         /// or view models (Puppets) are often associated with database objects. I.e. a person form might
         /// reflect a person database object (Entity).
         /// </summary>
-        private IBindable _data;
+        private DataType _data;
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private IBindable DataAsBindable {
+            get {
+                return (IBindable)_data;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the bound (underlying) data object (often a database Entity object). This enables
@@ -26,17 +36,18 @@ namespace Starcounter {
         /// When you declare an Obj using generics, be sure to specify the type of the bound object in the class declaration.
         /// </summary>
         /// <value>The bound data object (often a database Entity)</value>
-        public IBindable Data {
+        public DataType Data {
             get {
-                return (IBindable)_data;
+                return _data;
             }
             set {
                 if (Template == null) {
                     this.CreateDynamicTemplate(); // If there is no template, we'll create a template
                 }
-                InternalSetData(value);
+                InternalSetData((IBindable)value);
             }
         }
+
 
 		/// <summary>
 		/// Gets the bound value from the dataobject.
@@ -48,8 +59,8 @@ namespace Starcounter {
 		/// <typeparam name="TVal"></typeparam>
 		/// <param name="template"></param>
 		/// <returns></returns>
-        internal TVal GetBound<TVal>(TValue<TVal> template) {
-            IBindable data = this.Data;
+        internal TVal GetBound<TVal>(Property<TVal> template) {
+            IBindable data = DataAsBindable;
             if (data == null)
                 return default(TVal);
             return ((DataValueBinding<TVal>)template.dataBinding).Get(data);
@@ -64,15 +75,15 @@ namespace Starcounter {
 		/// </remarks>
 		/// <param name="template"></param>
 		/// <param name="value"></param>
-        internal void SetBound<TVal>(TValue<TVal> template, TVal value) {
-            IBindable data = this.Data;
+        internal void SetBound<TVal>(Property<TVal> template, TVal value) {
+            IBindable data = DataAsBindable;
             if (data == null)
                 return;
             ((DataValueBinding<TVal>)template.dataBinding).Set(data, value);
         }
 
 		internal object GetBound(TValue template) {
-			IBindable data = this.Data;
+            IBindable data = DataAsBindable;
 			if (data == null)
 				return null;
 			
@@ -80,7 +91,7 @@ namespace Starcounter {
 		}
 
 		internal void SetBound(TValue template, object value) {
-			IBindable data = this.Data;
+            IBindable data = DataAsBindable;
 			if (data == null)
 				return;
 
@@ -97,7 +108,7 @@ namespace Starcounter {
 		/// <param name="template"></param>
 		/// <returns></returns>
         internal IEnumerable GetBound(TObjArr template) {
-            IBindable data = this.Data;
+            IBindable data = DataAsBindable;
             if (data == null)
                 return default(Rows<object>);
 
@@ -113,8 +124,8 @@ namespace Starcounter {
 		/// </remarks>
 		/// <param name="template"></param>
 		/// <returns></returns>
-        internal IBindable GetBound(TObj template) {
-            IBindable data = this.Data;
+        internal IBindable GetBound(Schema<Json<object>> template) {
+            IBindable data = DataAsBindable;
             if (data == null)
                 return null;
             return ((DataValueBinding<IBindable>)template.dataBinding).Get(data);
@@ -129,8 +140,8 @@ namespace Starcounter {
 		/// </remarks>
 		/// <param name="template"></param>
 		/// <param name="value"></param>
-        internal void SetBound(TObj template, IBindable value) {
-            IBindable data = this.Data;
+        internal void SetBound(Schema<Json<object>> template, IBindable value) {
+            IBindable data = DataAsBindable;
             if (data == null)
                 return;
 			((DataValueBinding<IBindable>)template.dataBinding).Set(data, value);
@@ -143,12 +154,12 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
         protected virtual void InternalSetData(IBindable data) {
-            this._data = data;
+            this._data = (DataType)data;
 
 			if (Template.Bound != Bound.No) {
-				var parent = ((Obj)this.Parent);
-				if (parent != null && Template.UseBinding(parent.Data)) {
-					((DataValueBinding<IBindable>)Template.dataBinding).Set(parent.Data, data);
+				var parent = ((Json<object>)this.Parent);
+				if (parent != null && Template.UseBinding(parent.DataAsBindable)) {
+					((DataValueBinding<IBindable>)Template.dataBinding).Set(parent.DataAsBindable, data);
 				}
 			}
 
@@ -165,7 +176,7 @@ namespace Starcounter {
                 child = Template.Properties[i] as TObjArr;
                 if (child != null && child.Bound != Bound.No) {
 					if (_data != null) {
-						child.UseBinding(_data);
+						child.UseBinding(DataAsBindable);
 						Refresh(child);
 					} else {
 						var arr = Get(child);
