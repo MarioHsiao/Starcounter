@@ -1245,7 +1245,7 @@ namespace LoadAndLatency
                     case SimpleObjectOperations.SIMPLE_CACHE_QUERIES:
                     {
                         // Executing query.
-                        SimpleObject o = Db.SQL(SimpleSelectIntQuery, startIndex).First;
+                        SimpleObject o = Db.SQL < SimpleObject>(SimpleSelectIntQuery, startIndex).First;
 
                         // Indicating that this worker has finished.
                         lock (QueryStrings) { g_numWorkersFinishedUnsafe++; }
@@ -1393,7 +1393,7 @@ namespace LoadAndLatency
                                     Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                                     // Executing query.
-                                    SimpleObject o = Db.SQL(SimpleSelectIntQuery, objIndex).First;
+                                    SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
 
                                     // Reading string attribute.
                                     g_simpleTestSavedStrings[objIndex] = o.updateString;
@@ -1413,7 +1413,7 @@ namespace LoadAndLatency
                                     Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                                     // Executing query.
-                                    SimpleObject o = Db.SQL(SimpleSelectIntQuery, objIndex).First;
+                                    SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
 
                                     // Reading integer attribute.
                                     g_simpleTestSavedInt64[objIndex] = o.fetchInt;
@@ -1434,7 +1434,7 @@ namespace LoadAndLatency
                                     Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                                     // Executing query.
-                                    SimpleObject o = Db.SQL(SimpleSelectIntQuery, objIndex).First;
+                                    SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
 
                                     // Updating integer attribute.
                                     o.updateInt = g_simpleTestRandInt64[objIndex];
@@ -1458,7 +1458,7 @@ namespace LoadAndLatency
                                     Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                                     // Executing query.
-                                    SimpleObject o = Db.SQL(SimpleSelectIntQuery, objIndex).First;
+                                    SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
 
                                     // Updating string attribute.
                                     o.updateString = g_simpleTestRandStrings[objIndex];
@@ -1481,7 +1481,7 @@ namespace LoadAndLatency
                                     Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                                     // Executing query.
-                                    SimpleObject o = Db.SQL(SimpleSelectIntQuery, objIndex).First;
+                                    SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
 
                                     // Saving object for later use.
                                     g_simpleTestSavedObjects[objIndex] = o;
