@@ -78,13 +78,13 @@ namespace Starcounter
         /// <param name="query">An SQL query.</param>
         /// <param name="values">The values to be used for variables in the query.</param>
         /// <returns>The result of the SQL query.</returns>
-        public static SqlResult<dynamic> SQL(String query, params Object[] values)
+        public static SqlResult<Object> SQL(String query, params Object[] values)
         {
             if (query == null)
                 throw new ArgumentNullException("query");
 
 #if true
-            return new SqlResult<dynamic>(0, query, false, values);
+            return new SqlResult<Object>(0, query, false, values);
 #else
             if (Starcounter.Transaction.Current != null)
                 return new SqlResult(Starcounter.Transaction.Current.TransactionId, query, false, values); 
