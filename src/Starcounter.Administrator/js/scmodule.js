@@ -215,7 +215,15 @@ var adminModule = angular.module('scadmin', ['sc.sqlquery', 'ui', 'ui.bootstrap'
 
     $routeProvider.when('/log', {
         templateUrl: '/partials/log.html',
-        controller: 'LogCtrl'
+        controller: 'LogCtrl',
+        resolve: {
+            redirect: function ($route, $location) {
+                if (jQuery.isEmptyObject($location.search())) {
+                    // Set default search filter
+                    $location.search({ "debug": false, "notice": false, "warning": true, "error": true });
+                }
+            }
+        }
     });
 
     $routeProvider.when('/gateway', {
@@ -1533,9 +1541,9 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$routeParams', function ($sco
                 $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
             };
             this.socket.onerror = function (evt) {
-            	console.log("Console websockets onerror:" + evt);
-            	$scope.isWebsocketSupport = false;
-            	$scope.$apply();
+                console.log("Console websockets onerror:" + evt);
+                $scope.isWebsocketSupport = false;
+                $scope.$apply();
             };
         }
         catch (exception) {
@@ -2074,7 +2082,7 @@ adminModule.controller('GatewayCtrl', ['$scope', '$http', function ($scope, $htt
 /**
  * Log Controller
  */
-adminModule.controller('LogCtrl', ['$scope', '$http', function ($scope, $http) {
+adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($scope, $http, $location) {
 
     $scope.alerts.length = 0;
     $scope.log = {};
@@ -2087,15 +2095,19 @@ adminModule.controller('LogCtrl', ['$scope', '$http', function ($scope, $http) {
         error: true
     };
 
+    // Set the filters from the address bar parameters to the controller
+    $scope.filterModel = $location.search();
+
     // Watch for changes in the filer
     $scope.$watch('filterModel', function () {
-        $scope.getLog();
+        // Filter changed, update the address bar
+        $location.search($scope.filterModel);
     }, true);
 
     // Retrive log information
     $scope.getLog = function () {
 
-    	$http.get('/api/admin/log', { params: $scope.filterModel }).then(function (response) {
+        $http.get('/api/admin/log', { params: $scope.filterModel }).then(function (response) {
             // success handler
             $scope.log = response.data;
 
@@ -2111,6 +2123,8 @@ adminModule.controller('LogCtrl', ['$scope', '$http', function ($scope, $http) {
         $scope.alerts.length = 0;
         $scope.getLog();
     }
+
+    $scope.getLog();
 
     // Init 
     // Handsontable (fixed the height)
@@ -2158,7 +2172,7 @@ adminModule.controller('DialogCtrl', ['$scope', 'dialog', function ($scope, dial
     $scope.close = function (result) {
         dialog.close(result);
     };
-   
+
 }]);
 
 /**

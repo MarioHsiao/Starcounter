@@ -20,6 +20,8 @@ namespace BuildSystemHelper
         public static readonly String LocalBuildsFolder = BuildSystemDir + "\\StarcounterBuilds";
         public static readonly String LocalToolsFolder = BuildSystemDir + "\\ConfigsAndTools";
         public static readonly String FtpClientExePath = LocalToolsFolder + "\\WinScp.exe";
+        public static readonly String ThirtyTwoBitsComponentsDir = "32BitComponents";
+        public static readonly String PublicAssembliesDir = "Public Assemblies";
 
         public static readonly String PublicLogDir = MappedBuildServerFTP + "\\SCDev\\BuildSystem\\Logs\\";
         public static readonly String BuildAgentLogDir = PublicLogDir + "\\" + System.Environment.MachineName;
@@ -363,6 +365,22 @@ namespace BuildSystemHelper
         {
             String thisAssemblyName = Assembly.GetEntryAssembly().GetName().Name;
             KillDisturbingProcesses(new String[] { thisAssemblyName });
+        }
+
+        // Replaces string in file.
+        public static void ReplaceStringInFile(String filePath, String origStringRegex, String replaceString)
+        {
+            String fileContents = File.ReadAllText(filePath);
+
+            Match match = Regex.Match(fileContents, origStringRegex, RegexOptions.IgnoreCase);
+
+            // Trying to find this exact string in file.
+            if (!match.Success)
+                throw new Exception("Can't find matching string " + origStringRegex + " in file " + filePath);
+
+            fileContents = fileContents.Replace(match.Value, replaceString);
+
+            File.WriteAllText(filePath, fileContents);
         }
 
         /// <summary>
