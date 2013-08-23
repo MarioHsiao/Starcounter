@@ -248,7 +248,7 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
 
     $scope.queryState = {
         selectedDatabaseName: "",
-        sqlQuery: "test",
+        sqlQuery: "",
         columns : [],
         rows: [],
         queryPlan : ""
