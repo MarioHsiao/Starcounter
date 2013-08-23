@@ -79,14 +79,6 @@ namespace Weaver {
         /// </summary>
         public bool RunWeaver { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating if weaving/transformation of
-        /// assemblies should prepare them for IPC usage. Defaults to true.
-        /// If set to false, assemblies will instead be weaved as they
-        /// would be by the hosted database weaver.
-        /// </summary>
-        public bool WeaveForIPC { get; set; }
-
         public bool UseStateRedirect { get; set; }
 
         /// <summary>
