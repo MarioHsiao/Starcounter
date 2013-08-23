@@ -11,7 +11,7 @@ namespace QueryProcessingTest {
             TestLike();
             TestProjectionName();
             HelpMethods.LogEvent("Some tests on variables and case insensitivity");
-            Account account = Db.SQL("select a from account a where client.firstname = ?", null).First;
+            Account account = (Account)Db.SQL("select a from account a where client.firstname = ?", null).First;
             Trace.Assert(account == null);
             var row = Db.SlowSQL("select Client, count(accountid) from account group by Client").First;
             var row2 = Db.SlowSQL("select Client, count(accountid) from account group by client").First;
@@ -34,9 +34,9 @@ namespace QueryProcessingTest {
             decimal amounts = 0;
             int nrs = 0;
             var accounts = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
-            Account acc = accounts.First;
+            Account acc = (Account)accounts.First;
             SqlResult<dynamic> aquery = Db.SQL("select a from account a order by a.\"when\" desc fetch ?", 10);
-            foreach (Account a in aquery) {
+            foreach (var a in aquery) {
                 amounts += a.Amount;
                 nrs++;
             }
