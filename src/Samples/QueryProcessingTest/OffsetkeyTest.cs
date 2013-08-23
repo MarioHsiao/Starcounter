@@ -409,7 +409,8 @@ namespace QueryProcessingTest {
             // Drop inside fetched
             key = DoFetch(query);
             Db.Transaction(delegate {
-                Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1)).First.Delete();
+                var o = Db.SQL("select a from account a where accountid = ?", GetAccountId(1)).First;
+                o.Delete();
             });
             DoOffsetkey(query, key, new int[] {GetAccountId(3), GetAccountId(4), GetAccountId(5)}); // offsetkey does not move forward
             InsertAccount(GetAccountId(1), client);
