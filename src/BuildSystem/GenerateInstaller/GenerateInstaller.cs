@@ -21,22 +21,6 @@ namespace GenerateInstaller
         const String ProductName = "Starcounter Components";
         public static readonly String CertificateFilePath = BuildSystem.LocalToolsFolder + "\\starcounter-2014.cer";
 
-        // Replaces string in file.
-        static void ReplaceStringInFile(String filePath, String origStringRegex, String replaceString)
-        {
-            String fileContents = File.ReadAllText(filePath);
-
-            Match match = Regex.Match(fileContents, origStringRegex, RegexOptions.IgnoreCase);
-
-            // Trying to find this exact string in file.
-            if (!match.Success)
-                throw new Exception("Can't find matching string " + origStringRegex + " in file " + filePath);
-
-            fileContents = fileContents.Replace(match.Value, replaceString);
-
-            File.WriteAllText(filePath, fileContents);
-        }
-
         /// <summary>
         /// Generates unique build from given all-in-one directory.
         /// </summary>
@@ -65,8 +49,8 @@ namespace GenerateInstaller
 
             // Replacing unique build information.
             String trackerFilePath = @"Level1\src\Starcounter.Tracking\Environment.cs";
-            ReplaceStringInFile(trackerFilePath, @"String UniqueDownloadKey = ""[0-9, A-Z]+"";", "String UniqueDownloadKey = \"" + uniqueDownloadKey + "\";");
-            ReplaceStringInFile(trackerFilePath, @"DateTime RequiredRegistrationDate = DateTime\.Parse\(""[0-9\-]+""\);", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
+            BuildSystem.ReplaceStringInFile(trackerFilePath, @"String UniqueDownloadKey = ""[0-9, A-Z]+"";", "String UniqueDownloadKey = \"" + uniqueDownloadKey + "\";");
+            BuildSystem.ReplaceStringInFile(trackerFilePath, @"DateTime RequiredRegistrationDate = DateTime\.Parse\(""[0-9\-]+""\);", "DateTime RequiredRegistrationDate = DateTime.Parse(\"" + requiredRegistrationDate + "\");");
 
             String level1OutputDir = @"Level1\Bin\" + configuration;
             BuildSystem.DirectoryContainsFilesRegex(level1OutputDir, new String[] { @"Starcounter.+Setup\.exe", @"Starcounter.+Setup\.pdb", @"Starcounter.+Setup\.ilk" }, true);
@@ -82,12 +66,12 @@ namespace GenerateInstaller
             String licenseFilePath = Path.Combine(installerWpfFolder, "Resources\\LicenseAgreement.html");
 
             // Replacing license file with a new unique version.
-            ReplaceStringInFile(licenseFilePath, "package identified by the key \"(.*)\"",
+            BuildSystem.ReplaceStringInFile(licenseFilePath, "package identified by the key \"(.*)\"",
                 "package identified by the key \"" + uniqueDownloadKey + "\"");
 
             // Creating required registration date.
             String currentDatePlus60Days = DateTime.Now.AddDays(60).ToString("MMMM dd, yyyy").ToUpper();
-            ReplaceStringInFile(licenseFilePath, " no later than \"(.*)\"",
+            BuildSystem.ReplaceStringInFile(licenseFilePath, " no later than \"(.*)\"",
                 " no later than \"" + currentDatePlus60Days + "\"");
 
             // Restoring fake archive file if needed.
@@ -140,13 +124,6 @@ namespace GenerateInstaller
                         e.Delete();
 
                     archive.CreateEntryFromFile(staticSetupFilePath, staticSetupFileName);
-
-                    // Replacing Starcounter.Tracking.dll.
-                    e = archive.GetEntry("scadmin\\Starcounter.Tracking.dll");
-                    if (null != e)
-                        e.Delete();
-
-                    archive.CreateEntryFromFile(Path.Combine(level1OutputDir, "Starcounter.Tracking.dll"), "scadmin\\Starcounter.Tracking.dll");
 
                     // Replacing Starcounter.Tracking.dll.
                     e = archive.GetEntry("Starcounter.Tracking.dll");
@@ -334,28 +311,11 @@ namespace GenerateInstaller
                 File.WriteAllText(Path.Combine(installerWpfFolder, BuildSystem.VersionXMLFileName), versionFileContents);
                 File.WriteAllText(Path.Combine(outputDir, BuildSystem.VersionXMLFileName), versionFileContents);
 
-                // Replacing version information.
-                String currentVersionFilePath = Path.Combine(checkoutDir, @"Level1\src\Starcounter.Internal\Constants\CurrentVersion.cs");
-                ReplaceStringInFile(currentVersionFilePath, @"String Version = ""[0-9\.]+"";", "String Version = \"" + version + "\";");
-
-                // Now compiling the Starcounter internal.
-                BuildMsbuildProject(
-                    Path.Combine(checkoutDir, @"Level1\src\Starcounter.Internal\Starcounter.Internal.csproj"),
-                    configuration,
-                    "AnyCPU");
-
                 // Copying necessary embedded files.
                 String installerWrapperDir = Path.Combine(checkoutDir, @"Level1\src\Starcounter.Installer\Starcounter.InstallerNativeWrapper");
 
                 File.Copy(Path.Combine(BuildSystem.BuildServerFTP, @"SCDev\ThirdParty\dotNET\dotnetfx45_full_x86_x64.exe"),
                     Path.Combine(installerWrapperDir, "resources", "dotnetfx45_full_x86_x64.exe"), true);
-
-                // Setting current installer version.
-                ReplaceStringInFile(Path.Combine(installerWrapperDir, "Starcounter.InstallerNativeWrapper.cpp"),
-                    @"wchar_t\* ScVersion = L""[0-9\.]+"";", "wchar_t* ScVersion = L\"" + version + "\";");
-
-                // Replacing unique installer version string.
-                ReplaceStringInFile(Path.Combine(installerWpfFolder, "App.xaml.cs"), @"String ScVersion = ""[0-9\.]+"";", "String ScVersion = \"" + version + "\";");
 
                 // Collecting the list of executables and libraries in order to sign them.
                 String[] allFilesToSign = Directory.GetFiles(outputDir, "*.exe");

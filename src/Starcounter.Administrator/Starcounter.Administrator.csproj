@@ -121,18 +121,6 @@
     <Content Include="css\angular-ui-0.3.0.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="css\angular-ui-handsontable.full-0.3.10.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="css\angular-ui-handsontable.full-0.3.10.min.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="css\angular-ui-handsontable.full-0.3.9.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="css\angular-ui-handsontable.full-0.3.9.min.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="css\bootstrap-2.3.1.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -151,10 +139,7 @@
     <Content Include="css\codemirror\monokai.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="css\angular-ui-handsontable.full-0.3.15.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="css\angular-ui-handsontable.full-0.3.14.min.css">
+    <Content Include="css\angular-ui-handsontable.full.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="css\select2-3.2.css">
@@ -214,18 +199,6 @@
     <Content Include="sys\angular-resource-1.1.4.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="sys\angular-ui-handsontable.full-0.3.10.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="sys\angular-ui-handsontable.full-0.3.10.min.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="sys\angular-ui-handsontable.full-0.3.9.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="sys\angular-ui-handsontable.full-0.3.9.min.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="sys\bootstrap-2.3.1.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -247,10 +220,7 @@
     <Content Include="sys\angular-ui-0.4.0.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="sys\angular-ui-handsontable.full-0.3.15.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="sys\angular-ui-handsontable.full-0.3.14.min.js">
+    <Content Include="sys\angular-ui-handsontable.full.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="sys\ui-bootstrap-tpls-0.3.0.js">
@@ -341,18 +311,22 @@
     <ProjectReference Include="..\Starcounter.Logging\Starcounter.Logging.csproj">
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Node\Starcounter.Node.csproj">
       <Project>{b640d3ff-ed2b-46c1-b49d-584efadfcfad}</Project>
       <Name>Starcounter.Node</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Tracking\Starcounter.Tracking.csproj">
       <Project>{8d37c0b3-3557-4300-9e73-a2add0ba3cbb}</Project>
       <Name>Starcounter.Tracking</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
@@ -362,6 +336,7 @@
     <ProjectReference Include="..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
       <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
       <Name>Newtonsoft.Json</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Utilities\Sc.Tools.Logging\Sc.Tools.Logging.csproj">
       <Project>{d41f6760-fb7d-413b-b07b-3062a9741ef5}</Project>
