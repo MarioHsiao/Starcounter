@@ -68,11 +68,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public override string Inherits {
             get {
                 var str = EventName + "<";
-                str += NApp.FullClassName;
+                str += NApp.GlobalClassSpecifier;
                 str += ", ";
-                str += NTemplate.FullClassName;
+                str += NTemplate.GlobalClassSpecifier;
                 str += ", ";
-                str += NMember.Type.ClassName;
+                str += NMember.Type.GlobalClassSpecifier;
                 str += ">";
                 return str;
             }

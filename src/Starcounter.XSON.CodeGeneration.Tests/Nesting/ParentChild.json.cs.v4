@@ -1,6 +1,6 @@
 ﻿
 
-[ContactApp.json.Child2]
+[ContactApp_json.Child2]
 partial class ContactPage : Json {
 }
 

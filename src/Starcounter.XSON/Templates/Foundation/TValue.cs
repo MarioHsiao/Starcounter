@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Starcounter.Advanced.XSON;
 using Starcounter.Advanced;
 using Starcounter.Internal.XSON;
+using Starcounter.Internal;
 
 namespace Starcounter {
     /// <summary>
@@ -148,5 +149,7 @@ namespace Starcounter {
         internal virtual void SetBoundValueAsObject(Obj obj, object value) {
             throw new NotSupportedException();
         }
+
+
     }
 }
