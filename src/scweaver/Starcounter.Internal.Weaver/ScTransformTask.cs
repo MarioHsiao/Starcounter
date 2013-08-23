@@ -126,10 +126,6 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private WeavingHelper _weavingHelper;
         /// <summary>
-        /// The _weave for IPC
-        /// </summary>
-        private bool _weaveForIPC;
-        /// <summary>
         /// The _starcounter assembly reference
         /// </summary>
         private AssemblyRefDeclaration _starcounterAssemblyReference;
@@ -246,70 +242,15 @@ namespace Starcounter.Internal.Weaver {
                 return true;
             }
 
-            // Check if the transformation kind has been established to be None,
-            // meaning we need not to transform at all.
-
-            if (analysisTask.TransformationKind == WeaverTransformationKind.None) {
-                ScMessageSource.Write(
-                    SeverityType.Info,
-                    "SCINF04",
-                    new Object[] { _module.Name }
-                    );
-
-                // Disable all upcoming tasks in this project, since we don't
-                // need to do anything with this assembly
-
-                this.Project.Tasks["ScTransactionScope"].Disabled = true;
-
-                // "Connection bound objects" is currently not enabled. See the
-                // P4 changelist for this commenting to see some more information
-                // on the reason and status of this.
-                // this.Project.Tasks["ScConnectionBoundObject"].Disabled = true;
-
-                this.Project.Tasks["ScEnhanceThreadingTask"].Disabled = true;
-                this.Project.Tasks["Compile"].Disabled = true;
-
-                return true;
-            }
-
-            // Some kind of transformation is needed. Lets continue.
-            //
-            // If it isn't tagged as pre-weaved, we should either weave it normally, or we
-            // should weave it for external use.
-
-            _weaveForIPC = analysisTask.TransformationKind == WeaverTransformationKind.UserCodeToIPC;
-
-            // Do initialization needed for all kinds of transformation.
-            // User code weavers requires extra initialization, invoked
-            // further down.
-
-            InitializeForAllTransformationKinds();
-
-            // If the assembly indicates it has already been weaved, we assume we are in
-            // the context of the database, with the mission to readapt it.
-
-            if (analysisTask.TransformationKind == WeaverTransformationKind.IPCToDatabase) {
-                return ExecuteOnIPCWeavedAssembly(analysisTask);
-            }
-
-            //
-            // We will weave it. Make sure we redirect it first and then mark it
-            // as weaved for IPC if it's such a context we are weaving for.
-
             ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF02", new Object[] { _module.Name });
+            Initialize();
 
-            // Initialize extra for user code weavers.
-
-            InitializeForUserCodeWeavers();
-
-            if (_weaveForIPC) {
-                weavedAssemblyAttributeCtor = _module.FindMethod(
-                    typeof(AssemblyWeavedForIPCAttribute).GetConstructor(Type.EmptyTypes),
-                    BindingOptions.Default
-                    );
-                _module.AssemblyManifest.CustomAttributes.Add(new CustomAttributeDeclaration(weavedAssemblyAttributeCtor));
-            }
-
+            weavedAssemblyAttributeCtor = _module.FindMethod(
+                typeof(AssemblyWeavedForIPCAttribute).GetConstructor(Type.EmptyTypes),
+                BindingOptions.Default
+                );
+            _module.AssemblyManifest.CustomAttributes.Add(new CustomAttributeDeclaration(weavedAssemblyAttributeCtor));
+            
             var assemblySpecification = new AssemblySpecificationEmit(_module);
             TypeSpecificationEmit typeSpecification = null;
 
@@ -403,82 +344,6 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Executes the on IPC weaved assembly.
-        /// </summary>
-        /// <param name="analysisTask">The analysis task.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        private bool ExecuteOnIPCWeavedAssembly(ScAnalysisTask analysisTask) {
-            TypeDefDeclaration typeDef;
-            string attributeIndexVariableName;
-            FieldDefDeclaration attributeIndexField;
-            RemoveTask removeTask;
-            IType weavedAssemblyAttributeType;
-            CustomAttributeDeclaration weavedAttribute;
-
-            weavedAssemblyAttributeType = FindStarcounterType(typeof(AssemblyWeavedForIPCAttribute));
-            weavedAttribute =
-                _module.AssemblyManifest.CustomAttributes.GetOneByType(weavedAssemblyAttributeType);
-
-            removeTask = RemoveTask.GetTask(this.Project);
-            removeTask.MarkForRemoval(weavedAttribute);
-
-            foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
-                ScTransformTrace.Instance.WriteLine("Retransforming {0}.", dbc);
-
-                typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
-
-                // Iterate each attribute. It will reference the IPC-weaved property.
-                // Get it and get getter and, possibly, setter.
-
-                foreach (DatabaseAttribute dba in dbc.Attributes) {
-                    if (dba.IsField && dba.IsPersistent) {
-                        // Reimplement pre-weaved accessors
-
-                        PropertyDeclaration prop = dba.GetPropertyDefinition();
-                        _weavedLucentAccessorAdvices.Add(new ReimplementWeavedLucentAccessorAdvice(_dbStateMethodProvider, prop, dba.Index));
-
-                        // Remove the corresponding static attribute index field
-
-                        attributeIndexVariableName = WeaverNamingConventions.MakeAttributeIndexVariableName(prop.Name);
-                        attributeIndexField = typeDef.Fields.GetByName(attributeIndexVariableName);
-
-                        removeTask.MarkForRemoval(attributeIndexField);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Initializes for all transformation kinds.
-        /// </summary>
-        private void InitializeForAllTransformationKinds() {
-            string dynamicLibDir;
-
-            // Only consider using the dynamic / code generated library if we are
-            // weaving inside the database, not when weaving targetting an IPC-ish
-            // context.
-
-            dynamicLibDir = _weaveForIPC
-                ? null
-                : Project.Properties["ScDynamicLibInputDir"];
-
-            var val = Project.Properties["UseStateRedirect"];
-            bool useRedirect = !string.IsNullOrEmpty(val) && val.Equals(bool.TrueString);
-
-            _dbStateMethodProvider = new DbStateMethodProvider(_module, dynamicLibDir, useRedirect);
-            _castHelper = new CastHelper(_module);
-        }
-
-        /// <summary>
-        /// Initializes for user code weavers.
-        /// </summary>
-        private void InitializeForUserCodeWeavers() {
-            this.Initialize();
-        }
-
-        /// <summary>
         /// Initializes and sets all fields needed for user code weavers.
         /// </summary>
         private new void Initialize() {
@@ -486,6 +351,12 @@ namespace Starcounter.Internal.Weaver {
             IntrinsicTypeSignature voidTypeSign;
             ITypeSignature[] uninitTypeSignArr;
             Type type;
+            
+            var val = Project.Properties["UseStateRedirect"];
+            bool useRedirect = !string.IsNullOrEmpty(val) && val.Equals(bool.TrueString);
+
+            _dbStateMethodProvider = new DbStateMethodProvider(_module, null, useRedirect);
+            _castHelper = new CastHelper(_module);
 
             voidTypeSign = _module.Cache.GetIntrinsic(IntrinsicType.Void);
             
@@ -933,20 +804,15 @@ namespace Starcounter.Internal.Weaver {
                                                 advice.Operands);
             }
 
-            // If a initializer has been defined, make sure we attach an advice that will
-            // implement it.
+            DatabaseClassInitCallMethodAdvice pcia = new DatabaseClassInitCallMethodAdvice();
 
-            if (_weaveForIPC) {
-                DatabaseClassInitCallMethodAdvice pcia = new DatabaseClassInitCallMethodAdvice();
-
-                foreach (DatabaseClass dbc in ScAnalysisTask.GetTask(this.Project).DatabaseClassesInCurrentModule) {
-                    var typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
-                    codeWeaver.AddTypeLevelAdvice(
-                        pcia,
-                        JoinPointKinds.BeforeStaticConstructor,
-                        new Singleton<TypeDefDeclaration>(typeDef)
-                        );
-                }
+            foreach (DatabaseClass dbc in ScAnalysisTask.GetTask(this.Project).DatabaseClassesInCurrentModule) {
+                var typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
+                codeWeaver.AddTypeLevelAdvice(
+                    pcia,
+                    JoinPointKinds.BeforeStaticConstructor,
+                    new Singleton<TypeDefDeclaration>(typeDef)
+                    );
             }
         }
 
@@ -982,12 +848,6 @@ namespace Starcounter.Internal.Weaver {
             MethodSemanticDeclaration setSemantic;
             ParameterDeclaration valueParameter;
             PropertyDeclaration property;
-
-            // Since we currently support just a single weaving mechanism,
-            // I'll try cleaning this method up a bit. One of the things is
-            // to remove alternative implementation for different weaving
-            // targets.
-            Trace.Assert(_weaveForIPC);
  
             ScTransformTrace.Instance.WriteLine("Generating accessors for {0}.", databaseAttribute);
 

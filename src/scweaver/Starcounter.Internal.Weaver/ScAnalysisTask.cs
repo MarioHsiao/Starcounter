@@ -146,15 +146,6 @@ namespace Starcounter.Internal.Weaver {
         }
 
         /// <summary>
-        /// Gets a value describing the type of transformation we are to execute.
-        /// </summary>
-        /// <value>The kind of the transformation.</value>
-        public WeaverTransformationKind TransformationKind {
-            get;
-            private set;
-        }
-
-        /// <summary>
         /// Locates a PostSharp model type defined in the Starcounter assembly
         /// based on a given .NET representation.
         /// </summary>
@@ -321,62 +312,6 @@ namespace Starcounter.Internal.Weaver {
             return false;
         }
 
-        /// <summary>
-        /// Determines the kind of transformation needed for the underlying
-        /// assembly/module, based on that settings in the project and on the
-        /// state of the assembly itself.
-        /// </summary>
-        /// <returns>The kind of transformation needed.</returns>
-        internal WeaverTransformationKind GetTransformationKind() {
-            BindingOptions bindingOptions;
-            Type type;
-            IType weavedAssemblyAttributeType;
-            bool specifiesIPCWeaving;
-            bool assemblyIsWeavedForIPC;
-
-            type = typeof(AssemblyWeavedForIPCAttribute);
-            bindingOptions = BindingOptions.OnlyExisting | BindingOptions.DontThrowException;
-            weavedAssemblyAttributeType = (IType)_module.FindType(typeof(AssemblyWeavedForIPCAttribute), bindingOptions);
-
-            // Decide if the project specifies we should weave for IPC.
-
-            if (string.IsNullOrEmpty(this.Project.Properties["WeaveForIPC"]))
-                specifiesIPCWeaving = false;
-            else
-                specifiesIPCWeaving = this.Project.Properties["WeaveForIPC"].Equals(bool.TrueString);
-
-            // Determine if the assembly is tagged as being weaved by the IPC
-            // weaver already.
-
-            assemblyIsWeavedForIPC = weavedAssemblyAttributeType == null
-                ? false :
-                _module.AssemblyManifest.CustomAttributes.GetOneByType(weavedAssemblyAttributeType) != null;
-
-            // Based on the above checks, establish the appropriate kind
-            // of transformation needed.
-
-            if (assemblyIsWeavedForIPC) {
-                // The assembly is weaved for IPC. If the project tells us we should
-                // weave it for IPC, we can omit transformation (by returning None).
-                // Otherwise, we assume we should transform the assembly from it's IPC
-                // state to a database-ready assembly.
-
-                if (specifiesIPCWeaving)
-                    return WeaverTransformationKind.None;
-
-                return WeaverTransformationKind.IPCToDatabase;
-            }
-
-            // The assembly is not weaved for IPC. We assume it is a user code
-            // assembly (i.e. one that was never transformed at all). We should
-            // either weave it for IPC or directly to a database-ready assembly.
-
-            if (specifiesIPCWeaving)
-                return WeaverTransformationKind.UserCodeToIPC;
-
-            return WeaverTransformationKind.UserCodeToDatabase;
-        }
-
         protected override void Initialize() {
             _module = Project.Module;
             _discoverDatabaseClassCache = new Dictionary<ITypeSignature, DatabaseClass>();
@@ -387,7 +322,6 @@ namespace Starcounter.Internal.Weaver {
                 _module.Cache.GetIntrinsic(IntrinsicType.Void),
                 new IntrinsicTypeSignature[0],
                 0);
-            this.TransformationKind = GetTransformationKind();
         }
 
         /// <summary>
@@ -1044,22 +978,7 @@ namespace Starcounter.Internal.Weaver {
             // This has to be done when the type itself has been processed.
 
             foreach (FieldDefDeclaration field in typeDef.Fields) {
-                if (this.TransformationKind == WeaverTransformationKind.IPCToDatabase) {
-                    // We identifiy persistent fields by studying attribute index fields
-                    // emitted earlier by the IPC-weaver.
-
-                    PropertyDeclaration preGeneratedProperty;
-                    string fieldName;
-
-                    if (!field.IsStatic) continue;
-
-                    if (WeaverNamingConventions.TryGetNakedAttributeName(field.Name, out fieldName)) {
-                        // Locate the generated property and create our attribute from that.
-
-                        preGeneratedProperty = typeDef.Properties.GetOneByName(fieldName);
-                        DiscoverIPCWeavedProperty(databaseClass, preGeneratedProperty);
-                    }
-                } else if (!field.IsStatic) {
+                if (!field.IsStatic) {
                     DiscoverDatabaseField(databaseClass, field);
                 }
             }
@@ -1067,11 +986,9 @@ namespace Starcounter.Internal.Weaver {
             // Process the properties if the source is undecorated user code,
             // independent of the target (lucent access or database)
 
-            if (this.TransformationKind != WeaverTransformationKind.IPCToDatabase) {
-                foreach (PropertyDeclaration property in typeDef.Properties) {
-                    if (property.Getter != null && !property.Getter.IsStatic) {
-                        DiscoverDatabaseProperty(databaseClass, property);
-                    }
+            foreach (PropertyDeclaration property in typeDef.Properties) {
+                if (property.Getter != null && !property.Getter.IsStatic) {
+                    DiscoverDatabaseProperty(databaseClass, property);
                 }
             }
 
@@ -1128,34 +1045,6 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();
-        }
-
-        /// <summary>
-        /// Inspects a reflection <see cref="PropertyDeclaration" /> originating from the IPC weaver
-        /// and hence representing a persistent field that was removed. From this, builds the corresponding
-        /// schema object (<see cref="DatabaseAttribute" />), and inserts it in the schema.
-        /// </summary>
-        /// <param name="databaseClass">The <see cref="DatabaseClass" /> to which the property belong.</param>
-        /// <param name="property">The property.</param>
-        private void DiscoverIPCWeavedProperty(DatabaseClass databaseClass, PropertyDeclaration property) {
-            DatabaseAttribute databaseAttribute;
-
-            ScAnalysisTrace.Instance.WriteLine(
-                "DiscoverIPCWeavedProperty: processing property {0}.{1} of type {2}.",
-                databaseClass.Name, property.Name, property.PropertyType
-                );
-
-            // The field was already discovered in the IPC weaving phase, and hence we
-            // can rule out some things needed to be checked/verified in that phase.
-
-            databaseAttribute = new DatabaseAttribute(databaseClass, property.Name);
-            databaseClass.Attributes.Add(databaseAttribute);
-            databaseAttribute.SetPropertyDefinition(property);
-            databaseAttribute.AttributeKind = DatabaseAttributeKind.PersistentField;
-
-            SetDatabaseAttributeType(property, true, databaseAttribute);
-
-            databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
         }
 
         /// <summary>

@@ -187,7 +187,6 @@ namespace Weaver {
             weaver = new CodeWeaver(inputDirectory, fileName, outputDirectory, cacheDirectory);
             weaver.OutputDirectory = outputDirectory;
             weaver.RunWeaver = true;
-            weaver.WeaveForIPC = true;//!arguments.ContainsFlag("noipc");
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
             weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
             weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
@@ -217,7 +216,6 @@ namespace Weaver {
 
             weaver = new CodeWeaver(inputDirectory, fileName, null, cacheDirectory);
             weaver.RunWeaver = false;
-            weaver.WeaveForIPC = true;
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
 
             // Invoke the weaver subsystem. If it fails, it will report the
