@@ -78,9 +78,9 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private WeavingHelper _weavingHelper;
         /// <summary>
-        /// The _not persistent attribute type
+        /// The type used to mark constructs as transient.
         /// </summary>
-        private IType _notPersistentAttributeType;
+        private IType _transientAttributeType;
 
         private IType _databaseAttributeType;
         /// <summary>
@@ -334,7 +334,7 @@ namespace Starcounter.Internal.Weaver {
         /// even before we check if a reference to Starcounter exist.
         /// </remarks>
         void InitializeModuleThatReferenceStarcounter() {
-            _notPersistentAttributeType = FindStarcounterType(typeof(TransientAttribute));
+            _transientAttributeType = FindStarcounterType(typeof(TransientAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
             _databaseAttributeType = FindStarcounterType(typeof(Starcounter.DatabaseAttribute));
         }
@@ -1023,7 +1023,7 @@ namespace Starcounter.Internal.Weaver {
             databaseAttribute.SetFieldDefinition(field);
             databaseAttribute.IsInitOnly = (field.Attributes & FieldAttributes.InitOnly) != 0;
             
-            if (field.CustomAttributes.Contains(this._notPersistentAttributeType)) {
+            if (field.CustomAttributes.Contains(this._transientAttributeType)) {
                 databaseAttribute.AttributeKind = DatabaseAttributeKind.NonPersistentField;
             } else {
                 databaseAttribute.AttributeKind = DatabaseAttributeKind.PersistentField;
