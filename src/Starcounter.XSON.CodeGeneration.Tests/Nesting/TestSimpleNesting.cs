@@ -37,11 +37,17 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 return str;
             });
 
+            //Console.WriteLine(dump);
+            Console.WriteLine(codegen.GenerateCode());
+
             Assert.AreEqual(typeof(AstRoot), dom.GetType() );
+            Assert.AreEqual(typeof(AstAppClass), dom.Children[0].GetType());
+            Assert.AreEqual("Parent", ((AstAppClass)dom.Children[0]).ClassName);
+
+
             var rootClass = (AstBase)dom.Children[0];
             var nestedClass = (AstBase)dom.Children[0].Children[3];
             Assert.AreEqual("Child2Json",nestedClass.Name);
-            Console.WriteLine(dump);
         }
 
         [Test]
@@ -57,13 +63,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 return str;
             });
 
+            Console.WriteLine(dump);
+
             Assert.AreEqual(typeof(AstRoot), dom.GetType());
             var rootClass = (AstBase)dom.Children[0];
-            var otherClass = (AstBase)dom.Children[0].Children[3];
+            //var otherClass = (AstBase)dom.Children[0].Children[3];
             var noLongerNestedClass = (AstBase)dom.Children[1];
+            Console.WriteLine(codegen.GenerateCode());
+
+            Assert.AreEqual("HiThere", ((AstBase)dom.Children[0]).Name); // Name gotten from code-behind in ParentChild.json.v3.cs
+
             Assert.AreEqual("ContactPage", noLongerNestedClass.Name); // Name gotten from code-behind in ParentChild.json.v3.cs
             //Console.WriteLine(dump);
-            Console.WriteLine(codegen.GenerateCode());
         }
     }
 }

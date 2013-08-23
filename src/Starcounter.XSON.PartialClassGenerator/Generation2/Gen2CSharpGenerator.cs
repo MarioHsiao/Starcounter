@@ -100,7 +100,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             ProcessAllNodes();
 
             WriteHeader(Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
-            foreach (AstAppClass napp in Root.Children)
+            foreach (var napp in Root.Children)
             {
                 WriteNode(napp);
             }
@@ -116,43 +116,42 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <exception cref="System.Exception">Unable to generate code. Invalid node found. Expected App but found: </exception>
         private void ProcessAllNodes() {
             AstAppClass napp;
-            AstAppClass previousAppClass;
+            AstBase previousKid;
             String previousNs;
-            String currentNs;
+            String currentNs = null;
 
-            previousAppClass = null;
+            previousKid = null;
             previousNs = "";
-            for (Int32 i = 0; i < Root.Children.Count; i++)
-            {
-                napp = Root.Children[i] as AstAppClass;
-                if (napp == null)
-                {
-                    throw new Exception("Unable to generate code. Invalid node found. Expected Puppet but found: " + Root.Children[i]);
-                }
+            for (Int32 i = 0; i < Root.Children.Count; i++) {
+                var kid = Root.Children[i];
 
-                currentNs = napp.Template.Namespace;
-                if (currentNs != previousNs)
-                {
-                    if (previousAppClass != null && !String.IsNullOrEmpty(previousNs))
-                    {
-                        previousAppClass.Suffix.Add("}");
+                if (kid is AstAppClass) {
+                    napp = kid as AstAppClass;
+                    currentNs = napp.Template.Namespace;
+                }
+                //                    if (napp == null) {
+                //                        throw new Exception("Unable to generate code. Invalid node found. Expected Puppet but found: " + Root.Children[i]);
+                //                    }
+
+                if (currentNs != previousNs) {
+                    if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {
+                        previousKid.Suffix.Add("}");
                     }
 
-                    if (!String.IsNullOrEmpty(currentNs))
-                    {
-                        napp.Prefix.Add("namespace " + currentNs + " {");
+                    if (!String.IsNullOrEmpty(currentNs)) {
+                        kid.Prefix.Add("namespace " + currentNs + " {");
                     }
                 }
 
-                ProcessNode(napp);
+                ProcessNode(kid);
 
                 previousNs = currentNs;
-                previousAppClass = napp;
+                previousKid = kid;
             }
 
-            if (previousAppClass != null && !String.IsNullOrEmpty(previousNs))
+            if (previousKid != null && !String.IsNullOrEmpty(previousNs))
             {
-                previousAppClass.Suffix.Add("}");
+                previousKid.Suffix.Add("}");
             }
         }
 
@@ -187,7 +186,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         sb.Append("partial ");
                     }
                     sb.Append("class ");
-                    sb.Append(n.ClassName);
+                    sb.Append(n.ClassDeclaration);
                     if (n.Inherits != null) {
                         sb.Append(" : ");
                         sb.Append(n.Inherits);
@@ -246,17 +245,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void WriteAppMemberPrefix(AstProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
-            sb.Append(m.Type.FullClassName);
+            sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append(' ');
             sb.Append(m.MemberName);
 //            if (m.Type is NArr) {
 //                sb.Append('<');
-//                sb.Append(((NArr)m.Type).NApp.FullClassName);
+//                sb.Append(((NArr)m.Type).NApp.GlobalClassSpecifier);
 //                sb.Append('>');
 //            }
             if (m.FunctionGeneric != null) {
                 sb.Append(" { get { return Get<");
-                sb.Append(m.FunctionGeneric.FullClassName);
+                sb.Append(m.FunctionGeneric.GlobalClassSpecifier);
                 sb.Append('>');
             }
             else {
@@ -267,7 +266,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append("); } set { Set");
             if (m.Type is AstArrXXXClass) {
                 sb.Append('<');
-                sb.Append(((AstArrXXXClass)m.Type).NApp.FullClassName);
+                sb.Append(((AstArrXXXClass)m.Type).NApp.GlobalClassSpecifier);
                 sb.Append('>');
             }
             sb.Append("(Template.");
@@ -283,7 +282,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void WriteAppClassPrefix(AstAppClass a) {
             a.Prefix.Add(
                 "    public static " +
-                a.ClassName + " GET(string uri) { return (" + a.ClassName + ")X.GET(uri); }");
+                a.ClassSpecifierWithoutNamespace + " GET(string uri) { return (" + 
+                a.ClassSpecifierWithoutNamespace + ")X.GET(uri); }");
             a.Prefix.Add(
                 "    public static " +
                 a.NTemplateClass.ClassName +
@@ -304,13 +304,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 a.NTemplateClass.ClassName +
                 " Template { get { return (" +
                 a.NTemplateClass.ClassName +
-                ")(this as Json).Template; } set { (this as Json).Template = value; } }");
+                ")(this as s::Json).Template; } set { (this as s::Json).Template = value; } }");
             a.Prefix.Add(
                 "    public new " +
                 a.NTemplateClass.NMetadataClass.ClassName +
                 " Metadata { get { return (" +
                 a.NTemplateClass.NMetadataClass.ClassName +
-                ")(this as Json).Metadata; } }");
+                ")(this as s::Json).Metadata; } }");
             if (a.Template.Parent != null) {
                 string parentClass = GetParentPropertyType(a.NTemplateClass.Template).ClassName;
                 a.Prefix.Add(
@@ -318,7 +318,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     parentClass +
                     " Parent { get { return (" +
                     parentClass +
-                    ")(this as Json).Parent; } set { (this as Json).Parent = value; } }");
+                    ")(this as s::Json).Parent; } set { (this as s::Json).Parent = value; } }");
             }
         }
 
@@ -334,7 +334,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void WriteTAppMemberPrefix(AstProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
-            sb.Append(m.Type.FullClassName);
+            sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append(' ');
             sb.Append(m.MemberName);
             sb.Append(";");
@@ -353,7 +353,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             var sb = new StringBuilder();
             sb.Append("public ");
-            sb.Append(m.Type.FullClassName);
+            sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append(' ');
             sb.Append(m.MemberName);
             sb.Append(" { get { return __p_");
@@ -361,7 +361,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(" ?? (__p_");
             sb.Append(m.MemberName);
             sb.Append(" = new ");
-            sb.Append(m.Type.FullClassName);
+            sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append('(');
             sb.Append("App"); // Property name .App TODO
             sb.Append(", ");
@@ -373,7 +373,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             sb.Clear();
             sb.Append("private ");
-            sb.Append(m.Type.FullClassName);
+            sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append(" __p_");
             sb.Append(m.MemberName);
             sb.Append(';');
@@ -387,9 +387,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void WriteTAppCreateInstance(AstTAppClass node) {
             StringBuilder sb = new StringBuilder();
             sb.Append("    public override object CreateInstance(Container parent) { return new ");
-            sb.Append(node.NValueClass.ClassName);
+            sb.Append(node.NValueClass.GlobalClassSpecifier);
             if (node.Template.Parent != null) {
-                string parentClass = GetParentPropertyType(node.Template).FullClassName;
+                string parentClass = GetParentPropertyType(node.Template).GlobalClassSpecifier;
                 sb.Append("(this) { Parent = (" + 
                     parentClass + 
                     ")parent }; }");
@@ -419,7 +419,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             sb = new StringBuilder();
             sb.Append("        InstanceType = typeof(");
-            sb.Append(a.NValueClass.FullClassName);
+            sb.Append(a.NValueClass.GlobalClassSpecifier);
             sb.Append(");");
             a.Prefix.Add(sb.ToString());
             
@@ -439,7 +439,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     sb.Append("        ");
                     sb.Append(mn.MemberName);
                     sb.Append(" = Add<");
-                    sb.Append(mn.Type.FullClassName);
+                    sb.Append(mn.Type.GlobalClassSpecifier);
 
                     sb.Append(">(\"");
                     sb.Append(mn.Template.TemplateName);
@@ -468,7 +468,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         sb.Append("        ");
                         sb.Append(mn.MemberName);
                         sb.Append(".ElementType = ");
-                        sb.Append(mn.FunctionGeneric.FullClassName);
+                        sb.Append(mn.FunctionGeneric.GlobalClassSpecifier);
                         sb.Append(".DefaultTemplate;");
                         a.Prefix.Add(sb.ToString());
                     }
@@ -564,18 +564,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             a.Prefix.Add(sb.ToString());
             sb = new StringBuilder();
             sb.Append("    public new ");
-            sb.Append(a.NTemplateClass.NValueClass.FullClassName);
+            sb.Append(a.NTemplateClass.NValueClass.GlobalClassSpecifier);
             sb.Append(' ');
-            sb.Append( "App" ); // Property name .App TODO! => .Obj
+            sb.Append( "App" ); // TODO! Property name .Json
             sb.Append(" { get { return (");
-            sb.Append(a.NTemplateClass.NValueClass.FullClassName);
+            sb.Append(a.NTemplateClass.NValueClass.GlobalClassSpecifier);
             sb.Append(")base.App; } }");
             a.Prefix.Add(sb.ToString());
             sb = new StringBuilder();
             sb.Append("    public new ");
-            sb.Append(a.NTemplateClass.FullClassName);
+            sb.Append(a.NTemplateClass.GlobalClassSpecifier);
             sb.Append(" Template { get { return (");
-            sb.Append(a.NTemplateClass.FullClassName);
+            sb.Append(a.NTemplateClass.GlobalClassSpecifier);
             sb.Append(")base.Template; } }");
             a.Prefix.Add(sb.ToString());
         }
@@ -599,6 +599,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("using Starcounter;\n");
             h.Append("using Starcounter.Internal;\n");
             h.Append("using Starcounter.Templates;\n");
+            h.Append("using st = Starcounter.Templates;\n");
+            h.Append("using s = Starcounter;\n");
             h.Append("#pragma warning disable 0108\n");
 			h.Append("#pragma warning disable 1591\n");
 			h.Append('\n');

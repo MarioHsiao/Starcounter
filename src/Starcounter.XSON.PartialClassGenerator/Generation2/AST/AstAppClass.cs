@@ -45,19 +45,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The _ inherits
         /// </summary>
-        public string _Inherits;
+        public string _Inherits {
+            set {
+                __inh = value;
+            }
+            get {
+                return __inh;
+            }
+        }
 
-        /// <summary>
-        /// In the below example, this property will contain "T,T2"
-        /// <example>
-        /// class MyStuff<T,T2> : Json<T> { ... }"/>
-        /// </example>
-        /// In the below example, this property will contain null
-        /// <example>
-        /// class MyStuff : Json<object> { ... }"/>
-        /// </example>
-        /// </summary>
-        public string Generics;
+        private string __inh;
+
 
         /// <summary>
         /// Can be used to set a specific base class for the generated App class.
@@ -67,10 +65,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             get { return _Inherits; }
         }
 
-        /// <summary>
-        /// The complete namespace path of this class
-        /// </summary>
-        public string Namespace;
 
         /// <summary>
         /// The class name is linked to the name of the ClassName in the
@@ -140,5 +134,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return (Template.Properties.Count > 0);
             }
         }
+
+
     }
 }

@@ -16,6 +16,11 @@ namespace QueryProcessingTest.CamelNameSpace {
     public class CamelClass {
         public decimal DecimalProperty;
     }
+
+    [Database]
+    public class CommonCamelClass {
+        public decimal DecimalProperty;
+    }
 }
 
 namespace lowercasenamespace {
@@ -46,6 +51,7 @@ public class nonamespaceclass {
     public decimal DecimalProperty;
 }
 
+
 // Add another namespace with common class inside
 
 namespace QueryProcessingTest.CamelNameSpace.AName {
@@ -60,7 +66,17 @@ namespace QueryProcessingTest.CamelNameSpace.AName {
     }
 
     [Database]
+    public class CommonCamelClass {
+        public decimal DecimalProperty;
+    }
+
+    [Database]
     public class LongNameCamelClass {
         public decimal DecimalProperty;
     }
+}
+
+[Database]
+public class CommonCamelClass {
+    public decimal DecimalProperty;
 }

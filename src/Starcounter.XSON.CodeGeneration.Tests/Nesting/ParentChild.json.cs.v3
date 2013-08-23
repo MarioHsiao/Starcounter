@@ -1,9 +1,9 @@
 ﻿
-[ParentChild.json]
-partial class ParentChild : Json {
+[ParentChild_json]
+partial class HiThere<T,T2> : Json<T> {
 }
 
-[ParentChild.json.Child2]
-partial class ContactPage : Json {
+[ParentChild_json.Child2]
+partial class ContactPage<T,T2> : Json<T> {
 }
 

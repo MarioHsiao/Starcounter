@@ -79,6 +79,10 @@ namespace Starcounter.Templates {
             }
         }
 
+        protected override IReadOnlyList<Internal.IReadOnlyTree> _Children {
+            get { return _Single; }
+        }
+
 
     }
 

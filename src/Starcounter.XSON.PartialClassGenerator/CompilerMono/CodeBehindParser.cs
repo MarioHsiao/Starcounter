@@ -287,6 +287,8 @@ namespace Starcounter.XSON.Compiler.Mono {
             }
         }
 
+
+
         /// <summary>
         /// Gets the name of the namespace, adds it to the stack of namespaces and positions 
         /// the tokenizer so that the next token is after the opening brace.
@@ -343,7 +345,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                     }
                     else if (!classInfo.IsRootClass) {
                         throw new Exception(String.Format("The class {0} has the attribute {1} although it has the same name as the .json file name.",
-                            foundClassName, classInfo.RawJsonMapAttribute));
+                            foundClassName, classInfo.RawDebugJsonMapAttribute));
                     }
                     classInfo.Namespace = mce.CurrentNamespace;
                     classInfo.GenericArg = genericArg;
@@ -380,6 +382,8 @@ namespace Starcounter.XSON.Compiler.Mono {
  //           }
             return classInfo;
         }
+            
+
 
     }
 
