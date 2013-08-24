@@ -68,6 +68,7 @@
     <Compile Include="Binding\Bindings.cs" />
     <Compile Include="Binding\BindingHelper.cs" />
     <Compile Include="Binding\BytePropertyBinding.cs" />
+    <Compile Include="Binding\DotNetBindingHelpers.cs" />
     <Compile Include="Binding\TableCreate.cs" />
     <Compile Include="Binding\LargeBinaryPropertyBinding.cs" />
     <Compile Include="Binding\ObjectPropertyBinding.cs" />
