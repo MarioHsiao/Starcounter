@@ -22,6 +22,24 @@ namespace Starcounter.Binding {
             public static string GetAutoImplementedBackingFieldName(string propertyName) {
                 return string.Format(CSharp.BackingFieldTemplate, propertyName);
             }
+
+            /// <summary>
+            /// Gets the washed property name from a given backing field name,
+            /// emitted by the compiler for an auto-implemented property.
+            /// </summary>
+            /// <remarks>
+            /// If the backing field name supplied doesn't match the decoration
+            /// used for backing fields, the name is returned as-is.
+            /// </remarks>
+            /// <param name="backingFieldName">The backing field name.</param>
+            /// <returns>The name of the auto-implemented property being backed.
+            /// </returns>
+            public static string BackingFieldNameToPropertyName(string backingFieldName) {
+                if (backingFieldName[0] == '<') {
+                    backingFieldName = backingFieldName.Substring(1, backingFieldName.IndexOf('>') - 1);
+                }
+                return backingFieldName;
+            }
         }
     }
 }
