@@ -18,7 +18,6 @@ using Starcounter.Hosting;
 using Starcounter.Internal.Weaver.BackingCode;
 using Starcounter.Internal.Weaver.BackingInfrastructure;
 using Starcounter.Internal.Weaver.IObjectViewImpl;
-using Starcounter.LucentObjects;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -64,11 +63,6 @@ namespace Starcounter.Internal.Weaver {
         /// The _method advices
         /// </summary>
         private readonly List<IMethodLevelAdvice> _methodAdvices;
-        /// <summary>
-        /// The _weaved lucent accessor advices
-        /// </summary>
-        private readonly List<ReimplementWeavedLucentAccessorAdvice> _weavedLucentAccessorAdvices;
-
         /// <summary>
         /// The _cast helper
         /// </summary>
@@ -141,7 +135,6 @@ namespace Starcounter.Internal.Weaver {
             _writer = new InstructionWriter();
             _fieldAdvices = new List<InsteadOfFieldAccessAdvice>();
             _methodAdvices = new List<IMethodLevelAdvice>();
-            _weavedLucentAccessorAdvices = new List<ReimplementWeavedLucentAccessorAdvice>();
         }
 
         /// <summary>
@@ -779,22 +772,6 @@ namespace Starcounter.Internal.Weaver {
                                                     | JoinPointKinds.InsteadOfSetField
                                                     | JoinPointKinds.InsteadOfGetFieldAddress,
                                                 metaSingleton);
-            }
-
-            foreach (ReimplementWeavedLucentAccessorAdvice advice in _weavedLucentAccessorAdvices) {
-                codeWeaver.AddMethodLevelAdvice(
-                    advice,
-                    new Singleton<MethodDefDeclaration>(advice.AccessorProperty.Getter),
-                    JoinPointKinds.InsteadOfGetField | JoinPointKinds.InsteadOfCall,
-                    null);
-
-                if (advice.AccessorProperty.Setter != null) {
-                    codeWeaver.AddMethodLevelAdvice(
-                        advice,
-                        new Singleton<MethodDefDeclaration>(advice.AccessorProperty.Setter),
-                        JoinPointKinds.InsteadOfGetField | JoinPointKinds.InsteadOfCall,
-                        null);
-                }
             }
 
             foreach (IMethodLevelAdvice advice in _methodAdvices) {
