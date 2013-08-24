@@ -24,6 +24,7 @@ using System.Text;
 
 namespace Starcounter.Internal.Weaver {
 
+    using Starcounter.Binding;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
@@ -1120,7 +1121,7 @@ namespace Starcounter.Internal.Weaver {
                 // in the same class. If not found, the attribute is not on an
                 // auto-implemented property (i.e. an error) and if we find it, we need
                 // to change the field to not-persistent.
-                var fieldName = string.Format("<{0}>k_BackingField", property.Name);
+                var fieldName = DotNetBindingHelpers.CSharp.GetAutoImplementedBackingFieldName(property.Name);
                 var backingField = databaseClass.Attributes[fieldName];
                 backingField.AttributeKind = DatabaseAttributeKind.TransientField;
             }
