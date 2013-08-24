@@ -207,7 +207,7 @@ namespace Starcounter.Internal
                     case DatabaseAttributeKind.Field:
                         if (!isSynonym) {
                             columnDefs.Add(new ColumnDef(
-                                databaseAttribute.Name,
+                                DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(databaseAttribute.Name),
                                 type,
                                 isNullable,
                                 subClass
@@ -239,7 +239,7 @@ namespace Starcounter.Internal
                             string columnName = null;
                             var backingField = databaseAttribute.BackingField;
                             if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.Field) {
-                                columnName = backingField.Name;
+                                columnName = DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(backingField.Name);
                             }
                             propertyDef.ColumnName = columnName;
                             AddProperty(propertyDef, propertyDefs);
