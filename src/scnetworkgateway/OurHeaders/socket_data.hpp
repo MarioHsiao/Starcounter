@@ -586,10 +586,22 @@ public:
         return chunk_index_;
     }
 
+    // Gets extra chunk index.
+    core::chunk_index& get_extra_chunk_index()
+    {
+        return extra_chunk_index_;
+    }
+
     // Getting data blob pointer.
     uint8_t* get_data_blob()
     {
         return data_blob_;
+    }
+
+    // Gets number of data bytes left in chunk.
+    int32_t GetNumRemainingDataBytesInChunk(uint8_t* payload)
+    {
+        return SOCKET_DATA_BLOB_SIZE_BYTES - (payload - data_blob_);
     }
 
     // Returns number of used chunks.
@@ -929,7 +941,7 @@ public:
     uint32_t CloneToReceive(GatewayWorker *gw);
 
     // Clone current socket data to simply send it.
-    uint32_t CloneToSend(GatewayWorker*gw, SocketDataChunk** new_sd);
+    uint32_t CloneToPush(GatewayWorker*gw, SocketDataChunk** new_sd);
 
     // Attaches session to socket data.
     void AssignSession(ScSessionStruct& session)

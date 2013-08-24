@@ -209,10 +209,6 @@ namespace Starcounter.Internal
         /// </summary>
         public const int CHUNK_NUM_CLONE_BYTES = CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_NUM_CLONE_BYTES;
 
-        // Chunk reserved bytes at the end.
-        // TODO: Fix when non null value.
-        public const int CHUNK_TAIL_RESERVED_BYTES = 0;
-
         /// <summary>
         /// Chunk link size.
         /// </summary>
@@ -221,7 +217,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Chunk data max size.
         /// </summary>
-        public const int CHUNK_MAX_DATA_BYTES = SHM_CHUNK_SIZE - CHUNK_LINK_SIZE - CHUNK_TAIL_RESERVED_BYTES;
+        public const int CHUNK_MAX_DATA_BYTES = SHM_CHUNK_SIZE - CHUNK_LINK_SIZE;
 
         /// <summary>
         /// Socket data max size.

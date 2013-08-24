@@ -412,6 +412,9 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     // Pushing socket data as a chunk.
     PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);
 
+    // Making SD unusable.
+    sd = NULL;
+
     return 0;
 }
 

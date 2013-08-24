@@ -353,6 +353,9 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
 // Running receive on socket data.
 uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
 {
+    // NOTE: Since we are here means that this socket data represents this socket.
+    GW_ASSERT(true == sd->get_socket_representer_flag());
+
 // This label is used to avoid recursiveness between Receive and FinishReceive.
 START_RECEIVING_AGAIN:
 
@@ -453,6 +456,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
+
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
     {
@@ -485,7 +489,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     {
         // Posting cloning receive since all data is accumulated.
         uint32_t err_code = sd->CloneToReceive(this);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
 
         // Setting proxy mode.
         sd_receive_clone_->set_proxied_server_socket_flag(true);
@@ -521,7 +526,12 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 
         // Trying to continue accumulation.
         uint32_t err_code = sd->ContinueAccumulation(this, &is_accumulated);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+        {
+            sd->set_accumulating_flag(false);
+
+            return err_code;
+        }
 
         // Checking if we have not accumulated everything yet.
         if (!is_accumulated)
@@ -538,6 +548,10 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 
                 return 0;
             }
+        }
+        else
+        {
+            sd->set_accumulating_flag(false);
         }
     }
 
@@ -675,7 +689,8 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     if (1 != sd->get_num_chunks())
     {
         uint32_t err_code = sd->ReturnExtraLinkedChunks(this);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
     }
 
     // Resets data buffer offset.
@@ -1221,6 +1236,9 @@ __forceinline uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clon
 
         if (just_delete_clone)
         {
+            // Checking if its just a trigger for disconnect.
+            if (sd->get_socket_trigger_disconnect_flag());
+
             // Disconnecting socket if needed and releasing chunk.
             DisconnectAndReleaseChunk(sd);
         }
@@ -1232,6 +1250,9 @@ __forceinline uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clon
             // Checking if any error occurred during socket operation.
             if (err_code)
             {
+                // Checking if its just a trigger for disconnect.
+                if (sd->get_socket_trigger_disconnect_flag());
+
                 // Disconnecting socket if needed and releasing chunk.
                 DisconnectAndReleaseChunk(sd);
             }
