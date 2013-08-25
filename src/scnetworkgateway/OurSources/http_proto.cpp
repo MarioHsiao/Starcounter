@@ -784,7 +784,9 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                     sd->set_accumulating_flag(true);
 
                     // Setting the desired number of bytes to accumulate.
-                    accum_buf->StartAccumulation(accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_, num_content_bytes_received);
+                    accum_buf->StartAccumulation(
+                        accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
+                        accum_buf->get_accum_len_bytes());
 
                     // Trying to continue accumulation.
                     bool is_accumulated;
@@ -1059,7 +1061,9 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                     sd->set_accumulating_flag(true);
 
                     // Setting the desired number of bytes to accumulate.
-                    accum_buf->StartAccumulation(accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_, num_content_bytes_received);
+                    accum_buf->StartAccumulation(
+                        accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
+                        accum_buf->get_accum_len_bytes());
 
                     // Trying to continue accumulation.
                     bool is_accumulated;
