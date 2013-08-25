@@ -22,7 +22,7 @@ START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortN
 ping -n 40 127.0.0.1 > nul
 
 :: Starting the client part of the test.
-NodeTest.exe
+NodeTest.exe %*
 
 :: Checking exit code.
 IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
