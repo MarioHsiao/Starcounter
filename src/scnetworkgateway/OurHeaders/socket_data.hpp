@@ -575,9 +575,9 @@ public:
     }
 
     // Set new chunk index.
-    void set_chunk_index(core::chunk_index chunk_index)
+    void set_chunk_index(core::chunk_index the_chunk_index)
     {
-        chunk_index_ = chunk_index;
+        chunk_index_ = the_chunk_index;
     }
 
     // Gets chunk index.
@@ -590,6 +590,12 @@ public:
     core::chunk_index& get_extra_chunk_index()
     {
         return extra_chunk_index_;
+    }
+
+    // Set extra chunk index.
+    void set_extra_chunk_index(core::chunk_index extra_chunk_index)
+    {
+        extra_chunk_index_ = extra_chunk_index;
     }
 
     // Getting data blob pointer.

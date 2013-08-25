@@ -416,6 +416,7 @@ namespace NetworkIoTestApp
                     for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
                         WebSocketSessions[i] = new List<Session>();
 
+                    Random rand = new Random();
                     DbSession dbSession = new DbSession();
                     Int32 interval = 5000;
                     WebSocketSessionsTimer = new Timer((state) =>
@@ -440,7 +441,7 @@ namespace NetworkIoTestApp
                                     // Checking if session is not yet dead.
                                     if (s.IsAlive())
                                     {
-                                        String pushMsg = "Scheduler: " + sched + ", seconds: " + TimerSeconds + " and session: " + s.SessionIdString;
+                                        String pushMsg = "Scheduler: " + sched + ", seconds: " + TimerSeconds + " and session: " + s.SessionIdString + " and weight: " + new String('A', 1 + rand.Next(20000));
                                         s.Push(Encoding.UTF8.GetBytes(pushMsg));
                                     }
                                     else
