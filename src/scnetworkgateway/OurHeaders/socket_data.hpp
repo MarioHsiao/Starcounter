@@ -668,6 +668,9 @@ public:
     void set_user_data_offset_in_socket_data(uint32_t user_data_offset_in_socket_data)
     {
         user_data_offset_in_socket_data_ = user_data_offset_in_socket_data;
+
+        // Correcting max user data bytes accordingly.
+        max_user_data_bytes_ = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - user_data_offset_in_socket_data_;
     }
 
     // Offset in bytes from the beginning of the chunk to place
@@ -675,12 +678,6 @@ public:
     uint32_t get_user_data_offset_in_socket_data()
     {
         return user_data_offset_in_socket_data_;
-    }
-
-    // Setting maximum user data size.
-    void set_max_user_data_bytes(uint32_t max_user_data_bytes)
-    {
-        max_user_data_bytes_ = max_user_data_bytes;
     }
 
     // Size in bytes of written user data.
@@ -790,12 +787,8 @@ public:
     void ResetUserDataOffset()
     {
         user_data_offset_in_socket_data_ = data_blob_ - (uint8_t*)this;
-    }
 
-    // Resets max user data buffer.
-    void ResetMaxUserDataBytes()
-    {
-        max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES;
+        max_user_data_bytes_ = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - user_data_offset_in_socket_data_;
     }
 
     // Start receiving on socket.

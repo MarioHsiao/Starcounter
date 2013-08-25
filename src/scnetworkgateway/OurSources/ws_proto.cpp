@@ -103,26 +103,22 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
         case WS_OPCODE_PING:
         {
             // Send the request Ping.
-            break;
+            return SCERRGWWEBSOCKETPINGOPCODE;
         }
 
         case WS_OPCODE_PONG:
         {
-            uint64_t payloadLen = frame_info_.payload_len_;
+            uint64_t payload_len = frame_info_.payload_len_;
 
             // Send the response Pong.
-            UnMaskAllChunks(gw, sd, payloadLen, frame_info_.mask_, payload);
-            payload = WritePayload(gw, sd, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, &payloadLen);
+            UnMaskAllChunks(gw, sd, payload_len, frame_info_.mask_, payload);
+            payload = WritePayload(gw, sd, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload, payload_len);
 
             // Prepare buffer to send outside.
-            sd->get_accum_buf()->PrepareForSend(payload, payloadLen);
+            sd->get_accum_buf()->PrepareForSend(payload, payload_len);
 
             // Sending data.
-            err_code = gw->Send(sd);
-            if (err_code)
-                return err_code;
-
-            break;
+            return gw->Send(sd);
         }
 
         default:
@@ -131,8 +127,6 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             return SCERRGWWEBSOCKETUNKNOWNOPCODE;
         }
     }
-
-    return SCERRGWWEBSOCKETUNKNOWNOPCODE;
 }
 
 // Processes incoming WebSocket frames.
@@ -283,13 +277,13 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
         goto JUST_SEND_SOCKET_DATA;
 
     // Getting user data.
-    uint8_t *payload = sd->UserDataBuffer();
+    uint8_t* payload = sd->UserDataBuffer();
 
     // Length of user data in bytes.
     uint64_t payload_len = sd->get_user_data_written_bytes();
 
     // Place where masked data should be written.
-    payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, &payload_len);
+    payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, payload, payload_len);
 
     // Prepare buffer to send outside.
     sd->get_accum_buf()->PrepareForSend(payload, payload_len);
@@ -302,7 +296,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
         wsa_buf->len = sd->GetNumRemainingDataBytesInChunk(payload);
         wsa_buf->buf = (char *) payload;
     }
-
+    
 JUST_SEND_SOCKET_DATA:
 
     // Sending data.
@@ -521,6 +515,10 @@ void WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
         }
     }
 
+    // Increasing limit by one if payload length is 0.
+    if (0 == frame_info_.payload_len_)
+        limit++;
+
     // Checking if frame was successfully parsed.
     if (data < limit)
         frame_info_.is_complete_ = true;
@@ -532,82 +530,80 @@ void WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
 
 // Write payload data.
 uint8_t *WsProto::WritePayload(
-    GatewayWorker *gw,
+    GatewayWorker* gw,
     SocketDataChunkRef sd,
     uint8_t opcode,
     bool masking,
     WS_FRAGMENT_FLAG frame_type,
-    uint8_t *payload,
-    uint64_t *ppayload_len)
+    uint8_t* payload,
+    uint64_t& payload_len)
 {
-    uint64_t &payload_len = *ppayload_len;
-
     // Pointing to destination memory.
-    uint8_t *dest_data = payload - 1;
+    uint8_t *p = payload - 1;
 
     // Checking masking.
     if (masking)
-        dest_data -= 4;
+        p -= 4;
 
     // Checking payload length.
     if (payload_len < 126)
-        dest_data -= 1;
+        p -= 1;
     else if (payload_len <= 0xFFFF)
-        dest_data -= 3;
+        p -= 3;
     else
-        dest_data -= 9;
+        p -= 9;
 
-    // Saving original data pointer.
-    uint8_t *dest_data_orig = dest_data;
+    // Saving frame pointer.
+    uint8_t *frame_start = p;
 
     // Applying opcode depending on the frame type.
     switch (frame_type)
     {
         case WS_FRAME_SINGLE:
         {
-            *dest_data = 0x80 | opcode;
+            *p = 0x80 | opcode;
             break;
         }
 
         case WS_FRAME_FIRST:
         {
-            *dest_data = opcode;
+            *p = opcode;
             break;
         }
 
         case WS_FRAME_CONT:
         {
-            *dest_data = 0;
+            *p = 0;
             break;
         }
 
         case WS_FRAME_LAST:
         {
-            *dest_data = 0x80;
+            *p = 0x80;
             break;
         }
     }
 
     // Shifting to payload length byte.
-    dest_data++;
+    p++;
 
     // Writing payload length.
     if (payload_len < 126)
     {
-        *dest_data = payload_len;
-        dest_data++;
+        *p = payload_len;
+        p++;
     }
     else if (payload_len <= 0xFFFF)
     {
-        *dest_data = 126;
-        (*(uint16_t *)(dest_data + 1)) = htons(payload_len);
-        dest_data += 3;
+        *p = 126;
+        (*(uint16_t *)(p + 1)) = htons(payload_len);
+        p += 3;
     }
     else
     {
-        *dest_data = 127;
-        (*(uint64_t *)(dest_data + 1)) = swap64(payload_len);
-        dest_data += 9;
+        *p = 127;
+        (*(uint64_t *)(p + 1)) = swap64(payload_len);
+        p += 9;
     }
 
     // Checking if we do masking.
@@ -617,21 +613,21 @@ uint8_t *WsProto::WritePayload(
         uint32_t mask = gw->get_random()->uint64();
 
         // Writing mask.
-        *(uint32_t *)dest_data = mask;
-        *(dest_data_orig + 1) |= 0x80;
+        *(uint32_t *)p = mask;
+        *(frame_start + 1) |= 0x80;
 
         // Shifting to the payload itself.
-        dest_data += 4;
+        p += 4;
 
         // Do masking on all data.
-        UnMaskAllChunks(gw, sd, payload_len, mask, dest_data);
+        UnMaskAllChunks(gw, sd, payload_len, mask, p);
     }
 
     // Returning total data length.
-    payload_len = (payload - dest_data_orig) + payload_len;
+    payload_len = (payload - frame_start) + payload_len;
 
-    // Returning new data pointer.
-    return dest_data_orig;
+    // Returning frame start address.
+    return frame_start;
 }
 
 } // namespace network
