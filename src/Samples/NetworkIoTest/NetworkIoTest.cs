@@ -403,6 +403,11 @@ namespace NetworkIoTestApp
                         return new Response() { BodyBytes = req.BodyBytes };
                     });
 
+                    Handle.GET(8080, "/ws", (Request req) =>
+                    {
+                        return new Response() { BodyBytes = req.BodyBytes };
+                    });
+
                     break;
                 }
 

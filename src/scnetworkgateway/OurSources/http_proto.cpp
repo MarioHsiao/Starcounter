@@ -827,7 +827,6 @@ ALL_DATA_ACCUMULATED:
 
                     // Resetting user data parameters.
                     sd->ResetUserDataOffset();
-                    sd->ResetMaxUserDataBytes();
 
                     // Push chunk to corresponding channel/scheduler.
                     // TODO: Deal with situation when not able to push.

@@ -106,6 +106,7 @@ typedef uint64_t ip_info_type;
 #define SCERRGWDISCONNECTAFTERSENDFLAG 12350
 #define SCERRGWWEBSOCKETOPCODECLOSE 12351
 #define SCERRGWWEBSOCKETUNKNOWNOPCODE 12352
+#define SCERRGWWEBSOCKETPINGOPCODE 12353
 #define SCERRGWMAXPORTHANDLERS 12355
 #define SCERRGWWRONGHANDLERTYPE 12357
 #define SCERRGWHANDLERNOTFOUND 12358
@@ -817,6 +818,12 @@ public:
     void AddLastReceivedBytes(ULONG lenBytes)
     {
         last_recv_bytes_ += lenBytes;
+    }
+
+    // Returns pointer to current data buffer.
+    uint8_t* get_cur_buf_ptr()
+    {
+        return cur_buf_ptr_;
     }
 
     // Returns pointer to original data buffer.

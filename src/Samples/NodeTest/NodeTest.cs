@@ -16,11 +16,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Starcounter.TestFramework;
+using System.Net.WebSockets;
 
 namespace NodeTest
 {
     class Settings
     {
+        public const String ServerIp = "127.0.0.1";
+        public const String ServerNodeTestHttpRelativeUri = "/nodetest";
+        public const String ServerNodeTestWsRelativeUri = "/ws";
+        public const UInt16 ServerPort = 8080;
+        public static readonly String CompleteHttpUri = "http://" + ServerIp + ":" + ServerPort + ServerNodeTestHttpRelativeUri;
+        public static readonly String CompleteWebSocketUri = "ws://" + ServerIp + ":" + ServerPort + ServerNodeTestWsRelativeUri;
+
         public enum AsyncModes
         {
             ModeSync,
@@ -28,17 +36,25 @@ namespace NodeTest
             ModeRandom
         }
 
+        public enum ProtocolTypes
+        {
+            ProtocolHttpV1,
+            ProtocolWebSockets
+        }
+
         public Int32 NumWorkers = 3;
 
         public Int32 MinEchoBytes = 1;
 
-        public Int32 MaxEchoBytes = 100000;
+        public Int32 MaxEchoBytes = 1000000;
 
-        public Int32 NumEchoesPerWorker = 10000;
+        public Int32 NumEchoesPerWorker = 5000;
 
         public Int32 NumSecondsToWait = 5000;
 
         public AsyncModes AsyncMode = AsyncModes.ModeRandom;
+
+        public ProtocolTypes ProtocolType = ProtocolTypes.ProtocolHttpV1;
 
         public Boolean ConsoleDiag = false;
 
@@ -46,29 +62,38 @@ namespace NodeTest
         {
             foreach (String arg in args)
             {
-                if (arg.StartsWith("-NumThreads="))
+                if (arg.StartsWith("-ProtocolType="))
                 {
-                    NumWorkers = Int32.Parse(arg.Substring(12));
+                    String protocolTypeParam = arg.Substring("-ProtocolType=".Length);
+
+                    if (protocolTypeParam == "ProtocolHttpV1")
+                        ProtocolType = ProtocolTypes.ProtocolHttpV1;
+                    else if (protocolTypeParam == "ProtocolWebSockets")
+                        ProtocolType = ProtocolTypes.ProtocolWebSockets;
+                }
+                else if (arg.StartsWith("-NumThreads="))
+                {
+                    NumWorkers = Int32.Parse(arg.Substring("-NumThreads=".Length));
                 }
                 else if (arg.StartsWith("-MinEchoBytes="))
                 {
-                    MinEchoBytes = Int32.Parse(arg.Substring(14));
+                    MinEchoBytes = Int32.Parse(arg.Substring("-MinEchoBytes=".Length));
                 }
                 else if (arg.StartsWith("-MaxEchoBytes="))
                 {
-                    MaxEchoBytes = Int32.Parse(arg.Substring(14));
+                    MaxEchoBytes = Int32.Parse(arg.Substring("-MaxEchoBytes=".Length));
                 }
                 else if (arg.StartsWith("-NumEchoesPerWorker="))
                 {
-                    NumEchoesPerWorker = Int32.Parse(arg.Substring(20));
+                    NumEchoesPerWorker = Int32.Parse(arg.Substring("-NumEchoesPerWorker=".Length));
                 }
                 else if (arg.StartsWith("-NumSecondsToWait="))
                 {
-                    NumSecondsToWait = Int32.Parse(arg.Substring(18));
+                    NumSecondsToWait = Int32.Parse(arg.Substring("-NumSecondsToWait=".Length));
                 }
                 else if (arg.StartsWith("-AsyncMode="))
                 {
-                    String asyncParam = arg.Substring(11);
+                    String asyncParam = arg.Substring("-AsyncMode=".Length);
 
                     if (asyncParam == "ModeSync")
                         AsyncMode = AsyncModes.ModeSync;
@@ -79,7 +104,7 @@ namespace NodeTest
                 }
                 else if (arg.StartsWith("-ConsoleDiag="))
                 {
-                    ConsoleDiag = Boolean.Parse(arg.Substring(13));
+                    ConsoleDiag = Boolean.Parse(arg.Substring("-ConsoleDiag=".Length));
                 }
             }
         }
@@ -101,6 +126,8 @@ namespace NodeTest
 
         Byte[] body_bytes_;
 
+        Byte[] resp_bytes_;
+
         Settings settings_;
 
         Worker worker_;
@@ -120,7 +147,9 @@ namespace NodeTest
             useNodeX_ = ((num_echo_bytes_ % 2) == 0) ? true : false;
 
             num_echo_bytes_ = num_echo_bytes;
+
             body_bytes_ = new Byte[num_echo_bytes_];
+            resp_bytes_ = new Byte[num_echo_bytes_];
 
 #if FILL_RANDOMLY
             // Generating random bytes.
@@ -145,27 +174,99 @@ namespace NodeTest
 #endif
         }
 
+        /// <summary>
+        /// Performs a session of WebSocket echoes.
+        /// </summary>
+        /// <param name="bodyBytes"></param>
+        /// <param name="respBytes"></param>
+        /// <returns></returns>
+        public async Task PerformSyncWebSocketEcho(Byte[] bodyBytes, Byte[] respBytes)
+        {
+            using (ClientWebSocket ws = new ClientWebSocket())
+            {
+                // Establishing WebSockets connection.
+                Uri serverUri = new Uri(Settings.CompleteWebSocketUri);
+                await ws.ConnectAsync(serverUri, CancellationToken.None);
+
+                // Within one connection performing several echoes.
+                for (Int32 x = 0; x < worker_.Rand.Next(10); x++)
+                {
+                    ArraySegment<byte> bytesToSend = new ArraySegment<byte>(bodyBytes);
+
+                    // Sending data in preferred format: text or binary.
+                    await ws.SendAsync(
+                        bytesToSend, WebSocketMessageType.Binary,
+                        true, CancellationToken.None);
+
+                    ArraySegment<byte> bytesReceived = new ArraySegment<byte>(respBytes, 0, respBytes.Length);
+
+                    WebSocketReceiveResult result = await ws.ReceiveAsync(bytesReceived, CancellationToken.None);
+
+                    // Checking if need to continue accumulation.
+                    if (result.Count < bodyBytes.Length)
+                    {
+                        Int32 totalReceived = result.Count;
+
+                        // Accumulating until all data is received.
+                        while (totalReceived < bodyBytes.Length)
+                        {
+
+                            bytesReceived = new ArraySegment<byte>(respBytes, totalReceived, respBytes.Length - totalReceived);
+
+                            result = await ws.ReceiveAsync(bytesReceived, CancellationToken.None);
+
+                            totalReceived += result.Count;
+                        }
+                    }
+
+                    // Creating response from received byte array.
+                    Response resp = new Response { BodyBytes = resp_bytes_ };
+
+                    // Checking the response and generating an error if a problem found.
+                    if (!CheckResponse(resp))
+                        throw new Exception("Incorrect WebSocket response of length: " + resp_bytes_.Length);
+                }
+            }
+        }
+
         // Sends data, gets the response, and checks its correctness.
         public Boolean PerformTest(Node node)
         {
             if (!async_)
             {
-                if (useNodeX_)
+                switch (settings_.ProtocolType)
                 {
-                    Response resp = X.POST("/nodetest", body_bytes_, null, null);
-                    return CheckResponse(resp);
-                }
-                else
-                {
-                    Response resp = node.POST("/nodetest", body_bytes_, null, null);
-                    return CheckResponse(resp);
+                    case Settings.ProtocolTypes.ProtocolHttpV1:
+                    {
+                        if (useNodeX_)
+                        {
+                            Response resp = X.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null);
+                            return CheckResponse(resp);
+                        }
+                        else
+                        {
+                            Response resp = node.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null);
+                            return CheckResponse(resp);
+                        }
+                    }
+
+                    case Settings.ProtocolTypes.ProtocolWebSockets:
+                    {
+                        Task t = PerformSyncWebSocketEcho(body_bytes_, resp_bytes_);
+                        t.Wait();
+
+                        return true;
+                    }
+
+                    default:
+                        throw new ArgumentException("Unknown protocol type!");
                 }
             }
             else
             {
                 if (useNodeX_)
                 {
-                    X.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    X.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null, null, (Response resp, Object userObject) =>
                     {
                         CheckResponse(resp);
                         return null;
@@ -173,7 +274,7 @@ namespace NodeTest
                 }
                 else
                 {
-                    node.POST("/nodetest", body_bytes_, null, null, null, (Response resp, Object userObject) =>
+                    node.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null, null, (Response resp, Object userObject) =>
                     {
                         CheckResponse(resp);
                         return null;
@@ -413,10 +514,13 @@ namespace NodeTest
 
         static Int32 Main(string[] args)
         {
+            //Debugger.Launch();
+
             Settings settings = new Settings();
             settings.Init(args);
 
             Console.WriteLine("Node Test!");
+            Console.WriteLine("Protocol: " + settings.ProtocolType);
             Console.WriteLine("Workers: " + settings.NumWorkers);
             Console.WriteLine("Echoes size bytes: [" + settings.MinEchoBytes + ", " + settings.MaxEchoBytes + "]");
             Console.WriteLine("Echoes number per worker: " + settings.NumEchoesPerWorker);

@@ -133,9 +133,9 @@ public:
         uint64_t mask,
         int8_t& num_remaining_bytes);
 
-    void UnMaskAllChunks(GatewayWorker *gw, SocketDataChunkRef sd, int32_t payloadLen, uint64_t mask, uint8_t* data);
+    void UnMaskAllChunks(GatewayWorker* gw, SocketDataChunkRef sd, int32_t payloadLen, uint64_t mask, uint8_t* data);
 
-    uint8_t *WritePayload(GatewayWorker *gw, SocketDataChunkRef sd, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t *payload, uint64_t *ppayload_len);
+    uint8_t *WritePayload(GatewayWorker* gw, SocketDataChunkRef sd, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t* payload, uint64_t& payload_len);
 
     void ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit);
 };
