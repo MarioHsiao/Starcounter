@@ -481,6 +481,9 @@ namespace NodeTest
 
             Int64 num_tests_all_workers = settings_.NumEchoesPerWorker * settings_.NumWorkers;
 
+            Int32 delay_counter = 0;
+            Int64 prev_num_finished_tests = 0;
+
             // Looping until either tests succeed, fail or timeout.
             while (
                 (num_finished_tests_ < num_tests_all_workers) &&
@@ -489,6 +492,14 @@ namespace NodeTest
             {
                 Thread.Sleep(10);
                 num_ms_passed += 10;
+
+                delay_counter++;
+                if (delay_counter >= 100)
+                {
+                    Console.WriteLine("Last second num echoes: " + (num_finished_tests_ - prev_num_finished_tests));
+                    prev_num_finished_tests = num_finished_tests_;
+                    delay_counter = 0;
+                }
             }
 
             if (!all_tests_succeeded_)
