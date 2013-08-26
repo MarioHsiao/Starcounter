@@ -106,6 +106,7 @@ typedef uint64_t ip_info_type;
 #define SCERRGWDISCONNECTAFTERSENDFLAG 12350
 #define SCERRGWWEBSOCKETOPCODECLOSE 12351
 #define SCERRGWWEBSOCKETUNKNOWNOPCODE 12352
+#define SCERRGWWEBSOCKETPINGOPCODE 12353
 #define SCERRGWMAXPORTHANDLERS 12355
 #define SCERRGWWRONGHANDLERTYPE 12357
 #define SCERRGWHANDLERNOTFOUND 12358
@@ -686,6 +687,21 @@ class AccumBuffer
 
 public:
 
+    // Moves data in accumulative buffer to top.
+    uint8_t* MoveDataToTopIfTooLittleSpace(uint8_t* cur_data_ptr, int32_t needed_space_bytes)
+    {
+        int32_t num_bytes_left = orig_buf_len_bytes_ - (cur_data_ptr - orig_buf_ptr_);
+
+        if (num_bytes_left > needed_space_bytes)
+            return cur_data_ptr;
+
+        memmove(orig_buf_ptr_, cur_data_ptr, num_bytes_left);
+        cur_buf_ptr_ = cur_data_ptr;
+        buf_len_bytes_ = num_bytes_left;
+
+        return orig_buf_ptr_;
+    }
+
     // Cloning existing accumulative buffer.
     void CloneBasedOnNewBaseAddress(uint8_t* new_base, AccumBuffer* accum_buffer)
     {
@@ -715,6 +731,12 @@ public:
             desired_accum_bytes_ = 0;
             accum_len_bytes_ = 0;
         }
+        else
+        {
+            int32_t remaining = desired_accum_bytes_ - accum_len_bytes_;
+            if (buf_len_bytes_ > remaining)
+                buf_len_bytes_ = remaining;
+        }
     }
 
     // Get buffer length.
@@ -723,22 +745,16 @@ public:
         return buf_len_bytes_;
     }
 
+    // Get buffer length.
+    ULONG GetNumLeftBytes(uint8_t* cur_ptr)
+    {
+        return orig_buf_ptr_ + orig_buf_len_bytes_ - cur_ptr;
+    }
+
     // Getting desired accumulating bytes.
     ULONG get_desired_accum_bytes()
     {
         return desired_accum_bytes_;
-    }
-
-    // Setting desired accumulating bytes.
-    void set_desired_accum_bytes(ULONG value)
-    {
-        desired_accum_bytes_ = value;
-    }
-
-    // Setting number of accumulating bytes.
-    void set_accum_len_bytes(ULONG value)
-    {
-        accum_len_bytes_ = value;
     }
 
     // Setting the data pointer for the next operation.
@@ -775,6 +791,17 @@ public:
         last_recv_bytes_ = 0;
     }
 
+    // Starting accumulation.
+    void StartAccumulation(ULONG total_desired_bytes, ULONG num_already_accumulated)
+    {
+        desired_accum_bytes_ = total_desired_bytes;
+        accum_len_bytes_ = num_already_accumulated;
+        ContinueReceive();
+        int32_t remaining = total_desired_bytes - num_already_accumulated;
+        if (buf_len_bytes_ > remaining)
+            buf_len_bytes_ = remaining;
+    }
+
     // Getting original buffer length bytes.
     ULONG get_orig_buf_len_bytes()
     {
@@ -791,6 +818,12 @@ public:
     void AddLastReceivedBytes(ULONG lenBytes)
     {
         last_recv_bytes_ += lenBytes;
+    }
+
+    // Returns pointer to current data buffer.
+    uint8_t* get_cur_buf_ptr()
+    {
+        return cur_buf_ptr_;
     }
 
     // Returns pointer to original data buffer.

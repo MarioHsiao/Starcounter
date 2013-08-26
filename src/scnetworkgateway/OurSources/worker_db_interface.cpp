@@ -123,6 +123,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             // We need to check if its a multi-chunk response.
             if (!smc->is_terminated())
             {
+                // Extra chunk index is not used when comes from database.
+                sd->set_extra_chunk_index(INVALID_CHUNK_INDEX);
+
                 // Creating special chunk for keeping WSA buffers information there.
                 err_code = sd->CreateWSABuffers(
                     this,
@@ -411,6 +414,9 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 
     // Pushing socket data as a chunk.
     PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);
+
+    // Making SD unusable.
+    sd = NULL;
 
     return 0;
 }

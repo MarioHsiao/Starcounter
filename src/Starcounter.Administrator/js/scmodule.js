@@ -21,15 +21,10 @@ var sqlQueryModule = angular.module('sc.sqlquery', ['sc.sqlquery.service', 'sc.s
 /**
  * Sql Query Controller
  */
-sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scope, SqlQuery) {
+sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery','$rootScope', function ($scope, SqlQuery, $rootScope) {
 
     $scope.alerts.length = 0;
     $scope.isBusy = false;
-
-    $scope.selectedDatabaseName = null;
-    $scope.sqlQuery = "";
-    $scope.columns = [];
-    $scope.rows = [];
 
     $scope.executeButtonTitle = function () {
         if ($scope.isBusy) {
@@ -44,25 +39,25 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scop
 
         $scope.isBusy = true;
 
-        $scope.columns = [];
-        $scope.rows = [];
+        $scope.queryState.columns = [];
+        $scope.queryState.rows = [];
 
-        SqlQuery.send({ name: $scope.selectedDatabaseName }, $scope.sqlQuery, function (response, headers) {
+        SqlQuery.send({ name: $scope.queryState.selectedDatabaseName }, $scope.queryState.sqlQuery, function (response, headers) {
 
             $scope.isBusy = false;
 
             // Success
-            $scope.columns = response.columns;
-            $scope.rows = response.rows;
+            $scope.queryState.columns = response.columns;
+            $scope.queryState.rows = response.rows;
 
             // Make all columns readonly
-            for (var i = 0; i < $scope.columns.length ; i++) {
-                $scope.columns[i].readOnly = true;
+            for (var i = 0; i < $scope.queryState.columns.length ; i++) {
+                $scope.queryState.columns[i].readOnly = true;
             }
 
             if (response.queryPlan != null) {
-                $scope.queryPlan = response.queryPlan.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
-                $scope.queryPlan = $scope.queryPlan.replace(/\t/g, "&emsp;");  // Replace all occurrences of \t with &emsp;
+                $scope.queryState.queryPlan = response.queryPlan.replace(/\r\n/g, "<br>");  // Replace all occurrences of \r\n with the html tag <br>
+                $scope.queryState.queryPlan = $scope.queryState.queryPlan.replace(/\t/g, "&emsp;");  // Replace all occurrences of \t with &emsp;
             }
 
             if (response.sqlException != null) {
@@ -96,7 +91,6 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scop
         });
     }
 
-
     // User clicked the "Execute" button
     $scope.btnExecute = function () {
         $scope.alerts.length = 0;
@@ -124,16 +118,19 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', function ($scop
         return height;
     };
 
-    $scope._RefreshDatabases(function () {
-        // success
-        for (var i = 0 ; i < $scope.databases.length ; i++) {
-            if ($scope.databases[i].running == true) {
-                $scope.selectedDatabaseName = $scope.databases[0].name;
-                break;
-            }
-        }
+    if ($scope.queryState.selectedDatabaseName == "") {
 
-    });
+        $scope._RefreshDatabases(function () {
+            // success
+            for (var i = 0 ; i < $scope.databases.length ; i++) {
+                if ($scope.databases[i].running == true) {
+                    $scope.queryState.selectedDatabaseName = $scope.databases[0].name;
+                    break;
+                }
+            }
+
+        });
+    }
 
 }]);
 
@@ -247,6 +244,15 @@ adminModule.controller('HeadCtrl', ['$scope', '$http', '$location', '$dialog', '
     $scope.engines = [];        // { uri:"http://localhost:8181/api/engines/default", name:"default" }
     $scope.databases = [];      // { "uri":"http://headsutv19:8181/api/databases/default", name:"default", running:true, engineUri:"http://headsutv19:8181/api/engines/default" }
     $scope.executables = [];    // { path:"c:\tmp\some.exe", databaseName:"default" }
+
+
+    $scope.queryState = {
+        selectedDatabaseName: "",
+        sqlQuery: "",
+        columns : [],
+        rows: [],
+        queryPlan : ""
+    };
 
     $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
         $scope.showNetworkDownError();

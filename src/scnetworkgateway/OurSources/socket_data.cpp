@@ -138,6 +138,10 @@ uint32_t SocketDataChunk::ContinueAccumulation(GatewayWorker* gw, bool* is_accum
 // Clones existing socket data chunk for receiving.
 uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 {
+    // Only socket representer can clone to its receive.
+    if (!get_socket_representer_flag())
+        return 0;
+
     SocketDataChunk* sd_clone = NULL;
     uint32_t err_code = gw->CreateSocketData(sock_, port_index_, db_index_, sd_clone);
     GW_ERR_CHECK(err_code);
@@ -176,8 +180,8 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     return 0;
 }
 
-// Clone current socket data to send it.
-uint32_t SocketDataChunk::CloneToSend(
+// Clone current socket data to push it.
+uint32_t SocketDataChunk::CloneToPush(
     GatewayWorker*gw,
     SocketDataChunk** new_sd)
 {

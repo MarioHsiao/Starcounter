@@ -575,9 +575,9 @@ public:
     }
 
     // Set new chunk index.
-    void set_chunk_index(core::chunk_index chunk_index)
+    void set_chunk_index(core::chunk_index the_chunk_index)
     {
-        chunk_index_ = chunk_index;
+        chunk_index_ = the_chunk_index;
     }
 
     // Gets chunk index.
@@ -586,10 +586,28 @@ public:
         return chunk_index_;
     }
 
+    // Gets extra chunk index.
+    core::chunk_index& get_extra_chunk_index()
+    {
+        return extra_chunk_index_;
+    }
+
+    // Set extra chunk index.
+    void set_extra_chunk_index(core::chunk_index extra_chunk_index)
+    {
+        extra_chunk_index_ = extra_chunk_index;
+    }
+
     // Getting data blob pointer.
     uint8_t* get_data_blob()
     {
         return data_blob_;
+    }
+
+    // Gets number of data bytes left in chunk.
+    int32_t GetNumRemainingDataBytesInChunk(uint8_t* payload)
+    {
+        return SOCKET_DATA_BLOB_SIZE_BYTES - (payload - data_blob_);
     }
 
     // Returns number of used chunks.
@@ -656,6 +674,9 @@ public:
     void set_user_data_offset_in_socket_data(uint32_t user_data_offset_in_socket_data)
     {
         user_data_offset_in_socket_data_ = user_data_offset_in_socket_data;
+
+        // Correcting max user data bytes accordingly.
+        max_user_data_bytes_ = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - user_data_offset_in_socket_data_;
     }
 
     // Offset in bytes from the beginning of the chunk to place
@@ -663,12 +684,6 @@ public:
     uint32_t get_user_data_offset_in_socket_data()
     {
         return user_data_offset_in_socket_data_;
-    }
-
-    // Setting maximum user data size.
-    void set_max_user_data_bytes(uint32_t max_user_data_bytes)
-    {
-        max_user_data_bytes_ = max_user_data_bytes;
     }
 
     // Size in bytes of written user data.
@@ -778,12 +793,8 @@ public:
     void ResetUserDataOffset()
     {
         user_data_offset_in_socket_data_ = data_blob_ - (uint8_t*)this;
-    }
 
-    // Resets max user data buffer.
-    void ResetMaxUserDataBytes()
-    {
-        max_user_data_bytes_ = SOCKET_DATA_BLOB_SIZE_BYTES;
+        max_user_data_bytes_ = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - user_data_offset_in_socket_data_;
     }
 
     // Start receiving on socket.
@@ -929,7 +940,7 @@ public:
     uint32_t CloneToReceive(GatewayWorker *gw);
 
     // Clone current socket data to simply send it.
-    uint32_t CloneToSend(GatewayWorker*gw, SocketDataChunk** new_sd);
+    uint32_t CloneToPush(GatewayWorker*gw, SocketDataChunk** new_sd);
 
     // Attaches session to socket data.
     void AssignSession(ScSessionStruct& session)
