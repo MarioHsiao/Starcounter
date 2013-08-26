@@ -433,6 +433,7 @@ namespace Starcounter.InstallerEngine
             StarcounterConstants.ProgramNames.ScService,
             StarcounterConstants.ProgramNames.ScCode,
             StarcounterConstants.ProgramNames.ScData,
+            StarcounterConstants.ProgramNames.ScDbLog,
             StarcounterConstants.ProgramNames.ScIpcMonitor,
             StarcounterConstants.ProgramNames.ScNetworkGateway,
             StarcounterConstants.ProgramNames.ScWeaver,
