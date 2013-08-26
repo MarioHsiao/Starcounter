@@ -1122,8 +1122,18 @@ namespace Starcounter.Internal.Weaver {
                 // auto-implemented property (i.e. an error) and if we find it, we need
                 // to change the field to not-persistent.
                 var fieldName = DotNetBindingHelpers.CSharp.GetAutoImplementedBackingFieldName(property.Name);
-                var backingField = databaseClass.Attributes[fieldName];
-                backingField.AttributeKind = DatabaseAttributeKind.TransientField;
+                try {
+                    var backingField = databaseClass.Attributes[fieldName];
+                    backingField.AttributeKind = DatabaseAttributeKind.TransientField;
+                } catch (KeyNotFoundException) {
+                    // This is the means we use to distingush the property the
+                    // transient attribute is applied to is an auto-implemented
+                    // property or a regular one. With no backing field, it
+                    // can't be an autoimplemented property.
+                    // TODO:
+                    // Define an error code and raise it.
+                    throw;
+                }
             }
 
             DatabaseAttribute databaseAttribute = new DatabaseAttribute(databaseClass, property.Name);
