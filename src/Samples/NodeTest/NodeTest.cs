@@ -210,7 +210,6 @@ namespace NodeTest
                         // Accumulating until all data is received.
                         while (totalReceived < bodyBytes.Length)
                         {
-
                             bytesReceived = new ArraySegment<byte>(respBytes, totalReceived, respBytes.Length - totalReceived);
 
                             result = await ws.ReceiveAsync(bytesReceived, CancellationToken.None);
@@ -227,6 +226,66 @@ namespace NodeTest
                         throw new Exception("Incorrect WebSocket response of length: " + resp_bytes_.Length);
                 }
             }
+        }
+
+        /// <summary>
+        /// Performs a session of WebSocket4Net echoes.
+        /// </summary>
+        /// <param name="bodyBytes"></param>
+        /// <param name="respBytes"></param>
+        /// <returns></returns>
+        public void PerformSyncWebSocket4NetEcho(Byte[] bodyBytes, Byte[] respBytes)
+        {
+            WebSocket4Net.WebSocket ws = new WebSocket4Net.WebSocket(Settings.CompleteWebSocketUri);
+
+            Int32 numRuns = worker_.Rand.Next(10) + 1;
+
+            AutoResetEvent allDataReceivedEvent = new AutoResetEvent(false);
+
+            ws.DataReceived += (s, e) => 
+            {
+                e.Data.CopyTo(respBytes, 0);
+
+                // Creating response from received byte array.
+                Response resp = new Response { BodyBytes = respBytes };
+
+                // Checking the response and generating an error if a problem found.
+                if (!CheckResponse(resp))
+                {
+                    Console.WriteLine("Incorrect WebSocket response of length: " + respBytes.Length);
+                    NodeTest.WorkersMonitor.FailTest();
+                }
+
+                // Sending data again if number of runs is not exhausted.
+                numRuns--;
+                if (numRuns <= 0)
+                    allDataReceivedEvent.Set();
+                else
+                    ws.Send(bodyBytes, 0, bodyBytes.Length);
+            };
+
+            ws.Opened += (s, e) => 
+            {
+                ws.Send(bodyBytes, 0, bodyBytes.Length);
+            };
+
+            ws.Error += (s, e) =>
+            {
+                Console.WriteLine(e.Exception.ToString());
+                NodeTest.WorkersMonitor.FailTest();
+            };
+
+            // Starting the handshake.
+            ws.Open();
+
+            // Waiting for all tests to finish.
+            if (!allDataReceivedEvent.WaitOne(1000))
+            {
+                ws.Close();
+                throw new Exception("Failed to get WebSocket response in time!");
+            }
+
+            ws.Close();
         }
 
         // Sends data, gets the response, and checks its correctness.
@@ -252,8 +311,16 @@ namespace NodeTest
 
                     case Settings.ProtocolTypes.ProtocolWebSockets:
                     {
-                        Task t = PerformSyncWebSocketEcho(body_bytes_, resp_bytes_);
-                        t.Wait();
+                        Boolean runNativeDotNetWebSockets = false;
+                        if (runNativeDotNetWebSockets)
+                        {
+                            Task t = PerformSyncWebSocketEcho(body_bytes_, resp_bytes_);
+                            t.Wait();
+                        }
+                        else
+                        {
+                            PerformSyncWebSocket4NetEcho(body_bytes_, resp_bytes_);
+                        }
 
                         return true;
                     }

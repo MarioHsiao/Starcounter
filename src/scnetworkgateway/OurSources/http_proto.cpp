@@ -390,7 +390,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case UPGRADE_FIELD:
         {
             // Double checking if its a WebSocket upgrade.
-            if (*(uint64_t*)(at + 1) != *(uint64_t*)"ebsocket")
+            if (*(uint32_t*)(at + 4) != *(uint32_t*)"ocke")
                 return SCERRGWHTTPNONWEBSOCKETSUPGRADE;
 
             break;
@@ -405,6 +405,9 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
 
         case WS_PROTOCOL_FIELD:
         {
+            if (length > 32)
+                return SCERRGWHTTPINCORRECTDATA;
+
             http->ws_proto_.SetSubProtocol((char *)at, length);
             break;
         }
