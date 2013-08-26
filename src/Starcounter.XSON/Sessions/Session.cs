@@ -210,10 +210,6 @@ namespace Starcounter {
         /// <param name="data"></param>
         public void Push(Byte[] data)
         {
-            // TODO
-            if (data.Length > 3000)
-                throw new ArgumentException("Current WebSockets implementation supports messages only up to 3000 bytes.");
-
             Request req = bmx.GenerateNewRequest(
                 InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS);
 

@@ -390,7 +390,7 @@ inline int HttpWsProto::OnHeaderValue(http_parser* p, const char *at, size_t len
         case UPGRADE_FIELD:
         {
             // Double checking if its a WebSocket upgrade.
-            if (*(uint64_t*)at != *(uint64_t*)"websocket")
+            if (*(uint64_t*)(at + 1) != *(uint64_t*)"ebsocket")
                 return SCERRGWHTTPNONWEBSOCKETSUPGRADE;
 
             break;
@@ -784,12 +784,15 @@ uint32_t HttpWsProto::AppsHttpWsProcessData(
                     sd->set_accumulating_flag(true);
 
                     // Setting the desired number of bytes to accumulate.
-                    accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received);
+                    accum_buf->StartAccumulation(
+                        accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
+                        accum_buf->get_accum_len_bytes());
 
                     // Trying to continue accumulation.
                     bool is_accumulated;
                     uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
-                    GW_ERR_CHECK(err_code);
+                    if (err_code)
+                        return err_code;
 
                     // Handled successfully.
                     *is_handled = true;
@@ -809,7 +812,8 @@ ALL_DATA_ACCUMULATED:
 #ifndef GW_TESTING_MODE
             // Posting cloning receive since all data is accumulated.
             err_code = sd->CloneToReceive(gw);
-            GW_ERR_CHECK(err_code);
+            if (err_code)
+                return err_code;
 #endif
 
             // Checking type of response.
@@ -823,7 +827,6 @@ ALL_DATA_ACCUMULATED:
 
                     // Resetting user data parameters.
                     sd->ResetUserDataOffset();
-                    sd->ResetMaxUserDataBytes();
 
                     // Push chunk to corresponding channel/scheduler.
                     // TODO: Deal with situation when not able to push.
@@ -1057,7 +1060,9 @@ uint32_t HttpWsProto::GatewayHttpWsProcessEcho(
                     sd->set_accumulating_flag(true);
 
                     // Setting the desired number of bytes to accumulate.
-                    accum_buf->set_desired_accum_bytes(accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received);
+                    accum_buf->StartAccumulation(
+                        accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
+                        accum_buf->get_accum_len_bytes());
 
                     // Trying to continue accumulation.
                     bool is_accumulated;
@@ -1208,7 +1213,8 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
     {
         // Posting cloning receive for client.
         err_code = sd->CloneToReceive(gw);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
 
         // Finished receiving from proxied server,
         // now sending to the original user.
@@ -1227,11 +1233,13 @@ uint32_t HttpWsProto::GatewayHttpWsReverseProxy(
     {
         // Posting cloning receive for client.
         uint32_t err_code = sd->CloneToReceive(gw);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
 
         // Creating new socket to proxied server.
         err_code = gw->CreateProxySocket(sd);
-        GW_ERR_CHECK(err_code);
+        if (err_code)
+            return err_code;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "Created proxy socket: " << gw->get_sd_receive_clone()->get_socket() << ":" << gw->get_sd_receive_clone()->get_chunk_index() <<

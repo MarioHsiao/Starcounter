@@ -5,6 +5,8 @@
 namespace starcounter {
 namespace network {
 
+const int32_t WS_MAX_FRAME_INFO_SIZE = 16;
+
 // Message types.
 enum WS_OPCODE
 {
@@ -42,8 +44,8 @@ class WsProtoFrameInfo
     friend class WsProto;
     friend class SocketDataChunk;
 
-    // Payload.
-    uint8_t* payload_;
+    // Payload offset in sd data blob.
+    uint64_t payload_data_blob_offset_;
 
     // Payload length in bytes.
     int64_t payload_len_;
@@ -59,6 +61,14 @@ class WsProtoFrameInfo
 
     // Is frame masked?
     bool is_masked_;
+
+    // Is frame complete.
+    bool is_complete_;
+
+    void Reset()
+    {
+        memset(this, 0, sizeof(WsProtoFrameInfo));
+    }
 };
 
 class GatewayWorker;
@@ -109,17 +119,25 @@ public:
         sub_protocol_len_ = 0;
     }
 
+    uint32_t UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id);
+
     uint32_t ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
     uint32_t ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
     uint32_t DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
-    void MaskUnMask(int32_t payloadLen, uint64_t mask, uint64_t *data);
+    void MaskUnMask(
+        uint8_t* data,
+        int32_t data_len,
+        uint64_t mask,
+        int8_t& num_remaining_bytes);
 
-    uint8_t *WriteData(GatewayWorker *gw, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t *payload, uint64_t *ppayload_len);
+    void UnMaskAllChunks(GatewayWorker* gw, SocketDataChunkRef sd, int32_t payloadLen, uint64_t mask, uint8_t* data);
 
-    uint32_t ParseFrameInfo(uint8_t *data);
+    uint8_t *WritePayload(GatewayWorker* gw, SocketDataChunkRef sd, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint8_t* payload, uint64_t& payload_len);
+
+    void ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit);
 };
 
 } // namespace network

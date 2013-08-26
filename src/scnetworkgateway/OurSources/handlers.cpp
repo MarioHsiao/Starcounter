@@ -580,7 +580,6 @@ uint32_t AppsPortProcessData(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDL
         // Resetting user data parameters.
         sd->set_user_data_written_bytes(sd->get_accum_buf()->get_accum_len_bytes());
         sd->ResetUserDataOffset();
-        sd->ResetMaxUserDataBytes();
 
         // Push chunk to corresponding channel/scheduler.
         // TODO: Deal with situation when not able to push.

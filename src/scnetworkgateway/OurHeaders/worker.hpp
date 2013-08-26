@@ -424,6 +424,12 @@ public:
         int32_t db_index,
         SocketDataChunkRef out_sd);
 
+    // Gets SMC from given database chunk.
+    shared_memory_chunk* GetSmcFromChunkIndex(int32_t db_index, core::chunk_index the_chunk_index)
+    {
+        return (shared_memory_chunk*) &(worker_dbs_[db_index]->get_shared_int()->chunk(the_chunk_index));
+    }
+
 #ifdef GW_TESTING_MODE
 
     int32_t get_num_created_conns_worker()
