@@ -136,7 +136,7 @@ public:
 	owner_id get_owner_id() const;
 
 	/// Start the test.
-	void run(uint32_t interval_time_milliseconds);
+	void run(uint32_t timeout_seconds);
 	
 	/// Stop a worker.
     /**
