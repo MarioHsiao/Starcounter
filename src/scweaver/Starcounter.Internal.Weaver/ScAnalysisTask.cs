@@ -1130,9 +1130,9 @@ namespace Starcounter.Internal.Weaver {
                     // transient attribute is applied to is an auto-implemented
                     // property or a regular one. With no backing field, it
                     // can't be an autoimplemented property.
-                    // TODO:
-                    // Define an error code and raise it.
-                    throw;
+                    throw ErrorCode.ToException(
+                        Error.SCERRILLEGALTRANSIENTTARGET, 
+                        string.Format("Class: {0}, Property: {1}.", databaseClass.Name, property.Name));
                 }
             }
 
